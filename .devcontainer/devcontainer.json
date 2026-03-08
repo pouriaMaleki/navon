@@ -1,0 +1,34 @@
+{
+  "name": "ESP32 Rust Dev",
+  "dockerComposeFile": "../compose.yaml",
+  "service": "dev",
+  "workspaceFolder": "/work",
+  "remoteUser": "vscode",
+  "postCreateCommand": "bash infra/devcontainer/scripts/post-create.sh",
+  "features": {
+    "./features/agent-persistence": {}
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "rust-analyzer.check.command": "clippy",
+        "rust-analyzer.linkedProjects": [
+          "/work/firmware/Cargo.toml"
+        ],
+        "editor.formatOnSave": true,
+        "files.trimTrailingWhitespace": true,
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "vadimcn.vscode-lldb",
+        "tamasfe.even-better-toml",
+        "ms-vscode.makefile-tools",
+        "probe-rs.probe-rs-debugger",
+        "wokwi.wokwi-vscode",
+        "fill-labs.dependi",
+        "openai.chatgpt"
+      ]
+    }
+  }
+}

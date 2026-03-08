@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "ms-vscode-remote.remote-containers",
+    "rust-lang.rust-analyzer",
+    "vadimcn.vscode-lldb",
+    "tamasfe.even-better-toml",
+    "ms-vscode.makefile-tools",
+    "probe-rs.probe-rs-debugger",
+    "wokwi.wokwi-vscode",
+    "3timeslazy.vscodium-devpodcontainers"
+  ]
+}

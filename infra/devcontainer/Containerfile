@@ -1,0 +1,20 @@
+FROM mcr.microsoft.com/devcontainers/rust:1-1-bookworm
+
+USER root
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl git bash sudo \
+    build-essential cmake ninja-build pkg-config \
+    python3 python3-pip \
+    gdb lldb \
+    libusb-1.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+USER vscode
+
+RUN rustup component add rustfmt clippy \
+    && cargo install espup --locked
+
+COPY infra/devcontainer/motd.txt /etc/motd
+
+WORKDIR /work
