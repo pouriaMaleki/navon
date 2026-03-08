@@ -31,7 +31,7 @@ cargo run -p map-vector-cli -- \
   --center-lon 24.94210 \
   --player-lat 60.173851 \
   --player-lon 24.937951 \
-  --view-tiles 3.0
+  --view-tiles 20.0
 ```
 
 ## `.svm` Standard Summary

@@ -1,54 +1,26 @@
 # Project Specification
 
 ## Product Definition
-ESP32 bike minimap renderer in video-game style.
+ESP32 bike minimap renderer in a video-game style UI.
 
-The minimap product behavior (main project) is:
-- User location is centered by default.
-- Map orientation follows travel direction (heading-up by default).
-- User can zoom in/out (target interaction: two-finger gesture when touch stack is ready).
+## Main Runtime Behavior
+- User location is centered in follow mode.
+- Map orientation follows movement direction (heading-up).
+- User can pinch to zoom.
 - User can temporarily pan to inspect nearby streets.
-- Map smoothly returns to centered-follow mode after a short idle period.
+- System smoothly recenters after pan idle timeout.
 
 ## Architecture Separation
-- Main ESP32 project (`/work`):
-  - runtime map camera logic
-  - rendering and style
-  - interaction behavior
-  - packaging/deployment flow
-- Map conversion project (`/work/map-vector-cli`):
-  - source map ingestion/conversion
-  - standard vector format ownership (`.svm`)
-  - georeferenced vector output for runtime consumers
+- Main ESP32 project (`/work`): runtime camera/render/input behavior.
+- Map conversion project (`/work/map-vector-cli`): city-scale source conversion and `.svm` format.
 
-## Map Data Pipeline
-- Source folder: `/work/map-src`
-- Source type now: `*.mbtiles`
-- Converted output folder: `/work/map-data`
-- Canonical intermediate format: `.svm`
-- Current integration bridge: `.svm` -> generated Rust module for existing renderer
+## Data Flow
+- Source maps: `/work/map-src`
+- Converted maps: `/work/map-data/city.svm`
+- Current bridge for renderer integration: generated Rust map module.
+- Target direction: direct `.svm` runtime loading in firmware.
 
-## `.svm` Contract (Current)
-- City-scale street vectors (not viewport-normalized source data).
-- Coordinates map to georeferenced world space (Web Mercator tile world units).
-- Includes schema capacity for future per-segment attributes:
-  - road class
-  - lane count (reserved now)
-  - attr/tag id (reserved now)
-
-## Vector Standard Alternatives (Summary)
-- GeoJSON:
-  - Pro: readable, ubiquitous.
-  - Con: too heavy for low-memory runtime usage.
-- Runtime MVT/Protobuf decoding:
-  - Pro: standard ecosystem format.
-  - Con: unnecessary runtime decode complexity on ESP32.
-- FlatBuffers/Cap'n Proto:
-  - Pro: efficient binary framing.
-  - Con: extra schema/tooling overhead for this specific minimap path.
-- Custom fixed-point/binary `.svm` [Selected]:
-  - Pro: minimal parse overhead, deterministic, easy to tailor to renderer needs.
-  - Con: project-owned versioning/migration burden.
-
-## Decision
-Use `.svm` as the stable intermediate vector standard and keep conversion concerns outside firmware/runtime.
+## Current Phase Notes
+- Shared camera transform supports heading-up, zoom, and pan.
+- Emulator uses browser geolocation and touch/pointer gestures.
+- Firmware has no_std GPS/touch behavior scaffold for hardware integration phase.

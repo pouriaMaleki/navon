@@ -1,66 +1,41 @@
 # Agent Workspace Guide
 
-## Canonical Project Definition
-- Main project spec:
-  - `/work/docs/project-spec.md`
-- Emulator spec:
-  - `/work/emulator/docs/project-spec.md`
-- Map conversion spec:
-  - `/work/map-vector-cli/docs/project-spec.md`
-- Agents must read the relevant spec before making plan/implementation changes.
+## Canonical Specs
+- Main project spec: `/work/docs/project-spec.md`
+- Emulator spec: `/work/emulator/docs/project-spec.md`
+- Converter spec: `/work/map-vector-cli/docs/project-spec.md`
 
-## External Sample Repository Alias
-### `minimap/`
-- Path: `/tmp/Video_Game_Mini_Maps-fork`
-- Source: `https://github.com/garagetinkering/Video_Game_Mini_Maps`
-- Reference-only; not part of this repository.
-
-## Process Style
-1. Update spec first.
-2. Update current plan.
-3. Implement.
-4. Reflect scope changes in docs.
-
-Apply this process in each project:
-- Main: `/work/docs/*`
-- Emulator: `/work/emulator/docs/*`
-- Converter: `/work/map-vector-cli/docs/*`
-
-## Source Of Truth (Code)
-- Shared renderer core: `/work/render-core`
-- Firmware app: `/work/firmware`
-- WASM adapter: `/work/render-core-wasm`
-- Web emulator: `/work/emulator/web`
-- Orchestration (`xtask`): `/work/xtask`
-- Map converter CLI: `/work/map-vector-cli`
+## Architecture Boundaries
+- Main project (`/work`): runtime camera/render/input behavior.
+- Converter (`/work/map-vector-cli`): source map conversion + `.svm` standard.
+- Do not move source-conversion concerns into firmware runtime.
 
 ## Map Folders
 - Source maps: `/work/map-src`
 - Converted maps: `/work/map-data`
 
 ## Core Commands
-Emulator flow:
-```bash
-cargo xtask emu
-```
-
-Map prep only:
 ```bash
 cargo xtask prepare-map
-```
-
-Device bundle:
-```bash
+cargo xtask emu
 cargo xtask bundle-device
-```
-
-Deploy firmware (requires espflash):
-```bash
 cargo xtask deploy-device --port /dev/ttyUSB0
 ```
 
-## Phase Rules
-- Do not parse MBTiles in firmware runtime.
-- Use `/work/map-vector-cli` for source conversion.
-- Use `.svm` as canonical intermediate vector map format.
-- Keep converter and runtime concerns separated.
+## Current Product Direction (Bike Minimap)
+- Center-follow user location.
+- Heading-up orientation.
+- Pinch zoom and temporary pan.
+- Smooth auto-recenter after pan idle.
+
+## Navigation Test Guide (Minimal)
+- Run `cargo xtask emu` and open the URL printed by Vite.
+- Grant browser location permission to test GPS-follow mode.
+- Drag to pan, pinch to zoom, then release and wait for auto-recenter.
+- Validate heading-up by moving device/position and checking map rotation alignment.
+
+## Process
+1. Update spec.
+2. Update plan.
+3. Implement.
+4. Reconcile docs and validate commands.

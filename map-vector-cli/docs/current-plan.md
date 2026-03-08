@@ -1,26 +1,15 @@
 # map-vector-cli Current Plan
 
 ## Plan
-1. Lock city-scale `.svm` schema
-- Keep georeferenced vector coordinates.
-- Include forward-compatible segment metadata fields.
-
-2. Implement robust MBTiles conversion
-- Extract street vectors across city scope.
-- Keep deterministic output and configurable zoom/limits.
-
-3. Support runtime bridge outputs
-- Generate windowed Rust module from `.svm` for current renderer integration.
-
-4. Quality and compatibility
-- Add parser/serializer round-trip tests.
-- Add fixture snapshots for deterministic conversion.
+1. Keep converter focused on city-scale georeferenced street vectors.
+2. Preserve `.svm` compatibility for low-memory runtime use.
+3. Emit integration metadata required by runtime camera projection.
+4. Keep schema forward-compatible for future street tags/attributes.
 
 ## TODO
-- [x] Create standalone converter crate.
-- [x] Implement `convert-mbtiles` for city-scale vectors.
-- [x] Implement `emit-rust-window` bridge command.
-- [x] Add metadata-ready segment schema fields.
+- [x] Keep city-scale conversion output in `.svm`.
+- [x] Include world-bounds metadata for runtime GPS projection bridge.
+- [x] Keep reserved per-segment metadata fields (road class/lane/tag id).
 - [ ] Add `.svm` round-trip tests.
 - [ ] Add conversion fixture tests.
-- [ ] Add new source adapter architecture notes.
+- [ ] Add next adapters architecture (`geojson`, `osm.pbf`).

@@ -1,37 +1,34 @@
 # Current Plan
 
-## Phase 2.5 Plan (Corrected Split + Bike Minimap Direction)
-1. Separate conversion concerns
-- Move all source map conversion responsibilities to `/work/map-vector-cli`.
-- Keep main project focused on runtime rendering and behavior.
+## Phase 3 Plan (GPS + Touch Bike Minimap)
+1. Shared camera model in Rust renderer
+- Add heading-up camera transform.
+- Add zoom and pan offsets.
+- Keep player marker rendering stable.
 
-2. Standardize map IO paths
-- Use `/work/map-src` for input maps.
-- Use `/work/map-data` for converted `.svm` outputs.
+2. Firmware runtime behavior scaffold
+- Add runtime state for GPS fixes and touch gestures.
+- Support center-follow + temporary pan + smooth recenter.
+- Keep no_std-compatible interfaces for later hardware drivers.
 
-3. Build/deploy workflow
-- Ensure map conversion runs before emulator/build flows.
-- Provide device bundle command including firmware + map data.
-- Provide deploy command scaffold for flashing firmware.
+3. Emulator browser integration
+- Use browser geolocation for user position.
+- Use pointer multitouch gestures for pinch zoom and pan.
+- Smoothly recenter after pan idle timeout.
 
-4. Runtime integration bridge
-- Use `.svm` as canonical city map artifact.
-- Continue using generated Rust window module as temporary bridge.
-- Plan direct `.svm` runtime loading as next step.
+4. Converter/runtime bridge updates
+- Export world bounds metadata needed for GPS projection.
+- Keep map conversion ownership in map-vector-cli.
 
-5. Bike minimap behavior roadmap
-- Center-follow player mode.
-- Heading-up orientation.
-- Zoom levels and smooth transitions.
-- Temporary pan with smooth auto-recenter.
+5. Validation and next stage prep
+- Validate emulator behavior on desktop and phone browser.
+- Prepare next step: direct `.svm` runtime loading on ESP32.
 
 ## TODO
-- [x] Separate converter logic into standalone project.
-- [x] Use `/work/map-src` and `/work/map-data` folders.
-- [x] Add `xtask prepare-map` flow using converter CLI.
-- [x] Add `xtask bundle-device` command.
-- [x] Add `xtask deploy-device` command (espflash-based).
-- [x] Update product descriptions/specs for both projects.
-- [ ] Implement direct `.svm` runtime loader in ESP32 path.
-- [ ] Implement heading-follow camera and recenter behavior in runtime renderer.
-- [ ] Implement zoom and temporary pan behavior (touch-enabled stage).
+- [x] Add camera-based renderer path (heading + zoom + pan).
+- [x] Add firmware bike minimap state scaffold for GPS/touch behavior.
+- [x] Add emulator geolocation + multitouch controls.
+- [x] Add map world-bounds metadata in generated map bridge.
+- [ ] Integrate real GPS/touch drivers on ESP32 hardware path.
+- [ ] Implement direct `.svm` loader in firmware (replace generated module bridge).
+- [ ] Add heading smoothing and user-configurable follow modes.

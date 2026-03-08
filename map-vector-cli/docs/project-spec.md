@@ -1,30 +1,23 @@
 # map-vector-cli Project Spec
 
 ## Purpose
-Convert large source maps into a compact georeferenced street-vector standard (`.svm`) for embedded/runtime consumers.
+Convert large map datasets into a compact georeferenced street-vector standard (`.svm`) for runtime minimap systems.
 
 ## Product Boundary
-This tool does not implement minimap UX or camera behavior.
-Its role is data preparation and schema standardization.
+- CLI converter only.
+- No minimap camera or UI behavior.
+- No firmware/touch/GPS runtime logic.
 
 ## Current Scope
-- CLI-only host tool.
-- Input: MBTiles (`*.mbtiles`).
-- Output: city-scale `.svm` vector maps.
-- Bridge output for current runtime integration: windowed generated Rust module.
+- Input: MBTiles (`*.mbtiles`) from `/work/map-src`.
+- Output: city-scale `.svm` vector map in `/work/map-data`.
+- Optional bridge output: windowed generated Rust module for current wasm integration.
 
-## Data Standard Goals
-- Preserve geospatial mapping between vectors and GPS coordinates.
-- Keep schema compact for low-power runtimes.
-- Reserve fields for future metadata/tagging:
-  - street naming
-  - lane count
-  - additional attribute IDs
-
-## Non-Goals
-- No direct rendering.
-- No firmware UI or interaction logic.
-- No network tile fetch pipeline.
+## Data Model Goals
+- Preserve GPS-to-vector mapping through georeferenced world coordinates.
+- Store street vectors (points-of-interest and rich tags are future scope).
+- Keep format compact for low-power runtime loading.
+- Reserve per-segment metadata fields for future attributes (lane count, names, tags).
 
 ## Extensibility
-Future adapters (`geojson`, `osm.pbf`, etc.) should emit the same `.svm` contract.
+Future source adapters (`geojson`, `osm.pbf`, etc.) must emit the same `.svm` contract.
