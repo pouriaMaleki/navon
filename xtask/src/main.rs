@@ -108,7 +108,7 @@ fn run_prepare_map() -> Result<(), String> {
             .arg("--player-lon")
             .arg("24.937951")
             .arg("--view-tiles")
-            .arg("3.0");
+            .arg("20.0");
         run_cmd(emit, "window map rust generation failed")?;
 
         eprintln!("xtask: map prepared from {}", mbtiles.display());
@@ -197,6 +197,10 @@ pub const MAP_SOURCE: &str = "none";
 pub const MAP_ZOOM: i32 = 0;
 pub const MAP_CENTER_LAT: f64 = 0.0;
 pub const MAP_CENTER_LON: f64 = 0.0;
+pub const MAP_WORLD_MIN_X: i32 = 0;
+pub const MAP_WORLD_MAX_X: i32 = 1;
+pub const MAP_WORLD_MIN_Y: i32 = 0;
+pub const MAP_WORLD_MAX_Y: i32 = 1;
 pub const MAP_BOUNDS: WorldBounds = WorldBounds { min_x: 0, max_x: 10000, min_y: 0, max_y: 10000 };
 pub const MAP_PLAYER: esp32_screen_render_core::WorldPoint = esp32_screen_render_core::WorldPoint { x: 5000, y: 5000 };
 pub const MAP_LINES: &[Line] = &[];

@@ -13,8 +13,9 @@ use esp_hal::time::{Duration, Instant};
 use esp_println::println;
 use esp_backtrace as _;
 use esp32_hello::minimap::{
-    FrameBuffer, WAVESHARE_ESP32_P4_3_4, render_sample_device_style, sample_player_for_tick,
+    FrameBuffer, SAMPLE_LINES, WAVESHARE_ESP32_P4_3_4, render_device_style_camera,
 };
+use esp32_hello::bike_minimap::{BikeMinimapState, GeoFix};
 
 // Wokwi doesn't emulate the ESP32-P4 LCD target yet, so this is a compact
 // viewport emulation of the 800x800 target render.
@@ -44,13 +45,18 @@ fn main() -> ! {
 
     let mut pixels = [0_u8; MAP_W * MAP_H];
     let mut t: u32 = 0;
+    let mut bike = BikeMinimapState::new(60.17442, 24.94210);
 
     loop {
-        let player = sample_player_for_tick(t);
+        let fix = mock_gps_fix(t);
+        bike.apply_gps(fix);
+        mock_touch_update(t, &mut bike);
+        bike.tick(1200.0);
         t = t.wrapping_add(1);
 
         let mut frame = FrameBuffer::new(MAP_W, MAP_H, &mut pixels);
-        render_sample_device_style(&mut frame, player);
+        let view = bike.camera_view();
+        render_device_style_camera(&mut frame, &SAMPLE_LINES, &view);
 
         println!("---- minimap frame ----");
         print_ascii_minimap(&pixels, MAP_W, MAP_H, ASCII_W, ASCII_H);
@@ -60,6 +66,29 @@ fn main() -> ! {
     }
 
     // for inspiration have a look at the examples at https://github.com/esp-rs/esp-hal/tree/esp-hal-v1.0.0/examples
+}
+
+fn mock_gps_fix(tick: u32) -> GeoFix {
+    let tt = tick as f32 * 0.06;
+    GeoFix {
+        lat: 60.17442 + (tt.sin() as f64) * 0.0015,
+        lon: 24.94210 + (tt.cos() as f64) * 0.0015,
+        heading_rad: tt + core::f32::consts::FRAC_PI_2,
+    }
+}
+
+fn mock_touch_update(tick: u32, bike: &mut BikeMinimapState) {
+    // Simulated two-finger zoom pulses.
+    if tick % 18 == 0 {
+        bike.apply_pinch_gesture(1.05);
+    } else if tick % 25 == 0 {
+        bike.apply_pinch_gesture(0.94);
+    }
+
+    // Simulated temporary map pan; auto recenters in bike.tick().
+    if tick % 40 >= 10 && tick % 40 <= 16 {
+        bike.apply_pan_gesture(14.0, -8.0);
+    }
 }
 
 fn print_ascii_minimap(

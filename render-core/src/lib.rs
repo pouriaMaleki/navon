@@ -91,6 +91,16 @@ pub struct MinimapView {
     pub player: WorldPoint,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct CameraView {
+    pub center: WorldPoint,
+    pub player: WorldPoint,
+    pub heading_rad: f32,
+    pub zoom: f32,
+    pub base_bounds: WorldBounds,
+    pub background: u8,
+}
+
 pub const SAMPLE_BOUNDS: WorldBounds = WorldBounds {
     min_x: 0,
     max_x: 1000,
@@ -182,6 +192,11 @@ pub fn render_device_style(frame: &mut FrameBuffer<'_>, lines: &[Line], view: &M
     apply_device_style(frame);
 }
 
+pub fn render_device_style_camera(frame: &mut FrameBuffer<'_>, lines: &[Line], view: &CameraView) {
+    render_minimap_camera(frame, lines, view);
+    apply_device_style(frame);
+}
+
 pub fn render_minimap(frame: &mut FrameBuffer<'_>, lines: &[Line], view: &MinimapView) {
     frame.clear(view.background);
     for line in lines {
@@ -192,8 +207,42 @@ pub fn render_minimap(frame: &mut FrameBuffer<'_>, lines: &[Line], view: &Minima
     draw_player(frame, view.player, view.bounds);
 }
 
+pub fn render_minimap_camera(frame: &mut FrameBuffer<'_>, lines: &[Line], view: &CameraView) {
+    frame.clear(view.background);
+    let zoom = if view.zoom < 0.2 { 0.2 } else { view.zoom };
+    let half_w = (view.base_bounds.width().max(1) as f32) / (2.0 * zoom);
+    let half_h = (view.base_bounds.height().max(1) as f32) / (2.0 * zoom);
+    // Extra margin keeps line edges visible during pan/rotation while rejecting far geometry.
+    let mx = (half_w * 1.6) as i32;
+    let my = (half_h * 1.6) as i32;
+    let cmin_x = view.center.x as i32 - mx;
+    let cmax_x = view.center.x as i32 + mx;
+    let cmin_y = view.center.y as i32 - my;
+    let cmax_y = view.center.y as i32 + my;
+
+    for line in lines {
+        let min_x = (line.from.x.min(line.to.x)) as i32;
+        let max_x = (line.from.x.max(line.to.x)) as i32;
+        let min_y = (line.from.y.min(line.to.y)) as i32;
+        let max_y = (line.from.y.max(line.to.y)) as i32;
+        if max_x < cmin_x || min_x > cmax_x || max_y < cmin_y || min_y > cmax_y {
+            continue;
+        }
+        let from = world_to_screen_camera(line.from, view, frame.width, frame.height);
+        let to = world_to_screen_camera(line.to, view, frame.width, frame.height);
+        draw_line(frame, from, to, line.intensity, line.thickness.max(1) as i32);
+    }
+    let p = world_to_screen_camera(view.player, view, frame.width, frame.height);
+    draw_player_screen(frame, p);
+}
+
 fn draw_player(frame: &mut FrameBuffer<'_>, player: WorldPoint, bounds: WorldBounds) {
     let (x, y) = world_to_screen(player, bounds, frame.width, frame.height);
+    draw_player_screen(frame, (x, y));
+}
+
+fn draw_player_screen(frame: &mut FrameBuffer<'_>, p: (i32, i32)) {
+    let (x, y) = p;
     for dy in -2..=2 {
         for dx in -2..=2 {
             if dx * dx + dy * dy <= 4 {
@@ -201,6 +250,29 @@ fn draw_player(frame: &mut FrameBuffer<'_>, player: WorldPoint, bounds: WorldBou
             }
         }
     }
+}
+
+fn world_to_screen_camera(
+    p: WorldPoint,
+    view: &CameraView,
+    width: usize,
+    height: usize,
+) -> (i32, i32) {
+    let zoom = if view.zoom < 0.2 { 0.2 } else { view.zoom };
+    let dx = (p.x - view.center.x) as f32;
+    let dy = (p.y - view.center.y) as f32;
+    let cos_h = libm::cosf(view.heading_rad);
+    let sin_h = libm::sinf(view.heading_rad);
+
+    // Rotate world by -heading so forward direction stays near screen north.
+    let rx = dx * cos_h + dy * sin_h;
+    let ry = -dx * sin_h + dy * cos_h;
+
+    let half_w = (view.base_bounds.width().max(1) as f32) / (2.0 * zoom);
+    let half_h = (view.base_bounds.height().max(1) as f32) / (2.0 * zoom);
+    let sx = ((rx / half_w) * (width as f32 * 0.5)) + (width as f32 * 0.5);
+    let sy = ((-ry / half_h) * (height as f32 * 0.5)) + (height as f32 * 0.5);
+    (sx as i32, sy as i32)
 }
 
 fn world_to_screen(

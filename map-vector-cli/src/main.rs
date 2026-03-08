@@ -344,6 +344,22 @@ fn write_rust_window_module(path: &Path, map: &StandardMap, cfg: &EmitRustWindow
     out.push_str(&format!("pub const MAP_ZOOM: i32 = {};\n", map.source_zoom));
     out.push_str(&format!("pub const MAP_CENTER_LAT: f64 = {:.6};\n", cfg.center_lat));
     out.push_str(&format!("pub const MAP_CENTER_LON: f64 = {:.6};\n", cfg.center_lon));
+    out.push_str(&format!(
+        "pub const MAP_WORLD_MIN_X: i32 = {};\n",
+        camera.min_x
+    ));
+    out.push_str(&format!(
+        "pub const MAP_WORLD_MAX_X: i32 = {};\n",
+        camera.max_x
+    ));
+    out.push_str(&format!(
+        "pub const MAP_WORLD_MIN_Y: i32 = {};\n",
+        camera.min_y
+    ));
+    out.push_str(&format!(
+        "pub const MAP_WORLD_MAX_Y: i32 = {};\n",
+        camera.max_y
+    ));
     out.push_str("pub const MAP_BOUNDS: WorldBounds = WorldBounds { min_x: 0, max_x: 10000, min_y: 0, max_y: 10000 };\n");
     out.push_str(&format!(
         "pub const MAP_PLAYER: WorldPoint = WorldPoint {{ x: {}, y: {} }};\n",
