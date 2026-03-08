@@ -1,0 +1,25 @@
+{
+  "name": "@esp32-screen/emulator",
+  "private": false,
+  "version": "0.1.0",
+  "description": "Reusable web emulator framework for ESP32 projects using Waveshare ESP32-P4 LCD profiles.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 5173",
+    "typecheck": "tsc --noEmit"
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vite": "^7.1.5"
+  }
+}

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Minimap Emulator</title>
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <h1>Minimap Emulator</h1>
+        <p>Target profile: Waveshare ESP32-P4 LCD (800x800)</p>
+      </header>
+      <section class="panel">
+        <canvas id="minimap" width="800" height="800" aria-label="Minimap canvas"></canvas>
+      </section>
+      <section class="controls">
+        <button id="toggle" type="button">Pause</button>
+        <button id="reset" type="button">Reset</button>
+      </section>
+    </main>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
