@@ -1,0 +1,22 @@
+# Rust build artifacts
+/firmware/target/
+
+# Cargo local config
+/firmware/.cargo/
+
+# Tool/editor temp files
+*.swp
+*.swo
+*~
+.DS_Store
+
+# VS Code local-only state
+.vscode/*.code-workspace
+.vscode/settings.local.json
+.opencode/
+
+# Logs and local env
+*.log
+.env
+.env.*
+!.env.example

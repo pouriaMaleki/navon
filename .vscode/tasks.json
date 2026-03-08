@@ -1,0 +1,62 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Dev: build container image",
+      "type": "shell",
+      "command": "bash -lc 'if command -v podman >/dev/null 2>&1; then podman compose -f compose.yaml build dev; elif command -v podman-compose >/dev/null 2>&1; then podman-compose -f compose.yaml build dev; elif command -v docker >/dev/null 2>&1; then docker compose -f compose.yaml build dev; else echo \"Install podman or docker with compose support\" && exit 1; fi'",
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: start container",
+      "type": "shell",
+      "command": "bash -lc 'if command -v podman >/dev/null 2>&1; then podman compose -f compose.yaml up -d dev; elif command -v podman-compose >/dev/null 2>&1; then podman-compose -f compose.yaml up -d dev; elif command -v docker >/dev/null 2>&1; then docker compose -f compose.yaml up -d dev; else echo \"Install podman or docker with compose support\" && exit 1; fi'",
+      "problemMatcher": []
+    },
+    {
+      "label": "Rust: cargo build",
+      "type": "shell",
+      "command": "cargo build",
+      "options": {
+        "cwd": "${workspaceFolder}/firmware"
+      },
+      "group": "build",
+      "problemMatcher": [
+        "$rustc"
+      ]
+    },
+    {
+      "label": "Rust: cargo check",
+      "type": "shell",
+      "command": "cargo check",
+      "options": {
+        "cwd": "${workspaceFolder}/firmware"
+      },
+      "problemMatcher": [
+        "$rustc"
+      ]
+    },
+    {
+      "label": "Rust: cargo clippy",
+      "type": "shell",
+      "command": "cargo clippy --all-targets --all-features",
+      "options": {
+        "cwd": "${workspaceFolder}/firmware"
+      },
+      "problemMatcher": [
+        "$rustc"
+      ]
+    },
+    {
+      "label": "Rust: cargo test",
+      "type": "shell",
+      "command": "cargo test",
+      "options": {
+        "cwd": "${workspaceFolder}/firmware"
+      },
+      "problemMatcher": [
+        "$rustc"
+      ]
+    }
+  ]
+}

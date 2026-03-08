@@ -1,0 +1,6 @@
+Welcome to the ESP32 Rust dev container.
+
+Quick start:
+- Run `espup install` once to install Espressif toolchains
+- Then `source ~/export-esp.sh`
+- Build with `cargo build`
