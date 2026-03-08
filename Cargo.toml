@@ -1,0 +1,8 @@
+[workspace]
+members = [
+  "firmware",
+  "render-core",
+  "render-core-wasm",
+  "xtask"
+]
+resolver = "2"

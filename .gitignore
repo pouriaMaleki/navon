@@ -1,5 +1,6 @@
 # Rust build artifacts
 /firmware/target/
+/target/
 
 # Cargo local config
 /firmware/.cargo/
