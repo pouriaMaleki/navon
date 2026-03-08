@@ -19,6 +19,27 @@ cd <repo>
 code .
 ```
 
+## One-time Git identity setup (Dev Container)
+Git identity inside the Dev Container can be separate from your host machine.
+Before your first commit in this container environment, configure identity once:
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+If you prefer repository-local identity instead of global, run this in `/work`:
+```bash
+git config user.name "Your Name"
+git config user.email "you@example.com"
+```
+
+## External sample alias for agents
+This workspace defines `minimap/` as shorthand for an external sample repository:
+- `/tmp/Video_Game_Mini_Maps-fork`
+- Source: `https://github.com/garagetinkering/Video_Game_Mini_Maps`
+
+When prompts say "check minimap repo" or "look in minimap/", they refer to that path.
+
 ## Prerequisites
 - VS Code
 - VS Code extension: `Dev Containers` (`ms-vscode-remote.remote-containers`)
