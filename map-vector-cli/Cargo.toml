@@ -1,0 +1,10 @@
+[package]
+name = "map-vector-cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+flate2 = "1.1.4"
+geo-types = "0.7.17"
+mvt-reader = "2.3.0"
+rusqlite = { version = "0.37.0", features = ["bundled"] }

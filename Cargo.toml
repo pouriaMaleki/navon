@@ -3,6 +3,7 @@ members = [
   "firmware",
   "render-core",
   "render-core-wasm",
+  "map-vector-cli",
   "xtask"
 ]
 resolver = "2"
