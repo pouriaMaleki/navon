@@ -1,12 +1,18 @@
 # Web Emulator Module
 
-Browser module that emulates the minimap product output for rapid iteration.
+Browser module for validating bike-minimap behavior quickly with the shared Rust/WASM renderer.
 
 ## Product Description
 - Emulates target output style for Waveshare ESP32-P4 LCD profile (`800x800`).
-- Provides high-speed visual feedback loop for rendering changes before hardware runs.
+- Uses browser geolocation to drive user location when permission is granted.
+- Supports touch/pointer pinch zoom and temporary pan with smooth auto-recenter.
 - Uses the same shared Rust renderer core as firmware via WASM (`render-core-wasm`).
-- Designed as a reusable framework for other ESP32 projects using the same screen profile.
+
+## Interaction Quick Guide
+- Allow location permission in browser to enable live GPS-follow behavior.
+- Drag with one finger/mouse to temporarily pan.
+- Pinch with two fingers to zoom.
+- Stop panning and wait briefly to see smooth auto-recenter to GPS position.
 
 ## Technology
 - Language: TypeScript
@@ -32,7 +38,7 @@ cargo run -p xtask -- emu
 ```
 
 Open:
-`http://localhost:5173`
+`http://localhost:5173` (or next available port shown in terminal output)
 
 ## Rust Workflow
 Primary developer flow is a single cargo command from repository root:

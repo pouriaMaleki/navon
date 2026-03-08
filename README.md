@@ -3,48 +3,52 @@
 Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map experience.
 
 ## Product Split
-- `main ESP32 project` (`/work`): renders a game-style minimap around rider location.
-- `map conversion project` (`/work/map-vector-cli`): host-side CLI that converts large map sources into compact street-vector data.
+- Main ESP32 project (`/work`): runtime minimap behavior (GPS follow, heading-up, zoom/pan).
+- Map conversion project (`/work/map-vector-cli`): host-side city map conversion into `.svm`.
 
-This separation is intentional:
-- Converter owns source map decoding and format normalization.
-- ESP32 app owns real-time camera, rendering style, and interaction behavior.
+## Phase 3 Features (Current)
+- Heading-up camera transform in shared Rust renderer.
+- Zoom + pan camera controls.
+- Smooth auto-recenter after temporary pan.
+- Emulator geolocation support using browser location APIs.
+- Emulator pinch/pan touch interactions (works on mobile browsers).
 
-## Bike Minimap Product Direction (Main Project)
-- Rider location remains centered by default.
-- Map orientation follows movement direction (game-like heading-up behavior).
-- Zoom interaction target: two-finger zoom (future hardware support).
-- Temporary pan/peek support, with smooth auto-recenter.
+## Navigation Behavior (Current)
+- Default: follow mode (user stays centered).
+- One-finger drag: temporarily pan map.
+- Two-finger pinch: zoom in/out.
+- After brief idle: smooth auto-return to current GPS center.
 
 ## Map Data Flow
-- Source maps: `/work/map-src` (`*.mbtiles` for now)
-- Converted city vectors: `/work/map-data` (`city.svm`)
-- Runtime integration (current stage): generated Rust map module from `.svm`
+- Source maps: `/work/map-src` (`*.mbtiles`)
+- Converted maps: `/work/map-data` (`city.svm`)
+- Current runtime bridge: `.svm` -> generated Rust module for wasm renderer integration.
 
 ## Commands
-Prepare maps only:
+Prepare maps:
 ```bash
 cargo xtask prepare-map
 ```
 
-Run emulator (includes map prep):
+Run emulator:
 ```bash
 cargo xtask emu
 ```
 
-Create deploy bundle (`firmware.elf` + `city.svm`):
+Bundle firmware + map for device:
 ```bash
 cargo xtask bundle-device
 ```
 
-Flash firmware to device (requires `espflash`):
+Deploy firmware (requires `espflash`):
 ```bash
 cargo xtask deploy-device --port /dev/ttyUSB0
 ```
 
-## Docs
+## Specs and Plans
 - Main spec: `/work/docs/project-spec.md`
 - Main plan: `/work/docs/current-plan.md`
 - Converter spec: `/work/map-vector-cli/docs/project-spec.md`
 - Converter plan: `/work/map-vector-cli/docs/current-plan.md`
-- Converter format options: `/work/map-vector-cli/docs/vector-format-options.md`
+- Emulator spec: `/work/emulator/docs/project-spec.md`
+- Emulator plan: `/work/emulator/docs/current-plan.md`
