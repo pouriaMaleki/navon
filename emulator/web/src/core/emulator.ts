@@ -70,6 +70,10 @@ export class Esp32ScreenEmulator<TCustom> {
     this.target.present(this.surface);
   }
 
+  customState(): TCustom {
+    return this.state.custom;
+  }
+
   private readonly step = (ts: number): void => {
     if (!this.running) {
       return;

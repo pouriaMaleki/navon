@@ -8,3 +8,6 @@ description = "Shared renderer core for ESP32 minimap projects"
 [lib]
 name = "esp32_screen_render_core"
 path = "src/lib.rs"
+
+[dependencies]
+libm = "0.2"

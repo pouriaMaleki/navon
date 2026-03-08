@@ -53,6 +53,7 @@ canvas {
   margin: 0 auto;
   border-radius: 10px;
   image-rendering: auto;
+  touch-action: none;
 }
 
 .controls {
