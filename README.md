@@ -1,10 +1,11 @@
-# ESP32 Rust Dev Container
+# ESP32 Minimap Platform
 
-A Git-first, declarative ESP32 Rust development environment for VS Code.
+A Git-first ESP32 minimap project with declarative Dev Container setup and a shared Rust renderer used by both firmware and web emulator.
 
 ## What you get
 - Dev container image with Rust, `rustfmt`, `clippy`, and `espup`
 - Idempotent `postCreateCommand` that installs ESP toolchain and wires shell exports
+- Shared Rust rendering core (`render-core`) reused by firmware and emulator (WASM)
 - Preconfigured VS Code extensions via `.devcontainer/devcontainer.json`
 - Simple compose service for repeatable local startup
 - Clear layout:
@@ -39,6 +40,23 @@ This workspace defines `minimap/` as shorthand for an external sample repository
 - Source: `https://github.com/garagetinkering/Video_Game_Mini_Maps`
 
 When prompts say "check minimap repo" or "look in minimap/", they refer to that path.
+
+## Project docs
+- Canonical project spec: `/work/docs/project-spec.md`
+- Current execution plan: `/work/docs/current-plan.md`
+- Emulator spec: `/work/emulator/docs/project-spec.md`
+- Emulator current plan: `/work/emulator/docs/current-plan.md`
+
+## Target device and emulation
+- Target display device: Waveshare ESP32-P4-WIFI6-Touch-LCD-XC (default 800x800 mode).
+- Primary local emulation path: `/work/emulator` web module (`http://localhost:5173`), driven by shared Rust renderer core via WASM.
+- Secondary fallback: Wokwi + serial monitor preview.
+- Note: Wokwi does not currently emulate the ESP32-P4 + Waveshare LCD stack used by the reference project.
+
+Run emulator from repo root:
+```bash
+cargo xtask emu
+```
 
 ## Prerequisites
 - VS Code

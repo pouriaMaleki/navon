@@ -1,0 +1,10 @@
+[package]
+name = "esp32-screen-render-core"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "Shared renderer core for ESP32 minimap projects"
+
+[lib]
+name = "esp32_screen_render_core"
+path = "src/lib.rs"
