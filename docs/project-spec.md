@@ -1,37 +1,54 @@
 # Project Specification
 
-## Canonical Description (User-Defined)
-The following project overview is preserved as the canonical definition for future agents:
+## Product Definition
+ESP32 bike minimap renderer in video-game style.
 
-> Over view of project:
->
-> ESP32 map renderer in style of video games minimap. We are implementing something similar to minimap repo, but using vectors so we gain high quality perforamnce.
->
-> Language is rust for ease of development and performance
->
-> In the phase one, we will have only a sample map, which is just a mock small map made of a few vectors, and we try to render that on display in format of a video game map.
+The minimap product behavior (main project) is:
+- User location is centered by default.
+- Map orientation follows travel direction (heading-up by default).
+- User can zoom in/out (target interaction: two-finger gesture when touch stack is ready).
+- User can temporarily pan to inspect nearby streets.
+- Map smoothly returns to centered-follow mode after a short idle period.
 
-## Normalized Summary
-- Target platform: ESP32
-- Goal: render a video-game-style minimap
-- Reference: `minimap/` sample repo (`/tmp/Video_Game_Mini_Maps-fork`)
-- Key technical direction: vector-based map rendering for quality/performance benefits
-- Language: Rust
-- Target display device:
-  - Waveshare ESP32-P4-WIFI6-Touch-LCD-XC
-  - default panel mode: 800x800 (3.4-inch)
-  - compatible mode: 720x720 (4-inch)
-- Phase 1 scope:
-  - Use a mock/sample map only
-  - Sample consists of a small set of vector shapes
-  - Render to display in minimap style
+## Architecture Separation
+- Main ESP32 project (`/work`):
+  - runtime map camera logic
+  - rendering and style
+  - interaction behavior
+  - packaging/deployment flow
+- Map conversion project (`/work/map-vector-cli`):
+  - source map ingestion/conversion
+  - standard vector format ownership (`.svm`)
+  - georeferenced vector output for runtime consumers
 
-## Scope Boundary (Phase 1)
-- In scope:
-  - minimal rendering pipeline
-  - sample vector map data
-  - display output in minimap format
-- Out of scope:
-  - full game map ingestion
-  - advanced interactivity/zoom/navigation systems
-  - production optimization beyond baseline validation
+## Map Data Pipeline
+- Source folder: `/work/map-src`
+- Source type now: `*.mbtiles`
+- Converted output folder: `/work/map-data`
+- Canonical intermediate format: `.svm`
+- Current integration bridge: `.svm` -> generated Rust module for existing renderer
+
+## `.svm` Contract (Current)
+- City-scale street vectors (not viewport-normalized source data).
+- Coordinates map to georeferenced world space (Web Mercator tile world units).
+- Includes schema capacity for future per-segment attributes:
+  - road class
+  - lane count (reserved now)
+  - attr/tag id (reserved now)
+
+## Vector Standard Alternatives (Summary)
+- GeoJSON:
+  - Pro: readable, ubiquitous.
+  - Con: too heavy for low-memory runtime usage.
+- Runtime MVT/Protobuf decoding:
+  - Pro: standard ecosystem format.
+  - Con: unnecessary runtime decode complexity on ESP32.
+- FlatBuffers/Cap'n Proto:
+  - Pro: efficient binary framing.
+  - Con: extra schema/tooling overhead for this specific minimap path.
+- Custom fixed-point/binary `.svm` [Selected]:
+  - Pro: minimal parse overhead, deterministic, easy to tailor to renderer needs.
+  - Con: project-owned versioning/migration burden.
+
+## Decision
+Use `.svm` as the stable intermediate vector standard and keep conversion concerns outside firmware/runtime.

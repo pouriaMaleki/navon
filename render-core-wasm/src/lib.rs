@@ -1,8 +1,10 @@
 use esp32_screen_render_core::{
-    FrameBuffer, WAVESHARE_ESP32_P4_3_4, WAVESHARE_ESP32_P4_4_0, render_sample_device_style,
-    sample_player_for_tick,
+    FrameBuffer, MinimapView, WAVESHARE_ESP32_P4_3_4, WAVESHARE_ESP32_P4_4_0, render_device_style,
+    render_sample_device_style, sample_player_for_tick,
 };
 use wasm_bindgen::prelude::*;
+
+mod generated_map;
 
 #[wasm_bindgen]
 pub struct MinimapWasmEmulator {
@@ -65,8 +67,18 @@ impl MinimapWasmEmulator {
 impl MinimapWasmEmulator {
     fn render_current(&mut self) {
         let mut frame = FrameBuffer::new(self.width, self.height, &mut self.pixels);
-        let player = sample_player_for_tick(self.tick);
-        render_sample_device_style(&mut frame, player);
+        if generated_map::HAS_MAP && !generated_map::MAP_LINES.is_empty() {
+            let player = generated_map::MAP_PLAYER;
+            let view = MinimapView {
+                bounds: generated_map::MAP_BOUNDS,
+                background: 18,
+                player,
+            };
+            render_device_style(&mut frame, generated_map::MAP_LINES, &view);
+        } else {
+            let player = sample_player_for_tick(self.tick);
+            render_sample_device_style(&mut frame, player);
+        }
     }
 }
 

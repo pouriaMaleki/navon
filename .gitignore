@@ -21,3 +21,16 @@
 .env
 .env.*
 !.env.example
+
+# Local map inputs/outputs and device bundles
+/map-src/*
+!/map-src/.gitkeep
+/map-data/*
+!/map-data/.gitkeep
+/device-bundle/
+
+# Legacy local map folder
+/map/
+
+# Generated runtime map bridge module
+/render-core-wasm/src/generated_map.rs

@@ -174,7 +174,11 @@ pub fn render_sample_device_style(frame: &mut FrameBuffer<'_>, player: WorldPoin
         background: 18,
         player,
     };
-    render_minimap(frame, &SAMPLE_LINES, &view);
+    render_device_style(frame, &SAMPLE_LINES, &view);
+}
+
+pub fn render_device_style(frame: &mut FrameBuffer<'_>, lines: &[Line], view: &MinimapView) {
+    render_minimap(frame, lines, view);
     apply_device_style(frame);
 }
 
