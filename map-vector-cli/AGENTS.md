@@ -17,7 +17,7 @@
 
 ## Current Commands
 - `convert-mbtiles`: MBTiles -> `.svm`
-- `emit-rust`: `.svm` -> Rust module (`generated_map.rs`)
+- `emit-rust-window`: `.svm` -> Rust module (`generated_map.rs`)
 
 ## Future Direction
 - Add additional adapters (`geojson`, `osm.pbf`, etc.) that all emit the same `.svm` standard.
