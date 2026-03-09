@@ -8,5 +8,11 @@ export type {
   Point,
   RenderProgram,
   ScreenProfile,
-  WorldBounds
+  WorldBounds,
 } from "./core/types";
+export type {
+  GeoCoordinates,
+  GesturePoint,
+  StoreAnnotations,
+  WasmRuntimeState,
+} from "./types";

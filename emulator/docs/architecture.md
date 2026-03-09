@@ -1,59 +1,32 @@
 # Emulator Architecture
 
-## Objective
-Create a reusable emulator stack for ESP32 projects targeting Waveshare ESP32-P4 LCD profiles, with renderer parity between firmware and browser.
+## Purpose
+Fast browser simulator for ESP32-P4 minimap rendering and GPS/touch interaction checks.
 
-## System Layers
-1. `render-core` (Rust, `no_std`)
-- Source-of-truth rendering logic and device profile constants.
-- Owns framebuffer operations and minimap rendering rules.
-- Shared by firmware and WASM adapter.
+Canonical requirements are defined in [`project-spec.md`](./project-spec.md).
 
-2. `render-core-wasm` (Rust + `wasm-bindgen`)
-- Thin adapter exposing `render-core` into browser WASM API.
-- Owns WASM-visible emulator state and pixel buffer pointers.
+## Modules
+1. `render-core` (Rust)
+- Shared renderer used by firmware and emulator.
 
-3. `emulator/web` (TypeScript + Vite)
-- Runtime shell for input, scheduling, and presentation.
-- Uses WASM API for actual rendering (no duplicated renderer logic).
-- Provides reusable emulator framework (`Esp32ScreenEmulator`).
+2. `render-core-wasm` (Rust + wasm-bindgen)
+- WASM bridge exposing renderer to web runtime.
+
+3. `emulator/web` (TypeScript)
+- Runtime shell for input, frame scheduling, and canvas presentation.
+- React UI components and MobX stores.
 
 4. `xtask` (Rust CLI)
-- Developer entrypoint orchestration.
-- Builds WASM package and starts web server with one command.
+- Builds WASM and runs emulator tooling workflow.
 
 ## Data Flow
-- Browser frame tick -> TS runtime `update/render` -> WASM `step()` -> `render-core` writes pixel buffer -> TS uploads grayscale pixels to canvas.
+Browser input/geolocation -> MobX store state -> WASM camera state -> Rust renderer pixel buffer -> canvas upload.
 
-## Public API Surfaces
-- Rust (firmware):
-  - `render_sample_device_style(...)`
-  - `sample_player_for_tick(...)`
-  - device profiles (`WAVESHARE_ESP32_P4_3_4`, `...4_0`)
+## Frontend Organization
+- `ui/`: React components (view layer).
+- `stores/`: MobX state, browser API integration, and lifecycle logic.
+- `programs/`: program-specific bridge from emulator state into WASM renderer API.
+- `core/`: rendering surface, canvas target, timing/input plumbing.
+- `types.ts`: shared TypeScript contracts across modules.
 
-- WASM:
-  - `MinimapWasmEmulator::new(profile)`
-  - `step()`, `reset()`
-  - `pixels_ptr()`, `pixels_len()`
-
-- TS runtime:
-  - `Esp32ScreenEmulator<TCustom>`
-  - pluggable `RenderProgram<TCustom>`
-
-## Verification Strategy
-- Unit tests in `render-core` for:
-  - device spec constants
-  - deterministic frame checksum
-  - style mask behavior
-- Browser build/type checks in `emulator/web`.
-- Cross-target parity guaranteed structurally because firmware and web both call same `render-core` logic.
-
-## TODO
-- [x] Shared Rust renderer crate extracted
-- [x] Firmware wired to shared renderer
-- [x] WASM adapter crate added
-- [x] Web emulator consumes WASM renderer
-- [x] Rust-first run command via `xtask`
-- [ ] Add gesture semantics (`tap`, `drag`, `pinch`) as shared input schema
-- [ ] Add CI pipeline for renderer checksum parity across fixtures
-- [ ] Publish package docs/examples for third-party projects
+See [`frontend-stack.md`](./frontend-stack.md) for implementation conventions.
