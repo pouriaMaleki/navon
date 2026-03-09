@@ -13,14 +13,38 @@ services:
       - GIT_CONFIG_GLOBAL=/home/vscode/.config/git/config
     volumes:
       - ./:/work:Z
+      - ssh-cache:/home/vscode/.ssh
+      - espup-cache:/home/vscode/.espup
+      - espressif-cache:/home/vscode/.espressif
+      - rustup-cache:/home/vscode/.rustup
       - cargo-cache:/home/vscode/.cargo
+      - xdg-cache:/home/vscode/.cache
+      - npm-cache:/home/vscode/.npm
+      - pnpm-cache:/home/vscode/.pnpm-store
+      - bun-cache:/home/vscode/.bun
       - vscode-server-cache:/home/vscode/.vscode-server
       - user-config-cache:/home/vscode/.config
       - codex-cache:/home/vscode/.codex
 
 volumes:
+  ssh-cache:
+    name: esp32-dev-ssh-cache
+  espup-cache:
+    name: esp32-dev-espup-cache
+  espressif-cache:
+    name: esp32-dev-espressif-cache
+  rustup-cache:
+    name: esp32-dev-rustup-cache
   cargo-cache:
     name: esp32-dev-cargo-cache
+  xdg-cache:
+    name: esp32-dev-xdg-cache
+  npm-cache:
+    name: esp32-dev-npm-cache
+  pnpm-cache:
+    name: esp32-dev-pnpm-cache
+  bun-cache:
+    name: esp32-dev-bun-cache
   vscode-server-cache:
     name: esp32-dev-vscode-server-cache
   user-config-cache:
