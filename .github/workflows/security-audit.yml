@@ -1,0 +1,100 @@
+name: Security Audit
+
+on:
+  pull_request:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency review (fail on high/critical)
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
+  cargo-audit:
+    name: Cargo Audit
+    runs-on: ubuntu-latest
+    env:
+      SECURITY_ENFORCE: ${{ vars.SECURITY_ENFORCE || 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
+      - name: Run cargo audit
+        id: cargo_audit
+        shell: bash
+        run: |
+          set +e
+          cargo audit --deny warnings
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+          if [ "$status" -ne 0 ]; then
+            echo "cargo audit reported vulnerabilities or advisories." >> "$GITHUB_STEP_SUMMARY"
+            if [ "$SECURITY_ENFORCE" = "true" ]; then
+              exit "$status"
+            fi
+            echo "SECURITY_ENFORCE=false, not failing build (baseline mode)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "cargo audit passed." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  npm-audit:
+    name: NPM Audit
+    runs-on: ubuntu-latest
+    env:
+      SECURITY_ENFORCE: ${{ vars.SECURITY_ENFORCE || 'true' }}
+    defaults:
+      run:
+        working-directory: emulator/web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: emulator/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit (high+)
+        id: npm_audit
+        shell: bash
+        run: |
+          set +e
+          npm audit --audit-level=high
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+          if [ "$status" -ne 0 ]; then
+            echo "npm audit found high/critical vulnerabilities." >> "$GITHUB_STEP_SUMMARY"
+            if [ "$SECURITY_ENFORCE" = "true" ]; then
+              exit "$status"
+            fi
+            echo "SECURITY_ENFORCE=false, not failing build (baseline mode)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "npm audit passed at high threshold." >> "$GITHUB_STEP_SUMMARY"
+          fi
