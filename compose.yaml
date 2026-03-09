@@ -10,11 +10,20 @@ services:
     stdin_open: true
     environment:
       - TZ=Europe/Helsinki
+      - GIT_CONFIG_GLOBAL=/home/vscode/.config/git/config
     volumes:
       - ./:/work:Z
       - cargo-cache:/home/vscode/.cargo
       - vscode-server-cache:/home/vscode/.vscode-server
+      - user-config-cache:/home/vscode/.config
+      - codex-cache:/home/vscode/.codex
 
 volumes:
   cargo-cache:
+    name: esp32-dev-cargo-cache
   vscode-server-cache:
+    name: esp32-dev-vscode-server-cache
+  user-config-cache:
+    name: esp32-dev-user-config-cache
+  codex-cache:
+    name: esp32-dev-codex-cache
