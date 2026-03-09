@@ -10,6 +10,7 @@ Current scope:
 - Extract street-like vectors from MBTiles.
 - Preserve GPS-to-vector mapping using shared world coordinates.
 - Keep schema ready for future metadata (street name, lane count, tags).
+- Use a bike-focused filter profile by default (exclude ferry/boat/water transport lines).
 
 ## Commands
 Convert whole-city MBTiles to `.svm`:
@@ -18,7 +19,8 @@ cargo run -p map-vector-cli -- \
   convert-mbtiles \
   --input /work/map-src/osm-2020-02-10-v3.11_finland_helsinki.mbtiles \
   --output /work/map-data/city.svm \
-  --target-zoom 16
+  --target-zoom 16 \
+  --profile bike
 ```
 
 Emit current renderer window module from `.svm` (integration bridge):

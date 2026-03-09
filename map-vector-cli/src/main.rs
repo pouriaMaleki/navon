@@ -1,5 +1,6 @@
 use flate2::read::{GzDecoder, ZlibDecoder};
 use geo_types::{Geometry, LineString, MultiLineString};
+use mvt_reader::feature::{Feature, Value};
 use mvt_reader::Reader;
 use rusqlite::Connection;
 use std::env;
@@ -12,8 +13,27 @@ const VERSION: u16 = 1;
 const TILE_EXTENT: f64 = 4096.0;
 const DEFAULT_TARGET_ZOOM: i32 = 16;
 const DEFAULT_MAX_SEGMENTS: usize = 1_500_000;
+const DEFAULT_PROFILE: ConvertProfile = ConvertProfile::Bike;
 const MAP_BOUNDS_MIN: i16 = 0;
 const MAP_BOUNDS_MAX: i16 = 10_000;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum ConvertProfile {
+    Bike,
+    All,
+}
+
+impl ConvertProfile {
+    fn parse(raw: &str) -> Result<Self, String> {
+        match raw.to_ascii_lowercase().as_str() {
+            "bike" => Ok(Self::Bike),
+            "all" => Ok(Self::All),
+            other => Err(format!(
+                "unsupported --profile value: {other} (expected bike|all)"
+            )),
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug)]
 struct Segment {
@@ -48,6 +68,7 @@ struct ConvertArgs {
     output: PathBuf,
     target_zoom: i32,
     max_segments: usize,
+    profile: ConvertProfile,
 }
 
 #[derive(Debug)]
@@ -101,7 +122,7 @@ fn run() -> Result<(), String> {
 }
 
 fn usage() -> &'static str {
-    "usage:\n  map-vector-cli convert-mbtiles --input <file.mbtiles> --output <city.svm> [--target-zoom <i32>] [--max-segments <usize>]\n  map-vector-cli emit-rust-window --input <city.svm> --output <generated_map.rs> --center-lat <f64> --center-lon <f64> --player-lat <f64> --player-lon <f64> [--view-tiles <f64>]"
+    "usage:\n  map-vector-cli convert-mbtiles --input <file.mbtiles> --output <city.svm> [--target-zoom <i32>] [--max-segments <usize>] [--profile <bike|all>]\n  map-vector-cli emit-rust-window --input <city.svm> --output <generated_map.rs> --center-lat <f64> --center-lon <f64> --player-lat <f64> --player-lon <f64> [--view-tiles <f64>]"
 }
 
 fn parse_convert_args(args: Vec<String>) -> Result<ConvertArgs, String> {
@@ -109,6 +130,7 @@ fn parse_convert_args(args: Vec<String>) -> Result<ConvertArgs, String> {
     let mut output = None;
     let mut target_zoom = DEFAULT_TARGET_ZOOM;
     let mut max_segments = DEFAULT_MAX_SEGMENTS;
+    let mut profile = DEFAULT_PROFILE;
 
     let mut i = 0;
     while i < args.len() {
@@ -129,6 +151,11 @@ fn parse_convert_args(args: Vec<String>) -> Result<ConvertArgs, String> {
                 i += 1;
                 max_segments = parse_usize(args.get(i), "--max-segments")?;
             }
+            "--profile" => {
+                i += 1;
+                let raw = args.get(i).ok_or("missing value for --profile")?.as_str();
+                profile = ConvertProfile::parse(raw)?;
+            }
             other => return Err(format!("unknown arg: {other}")),
         }
         i += 1;
@@ -139,6 +166,7 @@ fn parse_convert_args(args: Vec<String>) -> Result<ConvertArgs, String> {
         output: output.ok_or("missing --output")?,
         target_zoom,
         max_segments,
+        profile,
     })
 }
 
@@ -224,7 +252,8 @@ fn convert_mbtiles_to_standard(cfg: &ConvertArgs) -> Result<StandardMap, String>
         .prepare(
             "SELECT zoom_level, tile_column, tile_row, tile_data
              FROM tiles
-             WHERE zoom_level = ?1",
+             WHERE zoom_level = ?1
+             ORDER BY tile_column ASC, tile_row ASC",
         )
         .map_err(|e| format!("prepare tiles query failed: {e}"))?;
 
@@ -248,7 +277,7 @@ fn convert_mbtiles_to_standard(cfg: &ConvertArgs) -> Result<StandardMap, String>
 
         for layer in layers {
             let lname = layer.name.to_ascii_lowercase();
-            if !should_use_layer(&lname) {
+            if !should_use_layer(&lname, cfg.profile) {
                 continue;
             }
             let road_class = classify_road(&lname);
@@ -257,6 +286,9 @@ fn convert_mbtiles_to_standard(cfg: &ConvertArgs) -> Result<StandardMap, String>
                 .get_features_as::<f32>(layer.layer_index)
                 .map_err(|e| format!("feature decode failed: {e}"))?;
             for feature in feats {
+                if !should_use_feature(&lname, &feature, cfg.profile) {
+                    continue;
+                }
                 push_geometry_segments(&feature.geometry, tx, xyz_ty, road_class, &mut segments);
                 if segments.len() >= cfg.max_segments {
                     break;
@@ -301,7 +333,11 @@ fn convert_mbtiles_to_standard(cfg: &ConvertArgs) -> Result<StandardMap, String>
     })
 }
 
-fn write_rust_window_module(path: &Path, map: &StandardMap, cfg: &EmitRustWindowArgs) -> Result<(), String> {
+fn write_rust_window_module(
+    path: &Path,
+    map: &StandardMap,
+    cfg: &EmitRustWindowArgs,
+) -> Result<(), String> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|e| format!("failed to create rust output dir: {e}"))?;
     }
@@ -340,10 +376,19 @@ fn write_rust_window_module(path: &Path, map: &StandardMap, cfg: &EmitRustWindow
     let mut out = String::new();
     out.push_str("use esp32_screen_render_core::{Line, WorldBounds, WorldPoint};\n\n");
     out.push_str("pub const HAS_MAP: bool = true;\n");
-    out.push_str(&format!("pub const MAP_SOURCE: &str = {:?};\n", map.source_name));
+    out.push_str(&format!(
+        "pub const MAP_SOURCE: &str = {:?};\n",
+        map.source_name
+    ));
     out.push_str(&format!("pub const MAP_ZOOM: i32 = {};\n", map.source_zoom));
-    out.push_str(&format!("pub const MAP_CENTER_LAT: f64 = {:.6};\n", cfg.center_lat));
-    out.push_str(&format!("pub const MAP_CENTER_LON: f64 = {:.6};\n", cfg.center_lon));
+    out.push_str(&format!(
+        "pub const MAP_CENTER_LAT: f64 = {:.6};\n",
+        cfg.center_lat
+    ));
+    out.push_str(&format!(
+        "pub const MAP_CENTER_LON: f64 = {:.6};\n",
+        cfg.center_lon
+    ));
     out.push_str(&format!(
         "pub const MAP_WORLD_MIN_X: i32 = {};\n",
         camera.min_x
@@ -368,8 +413,7 @@ fn write_rust_window_module(path: &Path, map: &StandardMap, cfg: &EmitRustWindow
     out.push_str("pub const MAP_LINES: &[Line] = &[\n");
     for (x1, y1, x2, y2, intensity, thickness) in selected {
         out.push_str(&format!(
-            "    Line {{ from: WorldPoint {{ x: {}, y: {} }}, to: WorldPoint {{ x: {}, y: {} }}, intensity: {}, thickness: {} }},\n",
-            x1, y1, x2, y2, intensity, thickness
+            "    Line {{ from: WorldPoint {{ x: {x1}, y: {y1} }}, to: WorldPoint {{ x: {x2}, y: {y2} }}, intensity: {intensity}, thickness: {thickness} }},\n"
         ));
     }
     out.push_str("];\n");
@@ -536,30 +580,109 @@ fn select_zoom(conn: &Connection, target: i32) -> Result<i32, String> {
     let mut stmt = conn
         .prepare("SELECT DISTINCT zoom_level FROM tiles ORDER BY zoom_level")
         .map_err(|e| format!("prepare zoom list query failed: {e}"))?;
-    let mut rows = stmt.query([]).map_err(|e| format!("zoom list query failed: {e}"))?;
+    let mut rows = stmt
+        .query([])
+        .map_err(|e| format!("zoom list query failed: {e}"))?;
     let mut zooms = Vec::new();
     while let Some(row) = rows.next().map_err(|e| format!("zoom row failed: {e}"))? {
         zooms.push(row.get::<_, i32>(0).map_err(|e| e.to_string())?);
     }
 
-    if let Some(z) = zooms.iter().copied().filter(|z| *z <= target).max() {
+    if let Some(z) = select_zoom_from_available(&zooms, target) {
         if z != target {
-            eprintln!("map-vector-cli: requested zoom {} not available, using {}", target, z);
+            eprintln!(
+                "map-vector-cli: requested zoom {target} not available, using {z}"
+            );
         }
         return Ok(z);
     }
 
     let mut stmt = conn
-        .prepare("SELECT MAX(zoom_level) FROM tiles")
+        .prepare("SELECT MIN(zoom_level) FROM tiles")
         .map_err(|e| format!("prepare zoom query failed: {e}"))?;
     stmt.query_row([], |row| row.get::<_, i32>(0))
         .map_err(|e| format!("zoom query failed: {e}"))
 }
 
-fn should_use_layer(layer: &str) -> bool {
-    ["transport", "road", "street", "highway", "path", "rail"]
+fn select_zoom_from_available(zooms: &[i32], target: i32) -> Option<i32> {
+    zooms
         .iter()
-        .any(|k| layer.contains(k))
+        .copied()
+        .filter(|z| *z <= target)
+        .max()
+        .or_else(|| zooms.iter().copied().min())
+}
+
+fn should_use_layer(layer: &str, profile: ConvertProfile) -> bool {
+    match profile {
+        ConvertProfile::All => ["transport", "road", "street", "highway", "path", "rail"]
+            .iter()
+            .any(|k| layer.contains(k)),
+        ConvertProfile::Bike => [
+            "transport",
+            "road",
+            "street",
+            "highway",
+            "path",
+            "rail",
+            "cycle",
+        ]
+        .iter()
+        .any(|k| layer.contains(k)),
+    }
+}
+
+fn should_use_feature(layer_name: &str, feature: &Feature<f32>, profile: ConvertProfile) -> bool {
+    match profile {
+        ConvertProfile::All => true,
+        ConvertProfile::Bike => !is_bike_excluded_transport(layer_name, feature),
+    }
+}
+
+fn is_bike_excluded_transport(layer_name: &str, feature: &Feature<f32>) -> bool {
+    if layer_name.contains("water") {
+        return true;
+    }
+
+    let Some(props) = feature.properties.as_ref() else {
+        return false;
+    };
+
+    let blocked = [
+        "ferry", "boat", "ship", "water", "waterway", "seaway", "marine",
+    ];
+
+    for (k, v) in props {
+        let key = k.to_ascii_lowercase();
+        if !matches!(
+            key.as_str(),
+            "class" | "subclass" | "type" | "route" | "network" | "transport"
+        ) {
+            continue;
+        }
+
+        let Some(value) = mvt_value_to_ascii(v) else {
+            continue;
+        };
+        if blocked.iter().any(|needle| value.contains(needle)) {
+            return true;
+        }
+    }
+
+    false
+}
+
+fn mvt_value_to_ascii(v: &Value) -> Option<String> {
+    match v {
+        Value::String(s) => Some(s.to_ascii_lowercase()),
+        Value::Float(n) => Some(n.to_string()),
+        Value::Double(n) => Some(n.to_string()),
+        Value::Int(n) => Some(n.to_string()),
+        Value::UInt(n) => Some(n.to_string()),
+        Value::SInt(n) => Some(n.to_string()),
+        Value::Bool(b) => Some(b.to_string()),
+        Value::Null => None,
+    }
 }
 
 fn classify_road(layer: &str) -> u8 {
@@ -694,4 +817,28 @@ fn normalize_axis(v: i32, min_v: i32, max_v: i32) -> i16 {
     let pos = (v - min_v) as i64;
     let scaled = (pos * (MAP_BOUNDS_MAX as i64)) / range;
     scaled.clamp(MAP_BOUNDS_MIN as i64, MAP_BOUNDS_MAX as i64) as i16
+}
+
+#[cfg(test)]
+mod tests {
+    use super::select_zoom_from_available;
+
+    #[test]
+    fn select_zoom_prefers_nearest_below_or_equal_target() {
+        let zooms = [12, 14, 16, 17];
+        assert_eq!(select_zoom_from_available(&zooms, 16), Some(16));
+        assert_eq!(select_zoom_from_available(&zooms, 15), Some(14));
+    }
+
+    #[test]
+    fn select_zoom_falls_back_to_min_when_target_too_low() {
+        let zooms = [10, 12, 13];
+        assert_eq!(select_zoom_from_available(&zooms, 8), Some(10));
+    }
+
+    #[test]
+    fn select_zoom_handles_empty_zoom_list() {
+        let zooms: [i32; 0] = [];
+        assert_eq!(select_zoom_from_available(&zooms, 10), None);
+    }
 }
