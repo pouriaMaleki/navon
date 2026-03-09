@@ -10,5 +10,6 @@
 - [x] Wire browser geolocation updates to wasm map state.
 - [x] Wire touch/pointer pan and pinch zoom controls.
 - [x] Add smooth auto-recenter after pan idle timeout.
+- [x] Add emulator prerequisite docs and bootstrap for `wasm-pack`.
 - [ ] Add explicit on-screen debug HUD (lat/lon/zoom/heading) toggle.
 - [ ] Add replay mode for deterministic movement scenarios.

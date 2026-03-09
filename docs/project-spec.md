@@ -24,3 +24,4 @@ ESP32 bike minimap renderer in a video-game style UI.
 - Shared camera transform supports heading-up, zoom, and pan.
 - Emulator uses browser geolocation and touch/pointer gestures.
 - Firmware has no_std GPS/touch behavior scaffold for hardware integration phase.
+- Emulator developer tooling requires `wasm-pack` in host/devcontainer PATH.

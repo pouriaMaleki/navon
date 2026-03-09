@@ -4,6 +4,21 @@
   "service": "dev",
   "workspaceFolder": "/work",
   "remoteUser": "vscode",
+  "forwardPorts": [5173, 5174, 5175],
+  "portsAttributes": {
+    "5173": {
+      "label": "Emulator (Vite)",
+      "onAutoForward": "notify"
+    },
+    "5174": {
+      "label": "Emulator (Vite alt)",
+      "onAutoForward": "silent"
+    },
+    "5175": {
+      "label": "Emulator (Vite alt)",
+      "onAutoForward": "silent"
+    }
+  },
   "postCreateCommand": "bash infra/devcontainer/scripts/post-create.sh",
   "features": {
     "./features/agent-persistence": {}

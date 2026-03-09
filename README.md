@@ -25,6 +25,10 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 - Current runtime bridge: `.svm` -> generated Rust module for wasm renderer integration.
 
 ## Commands
+Prerequisites:
+- `wasm-pack` for emulator builds (`cargo install wasm-pack`)
+- JS package manager for emulator web deps (`npm` recommended; `pnpm`/`bun` supported)
+
 Prepare maps:
 ```bash
 cargo xtask prepare-map

@@ -10,6 +10,7 @@ Browser module for validating bike-minimap behavior quickly with the shared Rust
 
 ## Interaction Quick Guide
 - Allow location permission in browser to enable live GPS-follow behavior.
+- GPS status is shown in the control bar (`live` vs `simulated` fallback).
 - Drag with one finger/mouse to temporarily pan.
 - Pinch with two fingers to zoom.
 - Stop panning and wait briefly to see smooth auto-recenter to GPS position.
@@ -33,9 +34,17 @@ Browser module for validating bike-minimap behavior quickly with the shared Rust
 - `run.sh`: Rust-first launcher (delegates to `cargo xtask emu`).
 
 ## Run
+Prerequisite:
+- `wasm-pack` installed (`cargo install wasm-pack`)
+- JS package manager available (`npm` recommended; `pnpm`/`bun` also supported)
+
 ```bash
 cargo run -p xtask -- emu
 ```
+
+VS Code tasks:
+- `Emulator: ensure deps` installs `wasm-pack` if missing.
+- `Emulator: run` depends on `Emulator: ensure deps`.
 
 Open:
 `http://localhost:5173` (or next available port shown in terminal output)

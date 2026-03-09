@@ -43,11 +43,17 @@ fn run_emu(release: bool) -> Result<(), String> {
     if !web_dir.exists() {
         return Err("emulator/web not found (run from repository root)".to_owned());
     }
+    if !command_exists("wasm-pack") {
+        return Err(
+            "wasm-pack is not installed; install with `cargo install wasm-pack` or rerun devcontainer post-create".to_owned(),
+        );
+    }
 
     run_prepare_map()?;
 
     let mut wasm_pack = Command::new("wasm-pack");
     wasm_pack
+        .env("CARGO_HOME", "/usr/local/cargo")
         .arg("build")
         .arg("render-core-wasm")
         .arg("--target")
@@ -57,7 +63,7 @@ fn run_emu(release: bool) -> Result<(), String> {
         .arg(if release { "--release" } else { "--dev" });
     run_cmd(wasm_pack, "wasm-pack build failed")?;
 
-    let npm = pick_package_manager();
+    let npm = pick_package_manager()?;
     run_cmd(
         cmd_in(&npm, &["install"], web_dir),
         "package install failed",
@@ -208,19 +214,70 @@ pub const MAP_LINES: &[Line] = &[];
     fs::write(GENERATED_MAP_RS, out).map_err(|e| format!("failed writing empty map: {e}"))
 }
 
-fn pick_package_manager() -> String {
-    for bin in ["bun", "pnpm", "npm"] {
-        if Command::new("sh")
-            .arg("-lc")
-            .arg(format!("command -v {bin} >/dev/null 2>&1"))
-            .status()
-            .map(|s| s.success())
-            .unwrap_or(false)
-        {
-            return bin.to_owned();
+fn pick_package_manager() -> Result<String, String> {
+    if let Some(pm) = detect_package_manager() {
+        return Ok(pm);
+    }
+
+    eprintln!("xtask: no JS package manager found; attempting local bun bootstrap...");
+    install_bun_fallback()?;
+
+    if let Some(pm) = detect_package_manager() {
+        return Ok(pm);
+    }
+
+    Err(package_manager_fix_hint())
+}
+
+fn detect_package_manager() -> Option<String> {
+    // Canonical preference order: npm, then pnpm, then bun.
+    for bin in ["npm", "pnpm", "bun"] {
+        if let Some(path) = command_path(bin) {
+            return Some(path);
         }
     }
-    "npm".to_owned()
+
+    let home = env::var("HOME").ok()?;
+    let local_bun = Path::new(&home).join(".bun/bin/bun");
+    if local_bun.is_file() {
+        return Some(local_bun.to_string_lossy().into_owned());
+    }
+    None
+}
+
+fn command_path(bin: &str) -> Option<String> {
+    let out = Command::new("sh")
+        .arg("-lc")
+        .arg(format!("command -v {bin}"))
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let path = String::from_utf8_lossy(&out.stdout).trim().to_owned();
+    if path.is_empty() { None } else { Some(path) }
+}
+
+fn install_bun_fallback() -> Result<(), String> {
+    let home = env::var("HOME").map_err(|_| "HOME is not set; cannot bootstrap bun".to_owned())?;
+    let bun_install = format!("{home}/.bun");
+
+    let mut cmd = Command::new("sh");
+    cmd.arg("-lc")
+        .arg("curl -fsSL https://bun.sh/install | bash")
+        .env("BUN_INSTALL", bun_install)
+        .env("CARGO_HOME", "/usr/local/cargo");
+    run_cmd(cmd, "bun bootstrap failed")
+}
+
+fn package_manager_fix_hint() -> String {
+    "no JS package manager found after bun bootstrap.\n\
+install Node.js/npm (recommended) or bun manually:\n\
+  - Debian/Ubuntu: sudo apt-get update && sudo apt-get install -y nodejs npm\n\
+  - Bun: curl -fsSL https://bun.sh/install | bash\n\
+if bun is installed at ~/.bun/bin, add it to PATH:\n\
+  export PATH=\"$HOME/.bun/bin:$PATH\""
+        .to_owned()
 }
 
 fn command_exists(bin: &str) -> bool {

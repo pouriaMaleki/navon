@@ -13,6 +13,8 @@ services:
     volumes:
       - ./:/work:Z
       - cargo-cache:/home/vscode/.cargo
+      - vscode-server-cache:/home/vscode/.vscode-server
 
 volumes:
   cargo-cache:
+  vscode-server-cache:
