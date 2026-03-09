@@ -30,3 +30,12 @@ fi
 if [ -x "${HOME}/.bun/bin/bun" ] && ! grep -q 'export PATH="$HOME/.bun/bin:$PATH"' "${HOME}/.bashrc"; then
   printf '\nexport PATH="$HOME/.bun/bin:$PATH"\n' >> "${HOME}/.bashrc"
 fi
+
+# Keep git global config in a persistent mounted directory.
+mkdir -p "${HOME}/.config/git"
+if [ ! -f "${HOME}/.config/git/config" ]; then
+  touch "${HOME}/.config/git/config"
+fi
+if [ -f "${HOME}/.gitconfig" ] && [ ! -s "${HOME}/.config/git/config" ]; then
+  cp "${HOME}/.gitconfig" "${HOME}/.config/git/config"
+fi
