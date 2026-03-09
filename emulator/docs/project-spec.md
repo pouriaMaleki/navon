@@ -14,3 +14,4 @@ Validate bike-minimap runtime behavior quickly in browser with parity to Rust re
 - Emulator remains TypeScript + Vite shell.
 - Rendering stays driven by Rust/WASM renderer core.
 - Input/geolocation are browser-owned and fed into WASM state.
+- Emulator build path requires `wasm-pack` as a host-side tool.

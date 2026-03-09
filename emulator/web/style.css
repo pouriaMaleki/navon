@@ -58,6 +58,8 @@ canvas {
 
 .controls {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   margin-top: 14px;
 }
@@ -73,4 +75,9 @@ button {
 
 button:hover {
   border-color: var(--accent);
+}
+
+.status {
+  color: #9fb0c3;
+  font-size: 0.9rem;
 }

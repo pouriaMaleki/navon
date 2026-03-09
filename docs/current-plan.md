@@ -29,6 +29,7 @@
 - [x] Add firmware bike minimap state scaffold for GPS/touch behavior.
 - [x] Add emulator geolocation + multitouch controls.
 - [x] Add map world-bounds metadata in generated map bridge.
+- [x] Ensure `xtask emu` devcontainer bootstrap installs `wasm-pack`.
 - [ ] Integrate real GPS/touch drivers on ESP32 hardware path.
 - [ ] Implement direct `.svm` loader in firmware (replace generated module bridge).
 - [ ] Add heading smoothing and user-configurable follow modes.
