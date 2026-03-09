@@ -14,10 +14,10 @@ export class Esp32ScreenEmulator<TCustom> {
     canvas: HTMLCanvasElement,
     profile: ScreenProfile,
     custom: TCustom,
-    private readonly program: RenderProgram<TCustom>
+    private readonly program: RenderProgram<TCustom>,
   ) {
     const input: InputSnapshot = {
-      primary: { x: 0, y: 0, down: false }
+      primary: { x: 0, y: 0, down: false },
     };
     this.target = new CanvasTarget(canvas, profile.width, profile.height);
     this.surface = new FrameBuffer(profile.width, profile.height);
@@ -25,7 +25,7 @@ export class Esp32ScreenEmulator<TCustom> {
       profile,
       input,
       custom,
-      time: { tick: 0, dtMs: 0, totalMs: 0 }
+      time: { tick: 0, dtMs: 0, totalMs: 0 },
     };
     this.installPointerInput(canvas);
     this.program.init(this.state);

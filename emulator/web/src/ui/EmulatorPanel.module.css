@@ -1,0 +1,25 @@
+.panel {
+  margin-top: 18px;
+  background: #171d24;
+  border: 1px solid #2c3540;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.canvas {
+  width: 100%;
+  height: auto;
+  max-width: 800px;
+  aspect-ratio: 1;
+  display: block;
+  margin: 0 auto;
+  border-radius: 10px;
+  image-rendering: auto;
+  touch-action: none;
+}
+
+.error {
+  margin: 12px 0 0;
+  color: #ff8b99;
+  font-size: 0.9rem;
+}

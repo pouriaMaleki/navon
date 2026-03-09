@@ -21,7 +21,11 @@ export class FrameBuffer {
     }
     const idx = y * this.width + x;
     const v = clampByte(value);
-    if (v > this.pixels[idx]) {
+    const current = this.pixels[idx];
+    if (current === undefined) {
+      return;
+    }
+    if (v > current) {
       this.pixels[idx] = v;
     }
   }

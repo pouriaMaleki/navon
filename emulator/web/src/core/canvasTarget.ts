@@ -1,11 +1,15 @@
-import { FrameBuffer } from "./framebuffer";
+import type { FrameBuffer } from "./framebuffer";
 
 export class CanvasTarget {
   private readonly ctx: CanvasRenderingContext2D;
   private readonly imageData: ImageData;
   private readonly rgba: Uint8ClampedArray;
 
-  constructor(private readonly canvas: HTMLCanvasElement, width: number, height: number) {
+  constructor(
+    private readonly canvas: HTMLCanvasElement,
+    width: number,
+    height: number,
+  ) {
     this.canvas.width = width;
     this.canvas.height = height;
     const ctx = canvas.getContext("2d");
@@ -24,7 +28,7 @@ export class CanvasTarget {
 
     let j = 0;
     for (let i = 0; i < buffer.pixels.length; i += 1) {
-      const v = buffer.pixels[i];
+      const v = buffer.pixels[i] ?? 0;
       this.rgba[j] = v;
       this.rgba[j + 1] = v;
       this.rgba[j + 2] = v;

@@ -1,0 +1,30 @@
+.controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.button {
+  border: 1px solid #3a4654;
+  color: #d5dbe3;
+  background: #202a35;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.button:hover:enabled {
+  border-color: #56d0ff;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.status {
+  color: #9fb0c3;
+  font-size: 0.9rem;
+}

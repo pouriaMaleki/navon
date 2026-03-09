@@ -1,6 +1,11 @@
 import type { Point, WorldBounds } from "./types";
 
-export function worldToScreen(point: Point, bounds: WorldBounds, width: number, height: number): Point {
+export function worldToScreen(
+  point: Point,
+  bounds: WorldBounds,
+  width: number,
+  height: number,
+): Point {
   const bw = Math.max(1, bounds.maxX - bounds.minX);
   const bh = Math.max(1, bounds.maxY - bounds.minY);
   const px = point.x - bounds.minX;

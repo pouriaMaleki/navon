@@ -1,5 +1,7 @@
 # Emulator Development Plan
 
+Spec reference: [`project-spec.md`](./project-spec.md)
+
 ## Milestone 1: Shared Core Parity
 - [x] Move rendering code into `render-core`
 - [x] Use same code from firmware
@@ -38,6 +40,7 @@ Acceptance:
 ## Milestone 5: OSS Readiness
 - [x] Add license
 - [x] Separate architecture docs
+- [x] Provide frontend stack conventions doc (`frontend-stack.md`)
 - [ ] Add README examples for integrating custom render programs
 - [ ] Add contribution guide and semantic versioning policy
 - [ ] Publish package metadata and release workflow

@@ -1,66 +1,51 @@
-# Web Emulator Module
+# ESP32-P4 Web Emulator
 
-Browser module for validating bike-minimap behavior quickly with the shared Rust/WASM renderer.
+Browser-based emulator for ESP32-P4 minimap behavior, backed by the shared Rust renderer (`render-core` via WASM).
 
-## Product Description
-- Emulates target output style for Waveshare ESP32-P4 LCD profile (`800x800`).
-- Uses browser geolocation to drive user location when permission is granted.
-- Supports touch/pointer pinch zoom and temporary pan with smooth auto-recenter.
-- Uses the same shared Rust renderer core as firmware via WASM (`render-core-wasm`).
+## What This Project Does
+- Simulates the target display profile (Waveshare ESP32-P4 `800x800`).
+- Feeds browser GPS data (or simulation fallback) into the map camera.
+- Supports drag pan, pinch zoom, wheel zoom, and smooth auto-recenter.
+- Reuses the same render core as firmware for visual/behavior parity.
 
-## Interaction Quick Guide
-- Allow location permission in browser to enable live GPS-follow behavior.
-- GPS status is shown in the control bar (`live` vs `simulated` fallback).
-- Drag with one finger/mouse to temporarily pan.
-- Pinch with two fingers to zoom.
-- Stop panning and wait briefly to see smooth auto-recenter to GPS position.
+## Quick Start
+Prerequisites:
+- Rust toolchain
+- `wasm-pack` (`cargo install wasm-pack`)
+- Node.js `>=20.19` (Node 22 recommended)
 
-## Technology
-- Language: TypeScript
-- Toolchain: Vite 7 + TypeScript 5 (fast HMR/dev startup)
-- Runtime: Browser canvas
-- Shared renderer: Rust `render-core` via WASM bridge (`render-core-wasm`)
-
-## Framework API
-- Emulator runtime: `Esp32ScreenEmulator`
-- Reusable framebuffer: `FrameBuffer`
-- Screen profiles: Waveshare ESP32-P4 `800x800` and `720x720`
-- Program interface: pluggable render/update/input lifecycle for project-specific logic
-
-## Structure
-- `docs/project-spec.md`: emulator specification.
-- `docs/current-plan.md`: emulator execution plan and status.
-- `web/`: TypeScript web app.
-- `run.sh`: Rust-first launcher (delegates to `cargo xtask emu`).
-
-## Run
-Prerequisite:
-- `wasm-pack` installed (`cargo install wasm-pack`)
-- JS package manager available (`npm` recommended; `pnpm`/`bun` also supported)
-
-```bash
-cargo run -p xtask -- emu
-```
-
-VS Code tasks:
-- `Emulator: ensure deps` installs `wasm-pack` if missing.
-- `Emulator: run` depends on `Emulator: ensure deps`.
-
-Open:
-`http://localhost:5173` (or next available port shown in terminal output)
-
-## Rust Workflow
-Primary developer flow is a single cargo command from repository root:
+Run from repo root:
 ```bash
 cargo xtask emu
 ```
 
-Implemented behavior:
-- build shared Rust renderer to WASM
-- sync web emulator assets
-- start local emulator server
+Then open the local URL printed by Vite (usually `http://localhost:5173`).
 
-Release-style preview:
+## Common Workflow
+1. Start emulator with `cargo xtask emu`.
+2. Grant location permission in browser to test live GPS mode.
+3. Drag to pan, pinch/wheel to zoom, and wait for recenter.
+4. Use `Request GPS` in UI if permission was denied initially.
+
+## Development Commands
+Run in `emulator/web`:
 ```bash
-cargo xtask emu --release
+npm run lint
+npm run lint:fix
+npm run format
+npm run typecheck
+npm run build
 ```
+
+## Documentation
+- Canonical emulator spec: [`docs/project-spec.md`](./docs/project-spec.md)
+- Current implementation plan: [`docs/current-plan.md`](./docs/current-plan.md)
+- Architecture overview: [`docs/architecture.md`](./docs/architecture.md)
+- React + MobX + CSS Modules setup: [`docs/frontend-stack.md`](./docs/frontend-stack.md)
+
+## Repository Layout
+- `web/`: Vite + React app for emulator runtime.
+- `web/src/programs`: WASM-backed render program binding.
+- `web/src/stores`: MobX state and input/geolocation integration.
+- `web/src/ui`: React components styled with CSS Modules.
+- `run.sh`: convenience wrapper delegating to `cargo xtask emu`.
