@@ -2,13 +2,22 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 const MAP_SOURCE_DIR: &str = "map-src";
 const MAP_DATA_DIR: &str = "map-data";
 const STANDARD_MAP_FILE: &str = "map-data/city.svm";
+const PREPARE_MAP_STAMP_FILE: &str = "map-data/.prepare-map.stamp";
 const GENERATED_MAP_RS: &str = "render-core-wasm/src/generated_map.rs";
 const DEVICE_BUNDLE_DIR: &str = "device-bundle";
 const FIRMWARE_ELF: &str = "target/xtensa-esp32-none-elf/debug/esp32-hello";
+const MAP_TARGET_ZOOM: i32 = 16;
+const MAP_PROFILE: &str = "bike";
+const MAP_CENTER_LAT: &str = "60.17442";
+const MAP_CENTER_LON: &str = "24.94210";
+const MAP_PLAYER_LAT: &str = "60.173851";
+const MAP_PLAYER_LON: &str = "24.937951";
+const MAP_VIEW_TILES: &str = "20.0";
 
 fn main() -> ExitCode {
     match run() {
@@ -76,10 +85,17 @@ fn run_emu(release: bool) -> Result<(), String> {
 }
 
 fn run_prepare_map() -> Result<(), String> {
-    fs::create_dir_all(MAP_SOURCE_DIR).map_err(|e| format!("failed to ensure {MAP_SOURCE_DIR}: {e}"))?;
-    fs::create_dir_all(MAP_DATA_DIR).map_err(|e| format!("failed to ensure {MAP_DATA_DIR}: {e}"))?;
+    fs::create_dir_all(MAP_SOURCE_DIR)
+        .map_err(|e| format!("failed to ensure {MAP_SOURCE_DIR}: {e}"))?;
+    fs::create_dir_all(MAP_DATA_DIR)
+        .map_err(|e| format!("failed to ensure {MAP_DATA_DIR}: {e}"))?;
 
     if let Some(mbtiles) = discover_mbtiles(Path::new(MAP_SOURCE_DIR))? {
+        if should_skip_prepare_map(&mbtiles)? {
+            eprintln!("xtask: map unchanged; skipping prepare-map");
+            return Ok(());
+        }
+
         let mut convert = Command::new("cargo");
         convert
             .arg("run")
@@ -92,7 +108,9 @@ fn run_prepare_map() -> Result<(), String> {
             .arg("--output")
             .arg(STANDARD_MAP_FILE)
             .arg("--target-zoom")
-            .arg("16");
+            .arg(MAP_TARGET_ZOOM.to_string())
+            .arg("--profile")
+            .arg(MAP_PROFILE);
         run_cmd(convert, "city map conversion failed")?;
 
         let mut emit = Command::new("cargo");
@@ -106,20 +124,22 @@ fn run_prepare_map() -> Result<(), String> {
             .arg("--output")
             .arg(GENERATED_MAP_RS)
             .arg("--center-lat")
-            .arg("60.17442")
+            .arg(MAP_CENTER_LAT)
             .arg("--center-lon")
-            .arg("24.94210")
+            .arg(MAP_CENTER_LON)
             .arg("--player-lat")
-            .arg("60.173851")
+            .arg(MAP_PLAYER_LAT)
             .arg("--player-lon")
-            .arg("24.937951")
+            .arg(MAP_PLAYER_LON)
             .arg("--view-tiles")
-            .arg("20.0");
+            .arg(MAP_VIEW_TILES);
         run_cmd(emit, "window map rust generation failed")?;
+        write_prepare_map_stamp(&mbtiles)?;
 
         eprintln!("xtask: map prepared from {}", mbtiles.display());
     } else {
         write_generated_empty()?;
+        clear_prepare_map_stamp()?;
         eprintln!("xtask: no *.mbtiles found in /work/{MAP_SOURCE_DIR}; using empty generated map");
     }
     Ok(())
@@ -212,6 +232,56 @@ pub const MAP_PLAYER: esp32_screen_render_core::WorldPoint = esp32_screen_render
 pub const MAP_LINES: &[Line] = &[];
 "#;
     fs::write(GENERATED_MAP_RS, out).map_err(|e| format!("failed writing empty map: {e}"))
+}
+
+fn should_skip_prepare_map(mbtiles: &Path) -> Result<bool, String> {
+    if !Path::new(STANDARD_MAP_FILE).is_file() || !Path::new(GENERATED_MAP_RS).is_file() {
+        return Ok(false);
+    }
+
+    let stamp_path = Path::new(PREPARE_MAP_STAMP_FILE);
+    let old = match fs::read_to_string(stamp_path) {
+        Ok(s) => s,
+        Err(_) => return Ok(false),
+    };
+    let now = prepare_map_fingerprint(mbtiles)?;
+    Ok(old == now)
+}
+
+fn write_prepare_map_stamp(mbtiles: &Path) -> Result<(), String> {
+    let fingerprint = prepare_map_fingerprint(mbtiles)?;
+    fs::write(PREPARE_MAP_STAMP_FILE, fingerprint)
+        .map_err(|e| format!("failed writing {PREPARE_MAP_STAMP_FILE}: {e}"))
+}
+
+fn clear_prepare_map_stamp() -> Result<(), String> {
+    match fs::remove_file(PREPARE_MAP_STAMP_FILE) {
+        Ok(()) => Ok(()),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(e) => Err(format!("failed clearing {PREPARE_MAP_STAMP_FILE}: {e}")),
+    }
+}
+
+fn prepare_map_fingerprint(mbtiles: &Path) -> Result<String, String> {
+    let meta = fs::metadata(mbtiles).map_err(|e| {
+        format!(
+            "failed reading map source metadata {}: {e}",
+            mbtiles.display()
+        )
+    })?;
+    let len = meta.len();
+    let modified_ns = system_time_to_unix_nanos(meta.modified().unwrap_or(SystemTime::UNIX_EPOCH));
+
+    Ok(format!(
+        "v1\nsource={}\nsize={len}\nmodified_ns={modified_ns}\ntarget_zoom={MAP_TARGET_ZOOM}\nprofile={MAP_PROFILE}\ncenter_lat={MAP_CENTER_LAT}\ncenter_lon={MAP_CENTER_LON}\nplayer_lat={MAP_PLAYER_LAT}\nplayer_lon={MAP_PLAYER_LON}\nview_tiles={MAP_VIEW_TILES}\n",
+        mbtiles.display()
+    ))
+}
+
+fn system_time_to_unix_nanos(t: SystemTime) -> u128 {
+    t.duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0)
 }
 
 fn pick_package_manager() -> Result<String, String> {

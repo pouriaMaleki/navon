@@ -11,12 +11,19 @@ Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for develop
 ### 1.2 In Scope
 - Device display simulation for Waveshare ESP32-P4 `800x800`.
 - GPS-driven user location updates (live browser geolocation + simulation fallback).
+- Manual simulated bike movement fallback driven by keyboard and on-screen controls.
 - Touch/pointer interactions:
   - Single-pointer drag pan.
   - Two-pointer pinch zoom.
+  - Two-pointer rotate heading.
   - Mouse wheel zoom.
 - Smooth auto-recenter after pan idle timeout.
 - Rendering through shared Rust renderer (`render-core`) via WASM bridge (`render-core-wasm`).
+
+### 1.4 Strict Boundary
+- Emulator is a hardware/runtime emulator only.
+- Emulator web code may collect/forward inputs and present output, but must not own product camera policy.
+- Riding/stopped mode transitions, north-up policy, and orientation behavior are shared Rust responsibilities.
 
 ### 1.3 Out of Scope
 - Source-map conversion pipeline and `.svm` schema changes (owned by `map-vector-cli`).
@@ -33,21 +40,50 @@ Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for develop
 ### 2.2 Location Input
 - Must request browser geolocation when available and secure context permits.
 - Must expose clear runtime status in UI (`initializing`, `requesting permission`, `live`, `simulated`, `denied`, `error`).
-- Must fall back to deterministic simulated movement if live geolocation is unavailable.
+- Must fall back to deterministic manual bike simulation if live geolocation is unavailable.
 
-### 2.3 Gesture Input
+### 2.3 Manual Bike Simulation
+- Must provide keyboard arrow control of simulated GPS position.
+- Must render visible arrow controls below the emulated device screen.
+- `ArrowUp` must accelerate simulated bike forward with gradual ramp-up.
+- Default manual bike simulation tuning should target approximately `30 km/h` max speed with natural bicycle-like acceleration.
+- Releasing acceleration input must let speed decay gradually as if coasting.
+- Holding `ArrowDown` must brake much harder than passive coasting.
+- `ArrowLeft` and `ArrowRight` must steer gradually; turning must be smooth and bicycle-like rather than instant heading snaps.
+- Steering input must bend the forward travel path over time; it must not teleport the GPS point sideways.
+- Simulated movement logic must live in a separate physics module, not inline in stores or UI components.
+- Manual bike physics integration must preserve wall-time displacement under low FPS using bounded substeps:
+  - max substep size `50 ms`
+  - max simulated catch-up per frame `500 ms`
+- Large frame stalls must use partial catch-up (`500 ms` cap) to avoid teleport-like jumps.
+- Manual bike physics parameters (`max speed`, acceleration/deceleration, steering limits/response, wheelbase) must be adjustable from emulator UI for quick tuning.
+- Manual bike diagnostics must report `reported speed` vs `measured ground speed` with target consistency:
+  - straight-line tolerance around `±10%`
+  - turning tolerance around `±15%`
+- Manual bike simulation may publish a course/heading value derived from simulated motion as part of GPS input.
+- Manual bike simulation currently publishes `lat/lon/heading/speed` from emulator physics into shared runtime inputs.
+- Final camera heading currently comes from shared Rust movement-derived heading, not directly from raw simulator heading.
+- Movement-derived heading is currently computed from map-point motion deltas and smoothed, so short turns may appear visually delayed under quantization/smoothing.
+- Observability: simulator heading/turn-rate logs may change before visible map rotation catches up.
+- Manual bike simulation must not directly set camera rotation policy or any emulator-only camera state in the renderer.
+
+### 2.4 Gesture Input
 - Must support pointer drag panning while active pointer is tracked.
 - Must support pinch zoom based on pointer distance ratio.
+- Must support two-pointer rotate based on pointer angle delta.
 - Must support mouse wheel zoom.
 - Must clamp zoom and pan to safe bounds.
 - Must track last input timestamp for recenter behavior.
 
-### 2.4 Camera Behavior
+### 2.5 Camera Behavior
 - Must pass current geo/camera values to WASM on each update tick.
+- Riding-mode camera heading must track direction of travel smoothly when movement direction is available from shared runtime inputs.
+- Current behavior note: travel direction used for camera heading is derived from filtered map-point movement in shared Rust camera controller.
 - Must auto-recenter pan offsets after idle delay using smooth interpolation.
+- During manual pan, rider marker should remain screen-stable while camera offset moves; follow-target lock/release policy is owned by shared Rust camera controller.
 - Must reset camera state on emulator reset.
 
-### 2.5 Runtime Controls
+### 2.6 Runtime Controls
 - Must expose controls for pause/resume, reset, and GPS permission request.
 - Must display runtime errors without crashing the whole page.
 
@@ -69,8 +105,10 @@ Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for develop
 ## 4. Architecture Constraints
 - `emulator/web` owns browser runtime concerns (UI, input, geolocation, canvas).
 - `render-core` owns render behavior and pixel generation.
+- Camera mode/state behavior is Rust-owned in shared core and wasm bindings; emulator web code feeds inputs and consumes outputs.
 - `render-core-wasm` owns JS/WASM bridge layer only.
 - Emulator must not absorb converter responsibilities from `map-vector-cli`.
+- Do not add emulator-only behavior branches that diverge from firmware runtime logic.
 
 ## 5. Technology Baseline
 - TypeScript 5 (strict mode).
@@ -85,6 +123,7 @@ Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for develop
 - `web/src/ui`: React view components only.
 - `web/src/stores`: MobX state orchestration and side effects.
 - `web/src/core`: emulator engine primitives and canvas target.
+- `web/src/simulation`: deterministic emulator-only movement/physics helpers.
 - `web/src/programs`: rendering program adapters (WASM integration).
 - `web/src/types.ts`: shared emulator-wide TypeScript contracts.
 
@@ -102,3 +141,4 @@ Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for develop
 - `docs/architecture.md`: concise module/data-flow reference.
 - `docs/frontend-stack.md`: React + MobX + CSS Modules patterns and conventions.
 - `docs/current-plan.md`: active execution plan and TODO state.
+- Root camera rotation design lives in `/work/docs/camera-rotation-design.md`.

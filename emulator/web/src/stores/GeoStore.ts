@@ -1,36 +1,44 @@
 import { makeAutoObservable } from "mobx";
-import type { GeoCoordinates, WasmRuntimeState } from "../types";
+import type { GeoCoordinates, SimulatedGeoSample, WasmRuntimeState } from "../types";
 
 const DEFAULT_LAT = 60.17442;
 const DEFAULT_LON = 24.9421;
 const EARTH_RADIUS_M = 6_371_000;
+const MOTION_DISTANCE_NOISE_M = 1.5;
+const DEBUG_INTERVAL_MS = 500;
 
 export class GeoStore {
   statusText = "GPS: initializing";
   isLive = false;
 
   private watchId: number | null = null;
-  private simTimerId: number | null = null;
   private customState: WasmRuntimeState | null = null;
   private prevLat = 0;
   private prevLon = 0;
   private hasPrev = false;
   private prevTsMs = 0;
+  private lastDebugMs = 0;
+  private simulatedSample: SimulatedGeoSample = {
+    lat: DEFAULT_LAT,
+    lon: DEFAULT_LON,
+    headingRad: 0,
+    speedMps: 0,
+  };
 
   constructor() {
     makeAutoObservable<
       GeoStore,
-      "watchId" | "simTimerId" | "customState" | "prevLat" | "prevLon" | "hasPrev" | "prevTsMs"
+      "watchId" | "customState" | "prevLat" | "prevLon" | "hasPrev" | "prevTsMs" | "simulatedSample"
     >(
       this,
       {
         watchId: false,
-        simTimerId: false,
         customState: false,
         prevLat: false,
         prevLon: false,
         hasPrev: false,
         prevTsMs: false,
+        simulatedSample: false,
       },
       { autoBind: true },
     );
@@ -44,7 +52,7 @@ export class GeoStore {
     if (!this.customState) {
       return;
     }
-    this.startSimulation();
+    this.enableSimulatedMode();
     this.requestLiveGps();
   }
 
@@ -54,12 +62,12 @@ export class GeoStore {
     }
 
     if (!("geolocation" in navigator)) {
-      this.statusText = "GPS: unavailable (simulated)";
+      this.statusText = "GPS: unavailable (bike sim)";
       return;
     }
 
     if (!window.isSecureContext) {
-      this.statusText = "GPS: blocked (secure context required, simulated)";
+      this.statusText = "GPS: blocked (secure context required, bike sim)";
       return;
     }
 
@@ -84,21 +92,36 @@ export class GeoStore {
         this.isLive = true;
         this.statusText = "GPS: live";
 
+        let distM = 0;
+        if (this.hasPrev) {
+          distM = haversineMeters(this.prevLat, this.prevLon, lat, lon);
+          const dtS = Math.max(0.001, (tsMs - this.prevTsMs) / 1000);
+          if (distM <= MOTION_DISTANCE_NOISE_M) {
+            this.customState.speedMps = 0;
+          } else {
+            this.customState.speedMps = distM / dtS;
+          }
+        } else {
+          this.customState.speedMps = 0;
+        }
+
         let heading = position.coords.heading;
-        if ((heading === null || Number.isNaN(heading)) && this.hasPrev) {
+        if (
+          (heading === null || Number.isNaN(heading)) &&
+          this.hasPrev &&
+          distM > MOTION_DISTANCE_NOISE_M
+        ) {
           heading = bearingDeg(this.prevLat, this.prevLon, lat, lon);
         }
         if (heading !== null && !Number.isNaN(heading)) {
           this.customState.headingRad = (heading * Math.PI) / 180;
         }
-
-        if (this.hasPrev) {
-          const dtS = Math.max(0.001, (tsMs - this.prevTsMs) / 1000);
-          const distM = haversineMeters(this.prevLat, this.prevLon, lat, lon);
-          this.customState.speedMps = distM / dtS;
-        } else {
-          this.customState.speedMps = 0;
-        }
+        this.simulatedSample = {
+          lat,
+          lon,
+          headingRad: this.customState.headingRad,
+          speedMps: this.customState.speedMps,
+        };
 
         this.prevLat = lat;
         this.prevLon = lon;
@@ -109,17 +132,42 @@ export class GeoStore {
         if (!this.customState) {
           return;
         }
-        this.customState.hasGeo = false;
-        this.customState.speedMps = 0;
-        this.isLive = false;
+        this.enableSimulatedMode();
         if (error.code === error.PERMISSION_DENIED) {
-          this.statusText = "GPS: denied (simulated)";
+          this.statusText = "GPS: denied (bike sim)";
           return;
         }
-        this.statusText = "GPS: error (simulated)";
+        this.statusText = "GPS: error (bike sim)";
       },
       { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 },
     );
+  }
+
+  applySimulatedSample(sample: SimulatedGeoSample): void {
+    this.simulatedSample = sample;
+    if (this.isLive || !this.customState) {
+      if (this.isLive) {
+        console.debug("[emu:geo] ignored simulated sample because live GPS is active");
+      }
+      return;
+    }
+    this.customState.hasGeo = true;
+    this.customState.lat = sample.lat;
+    this.customState.lon = sample.lon;
+    this.customState.headingRad = sample.headingRad;
+    this.customState.speedMps = sample.speedMps;
+    this.statusText = "GPS: simulated (bike controls)";
+    const nowMs = performance.now();
+    if (nowMs - this.lastDebugMs >= DEBUG_INTERVAL_MS) {
+      this.lastDebugMs = nowMs;
+      console.debug("[emu:geo] applied simulated sample", {
+        lat: Number(sample.lat.toFixed(6)),
+        lon: Number(sample.lon.toFixed(6)),
+        headingDeg: Number(((sample.headingRad * 180) / Math.PI).toFixed(1)),
+        speedKmh: Number((sample.speedMps * 3.6).toFixed(2)),
+        hasGeo: this.customState.hasGeo,
+      });
+    }
   }
 
   dispose(): void {
@@ -127,41 +175,26 @@ export class GeoStore {
       navigator.geolocation.clearWatch(this.watchId);
       this.watchId = null;
     }
-    if (this.simTimerId !== null) {
-      window.clearInterval(this.simTimerId);
-      this.simTimerId = null;
-    }
     this.customState = null;
     this.hasPrev = false;
     this.prevTsMs = 0;
   }
 
-  private startSimulation(): void {
+  private enableSimulatedMode(): void {
     if (!this.customState) {
       return;
     }
-    this.statusText = "GPS: requesting permission";
     this.isLive = false;
-    this.customState.hasGeo = false;
-    this.customState.lat = DEFAULT_LAT;
-    this.customState.lon = DEFAULT_LON;
-    this.customState.headingRad = 0;
-    this.customState.speedMps = 0;
-
-    let t = 0;
-    if (this.simTimerId !== null) {
-      window.clearInterval(this.simTimerId);
-    }
-    this.simTimerId = window.setInterval(() => {
-      if (!this.customState || this.customState.hasGeo) {
-        return;
-      }
-      t += 0.05;
-      this.customState.lat = DEFAULT_LAT + Math.sin(t) * 0.0012;
-      this.customState.lon = DEFAULT_LON + Math.cos(t) * 0.0012;
-      this.customState.headingRad = t + Math.PI / 2;
-      this.customState.speedMps = 3.8;
-    }, 100);
+    this.customState.hasGeo = true;
+    this.customState.lat = this.simulatedSample.lat;
+    this.customState.lon = this.simulatedSample.lon;
+    this.customState.headingRad = this.simulatedSample.headingRad;
+    this.customState.speedMps = this.simulatedSample.speedMps;
+    this.statusText = "GPS: simulated (bike controls)";
+    console.debug("[emu:geo] enabled simulated mode", {
+      lat: Number(this.simulatedSample.lat.toFixed(6)),
+      lon: Number(this.simulatedSample.lon.toFixed(6)),
+    });
   }
 }
 

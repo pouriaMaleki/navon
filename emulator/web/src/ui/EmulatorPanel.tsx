@@ -1,13 +1,15 @@
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef } from "react";
-import type { EmulatorStore } from "../stores/EmulatorStore";
+import type { AppStore } from "../stores/AppStore";
+import { BikeControls } from "./BikeControls";
 import styles from "./EmulatorPanel.module.css";
 
 type EmulatorPanelProps = {
-  emulatorStore: EmulatorStore;
+  appStore: AppStore;
 };
 
-export const EmulatorPanel = observer(({ emulatorStore }: EmulatorPanelProps) => {
+export const EmulatorPanel = observer(({ appStore }: EmulatorPanelProps) => {
+  const { bikeSimStore, emulatorStore } = appStore;
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -27,6 +29,7 @@ export const EmulatorPanel = observer(({ emulatorStore }: EmulatorPanelProps) =>
         height={800}
         aria-label="Minimap canvas"
       />
+      <BikeControls bikeSimStore={bikeSimStore} />
       {emulatorStore.errorMessage ? (
         <p className={styles["error"]}>Emulator error: {emulatorStore.errorMessage}</p>
       ) : null}

@@ -3,8 +3,8 @@ import type { RenderProgram } from "../core/types";
 
 import type { WasmRuntimeState } from "../types";
 
-export const MIN_ZOOM = 0.9;
-export const MAX_ZOOM = 20.0;
+export const MIN_ZOOM = 0.8;
+export const MAX_ZOOM = 60.0;
 export const INITIAL_ZOOM = 2.2;
 
 const PAN_IDLE_MS = 1200;
@@ -16,18 +16,30 @@ export async function createWasmProgram(profileId = 0): Promise<{
 }> {
   const wasm: InitOutput = await initWasm();
   const emu = new MinimapWasmEmulator(profileId);
+  let prevPanX = 0;
+  let prevPanY = 0;
+  let prevZoom = INITIAL_ZOOM;
 
   const program: RenderProgram<WasmRuntimeState> = {
     init(state) {
       state.custom.emu.reset();
-      state.custom.zoom = INITIAL_ZOOM;
+      state.custom.zoom = state.custom.emu.camera_zoom();
       state.custom.panX = 0;
       state.custom.panY = 0;
+      state.custom.rotateDeltaRad = 0;
       state.custom.lastPanInputMs = 0;
+      prevPanX = 0;
+      prevPanY = 0;
+      prevZoom = state.custom.zoom;
     },
     update(state) {
       if (state.custom.hasGeo) {
-        state.custom.emu.set_user_geo(state.custom.lat, state.custom.lon, state.custom.headingRad);
+        state.custom.emu.set_user_geo(
+          state.custom.lat,
+          state.custom.lon,
+          state.custom.headingRad,
+          state.custom.speedMps,
+        );
       }
 
       const idleMs = performance.now() - state.custom.lastPanInputMs;
@@ -37,17 +49,17 @@ export async function createWasmProgram(profileId = 0): Promise<{
         state.custom.panY *= 1 - t;
       }
 
-      state.custom.emu.set_camera(
-        state.custom.zoom,
-        state.custom.panX,
-        state.custom.panY,
-        state.custom.headingRad,
-        state.custom.headingRad,
-        0.5,
-        false,
-        idleMs < 180,
-      );
-      state.custom.emu.step();
+      const panDx = state.custom.panX - prevPanX;
+      const panDy = state.custom.panY - prevPanY;
+      const zoomScale = prevZoom > 0 ? state.custom.zoom / prevZoom : 1.0;
+      const rotateDelta = state.custom.rotateDeltaRad;
+      prevPanX = state.custom.panX;
+      prevPanY = state.custom.panY;
+      prevZoom = state.custom.zoom;
+      state.custom.rotateDeltaRad = 0;
+
+      state.custom.emu.set_gesture_deltas(panDx, panDy, zoomScale, rotateDelta, idleMs < 180);
+      state.custom.emu.step(Math.max(0, state.time.dtMs));
     },
     render(state, surface) {
       const ptr = state.custom.emu.pixels_ptr();
@@ -68,6 +80,7 @@ export async function createWasmProgram(profileId = 0): Promise<{
       zoom: INITIAL_ZOOM,
       panX: 0,
       panY: 0,
+      rotateDeltaRad: 0,
       lastPanInputMs: 0,
     },
     program,

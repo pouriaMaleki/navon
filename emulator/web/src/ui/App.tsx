@@ -20,7 +20,7 @@ export const App = observer(({ appStore }: AppProps) => {
   return (
     <main className={styles["app"]}>
       <TopBar />
-      <EmulatorPanel emulatorStore={appStore.emulatorStore} />
+      <EmulatorPanel appStore={appStore} />
       <Controls appStore={appStore} />
     </main>
   );

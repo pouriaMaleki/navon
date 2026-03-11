@@ -514,11 +514,13 @@ name = "esp32-hello"
 version = "0.1.0"
 dependencies = [
  "critical-section",
+ "embedded-hal",
  "esp-backtrace",
  "esp-bootloader-esp-idf",
  "esp-hal",
  "esp-println",
  "esp32-screen-render-core",
+ "libm",
 ]
 
 [[package]]

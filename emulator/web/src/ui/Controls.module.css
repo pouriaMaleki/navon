@@ -1,9 +1,14 @@
 .controls {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.actions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 14px;
 }
 
 .button {
@@ -27,4 +32,67 @@
 .status {
   color: #9fb0c3;
   font-size: 0.9rem;
+}
+
+.metrics {
+  color: #7fe6b8;
+  font-size: 0.9rem;
+}
+
+.tuning {
+  border: 1px solid #2f3945;
+  border-radius: 10px;
+  background: #121820;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.tuningHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tuningTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #d5dbe3;
+  font-weight: 600;
+}
+
+.rangeRow {
+  display: grid;
+  grid-template-columns: 140px 1fr 92px;
+  align-items: center;
+  gap: 10px;
+}
+
+.rangeLabel {
+  color: #b9c6d4;
+  font-size: 0.85rem;
+}
+
+.slider {
+  width: 100%;
+  accent-color: #56d0ff;
+}
+
+.rangeValue {
+  color: #9fb0c3;
+  font-size: 0.85rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 700px) {
+  .rangeRow {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .rangeValue {
+    text-align: left;
+  }
 }

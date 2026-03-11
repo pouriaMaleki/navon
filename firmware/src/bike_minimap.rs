@@ -1,73 +1,151 @@
-use crate::minimap::{CameraView, SAMPLE_BOUNDS, WorldPoint};
+use crate::minimap::{
+    CameraControllerInput, CameraControllerState, CameraView, SAMPLE_BOUNDS, WorldPoint,
+    north_indicator_hit_test,
+};
+
+const TOUCH_PAN_SENSITIVITY: f32 = crate::board_config::TOUCH_PAN_SENSITIVITY;
 
 #[derive(Clone, Copy, Debug)]
 pub struct GeoFix {
     pub lat: f64,
     pub lon: f64,
     pub heading_rad: f32,
+    pub speed_mps: f32,
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct BikeMinimapState {
     pub player: WorldPoint,
-    pub heading_rad: f32,
-    pub zoom: f32,
-    pub pan_x: f32,
-    pub pan_y: f32,
-    idle_ms_since_pan: f32,
+    pub rider_heading_rad: f32,
+    pub speed_mps: f32,
+    controller: CameraControllerState,
+    pending_pan_dx: f32,
+    pending_pan_dy: f32,
+    pending_zoom_scale: f32,
+    pending_rotate_delta_rad: f32,
     origin_lat: f64,
     origin_lon: f64,
 }
 
 impl BikeMinimapState {
     pub fn new(origin_lat: f64, origin_lon: f64) -> Self {
+        let player = WorldPoint { x: 500, y: 500 };
+        let mut controller = CameraControllerState::new(1.0);
+        controller.update(
+            CameraControllerInput {
+                player,
+                rider_heading_rad: 0.0,
+                speed_mps: 0.0,
+                pan_dx: 0.0,
+                pan_dy: 0.0,
+                zoom_scale: 1.0,
+                rotate_delta_rad: 0.0,
+            },
+            0.0,
+        );
         Self {
-            player: WorldPoint { x: 500, y: 500 },
-            heading_rad: 0.0,
-            zoom: 1.0,
-            pan_x: 0.0,
-            pan_y: 0.0,
-            idle_ms_since_pan: 0.0,
+            player,
+            rider_heading_rad: 0.0,
+            speed_mps: 0.0,
+            controller,
+            pending_pan_dx: 0.0,
+            pending_pan_dy: 0.0,
+            pending_zoom_scale: 1.0,
+            pending_rotate_delta_rad: 0.0,
             origin_lat,
             origin_lon,
         }
     }
 
     pub fn apply_gps(&mut self, fix: GeoFix) {
-        self.heading_rad = fix.heading_rad;
+        self.rider_heading_rad = fix.heading_rad;
+        self.speed_mps = fix.speed_mps;
         self.player = project_geo_to_sample(fix.lat, fix.lon, self.origin_lat, self.origin_lon);
     }
 
     pub fn apply_pan_gesture(&mut self, dx_world: f32, dy_world: f32) {
-        self.pan_x += dx_world;
-        self.pan_y += dy_world;
-        self.idle_ms_since_pan = 0.0;
+        self.pending_pan_dx += dx_world;
+        self.pending_pan_dy += dy_world;
+    }
+
+    pub fn apply_pan_pixels(&mut self, dx_pixels: f32, dy_pixels: f32, screen_width_pixels: f32) {
+        let zoom = self.controller.output().zoom.max(0.1);
+        let map_per_pixel =
+            (10_000.0 / (screen_width_pixels.max(1.0) * zoom)) * TOUCH_PAN_SENSITIVITY;
+        self.apply_pan_gesture(-dx_pixels * map_per_pixel, dy_pixels * map_per_pixel);
     }
 
     pub fn apply_pinch_gesture(&mut self, zoom_scale: f32) {
-        self.zoom = (self.zoom * zoom_scale).clamp(0.6, 4.5);
+        let scale = if zoom_scale.is_finite() && zoom_scale > 0.0 {
+            zoom_scale
+        } else {
+            1.0
+        };
+        self.pending_zoom_scale *= scale;
     }
 
-    pub fn tick(&mut self, dt_ms: f32) {
-        self.idle_ms_since_pan += dt_ms;
-        if self.idle_ms_since_pan > 1200.0 {
-            let t = (dt_ms / 220.0).clamp(0.0, 1.0);
-            self.pan_x *= 1.0 - t;
-            self.pan_y *= 1.0 - t;
+    pub fn apply_rotate_gesture(&mut self, rotate_delta_rad: f32) {
+        if rotate_delta_rad.is_finite() {
+            self.pending_rotate_delta_rad += rotate_delta_rad;
         }
     }
 
+    pub fn toggle_temporary_north_up(&mut self) {
+        self.controller.toggle_temporary_north_up();
+    }
+
+    pub fn on_touch_tap_normalized(
+        &mut self,
+        nx: f32,
+        ny: f32,
+        screen_w: usize,
+        screen_h: usize,
+    ) -> bool {
+        let x = (nx.clamp(0.0, 1.0) * screen_w as f32).round() as i32;
+        let y = (ny.clamp(0.0, 1.0) * screen_h as f32).round() as i32;
+        if north_indicator_hit_test(screen_w, screen_h, x, y) {
+            self.controller.request_north_up();
+            return true;
+        }
+        false
+    }
+
+    pub fn tick(&mut self, dt_ms: f32) {
+        self.controller.update(
+            CameraControllerInput {
+                player: self.player,
+                rider_heading_rad: self.rider_heading_rad,
+                speed_mps: self.speed_mps,
+                pan_dx: self.pending_pan_dx,
+                pan_dy: self.pending_pan_dy,
+                zoom_scale: self.pending_zoom_scale,
+                rotate_delta_rad: self.pending_rotate_delta_rad,
+            },
+            dt_ms,
+        );
+        self.pending_pan_dx = 0.0;
+        self.pending_pan_dy = 0.0;
+        self.pending_zoom_scale = 1.0;
+        self.pending_rotate_delta_rad = 0.0;
+    }
+
     pub fn camera_view(&self) -> CameraView {
+        let camera = self.controller.output();
         CameraView {
             center: WorldPoint {
-                x: (self.player.x as f32 + self.pan_x) as i16,
-                y: (self.player.y as f32 + self.pan_y) as i16,
+                x: (camera.follow_player.x as f32 + camera.pan_x) as i16,
+                y: (camera.follow_player.y as f32 + camera.pan_y) as i16,
             },
             player: self.player,
-            heading_rad: self.heading_rad,
-            zoom: self.zoom,
+            heading_rad: camera.heading_rad,
+            rider_heading_rad: camera.rider_heading_rad,
+            zoom: camera.zoom,
             base_bounds: SAMPLE_BOUNDS,
             background: 18,
+            player_anchor_x: 0.5,
+            player_anchor_y: camera.player_anchor_y,
+            riding_mode: camera.riding_mode,
+            interaction_active: camera.interaction_active,
         }
     }
 }

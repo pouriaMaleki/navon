@@ -1,7 +1,7 @@
 use flate2::read::{GzDecoder, ZlibDecoder};
 use geo_types::{Geometry, LineString, MultiLineString};
-use mvt_reader::feature::{Feature, Value};
 use mvt_reader::Reader;
+use mvt_reader::feature::{Feature, Value};
 use rusqlite::Connection;
 use std::env;
 use std::fs;
@@ -590,9 +590,7 @@ fn select_zoom(conn: &Connection, target: i32) -> Result<i32, String> {
 
     if let Some(z) = select_zoom_from_available(&zooms, target) {
         if z != target {
-            eprintln!(
-                "map-vector-cli: requested zoom {target} not available, using {z}"
-            );
+            eprintln!("map-vector-cli: requested zoom {target} not available, using {z}");
         }
         return Ok(z);
     }
