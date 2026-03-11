@@ -13,6 +13,45 @@ export type GeoCoordinates = {
   lon: number;
 };
 
+export type BikeControlIntent = {
+  accelerate: boolean;
+  brake: boolean;
+  turnLeft: boolean;
+  turnRight: boolean;
+};
+
+export type BikePhysicsState = {
+  lat: number;
+  lon: number;
+  headingRad: number;
+  speedMps: number;
+  steerAngleRad: number;
+};
+
+export type BikePhysicsAdvanceResult = {
+  state: BikePhysicsState;
+  simDtSec: number;
+  substeps: number;
+  droppedDtSec: number;
+};
+
+export type BikePhysicsConfig = {
+  maxSpeedKmh: number;
+  throttleAccelMps2: number;
+  coastDecelMps2: number;
+  brakeDecelMps2: number;
+  maxSteerDeg: number;
+  steerResponseDegPerSec: number;
+  wheelbaseM: number;
+};
+
+export type SimulatedGeoSample = {
+  lat: number;
+  lon: number;
+  headingRad: number;
+  speedMps: number;
+};
+
 export type WasmRuntimeState = {
   emu: MinimapWasmEmulator;
   hasGeo: boolean;
@@ -23,5 +62,6 @@ export type WasmRuntimeState = {
   zoom: number;
   panX: number;
   panY: number;
+  rotateDeltaRad: number;
   lastPanInputMs: number;
 };

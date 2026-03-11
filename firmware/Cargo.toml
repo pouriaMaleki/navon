@@ -18,6 +18,8 @@ esp32-screen-render-core = { path = "../render-core" }
 esp-bootloader-esp-idf = { version = "0.4.0", features = ["esp32"] }
 
 critical-section = "1.2.0"
+embedded-hal = "1.0.0"
+libm = "0.2"
 
 
 [profile.dev]

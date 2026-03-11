@@ -15,6 +15,7 @@
 - Riding: heading-up orientation and lower-quarter rider anchor.
 - Stopped: centered rider and delayed smooth return to north-up.
 - Temporary north-up override from indicator tap with auto-return to riding mode while moving.
+- During manual pan, freeze follow target at pan start so rider marker stays screen-stable while camera offset changes.
 
 4. UI affordances and map styling
 - Add north indicator icon in top-right and interaction handling.
@@ -59,20 +60,39 @@
 - Route alerts to maintainers via GitHub notifications and review ownership.
 - Record accepted-risk exceptions with explicit expiry and revisit date.
 
+## Phase 6 Plan (Real Device Touch Integration)
+1. Board config and driver bring-up
+- Add Waveshare board touch config with `GT9271`, display size, I2C bus pins, and touch control pins.
+- Implement low-level touch reset/read path in firmware.
+
+2. Gesture recognition layer
+- Convert raw contacts into pan, pinch, rotate, and tap events.
+- Preserve gesture semantics already proven in emulator.
+
+3. Firmware runtime wiring
+- Feed gestures into `BikeMinimapState` instead of mock touch.
+- Keep camera logic inside shared Rust core.
+
+4. Hardware validation
+- Validate coordinate mapping, north-indicator hit testing, and gesture stability on the real board.
+
 ## TODO
-- [ ] Add camera mode state machine and transition timers in shared runtime model.
-- [ ] Add movement detection and delayed stop transition logic.
-- [ ] Implement lower-quarter rider anchor for riding mode.
-- [ ] Implement smooth stop-to-north-up recenter animation.
-- [ ] Add temporary north-up override and auto-return policy.
-- [ ] Add top-right north indicator icon and tap interaction.
-- [ ] Clamp zoom-in to approximately 100 m visible context target.
-- [ ] Clamp zoom-out to readability-safe limit (pre-overview mode).
-- [ ] Implement riding marker glow + directional shape.
-- [ ] Implement larger stopped marker style.
+- [x] Redesign shared camera rotation model using filtered travel heading and correct map-heading sign.
+- [x] Derive riding-mode camera heading from movement vector in shared Rust controller.
+- [x] Add camera mode state machine and transition timers in shared runtime model.
+- [x] Add movement detection and delayed stop transition logic.
+- [x] Implement lower-quarter rider anchor for riding mode.
+- [x] Implement smooth stop-to-north-up recenter animation.
+- [x] Add temporary north-up override and auto-return policy.
+- [x] Add top-right north indicator icon and tap interaction.
+- [x] Keep rider marker screen-stable during manual pan by locking follow target to pan-start position.
+- [x] Clamp zoom-in to approximately 100 m visible context target.
+- [x] Clamp zoom-out to readability-safe limit (pre-overview mode).
+- [x] Implement riding marker glow + directional shape.
+- [x] Implement larger stopped marker style.
 - [ ] Add dark-theme vector style presets (major/minor hierarchy).
-- [ ] Implement renderer optimizations: precomputed transform + clipping + pan-time quality mode.
-- [ ] Define overview-mode design doc for future vector suppression strategy.
+- [x] Implement renderer optimizations: precomputed transform + clipping + pan-time quality mode.
+- [x] Define overview-mode design doc for future vector suppression strategy.
 - [x] Add bike-focused map conversion profile and wire `xtask prepare-map` to use it.
 - [x] Add repository CVE/security tracking plan document (`docs/cve-tracking-plan.md`).
 - [x] Add Dependabot configuration for Cargo, npm, and GitHub Actions.
@@ -82,3 +102,9 @@
 - [x] Enforce security audit checks by default (`SECURITY_ENFORCE=true` default in workflow).
 - [ ] Enable branch protection to require Security Audit and CodeQL checks.
 - [ ] Enable secret scanning and push protection in GitHub repository settings.
+- [x] Add Waveshare board touch config module for GT9271 + display constants.
+- [x] Implement GT9271 bus-only detect/read path in firmware.
+- [x] Add firmware gesture recognizer for pan, pinch, rotate, and tap.
+- [x] Add `apply_rotate_gesture(...)` to firmware minimap state.
+- [x] Replace mock touch input in `firmware/src/bin/main.rs` with real touchscreen input polling path.
+- [ ] Validate touch coordinate mapping and north-indicator taps on real hardware.

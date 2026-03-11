@@ -1,4 +1,5 @@
 .panel {
+  position: relative;
   margin-top: 18px;
   background: #171d24;
   border: 1px solid #2c3540;

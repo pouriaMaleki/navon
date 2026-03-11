@@ -39,3 +39,21 @@ cargo xtask deploy-device --port /dev/ttyUSB0
 2. Update plan.
 3. Implement.
 4. Reconcile docs and validate commands.
+
+## Emulator Dev Notes (LLM Quick Rules)
+- Emulator is a hardware/runtime simulator (`emulator/web`), not product-specific UI logic.
+- Keep canonical emulator requirements in `/work/emulator/docs/project-spec.md`; other emulator docs should reference it.
+- Frontend stack and conventions live in `/work/emulator/docs/frontend-stack.md` (React + MobX + CSS Modules + Biome).
+- Keep shared emulator TS contracts in `/work/emulator/web/src/types.ts`.
+- Prefer neutral naming in emulator APIs (`wasmProgram`, `WasmRuntimeState`), avoid feature/product-coupled names.
+- Do not reintroduce Cordova/external bridge logic into emulator.
+- Do not implement product camera policy in emulator TS. Riding/stopped/north-up behavior must be Rust-owned in `render-core` and surfaced via wasm bindings.
+- If emulator and firmware behavior differ, fix shared Rust logic first; treat emulator-specific behavior forks as bugs.
+
+### Emulator Validation Before Finish
+Run in `/work/emulator/web`:
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```

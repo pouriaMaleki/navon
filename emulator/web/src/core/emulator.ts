@@ -9,12 +9,16 @@ export class Esp32ScreenEmulator<TCustom> {
   private running = false;
   private rafId = 0;
   private prevTs = 0;
+  private readonly onFrame: ((dtMs: number) => void) | undefined;
 
   constructor(
     canvas: HTMLCanvasElement,
     profile: ScreenProfile,
     custom: TCustom,
     private readonly program: RenderProgram<TCustom>,
+    options?: {
+      onFrame?: (dtMs: number) => void;
+    },
   ) {
     const input: InputSnapshot = {
       primary: { x: 0, y: 0, down: false },
@@ -28,6 +32,7 @@ export class Esp32ScreenEmulator<TCustom> {
       time: { tick: 0, dtMs: 0, totalMs: 0 },
     };
     this.installPointerInput(canvas);
+    this.onFrame = options?.onFrame;
     this.program.init(this.state);
   }
 
@@ -90,6 +95,7 @@ export class Esp32ScreenEmulator<TCustom> {
     this.program.update(this.state);
     this.program.render(this.state, this.surface);
     this.target.present(this.surface);
+    this.onFrame?.(dtMs);
     this.rafId = requestAnimationFrame(this.step);
   };
 

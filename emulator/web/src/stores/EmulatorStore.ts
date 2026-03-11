@@ -10,6 +10,10 @@ export class EmulatorStore {
   isRunning = false;
   isLoading = false;
   errorMessage: string | null = null;
+  frameDtMs = 0;
+  frameDtAvgMs = 0;
+  fps = 0;
+  frameSamples = 0;
 
   private emulator: Esp32ScreenEmulator<WasmRuntimeState> | null = null;
   private customState: WasmRuntimeState | null = null;
@@ -40,6 +44,7 @@ export class EmulatorStore {
         WAVESHARE_ESP32_P4_3_4,
         initialState,
         program,
+        { onFrame: this.recordFrameTiming },
       );
       this.customState = this.emulator.customState();
       this.emulator.renderOnce();
@@ -48,6 +53,8 @@ export class EmulatorStore {
       this.appStore.touchStore.bind(canvas, this.customState);
       this.appStore.geoStore.bind(this.customState);
       this.appStore.geoStore.start();
+      this.appStore.bikeSimStore.start();
+      this.appStore.bikeSimStore.reset();
 
       runInAction(() => {
         this.isRunning = true;
@@ -75,19 +82,39 @@ export class EmulatorStore {
     if (!this.emulator) {
       return;
     }
+    this.appStore.bikeSimStore.reset();
+    this.resetFrameTiming();
     this.emulator.reset();
   }
 
   dispose(): void {
     this.appStore.geoStore.dispose();
+    this.appStore.bikeSimStore.dispose();
     this.appStore.touchStore.dispose();
     if (this.emulator) {
       this.emulator.stop();
     }
     this.emulator = null;
     this.customState = null;
+    this.resetFrameTiming();
     this.isReady = false;
     this.isRunning = false;
     this.isLoading = false;
+  }
+
+  private recordFrameTiming(dtMs: number): void {
+    this.frameDtMs = dtMs;
+    this.frameSamples = Math.min(this.frameSamples + 1, 120);
+    const blend = this.frameSamples === 1 ? 1 : 0.12;
+    this.frameDtAvgMs =
+      this.frameSamples === 1 ? dtMs : this.frameDtAvgMs + (dtMs - this.frameDtAvgMs) * blend;
+    this.fps = this.frameDtAvgMs > 0 ? 1000 / this.frameDtAvgMs : 0;
+  }
+
+  private resetFrameTiming(): void {
+    this.frameDtMs = 0;
+    this.frameDtAvgMs = 0;
+    this.fps = 0;
+    this.frameSamples = 0;
   }
 }
