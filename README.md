@@ -6,7 +6,12 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 - Main ESP32 project (`/work`): runtime minimap behavior (GPS follow, heading-up, zoom/pan).
 - Map conversion project (`/work/map-vector-cli`): host-side city map conversion into `.svm`.
 
-## Phase 4 Direction (In Progress)
+## Runtime Architecture
+- `runtime-core`: ECS runtime orchestration (camera policy, gesture integration, map query/LOD).
+- `render-core`: stateless render primitives (camera view + visible lines -> framebuffer).
+- `firmware` and `render-core-wasm`: platform adapters that translate input/output only.
+
+## Current Runtime Behavior
 - Heading-up camera transform in shared Rust renderer.
 - Riding mode camera:
   - heading-up
@@ -19,9 +24,17 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
   - zoom-out bounded for readability
 - Temporary north-up override from top-right north indicator.
 - Marker style upgrade (glowing directional riding marker + larger stopped marker).
-- Dark high-contrast vector style direction for circular minimap UI.
+- Dark high-contrast vector style with major/minor road hierarchy for circular minimap UI.
 - Emulator geolocation support using browser location APIs.
 - Emulator pinch/pan touch interactions (works on mobile browsers).
+
+## Render Core Internals
+- `render-core` public API is stable and stateless for adapters.
+- Internal modules are split by concern:
+  - `raster`
+  - `style`
+  - `visibility`
+  - `math`
 
 ## Navigation Behavior
 - Default while moving: riding mode with heading-up and lower-quarter rider anchor.

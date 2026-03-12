@@ -16,7 +16,22 @@ ESP32 bike minimap renderer in a video-game style UI.
 ## Architecture Separation
 - Main ESP32 project (`/work`): runtime camera/render/input behavior.
 - Map conversion project (`/work/map-vector-cli`): city-scale source conversion and `.svm` format.
-- Camera mode/state behavior is shared in Rust (`render-core`) and consumed by firmware and wasm emulator bindings.
+
+## Runtime Architecture Decision
+- Chosen design: ECS runtime with fixed deterministic frame schedule and event-driven input ingestion.
+- Framework: `bevy_ecs` (pinned `0.17.2`) in new `runtime-core` crate.
+- Rust toolchain constraint: `bevy_ecs 0.18.x` currently requires Rust `1.89+`; project is pinned to Rust `1.88`, so `0.17.2` is the compatible baseline.
+- Rollout style: hybrid (runtime orchestration moved into ECS first, then phased cleanup/perf hardening).
+
+## Runtime Boundaries
+- `runtime-core`: owns runtime behavior and policy:
+  - camera mode transitions,
+  - touch gesture integration,
+  - follow-lock/recenter behavior,
+  - map query + zoom-bucket LOD policy.
+- `render-core`: stateless rendering primitives (camera view + visible line set -> framebuffer).
+- `firmware`: platform adapter (GPS/touch drivers -> runtime input events, framebuffer presentation on device).
+- `render-core-wasm`: wasm adapter (browser/emulator inputs -> runtime events, output pixels for canvas).
 
 ## Data Flow
 - Source maps: `/work/map-src`
@@ -28,9 +43,11 @@ ESP32 bike minimap renderer in a video-game style UI.
 ## Current Phase Notes
 - Shared camera transform supports heading-up, zoom, and pan.
 - Camera rotation design is documented in `/work/docs/camera-rotation-design.md`.
+- ECS runtime architecture is documented in `/work/docs/runtime-ecs-architecture.md`.
+- `render-core` internals are organized into `raster`, `style`, `visibility`, and `math` modules while preserving public API compatibility.
 - Emulator web shell uses React UI + MobX stores and keeps browser geolocation/touch logic in store layer, including manual bike-sim fallback controls for deterministic GPS movement.
 - Firmware now includes a `GT9271` bus-polled touch path and firmware-side gesture recognition for pan, pinch, rotate, and tap.
-- Firmware still needs board-level validation and optional `TP_INT` / `TP_RST` reset wiring after schematic confirmation.
+- Firmware still needs board-level validation and optional `TP_INT` / `TP_RST` reset wiring in `main.rs` after schematic confirmation (`TouchInput::new_with_reset` hook is available).
 - Real-device touch target is Waveshare `ESP32-P4-WIFI6-Touch-LCD-3.4C` with `GT9271` capacitive controller on the board touch/display assembly.
 - Emulator developer tooling requires `wasm-pack` in host/devcontainer PATH.
 - Emulator web toolchain requires Node.js `>=20.19` (devcontainer pins Node 22).
@@ -68,5 +85,11 @@ ESP32 bike minimap renderer in a video-game style UI.
   - Riding mode marker should include a glowing yellow-green forward-facing shape.
   - Stopped mode marker should be larger and game-map readable.
 - Vector visual style:
-  - Shift toward dark/navy base, high-contrast bright major roads, subdued secondary roads.
+  - Dark/navy base with high-contrast major roads and subdued secondary roads.
   - Preserve circular minimap mask and strong ring border treatment.
+
+## Zoom-Level Detail Extensibility
+- Runtime map query computes visible world bounds per frame from camera output.
+- LOD policy is runtime-owned and maps zoom buckets to allowed layer classes.
+- Map-source adapters apply both bbox + LOD filtering before calling renderer.
+- Future overview mode must extend runtime LOD policy and map-source metadata, not platform adapters.

@@ -34,6 +34,25 @@ impl<I2C, E> TouchInput<I2C>
 where
     I2C: I2c<Error = E>,
 {
+    pub fn new_with_reset<F>(
+        mut i2c: I2C,
+        config: TouchPanelConfig,
+        mut reset_fn: F,
+    ) -> Result<Self, TouchError<E>>
+    where
+        F: FnMut(),
+    {
+        reset_fn();
+        let address = detect_address(&mut i2c)?;
+        let mut this = Self {
+            i2c,
+            address,
+            recognizer: GestureRecognizer::new(config.width, config.height),
+        };
+        this.validate_product_id()?;
+        Ok(this)
+    }
+
     pub fn new_bus_only(mut i2c: I2C, config: TouchPanelConfig) -> Result<Self, TouchError<E>> {
         let address = detect_address(&mut i2c)?;
         let mut this = Self {
