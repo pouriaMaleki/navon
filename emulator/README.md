@@ -5,6 +5,7 @@ Browser-based emulator for ESP32-P4 minimap behavior, backed by the shared Rust 
 ## Boundary
 - Emulator is a hardware/runtime harness for display + browser input/GPS wiring.
 - Product camera logic (riding/stopped transitions, heading policy, north-up behavior) must live in shared Rust core (`render-core`) and wasm bindings, not in emulator-only TypeScript logic.
+- Indicator and marker visuals are rendered by shared Rust output; emulator UI should not add product-specific overlays on top of the round screen.
 
 ## What This Project Does
 - Simulates the target display profile (Waveshare ESP32-P4 `800x800`).

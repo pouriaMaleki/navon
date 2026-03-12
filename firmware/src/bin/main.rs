@@ -18,9 +18,7 @@ use esp32_hello::bike_minimap::{BikeMinimapState, GeoFix};
 use esp32_hello::board_config::{
     TOUCH_I2C_FREQUENCY_KHZ, TOUCH_PANEL_HEIGHT, TOUCH_PANEL_WIDTH, TOUCH_SCL_GPIO, TOUCH_SDA_GPIO,
 };
-use esp32_hello::minimap::{
-    FrameBuffer, SAMPLE_LINES, WAVESHARE_ESP32_P4_3_4, render_device_style_camera,
-};
+use esp32_hello::minimap::{FrameBuffer, WAVESHARE_ESP32_P4_3_4, render_device_style_camera};
 use esp32_hello::touch::{TouchInput, TouchPanelConfig};
 
 // Wokwi doesn't emulate the ESP32-P4 LCD target yet, so this is a compact
@@ -106,7 +104,7 @@ fn main() -> ! {
 
         let mut frame = FrameBuffer::new(MAP_W, MAP_H, &mut pixels);
         let view = bike.camera_view();
-        render_device_style_camera(&mut frame, &SAMPLE_LINES, &view);
+        render_device_style_camera(&mut frame, bike.visible_lines(), &view);
 
         println!("---- minimap frame ----");
         print_ascii_minimap(&pixels, MAP_W, MAP_H, ASCII_W, ASCII_H);

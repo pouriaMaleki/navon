@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "firmware",
+  "runtime-core",
   "render-core",
   "render-core-wasm",
   "map-vector-cli",

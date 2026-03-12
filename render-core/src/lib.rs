@@ -1,5 +1,18 @@
 #![no_std]
 
+mod math;
+mod raster;
+mod style;
+mod visibility;
+
+use math::{normalize_angle, slew_angle};
+use raster::draw_line;
+use style::{
+    apply_device_style, draw_north_indicator, draw_player, draw_player_screen,
+    line_style_dark_profile, north_indicator_geometry,
+};
+use visibility::{CameraTransform, clip_line_to_rect};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct DeviceProfile {
     pub id: &'static str,
@@ -295,7 +308,8 @@ impl CameraControllerState {
                 self.filtered_motion_dy = dy;
                 self.has_filtered_motion = true;
             }
-            self.travel_heading_rad = libm::atan2f(self.filtered_motion_dx, self.filtered_motion_dy);
+            self.travel_heading_rad =
+                libm::atan2f(self.filtered_motion_dx, self.filtered_motion_dy);
         }
         self.rider_heading_rad = if moving {
             if self.has_filtered_motion {
@@ -486,15 +500,10 @@ pub fn render_device_style_camera(frame: &mut FrameBuffer<'_>, lines: &[Line], v
 pub fn render_minimap(frame: &mut FrameBuffer<'_>, lines: &[Line], view: &MinimapView) {
     frame.clear(view.background);
     for line in lines {
-        let from = world_to_screen(line.from, view.bounds, frame.width, frame.height);
-        let to = world_to_screen(line.to, view.bounds, frame.width, frame.height);
-        draw_line(
-            frame,
-            from,
-            to,
-            line.intensity,
-            line.thickness.max(1) as i32,
-        );
+        let from = raster::world_to_screen(line.from, view.bounds, frame.width, frame.height);
+        let to = raster::world_to_screen(line.to, view.bounds, frame.width, frame.height);
+        let (intensity, radius) = line_style_dark_profile(line.intensity, line.thickness, false);
+        draw_line(frame, from, to, intensity, radius);
     }
     draw_player(frame, view.player, view.bounds);
     draw_north_indicator(frame, 0.0);
@@ -540,13 +549,9 @@ pub fn render_minimap_camera(frame: &mut FrameBuffer<'_>, lines: &[Line], view: 
         let Some((x0, y0, x1, y1)) = clip else {
             continue;
         };
-        draw_line(
-            frame,
-            (x0, y0),
-            (x1, y1),
-            line.intensity,
-            line.thickness.max(1) as i32,
-        );
+        let (intensity, radius) =
+            line_style_dark_profile(line.intensity, line.thickness, view.interaction_active);
+        draw_line(frame, (x0, y0), (x1, y1), intensity, radius);
     }
     let p = transform.player_anchor_screen();
     draw_player_screen(frame, p, view.rider_heading_rad, view.riding_mode);
@@ -558,309 +563,6 @@ pub fn north_indicator_hit_test(width: usize, height: usize, x: i32, y: i32) -> 
     let dx = x - cx;
     let dy = y - cy;
     (dx * dx) + (dy * dy) <= r * r
-}
-
-fn draw_player(frame: &mut FrameBuffer<'_>, player: WorldPoint, bounds: WorldBounds) {
-    let (x, y) = world_to_screen(player, bounds, frame.width, frame.height);
-    draw_player_screen(frame, (x, y), 0.0, false);
-}
-
-fn draw_player_screen(
-    frame: &mut FrameBuffer<'_>,
-    p: (i32, i32),
-    heading_rad: f32,
-    riding_mode: bool,
-) {
-    let (x, y) = p;
-    if riding_mode {
-        // Riding marker: brighter glow + forward pointer.
-        stamp_circle(frame, x, y, 9, 205);
-        stamp_circle(frame, x, y, 6, 238);
-        stamp_circle(frame, x, y, 3, 252);
-
-        let nx = libm::sinf(heading_rad);
-        let ny = -libm::cosf(heading_rad);
-        for step in 1..=8 {
-            let fx = x + (nx * (step as f32) * 1.25) as i32;
-            let fy = y + (ny * (step as f32) * 1.25) as i32;
-            let value = if step < 4 { 252 } else { 238 };
-            stamp_circle(frame, fx, fy, 1, value);
-        }
-    } else {
-        // Stopped marker: larger static marker for easy map readability.
-        stamp_circle(frame, x, y, 8, 215);
-        stamp_circle(frame, x, y, 5, 242);
-        stamp_circle(frame, x, y, 2, 255);
-    }
-}
-
-fn draw_north_indicator(frame: &mut FrameBuffer<'_>, map_heading_rad: f32) {
-    let (cx, cy, r) = north_indicator_geometry(frame.width, frame.height);
-    // Fill backdrop with explicit writes so it remains visible over bright geometry.
-    fill_circle(frame, cx, cy, r, 18);
-    stamp_circle(frame, cx, cy, r, 96);
-    stamp_circle(frame, cx, cy, (r - 2).max(1), 24);
-
-    // Arrow points towards world north relative to current map rotation.
-    let angle = -core::f32::consts::FRAC_PI_2 + map_heading_rad;
-    let nx = libm::cosf(angle);
-    let ny = libm::sinf(angle);
-    let tip_x = cx + (nx * (r as f32 - 4.0)) as i32;
-    let tip_y = cy + (ny * (r as f32 - 4.0)) as i32;
-    draw_line(frame, (cx, cy), (tip_x, tip_y), 245, 1);
-
-    let left = angle + 2.55;
-    let right = angle - 2.55;
-    let wing = (r as f32 * 0.45).max(3.0);
-    let lx = tip_x + (libm::cosf(left) * wing) as i32;
-    let ly = tip_y + (libm::sinf(left) * wing) as i32;
-    let rx = tip_x + (libm::cosf(right) * wing) as i32;
-    let ry = tip_y + (libm::sinf(right) * wing) as i32;
-    draw_line(frame, (tip_x, tip_y), (lx, ly), 245, 1);
-    draw_line(frame, (tip_x, tip_y), (rx, ry), 245, 1);
-}
-
-fn north_indicator_geometry(width: usize, height: usize) -> (i32, i32, i32) {
-    let min_side = width.min(height) as i32;
-    let frame_cx = (width / 2) as i32;
-    let frame_cy = (height / 2) as i32;
-    let frame_r = (min_side / 2) - 8;
-    let indicator_r = (min_side / 12).clamp(24, 36);
-    let radial = (frame_r - indicator_r - 10).max(indicator_r + 1);
-    // 45-degree placement in top-right area, always inside round screen mask.
-    let offset = (radial as f32 * 0.70710677) as i32;
-    (frame_cx + offset, frame_cy - offset, indicator_r)
-}
-
-struct CameraTransform {
-    zoom: f32,
-    center_x: f32,
-    center_y: f32,
-    cos_h: f32,
-    sin_h: f32,
-    sx_scale: f32,
-    sy_scale: f32,
-    anchor_x_px: f32,
-    anchor_y_px: f32,
-}
-
-impl CameraTransform {
-    fn new(view: &CameraView, width: usize, height: usize) -> Self {
-        let zoom = if view.zoom < 0.2 { 0.2 } else { view.zoom };
-        let half_w = (view.base_bounds.width().max(1) as f32) / (2.0 * zoom);
-        let half_h = (view.base_bounds.height().max(1) as f32) / (2.0 * zoom);
-        let anchor_x = view.player_anchor_x.clamp(0.2, 0.8);
-        let anchor_y = view.player_anchor_y.clamp(0.2, 0.86);
-        Self {
-            zoom,
-            center_x: view.center.x as f32,
-            center_y: view.center.y as f32,
-            cos_h: libm::cosf(view.heading_rad),
-            sin_h: libm::sinf(view.heading_rad),
-            sx_scale: (width as f32 * 0.5) / half_w,
-            sy_scale: (height as f32 * 0.5) / half_h,
-            anchor_x_px: width as f32 * anchor_x,
-            anchor_y_px: height as f32 * anchor_y,
-        }
-    }
-
-    fn world_to_screen(&self, p: WorldPoint) -> (i32, i32) {
-        let dx = p.x as f32 - self.center_x;
-        let dy = p.y as f32 - self.center_y;
-        let rx = dx * self.cos_h + dy * self.sin_h;
-        let ry = -dx * self.sin_h + dy * self.cos_h;
-        let sx = (rx * self.sx_scale) + self.anchor_x_px;
-        let sy = (-ry * self.sy_scale) + self.anchor_y_px;
-        (sx as i32, sy as i32)
-    }
-
-    fn player_anchor_screen(&self) -> (i32, i32) {
-        (self.anchor_x_px as i32, self.anchor_y_px as i32)
-    }
-}
-
-fn compute_out_code(x: i32, y: i32, xmin: i32, xmax: i32, ymin: i32, ymax: i32) -> u8 {
-    let mut code = 0_u8;
-    if x < xmin {
-        code |= 1;
-    } else if x > xmax {
-        code |= 2;
-    }
-    if y < ymin {
-        code |= 4;
-    } else if y > ymax {
-        code |= 8;
-    }
-    code
-}
-
-fn clip_line_to_rect(
-    mut x0: i32,
-    mut y0: i32,
-    mut x1: i32,
-    mut y1: i32,
-    xmin: i32,
-    xmax: i32,
-    ymin: i32,
-    ymax: i32,
-) -> Option<(i32, i32, i32, i32)> {
-    let mut out0 = compute_out_code(x0, y0, xmin, xmax, ymin, ymax);
-    let mut out1 = compute_out_code(x1, y1, xmin, xmax, ymin, ymax);
-
-    loop {
-        if out0 == 0 && out1 == 0 {
-            return Some((x0, y0, x1, y1));
-        }
-        if (out0 & out1) != 0 {
-            return None;
-        }
-        let out = if out0 != 0 { out0 } else { out1 };
-        let dx = x1 - x0;
-        let dy = y1 - y0;
-        let (x, y) = if (out & 8) != 0 {
-            if dy == 0 {
-                return None;
-            }
-            (x0 + (dx * (ymax - y0)) / dy, ymax)
-        } else if (out & 4) != 0 {
-            if dy == 0 {
-                return None;
-            }
-            (x0 + (dx * (ymin - y0)) / dy, ymin)
-        } else if (out & 2) != 0 {
-            if dx == 0 {
-                return None;
-            }
-            (xmax, y0 + (dy * (xmax - x0)) / dx)
-        } else {
-            if dx == 0 {
-                return None;
-            }
-            (xmin, y0 + (dy * (xmin - x0)) / dx)
-        };
-
-        if out == out0 {
-            x0 = x;
-            y0 = y;
-            out0 = compute_out_code(x0, y0, xmin, xmax, ymin, ymax);
-        } else {
-            x1 = x;
-            y1 = y;
-            out1 = compute_out_code(x1, y1, xmin, xmax, ymin, ymax);
-        }
-    }
-}
-
-fn world_to_screen(p: WorldPoint, bounds: WorldBounds, width: usize, height: usize) -> (i32, i32) {
-    let bw = bounds.width().max(1) as i32;
-    let bh = bounds.height().max(1) as i32;
-    let px = (p.x - bounds.min_x) as i32;
-    let py = (p.y - bounds.min_y) as i32;
-
-    let sx = (px * (width.saturating_sub(1) as i32)) / bw;
-    let sy = ((bh - py) * (height.saturating_sub(1) as i32)) / bh;
-    (sx, sy)
-}
-
-fn draw_line(frame: &mut FrameBuffer<'_>, from: (i32, i32), to: (i32, i32), value: u8, r: i32) {
-    let (mut x0, mut y0) = from;
-    let (x1, y1) = to;
-    let dx = (x1 - x0).abs();
-    let sx = if x0 < x1 { 1 } else { -1 };
-    let dy = -(y1 - y0).abs();
-    let sy = if y0 < y1 { 1 } else { -1 };
-    let mut err = dx + dy;
-
-    loop {
-        stamp_circle(frame, x0, y0, r, value);
-        if x0 == x1 && y0 == y1 {
-            break;
-        }
-        let e2 = 2 * err;
-        if e2 >= dy {
-            err += dy;
-            x0 += sx;
-        }
-        if e2 <= dx {
-            err += dx;
-            y0 += sy;
-        }
-    }
-}
-
-fn stamp_circle(frame: &mut FrameBuffer<'_>, cx: i32, cy: i32, r: i32, value: u8) {
-    for dy in -r..=r {
-        for dx in -r..=r {
-            if dx * dx + dy * dy <= r * r {
-                frame.set_pixel_checked(cx + dx, cy + dy, value);
-            }
-        }
-    }
-}
-
-fn fill_circle(frame: &mut FrameBuffer<'_>, cx: i32, cy: i32, r: i32, value: u8) {
-    for dy in -r..=r {
-        for dx in -r..=r {
-            if dx * dx + dy * dy > r * r {
-                continue;
-            }
-            let x = cx + dx;
-            let y = cy + dy;
-            if x < 0 || y < 0 {
-                continue;
-            }
-            let ux = x as usize;
-            let uy = y as usize;
-            if ux >= frame.width || uy >= frame.height {
-                continue;
-            }
-            let idx = uy * frame.width + ux;
-            frame.pixels[idx] = value;
-        }
-    }
-}
-
-fn apply_device_style(frame: &mut FrameBuffer<'_>) {
-    let cx = (frame.width / 2) as i32;
-    let cy = (frame.height / 2) as i32;
-    let radius = ((frame.width.min(frame.height) as i32) / 2) - 8;
-    let inner = (radius - 6).max(1);
-
-    for y in 0..frame.height as i32 {
-        for x in 0..frame.width as i32 {
-            let dx = x - cx;
-            let dy = y - cy;
-            let d2 = dx * dx + dy * dy;
-            let idx = (y as usize) * frame.width + (x as usize);
-            if d2 > radius * radius {
-                frame.pixels[idx] = 0;
-            } else if d2 >= inner * inner {
-                frame.pixels[idx] = frame.pixels[idx].max(210);
-            }
-        }
-    }
-
-    for y in (cy - radius)..(cy - radius + 14) {
-        for x in (cx - 2)..=(cx + 2) {
-            frame.set_pixel_checked(x, y, 255);
-        }
-    }
-}
-
-fn normalize_angle(mut angle: f32) -> f32 {
-    while angle > core::f32::consts::PI {
-        angle -= 2.0 * core::f32::consts::PI;
-    }
-    while angle < -core::f32::consts::PI {
-        angle += 2.0 * core::f32::consts::PI;
-    }
-    angle
-}
-
-fn slew_angle(current: f32, target: f32, max_step: f32) -> f32 {
-    let delta = normalize_angle(target - current);
-    let clamped = delta.clamp(-max_step, max_step);
-    normalize_angle(current + clamped)
 }
 
 #[cfg(test)]
@@ -898,7 +600,7 @@ mod tests {
         render_sample_device_style(&mut fb, sample_player_for_tick(42));
 
         let sum: u64 = fb.pixels.iter().map(|v| *v as u64).sum();
-        assert_eq!(sum, 14864873);
+        assert_eq!(sum, 14661203);
     }
 
     fn approx(a: f32, b: f32, eps: f32) -> bool {

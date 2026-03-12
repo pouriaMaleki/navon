@@ -76,6 +76,27 @@
 4. Hardware validation
 - Validate coordinate mapping, north-indicator hit testing, and gesture stability on the real board.
 
+## Phase 7 Plan (ECS Runtime Refactor, Design 1)
+1. Runtime-core introduction
+- Add `runtime-core` crate with `bevy_ecs` schedule, resources, components, and event-style input frame.
+- Move runtime orchestration ownership out of firmware/wasm adapters.
+
+2. Camera and interaction policy migration
+- Keep existing behavior parity (riding/stopped/temp-north-up, pan recenter, follow lock).
+- Execute camera update as deterministic ECS system set.
+
+3. Visibility and LOD foundation
+- Add runtime map query resource (bbox + zoom bucket + LOD mask).
+- Add map-source query abstraction with zoom-dependent filtering support.
+
+4. Adapter wiring
+- Firmware uses `runtime-core::Runtime` as thin orchestrator.
+- WASM bridge uses `runtime-core::Runtime` for parity with firmware behavior.
+
+5. Cleanup and hardening
+- Add replay/parity tests and document architecture boundaries.
+- Follow with phased rendering-core modularization and performance tuning.
+
 ## TODO
 - [x] Redesign shared camera rotation model using filtered travel heading and correct map-heading sign.
 - [x] Derive riding-mode camera heading from movement vector in shared Rust controller.
@@ -90,7 +111,7 @@
 - [x] Clamp zoom-out to readability-safe limit (pre-overview mode).
 - [x] Implement riding marker glow + directional shape.
 - [x] Implement larger stopped marker style.
-- [ ] Add dark-theme vector style presets (major/minor hierarchy).
+- [x] Add dark-theme vector style presets (major/minor hierarchy).
 - [x] Implement renderer optimizations: precomputed transform + clipping + pan-time quality mode.
 - [x] Define overview-mode design doc for future vector suppression strategy.
 - [x] Add bike-focused map conversion profile and wire `xtask prepare-map` to use it.
@@ -108,3 +129,18 @@
 - [x] Add `apply_rotate_gesture(...)` to firmware minimap state.
 - [x] Replace mock touch input in `firmware/src/bin/main.rs` with real touchscreen input polling path.
 - [ ] Validate touch coordinate mapping and north-indicator taps on real hardware.
+- [x] Create `runtime-core` crate and wire workspace membership.
+- [x] Add `bevy_ecs` dependency (pinned) and baseline no-`std` runtime types.
+- [x] Define runtime input/output structs and public API (`new/step/reset`).
+- [x] Implement ECS schedule sets and deterministic ordering.
+- [x] Port camera mode logic into ECS runtime orchestration path.
+- [x] Port pan-follow lock and recenter behavior into ECS runtime orchestration path.
+- [x] Add map query resource and zoom-bucket LOD mask policy.
+- [x] Update firmware adapter to consume `runtime-core` output.
+- [x] Update wasm adapter to consume `runtime-core` output.
+- [x] Add initial runtime-core unit tests for transition/LOD/pan-lock behavior.
+- [x] Add runtime trace replay test harness (move/stop/pan/pinch/rotate/tap).
+- [x] Add firmware-vs-wasm parity tests for mode/heading/anchor progression.
+- [x] Split `render-core` into internal modules (`raster`, `style`, `visibility`, `math`) while keeping API compatibility.
+- [x] Add perf sanity checks and allocation profile review for ECS runtime.
+- [x] Update architecture docs for ECS design and ownership boundaries.
