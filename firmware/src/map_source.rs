@@ -11,6 +11,10 @@ impl MapSourceBridge {
     pub fn new(inner: EmbeddedMapSource) -> Self {
         Self { inner }
     }
+
+    pub fn embedded(&self) -> &EmbeddedMapSource {
+        &self.inner
+    }
 }
 
 impl Default for MapSourceBridge {

@@ -1,0 +1,11 @@
+[package]
+name = "parity-fixtures"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+runtime-core = { path = "../runtime-core" }
+
+[dev-dependencies]
+firmware = { path = "../firmware" }
+render-core-wasm = { path = "../render-core-wasm" }

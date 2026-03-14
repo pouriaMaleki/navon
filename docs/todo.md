@@ -45,6 +45,11 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 - [x] Keep device-specific touch drivers and browser event capture outside shared runtime logic while moving gesture and tap semantics into shared Rust.
 - [x] Make `cargo xtask emu` rebuild wasm and start the emulator dev server from the repository root.
 - [x] Wire a firmware host-side frame loop that steps `runtime-core`, queries map geometry, renders through `render-core`, and presents into a device-facing framebuffer abstraction.
+- [x] Add a firmware platform loop abstraction for frame timing plus GPS/touch polling around the shared runtime/query/render path.
+- [x] Add GT9271 report decoding and logical-screen normalization helpers in firmware touch handling.
+- [x] Add display upload/conversion helpers for RGB565-style panel presentation.
+- [x] Add concrete `esp_idf` provider modules for GT9271 transport, panel upload, and NMEA GPS input on top of the firmware provider traits.
+- [ ] Wire actual ESP-IDF peripheral acquisition and live hardware handles into those providers in the firmware platform loop.
 
 ## Map Data Evolution
 - [x] Implement an embedded `.svm` bridge that answers `MapSource::query(&MapQuerySpec)` with coarse bbox + LOD candidate selection.
@@ -57,9 +62,9 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 - [x] Add regression tests for rotated query coverage, zoom lower bound, north-up semantics, and GPS-dropout resilience.
 - [x] Add unit tests for motion filtering, heading smoothing, zoom bounds, and camera interpolation.
 - [x] Add query/render tests for bbox selection, edge-touching geometry, projection, clipping, and deterministic framebuffer output.
-- [ ] Add parity fixtures proving identical `TouchContactFrame` sequences resolve to the same gestures/taps across firmware and wasm paths.
+- [x] Add parity fixtures proving identical `TouchContactFrame` sequences resolve to the same gestures/taps across firmware and wasm paths.
 - [x] Add scenario tests for ride, stop, pan, recenter, and north-up override sequences.
-- [ ] Add parity-oriented fixtures that can be reused by wasm and firmware adapters and their shared map/query/render loop.
+- [x] Add parity-oriented fixtures that can be reused by wasm and firmware adapters and their shared map/query/render loop.
 - [x] Run workspace validation commands once the missing crates exist and are wired.
 - [x] Run emulator wasm build plus web lint/typecheck/build after the frame-driven bridge lands.
 - [x] Run `cargo xtask emu` startup sanity check after wiring the real command.

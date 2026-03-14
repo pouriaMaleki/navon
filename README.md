@@ -24,7 +24,9 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 - `render-core-wasm` now steps `runtime-core`, queries shared map geometry through `map-runtime`, renders pixels, and exposes a frame-driven wasm API to the emulator.
 - Emulator web now forwards raw GPS and normalized touch contacts only; TypeScript no longer owns pan/pinch/rotate/recenter product policy.
 - `cargo xtask emu` now rebuilds `render-core-wasm` and starts the emulator dev server from the repository root.
-- Firmware now has a host-side shared runtime/query/render loop for parity work, but board-level device wiring, shared parity fixtures, and device-side `xtask` flows are still pending.
+- Firmware now has a board-facing platform boundary, GT9271 report decoding/normalization, RGB565 display conversion/upload helpers, and a platform loop on top of the shared runtime/query/render path.
+- Firmware now also has concrete `esp_idf` provider modules for GT9271 register access, panel upload, and NMEA GPS parsing over the existing firmware provider traits.
+- Real ESP-IDF peripheral acquisition, live on-device validation, and device-side `xtask` flows are still pending.
 
 ## Target Runtime Behavior
 - Heading-up camera transform in shared Rust renderer.
