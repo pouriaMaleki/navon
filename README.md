@@ -100,7 +100,6 @@ Current status: `cargo xtask emu` is live; `prepare-map`, `bundle-device`, and `
 - Main TODO list: `/work/docs/todo.md`
 - Main spec: `/work/docs/project-spec.md`
 - Framework execution guide: `/work/docs/framework-execution-guide.md`
-- Source tree guide: `/work/docs/source-tree.md`
 - CVE tracking plan: `/work/docs/cve-tracking-plan.md`
 - Converter spec: `/work/map-vector-cli/docs/project-spec.md`
 - Converter plan: `/work/map-vector-cli/docs/current-plan.md`

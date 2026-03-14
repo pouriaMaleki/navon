@@ -2,7 +2,6 @@
 
 Spec reference: [`project-spec.md`](./project-spec.md)
 Execution guide: [`framework-execution-guide.md`](./framework-execution-guide.md)
-Structure guide: [`source-tree.md`](./source-tree.md)
 
 ## Plan
 1. Build the shared Rust framework first so firmware and wasm consume one runtime behavior model.

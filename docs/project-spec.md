@@ -131,7 +131,6 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
 
 ## Supporting Design Docs
 - Execution and validation workflow: `/work/docs/framework-execution-guide.md`
-- Recommended crate and module layout: `/work/docs/source-tree.md`
 - ECS runtime decision summary: `/work/docs/runtime-ecs-architecture.md`
 - Device touch integration details: `/work/docs/device-touch-integration-plan.md`
 
@@ -145,7 +144,7 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
 ## Current Phase Notes
 - `runtime-core::api` now exposes stable config, input, output, query, and diagnostics contract modules for adapters.
 - `runtime-core` now includes an internal `bevy_ecs` deterministic frame schedule that projects GPS into world-space focus, derives shared gesture/tap semantics, and emits interaction-aware camera snapshots plus `MapQuerySpec`.
-- Firmware now builds shared `RuntimeInputFrame` values and runs a host-side shared `runtime-core` -> `map-runtime` -> `render-core` frame loop, but real board IO and deploy flow wiring are still pending.
+- Firmware now builds shared `RuntimeInputFrame` values, runs the shared `runtime-core` -> `map-runtime` -> `render-core` frame loop, and exposes board-facing platform plus `esp_idf` provider boundaries; actual ESP-IDF peripheral acquisition, live board validation, and deploy flow wiring are still pending.
 - `render-core` and `render-core-wasm` now provide the emulator-facing end-to-end step/query/render slice from shared Rust through the same `map-runtime` query backend.
 - Shared camera foundation now supports one-finger pan, two-finger pinch/rotate, follow-lock, auto-recenter, riding/stopped transitions, stopped north-up settle, rotated query coverage, bounded zoom configuration, and short GPS-dropout resilience.
 - ECS runtime architecture is documented in `/work/docs/runtime-ecs-architecture.md`.

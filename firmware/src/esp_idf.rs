@@ -77,62 +77,6 @@ impl EspIdfOutputPin for NoopPin {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct UnsupportedI2cBus;
-
-impl EspIdfI2cBus for UnsupportedI2cBus {
-    fn write(&mut self, _address: u16, _payload: &[u8]) -> Result<(), EspIdfError> {
-        Err(EspIdfError::Unsupported(
-            "real ESP-IDF I2C bus wiring is not linked in this build".to_owned(),
-        ))
-    }
-
-    fn write_read(
-        &mut self,
-        _address: u16,
-        _tx_payload: &[u8],
-        _rx_payload: &mut [u8],
-    ) -> Result<(), EspIdfError> {
-        Err(EspIdfError::Unsupported(
-            "real ESP-IDF I2C bus wiring is not linked in this build".to_owned(),
-        ))
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct UnsupportedPanel;
-
-impl EspIdfPanel for UnsupportedPanel {
-    fn initialize(&mut self, _config: DisplayConfig) -> Result<(), EspIdfError> {
-        Err(EspIdfError::Unsupported(
-            "real ESP-IDF panel wiring is not linked in this build".to_owned(),
-        ))
-    }
-
-    fn present(
-        &mut self,
-        _pixels: &[u8],
-        _width: u32,
-        _height: u32,
-        _config: DisplayConfig,
-    ) -> Result<(), EspIdfError> {
-        Err(EspIdfError::Unsupported(
-            "real ESP-IDF panel wiring is not linked in this build".to_owned(),
-        ))
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct UnsupportedGpsSerial;
-
-impl EspIdfGpsSerial for UnsupportedGpsSerial {
-    fn read_sentence(&mut self) -> Result<Option<String>, EspIdfError> {
-        Err(EspIdfError::Unsupported(
-            "real ESP-IDF GPS serial wiring is not linked in this build".to_owned(),
-        ))
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct EspIdfGt9271Transport<B, R, I, D>
 where
