@@ -7,6 +7,7 @@ use runtime_core::api::{
     TouchPhase, ViewportSize, WorldPoint,
 };
 use runtime_core::camera::CameraState;
+use runtime_core::input::staging::DerivedInputState;
 use runtime_core::map::meters_per_pixel_for_zoom;
 use runtime_core::motion::MotionState;
 use runtime_core::output;
@@ -154,6 +155,8 @@ fn camera_preserves_zoom_below_default_when_within_bounds() {
 
     camera.advance(
         &MotionState::default(),
+        &DerivedInputState::default(),
+        Duration::ZERO,
         ViewportSize::new(320, 320),
         &config,
     );
@@ -172,6 +175,8 @@ fn riding_north_is_not_reported_as_north_up_mode() {
         },
         MapQuerySpec::default(),
         None,
+        false,
+        Some(0.0),
     );
 
     assert!(!output.overlay.north_up_active);
@@ -249,4 +254,275 @@ fn gps_dropout_eventually_falls_back_to_stopped_after_timeout() {
 
     assert_eq!(stopped.camera.mode, CameraMode::Stopped);
     assert!(stopped.overlay.rider_heading_rad.is_none());
+}
+
+#[test]
+fn manual_pan_sets_follow_lock_without_moving_rider_world_position() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    let moving_fix = moving_fix(-122.4194, 6.0);
+    runtime.step(frame_with_gps(16, moving_fix));
+
+    runtime.step(frame_with_touch(
+        16,
+        moving_fix,
+        1,
+        vec![touch(1, TouchPhase::Started, 100.0, 100.0)],
+    ));
+    runtime.step(frame_with_touch(
+        16,
+        moving_fix,
+        2,
+        vec![touch(1, TouchPhase::Moved, 120.0, 100.0)],
+    ));
+    let panned = runtime.step(frame_with_touch(
+        16,
+        moving_fix,
+        3,
+        vec![touch(1, TouchPhase::Moved, 145.0, 110.0)],
+    ));
+
+    assert!(panned.camera.follow_locked);
+    assert_ne!(panned.camera.center_world, panned.camera.focus_world);
+    assert_eq!(
+        panned.camera.focus_world,
+        runtime
+            .step(frame_with_gps(16, moving_fix))
+            .camera
+            .focus_world
+    );
+}
+
+#[test]
+fn pan_idle_recenters_and_clears_follow_lock() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    let moving_fix = moving_fix(-122.4194, 6.0);
+    runtime.step(frame_with_gps(16, moving_fix));
+    runtime.step(frame_with_touch(
+        16,
+        moving_fix,
+        1,
+        vec![touch(1, TouchPhase::Started, 100.0, 100.0)],
+    ));
+    runtime.step(frame_with_touch(
+        16,
+        moving_fix,
+        2,
+        vec![touch(1, TouchPhase::Moved, 125.0, 100.0)],
+    ));
+    let panned = runtime.step(frame_with_touch(
+        16,
+        moving_fix,
+        3,
+        vec![touch(1, TouchPhase::Moved, 150.0, 115.0)],
+    ));
+    let recentering = runtime.step(frame_with_gps(60, moving_fix));
+    let recentered = runtime.step(frame_with_gps(400, moving_fix));
+
+    assert!(panned.camera.follow_locked);
+    assert!(recentering.camera.recenter_active);
+    assert!(!recentered.camera.follow_locked);
+    assert!(!recentered.camera.recenter_active);
+}
+
+#[test]
+fn pinch_can_zoom_below_default_without_exceeding_bounds() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    let moving_fix = moving_fix(-122.4194, 6.0);
+    runtime.step(frame_with_gps(16, moving_fix));
+    runtime.step(frame_with_touch(
+        16,
+        moving_fix,
+        1,
+        vec![
+            touch(1, TouchPhase::Started, 100.0, 100.0),
+            touch(2, TouchPhase::Started, 200.0, 100.0),
+        ],
+    ));
+    let zoomed = runtime.step(frame_with_touch(
+        16,
+        moving_fix,
+        2,
+        vec![
+            touch(1, TouchPhase::Moved, 125.0, 100.0),
+            touch(2, TouchPhase::Moved, 175.0, 100.0),
+        ],
+    ));
+
+    assert!(zoomed.camera.zoom < RuntimeConfig::default().zoom_bounds.default);
+    assert!(zoomed.camera.zoom >= interaction_config().zoom_bounds.min);
+}
+
+#[test]
+fn riding_rotate_changes_orientation() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    let moving_fix = moving_fix(-122.4194, 6.0);
+    let baseline = runtime.step(frame_with_gps(16, moving_fix));
+    runtime.step(frame_with_touch(
+        16,
+        moving_fix,
+        1,
+        vec![
+            touch(1, TouchPhase::Started, 100.0, 100.0),
+            touch(2, TouchPhase::Started, 200.0, 100.0),
+        ],
+    ));
+    let rotated = runtime.step(frame_with_touch(
+        16,
+        moving_fix,
+        2,
+        vec![
+            touch(1, TouchPhase::Moved, 120.0, 80.0),
+            touch(2, TouchPhase::Moved, 180.0, 120.0),
+        ],
+    ));
+
+    assert_ne!(
+        baseline.camera.orientation_rad,
+        rotated.camera.orientation_rad
+    );
+}
+
+#[test]
+fn north_indicator_tap_enables_then_times_out_override() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    let first_fix = moving_fix(-122.4194, 6.0);
+    let moving_fix = moving_fix(-122.4184, 6.0);
+    let viewport = ViewportSize::new(480, 480);
+    runtime.step(frame_with_gps(16, first_fix));
+    runtime.step(frame_with_gps(16, moving_fix));
+    let center = interaction_config().north_indicator_center;
+    let tap_x = center.x * viewport.width_px as f32;
+    let tap_y = center.y * viewport.height_px as f32;
+
+    runtime.step(frame_with_touch(
+        16,
+        moving_fix,
+        1,
+        vec![touch(1, TouchPhase::Started, tap_x, tap_y)],
+    ));
+    let override_on = runtime.step(frame_with_touch(16, moving_fix, 2, vec![]));
+    let override_off = runtime.step(frame_with_gps(700, moving_fix));
+
+    assert!(override_on.overlay.north_up_active);
+    assert_eq!(override_on.camera.orientation_rad, 0.0);
+    assert_eq!(
+        override_on.overlay.rider_heading_rad,
+        Some(std::f32::consts::FRAC_PI_2)
+    );
+    assert!(!override_off.overlay.north_up_active);
+}
+
+#[test]
+fn stationary_touch_hold_does_not_start_recenter() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    let moving_fix = moving_fix(-122.4194, 6.0);
+    runtime.step(frame_with_gps(16, moving_fix));
+    runtime.step(frame_with_touch(
+        16,
+        moving_fix,
+        1,
+        vec![
+            touch(1, TouchPhase::Started, 100.0, 100.0),
+            touch(2, TouchPhase::Started, 200.0, 100.0),
+        ],
+    ));
+    let rotated = runtime.step(frame_with_touch(
+        16,
+        moving_fix,
+        2,
+        vec![
+            touch(1, TouchPhase::Moved, 120.0, 80.0),
+            touch(2, TouchPhase::Moved, 180.0, 120.0),
+        ],
+    ));
+    let held = runtime.step(frame_with_touch(
+        120,
+        moving_fix,
+        3,
+        vec![
+            touch(1, TouchPhase::Stationary, 120.0, 80.0),
+            touch(2, TouchPhase::Stationary, 180.0, 120.0),
+        ],
+    ));
+
+    assert_eq!(rotated.camera.orientation_rad, held.camera.orientation_rad);
+    assert!(!held.camera.recenter_active);
+}
+
+#[test]
+fn stopped_transition_holds_heading_then_settles_to_north_up() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    runtime.step(frame_with_gps(16, moving_fix(-122.4194, 6.0)));
+    let riding = runtime.step(frame_with_gps(16, moving_fix(-122.4184, 6.0)));
+    let stopped_hold = runtime.step(frame_with_gps(16, stopped_fix(-122.4184)));
+    let stopped_settled = runtime.step(frame_with_gps(500, stopped_fix(-122.4184)));
+
+    assert!(riding.camera.orientation_rad > 1.4);
+    assert!(stopped_hold.camera.orientation_rad > 1.4);
+    assert!(stopped_settled.camera.orientation_rad.abs() < 0.05);
+    assert!(stopped_settled.overlay.north_up_active);
+}
+
+fn interaction_config() -> RuntimeConfig {
+    RuntimeConfig {
+        pan_deadzone_px: 6.0,
+        pan_recenter_timeout: Duration::from_millis(40),
+        recenter_duration: Duration::from_millis(320),
+        north_up_override_timeout: Duration::from_millis(600),
+        stopped_north_up_delay: Duration::from_millis(120),
+        stopped_north_up_settle_duration: Duration::from_millis(240),
+        ..RuntimeConfig::default()
+    }
+}
+
+fn moving_fix(lon_deg: f64, speed_mps: f32) -> runtime_core::api::GpsSample {
+    runtime_core::api::GpsSample {
+        lat_deg: 37.7749,
+        lon_deg,
+        speed_mps,
+        course_rad: Some(0.0),
+        horizontal_accuracy_m: Some(3.0),
+    }
+}
+
+fn stopped_fix(lon_deg: f64) -> runtime_core::api::GpsSample {
+    runtime_core::api::GpsSample {
+        lat_deg: 37.7749,
+        lon_deg,
+        speed_mps: 0.0,
+        course_rad: Some(0.0),
+        horizontal_accuracy_m: Some(3.0),
+    }
+}
+
+fn frame_with_gps(dt_ms: u64, gps: runtime_core::api::GpsSample) -> RuntimeInputFrame {
+    RuntimeInputFrame::new(Duration::from_millis(dt_ms))
+        .with_gps(gps)
+        .with_viewport(ViewportSize::new(480, 480))
+}
+
+fn frame_with_touch(
+    dt_ms: u64,
+    gps: runtime_core::api::GpsSample,
+    sequence: u64,
+    contacts: Vec<TouchContact>,
+) -> RuntimeInputFrame {
+    let frame = if contacts.is_empty() {
+        TouchContactFrame::empty(sequence)
+    } else {
+        TouchContactFrame::new(sequence, contacts).expect("valid touch frame")
+    };
+    RuntimeInputFrame::new(Duration::from_millis(dt_ms))
+        .with_gps(gps)
+        .with_touch(frame)
+        .with_viewport(ViewportSize::new(480, 480))
+}
+
+fn touch(id: u64, phase: TouchPhase, x: f32, y: f32) -> TouchContact {
+    TouchContact {
+        id,
+        phase,
+        position: ScreenPoint::new(x, y),
+        pressure: None,
+    }
 }

@@ -52,16 +52,43 @@ export type SimulatedGeoSample = {
   speedMps: number;
 };
 
+export type RuntimeGpsInput = {
+  latDeg: number;
+  lonDeg: number;
+  speedMps: number;
+  courseRad: number | null;
+  horizontalAccuracyM: number | null;
+};
+
+export type RawTouchPhase = "started" | "moved" | "stationary" | "ended" | "cancelled";
+
+export type RawTouchContact = {
+  id: number;
+  phase: RawTouchPhase;
+  xPx: number;
+  yPx: number;
+  pressure: number | null;
+};
+
+export type RuntimeTouchInput = {
+  sequence: number;
+  contacts: RawTouchContact[];
+};
+
+export type RuntimeFrameState = {
+  frameIndex: number;
+  cameraMode: "riding" | "stopped";
+  zoom: number;
+  orientationRad: number;
+  followLocked: boolean;
+  recenterActive: boolean;
+  northUpActive: boolean;
+  geometryCount: number;
+};
+
 export type WasmRuntimeState = {
   emu: MinimapWasmEmulator;
-  hasGeo: boolean;
-  lat: number;
-  lon: number;
-  headingRad: number;
-  speedMps: number;
-  zoom: number;
-  panX: number;
-  panY: number;
-  rotateDeltaRad: number;
-  lastPanInputMs: number;
+  gps: RuntimeGpsInput | null;
+  touch: RuntimeTouchInput;
+  frame: RuntimeFrameState | null;
 };

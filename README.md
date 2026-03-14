@@ -12,12 +12,16 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 - `MapSource` implementations: coarse bbox/LOD data lookup behind `MapQuerySpec`.
 - `firmware` and `render-core-wasm`: platform adapters that translate device/browser I/O into shared normalized input contracts and output surfaces only.
 
-## Current Foundation Status
+## Current Slice Status
 - `runtime-core::api` defines stable shared contracts for config, GPS/touch input, camera/query output, diagnostics, and map-query handoff.
-- `runtime-core` now steps a deterministic ECS runner that emits a riding/stopped camera snapshot and `MapQuerySpec` from shared inputs.
+- `runtime-core` now steps a deterministic ECS runner that derives gestures/taps, filtered heading, interaction-aware riding/stopped camera state, and `MapQuerySpec` from shared inputs.
 - The current foundation fixes rotated query coverage for heading-up cameras, keeps the configured lower zoom range reachable, and preserves motion state across brief GPS gaps.
+- Shared Rust now owns one-finger pan, two-finger pinch/rotate, follow-lock, auto-recenter, north-indicator tap handling, and stopped north-up settle behavior.
 - Firmware and wasm bridge helpers can construct `RuntimeInputFrame` values from raw adapter samples.
-- Full gesture recognition, follow-lock/recenter policy, north-up override, render integration, and product-complete emulator behavior are still pending.
+- `render-core` now performs shared camera projection, clipping, overlay drawing, and deterministic grayscale framebuffer generation.
+- `render-core-wasm` now embeds the current `/work/map-data/city.svm`, builds a coarse spatial query index, steps `runtime-core`, queries map geometry, renders pixels, and exposes a frame-driven wasm API to the emulator.
+- Emulator web now forwards raw GPS and normalized touch contacts only; TypeScript no longer owns pan/pinch/rotate/recenter product policy.
+- Firmware end-to-end map/render wiring, parity fixtures, and `xtask` execution flows are still pending.
 
 ## Target Runtime Behavior
 - Heading-up camera transform in shared Rust renderer.
@@ -56,7 +60,7 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 ## Map Data Flow
 - Source maps: `/work/map-src` (`*.mbtiles`)
 - Converted maps: `/work/map-data` (`city.svm`)
-- Current runtime bridge: `.svm` -> generated Rust module for wasm renderer integration.
+- Current runtime bridge: embedded `.svm` bytes + wasm-side coarse query index for emulator integration.
 - `cargo xtask prepare-map` applies a bike profile that excludes ferry/boat/water transport lanes.
 
 ## Commands

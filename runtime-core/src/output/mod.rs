@@ -8,12 +8,15 @@ pub fn build_frame_output(
     camera: CameraStateSnapshot,
     map_query: MapQuerySpec,
     diagnostics: Option<DiagnosticsSnapshot>,
+    north_up_active: bool,
+    rider_heading_rad: Option<f32>,
 ) -> RuntimeFrameOutput {
     let overlay = OverlayState {
         north_indicator_visible: true,
-        north_up_active: matches!(camera.mode, CameraMode::Stopped),
+        north_up_active,
         rider_heading_rad: matches!(camera.mode, CameraMode::Riding)
-            .then_some(camera.orientation_rad),
+            .then_some(rider_heading_rad)
+            .flatten(),
     };
 
     RuntimeFrameOutput {

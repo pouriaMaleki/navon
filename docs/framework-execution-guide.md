@@ -60,7 +60,7 @@ Lead the project as a framework-first Rust buildout where shared runtime behavio
 
 ### Milestone 5: Hardening
 - Add diagnostics and regression fixtures.
-- Prepare the direct `.svm` loading path.
+- Prepare the next shared `.svm` loading path beyond the current embedded wasm bridge.
 - Add performance checks and parity validation between targets.
 
 ## What To Validate At Each Step
@@ -120,7 +120,7 @@ New functionality should enter through one of these paths:
 - Features that require edits across all crates to land one behavior
 
 ## Immediate Next Actions
-1. Keep the `bevy_ecs` runtime skeleton aligned with the architecture docs as shared behavior expands.
-2. Implement shared touch/contact interpretation and gesture derivation inside `runtime-core`.
-3. Add follow-lock, recentering, and north-up override on top of the existing ECS schedule.
-4. Extend scenario coverage before wiring the emulator and firmware loops end to end.
+1. Reuse the new query/render slice for firmware-capable map access and framebuffer presentation.
+2. Add parity fixtures that exercise identical contact sequences through firmware-facing and wasm-facing adapters.
+3. Replace the remaining `xtask` placeholders once emulator and bundling flows have real implementations behind them.
+4. Profile the embedded wasm `.svm` bridge so later direct loading work is driven by measured cost rather than guesswork.

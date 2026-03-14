@@ -86,9 +86,6 @@ export class GeoStore {
         const lon = position.coords.longitude;
         const tsMs = position.timestamp;
         const coords: GeoCoordinates = { lat, lon };
-        this.customState.hasGeo = true;
-        this.customState.lat = coords.lat;
-        this.customState.lon = coords.lon;
         this.isLive = true;
         this.statusText = "GPS: live";
 
@@ -97,12 +94,17 @@ export class GeoStore {
           distM = haversineMeters(this.prevLat, this.prevLon, lat, lon);
           const dtS = Math.max(0.001, (tsMs - this.prevTsMs) / 1000);
           if (distM <= MOTION_DISTANCE_NOISE_M) {
-            this.customState.speedMps = 0;
+            this.writeGpsSample(coords.lat, coords.lon, this.customState.gps?.courseRad ?? 0, 0);
           } else {
-            this.customState.speedMps = distM / dtS;
+            this.writeGpsSample(
+              coords.lat,
+              coords.lon,
+              this.customState.gps?.courseRad ?? 0,
+              distM / dtS,
+            );
           }
         } else {
-          this.customState.speedMps = 0;
+          this.writeGpsSample(coords.lat, coords.lon, this.customState.gps?.courseRad ?? 0, 0);
         }
 
         let heading = position.coords.heading;
@@ -114,13 +116,26 @@ export class GeoStore {
           heading = bearingDeg(this.prevLat, this.prevLon, lat, lon);
         }
         if (heading !== null && !Number.isNaN(heading)) {
-          this.customState.headingRad = (heading * Math.PI) / 180;
+          const headingRad = (heading * Math.PI) / 180;
+          this.writeGpsSample(
+            coords.lat,
+            coords.lon,
+            headingRad,
+            this.customState.gps?.speedMps ?? 0,
+          );
+        } else {
+          this.writeGpsSample(
+            coords.lat,
+            coords.lon,
+            this.customState.gps?.courseRad ?? 0,
+            this.customState.gps?.speedMps ?? 0,
+          );
         }
         this.simulatedSample = {
           lat,
           lon,
-          headingRad: this.customState.headingRad,
-          speedMps: this.customState.speedMps,
+          headingRad: this.customState.gps?.courseRad ?? 0,
+          speedMps: this.customState.gps?.speedMps ?? 0,
         };
 
         this.prevLat = lat;
@@ -151,11 +166,7 @@ export class GeoStore {
       }
       return;
     }
-    this.customState.hasGeo = true;
-    this.customState.lat = sample.lat;
-    this.customState.lon = sample.lon;
-    this.customState.headingRad = sample.headingRad;
-    this.customState.speedMps = sample.speedMps;
+    this.writeGpsSample(sample.lat, sample.lon, sample.headingRad, sample.speedMps);
     this.statusText = "GPS: simulated (bike controls)";
     const nowMs = performance.now();
     if (nowMs - this.lastDebugMs >= DEBUG_INTERVAL_MS) {
@@ -165,7 +176,7 @@ export class GeoStore {
         lon: Number(sample.lon.toFixed(6)),
         headingDeg: Number(((sample.headingRad * 180) / Math.PI).toFixed(1)),
         speedKmh: Number((sample.speedMps * 3.6).toFixed(2)),
-        hasGeo: this.customState.hasGeo,
+        hasGeo: this.customState.gps !== null,
       });
     }
   }
@@ -185,16 +196,30 @@ export class GeoStore {
       return;
     }
     this.isLive = false;
-    this.customState.hasGeo = true;
-    this.customState.lat = this.simulatedSample.lat;
-    this.customState.lon = this.simulatedSample.lon;
-    this.customState.headingRad = this.simulatedSample.headingRad;
-    this.customState.speedMps = this.simulatedSample.speedMps;
+    this.writeGpsSample(
+      this.simulatedSample.lat,
+      this.simulatedSample.lon,
+      this.simulatedSample.headingRad,
+      this.simulatedSample.speedMps,
+    );
     this.statusText = "GPS: simulated (bike controls)";
     console.debug("[emu:geo] enabled simulated mode", {
       lat: Number(this.simulatedSample.lat.toFixed(6)),
       lon: Number(this.simulatedSample.lon.toFixed(6)),
     });
+  }
+
+  private writeGpsSample(lat: number, lon: number, headingRad: number, speedMps: number): void {
+    if (!this.customState) {
+      return;
+    }
+    this.customState.gps = {
+      latDeg: lat,
+      lonDeg: lon,
+      speedMps,
+      courseRad: headingRad,
+      horizontalAccuracyM: null,
+    };
   }
 }
 

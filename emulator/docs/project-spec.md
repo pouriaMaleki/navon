@@ -13,11 +13,11 @@ Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for develop
 - GPS-driven user location updates (live browser geolocation + simulation fallback).
 - Manual simulated bike movement fallback driven by keyboard and on-screen controls.
 - Touch/pointer interactions:
-  - Single-pointer drag pan.
-  - Two-pointer pinch zoom.
-  - Two-pointer rotate heading.
-  - Mouse wheel zoom.
-- Smooth auto-recenter after pan idle timeout.
+  - Raw pointer/touch contact forwarding into shared Rust.
+  - Single-pointer drag pan through shared Rust runtime behavior.
+  - Two-pointer pinch zoom through shared Rust runtime behavior.
+  - Two-pointer rotate heading through shared Rust runtime behavior.
+- Smooth auto-recenter through shared Rust runtime behavior.
 - Rendering through shared Rust renderer (`render-core`) via WASM bridge (`render-core-wasm`).
 
 ### 1.3 Strict Boundary
@@ -63,19 +63,16 @@ Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for develop
 - Manual bike simulation must not directly set camera rotation policy or any emulator-only camera state in the renderer.
 
 ### 2.4 Gesture Input
-- Must support pointer drag panning while active pointer is tracked.
-- Must support pinch zoom based on pointer distance ratio.
-- Must support two-pointer rotate based on pointer angle delta.
-- Must support mouse wheel zoom.
-- Must clamp zoom and pan to safe bounds.
-- Must track last input timestamp for recenter behavior.
+- Must normalize browser pointer activity into shared touch-contact frames.
+- Must preserve stable pointer IDs and touch phases (`started`, `moved`, `stationary`, `ended`, `cancelled`) for the wasm bridge.
+- Must not derive pan/pinch/rotate/tap semantics in TypeScript.
 
 ### 2.5 Camera Behavior
-- Must pass current geo/camera values to WASM on each update tick.
+- Must pass current geo/touch frame input to WASM on each update tick through a frame-driven bridge.
 - Riding-mode camera heading must track direction of travel smoothly when movement direction is available from shared runtime inputs.
 - Current behavior note: travel direction used for camera heading is derived from filtered map-point movement in shared Rust camera controller.
-- Must auto-recenter pan offsets after idle delay using smooth interpolation.
-- During manual pan, rider marker should remain screen-stable while camera offset moves; follow-target lock/release policy is owned by shared Rust camera controller.
+- Auto-recenter, follow-lock, north-up override, and gesture interpretation are owned by shared Rust.
+- During manual pan, rider marker should remain map-anchored while camera offset moves; follow-target lock/release policy is owned by shared Rust camera controller.
 - Must reset camera state on emulator reset.
 
 ### 2.6 Runtime Controls
@@ -101,7 +98,7 @@ Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for develop
 - `emulator/web` owns browser runtime concerns (UI, input, geolocation, canvas).
 - `render-core` owns render behavior and pixel generation.
 - Camera mode/state behavior is Rust-owned in shared core and wasm bindings; emulator web code feeds inputs and consumes outputs.
-- `render-core-wasm` owns JS/WASM bridge layer only.
+- `render-core-wasm` owns the JS/WASM bridge plus the current embedded `.svm` query backend for emulator use.
 - Emulator must not absorb converter responsibilities from `map-vector-cli`.
 - Do not add emulator-only behavior branches that diverge from firmware runtime logic.
 

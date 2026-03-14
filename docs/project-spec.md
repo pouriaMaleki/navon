@@ -31,7 +31,7 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
   - follow-lock/recenter behavior,
   - map query + zoom-bucket LOD policy.
 - `render-core`: stateless rendering primitives (`CameraView` + queried world geometry -> framebuffer).
-- `MapSource` implementations: coarse world-space geometry lookup from `MapQuerySpec`; the current generated Rust map bridge and future direct `.svm` readers both fit here.
+- `MapSource` implementations: coarse world-space geometry lookup from `MapQuerySpec`; the current embedded `.svm` bridge in `render-core-wasm` and future shared direct readers both fit here.
 - `firmware`: platform adapter (GPS/touch drivers -> `RuntimeInputFrame` with normalized shared input samples, framebuffer presentation on device).
 - `render-core-wasm`: wasm adapter (browser/emulator inputs -> `RuntimeInputFrame` with normalized shared input samples, output pixels for canvas).
 
@@ -60,9 +60,9 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
 - `TouchContactFrame`: ordered touch snapshot for one frame. Adapters emit this shared contact form rather than product-level `Pan`, `Pinch`, `Rotate`, or `Tap` semantics.
 - `RuntimeInputFrame`: ordered per-frame input envelope containing `dt`, optional GPS samples, optional `TouchContactFrame`, and other normalized interaction data. It must not contain browser or device handles, and adapters must not classify product gestures or control hits.
 - `RuntimeFrameOutput`: stable runtime snapshot containing camera view/state, `MapQuerySpec`, overlay/style inputs, and optional `DiagnosticsSnapshot`. It must not contain queried geometry buffers or adapter-owned state.
-- `MapQuerySpec`: coarse query intent produced by the runtime, including world bounds, zoom bucket, LOD mask, and any flags needed by the current generated-map bridge or a future direct `.svm` reader.
+- `MapQuerySpec`: coarse query intent produced by the runtime, including world bounds, zoom bucket, LOD mask, and any flags needed by the current embedded `.svm` bridge or a future direct `.svm` reader.
 - `DiagnosticsSnapshot`: read-only parity/debug surface exported from `runtime-core::api`; internal counters and history remain in `runtime-core::diagnostics`.
-- `MapSource::query(&MapQuerySpec)`: coarse world-space candidate lookup only. Implementations may live beside the current generated Rust map bridge or a later shared map reader, but they do not own camera policy, styling, or screen-space clipping.
+- `MapSource::query(&MapQuerySpec)`: coarse world-space candidate lookup only. Implementations may live beside the current embedded `.svm` bridge or a later shared map reader, but they do not own camera policy, styling, or screen-space clipping.
 
 ## Required Crate and Module Shape
 - `runtime-core` should be introduced as a library crate with the following internal module split:
@@ -81,7 +81,7 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
   - `style`
   - `raster`
   - `overlay`
-- The initial framework may add a small shared map abstraction crate later if direct `.svm` loading and generated Rust maps need the same reader/types, but this must remain independent from platform adapters.
+- The initial framework may add a small shared map abstraction crate later if direct `.svm` loading and embedded/shared map readers need the same reader/types, but this must remain independent from platform adapters.
 
 ## Extensibility Rules
 - New behaviors must enter the runtime through one of these extension points:
@@ -137,18 +137,19 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
 ## Data Flow
 - Source maps: `/work/map-src`
 - Converted maps: `/work/map-data/city.svm`
-- Current bridge for renderer integration: generated Rust map module.
+- Current bridge for renderer integration: embedded `.svm` bytes with a coarse query index in `render-core-wasm`.
 - Target direction: direct `.svm` runtime loading in firmware.
 - `cargo xtask prepare-map` uses a bike-oriented conversion profile that excludes ferry/boat/water transport segments.
 
 ## Current Phase Notes
 - `runtime-core::api` now exposes stable config, input, output, query, and diagnostics contract modules for adapters.
-- `runtime-core` now includes an internal `bevy_ecs` deterministic frame schedule that projects GPS into world-space focus, derives a basic riding/stopped camera snapshot, and emits `MapQuerySpec`.
-- Firmware and wasm adapter crates now include bridge helpers that build shared `RuntimeInputFrame` values, but they are not yet wired into product-complete loops.
-- Shared camera foundation now supports basic riding/stopped heading-up output, rotated query coverage, bounded zoom configuration, and short GPS-dropout resilience; pan/recenter behavior is still pending.
+- `runtime-core` now includes an internal `bevy_ecs` deterministic frame schedule that projects GPS into world-space focus, derives shared gesture/tap semantics, and emits interaction-aware camera snapshots plus `MapQuerySpec`.
+- Firmware bridge helpers now build shared `RuntimeInputFrame` values, but firmware is not yet wired into a product-complete loop.
+- `render-core` and `render-core-wasm` now provide the emulator-facing end-to-end step/query/render slice from shared Rust.
+- Shared camera foundation now supports one-finger pan, two-finger pinch/rotate, follow-lock, auto-recenter, riding/stopped transitions, stopped north-up settle, rotated query coverage, bounded zoom configuration, and short GPS-dropout resilience.
 - ECS runtime architecture is documented in `/work/docs/runtime-ecs-architecture.md`.
 - Device touch integration is documented in `/work/docs/device-touch-integration-plan.md`.
-- Emulator web shell uses React UI + MobX stores and currently captures browser geolocation/touch in the store layer, but product interaction semantics should move behind shared Rust input contracts.
+- Emulator web shell uses React UI + MobX stores, captures browser geolocation/raw touch contacts, and forwards them into shared Rust through a frame-driven wasm bridge.
 - Firmware uses a `GT9271` bus-polled touch path; the target boundary is normalized contact frames from firmware with gesture and tap interpretation owned by `runtime-core`.
 - Firmware needs board-level validation and optional `TP_INT` / `TP_RST` reset wiring in `main.rs` after schematic confirmation (`TouchInput::new_with_reset` hook is available).
 - Real-device touch target is Waveshare `ESP32-P4-WIFI6-Touch-LCD-3.4C` with `GT9271` capacitive controller on the board touch/display assembly.

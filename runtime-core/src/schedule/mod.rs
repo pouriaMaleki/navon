@@ -5,7 +5,11 @@ use bevy_ecs::prelude::{IntoScheduleConfigs, Res, ResMut, Resource, Schedule, Sy
 use crate::api::{MapQuerySpec, RuntimeConfig, RuntimeFrameOutput, RuntimeInputFrame};
 use crate::camera::CameraState;
 use crate::diagnostics;
+use crate::input::contacts::ContactState;
+use crate::input::gestures::GestureState;
+use crate::input::staging::DerivedInputState;
 use crate::input::staging::PendingInput;
+use crate::input::taps::TapState;
 use crate::map;
 use crate::motion::MotionState;
 use crate::output;
@@ -64,6 +68,10 @@ impl RuntimeRunner {
         world.insert_resource(RuntimeConfigResource(config.clone()));
         world.insert_resource(FrameTime::default());
         world.insert_resource(PendingInput::default());
+        world.insert_resource(DerivedInputState::default());
+        world.insert_resource(ContactState::default());
+        world.insert_resource(GestureState::default());
+        world.insert_resource(TapState::default());
         world.insert_resource(MotionResource::default());
         world.insert_resource(CameraResource(CameraState {
             zoom: config.zoom_bounds.default,
@@ -117,7 +125,15 @@ impl RuntimeRunner {
     }
 }
 
-fn input_ingest(mut config: ResMut<RuntimeConfigResource>, pending: Res<PendingInput>) {
+fn input_ingest(
+    frame_time: Res<FrameTime>,
+    pending: Res<PendingInput>,
+    mut config: ResMut<RuntimeConfigResource>,
+    mut contacts: ResMut<ContactState>,
+    mut gesture_state: ResMut<GestureState>,
+    mut tap_state: ResMut<TapState>,
+    mut derived_input: ResMut<DerivedInputState>,
+) {
     if let Some(viewport_size) = pending
         .frame
         .viewport_size
@@ -125,6 +141,22 @@ fn input_ingest(mut config: ResMut<RuntimeConfigResource>, pending: Res<PendingI
     {
         config.0.viewport_size = viewport_size;
     }
+
+    contacts.stage(pending.frame.touch.as_ref());
+    let gesture = gesture_state.derive(
+        contacts.current.as_ref(),
+        config.0.pan_deadzone_px,
+        config.0.rotate_deadzone_rad,
+    );
+    let tap = tap_state.update(
+        contacts.previous.as_ref(),
+        contacts.current.as_ref(),
+        frame_time.total,
+        config.0.tap_max_duration,
+        config.0.tap_max_travel_px,
+    );
+    derived_input.gesture = gesture;
+    derived_input.tap = tap;
 }
 
 fn motion_fusion(
@@ -139,17 +171,25 @@ fn motion_fusion(
         config.0.riding_speed_threshold_mps,
         config.0.stopped_speed_threshold_mps,
         config.0.gps_loss_stop_timeout,
+        config.0.min_heading_displacement_m,
+        config.0.heading_filter_alpha,
     );
 }
 
 fn camera_policy(
+    frame_time: Res<FrameTime>,
     config: Res<RuntimeConfigResource>,
     motion: Res<MotionResource>,
+    derived_input: Res<DerivedInputState>,
     mut camera: ResMut<CameraResource>,
 ) {
-    camera
-        .0
-        .advance(&motion.0, config.0.viewport_size, &config.0);
+    camera.0.advance(
+        &motion.0,
+        &derived_input,
+        frame_time.dt,
+        config.0.viewport_size,
+        &config.0,
+    );
 }
 
 fn map_query(
@@ -164,6 +204,7 @@ fn output_build(
     frame_time: Res<FrameTime>,
     config: Res<RuntimeConfigResource>,
     pending: Res<PendingInput>,
+    motion: Res<MotionResource>,
     camera: Res<CameraResource>,
     query: Res<QueryResource>,
     mut output_resource: ResMut<OutputResource>,
@@ -184,5 +225,7 @@ fn output_build(
         camera_snapshot,
         query.0.clone(),
         diagnostics,
+        camera.0.north_up_override_active() || camera.0.mode == crate::api::CameraMode::Stopped,
+        motion.0.travel_heading_rad,
     );
 }

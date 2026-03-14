@@ -1,15 +1,28 @@
-use runtime_core::api::{CameraMode, RuntimeFrameOutput};
+use serde::Serialize;
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct JsFrameOutput {
+use runtime_core::api::{CameraMode, MapQueryResult, RuntimeFrameOutput};
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct JsFrameState {
+    #[serde(rename = "frameIndex")]
     pub frame_index: u64,
+    #[serde(rename = "cameraMode")]
     pub camera_mode: &'static str,
     pub zoom: f32,
+    #[serde(rename = "orientationRad")]
     pub orientation_rad: f32,
+    #[serde(rename = "followLocked")]
+    pub follow_locked: bool,
+    #[serde(rename = "recenterActive")]
+    pub recenter_active: bool,
+    #[serde(rename = "northUpActive")]
+    pub north_up_active: bool,
+    #[serde(rename = "geometryCount")]
+    pub geometry_count: usize,
 }
 
-impl From<&RuntimeFrameOutput> for JsFrameOutput {
-    fn from(output: &RuntimeFrameOutput) -> Self {
+impl JsFrameState {
+    pub fn from_output(output: &RuntimeFrameOutput, geometry: &MapQueryResult) -> Self {
         Self {
             frame_index: output.frame_index,
             camera_mode: match output.camera.mode {
@@ -18,6 +31,10 @@ impl From<&RuntimeFrameOutput> for JsFrameOutput {
             },
             zoom: output.camera.zoom,
             orientation_rad: output.camera.orientation_rad,
+            follow_locked: output.camera.follow_locked,
+            recenter_active: output.camera.recenter_active,
+            north_up_active: output.overlay.north_up_active,
+            geometry_count: geometry.geometry.len(),
         }
     }
 }
@@ -26,7 +43,8 @@ impl From<&RuntimeFrameOutput> for JsFrameOutput {
 pub struct OutputBridge;
 
 impl OutputBridge {
-    pub fn present(&self, output: &RuntimeFrameOutput) -> JsFrameOutput {
-        JsFrameOutput::from(output)
+    pub fn present(&self, output: &JsFrameState) -> Result<String, String> {
+        serde_json::to_string(output)
+            .map_err(|error| format!("failed to serialize frame output: {error}"))
     }
 }

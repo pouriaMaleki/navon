@@ -164,6 +164,7 @@ render-core-wasm/
     ├── bindings.rs
     ├── adapter.rs
     ├── input_bridge.rs
+    ├── map_source.rs
     ├── output_bridge.rs
     └── panic_hook.rs
 ```
@@ -171,6 +172,7 @@ render-core-wasm/
 ## `render-core-wasm` Ownership
 - `wasm-bindgen` exports.
 - JS-to-Rust input translation into shared normalized input contracts.
+- Embedded `.svm` query bridge for the current emulator slice.
 - Rust-to-JS buffer/output translation.
 - No product camera policy.
 
@@ -199,7 +201,7 @@ firmware/
 - `touch.rs`: raw touch controller interaction and coordinate normalization into shared touch-contact samples.
 - `input_bridge.rs`: convert device inputs into `RuntimeInputFrame` with `TouchContactFrame`.
 - `display.rs` and `framebuffer.rs`: present render output on device.
-- `map_source.rs`: current generated Rust map bridge and later direct `.svm` source integration implementing runtime map query traits only.
+- `map_source.rs`: device-side runtime map source integration once firmware adopts the shared query/render path.
 - Any temporary firmware-local touch math must stop at controller cleanup or de-jittering; it must not classify app-level pan/pinch/rotate/tap semantics.
 
 ## Public API Rule
