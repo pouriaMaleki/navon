@@ -7,11 +7,19 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 - Map conversion project (`/work/map-vector-cli`): host-side city map conversion into `.svm`.
 
 ## Runtime Architecture
-- `runtime-core`: ECS runtime orchestration (camera policy, gesture integration, map query/LOD).
-- `render-core`: stateless render primitives (camera view + visible lines -> framebuffer).
-- `firmware` and `render-core-wasm`: platform adapters that translate input/output only.
+- `runtime-core`: shared runtime foundation with stable adapter-facing contracts and an internal `bevy_ecs` deterministic frame schedule for motion, camera, and map-query output.
+- `render-core`: stateless render primitives (`CameraView` + queried world geometry -> framebuffer).
+- `MapSource` implementations: coarse bbox/LOD data lookup behind `MapQuerySpec`.
+- `firmware` and `render-core-wasm`: platform adapters that translate device/browser I/O into shared normalized input contracts and output surfaces only.
 
-## Current Runtime Behavior
+## Current Foundation Status
+- `runtime-core::api` defines stable shared contracts for config, GPS/touch input, camera/query output, diagnostics, and map-query handoff.
+- `runtime-core` now steps a deterministic ECS runner that emits a riding/stopped camera snapshot and `MapQuerySpec` from shared inputs.
+- The current foundation fixes rotated query coverage for heading-up cameras, keeps the configured lower zoom range reachable, and preserves motion state across brief GPS gaps.
+- Firmware and wasm bridge helpers can construct `RuntimeInputFrame` values from raw adapter samples.
+- Full gesture recognition, follow-lock/recenter policy, north-up override, render integration, and product-complete emulator behavior are still pending.
+
+## Target Runtime Behavior
 - Heading-up camera transform in shared Rust renderer.
 - Riding mode camera:
   - heading-up
@@ -76,10 +84,14 @@ Deploy firmware (requires `espflash`):
 cargo xtask deploy-device --port /dev/ttyUSB0
 ```
 
+Current status: the `xtask` command surface exists, but the command bodies are still bootstrap stubs.
+
 ## Specs and Plans
 - Main plan: `/work/docs/current-plan.md`
 - Main TODO list: `/work/docs/todo.md`
 - Main spec: `/work/docs/project-spec.md`
+- Framework execution guide: `/work/docs/framework-execution-guide.md`
+- Source tree guide: `/work/docs/source-tree.md`
 - CVE tracking plan: `/work/docs/cve-tracking-plan.md`
 - Converter spec: `/work/map-vector-cli/docs/project-spec.md`
 - Converter plan: `/work/map-vector-cli/docs/current-plan.md`

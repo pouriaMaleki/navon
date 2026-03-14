@@ -1,7 +1,7 @@
 # ESP32-P4 Touch Integration Plan
 
 ## Goal
-Add a real-device touch input module for the Waveshare `ESP32-P4-WIFI6-Touch-LCD-3.4C` so firmware gesture behavior matches the shared Rust camera controller already used by firmware and wasm.
+Add a real-device touch input module for the Waveshare `ESP32-P4-WIFI6-Touch-LCD-3.4C` so firmware emits normalized touch contact frames consumed by the shared Rust runtime, which derives the same gestures and taps for firmware and wasm.
 
 ## Hardware Facts
 - Target board: Waveshare `ESP32-P4-WIFI6-Touch-LCD-3.4C`.
@@ -13,19 +13,20 @@ Add a real-device touch input module for the Waveshare `ESP32-P4-WIFI6-Touch-LCD
 - The touch assembly also exposes dedicated `TP_INT` and `TP_RST` lines in the Waveshare schematic; exact GPIO mapping should be captured in a board config module when implementation starts.
 
 ## Architecture Boundary
-- `render-core` owns camera behavior and north-indicator hit testing.
+- `runtime-core` owns camera behavior, normalized touch/contact interpretation, gesture recognition, tap recognition, north-up override rules, follow-lock/recenter policy, and tap interpretation for product controls.
+- `render-core` owns overlay drawing only; it does not own touch semantics or camera state.
 - Firmware touch module owns:
   - GT9271 bring-up
   - raw contact sampling
   - coordinate normalization
-  - gesture recognition
-  - dispatch into `BikeMinimapState`
+  - stable contact-frame packaging
+  - dispatch into `RuntimeInputFrame`
 - Emulator remains only a hardware/input simulator and should not define different gesture semantics.
 
 ## Proposed Module Layout
 1. `firmware/src/touch.rs`
 - Public entry point for board touch input.
-- Owns driver state, previous-frame contacts, and gesture recognizer state.
+- Owns driver state, previous-frame controller bookkeeping, and normalized contact-frame emission.
 
 2. `firmware/src/board_config.rs`
 - Stores board-specific constants:
@@ -37,13 +38,14 @@ Add a real-device touch input module for the Waveshare `ESP32-P4-WIFI6-Touch-LCD
   - display logical width and height
 - Keeps Waveshare-specific wiring out of app logic.
 
-3. `firmware/src/gestures.rs`
-- Converts contact deltas into:
-  - pan delta
-  - pinch zoom scale
-  - rotate delta radians
-  - tap events
-- Stateless math helpers plus small state structs for tracking previous contacts.
+3. `firmware/src/input_bridge.rs`
+- Packages normalized GPS/touch samples into `RuntimeInputFrame`.
+- Emits `TouchContactFrame` rather than app-level pan/pinch/rotate/tap semantics.
+
+4. `runtime-core/src/input/{contacts,gestures,taps}.rs`
+- Validates normalized contact frames.
+- Derives shared `GestureEvent` and tap semantics from ordered contact sequences.
+- Keeps control hit testing and product interaction rules in shared Rust.
 
 ## Runtime Data Flow
 1. Initialize I2C master on the Waveshare defaults: `GPIO8/7`.
@@ -52,11 +54,9 @@ Add a real-device touch input module for the Waveshare `ESP32-P4-WIFI6-Touch-LCD
 4. Decode up to 10 contacts from GT9271 report buffer.
 5. Convert raw panel coordinates into normalized screen coordinates `0.0..1.0`.
 6. Map normalized points into logical display coordinates for the `800x800` round screen.
-7. Feed gesture outputs into `BikeMinimapState`:
-   - single-finger drag -> `apply_pan_gesture(...)`
-   - two-finger pinch -> `apply_pinch_gesture(...)`
-   - two-finger rotation -> controller `rotate_delta_rad`
-   - tap release -> `on_touch_tap_normalized(...)`
+7. Feed the normalized touch snapshot into `input_bridge.rs` so it builds a shared `TouchContactFrame` inside `RuntimeInputFrame`.
+8. Let `runtime-core::input` derive internal pan/pinch/rotate/tap semantics from the ordered contact sequence.
+9. Let `runtime-core` decide whether a tap hits the north indicator and whether camera mode changes.
 
 ## Driver Plan
 1. Bus bring-up
@@ -74,29 +74,26 @@ Add a real-device touch input module for the Waveshare `ESP32-P4-WIFI6-Touch-LCD
 
 4. Contact decoding
 - Parse touch count and contact slots from the GT9271 report.
-- Track stable finger IDs between frames.
+- Track stable finger IDs between frames because the shared recognizer depends on consistent contact identity.
 - Ignore obviously invalid samples outside panel bounds.
 
-## Gesture Plan
+## Shared Interaction Plan
 1. Single touch
-- One active contact becomes pan input.
-- Pan speed scaling should mirror emulator semantics but live in firmware constants, not hardcoded in app code.
-- Add a deadzone so very small deltas do not drift the camera.
+- Firmware forwards one active normalized contact in `TouchContactFrame`.
+- `runtime-core` derives pan semantics, deadzone handling, and camera response from the shared contact sequence.
 
 2. Multi-touch
-- Two active contacts enable pinch and rotate simultaneously.
-- Use centroid movement for optional future two-finger pan, but do not enable it initially unless it improves usability.
-- Compute:
-  - distance delta -> zoom scale
-  - angle delta -> rotate delta
+- Firmware forwards two active normalized contacts with stable IDs.
+- `runtime-core` derives pinch and rotate from shared distance/angle deltas.
+- Centroid movement remains available for future two-finger pan work without changing adapter semantics.
 
 3. Tap recognition
-- A short press with low travel becomes a tap.
-- Feed tap into `on_touch_tap_normalized(...)` so the north indicator works identically on device and emulator.
+- `runtime-core` classifies short low-travel contact sequences as taps.
+- `runtime-core` resolves north-indicator and future control hit testing identically on device and emulator.
 
 4. Release behavior
-- Gesture state resets cleanly when contact count changes.
-- Avoid carrying stale pinch distance or angle across finger transitions.
+- Contact-count changes reset shared recognizer state cleanly.
+- Adapters must not carry app-level gesture state across finger transitions; they only forward stable contact identities and positions.
 
 ## Sources
 - Waveshare product page: `ESP32-P4-WIFI6-Touch-LCD-3.4C` specs for `800x800`, `GT9271`, and `10-point` touch.
