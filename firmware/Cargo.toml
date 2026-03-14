@@ -8,4 +8,6 @@ name = "firmware"
 path = "src/main.rs"
 
 [dependencies]
+map-runtime = { path = "../map-runtime" }
+render-core = { path = "../render-core" }
 runtime-core = { path = "../runtime-core" }

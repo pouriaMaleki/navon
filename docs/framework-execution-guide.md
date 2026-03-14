@@ -56,11 +56,12 @@ Lead the project as a framework-first Rust buildout where shared runtime behavio
 ### Milestone 4: Adapter Hookup
 - Make firmware feed GPS and normalized touch contact frames into `RuntimeInputFrame`.
 - Make wasm feed browser/emulator inputs as the same normalized touch contact frames into `RuntimeInputFrame`.
+- Route both adapters through the same shared map query backend and stateless renderer.
 - Keep both adapters thin and behavior-free.
 
 ### Milestone 5: Hardening
 - Add diagnostics and regression fixtures.
-- Prepare the next shared `.svm` loading path beyond the current embedded wasm bridge.
+- Prepare the next shared `.svm` loading path beyond the current embedded `map-runtime` bridge.
 - Add performance checks and parity validation between targets.
 
 ## What To Validate At Each Step
@@ -120,7 +121,7 @@ New functionality should enter through one of these paths:
 - Features that require edits across all crates to land one behavior
 
 ## Immediate Next Actions
-1. Reuse the new query/render slice for firmware-capable map access and framebuffer presentation.
-2. Add parity fixtures that exercise identical contact sequences through firmware-facing and wasm-facing adapters.
+1. Add parity fixtures that exercise identical contact sequences through firmware-facing and wasm-facing adapters.
+2. Move the firmware host-side slice onto real board IO and framebuffer presentation.
 3. Replace the remaining device-side `xtask` placeholders once bundling and deploy flows have real implementations behind them.
-4. Profile the embedded wasm `.svm` bridge so later direct loading work is driven by measured cost rather than guesswork.
+4. Profile the shared embedded `.svm` bridge so later direct loading work is driven by measured cost rather than guesswork.

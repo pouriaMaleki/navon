@@ -7,8 +7,9 @@
 ## Crate Graph
 - `runtime-core`: owns runtime state/policy and map query/LOD decisions.
 - `render-core`: stateless renderer primitives (`CameraView` + queried world geometry -> framebuffer).
+- `map-runtime`: shared embedded `.svm` reader and coarse bbox/LOD query backend.
 - `firmware`: ESP32 adapter for touch/GPS input and framebuffer presentation.
-- `render-core-wasm`: wasm adapter for browser/emulator input/output plus the current embedded `.svm` query bridge.
+- `render-core-wasm`: wasm adapter for browser/emulator input/output plus wasm bindings over the shared `map-runtime` query bridge.
 
 ## ECS Model
 ### Resources
@@ -64,7 +65,7 @@
 - Query bounds account for camera rotation so heading-up views do not under-query corners.
 - Zoom clamping preserves the configured minimum and maximum range.
 - Brief GPS gaps preserve prior motion state until the configured timeout elapses.
-- The current wasm slice now steps runtime, queries embedded `.svm` geometry, and renders a deterministic framebuffer through shared Rust only.
+- Firmware and wasm now both step shared runtime state, query shared embedded `.svm` geometry through `map-runtime`, and render deterministic framebuffers through shared Rust only.
 
 ## Query and Render Handoff
 1. `runtime-core` builds `MapQuerySpec` from camera state and LOD policy.

@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "firmware",
+  "map-runtime",
   "runtime-core",
   "render-core",
   "render-core-wasm",

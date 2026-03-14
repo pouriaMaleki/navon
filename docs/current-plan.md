@@ -10,23 +10,25 @@ Structure guide: [`source-tree.md`](./source-tree.md)
 3. Define small stable public contracts for `RuntimeInputFrame`, `TouchContact`, `TouchContactFrame`, `RuntimeFrameOutput`, `RuntimeConfig`, `MapQuerySpec`, `DiagnosticsSnapshot`, and map query handoff before writing feature logic. Status: completed.
 4. Implement deterministic runtime stepping in `runtime-core` for shared touch/contact interpretation, motion fusion, camera policy, follow-lock, recentering, and `MapQuerySpec` generation. Status: completed.
 5. Keep `render-core` stateless and pure so it owns projection, final visibility/clipping, styling, and rasterization and can be tested independently. Status: emulator-facing render-core MVP is completed.
-6. Integrate firmware and wasm as thin adapters that translate GPS and normalized touch contact frames only, while keeping coarse map lookup behind behavior-free `MapSource` implementations. Status: wasm/emulator slice is completed; firmware loop/device wiring remains pending.
+6. Integrate firmware and wasm as thin adapters that translate GPS and normalized touch contact frames only, while keeping coarse map lookup behind behavior-free `MapSource` implementations. Status: wasm/emulator slice is completed; firmware host-side runtime/query/render slice is completed; board/device wiring remains pending.
 7. Add scenario tests and diagnostics early so future features can extend the framework without regressions.
-8. Prepare the runtime for shared direct `.svm` loading after the current embedded-wasm `.svm` bridge path is stable.
+8. Prepare the runtime for shared direct `.svm` loading after the current embedded `map-runtime` bridge path is stable.
 
 ## Current Focus
-- Reuse the new query/render slice for firmware-capable map access and parity validation.
+- Add shared parity fixtures that exercise identical contact sequences and runtime outputs across firmware-facing and wasm-facing paths.
 - Replace the remaining device-oriented `xtask` stubs once firmware bundling and deploy flows have real implementations behind them.
-- Keep reference docs accurate as architecture references while reserving status tracking for this plan and the todo list.
+- Move the firmware host-side slice onto real board IO and framebuffer presentation without reintroducing adapter-owned behavior.
 
 ## Recent Progress
 - `runtime-core::api` now exposes stable config, input, output, diagnostics, and map-query contract modules.
 - `runtime-core` now owns a deterministic `bevy_ecs` schedule that produces shared gesture/tap interpretation, filtered motion heading, interaction-aware camera snapshots, and `MapQuerySpec` output.
 - Firmware and wasm bridge helpers now build shared `RuntimeInputFrame` values instead of staying as empty placeholders.
 - `render-core` now owns the shared camera projection, visibility/clipping, overlay drawing, and grayscale framebuffer path used by the emulator.
-- `render-core-wasm` now embeds `/work/map-data/city.svm`, performs coarse bbox + LOD lookup, and exposes a frame-driven `step_frame` bridge for emulator consumption.
+- `map-runtime` now owns the shared embedded `.svm` reader and coarse bbox + LOD lookup backend used by adapters.
+- `render-core-wasm` now queries geometry through `map-runtime` and exposes a frame-driven `step_frame` bridge for emulator consumption.
 - Emulator web now forwards raw GPS and touch contacts into shared Rust and presents Rust-generated pixels without TS-owned camera interaction policy.
 - `cargo xtask emu` now rebuilds `render-core-wasm` and starts the Vite emulator server as the repository-root entrypoint required by the emulator spec.
+- Firmware now runs a host-side shared `runtime-core` -> `map-runtime` -> `render-core` frame loop with tests covering query/render output and touch forwarding.
 
 ## Immediate Correction Pass
 - Replace the hand-rolled runner with a real internal `bevy_ecs` schedule and resources. Status: completed.

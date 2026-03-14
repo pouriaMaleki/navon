@@ -9,6 +9,7 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 ## Runtime Architecture
 - `runtime-core`: shared runtime foundation with stable adapter-facing contracts and an internal `bevy_ecs` deterministic frame schedule for motion, camera, and map-query output.
 - `render-core`: stateless render primitives (`CameraView` + queried world geometry -> framebuffer).
+- `map-runtime`: shared embedded `.svm` reader and coarse bbox/LOD query backend used by adapters.
 - `MapSource` implementations: coarse bbox/LOD data lookup behind `MapQuerySpec`.
 - `firmware` and `render-core-wasm`: platform adapters that translate device/browser I/O into shared normalized input contracts and output surfaces only.
 
@@ -19,10 +20,11 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 - Shared Rust now owns one-finger pan, two-finger pinch/rotate, follow-lock, auto-recenter, north-indicator tap handling, and stopped north-up settle behavior.
 - Firmware and wasm bridge helpers can construct `RuntimeInputFrame` values from raw adapter samples.
 - `render-core` now performs shared camera projection, clipping, overlay drawing, and deterministic grayscale framebuffer generation.
-- `render-core-wasm` now embeds the current `/work/map-data/city.svm`, builds a coarse spatial query index, steps `runtime-core`, queries map geometry, renders pixels, and exposes a frame-driven wasm API to the emulator.
+- `map-runtime` now owns the shared embedded `/work/map-data/city.svm` reader plus coarse spatial query index used by both firmware and wasm.
+- `render-core-wasm` now steps `runtime-core`, queries shared map geometry through `map-runtime`, renders pixels, and exposes a frame-driven wasm API to the emulator.
 - Emulator web now forwards raw GPS and normalized touch contacts only; TypeScript no longer owns pan/pinch/rotate/recenter product policy.
 - `cargo xtask emu` now rebuilds `render-core-wasm` and starts the emulator dev server from the repository root.
-- Firmware end-to-end map/render wiring, parity fixtures, and device-side `xtask` flows are still pending.
+- Firmware now has a host-side shared runtime/query/render loop for parity work, but board-level device wiring, shared parity fixtures, and device-side `xtask` flows are still pending.
 
 ## Target Runtime Behavior
 - Heading-up camera transform in shared Rust renderer.
@@ -61,7 +63,7 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 ## Map Data Flow
 - Source maps: `/work/map-src` (`*.mbtiles`)
 - Converted maps: `/work/map-data` (`city.svm`)
-- Current runtime bridge: embedded `.svm` bytes + wasm-side coarse query index for emulator integration.
+- Current runtime bridge: embedded `.svm` bytes + shared `map-runtime` coarse query index for firmware and emulator integration.
 - `cargo xtask prepare-map` applies a bike profile that excludes ferry/boat/water transport lanes.
 
 ## Commands

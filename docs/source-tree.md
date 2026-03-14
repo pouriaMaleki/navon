@@ -11,6 +11,7 @@ Define the intended file structure for the main project and make crate/module ow
 ├── Cargo.toml
 ├── README.md
 ├── docs/
+├── map-runtime/
 ├── runtime-core/
 ├── render-core/
 ├── render-core-wasm/
@@ -24,6 +25,7 @@ Define the intended file structure for the main project and make crate/module ow
 
 ## Top-Level Ownership
 - `docs/`: product, architecture, planning, and workflow documentation.
+- `map-runtime/`: shared embedded `.svm` reader and coarse map query backend.
 - `runtime-core/`: shared runtime behavior and deterministic ECS frame pipeline.
 - `render-core/`: pure rendering math, visibility, styling, overlays, and raster output.
 - `render-core-wasm/`: wasm bindings and browser/emulator adapter over shared Rust crates.
@@ -155,6 +157,19 @@ render-core/
 - Owns final screen-space visibility/culling/clipping after coarse map queries have already run.
 - Best location for projection math, clipping, styling, and marker drawing.
 
+## Recommended `map-runtime` Structure
+```text
+map-runtime/
+├── Cargo.toml
+└── src/
+    └── lib.rs
+```
+
+## `map-runtime` Ownership
+- Embedded `.svm` bytes access and coarse bbox/LOD candidate lookup.
+- Shared spatial indexing/query code that can be reused by firmware and wasm.
+- No camera policy, render policy, or platform I/O.
+
 ## Recommended `render-core-wasm` Structure
 ```text
 render-core-wasm/
@@ -164,7 +179,6 @@ render-core-wasm/
     ├── bindings.rs
     ├── adapter.rs
     ├── input_bridge.rs
-    ├── map_source.rs
     ├── output_bridge.rs
     └── panic_hook.rs
 ```
@@ -172,7 +186,7 @@ render-core-wasm/
 ## `render-core-wasm` Ownership
 - `wasm-bindgen` exports.
 - JS-to-Rust input translation into shared normalized input contracts.
-- Embedded `.svm` query bridge for the current emulator slice.
+- Wiring into the shared `map-runtime` query backend for the current emulator slice.
 - Rust-to-JS buffer/output translation.
 - No product camera policy.
 
@@ -201,7 +215,7 @@ firmware/
 - `touch.rs`: raw touch controller interaction and coordinate normalization into shared touch-contact samples.
 - `input_bridge.rs`: convert device inputs into `RuntimeInputFrame` with `TouchContactFrame`.
 - `display.rs` and `framebuffer.rs`: present render output on device.
-- `map_source.rs`: device-side runtime map source integration once firmware adopts the shared query/render path.
+- `map_source.rs`: device-side bridge into the shared `map-runtime` query backend.
 - Any temporary firmware-local touch math must stop at controller cleanup or de-jittering; it must not classify app-level pan/pinch/rotate/tap semantics.
 
 ## Public API Rule

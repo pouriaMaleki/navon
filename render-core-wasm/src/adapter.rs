@@ -1,9 +1,9 @@
+use map_runtime::EmbeddedMapSource;
 use render_core::raster::Framebuffer;
 use runtime_core::RuntimeCore;
 use runtime_core::api::{RuntimeConfig, RuntimeFrameOutput, RuntimeInputFrame};
 use runtime_core::map::MapSource;
 
-use crate::map_source::EmbeddedMapSource;
 use crate::output_bridge::JsFrameState;
 
 pub struct RuntimeRenderBridge<S> {

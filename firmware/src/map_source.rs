@@ -1,11 +1,26 @@
+use map_runtime::EmbeddedMapSource;
 use runtime_core::api::{MapQueryResult, MapQuerySpec};
 use runtime_core::map::MapSource;
 
-#[derive(Debug, Default)]
-pub struct MapSourceBridge;
+#[derive(Debug, Clone)]
+pub struct MapSourceBridge {
+    inner: EmbeddedMapSource,
+}
+
+impl MapSourceBridge {
+    pub fn new(inner: EmbeddedMapSource) -> Self {
+        Self { inner }
+    }
+}
+
+impl Default for MapSourceBridge {
+    fn default() -> Self {
+        Self::new(EmbeddedMapSource::default())
+    }
+}
 
 impl MapSource for MapSourceBridge {
-    fn query(&self, _spec: &MapQuerySpec) -> MapQueryResult {
-        MapQueryResult::default()
+    fn query(&self, spec: &MapQuerySpec) -> MapQueryResult {
+        self.inner.query(spec)
     }
 }
