@@ -22,6 +22,9 @@
 .env.*
 !.env.example
 
+# Local xtask temp/cache state
+/.xtask/
+
 # Local map inputs/outputs and device bundles
 /map-src/*
 !/map-src/.gitkeep
