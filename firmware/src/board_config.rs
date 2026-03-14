@@ -26,6 +26,8 @@ pub struct TouchControllerConfig {
     pub max_contacts: u8,
     pub controller_max_x: u16,
     pub controller_max_y: u16,
+    pub logical_width_px: u32,
+    pub logical_height_px: u32,
     pub polling_interval: Duration,
 }
 
@@ -40,6 +42,8 @@ impl Default for TouchControllerConfig {
             max_contacts: TOUCH_MAX_CONTACTS,
             controller_max_x: TOUCH_CONTROLLER_MAX_X,
             controller_max_y: TOUCH_CONTROLLER_MAX_Y,
+            logical_width_px: DISPLAY_WIDTH_PX,
+            logical_height_px: DISPLAY_HEIGHT_PX,
             polling_interval: Duration::from_millis(16),
         }
     }
@@ -86,6 +90,8 @@ impl BoardConfig {
                 max_contacts: TOUCH_MAX_CONTACTS,
                 controller_max_x: TOUCH_CONTROLLER_MAX_X,
                 controller_max_y: TOUCH_CONTROLLER_MAX_Y,
+                logical_width_px: viewport_size.width_px,
+                logical_height_px: viewport_size.height_px,
                 polling_interval: Duration::from_millis(16),
             },
             display: DisplayConfig {
@@ -120,6 +126,8 @@ mod tests {
         assert_eq!(board.touch.i2c_scl_gpio, 8);
         assert_eq!(board.touch.i2c_sda_gpio, 7);
         assert_eq!(board.touch.max_contacts, 10);
+        assert_eq!(board.touch.logical_width_px, 800);
+        assert_eq!(board.touch.logical_height_px, 800);
         assert_eq!(board.display.pixel_format, PanelPixelFormat::Rgb565Le);
     }
 }

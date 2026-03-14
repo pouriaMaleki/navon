@@ -20,11 +20,15 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 - Shared Rust now owns one-finger pan, two-finger pinch/rotate, follow-lock, auto-recenter, north-indicator tap handling, and stopped north-up settle behavior.
 - Firmware and wasm bridge helpers can construct `RuntimeInputFrame` values from raw adapter samples.
 - `render-core` now performs shared camera projection, clipping, overlay drawing, and deterministic grayscale framebuffer generation.
+- `render-core` now consumes the runtime-owned `MapQuerySpec.meters_per_pixel` scale directly instead of recomputing zoom policy internally.
 - `map-runtime` now owns the shared embedded `/work/map-data/city.svm` reader plus coarse spatial query index used by both firmware and wasm.
+- `map-runtime` now validates `.svm` magic/version/header bounds before parsing embedded map bytes.
 - `render-core-wasm` now steps `runtime-core`, queries shared map geometry through `map-runtime`, renders pixels, and exposes a frame-driven wasm API to the emulator.
 - Emulator web now forwards raw GPS and normalized touch contacts only; TypeScript no longer owns pan/pinch/rotate/recenter product policy.
+- Emulator geolocation normalization now preserves unknown heading as `null` and forwards browser accuracy into the shared GPS contract.
 - `cargo xtask emu` now rebuilds `render-core-wasm` and starts the emulator dev server from the repository root.
 - Firmware now has a board-facing platform boundary, GT9271 report decoding/normalization, RGB565 display conversion/upload helpers, and a platform loop on top of the shared runtime/query/render path.
+- Firmware touch normalization now targets the logical display viewport instead of assuming controller range equals panel size.
 - Firmware now also has concrete `esp_idf` provider modules for GT9271 register access, panel upload, and NMEA GPS parsing over the existing firmware provider traits.
 - Real ESP-IDF peripheral acquisition, live on-device validation, and device-side `xtask` flows are still pending.
 

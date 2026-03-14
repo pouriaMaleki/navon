@@ -6,6 +6,10 @@ use runtime_core::api::{
 };
 use runtime_core::map::MapSource;
 
+const SVM_MAGIC: &[u8; 4] = b"SVM1";
+const SVM_VERSION: u16 = 1;
+const SVM_HEADER_LEN: usize = 30;
+const SVM_SEGMENT_RECORD_LEN: usize = 24;
 const TILE_EXTENT: f64 = 4096.0;
 const EARTH_RADIUS_M: f64 = 6_378_137.0;
 const EARTH_CIRCUMFERENCE_M: f64 = std::f64::consts::TAU * EARTH_RADIUS_M;
@@ -134,6 +138,7 @@ impl Default for EmbeddedMapSource {
 
 impl EmbeddedMapSource {
     pub fn from_svm_bytes(bytes: &[u8]) -> Result<Self, String> {
+        validate_svm_header(bytes)?;
         let source_zoom = read_i32(bytes, 8)?;
         let header_bounds = SourceBounds {
             min_x: read_i32(bytes, 12)?,
@@ -142,9 +147,31 @@ impl EmbeddedMapSource {
             max_y: read_i32(bytes, 24)?,
         };
         let source_name_len = read_u16(bytes, 28)? as usize;
-        let segment_count_offset = 30 + source_name_len;
+        let segment_count_offset = SVM_HEADER_LEN
+            .checked_add(source_name_len)
+            .ok_or("svm header offset overflow")?;
+        if bytes.len() < segment_count_offset + 4 {
+            return Err(format!(
+                "svm source name payload is truncated: expected {} bytes before segment table, got {}",
+                segment_count_offset + 4,
+                bytes.len()
+            ));
+        }
         let segment_count = read_u32(bytes, segment_count_offset)? as usize;
         let mut offset = segment_count_offset + 4;
+        let segment_table_len = segment_count
+            .checked_mul(SVM_SEGMENT_RECORD_LEN)
+            .ok_or("svm segment table length overflow")?;
+        let segment_table_end = offset
+            .checked_add(segment_table_len)
+            .ok_or("svm segment table offset overflow")?;
+        if bytes.len() < segment_table_end {
+            return Err(format!(
+                "svm segment payload is truncated: expected {} bytes, got {}",
+                segment_table_end,
+                bytes.len()
+            ));
+        }
         let mut segments = Vec::with_capacity(segment_count);
         for _ in 0..segment_count {
             segments.push(SegmentRecord {
@@ -195,6 +222,30 @@ impl EmbeddedMapSource {
             max_y: meters_to_source_y(bounds.max.y_m, self.meters_per_world_unit),
         }
     }
+}
+
+fn validate_svm_header(bytes: &[u8]) -> Result<(), String> {
+    if bytes.len() < SVM_HEADER_LEN {
+        return Err(format!(
+            "svm header is truncated: expected at least {SVM_HEADER_LEN} bytes, got {}",
+            bytes.len()
+        ));
+    }
+    let magic = bytes.get(0..4).ok_or("svm magic is truncated")?;
+    if magic != SVM_MAGIC.as_slice() {
+        return Err(format!(
+            "svm magic mismatch: expected {:?}, got {:?}",
+            std::str::from_utf8(SVM_MAGIC).unwrap_or("SVM1"),
+            String::from_utf8_lossy(magic)
+        ));
+    }
+    let version = read_u16(bytes, 4)?;
+    if version != SVM_VERSION {
+        return Err(format!(
+            "unsupported svm version {version}; expected {SVM_VERSION}"
+        ));
+    }
+    Ok(())
 }
 
 impl MapSource for EmbeddedMapSource {
@@ -302,6 +353,28 @@ mod tests {
 
     use super::*;
 
+    fn encoded_map_with_payload(
+        name_len: u16,
+        name_payload: &[u8],
+        segment_count: u32,
+        segment_payload: &[u8],
+    ) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(SVM_MAGIC);
+        bytes.extend_from_slice(&SVM_VERSION.to_le_bytes());
+        bytes.extend_from_slice(&0_u16.to_le_bytes());
+        bytes.extend_from_slice(&16_i32.to_le_bytes());
+        bytes.extend_from_slice(&0_i32.to_le_bytes());
+        bytes.extend_from_slice(&0_i32.to_le_bytes());
+        bytes.extend_from_slice(&0_i32.to_le_bytes());
+        bytes.extend_from_slice(&0_i32.to_le_bytes());
+        bytes.extend_from_slice(&name_len.to_le_bytes());
+        bytes.extend_from_slice(name_payload);
+        bytes.extend_from_slice(&segment_count.to_le_bytes());
+        bytes.extend_from_slice(segment_payload);
+        bytes
+    }
+
     fn spec(bounds: WorldBounds) -> MapQuerySpec {
         MapQuerySpec::new(
             WorldPoint::ORIGIN,
@@ -378,5 +451,51 @@ mod tests {
         let result = source.query(&spec(bounds));
 
         assert_eq!(result.geometry.len(), 1);
+    }
+
+    #[test]
+    fn rejects_invalid_magic() {
+        let mut bytes = encoded_map_with_payload(0, &[], 0, &[]);
+        bytes[0..4].copy_from_slice(b"BAD!");
+
+        let error = EmbeddedMapSource::from_svm_bytes(&bytes).expect_err("invalid magic");
+
+        assert!(error.contains("magic mismatch"));
+    }
+
+    #[test]
+    fn rejects_unsupported_version() {
+        let mut bytes = encoded_map_with_payload(0, &[], 0, &[]);
+        bytes[4..6].copy_from_slice(&2_u16.to_le_bytes());
+
+        let error = EmbeddedMapSource::from_svm_bytes(&bytes).expect_err("unsupported version");
+
+        assert!(error.contains("unsupported svm version"));
+    }
+
+    #[test]
+    fn rejects_truncated_header() {
+        let error = EmbeddedMapSource::from_svm_bytes(b"SVM1").expect_err("truncated header");
+
+        assert!(error.contains("header is truncated"));
+    }
+
+    #[test]
+    fn rejects_truncated_name_payload() {
+        let bytes = encoded_map_with_payload(4, b"abc", 0, &[]);
+
+        let error = EmbeddedMapSource::from_svm_bytes(&bytes).expect_err("truncated name");
+
+        assert!(error.contains("source name payload is truncated"));
+    }
+
+    #[test]
+    fn rejects_truncated_segment_payload() {
+        let bytes = encoded_map_with_payload(0, &[], 1, &[]);
+
+        let error =
+            EmbeddedMapSource::from_svm_bytes(&bytes).expect_err("truncated segment payload");
+
+        assert!(error.contains("segment payload is truncated"));
     }
 }

@@ -35,6 +35,7 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 - [x] Implement final screen-space visibility/clipping against runtime-provided camera view over queried geometry candidates.
 - [x] Define vector styling primitives for major/minor road hierarchy and rider marker overlays.
 - [x] Keep framebuffer generation deterministic for identical inputs across targets.
+- [x] Keep render scale sourced from runtime-owned query output rather than recomputing zoom policy inside `render-core`.
 
 ## Adapter Integration
 - [x] Add firmware bridge helpers that convert raw GPS/touch samples into `RuntimeInputFrame`.
@@ -44,9 +45,11 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 - [x] Wire browser/emulator input translation to emit the same normalized touch contact frames into `RuntimeInputFrame`.
 - [x] Keep device-specific touch drivers and browser event capture outside shared runtime logic while moving gesture and tap semantics into shared Rust.
 - [x] Make `cargo xtask emu` rebuild wasm and start the emulator dev server from the repository root.
+- [x] Preserve browser GPS uncertainty by forwarding unknown heading as `null` and browser-reported horizontal accuracy into shared runtime inputs.
 - [x] Wire a firmware host-side frame loop that steps `runtime-core`, queries map geometry, renders through `render-core`, and presents into a device-facing framebuffer abstraction.
 - [x] Add a firmware platform loop abstraction for frame timing plus GPS/touch polling around the shared runtime/query/render path.
 - [x] Add GT9271 report decoding and logical-screen normalization helpers in firmware touch handling.
+- [x] Normalize firmware touch input into logical viewport space independently from raw controller coordinate extent.
 - [x] Add display upload/conversion helpers for RGB565-style panel presentation.
 - [x] Add concrete `esp_idf` provider modules for GT9271 transport, panel upload, and NMEA GPS input on top of the firmware provider traits.
 - [ ] Wire actual ESP-IDF peripheral acquisition and live hardware handles into those providers in the firmware platform loop.
@@ -54,6 +57,7 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 ## Map Data Evolution
 - [x] Implement an embedded `.svm` bridge that answers `MapSource::query(&MapQuerySpec)` with coarse bbox + LOD candidate selection.
 - [x] Reuse the same query backend for firmware and wasm through a shared `map-runtime` crate.
+- [x] Validate embedded `.svm` magic/version/header bounds before parsing map bytes in `map-runtime`.
 - [ ] Design the next direct `.svm` runtime loading layer without coupling file parsing to camera/render policy.
 - [ ] Extend map metadata only through runtime/query contracts needed for future LOD and overlays.
 

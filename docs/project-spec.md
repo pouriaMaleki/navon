@@ -145,11 +145,14 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
 - `runtime-core` now includes an internal `bevy_ecs` deterministic frame schedule that projects GPS into world-space focus, derives shared gesture/tap semantics, and emits interaction-aware camera snapshots plus `MapQuerySpec`.
 - Firmware now builds shared `RuntimeInputFrame` values, runs the shared `runtime-core` -> `map-runtime` -> `render-core` frame loop, and exposes board-facing platform plus `esp_idf` provider boundaries; actual ESP-IDF peripheral acquisition, live board validation, and deploy flow wiring are still pending.
 - `render-core` and `render-core-wasm` now provide the emulator-facing end-to-end step/query/render slice from shared Rust through the same `map-runtime` query backend.
+- `render-core` now consumes runtime-owned query scale (`MapQuerySpec.meters_per_pixel`) directly instead of recomputing zoom policy internally.
 - Shared camera foundation now supports one-finger pan, two-finger pinch/rotate, follow-lock, auto-recenter, riding/stopped transitions, stopped north-up settle, rotated query coverage, bounded zoom configuration, and short GPS-dropout resilience.
 - ECS runtime architecture is documented in `/work/docs/runtime-ecs-architecture.md`.
 - Device touch integration is documented in `/work/docs/device-touch-integration-plan.md`.
 - Emulator web shell uses React UI + MobX stores, captures browser geolocation/raw touch contacts, and forwards them into shared Rust through a frame-driven wasm bridge.
+- Browser geolocation normalization preserves unknown heading as `null` and forwards browser-reported horizontal accuracy into the shared GPS contract.
 - Firmware uses a `GT9271` bus-polled touch path; the target boundary is normalized contact frames from firmware with gesture and tap interpretation owned by `runtime-core`.
+- Firmware touch normalization targets the logical display viewport explicitly rather than assuming the controller extent matches panel resolution.
 - Firmware needs board-level validation and optional `TP_INT` / `TP_RST` reset wiring in `main.rs` after schematic confirmation (`TouchInput::new_with_reset` hook is available).
 - Real-device touch target is Waveshare `ESP32-P4-WIFI6-Touch-LCD-3.4C` with `GT9271` capacitive controller on the board touch/display assembly.
 - Emulator developer tooling requires `wasm-pack` in host/devcontainer PATH.

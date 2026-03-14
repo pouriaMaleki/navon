@@ -264,16 +264,8 @@ pub fn decode_touch_report(
 
 fn normalize_screen_point(x: u16, y: u16, config: TouchControllerConfig) -> ScreenPoint {
     ScreenPoint::new(
-        normalize_axis(
-            x,
-            config.controller_max_x,
-            config.controller_max_x as u32 + 1,
-        ),
-        normalize_axis(
-            y,
-            config.controller_max_y,
-            config.controller_max_y as u32 + 1,
-        ),
+        normalize_axis(x, config.controller_max_x, config.logical_width_px),
+        normalize_axis(y, config.controller_max_y, config.logical_height_px),
     )
 }
 
@@ -371,5 +363,21 @@ mod tests {
         );
 
         assert_eq!(source.poll(), Err(TouchError::ProductIdMismatch(*b"1111")));
+    }
+
+    #[test]
+    fn normalizes_contacts_into_logical_viewport_space() {
+        let config = TouchControllerConfig {
+            controller_max_x: 1_023,
+            controller_max_y: 511,
+            logical_width_px: 800,
+            logical_height_px: 480,
+            ..config()
+        };
+
+        let point = normalize_screen_point(1_023, 511, config);
+
+        assert!((point.x_px - 799.0).abs() < 0.01);
+        assert!((point.y_px - 479.0).abs() < 0.01);
     }
 }

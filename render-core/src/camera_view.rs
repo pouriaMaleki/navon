@@ -1,5 +1,4 @@
 use runtime_core::api::{CameraStateSnapshot, ScreenPoint, ViewportSize, WorldPoint};
-use runtime_core::map::meters_per_pixel_for_zoom;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct CameraView {
@@ -10,12 +9,16 @@ pub struct CameraView {
 }
 
 impl CameraView {
-    pub fn new(viewport: ViewportSize, camera: &CameraStateSnapshot) -> Self {
+    pub fn new(
+        viewport: ViewportSize,
+        camera: &CameraStateSnapshot,
+        meters_per_pixel: f64,
+    ) -> Self {
         Self {
             viewport,
             center_world: camera.center_world,
             orientation_rad: camera.orientation_rad,
-            meters_per_pixel: meters_per_pixel_for_zoom(camera.zoom),
+            meters_per_pixel,
         }
     }
 
@@ -65,6 +68,7 @@ mod tests {
                 follow_locked: false,
                 recenter_active: false,
             },
+            1.0,
         );
 
         let screen = view.world_to_screen(WorldPoint::new(25.0, 80.0));
