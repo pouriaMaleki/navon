@@ -121,7 +121,7 @@ New functionality should enter through one of these paths:
 - Features that require edits across all crates to land one behavior
 
 ## Immediate Next Actions
-1. Add parity fixtures that exercise identical contact sequences through firmware-facing and wasm-facing adapters.
-2. Move the firmware host-side slice onto real board IO and framebuffer presentation.
-3. Replace the remaining device-side `xtask` placeholders once bundling and deploy flows have real implementations behind them.
-4. Profile the shared embedded `.svm` bridge so later direct loading work is driven by measured cost rather than guesswork.
+1. Wire actual ESP-IDF peripheral acquisition and live hardware handles into the firmware provider layer without moving behavior out of shared Rust.
+2. Replace the remaining device-side `xtask` placeholders once bundling and deploy flows have real implementations behind them.
+3. Profile the shared embedded `.svm` bridge so later direct loading work is driven by measured cost rather than guesswork.
+4. Design the next direct `.svm` runtime loading path after the embedded bridge is stable enough to compare against.

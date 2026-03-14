@@ -1,6 +1,5 @@
 use std::time::{Duration, Instant};
 
-use render_core::raster::Framebuffer as RenderFramebuffer;
 use runtime_core::map::MapSource;
 
 use crate::app::{App, AppError, FrameResult};
@@ -172,12 +171,6 @@ pub fn run_host_demo() -> Result<FrameResult, PlatformError> {
 
     let _ = platform.run_frame()?;
     platform.run_frame()
-}
-
-pub fn render_preview_checksum(framebuffer: &RenderFramebuffer) -> u64 {
-    framebuffer.pixels().iter().fold(0_u64, |checksum, value| {
-        checksum.wrapping_mul(16777619) ^ u64::from(*value)
-    })
 }
 
 #[cfg(test)]
