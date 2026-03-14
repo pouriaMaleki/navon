@@ -319,10 +319,10 @@ mod tests {
             14,
             vec![
                 SegmentRecord {
-                    x1: 1000,
-                    y1: -1000,
-                    x2: 2000,
-                    y2: -1000,
+                    x1: 1_000,
+                    y1: -1_000,
+                    x2: 2_000,
+                    y2: -1_000,
                     road_class: 1,
                 },
                 SegmentRecord {
@@ -338,10 +338,10 @@ mod tests {
         let bounds = WorldBounds {
             min: WorldPoint::new(
                 source_x_to_meters(500, meters_per_unit),
-                source_y_to_meters(-2500, meters_per_unit),
+                source_y_to_meters(-2_500, meters_per_unit),
             ),
             max: WorldPoint::new(
-                source_x_to_meters(2500, meters_per_unit),
+                source_x_to_meters(2_500, meters_per_unit),
                 source_y_to_meters(-500, meters_per_unit),
             ),
         };

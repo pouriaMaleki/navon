@@ -31,7 +31,8 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
   - follow-lock/recenter behavior,
   - map query + zoom-bucket LOD policy.
 - `render-core`: stateless rendering primitives (`CameraView` + queried world geometry -> framebuffer).
-- `MapSource` implementations: coarse world-space geometry lookup from `MapQuerySpec`; the current embedded `.svm` bridge in `render-core-wasm` and future shared direct readers both fit here.
+- `map-runtime`: shared embedded `.svm` reader and coarse query backend that can be reused by firmware and wasm while direct-loading work is still pending.
+- `MapSource` implementations: coarse world-space geometry lookup from `MapQuerySpec`; the current shared `map-runtime` bridge and future shared direct readers both fit here.
 - `firmware`: platform adapter (GPS/touch drivers -> `RuntimeInputFrame` with normalized shared input samples, framebuffer presentation on device).
 - `render-core-wasm`: wasm adapter (browser/emulator inputs -> `RuntimeInputFrame` with normalized shared input samples, output pixels for canvas).
 
@@ -81,7 +82,7 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
   - `style`
   - `raster`
   - `overlay`
-- The initial framework may add a small shared map abstraction crate later if direct `.svm` loading and embedded/shared map readers need the same reader/types, but this must remain independent from platform adapters.
+- The shared map abstraction crate is now `map-runtime` for the embedded `.svm` path; future direct `.svm` loading should extend or replace it without leaking platform concerns into adapters.
 
 ## Extensibility Rules
 - New behaviors must enter the runtime through one of these extension points:
@@ -137,15 +138,15 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
 ## Data Flow
 - Source maps: `/work/map-src`
 - Converted maps: `/work/map-data/city.svm`
-- Current bridge for renderer integration: embedded `.svm` bytes with a coarse query index in `render-core-wasm`.
+- Current bridge for renderer integration: embedded `.svm` bytes with a coarse query index in `map-runtime`, reused by firmware and wasm.
 - Target direction: direct `.svm` runtime loading in firmware.
 - `cargo xtask prepare-map` uses a bike-oriented conversion profile that excludes ferry/boat/water transport segments.
 
 ## Current Phase Notes
 - `runtime-core::api` now exposes stable config, input, output, query, and diagnostics contract modules for adapters.
 - `runtime-core` now includes an internal `bevy_ecs` deterministic frame schedule that projects GPS into world-space focus, derives shared gesture/tap semantics, and emits interaction-aware camera snapshots plus `MapQuerySpec`.
-- Firmware bridge helpers now build shared `RuntimeInputFrame` values, but firmware is not yet wired into a product-complete loop.
-- `render-core` and `render-core-wasm` now provide the emulator-facing end-to-end step/query/render slice from shared Rust.
+- Firmware now builds shared `RuntimeInputFrame` values and runs a host-side shared `runtime-core` -> `map-runtime` -> `render-core` frame loop, but real board IO and deploy flow wiring are still pending.
+- `render-core` and `render-core-wasm` now provide the emulator-facing end-to-end step/query/render slice from shared Rust through the same `map-runtime` query backend.
 - Shared camera foundation now supports one-finger pan, two-finger pinch/rotate, follow-lock, auto-recenter, riding/stopped transitions, stopped north-up settle, rotated query coverage, bounded zoom configuration, and short GPS-dropout resilience.
 - ECS runtime architecture is documented in `/work/docs/runtime-ecs-architecture.md`.
 - Device touch integration is documented in `/work/docs/device-touch-integration-plan.md`.

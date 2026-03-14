@@ -455,6 +455,8 @@ checksum = "5baebc0774151f905a1a2cc41989300b1e6fbb29aff0ceffa1064fdd3088d582"
 name = "firmware"
 version = "0.1.0"
 dependencies = [
+ "map-runtime",
+ "render-core",
  "runtime-core",
 ]
 
@@ -714,6 +716,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e5032e24019045c762d3c0f28f5b6b8bbf38563a65908389bf7978758920897"
 
 [[package]]
+name = "map-runtime"
+version = "0.1.0"
+dependencies = [
+ "runtime-core",
+]
+
+[[package]]
 name = "map-vector-cli"
 version = "0.1.0"
 dependencies = [
@@ -925,6 +934,7 @@ dependencies = [
 name = "render-core-wasm"
 version = "0.1.0"
 dependencies = [
+ "map-runtime",
  "render-core",
  "runtime-core",
  "serde",

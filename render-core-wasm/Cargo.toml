@@ -8,6 +8,7 @@ path = "src/lib.rs"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+map-runtime = { path = "../map-runtime" }
 runtime-core = { path = "../runtime-core" }
 render-core = { path = "../render-core" }
 serde = { version = "1.0", features = ["derive"] }
