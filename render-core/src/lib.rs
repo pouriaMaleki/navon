@@ -21,7 +21,8 @@ pub struct RenderScene<'a> {
 
 pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
     let viewport = ViewportSize::new(framebuffer.width(), framebuffer.height());
-    let camera_view = CameraView::new(viewport, &scene.output.camera);
+    let meters_per_pixel = scene.output.map_query.meters_per_pixel;
+    let camera_view = CameraView::new(viewport, &scene.output.camera, meters_per_pixel);
     let style = RenderStyle::default();
 
     framebuffer.clear(style.background_intensity);
@@ -54,6 +55,7 @@ pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
         &scene.output.camera,
         &scene.output.overlay,
         viewport,
+        meters_per_pixel,
         framebuffer,
     );
 }
@@ -61,8 +63,9 @@ pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
 #[cfg(test)]
 mod tests {
     use runtime_core::api::{
-        CameraMode, CameraStateSnapshot, MapLayer, MapPolylineCandidate, NormalizedScreenPoint,
-        OverlayState, RuntimeConfig, RuntimeFrameOutput, WorldPoint,
+        CameraMode, CameraStateSnapshot, LodMask, MapLayer, MapPolylineCandidate, MapQuerySpec,
+        NormalizedScreenPoint, OverlayState, RuntimeConfig, RuntimeFrameOutput, WorldPoint,
+        ZoomBucket,
     };
 
     use super::*;
@@ -85,6 +88,14 @@ mod tests {
                 north_up_active: false,
                 rider_heading_rad: Some(0.0),
             },
+            map_query: MapQuerySpec::new(
+                WorldPoint::ORIGIN,
+                runtime_core::api::WorldBounds::from_center(WorldPoint::ORIGIN, 64.0, 64.0),
+                1.0,
+                15.5,
+                ZoomBucket::Detail,
+                LodMask::from_layers(&[MapLayer::MajorRoad]),
+            ),
             ..RuntimeFrameOutput::default()
         }
     }
@@ -121,5 +132,44 @@ mod tests {
                 .any(|value| value == RenderStyle::default().major_road.intensity)
         );
         assert!(first.pixels().iter().copied().any(|value| value > 240));
+    }
+
+    #[test]
+    fn render_uses_runtime_supplied_query_scale() {
+        let config = RuntimeConfig::default();
+        let geometry = MapQueryResult {
+            geometry: vec![runtime_core::api::GeometryCandidate::Polyline(
+                MapPolylineCandidate {
+                    layer: MapLayer::MajorRoad,
+                    points: vec![WorldPoint::new(-40.0, 0.0), WorldPoint::new(40.0, 0.0)],
+                },
+            )],
+        };
+        let mut near_output = sample_output();
+        near_output.map_query.meters_per_pixel = 1.0;
+        let mut far_output = sample_output();
+        far_output.map_query.meters_per_pixel = 100.0;
+
+        let mut near = Framebuffer::new(128, 128);
+        let mut far = Framebuffer::new(128, 128);
+
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &near_output,
+                geometry: &geometry,
+            },
+            &mut near,
+        );
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &far_output,
+                geometry: &geometry,
+            },
+            &mut far,
+        );
+
+        assert_ne!(near.pixels(), far.pixels());
     }
 }

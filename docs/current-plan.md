@@ -23,13 +23,17 @@ Execution guide: [`framework-execution-guide.md`](./framework-execution-guide.md
 - `runtime-core` now owns a deterministic `bevy_ecs` schedule that produces shared gesture/tap interpretation, filtered motion heading, interaction-aware camera snapshots, and `MapQuerySpec` output.
 - Firmware and wasm bridge helpers now build shared `RuntimeInputFrame` values instead of staying as empty placeholders.
 - `render-core` now owns the shared camera projection, visibility/clipping, overlay drawing, and grayscale framebuffer path used by the emulator.
+- `render-core` now consumes runtime-owned `MapQuerySpec.meters_per_pixel` values directly instead of recomputing zoom policy.
 - `map-runtime` now owns the shared embedded `.svm` reader and coarse bbox + LOD lookup backend used by adapters.
+- `map-runtime` now rejects invalid `.svm` magic/version/header payloads before parsing map geometry.
 - `render-core-wasm` now queries geometry through `map-runtime` and exposes a frame-driven `step_frame` bridge for emulator consumption.
 - Emulator web now forwards raw GPS and touch contacts into shared Rust and presents Rust-generated pixels without TS-owned camera interaction policy.
+- Emulator GPS normalization now preserves unknown heading as `null` and forwards browser-provided accuracy into shared runtime inputs.
 - `cargo xtask emu` now rebuilds `render-core-wasm` and starts the Vite emulator server as the repository-root entrypoint required by the emulator spec.
 - Firmware now runs a host-side shared `runtime-core` -> `map-runtime` -> `render-core` frame loop with tests covering query/render output and touch forwarding.
 - `parity-fixtures` now provides canonical frame sequences, a deterministic fixture `MapSource`, and frame-by-frame parity assertions across firmware and wasm normalization/query/render paths.
 - Firmware now exposes a board-facing platform loop, GT9271 report decoding/normalization, board config for Waveshare defaults, and RGB565 display upload helpers while keeping product behavior in shared Rust.
+- Firmware touch normalization now explicitly targets the logical viewport size instead of assuming controller extent equals display extent.
 - Firmware now also exposes concrete `esp_idf` provider modules for GT9271 register access, panel upload, NMEA GPS parsing, and device-platform assembly on top of the existing provider traits.
 
 ## Immediate Correction Pass

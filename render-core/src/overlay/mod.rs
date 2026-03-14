@@ -9,10 +9,11 @@ pub fn draw_overlay(
     camera: &CameraStateSnapshot,
     overlay: &OverlayState,
     viewport: ViewportSize,
+    meters_per_pixel: f64,
     framebuffer: &mut Framebuffer,
 ) {
     let style = RenderStyle::default();
-    let camera_view = CameraView::new(viewport, camera);
+    let camera_view = CameraView::new(viewport, camera, meters_per_pixel);
     let rider = camera_view.world_to_screen(camera.focus_world);
     framebuffer.stamp_circle(
         rider.x_px.round() as i32,

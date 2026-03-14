@@ -1,5 +1,5 @@
 import { makeAutoObservable } from "mobx";
-import type { GeoCoordinates, SimulatedGeoSample, WasmRuntimeState } from "../types";
+import type { RuntimeGpsInput, SimulatedGeoSample, WasmRuntimeState } from "../types";
 
 const DEFAULT_LAT = 60.17442;
 const DEFAULT_LON = 24.9421;
@@ -83,57 +83,16 @@ export class GeoStore {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
         const tsMs = position.timestamp;
-        const coords: GeoCoordinates = { lat, lon };
         this.isLive = true;
         this.statusText = "GPS: live";
 
-        let distM = 0;
-        if (this.hasPrev) {
-          distM = haversineMeters(this.prevLat, this.prevLon, lat, lon);
-          const dtS = Math.max(0.001, (tsMs - this.prevTsMs) / 1000);
-          if (distM <= MOTION_DISTANCE_NOISE_M) {
-            this.writeGpsSample(coords.lat, coords.lon, this.customState.gps?.courseRad ?? 0, 0);
-          } else {
-            this.writeGpsSample(
-              coords.lat,
-              coords.lon,
-              this.customState.gps?.courseRad ?? 0,
-              distM / dtS,
-            );
-          }
-        } else {
-          this.writeGpsSample(coords.lat, coords.lon, this.customState.gps?.courseRad ?? 0, 0);
-        }
-
-        let heading = position.coords.heading;
-        if (
-          (heading === null || Number.isNaN(heading)) &&
-          this.hasPrev &&
-          distM > MOTION_DISTANCE_NOISE_M
-        ) {
-          heading = bearingDeg(this.prevLat, this.prevLon, lat, lon);
-        }
-        if (heading !== null && !Number.isNaN(heading)) {
-          const headingRad = (heading * Math.PI) / 180;
-          this.writeGpsSample(
-            coords.lat,
-            coords.lon,
-            headingRad,
-            this.customState.gps?.speedMps ?? 0,
-          );
-        } else {
-          this.writeGpsSample(
-            coords.lat,
-            coords.lon,
-            this.customState.gps?.courseRad ?? 0,
-            this.customState.gps?.speedMps ?? 0,
-          );
-        }
+        const sample = this.buildLiveGpsSample(position);
+        this.writeGpsSample(sample);
         this.simulatedSample = {
           lat,
           lon,
-          headingRad: this.customState.gps?.courseRad ?? 0,
-          speedMps: this.customState.gps?.speedMps ?? 0,
+          headingRad: sample.courseRad ?? this.simulatedSample.headingRad,
+          speedMps: sample.speedMps,
         };
 
         this.prevLat = lat;
@@ -161,7 +120,13 @@ export class GeoStore {
     if (this.isLive || !this.customState) {
       return;
     }
-    this.writeGpsSample(sample.lat, sample.lon, sample.headingRad, sample.speedMps);
+    this.writeGpsSample({
+      latDeg: sample.lat,
+      lonDeg: sample.lon,
+      speedMps: sample.speedMps,
+      courseRad: sample.headingRad,
+      horizontalAccuracyM: null,
+    });
     this.statusText = "GPS: simulated (bike controls)";
   }
 
@@ -180,27 +145,65 @@ export class GeoStore {
       return;
     }
     this.isLive = false;
-    this.writeGpsSample(
-      this.simulatedSample.lat,
-      this.simulatedSample.lon,
-      this.simulatedSample.headingRad,
-      this.simulatedSample.speedMps,
-    );
+    this.writeGpsSample({
+      latDeg: this.simulatedSample.lat,
+      lonDeg: this.simulatedSample.lon,
+      speedMps: this.simulatedSample.speedMps,
+      courseRad: this.simulatedSample.headingRad,
+      horizontalAccuracyM: null,
+    });
     this.statusText = "GPS: simulated (bike controls)";
   }
 
-  private writeGpsSample(lat: number, lon: number, headingRad: number, speedMps: number): void {
-    if (!this.customState) {
-      return;
+  private buildLiveGpsSample(position: GeolocationPosition): RuntimeGpsInput {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+    const accuracyM = normalizeAccuracy(position.coords.accuracy);
+    let distM = 0;
+    let speedMps = 0;
+
+    if (this.hasPrev) {
+      distM = haversineMeters(this.prevLat, this.prevLon, lat, lon);
+      if (distM > MOTION_DISTANCE_NOISE_M) {
+        const dtS = Math.max(0.001, (position.timestamp - this.prevTsMs) / 1000);
+        speedMps = distM / dtS;
+      }
     }
-    this.customState.gps = {
+
+    let headingDeg = normalizeHeading(position.coords.heading);
+    if (headingDeg === null && this.hasPrev && distM > MOTION_DISTANCE_NOISE_M) {
+      headingDeg = bearingDeg(this.prevLat, this.prevLon, lat, lon);
+    }
+
+    return {
       latDeg: lat,
       lonDeg: lon,
       speedMps,
-      courseRad: headingRad,
-      horizontalAccuracyM: null,
+      courseRad: headingDeg === null ? null : (headingDeg * Math.PI) / 180,
+      horizontalAccuracyM: accuracyM,
     };
   }
+
+  private writeGpsSample(sample: RuntimeGpsInput): void {
+    if (!this.customState) {
+      return;
+    }
+    this.customState.gps = sample;
+  }
+}
+
+function normalizeHeading(headingDeg: number | null): number | null {
+  if (headingDeg === null || Number.isNaN(headingDeg) || !Number.isFinite(headingDeg)) {
+    return null;
+  }
+  return headingDeg;
+}
+
+function normalizeAccuracy(accuracyM: number): number | null {
+  if (Number.isNaN(accuracyM) || !Number.isFinite(accuracyM) || accuracyM < 0) {
+    return null;
+  }
+  return accuracyM;
 }
 
 function bearingDeg(lat1: number, lon1: number, lat2: number, lon2: number): number {
