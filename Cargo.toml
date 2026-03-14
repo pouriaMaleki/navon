@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "firmware",
+  "parity-fixtures",
   "map-runtime",
   "runtime-core",
   "render-core",

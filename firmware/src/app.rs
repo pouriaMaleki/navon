@@ -6,7 +6,7 @@ use runtime_core::api::{RuntimeConfig, RuntimeFrameOutput, TouchContactFrameErro
 use runtime_core::map::MapSource;
 
 use crate::board_config::BoardConfig;
-use crate::display::Display;
+use crate::display::{Display, DisplayBackend, DisplayError, MemoryDisplayBackend};
 use crate::gps::GpsInput;
 use crate::input_bridge::InputBridge;
 use crate::map_source::MapSourceBridge;
@@ -19,26 +19,57 @@ pub struct FrameResult {
     pub lit_pixel_count: usize,
 }
 
-pub struct App {
-    runtime: RuntimeCore,
-    input_bridge: InputBridge,
-    map_source: MapSourceBridge,
-    render_framebuffer: RenderFramebuffer,
-    display: Display,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AppError {
+    InvalidTouchFrame(TouchContactFrameError),
+    Display(DisplayError),
 }
 
-impl App {
-    pub fn new(board: BoardConfig, config: RuntimeConfig) -> Self {
-        Self {
+impl From<TouchContactFrameError> for AppError {
+    fn from(value: TouchContactFrameError) -> Self {
+        Self::InvalidTouchFrame(value)
+    }
+}
+
+impl From<DisplayError> for AppError {
+    fn from(value: DisplayError) -> Self {
+        Self::Display(value)
+    }
+}
+
+pub struct App<S = MapSourceBridge, B = MemoryDisplayBackend>
+where
+    S: MapSource,
+    B: DisplayBackend,
+{
+    runtime: RuntimeCore,
+    input_bridge: InputBridge,
+    map_source: S,
+    render_framebuffer: RenderFramebuffer,
+    display: Display<B>,
+}
+
+impl<S, B> App<S, B>
+where
+    S: MapSource,
+    B: DisplayBackend,
+{
+    pub fn with_parts(
+        board: BoardConfig,
+        config: RuntimeConfig,
+        map_source: S,
+        display_backend: B,
+    ) -> Result<Self, DisplayError> {
+        Ok(Self {
             runtime: RuntimeCore::new(config),
             input_bridge: InputBridge::new(board.viewport_size),
-            map_source: MapSourceBridge::default(),
+            map_source,
             render_framebuffer: RenderFramebuffer::new(
                 board.viewport_size.width_px,
                 board.viewport_size.height_px,
             ),
-            display: Display::new(),
-        }
+            display: Display::with_backend(board.display, display_backend)?,
+        })
     }
 
     pub fn step_frame(
@@ -46,7 +77,7 @@ impl App {
         dt: Duration,
         gps: Option<GpsInput>,
         touch: Option<TouchInput>,
-    ) -> Result<FrameResult, TouchContactFrameError> {
+    ) -> Result<FrameResult, AppError> {
         let input = self.input_bridge.frame_from_samples(dt, gps, touch)?;
         let output = self.runtime.step(input);
         let geometry = self.map_source.query(&output.map_query);
@@ -58,7 +89,7 @@ impl App {
             },
             &mut self.render_framebuffer,
         );
-        self.display.present(&self.render_framebuffer);
+        self.display.present(&self.render_framebuffer)?;
 
         Ok(FrameResult {
             output,
@@ -67,12 +98,28 @@ impl App {
         })
     }
 
-    pub fn display(&self) -> &Display {
+    pub fn display(&self) -> &Display<B> {
         &self.display
     }
 }
 
-impl Default for App {
+impl<S> App<S, MemoryDisplayBackend>
+where
+    S: MapSource,
+{
+    pub fn with_map_source(board: BoardConfig, config: RuntimeConfig, map_source: S) -> Self {
+        Self::with_parts(board, config, map_source, MemoryDisplayBackend::default())
+            .expect("memory display backend should initialize")
+    }
+}
+
+impl App<MapSourceBridge, MemoryDisplayBackend> {
+    pub fn new(board: BoardConfig, config: RuntimeConfig) -> Self {
+        Self::with_map_source(board, config, MapSourceBridge::default())
+    }
+}
+
+impl Default for App<MapSourceBridge, MemoryDisplayBackend> {
     fn default() -> Self {
         let board = BoardConfig::default();
         Self::new(

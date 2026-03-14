@@ -195,27 +195,33 @@ render-core-wasm/
 firmware/
 ├── Cargo.toml
 └── src/
+    ├── lib.rs
     ├── main.rs
     ├── app.rs
     ├── board_config.rs
     ├── display.rs
+    ├── esp_idf.rs
     ├── framebuffer.rs
     ├── gps.rs
     ├── touch.rs
     ├── input_bridge.rs
     ├── map_source.rs
+    ├── platform.rs
     ├── power.rs
     └── logging.rs
 ```
 
 ## `firmware` Ownership
+- `lib.rs`: firmware library surface shared by tests and the device entrypoint.
 - `main.rs`: startup and main device loop.
 - `board_config.rs`: pins, panel geometry, touch reset/interrupt wiring.
 - `gps.rs`: hardware GPS acquisition.
 - `touch.rs`: raw touch controller interaction and coordinate normalization into shared touch-contact samples.
 - `input_bridge.rs`: convert device inputs into `RuntimeInputFrame` with `TouchContactFrame`.
 - `display.rs` and `framebuffer.rs`: present render output on device.
+- `esp_idf.rs`: concrete firmware-side provider implementations and low-level shims for GT9271 transport, panel upload, GPS serial parsing, and device-platform assembly.
 - `map_source.rs`: device-side bridge into the shared `map-runtime` query backend.
+- `platform.rs`: frame timing plus device input/output orchestration around the shared runtime/query/render loop.
 - Any temporary firmware-local touch math must stop at controller cleanup or de-jittering; it must not classify app-level pan/pinch/rotate/tap semantics.
 
 ## Public API Rule
