@@ -1,6 +1,6 @@
 # Emulator Project Specification
 
-This is the canonical specification for the emulator module.  
+This is the canonical specification for the emulator module.
 Other emulator docs should reference this file instead of redefining product requirements.
 
 ## 1. Product Scope
@@ -20,15 +20,10 @@ Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for develop
 - Smooth auto-recenter after pan idle timeout.
 - Rendering through shared Rust renderer (`render-core`) via WASM bridge (`render-core-wasm`).
 
-### 1.4 Strict Boundary
+### 1.3 Strict Boundary
 - Emulator is a hardware/runtime emulator only.
 - Emulator web code may collect/forward inputs and present output, but must not own product camera policy.
 - Riding/stopped mode transitions, north-up policy, and orientation behavior are shared Rust responsibilities.
-
-### 1.3 Out of Scope
-- Source-map conversion pipeline and `.svm` schema changes (owned by `map-vector-cli`).
-- Device flashing and firmware deployment workflows.
-- Mobile native wrappers (not part of emulator runtime).
 
 ## 2. Functional Requirements
 

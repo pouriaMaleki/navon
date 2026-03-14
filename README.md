@@ -77,12 +77,10 @@ cargo xtask deploy-device --port /dev/ttyUSB0
 ```
 
 ## Specs and Plans
-- Main spec: `/work/docs/project-spec.md`
 - Main plan: `/work/docs/current-plan.md`
-- CVE tracking plan: `/work/docs/cve-tracking-plan.md`
-- Main phase 4 plan: `/work/docs/phase-4-riding-mode-plan.md`
 - Main TODO list: `/work/docs/todo.md`
-- Overview-mode design: `/work/docs/overview-mode-design.md`
+- Main spec: `/work/docs/project-spec.md`
+- CVE tracking plan: `/work/docs/cve-tracking-plan.md`
 - Converter spec: `/work/map-vector-cli/docs/project-spec.md`
 - Converter plan: `/work/map-vector-cli/docs/current-plan.md`
 - Emulator spec: `/work/emulator/docs/project-spec.md`
