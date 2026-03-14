@@ -6,29 +6,39 @@
 
 ## Crate Graph
 - `runtime-core`: owns runtime state/policy and map query/LOD decisions.
-- `render-core`: stateless renderer primitives (`CameraView` + visible lines -> framebuffer).
+- `render-core`: stateless renderer primitives (`CameraView` + queried world geometry -> framebuffer).
 - `firmware`: ESP32 adapter for touch/GPS input and framebuffer presentation.
 - `render-core-wasm`: wasm adapter for browser/emulator input/output.
 
 ## ECS Model
 ### Resources
-- `FrameTime`: deterministic frame clock (`dt_ms`, `total_ms`, `tick`).
-- `RuntimeConfig`: viewport, bounds, background, anchor defaults.
-- `LodPolicy`: zoom thresholds and layer masks.
-- `PendingInput`: per-frame event payload ingress.
+- `FrameTime`: deterministic frame clock (`dt`, `total`, `tick`).
+- `RuntimeConfig`: viewport, anchor defaults, zoom bounds, and resilience thresholds.
+- `PendingInput`: per-frame adapter sample ingress before shared contact interpretation.
+- `MotionState`: latest GPS-derived world focus, motion state, heading, and GPS-gap tracking.
+- `CameraState`: camera controller snapshot built in shared Rust.
+- `MapQuerySpec`: current query bounds + zoom bucket + LOD mask.
 - `RuntimeOutput`: built output snapshot for adapters.
 
 ### Components
-- `Rider`: world position, heading, speed.
-- `Camera`: camera controller state.
-- `InteractionState`: aggregated pan/pinch/rotate deltas.
-- `FollowLock`: lock-state snapshot for diagnostics/parity checks.
-- `MapQuery`: current query bounds + zoom bucket + LOD mask.
+- The current minimal ECS implementation keeps frame-global state in resources.
+- Entity/component state should be introduced once shared gesture state, follow-lock, and richer interaction lifecycles need per-domain isolation.
+- Planned component domains remain:
+  - `Rider`
+  - `Camera`
+  - `InteractionState`
+  - `FollowLock`
+  - `MapQuery`
 
-### Input Event Types
+### Public Input Samples
+- `TouchContact`
+- `TouchContactFrame`
+- optional GPS samples
+
+### Internal Derived Events
 - `GestureEvent` (`Pan`, `Pinch`, `Rotate`)
 - `TapEvent`
-- `NorthUpRequest`
+- `NorthUpRequest` derived from shared tap/control-hit handling or synthetic tests
 
 ## Deterministic Schedule Order
 1. `InputIngestSet`
@@ -38,9 +48,22 @@
 5. `OutputBuildSet`
 
 ## Runtime I/O Contract
-- Input: `RuntimeInputFrame` (dt + optional GPS + gesture list + tap + north-up request).
+- Input: `RuntimeInputFrame` (dt + optional GPS + optional `TouchContactFrame` and other shared normalized samples). Adapters do not emit product gesture or control-hit semantics.
 - Output: `RuntimeFrameOutput` containing:
-  - `CameraView`
-  - camera mode
-  - map query spec
-  - visible line buffer filtered by bbox + LOD.
+  - camera state snapshot
+  - `MapQuerySpec`
+  - overlay/style state
+  - optional `DiagnosticsSnapshot`
+- `RuntimeFrameOutput` does not contain queried geometry buffers.
+
+## Current Foundation Guarantees
+- Internal execution uses a fixed `bevy_ecs` schedule order that matches the declared frame stages.
+- Query bounds account for camera rotation so heading-up views do not under-query corners.
+- Zoom clamping preserves the configured minimum and maximum range.
+- Brief GPS gaps preserve prior motion state until the configured timeout elapses.
+
+## Query and Render Handoff
+1. `runtime-core` builds `MapQuerySpec` from camera state and LOD policy.
+2. A `MapSource` implementation performs coarse bbox + LOD candidate lookup.
+3. `render-core` applies final screen-space visibility/clipping and rasterizes the queried geometry.
+4. Firmware and wasm adapters orchestrate the calls only; they do not own query policy or camera behavior.
