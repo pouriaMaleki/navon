@@ -7,7 +7,6 @@ import type { AppStore } from "./AppStore";
 
 export class EmulatorStore {
   isReady = false;
-  isRunning = false;
   isLoading = false;
   errorMessage: string | null = null;
   frameDtMs = 0;
@@ -57,7 +56,6 @@ export class EmulatorStore {
       this.appStore.bikeSimStore.reset();
 
       runInAction(() => {
-        this.isRunning = true;
         this.isReady = true;
       });
     } catch (error) {
@@ -69,13 +67,6 @@ export class EmulatorStore {
         this.isLoading = false;
       });
     }
-  }
-
-  toggleRunning(): void {
-    if (!this.emulator) {
-      return;
-    }
-    this.isRunning = this.emulator.toggle();
   }
 
   reset(): void {
@@ -98,7 +89,6 @@ export class EmulatorStore {
     this.customState = null;
     this.resetFrameTiming();
     this.isReady = false;
-    this.isRunning = false;
     this.isLoading = false;
   }
 

@@ -11,7 +11,6 @@ Convert large map datasets into a compact georeferenced street-vector standard (
 ## Current Scope
 - Input: MBTiles (`*.mbtiles`) from `/work/map-src`.
 - Output: city-scale `.svm` vector map in `/work/map-data`.
-- Optional bridge output: windowed generated Rust module for current wasm integration.
 - Conversion profiles define transport filtering policy (current default: `bike`).
 
 ## Data Model Goals

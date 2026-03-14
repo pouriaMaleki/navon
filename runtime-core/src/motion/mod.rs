@@ -7,6 +7,15 @@ const EARTH_RADIUS_M: f64 = 6_378_137.0;
 const MAX_MERCATOR_LAT_DEG: f64 = 85.051_128_78;
 const MIN_HEADING_DELTA_M: f64 = 1.0;
 
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct MotionIngestConfig {
+    pub riding_speed_threshold_mps: f32,
+    pub stopped_speed_threshold_mps: f32,
+    pub gps_loss_stop_timeout: Duration,
+    pub min_heading_displacement_m: f64,
+    pub heading_filter_alpha: f32,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct MotionState {
     pub last_fix: Option<GpsSample>,
@@ -35,20 +44,16 @@ impl Default for MotionState {
 }
 
 impl MotionState {
-    pub fn ingest(
+    pub(crate) fn ingest(
         &mut self,
         gps: Option<GpsSample>,
         dt: Duration,
-        riding_speed_threshold_mps: f32,
-        stopped_speed_threshold_mps: f32,
-        gps_loss_stop_timeout: Duration,
-        min_heading_displacement_m: f64,
-        heading_filter_alpha: f32,
+        config: MotionIngestConfig,
     ) {
         let was_moving = self.is_moving;
         let Some(sample) = gps else {
             self.gps_gap_duration += dt;
-            if self.gps_gap_duration >= gps_loss_stop_timeout {
+            if self.gps_gap_duration >= config.gps_loss_stop_timeout {
                 self.speed_mps = 0.0;
                 self.is_moving = false;
                 self.advance_stopped_duration(dt, was_moving);
@@ -63,9 +68,9 @@ impl MotionState {
         self.speed_mps = sample.speed_mps.max(0.0);
 
         self.is_moving = if self.is_moving {
-            self.speed_mps > stopped_speed_threshold_mps
+            self.speed_mps > config.stopped_speed_threshold_mps
         } else {
-            self.speed_mps >= riding_speed_threshold_mps
+            self.speed_mps >= config.riding_speed_threshold_mps
         };
 
         if self.is_moving {
@@ -74,16 +79,16 @@ impl MotionState {
                 previous_world,
                 current_world,
                 sample,
-                min_heading_displacement_m,
-                heading_filter_alpha,
+                config.min_heading_displacement_m,
+                config.heading_filter_alpha,
                 self.filtered_motion_vector_m,
                 self.travel_heading_rad,
             );
             self.filtered_motion_vector_m = update_filtered_motion_vector(
                 previous_world,
                 current_world,
-                min_heading_displacement_m,
-                heading_filter_alpha,
+                config.min_heading_displacement_m,
+                config.heading_filter_alpha,
                 self.filtered_motion_vector_m,
             )
             .or(self.filtered_motion_vector_m);

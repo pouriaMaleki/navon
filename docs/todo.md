@@ -5,7 +5,7 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 
 ## Framework Bootstrap
 - [x] Create `runtime-core` crate with `api`, `schedule`, `input`, `motion`, `camera`, `map`, `output`, and `diagnostics` modules.
-- [x] Create `render-core` crate with pure `math`, `camera_view`, `visibility`, `style`, `raster`, and `overlay` modules.
+- [x] Create `render-core` crate with pure `camera_view`, `visibility`, `style`, `raster`, and `overlay` modules.
 - [x] Create `render-core-wasm` crate as a thin wasm adapter over shared Rust runtime/render crates.
 - [x] Restore a valid workspace build for the declared crate graph in the root `Cargo.toml`.
 

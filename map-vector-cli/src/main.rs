@@ -14,8 +14,6 @@ const TILE_EXTENT: f64 = 4096.0;
 const DEFAULT_TARGET_ZOOM: i32 = 16;
 const DEFAULT_MAX_SEGMENTS: usize = 1_500_000;
 const DEFAULT_PROFILE: ConvertProfile = ConvertProfile::Bike;
-const MAP_BOUNDS_MIN: i16 = 0;
-const MAP_BOUNDS_MAX: i16 = 10_000;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ConvertProfile {
@@ -71,17 +69,6 @@ struct ConvertArgs {
     profile: ConvertProfile,
 }
 
-#[derive(Debug)]
-struct EmitRustWindowArgs {
-    input: PathBuf,
-    output: PathBuf,
-    center_lat: f64,
-    center_lon: f64,
-    player_lat: f64,
-    player_lon: f64,
-    view_tiles: f64,
-}
-
 fn main() {
     if let Err(err) = run() {
         eprintln!("map-vector-cli error: {err}");
@@ -107,22 +94,12 @@ fn run() -> Result<(), String> {
             );
             Ok(())
         }
-        "emit-rust-window" => {
-            let cfg = parse_emit_rust_window_args(args.collect())?;
-            let map = read_standard_map(&cfg.input)?;
-            write_rust_window_module(&cfg.output, &map, &cfg)?;
-            eprintln!(
-                "map-vector-cli: wrote windowed rust module to {}",
-                cfg.output.display()
-            );
-            Ok(())
-        }
         _ => Err(usage().to_owned()),
     }
 }
 
 fn usage() -> &'static str {
-    "usage:\n  map-vector-cli convert-mbtiles --input <file.mbtiles> --output <city.svm> [--target-zoom <i32>] [--max-segments <usize>] [--profile <bike|all>]\n  map-vector-cli emit-rust-window --input <city.svm> --output <generated_map.rs> --center-lat <f64> --center-lon <f64> --player-lat <f64> --player-lon <f64> [--view-tiles <f64>]"
+    "usage:\n  map-vector-cli convert-mbtiles --input <file.mbtiles> --output <city.svm> [--target-zoom <i32>] [--max-segments <usize>] [--profile <bike|all>]"
 }
 
 fn parse_convert_args(args: Vec<String>) -> Result<ConvertArgs, String> {
@@ -168,68 +145,6 @@ fn parse_convert_args(args: Vec<String>) -> Result<ConvertArgs, String> {
         max_segments,
         profile,
     })
-}
-
-fn parse_emit_rust_window_args(args: Vec<String>) -> Result<EmitRustWindowArgs, String> {
-    let mut input = None;
-    let mut output = None;
-    let mut center_lat = None;
-    let mut center_lon = None;
-    let mut player_lat = None;
-    let mut player_lon = None;
-    let mut view_tiles = 3.0;
-
-    let mut i = 0;
-    while i < args.len() {
-        match args[i].as_str() {
-            "--input" => {
-                i += 1;
-                input = args.get(i).map(PathBuf::from);
-            }
-            "--output" => {
-                i += 1;
-                output = args.get(i).map(PathBuf::from);
-            }
-            "--center-lat" => {
-                i += 1;
-                center_lat = Some(parse_f64(args.get(i), "--center-lat")?);
-            }
-            "--center-lon" => {
-                i += 1;
-                center_lon = Some(parse_f64(args.get(i), "--center-lon")?);
-            }
-            "--player-lat" => {
-                i += 1;
-                player_lat = Some(parse_f64(args.get(i), "--player-lat")?);
-            }
-            "--player-lon" => {
-                i += 1;
-                player_lon = Some(parse_f64(args.get(i), "--player-lon")?);
-            }
-            "--view-tiles" => {
-                i += 1;
-                view_tiles = parse_f64(args.get(i), "--view-tiles")?;
-            }
-            other => return Err(format!("unknown arg: {other}")),
-        }
-        i += 1;
-    }
-
-    Ok(EmitRustWindowArgs {
-        input: input.ok_or("missing --input")?,
-        output: output.ok_or("missing --output")?,
-        center_lat: center_lat.ok_or("missing --center-lat")?,
-        center_lon: center_lon.ok_or("missing --center-lon")?,
-        player_lat: player_lat.ok_or("missing --player-lat")?,
-        player_lon: player_lon.ok_or("missing --player-lon")?,
-        view_tiles,
-    })
-}
-
-fn parse_f64(v: Option<&String>, flag: &str) -> Result<f64, String> {
-    v.ok_or_else(|| format!("missing value for {flag}"))?
-        .parse::<f64>()
-        .map_err(|e| format!("invalid {flag}: {e}"))
 }
 
 fn parse_i32(v: Option<&String>, flag: &str) -> Result<i32, String> {
@@ -333,94 +248,6 @@ fn convert_mbtiles_to_standard(cfg: &ConvertArgs) -> Result<StandardMap, String>
     })
 }
 
-fn write_rust_window_module(
-    path: &Path,
-    map: &StandardMap,
-    cfg: &EmitRustWindowArgs,
-) -> Result<(), String> {
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).map_err(|e| format!("failed to create rust output dir: {e}"))?;
-    }
-
-    let (center_x, center_y) = lonlat_to_world(cfg.center_lon, cfg.center_lat, map.source_zoom);
-    let (player_x, player_y) = lonlat_to_world(cfg.player_lon, cfg.player_lat, map.source_zoom);
-    let half_tile_world = ((cfg.view_tiles / 2.0) * TILE_EXTENT).round() as i32;
-    let camera = Bounds {
-        min_x: center_x - half_tile_world,
-        max_x: center_x + half_tile_world,
-        min_y: center_y - half_tile_world,
-        max_y: center_y + half_tile_world,
-    };
-
-    let mut selected = Vec::new();
-    for s in &map.segments {
-        if segment_intersects_bounds(*s, camera) {
-            let (x1, y1) = normalize_to_map_space(s.x1, s.y1, camera);
-            let (x2, y2) = normalize_to_map_space(s.x2, s.y2, camera);
-            if x1 == x2 && y1 == y2 {
-                continue;
-            }
-            let intensity = match s.road_class {
-                1 => 245,
-                2 => 230,
-                3 => 215,
-                _ => 190,
-            };
-            let thickness = if s.road_class <= 2 { 2 } else { 1 };
-            selected.push((x1, y1, x2, y2, intensity, thickness));
-        }
-    }
-
-    let player = normalize_to_map_space(player_x, player_y, camera);
-
-    let mut out = String::new();
-    out.push_str("use esp32_screen_render_core::{Line, WorldBounds, WorldPoint};\n\n");
-    out.push_str("pub const HAS_MAP: bool = true;\n");
-    out.push_str(&format!(
-        "pub const MAP_SOURCE: &str = {:?};\n",
-        map.source_name
-    ));
-    out.push_str(&format!("pub const MAP_ZOOM: i32 = {};\n", map.source_zoom));
-    out.push_str(&format!(
-        "pub const MAP_CENTER_LAT: f64 = {:.6};\n",
-        cfg.center_lat
-    ));
-    out.push_str(&format!(
-        "pub const MAP_CENTER_LON: f64 = {:.6};\n",
-        cfg.center_lon
-    ));
-    out.push_str(&format!(
-        "pub const MAP_WORLD_MIN_X: i32 = {};\n",
-        camera.min_x
-    ));
-    out.push_str(&format!(
-        "pub const MAP_WORLD_MAX_X: i32 = {};\n",
-        camera.max_x
-    ));
-    out.push_str(&format!(
-        "pub const MAP_WORLD_MIN_Y: i32 = {};\n",
-        camera.min_y
-    ));
-    out.push_str(&format!(
-        "pub const MAP_WORLD_MAX_Y: i32 = {};\n",
-        camera.max_y
-    ));
-    out.push_str("pub const MAP_BOUNDS: WorldBounds = WorldBounds { min_x: 0, max_x: 10000, min_y: 0, max_y: 10000 };\n");
-    out.push_str(&format!(
-        "pub const MAP_PLAYER: WorldPoint = WorldPoint {{ x: {}, y: {} }};\n",
-        player.0, player.1
-    ));
-    out.push_str("pub const MAP_LINES: &[Line] = &[\n");
-    for (x1, y1, x2, y2, intensity, thickness) in selected {
-        out.push_str(&format!(
-            "    Line {{ from: WorldPoint {{ x: {x1}, y: {y1} }}, to: WorldPoint {{ x: {x2}, y: {y2} }}, intensity: {intensity}, thickness: {thickness} }},\n"
-        ));
-    }
-    out.push_str("];\n");
-
-    fs::write(path, out).map_err(|e| format!("failed writing {}: {e}", path.display()))
-}
-
 fn write_standard_map(path: &Path, map: &StandardMap) -> Result<(), String> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|e| format!("failed to create output dir: {e}"))?;
@@ -457,74 +284,6 @@ fn write_standard_map(path: &Path, map: &StandardMap) -> Result<(), String> {
     fs::write(path, buf).map_err(|e| format!("failed writing {}: {e}", path.display()))
 }
 
-fn read_standard_map(path: &Path) -> Result<StandardMap, String> {
-    let data = fs::read(path).map_err(|e| format!("failed reading {}: {e}", path.display()))?;
-    let mut i = 0usize;
-
-    if data.len() < 4 || &data[0..4] != MAGIC {
-        return Err("invalid SVM file magic".to_owned());
-    }
-    i += 4;
-
-    let version = read_u16(&data, &mut i)?;
-    if version != VERSION {
-        return Err(format!("unsupported SVM version: {version}"));
-    }
-    let _flags = read_u16(&data, &mut i)?;
-    let source_zoom = read_i32(&data, &mut i)?;
-    let bounds = Bounds {
-        min_x: read_i32(&data, &mut i)?,
-        max_x: read_i32(&data, &mut i)?,
-        min_y: read_i32(&data, &mut i)?,
-        max_y: read_i32(&data, &mut i)?,
-    };
-
-    let source_len = read_u16(&data, &mut i)? as usize;
-    if i + source_len > data.len() {
-        return Err("invalid source length in SVM".to_owned());
-    }
-    let source_name = String::from_utf8(data[i..i + source_len].to_vec())
-        .map_err(|e| format!("invalid utf8 in source name: {e}"))?;
-    i += source_len;
-
-    let segment_count = read_u32(&data, &mut i)? as usize;
-    let mut segments = Vec::with_capacity(segment_count);
-    for _ in 0..segment_count {
-        let x1 = read_i32(&data, &mut i)?;
-        let y1 = read_i32(&data, &mut i)?;
-        let x2 = read_i32(&data, &mut i)?;
-        let y2 = read_i32(&data, &mut i)?;
-        let road_class = read_u8(&data, &mut i)?;
-        let lane_count = read_u8(&data, &mut i)?;
-        let _reserved = read_u16(&data, &mut i)?;
-        let attr_id = read_u32(&data, &mut i)?;
-        segments.push(Segment {
-            x1,
-            y1,
-            x2,
-            y2,
-            road_class,
-            lane_count,
-            attr_id,
-        });
-    }
-
-    Ok(StandardMap {
-        source_name,
-        source_zoom,
-        bounds,
-        segments,
-    })
-}
-
-fn segment_intersects_bounds(s: Segment, b: Bounds) -> bool {
-    let min_x = s.x1.min(s.x2);
-    let max_x = s.x1.max(s.x2);
-    let min_y = s.y1.min(s.y2);
-    let max_y = s.y1.max(s.y2);
-    !(max_x < b.min_x || min_x > b.max_x || max_y < b.min_y || min_y > b.max_y)
-}
-
 fn write_u16<W: Write>(w: &mut W, v: u16) -> Result<(), String> {
     w.write_all(&v.to_le_bytes()).map_err(|e| e.to_string())
 }
@@ -535,45 +294,6 @@ fn write_u32<W: Write>(w: &mut W, v: u32) -> Result<(), String> {
 
 fn write_i32<W: Write>(w: &mut W, v: i32) -> Result<(), String> {
     w.write_all(&v.to_le_bytes()).map_err(|e| e.to_string())
-}
-
-fn read_u8(data: &[u8], i: &mut usize) -> Result<u8, String> {
-    if *i + 1 > data.len() {
-        return Err("unexpected EOF".to_owned());
-    }
-    let v = data[*i];
-    *i += 1;
-    Ok(v)
-}
-
-fn read_u16(data: &[u8], i: &mut usize) -> Result<u16, String> {
-    if *i + 2 > data.len() {
-        return Err("unexpected EOF".to_owned());
-    }
-    let mut b = [0u8; 2];
-    b.copy_from_slice(&data[*i..*i + 2]);
-    *i += 2;
-    Ok(u16::from_le_bytes(b))
-}
-
-fn read_u32(data: &[u8], i: &mut usize) -> Result<u32, String> {
-    if *i + 4 > data.len() {
-        return Err("unexpected EOF".to_owned());
-    }
-    let mut b = [0u8; 4];
-    b.copy_from_slice(&data[*i..*i + 4]);
-    *i += 4;
-    Ok(u32::from_le_bytes(b))
-}
-
-fn read_i32(data: &[u8], i: &mut usize) -> Result<i32, String> {
-    if *i + 4 > data.len() {
-        return Err("unexpected EOF".to_owned());
-    }
-    let mut b = [0u8; 4];
-    b.copy_from_slice(&data[*i..*i + 4]);
-    *i += 4;
-    Ok(i32::from_le_bytes(b))
 }
 
 fn select_zoom(conn: &Connection, target: i32) -> Result<i32, String> {
@@ -788,38 +508,9 @@ fn compute_bounds(segments: &[Segment]) -> Bounds {
     }
 }
 
-fn lonlat_to_tile_xy(lon: f64, lat: f64, z: i32) -> (f64, f64) {
-    let n = 2_f64.powi(z);
-    let x = (lon + 180.0) / 360.0 * n;
-    let lat_rad = lat.to_radians();
-    let y = (1.0 - ((lat_rad.tan() + 1.0 / lat_rad.cos()).ln() / std::f64::consts::PI)) / 2.0 * n;
-    (x, y)
-}
-
-fn lonlat_to_world(lon: f64, lat: f64, z: i32) -> (i32, i32) {
-    let (tx, ty) = lonlat_to_tile_xy(lon, lat, z);
-    let wx = (tx * TILE_EXTENT).round() as i32;
-    let wy = -(ty * TILE_EXTENT).round() as i32;
-    (wx, wy)
-}
-
-fn normalize_to_map_space(x: i32, y: i32, bounds: Bounds) -> (i16, i16) {
-    (
-        normalize_axis(x, bounds.min_x, bounds.max_x),
-        normalize_axis(y, bounds.min_y, bounds.max_y),
-    )
-}
-
-fn normalize_axis(v: i32, min_v: i32, max_v: i32) -> i16 {
-    let range = (max_v - min_v).max(1) as i64;
-    let pos = (v - min_v) as i64;
-    let scaled = (pos * (MAP_BOUNDS_MAX as i64)) / range;
-    scaled.clamp(MAP_BOUNDS_MIN as i64, MAP_BOUNDS_MAX as i64) as i16
-}
-
 #[cfg(test)]
 mod tests {
-    use super::select_zoom_from_available;
+    use super::{select_zoom_from_available, usage};
 
     #[test]
     fn select_zoom_prefers_nearest_below_or_equal_target() {
@@ -838,5 +529,11 @@ mod tests {
     fn select_zoom_handles_empty_zoom_list() {
         let zooms: [i32; 0] = [];
         assert_eq!(select_zoom_from_available(&zooms, 10), None);
+    }
+
+    #[test]
+    fn usage_only_advertises_convert_mbtiles() {
+        assert!(usage().contains("convert-mbtiles"));
+        assert!(!usage().contains("emit-rust-window"));
     }
 }

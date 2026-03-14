@@ -169,11 +169,7 @@ impl CameraState {
                 normalize_signed_angle(self.heading_offset_rad + gesture.rotate_delta_rad);
         }
 
-        if interaction_active {
-            self.north_up_override_remaining = self
-                .north_up_override_remaining
-                .saturating_sub(dt.min(self.north_up_override_remaining));
-        } else if self.north_up_override_active() {
+        if interaction_active || self.north_up_override_active() {
             self.north_up_override_remaining = self
                 .north_up_override_remaining
                 .saturating_sub(dt.min(self.north_up_override_remaining));
