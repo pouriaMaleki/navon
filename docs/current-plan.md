@@ -16,7 +16,7 @@ Structure guide: [`source-tree.md`](./source-tree.md)
 
 ## Current Focus
 - Reuse the new query/render slice for firmware-capable map access and parity validation.
-- Replace the remaining `xtask` stubs once emulator/device flows have real implementations behind them.
+- Replace the remaining device-oriented `xtask` stubs once firmware bundling and deploy flows have real implementations behind them.
 - Keep reference docs accurate as architecture references while reserving status tracking for this plan and the todo list.
 
 ## Recent Progress
@@ -26,6 +26,7 @@ Structure guide: [`source-tree.md`](./source-tree.md)
 - `render-core` now owns the shared camera projection, visibility/clipping, overlay drawing, and grayscale framebuffer path used by the emulator.
 - `render-core-wasm` now embeds `/work/map-data/city.svm`, performs coarse bbox + LOD lookup, and exposes a frame-driven `step_frame` bridge for emulator consumption.
 - Emulator web now forwards raw GPS and touch contacts into shared Rust and presents Rust-generated pixels without TS-owned camera interaction policy.
+- `cargo xtask emu` now rebuilds `render-core-wasm` and starts the Vite emulator server as the repository-root entrypoint required by the emulator spec.
 
 ## Immediate Correction Pass
 - Replace the hand-rolled runner with a real internal `bevy_ecs` schedule and resources. Status: completed.

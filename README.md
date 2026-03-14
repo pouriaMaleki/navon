@@ -21,7 +21,8 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 - `render-core` now performs shared camera projection, clipping, overlay drawing, and deterministic grayscale framebuffer generation.
 - `render-core-wasm` now embeds the current `/work/map-data/city.svm`, builds a coarse spatial query index, steps `runtime-core`, queries map geometry, renders pixels, and exposes a frame-driven wasm API to the emulator.
 - Emulator web now forwards raw GPS and normalized touch contacts only; TypeScript no longer owns pan/pinch/rotate/recenter product policy.
-- Firmware end-to-end map/render wiring, parity fixtures, and `xtask` execution flows are still pending.
+- `cargo xtask emu` now rebuilds `render-core-wasm` and starts the emulator dev server from the repository root.
+- Firmware end-to-end map/render wiring, parity fixtures, and device-side `xtask` flows are still pending.
 
 ## Target Runtime Behavior
 - Heading-up camera transform in shared Rust renderer.
@@ -88,7 +89,7 @@ Deploy firmware (requires `espflash`):
 cargo xtask deploy-device --port /dev/ttyUSB0
 ```
 
-Current status: the `xtask` command surface exists, but the command bodies are still bootstrap stubs.
+Current status: `cargo xtask emu` is live; `prepare-map`, `bundle-device`, and `deploy-device` still need real command bodies.
 
 ## Specs and Plans
 - Main plan: `/work/docs/current-plan.md`

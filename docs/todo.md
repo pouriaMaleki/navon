@@ -43,6 +43,7 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 - [ ] Wire firmware input translation for GPS and normalized touch contact frames into `RuntimeInputFrame`.
 - [x] Wire browser/emulator input translation to emit the same normalized touch contact frames into `RuntimeInputFrame`.
 - [x] Keep device-specific touch drivers and browser event capture outside shared runtime logic while moving gesture and tap semantics into shared Rust.
+- [x] Make `cargo xtask emu` rebuild wasm and start the emulator dev server from the repository root.
 
 ## Map Data Evolution
 - [x] Implement an embedded wasm-side `.svm` bridge that answers `MapSource::query(&MapQuerySpec)` with coarse bbox + LOD candidate selection.
@@ -60,6 +61,7 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 - [ ] Add parity-oriented fixtures that can be reused by wasm and firmware adapters.
 - [x] Run workspace validation commands once the missing crates exist and are wired.
 - [x] Run emulator wasm build plus web lint/typecheck/build after the frame-driven bridge lands.
+- [x] Run `cargo xtask emu` startup sanity check after wiring the real command.
 
 ## Documentation
 - [x] Update main spec with framework foundation rules and delivery order.

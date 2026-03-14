@@ -122,5 +122,5 @@ New functionality should enter through one of these paths:
 ## Immediate Next Actions
 1. Reuse the new query/render slice for firmware-capable map access and framebuffer presentation.
 2. Add parity fixtures that exercise identical contact sequences through firmware-facing and wasm-facing adapters.
-3. Replace the remaining `xtask` placeholders once emulator and bundling flows have real implementations behind them.
+3. Replace the remaining device-side `xtask` placeholders once bundling and deploy flows have real implementations behind them.
 4. Profile the embedded wasm `.svm` bridge so later direct loading work is driven by measured cost rather than guesswork.
