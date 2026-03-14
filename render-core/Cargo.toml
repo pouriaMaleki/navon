@@ -5,3 +5,6 @@ edition = "2024"
 
 [lib]
 path = "src/lib.rs"
+
+[dependencies]
+runtime-core = { path = "../runtime-core" }

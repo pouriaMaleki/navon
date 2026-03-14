@@ -917,12 +917,19 @@ dependencies = [
 [[package]]
 name = "render-core"
 version = "0.1.0"
+dependencies = [
+ "runtime-core",
+]
 
 [[package]]
 name = "render-core-wasm"
 version = "0.1.0"
 dependencies = [
+ "render-core",
  "runtime-core",
+ "serde",
+ "serde_json",
+ "wasm-bindgen",
 ]
 
 [[package]]

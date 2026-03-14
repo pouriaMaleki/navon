@@ -16,7 +16,7 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 - [x] Keep adapter APIs free of `bevy_ecs` types and world mutation details.
 
 ## Runtime Core
-- [ ] Implement shared contact-frame ingestion plus gesture and tap derivation in `runtime-core::input`.
+- [x] Implement shared contact-frame ingestion plus gesture and tap derivation in `runtime-core::input`.
 - [x] Implement a deterministic runtime runner skeleton with ordered schedule stages and stable output assembly.
 - [x] Implement deterministic ECS schedule sets: input ingest, motion fusion, camera policy, map query, output build.
 - [x] Replace the temporary hand-rolled runner with an internal `bevy_ecs`-backed schedule so implementation matches the architecture docs.
@@ -24,40 +24,42 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 - [x] Fix zoom lower-bound handling so the configured minimum is reachable.
 - [x] Fix north-up output semantics so riding north is not mislabeled as north-up mode.
 - [x] Make motion state resilient to brief GPS dropouts instead of forcing an immediate stopped transition.
-- [ ] Add rider motion confidence and filtered travel-heading estimation from GPS deltas.
-- [ ] Implement riding/stopped camera state transitions with smooth north-up settle on stop.
-- [ ] Implement pan, pinch, rotate, north-indicator override, and smooth auto-recenter behavior.
-- [ ] Implement follow-lock behavior so manual pan preserves map-relative rider position until recenter.
-- [ ] Implement zoom bucket and LOD mask selection in runtime-owned policy.
+- [x] Add rider motion confidence and filtered travel-heading estimation from GPS deltas.
+- [x] Implement riding/stopped camera state transitions with smooth north-up settle on stop.
+- [x] Implement pan, pinch, rotate, north-indicator override, and smooth auto-recenter behavior.
+- [x] Implement follow-lock behavior so manual pan preserves map-relative rider position until recenter.
+- [x] Implement zoom bucket and LOD mask selection in runtime-owned policy.
 
 ## Render Core
-- [ ] Move or establish shared camera-view math and heading-up projection in `render-core`.
-- [ ] Implement final screen-space visibility/clipping against runtime-provided camera view over queried geometry candidates.
-- [ ] Define vector styling primitives for major/minor road hierarchy and rider marker overlays.
-- [ ] Keep framebuffer generation deterministic for identical inputs across targets.
+- [x] Move or establish shared camera-view math and heading-up projection in `render-core`.
+- [x] Implement final screen-space visibility/clipping against runtime-provided camera view over queried geometry candidates.
+- [x] Define vector styling primitives for major/minor road hierarchy and rider marker overlays.
+- [x] Keep framebuffer generation deterministic for identical inputs across targets.
 
 ## Adapter Integration
 - [x] Add firmware bridge helpers that convert raw GPS/touch samples into `RuntimeInputFrame`.
 - [x] Add wasm bridge helpers that construct `RuntimeInputFrame` values and translate `RuntimeFrameOutput` into a JS-facing snapshot.
-- [ ] Wire emulator wasm bridge to consume `RuntimeFrameOutput` rather than product logic in TypeScript.
+- [x] Wire emulator wasm bridge to consume `RuntimeFrameOutput` rather than product logic in TypeScript.
 - [ ] Wire firmware input translation for GPS and normalized touch contact frames into `RuntimeInputFrame`.
-- [ ] Wire browser/emulator input translation to emit the same normalized touch contact frames into `RuntimeInputFrame`.
-- [ ] Keep device-specific touch drivers and browser event capture outside shared runtime logic while moving gesture and tap semantics into shared Rust.
+- [x] Wire browser/emulator input translation to emit the same normalized touch contact frames into `RuntimeInputFrame`.
+- [x] Keep device-specific touch drivers and browser event capture outside shared runtime logic while moving gesture and tap semantics into shared Rust.
 
 ## Map Data Evolution
-- [ ] Preserve current generated Rust map bridge as the first runtime integration path.
-- [ ] Implement `MapSource::query(&MapQuerySpec)` for the generated Rust map bridge with coarse bbox + LOD candidate selection only.
+- [x] Implement an embedded wasm-side `.svm` bridge that answers `MapSource::query(&MapQuerySpec)` with coarse bbox + LOD candidate selection.
+- [ ] Reuse or extend the same query backend for firmware once device-side map memory/IO constraints are settled.
 - [ ] Design the next direct `.svm` runtime loading layer without coupling file parsing to camera/render policy.
 - [ ] Extend map metadata only through runtime/query contracts needed for future LOD and overlays.
 
 ## Validation
 - [x] Add focused contract tests for touch validation, stopped defaults, riding transition, and map-query bounds.
 - [x] Add regression tests for rotated query coverage, zoom lower bound, north-up semantics, and GPS-dropout resilience.
-- [ ] Add unit tests for motion filtering, heading smoothing, zoom bounds, and camera interpolation.
+- [x] Add unit tests for motion filtering, heading smoothing, zoom bounds, and camera interpolation.
+- [x] Add query/render tests for bbox selection, edge-touching geometry, projection, clipping, and deterministic framebuffer output.
 - [ ] Add parity fixtures proving identical `TouchContactFrame` sequences resolve to the same gestures/taps across firmware and wasm paths.
-- [ ] Add scenario tests for ride, stop, pan, recenter, and north-up override sequences.
+- [x] Add scenario tests for ride, stop, pan, recenter, and north-up override sequences.
 - [ ] Add parity-oriented fixtures that can be reused by wasm and firmware adapters.
-- [ ] Run workspace validation commands once the missing crates exist and are wired.
+- [x] Run workspace validation commands once the missing crates exist and are wired.
+- [x] Run emulator wasm build plus web lint/typecheck/build after the frame-driven bridge lands.
 
 ## Documentation
 - [x] Update main spec with framework foundation rules and delivery order.
