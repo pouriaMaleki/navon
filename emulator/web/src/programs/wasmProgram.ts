@@ -1,7 +1,7 @@
 import initWasm, { type InitOutput, MinimapWasmEmulator } from "../../wasm-pkg/render_core_wasm.js";
 import type { RenderProgram } from "../core/types";
 
-import type { WasmRuntimeState } from "../types";
+import type { RuntimeTouchInput, WasmRuntimeState } from "../types";
 
 export async function createWasmProgram(profileId = 0): Promise<{
   initialState: WasmRuntimeState;
@@ -14,23 +14,26 @@ export async function createWasmProgram(profileId = 0): Promise<{
     init(state) {
       state.custom.emu.reset();
       state.custom.frame = null;
-      state.custom.touch.sequence = 0;
-      state.custom.touch.contacts = [];
+      state.custom.activeTouch = null;
+      state.custom.pendingTouchFrames = [];
     },
     update(state) {
-      const snapshotJson = state.custom.emu.step_frame(
-        Math.max(0, state.time.dtMs),
-        JSON.stringify({
-          viewport: {
-            widthPx: state.profile.width,
-            heightPx: state.profile.height,
-          },
-          gps: state.custom.gps,
-          touch: state.custom.touch.contacts.length > 0 ? state.custom.touch : null,
-        }),
-      );
+      const steps = consumeTouchFrames(state.custom, Math.max(0, state.time.dtMs));
+      let snapshotJson = "";
+      for (const step of steps) {
+        snapshotJson = state.custom.emu.step_frame(
+          step.dtMs,
+          JSON.stringify({
+            viewport: {
+              widthPx: state.profile.width,
+              heightPx: state.profile.height,
+            },
+            gps: state.custom.gps,
+            touch: step.touch,
+          }),
+        );
+      }
       state.custom.frame = JSON.parse(snapshotJson) as NonNullable<WasmRuntimeState["frame"]>;
-      advanceTouchFrame(state.custom);
     },
     render(state, surface) {
       const ptr = state.custom.emu.pixels_ptr();
@@ -44,22 +47,25 @@ export async function createWasmProgram(profileId = 0): Promise<{
     initialState: {
       emu,
       gps: null,
-      touch: {
-        sequence: 0,
-        contacts: [],
-      },
+      activeTouch: null,
+      pendingTouchFrames: [],
       frame: null,
     },
     program,
   };
 }
 
-function advanceTouchFrame(state: WasmRuntimeState): void {
-  state.touch.contacts = state.touch.contacts
-    .filter((contact) => contact.phase !== "ended" && contact.phase !== "cancelled")
-    .map((contact) =>
-      contact.phase === "started" || contact.phase === "moved"
-        ? { ...contact, phase: "stationary" }
-        : contact,
-    );
+function consumeTouchFrames(
+  state: WasmRuntimeState,
+  dtMs: number,
+): Array<{ dtMs: number; touch: RuntimeTouchInput | null }> {
+  const queued = state.pendingTouchFrames.splice(0);
+  if (queued.length === 0) {
+    return [{ dtMs, touch: state.activeTouch }];
+  }
+
+  return queued.map((touch, index) => ({
+    dtMs: index + 1 === queued.length ? dtMs : 0,
+    touch,
+  }));
 }

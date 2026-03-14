@@ -11,6 +11,7 @@ Current scope:
 - Preserve GPS-to-vector mapping using shared world coordinates.
 - Keep schema ready for future metadata (street name, lane count, tags).
 - Use a bike-focused filter profile by default (exclude ferry/boat/water transport lines).
+- Emit only the shared `.svm` map format; runtime adapters are responsible for consuming it.
 
 ## Commands
 Convert whole-city MBTiles to `.svm`:
@@ -21,19 +22,6 @@ cargo run -p map-vector-cli -- \
   --output /work/map-data/city.svm \
   --target-zoom 16 \
   --profile bike
-```
-
-Emit current renderer window module from `.svm` (integration bridge):
-```bash
-cargo run -p map-vector-cli -- \
-  emit-rust-window \
-  --input /work/map-data/city.svm \
-  --output /work/render-core-wasm/src/generated_map.rs \
-  --center-lat 60.17442 \
-  --center-lon 24.94210 \
-  --player-lat 60.173851 \
-  --player-lon 24.937951 \
-  --view-tiles 20.0
 ```
 
 ## `.svm` Standard Summary

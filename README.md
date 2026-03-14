@@ -48,10 +48,11 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 ## Render Core Internals
 - `render-core` public API is stable and stateless for adapters.
 - Internal modules are split by concern:
+  - `camera_view`
   - `raster`
   - `style`
   - `visibility`
-  - `math`
+  - `overlay`
 
 ## Navigation Behavior
 - Default while moving: riding mode with heading-up and lower-quarter rider anchor.

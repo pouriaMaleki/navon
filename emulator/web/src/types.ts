@@ -89,6 +89,7 @@ export type RuntimeFrameState = {
 export type WasmRuntimeState = {
   emu: MinimapWasmEmulator;
   gps: RuntimeGpsInput | null;
-  touch: RuntimeTouchInput;
+  activeTouch: RuntimeTouchInput | null;
+  pendingTouchFrames: RuntimeTouchInput[];
   frame: RuntimeFrameState | null;
 };

@@ -47,7 +47,7 @@ cargo xtask deploy-device --port /dev/ttyUSB0
 - Keep shared emulator TS contracts in `/work/emulator/web/src/types.ts`.
 - Prefer neutral naming in emulator APIs (`wasmProgram`, `WasmRuntimeState`), avoid feature/product-coupled names.
 - Do not reintroduce Cordova/external bridge logic into emulator.
-- Do not implement product camera policy in emulator TS. Riding/stopped/north-up behavior must be Rust-owned in `render-core` and surfaced via wasm bindings.
+- Do not implement product camera policy in emulator TS. Riding/stopped/north-up behavior must be Rust-owned in `runtime-core` and surfaced via wasm bindings.
 - If emulator and firmware behavior differ, fix shared Rust logic first; treat emulator-specific behavior forks as bugs.
 
 ### Emulator Validation Before Finish

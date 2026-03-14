@@ -76,7 +76,6 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
   - `output`: adapter-ready frame snapshot assembly.
   - `diagnostics`: optional debug counters/state snapshots plus `DiagnosticsSnapshot` assembly hooks that can be compiled into emulator and firmware builds.
 - `render-core` should remain stateless and pure, with modules grouped by concern:
-  - `math`
   - `camera_view`
   - `visibility`
   - `style`

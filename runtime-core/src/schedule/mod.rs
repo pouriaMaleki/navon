@@ -11,7 +11,7 @@ use crate::input::staging::DerivedInputState;
 use crate::input::staging::PendingInput;
 use crate::input::taps::TapState;
 use crate::map;
-use crate::motion::MotionState;
+use crate::motion::{MotionIngestConfig, MotionState};
 use crate::output;
 
 #[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -168,11 +168,13 @@ fn motion_fusion(
     motion.0.ingest(
         pending.frame.gps,
         frame_time.dt,
-        config.0.riding_speed_threshold_mps,
-        config.0.stopped_speed_threshold_mps,
-        config.0.gps_loss_stop_timeout,
-        config.0.min_heading_displacement_m,
-        config.0.heading_filter_alpha,
+        MotionIngestConfig {
+            riding_speed_threshold_mps: config.0.riding_speed_threshold_mps,
+            stopped_speed_threshold_mps: config.0.stopped_speed_threshold_mps,
+            gps_loss_stop_timeout: config.0.gps_loss_stop_timeout,
+            min_heading_displacement_m: config.0.min_heading_displacement_m,
+            heading_filter_alpha: config.0.heading_filter_alpha,
+        },
     );
 }
 

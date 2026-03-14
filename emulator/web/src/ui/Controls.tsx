@@ -9,7 +9,6 @@ type ControlsProps = {
 
 export const Controls = observer(({ appStore }: ControlsProps) => {
   const { bikeSimStore, emulatorStore, geoStore } = appStore;
-  const toggleLabel = emulatorStore.isRunning ? "Pause" : "Resume";
   const disabled = !emulatorStore.isReady || emulatorStore.isLoading;
   const perfText =
     emulatorStore.frameSamples > 0
@@ -19,14 +18,6 @@ export const Controls = observer(({ appStore }: ControlsProps) => {
   return (
     <section className={styles["controls"]}>
       <div className={styles["actions"]}>
-        <button
-          className={styles["button"]}
-          type="button"
-          onClick={emulatorStore.toggleRunning}
-          disabled={disabled}
-        >
-          {toggleLabel}
-        </button>
         <button
           className={styles["button"]}
           type="button"

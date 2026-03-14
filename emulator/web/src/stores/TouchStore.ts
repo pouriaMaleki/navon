@@ -110,17 +110,33 @@ export class TouchStore {
       return;
     }
     this.touchSequence += 1;
-    const nextContacts = new Map<number, RawTouchContact>(
-      this.customState.touch.contacts.map((contact) => [contact.id, contact]),
-    );
-    nextContacts.set(id, {
-      id,
-      phase,
-      xPx: point.x,
-      yPx: point.y,
-      pressure,
+
+    const queuedContacts = [...this.pointers.entries()]
+      .map(
+        ([pointerId, pointerState]): RawTouchContact => ({
+          id: pointerId,
+          phase: pointerId === id ? phase : "stationary",
+          xPx: pointerId === id ? point.x : pointerState.point.x,
+          yPx: pointerId === id ? point.y : pointerState.point.y,
+          pressure: pointerId === id ? pressure : pointerState.pressure,
+        }),
+      )
+      .sort((a, b) => a.id - b.id);
+
+    const activeContacts = queuedContacts
+      .filter((contact) => contact.phase !== "ended" && contact.phase !== "cancelled")
+      .map((contact) => ({ ...contact, phase: "stationary" as const }));
+
+    this.customState.pendingTouchFrames.push({
+      sequence: this.touchSequence,
+      contacts: queuedContacts,
     });
-    this.customState.touch.sequence = this.touchSequence;
-    this.customState.touch.contacts = [...nextContacts.values()].sort((a, b) => a.id - b.id);
+    this.customState.activeTouch =
+      activeContacts.length > 0
+        ? {
+            sequence: this.touchSequence,
+            contacts: activeContacts,
+          }
+        : null;
   }
 }

@@ -21,8 +21,8 @@ impl MinimapWasmEmulator {
         panic_hook::install();
         Self {
             state: AdapterState::new(RuntimeConfig::default()),
-            input_bridge: InputBridge::default(),
-            output_bridge: OutputBridge::default(),
+            input_bridge: InputBridge,
+            output_bridge: OutputBridge,
         }
     }
 

@@ -282,22 +282,30 @@ where
     }
 }
 
+pub type DevicePlatform<T, R, I, D, G, S, P> = RuntimePlatform<
+    PollingTouchSource<EspIdfGt9271Transport<T, R, I, D>>,
+    G,
+    SystemFrameClock,
+    S,
+    EspIdfDisplayBackend<P>,
+>;
+
+pub type DefaultDevicePlatform<T, R, I, D, G, P> =
+    DevicePlatform<T, R, I, D, G, MapSourceBridge, P>;
+
+pub type DevicePlatformResult<T, R, I, D, G, S, P> =
+    Result<DevicePlatform<T, R, I, D, G, S, P>, DisplayError>;
+
+pub type DefaultDevicePlatformResult<T, R, I, D, G, P> =
+    Result<DefaultDevicePlatform<T, R, I, D, G, P>, DisplayError>;
+
 pub fn build_device_platform<T, R, I, D, P, G, S>(
     board: BoardConfig,
     map_source: S,
     touch_transport: EspIdfGt9271Transport<T, R, I, D>,
     display_backend: EspIdfDisplayBackend<P>,
     gps_provider: G,
-) -> Result<
-    RuntimePlatform<
-        PollingTouchSource<EspIdfGt9271Transport<T, R, I, D>>,
-        G,
-        SystemFrameClock,
-        S,
-        EspIdfDisplayBackend<P>,
-    >,
-    DisplayError,
->
+) -> DevicePlatformResult<T, R, I, D, G, S, P>
 where
     T: EspIdfI2cBus,
     R: EspIdfOutputPin,
@@ -326,16 +334,7 @@ pub fn build_default_device_platform<T, R, I, D, P, G>(
     touch_transport: EspIdfGt9271Transport<T, R, I, D>,
     display_backend: EspIdfDisplayBackend<P>,
     gps_provider: G,
-) -> Result<
-    RuntimePlatform<
-        PollingTouchSource<EspIdfGt9271Transport<T, R, I, D>>,
-        G,
-        SystemFrameClock,
-        MapSourceBridge,
-        EspIdfDisplayBackend<P>,
-    >,
-    DisplayError,
->
+) -> DefaultDevicePlatformResult<T, R, I, D, G, P>
 where
     T: EspIdfI2cBus,
     R: EspIdfOutputPin,

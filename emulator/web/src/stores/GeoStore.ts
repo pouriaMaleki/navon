@@ -5,7 +5,6 @@ const DEFAULT_LAT = 60.17442;
 const DEFAULT_LON = 24.9421;
 const EARTH_RADIUS_M = 6_371_000;
 const MOTION_DISTANCE_NOISE_M = 1.5;
-const DEBUG_INTERVAL_MS = 500;
 
 export class GeoStore {
   statusText = "GPS: initializing";
@@ -17,7 +16,6 @@ export class GeoStore {
   private prevLon = 0;
   private hasPrev = false;
   private prevTsMs = 0;
-  private lastDebugMs = 0;
   private simulatedSample: SimulatedGeoSample = {
     lat: DEFAULT_LAT,
     lon: DEFAULT_LON,
@@ -161,24 +159,10 @@ export class GeoStore {
   applySimulatedSample(sample: SimulatedGeoSample): void {
     this.simulatedSample = sample;
     if (this.isLive || !this.customState) {
-      if (this.isLive) {
-        console.debug("[emu:geo] ignored simulated sample because live GPS is active");
-      }
       return;
     }
     this.writeGpsSample(sample.lat, sample.lon, sample.headingRad, sample.speedMps);
     this.statusText = "GPS: simulated (bike controls)";
-    const nowMs = performance.now();
-    if (nowMs - this.lastDebugMs >= DEBUG_INTERVAL_MS) {
-      this.lastDebugMs = nowMs;
-      console.debug("[emu:geo] applied simulated sample", {
-        lat: Number(sample.lat.toFixed(6)),
-        lon: Number(sample.lon.toFixed(6)),
-        headingDeg: Number(((sample.headingRad * 180) / Math.PI).toFixed(1)),
-        speedKmh: Number((sample.speedMps * 3.6).toFixed(2)),
-        hasGeo: this.customState.gps !== null,
-      });
-    }
   }
 
   dispose(): void {
@@ -203,10 +187,6 @@ export class GeoStore {
       this.simulatedSample.speedMps,
     );
     this.statusText = "GPS: simulated (bike controls)";
-    console.debug("[emu:geo] enabled simulated mode", {
-      lat: Number(this.simulatedSample.lat.toFixed(6)),
-      lon: Number(this.simulatedSample.lon.toFixed(6)),
-    });
   }
 
   private writeGpsSample(lat: number, lon: number, headingRad: number, speedMps: number): void {
