@@ -1,5 +1,37 @@
 use runtime_core::api::ScreenPoint;
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct AlphaMask {
+    width: u32,
+    height: u32,
+    pixels: &'static [u8],
+}
+
+impl AlphaMask {
+    pub const fn new(width: u32, height: u32, pixels: &'static [u8]) -> Self {
+        Self {
+            width,
+            height,
+            pixels,
+        }
+    }
+
+    pub const fn width(self) -> u32 {
+        self.width
+    }
+
+    pub const fn height(self) -> u32 {
+        self.height
+    }
+
+    fn alpha_at(self, x: i32, y: i32) -> u8 {
+        if x < 0 || y < 0 || x >= self.width as i32 || y >= self.height as i32 {
+            return 0;
+        }
+        self.pixels[(y as usize * self.width as usize) + x as usize]
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Framebuffer {
     width: u32,
@@ -94,6 +126,42 @@ impl Framebuffer {
                 if (dx * dx) + (dy * dy) <= radius_sq {
                     self.set_pixel(cx + dx, cy + dy, value);
                 }
+            }
+        }
+    }
+
+    pub fn draw_mask(&mut self, center: ScreenPoint, mask: AlphaMask, intensity: u8) {
+        self.draw_rotated_mask(center, mask, 0.0, intensity);
+    }
+
+    pub fn draw_rotated_mask(
+        &mut self,
+        center: ScreenPoint,
+        mask: AlphaMask,
+        angle_rad: f32,
+        intensity: u8,
+    ) {
+        let half_width = mask.width() as f32 / 2.0;
+        let half_height = mask.height() as f32 / 2.0;
+        let sin_theta = angle_rad.sin();
+        let cos_theta = angle_rad.cos();
+        let min_x = (center.x_px - half_width - 1.0).floor() as i32;
+        let max_x = (center.x_px + half_width + 1.0).ceil() as i32;
+        let min_y = (center.y_px - half_height - 1.0).floor() as i32;
+        let max_y = (center.y_px + half_height + 1.0).ceil() as i32;
+
+        for y in min_y..=max_y {
+            for x in min_x..=max_x {
+                let local_x = x as f32 + 0.5 - center.x_px;
+                let local_y = y as f32 + 0.5 - center.y_px;
+                let source_x = (local_x * cos_theta) + (local_y * sin_theta) + half_width;
+                let source_y = (-local_x * sin_theta) + (local_y * cos_theta) + half_height;
+                let alpha = mask.alpha_at(source_x.floor() as i32, source_y.floor() as i32);
+                if alpha == 0 {
+                    continue;
+                }
+                let value = ((u16::from(intensity) * u16::from(alpha)) / 255) as u8;
+                self.set_pixel(x, y, value);
             }
         }
     }
