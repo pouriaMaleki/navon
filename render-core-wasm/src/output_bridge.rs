@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use runtime_core::api::{CameraMode, MapQueryResult, RuntimeFrameOutput};
+use runtime_core::api::{CameraMode, CameraOrientationMode, MapQueryResult, RuntimeFrameOutput};
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct JsFrameState {
@@ -8,6 +8,8 @@ pub struct JsFrameState {
     pub frame_index: u64,
     #[serde(rename = "cameraMode")]
     pub camera_mode: &'static str,
+    #[serde(rename = "cameraOrientationMode")]
+    pub camera_orientation_mode: &'static str,
     pub zoom: f32,
     #[serde(rename = "orientationRad")]
     pub orientation_rad: f32,
@@ -28,6 +30,13 @@ impl JsFrameState {
             camera_mode: match output.camera.mode {
                 CameraMode::Riding => "riding",
                 CameraMode::Stopped => "stopped",
+            },
+            camera_orientation_mode: match output.camera.orientation_mode {
+                CameraOrientationMode::StoppedNorthUp => "stopped_north_up",
+                CameraOrientationMode::HeadingAcquisition => "heading_acquisition",
+                CameraOrientationMode::TravelUpAuto => "travel_up_auto",
+                CameraOrientationMode::NorthPreview => "north_preview",
+                CameraOrientationMode::NorthLocked => "north_locked",
             },
             zoom: output.camera.zoom,
             orientation_rad: output.camera.orientation_rad,

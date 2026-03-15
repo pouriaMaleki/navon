@@ -70,9 +70,23 @@ Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for develop
 
 ### 2.5 Camera Behavior
 - Must pass current geo/touch frame input to WASM on each update tick through a frame-driven bridge.
-- Riding-mode camera heading must track direction of travel smoothly when movement direction is available from shared runtime inputs, and riding/stopped visual transitions must ease instead of snapping.
+- Shared Rust camera behavior must follow the canonical orientation UX in `/work/docs/camera-rotation-design.md`.
+- Shared-Rust orientation states are:
+  - `Stopped North-Up`
+  - `Heading Acquisition`
+  - `Travel-Up Auto`
+  - `North Preview`
+  - `North Locked`
+- Riding-mode camera heading must track trusted direction of travel smoothly when movement direction is available from shared runtime inputs, and riding/stopped visual transitions must ease instead of snapping.
 - Current behavior note: travel direction used for camera heading is derived from filtered map-point movement in shared Rust camera controller.
-- Auto-recenter, follow-lock, north-up override, and gesture interpretation are owned by shared Rust.
+- `Heading Acquisition`, `North Preview`, and `North Locked` keep the rider centered.
+- `Travel-Up Auto` is the only moving state that uses the lower-quarter rider anchor for forward look-ahead.
+- Low-confidence movement must hold the last trusted camera angle instead of rotating from noisy raw GPS course data.
+- Auto-recenter, follow-lock, compass interaction, and gesture interpretation are owned by shared Rust.
+- Single tap on the north indicator enters temporary `North Preview`.
+- Double tap on the north indicator enters `North Locked`.
+- Tapping again unlocks north-up and returns to auto-follow when heading confidence is ready.
+- Two-finger rotate is only active in `Travel-Up Auto`.
 - During manual pan, rider marker should remain map-anchored while camera offset moves; follow-target lock/release policy is owned by shared Rust camera controller.
 - Must reset camera state on emulator reset.
 
@@ -135,4 +149,4 @@ Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for develop
 - `docs/architecture.md`: concise module/data-flow reference.
 - `docs/frontend-stack.md`: React + MobX + CSS Modules patterns and conventions.
 - `docs/current-plan.md`: active execution plan and TODO state.
-- Root camera rotation design lives in `/work/docs/camera-rotation-design.md`.
+- Root camera rotation design lives in `/work/docs/camera-rotation-design.md` and is the canonical orientation UX source of truth for emulator and firmware behavior.

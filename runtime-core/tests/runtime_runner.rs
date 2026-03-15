@@ -2,9 +2,9 @@ use std::time::Duration;
 
 use runtime_core::RuntimeCore;
 use runtime_core::api::{
-    CameraMode, CameraStateSnapshot, MapQuerySpec, NormalizedScreenPoint, RuntimeConfig,
-    RuntimeInputFrame, ScreenPoint, TouchContact, TouchContactFrame, TouchContactFrameError,
-    TouchPhase, ViewportSize, WorldPoint,
+    CameraMode, CameraOrientationMode, CameraStateSnapshot, MapQuerySpec, NormalizedScreenPoint,
+    RuntimeConfig, RuntimeInputFrame, ScreenPoint, TouchContact, TouchContactFrame,
+    TouchContactFrameError, TouchPhase, ViewportSize, WorldPoint,
 };
 use runtime_core::camera::CameraState;
 use runtime_core::input::staging::DerivedInputState;
@@ -42,43 +42,90 @@ fn default_frame_is_centered_and_north_up() {
 
     assert_eq!(output.frame_index, 1);
     assert_eq!(output.camera.mode, CameraMode::Stopped);
+    assert_eq!(
+        output.camera.orientation_mode,
+        CameraOrientationMode::StoppedNorthUp
+    );
     assert_eq!(output.camera.rider_anchor, NormalizedScreenPoint::CENTER);
     assert!(output.overlay.north_up_active);
     assert!(output.overlay.rider_heading_rad.is_none());
 }
 
 #[test]
-fn moving_gps_sample_switches_camera_to_riding() {
-    let mut runtime = RuntimeCore::default();
-    runtime.step(
-        RuntimeInputFrame::new(Duration::from_millis(16))
-            .with_gps(runtime_core::api::GpsSample {
-                lat_deg: 37.7749,
-                lon_deg: -122.4194,
-                speed_mps: 0.2,
-                course_rad: Some(0.0),
-                horizontal_accuracy_m: Some(3.0),
-            })
-            .with_viewport(ViewportSize::new(480, 480)),
-    );
+fn moving_gps_sample_enters_heading_acquisition_before_travel_up() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    runtime.step(frame_with_gps(16, stopped_fix(-122.4194)));
 
-    let output = runtime.step(
-        RuntimeInputFrame::new(Duration::from_millis(16))
-            .with_gps(runtime_core::api::GpsSample {
-                lat_deg: 37.7749,
-                lon_deg: -122.4182,
-                speed_mps: 5.5,
-                course_rad: None,
-                horizontal_accuracy_m: Some(3.0),
-            })
-            .with_viewport(ViewportSize::new(480, 480)),
-    );
+    let output = runtime.step(frame_with_gps(16, moving_fix(-122.4184, 5.5)));
 
     assert_eq!(output.camera.mode, CameraMode::Riding);
-    assert!(output.camera.orientation_rad > 0.05 && output.camera.orientation_rad < 1.7);
+    assert_eq!(
+        output.camera.orientation_mode,
+        CameraOrientationMode::HeadingAcquisition
+    );
+    assert_eq!(output.camera.rider_anchor, NormalizedScreenPoint::CENTER);
+    assert!(output.overlay.north_up_active);
+    assert!(output.camera.orientation_rad.abs() < 0.001);
+}
+
+#[test]
+fn travel_up_auto_activates_after_heading_delay() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    runtime.step(frame_with_gps(16, stopped_fix(-122.4194)));
+    runtime.step(frame_with_gps(16, moving_fix(-122.4184, 6.0)));
+    let activating = runtime.step(frame_with_gps(140, moving_fix(-122.4174, 6.0)));
+    let settled = runtime.step(frame_with_gps(220, moving_fix(-122.4164, 6.0)));
+
+    assert_eq!(
+        activating.camera.orientation_mode,
+        CameraOrientationMode::TravelUpAuto
+    );
+    assert!(activating.camera.rider_anchor.y > NormalizedScreenPoint::CENTER.y);
+    assert!(activating.camera.rider_anchor.y < interaction_config().riding_rider_anchor.y);
+    assert!(activating.camera.orientation_rad > 0.0);
+    assert!(activating.camera.orientation_rad < std::f32::consts::FRAC_PI_2);
+
+    assert_eq!(
+        settled.camera.orientation_mode,
+        CameraOrientationMode::TravelUpAuto
+    );
+    assert_eq!(
+        settled.camera.rider_anchor,
+        interaction_config().riding_rider_anchor
+    );
+    assert!((settled.camera.orientation_rad - std::f32::consts::FRAC_PI_2).abs() < 0.05);
+    assert!(!settled.overlay.north_up_active);
+}
+
+#[test]
+fn small_continuous_gps_steps_eventually_activate_travel_up() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    runtime.step(frame_with_gps(16, stopped_fix(-122.4194)));
+
+    let mut output = runtime.step(frame_with_gps(16, moving_fix(-122.4193988, 6.0)));
+    for index in 1..80 {
+        let lon = -122.4193988 + (index as f64 * 0.0000012);
+        output = runtime.step(frame_with_gps(16, moving_fix(lon, 6.0)));
+        if output.camera.orientation_mode == CameraOrientationMode::TravelUpAuto {
+            break;
+        }
+    }
+    let settled = runtime.step(frame_with_gps(
+        220,
+        moving_fix(-122.4193988 + (81.0 * 0.0000012), 6.0),
+    ));
+
+    assert_eq!(output.camera.mode, CameraMode::Riding);
+    assert_eq!(
+        output.camera.orientation_mode,
+        CameraOrientationMode::TravelUpAuto
+    );
     assert!(output.camera.rider_anchor.y > NormalizedScreenPoint::CENTER.y);
-    assert!(output.camera.rider_anchor.y < runtime.config().riding_rider_anchor.y);
-    assert!(output.camera.center_world.x_m > output.camera.focus_world.x_m);
+    assert_eq!(
+        settled.camera.rider_anchor,
+        interaction_config().riding_rider_anchor
+    );
+    assert!(settled.camera.orientation_rad > 0.0);
 }
 
 #[test]
@@ -168,12 +215,12 @@ fn riding_north_is_not_reported_as_north_up_mode() {
         3,
         CameraStateSnapshot {
             mode: CameraMode::Riding,
+            orientation_mode: CameraOrientationMode::TravelUpAuto,
             orientation_rad: 0.0,
             ..CameraStateSnapshot::default()
         },
         MapQuerySpec::default(),
         None,
-        false,
         Some(0.0),
     );
 
@@ -257,8 +304,7 @@ fn gps_dropout_eventually_falls_back_to_stopped_after_timeout() {
 #[test]
 fn manual_pan_sets_follow_lock_without_moving_rider_world_position() {
     let mut runtime = RuntimeCore::new(interaction_config());
-    let moving_fix = moving_fix(-122.4194, 6.0);
-    runtime.step(frame_with_gps(16, moving_fix));
+    let moving_fix = prime_travel_up(&mut runtime);
 
     runtime.step(frame_with_touch(
         16,
@@ -291,43 +337,9 @@ fn manual_pan_sets_follow_lock_without_moving_rider_world_position() {
 }
 
 #[test]
-fn mode_transition_smooths_rider_anchor_between_stopped_and_riding() {
-    let mut runtime = RuntimeCore::new(interaction_config());
-    runtime.step(frame_with_gps(16, stopped_fix(-122.4194)));
-    let riding_start = runtime.step(frame_with_gps(16, moving_fix(-122.4184, 6.0)));
-    let riding_settled = runtime.step(frame_with_gps(220, moving_fix(-122.4174, 6.0)));
-    let stopped_start = runtime.step(frame_with_gps(16, stopped_fix(-122.4174)));
-
-    assert_eq!(riding_start.camera.mode, CameraMode::Riding);
-    assert!(riding_start.camera.rider_anchor.y > NormalizedScreenPoint::CENTER.y);
-    assert!(riding_start.camera.rider_anchor.y < interaction_config().riding_rider_anchor.y);
-    assert_eq!(
-        riding_settled.camera.rider_anchor,
-        interaction_config().riding_rider_anchor
-    );
-    assert!(stopped_start.camera.rider_anchor.y < interaction_config().riding_rider_anchor.y);
-    assert!(stopped_start.camera.rider_anchor.y > NormalizedScreenPoint::CENTER.y);
-}
-
-#[test]
-fn stopped_to_riding_orientation_eases_instead_of_snapping() {
-    let mut runtime = RuntimeCore::new(interaction_config());
-    runtime.step(frame_with_gps(16, stopped_fix(-122.4194)));
-    let riding_start = runtime.step(frame_with_gps(16, moving_fix(-122.4184, 6.0)));
-    let riding_mid = runtime.step(frame_with_gps(100, moving_fix(-122.4174, 6.0)));
-    let riding_settled = runtime.step(frame_with_gps(220, moving_fix(-122.4164, 6.0)));
-
-    assert!(riding_start.camera.orientation_rad > 0.0);
-    assert!(riding_start.camera.orientation_rad < std::f32::consts::FRAC_PI_2);
-    assert!(riding_mid.camera.orientation_rad > riding_start.camera.orientation_rad);
-    assert!((riding_settled.camera.orientation_rad - std::f32::consts::FRAC_PI_2).abs() < 0.05);
-}
-
-#[test]
 fn pan_idle_recenters_and_clears_follow_lock() {
     let mut runtime = RuntimeCore::new(interaction_config());
-    let moving_fix = moving_fix(-122.4194, 6.0);
-    runtime.step(frame_with_gps(16, moving_fix));
+    let moving_fix = prime_travel_up(&mut runtime);
     runtime.step(frame_with_touch(
         16,
         moving_fix,
@@ -358,8 +370,7 @@ fn pan_idle_recenters_and_clears_follow_lock() {
 #[test]
 fn pinch_can_zoom_below_default_without_exceeding_bounds() {
     let mut runtime = RuntimeCore::new(interaction_config());
-    let moving_fix = moving_fix(-122.4194, 6.0);
-    runtime.step(frame_with_gps(16, moving_fix));
+    let moving_fix = prime_travel_up(&mut runtime);
     runtime.step(frame_with_touch(
         16,
         moving_fix,
@@ -384,13 +395,13 @@ fn pinch_can_zoom_below_default_without_exceeding_bounds() {
 }
 
 #[test]
-fn riding_rotate_changes_orientation() {
+fn rotate_is_ignored_during_heading_acquisition() {
     let mut runtime = RuntimeCore::new(interaction_config());
-    let moving_fix = moving_fix(-122.4194, 6.0);
-    let baseline = runtime.step(frame_with_gps(16, moving_fix));
+    runtime.step(frame_with_gps(16, stopped_fix(-122.4194)));
+    let baseline = runtime.step(frame_with_gps(16, moving_fix(-122.4184, 6.0)));
     runtime.step(frame_with_touch(
         16,
-        moving_fix,
+        moving_fix(-122.4184, 6.0),
         1,
         vec![
             touch(1, TouchPhase::Started, 100.0, 100.0),
@@ -399,7 +410,7 @@ fn riding_rotate_changes_orientation() {
     ));
     let rotated = runtime.step(frame_with_touch(
         16,
-        moving_fix,
+        moving_fix(-122.4184, 6.0),
         2,
         vec![
             touch(1, TouchPhase::Moved, 120.0, 80.0),
@@ -407,6 +418,41 @@ fn riding_rotate_changes_orientation() {
         ],
     ));
 
+    assert_eq!(
+        rotated.camera.orientation_mode,
+        CameraOrientationMode::HeadingAcquisition
+    );
+    assert!((rotated.camera.orientation_rad - baseline.camera.orientation_rad).abs() < 0.001);
+}
+
+#[test]
+fn riding_rotate_changes_orientation_in_travel_up_auto() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    prime_travel_up(&mut runtime);
+    let baseline = runtime.step(frame_with_gps(16, moving_fix(-122.4154, 6.0)));
+    runtime.step(frame_with_touch(
+        16,
+        moving_fix(-122.4144, 6.0),
+        1,
+        vec![
+            touch(1, TouchPhase::Started, 100.0, 100.0),
+            touch(2, TouchPhase::Started, 200.0, 100.0),
+        ],
+    ));
+    let rotated = runtime.step(frame_with_touch(
+        16,
+        moving_fix(-122.4134, 6.0),
+        2,
+        vec![
+            touch(1, TouchPhase::Moved, 120.0, 80.0),
+            touch(2, TouchPhase::Moved, 180.0, 120.0),
+        ],
+    ));
+
+    assert_eq!(
+        rotated.camera.orientation_mode,
+        CameraOrientationMode::TravelUpAuto
+    );
     assert_ne!(
         baseline.camera.orientation_rad,
         rotated.camera.orientation_rad
@@ -414,40 +460,183 @@ fn riding_rotate_changes_orientation() {
 }
 
 #[test]
-fn north_indicator_tap_enables_then_times_out_override() {
+fn heading_confidence_dip_returns_to_acquisition_and_holds_last_trusted_angle() {
     let mut runtime = RuntimeCore::new(interaction_config());
-    let first_fix = moving_fix(-122.4194, 6.0);
-    let moving_fix = moving_fix(-122.4184, 6.0);
-    let viewport = ViewportSize::new(480, 480);
-    runtime.step(frame_with_gps(16, first_fix));
-    runtime.step(frame_with_gps(16, moving_fix));
-    let center = interaction_config().north_indicator_center;
-    let tap_x = center.x * viewport.width_px as f32;
-    let tap_y = center.y * viewport.height_px as f32;
+    prime_travel_up(&mut runtime);
+    let baseline = runtime.step(frame_with_gps(16, moving_fix(-122.4154, 6.0)));
+    let dipped = runtime.step(frame_with_gps(16, moving_fix(-122.4154, 6.0)));
 
+    assert_eq!(
+        baseline.camera.orientation_mode,
+        CameraOrientationMode::TravelUpAuto
+    );
+    assert_eq!(dipped.camera.mode, CameraMode::Riding);
+    assert_eq!(
+        dipped.camera.orientation_mode,
+        CameraOrientationMode::HeadingAcquisition
+    );
+    assert!((dipped.camera.orientation_rad - baseline.camera.orientation_rad).abs() < 0.001);
+    assert!(dipped.camera.rider_anchor.y < interaction_config().riding_rider_anchor.y);
+    assert!(dipped.overlay.north_up_active);
+}
+
+#[test]
+fn north_indicator_single_tap_enters_preview_then_returns_to_auto() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    prime_travel_up(&mut runtime);
+    let preview_on = compass_tap(
+        &mut runtime,
+        moving_fix(-122.4154, 6.0),
+        moving_fix(-122.4144, 6.0),
+        1,
+    );
+    let preview_holding = runtime.step(frame_with_gps(580, moving_fix(-122.4134, 6.0)));
+    let returned = runtime.step(frame_with_gps(32, moving_fix(-122.4124, 6.0)));
+
+    assert_eq!(
+        preview_on.camera.orientation_mode,
+        CameraOrientationMode::NorthPreview
+    );
+    assert!(preview_on.overlay.north_up_active);
+    assert!(preview_on.camera.rider_anchor.y < interaction_config().riding_rider_anchor.y);
+    assert!(preview_on.camera.rider_anchor.y > NormalizedScreenPoint::CENTER.y);
+    assert!(preview_on.camera.orientation_rad < std::f32::consts::FRAC_PI_2);
+    assert!(preview_on.camera.orientation_rad > 0.0);
+    assert_eq!(
+        preview_holding.camera.orientation_mode,
+        CameraOrientationMode::NorthPreview
+    );
+    assert_eq!(preview_holding.camera.orientation_rad, 0.0);
+    assert_eq!(
+        returned.camera.orientation_mode,
+        CameraOrientationMode::TravelUpAuto
+    );
+    assert!(!returned.overlay.north_up_active);
+}
+
+#[test]
+fn north_indicator_tap_acknowledges_without_mode_change_when_already_north_up() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    let stopped_ack = compass_tap(
+        &mut runtime,
+        stopped_fix(-122.4194),
+        stopped_fix(-122.4194),
+        1,
+    );
+
+    runtime.step(frame_with_gps(16, moving_fix(-122.4184, 6.0)));
+    let acquisition_ack = compass_tap(
+        &mut runtime,
+        moving_fix(-122.4179, 6.0),
+        moving_fix(-122.4174, 6.0),
+        3,
+    );
+
+    assert_eq!(
+        stopped_ack.camera.orientation_mode,
+        CameraOrientationMode::StoppedNorthUp
+    );
+    assert!(stopped_ack.overlay.compass_ack_progress > 0.0);
+    assert_eq!(
+        acquisition_ack.camera.orientation_mode,
+        CameraOrientationMode::HeadingAcquisition
+    );
+    assert!(acquisition_ack.overlay.compass_ack_progress > 0.0);
+    assert!(acquisition_ack.overlay.north_preview_progress.is_none());
+}
+
+#[test]
+fn north_indicator_double_tap_locks_until_unlocked() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    prime_travel_up(&mut runtime);
+    let preview = compass_tap(
+        &mut runtime,
+        moving_fix(-122.4154, 6.0),
+        moving_fix(-122.4144, 6.0),
+        1,
+    );
     runtime.step(frame_with_touch(
         16,
-        moving_fix,
-        1,
-        vec![touch(1, TouchPhase::Started, tap_x, tap_y)],
+        moving_fix(-122.4134, 6.0),
+        3,
+        vec![compass_touch(TouchPhase::Started)],
     ));
-    let override_on = runtime.step(frame_with_touch(16, moving_fix, 2, vec![]));
-    let override_off = runtime.step(frame_with_gps(700, moving_fix));
+    let locked = runtime.step(frame_with_touch(16, moving_fix(-122.4124, 6.0), 4, vec![]));
+    let still_locked = runtime.step(frame_with_gps(700, moving_fix(-122.4114, 6.0)));
+    runtime.step(frame_with_touch(
+        16,
+        moving_fix(-122.4104, 6.0),
+        5,
+        vec![compass_touch(TouchPhase::Started)],
+    ));
+    let unlocked = runtime.step(frame_with_touch(16, moving_fix(-122.4094, 6.0), 6, vec![]));
 
-    assert!(override_on.overlay.north_up_active);
-    assert_eq!(override_on.camera.orientation_rad, 0.0);
     assert_eq!(
-        override_on.overlay.rider_heading_rad,
-        Some(std::f32::consts::FRAC_PI_2)
+        preview.camera.orientation_mode,
+        CameraOrientationMode::NorthPreview
     );
-    assert!(!override_off.overlay.north_up_active);
+    assert_eq!(
+        locked.camera.orientation_mode,
+        CameraOrientationMode::NorthLocked
+    );
+    assert!(locked.overlay.north_up_active);
+    assert_eq!(
+        still_locked.camera.orientation_mode,
+        CameraOrientationMode::NorthLocked
+    );
+    assert_eq!(
+        unlocked.camera.orientation_mode,
+        CameraOrientationMode::TravelUpAuto
+    );
+    assert!(!unlocked.overlay.north_up_active);
+}
+
+#[test]
+fn unlocking_north_lock_with_weak_heading_returns_to_acquisition() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    prime_travel_up(&mut runtime);
+    compass_tap(
+        &mut runtime,
+        moving_fix(-122.4154, 6.0),
+        moving_fix(-122.4144, 6.0),
+        1,
+    );
+    runtime.step(frame_with_touch(
+        16,
+        moving_fix(-122.4134, 6.0),
+        3,
+        vec![compass_touch(TouchPhase::Started)],
+    ));
+    let locked = runtime.step(frame_with_touch(16, moving_fix(-122.4124, 6.0), 4, vec![]));
+    runtime.step(frame_with_touch(
+        16,
+        moving_fix(-122.4124, 6.0),
+        5,
+        vec![compass_touch(TouchPhase::Started)],
+    ));
+    let unlocked = runtime.step(frame_with_touch(16, moving_fix(-122.4124, 6.0), 6, vec![]));
+    let held = runtime.step(frame_with_gps(220, moving_fix(-122.4124, 6.0)));
+
+    assert_eq!(
+        locked.camera.orientation_mode,
+        CameraOrientationMode::NorthLocked
+    );
+    assert_eq!(
+        unlocked.camera.orientation_mode,
+        CameraOrientationMode::HeadingAcquisition
+    );
+    assert!(unlocked.camera.orientation_rad > 0.0);
+    assert_eq!(
+        held.camera.orientation_mode,
+        CameraOrientationMode::HeadingAcquisition
+    );
+    assert!((held.camera.orientation_rad - std::f32::consts::FRAC_PI_2).abs() < 0.05);
 }
 
 #[test]
 fn stationary_touch_hold_does_not_start_recenter() {
     let mut runtime = RuntimeCore::new(interaction_config());
-    let moving_fix = moving_fix(-122.4194, 6.0);
-    runtime.step(frame_with_gps(16, moving_fix));
+    let moving_fix = prime_travel_up(&mut runtime);
     runtime.step(frame_with_touch(
         16,
         moving_fix,
@@ -481,17 +670,40 @@ fn stationary_touch_hold_does_not_start_recenter() {
 }
 
 #[test]
+fn restart_after_stop_reenters_heading_acquisition_north_up() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    settle_travel_up(&mut runtime);
+    runtime.step(frame_with_gps(16, stopped_fix(-122.4164)));
+    let stopped = runtime.step(frame_with_gps(500, stopped_fix(-122.4164)));
+    let restarted = runtime.step(frame_with_gps(16, moving_fix(-122.4154, 6.0)));
+
+    assert_eq!(
+        stopped.camera.orientation_mode,
+        CameraOrientationMode::StoppedNorthUp
+    );
+    assert_eq!(
+        restarted.camera.orientation_mode,
+        CameraOrientationMode::HeadingAcquisition
+    );
+    assert!(restarted.camera.orientation_rad.abs() < 0.05);
+    assert_eq!(restarted.camera.rider_anchor, NormalizedScreenPoint::CENTER);
+}
+
+#[test]
 fn stopped_transition_holds_heading_then_settles_to_north_up() {
     let mut runtime = RuntimeCore::new(interaction_config());
-    runtime.step(frame_with_gps(16, moving_fix(-122.4194, 6.0)));
-    let riding = runtime.step(frame_with_gps(16, moving_fix(-122.4184, 6.0)));
-    let stopped_hold = runtime.step(frame_with_gps(16, stopped_fix(-122.4184)));
-    let stopped_settled = runtime.step(frame_with_gps(500, stopped_fix(-122.4184)));
+    let riding = settle_travel_up(&mut runtime);
+    let stopped_hold = runtime.step(frame_with_gps(16, stopped_fix(-122.4164)));
+    let stopped_settled = runtime.step(frame_with_gps(500, stopped_fix(-122.4164)));
 
     assert!(riding.camera.orientation_rad > 0.0);
     assert!(stopped_hold.camera.orientation_rad >= riding.camera.orientation_rad);
     assert!(stopped_settled.camera.orientation_rad.abs() < 0.05);
     assert!(stopped_settled.overlay.north_up_active);
+    assert_eq!(
+        stopped_settled.camera.orientation_mode,
+        CameraOrientationMode::StoppedNorthUp
+    );
 }
 
 fn interaction_config() -> RuntimeConfig {
@@ -500,7 +712,9 @@ fn interaction_config() -> RuntimeConfig {
         pan_recenter_timeout: Duration::from_millis(40),
         recenter_duration: Duration::from_millis(320),
         mode_transition_duration: Duration::from_millis(180),
-        north_up_override_timeout: Duration::from_millis(600),
+        heading_acquisition_delay: Duration::from_millis(120),
+        north_preview_timeout: Duration::from_millis(600),
+        compass_double_tap_window: Duration::from_millis(240),
         stopped_north_up_delay: Duration::from_millis(120),
         stopped_north_up_settle_duration: Duration::from_millis(240),
         ..RuntimeConfig::default()
@@ -557,4 +771,40 @@ fn touch(id: u64, phase: TouchPhase, x: f32, y: f32) -> TouchContact {
         position: ScreenPoint::new(x, y),
         pressure: None,
     }
+}
+
+fn compass_touch(phase: TouchPhase) -> TouchContact {
+    let center = interaction_config().north_indicator_center;
+    touch(1, phase, center.x * 480.0, center.y * 480.0)
+}
+
+fn compass_tap(
+    runtime: &mut RuntimeCore,
+    started_gps: runtime_core::api::GpsSample,
+    released_gps: runtime_core::api::GpsSample,
+    sequence: u64,
+) -> runtime_core::api::RuntimeFrameOutput {
+    runtime.step(frame_with_touch(
+        16,
+        started_gps,
+        sequence,
+        vec![compass_touch(TouchPhase::Started)],
+    ));
+    runtime.step(frame_with_touch(16, released_gps, sequence + 1, vec![]))
+}
+
+fn prime_travel_up(runtime: &mut RuntimeCore) -> runtime_core::api::GpsSample {
+    runtime.step(frame_with_gps(16, stopped_fix(-122.4194)));
+    runtime.step(frame_with_gps(16, moving_fix(-122.4184, 6.0)));
+    runtime.step(frame_with_gps(140, moving_fix(-122.4174, 6.0)));
+    let settled_fix = moving_fix(-122.4164, 6.0);
+    runtime.step(frame_with_gps(220, settled_fix));
+    settled_fix
+}
+
+fn settle_travel_up(runtime: &mut RuntimeCore) -> runtime_core::api::RuntimeFrameOutput {
+    runtime.step(frame_with_gps(16, stopped_fix(-122.4194)));
+    runtime.step(frame_with_gps(16, moving_fix(-122.4184, 6.0)));
+    runtime.step(frame_with_gps(140, moving_fix(-122.4174, 6.0)));
+    runtime.step(frame_with_gps(220, moving_fix(-122.4164, 6.0)))
 }

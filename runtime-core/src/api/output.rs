@@ -14,13 +14,31 @@ impl Default for CameraMode {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CameraOrientationMode {
+    StoppedNorthUp,
+    HeadingAcquisition,
+    TravelUpAuto,
+    NorthPreview,
+    NorthLocked,
+}
+
+impl Default for CameraOrientationMode {
+    fn default() -> Self {
+        Self::StoppedNorthUp
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct CameraStateSnapshot {
     pub mode: CameraMode,
+    pub orientation_mode: CameraOrientationMode,
     pub focus_world: WorldPoint,
     pub center_world: WorldPoint,
     pub zoom: f32,
     pub orientation_rad: f32,
+    pub north_preview_progress: Option<f32>,
+    pub compass_ack_progress: f32,
     pub rider_anchor: NormalizedScreenPoint,
     pub follow_locked: bool,
     pub recenter_active: bool,
@@ -30,10 +48,13 @@ impl Default for CameraStateSnapshot {
     fn default() -> Self {
         Self {
             mode: CameraMode::Stopped,
+            orientation_mode: CameraOrientationMode::StoppedNorthUp,
             focus_world: WorldPoint::ORIGIN,
             center_world: WorldPoint::ORIGIN,
             zoom: 0.0,
             orientation_rad: 0.0,
+            north_preview_progress: None,
+            compass_ack_progress: 0.0,
             rider_anchor: NormalizedScreenPoint::CENTER,
             follow_locked: false,
             recenter_active: false,
@@ -46,6 +67,8 @@ pub struct OverlayState {
     pub north_indicator_visible: bool,
     pub north_up_active: bool,
     pub rider_heading_rad: Option<f32>,
+    pub north_preview_progress: Option<f32>,
+    pub compass_ack_progress: f32,
 }
 
 impl Default for OverlayState {
@@ -54,6 +77,8 @@ impl Default for OverlayState {
             north_indicator_visible: true,
             north_up_active: true,
             rider_heading_rad: None,
+            north_preview_progress: None,
+            compass_ack_progress: 0.0,
         }
     }
 }

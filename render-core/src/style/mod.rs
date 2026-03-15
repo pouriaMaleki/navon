@@ -15,7 +15,11 @@ pub struct RenderStyle {
     pub rider_fill_intensity: u8,
     pub rider_heading_intensity: u8,
     pub north_indicator_active_intensity: u8,
+    pub north_indicator_acquisition_intensity: u8,
     pub north_indicator_idle_intensity: u8,
+    pub north_indicator_locked_intensity: u8,
+    pub north_indicator_ring_intensity: u8,
+    pub north_indicator_ack_intensity: u8,
 }
 
 impl RenderStyle {
@@ -48,7 +52,11 @@ impl Default for RenderStyle {
             rider_fill_intensity: 255,
             rider_heading_intensity: 230,
             north_indicator_active_intensity: 240,
+            north_indicator_acquisition_intensity: 184,
             north_indicator_idle_intensity: 120,
+            north_indicator_locked_intensity: 255,
+            north_indicator_ring_intensity: 208,
+            north_indicator_ack_intensity: 220,
         }
     }
 }

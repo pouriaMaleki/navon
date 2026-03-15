@@ -1,6 +1,7 @@
 use crate::api::MapQuerySpec;
 use crate::api::{
-    CameraMode, CameraStateSnapshot, DiagnosticsSnapshot, OverlayState, RuntimeFrameOutput,
+    CameraMode, CameraOrientationMode, CameraStateSnapshot, DiagnosticsSnapshot, OverlayState,
+    RuntimeFrameOutput,
 };
 
 pub fn build_frame_output(
@@ -8,15 +9,16 @@ pub fn build_frame_output(
     camera: CameraStateSnapshot,
     map_query: MapQuerySpec,
     diagnostics: Option<DiagnosticsSnapshot>,
-    north_up_active: bool,
     rider_heading_rad: Option<f32>,
 ) -> RuntimeFrameOutput {
     let overlay = OverlayState {
         north_indicator_visible: true,
-        north_up_active,
+        north_up_active: !matches!(camera.orientation_mode, CameraOrientationMode::TravelUpAuto),
         rider_heading_rad: matches!(camera.mode, CameraMode::Riding)
             .then_some(rider_heading_rad)
             .flatten(),
+        north_preview_progress: camera.north_preview_progress,
+        compass_ack_progress: camera.compass_ack_progress,
     };
 
     RuntimeFrameOutput {
