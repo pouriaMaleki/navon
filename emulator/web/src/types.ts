@@ -78,6 +78,12 @@ export type RuntimeTouchInput = {
 export type RuntimeFrameState = {
   frameIndex: number;
   cameraMode: "riding" | "stopped";
+  cameraOrientationMode:
+    | "stopped_north_up"
+    | "heading_acquisition"
+    | "travel_up_auto"
+    | "north_preview"
+    | "north_locked";
   zoom: number;
   orientationRad: number;
   followLocked: boolean;

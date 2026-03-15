@@ -12,6 +12,11 @@ Browser-based emulator for ESP32-P4 minimap behavior, backed by the shared Rust 
 - Simulates the target display profile (Waveshare ESP32-P4 `800x800`) and presents it through a round clipped viewport that matches the device form factor.
 - Feeds browser GPS data (or manual bike-sim fallback) into shared camera/runtime state.
 - Supports drag pan, pinch zoom, pinch rotate, smooth riding/stopped transitions, and smooth auto-recenter through shared Rust behavior.
+- Uses shared Rust camera UX:
+  - confident movement uses smooth travel-up rotation
+  - stopped view returns to centered north-up
+  - single tap gives temporary north preview
+  - double tap locks north-up until unlocked
 - Supports keyboard and rendered arrow controls for deterministic simulated bike movement.
 - Reuses the same shared runtime/query/render path as firmware for visual and behavioral parity.
 
@@ -32,7 +37,7 @@ Then open the local URL printed by Vite (usually `http://localhost:5173`).
 1. Start emulator with `cargo xtask emu`.
 2. Grant location permission in browser to test live GPS mode.
 3. Use `ArrowUp`, `ArrowDown`, `ArrowLeft`, and `ArrowRight` for manual bike-sim movement when GPS is not live.
-4. Drag to pan, pinch to zoom/rotate on touch devices, use the mouse wheel for emulator-only zoom on desktop, and wait for recenter.
+4. Drag to pan, pinch to zoom on touch devices, rotate only during travel-up auto, use the mouse wheel for emulator-only zoom on desktop, and wait for recenter.
 5. Tune bike physics in the `Bike Physics` section (`max speed`, `throttle accel`, steering, braking).
 6. Use `Request GPS` in UI if permission was denied initially.
 
@@ -48,6 +53,7 @@ npm run build
 
 ## Documentation
 - Canonical emulator spec: [`docs/project-spec.md`](./docs/project-spec.md)
+- Canonical camera orientation UX: [`../docs/camera-rotation-design.md`](../docs/camera-rotation-design.md)
 - Current implementation plan: [`docs/current-plan.md`](./docs/current-plan.md)
 - Architecture overview: [`docs/architecture.md`](./docs/architecture.md)
 - React + MobX + CSS Modules setup: [`docs/frontend-stack.md`](./docs/frontend-stack.md)

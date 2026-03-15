@@ -5,14 +5,27 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
 
 ## Main Runtime Behavior
 - Map is rendered as vectors, on the visible and non visible area. Map is rendered according to accurate GPS data.
-- Two primary camera states:
-  - Riding mode: heading-up orientation with user anchor in lower quarter of screen.
-  - Stopped mode: centered user and north-up orientation after a delay.
+- Two primary camera motion modes:
+  - Riding mode
+  - Stopped mode
+- Camera orientation UX has five shared-Rust substates:
+  - `Stopped North-Up`
+  - `Heading Acquisition`
+  - `Travel-Up Auto`
+  - `North Preview`
+  - `North Locked`
+- Confident movement uses smooth travel-up rotation with the rider anchored near the lower quarter only in `Travel-Up Auto`.
+- Stopped, heading-acquisition, and moving north-up states keep the rider centered.
 - Pinch zoom supports close detail and broad context with bounded limits.
-- Two-finger rotate temporarily offsets heading while moving.
+- Two-finger rotate temporarily offsets heading only while `Travel-Up Auto` is active.
 - Temporary pan is allowed and smoothly recenters after pan idle timeout.
 - During manual pan, camera follow is locked to pan-start rider position so the rider location marker stays anchored; only camera offset moves until recenter completes.
-- North indicator is shown at top-center and supports temporary mode override.
+- North indicator is shown at top-center:
+  - single tap enters temporary `North Preview`
+  - double tap enters `North Locked`
+  - tap again unlocks north-up and returns to auto-follow when heading confidence is good
+- When movement is detected but travel direction is not yet trustworthy, the camera holds the last trusted angle rather than snapping to noisy raw course data.
+- Canonical camera-orientation UX design lives in `/work/docs/camera-rotation-design.md`.
 
 ## Architecture Separation
 - Main ESP32 project (`/work`): runtime camera/render/input behavior.
@@ -132,6 +145,7 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
 - Execution and validation workflow: `/work/docs/framework-execution-guide.md`
 - ECS runtime decision summary: `/work/docs/runtime-ecs-architecture.md`
 - Device touch integration details: `/work/docs/device-touch-integration-plan.md`
+- Camera orientation UX design: `/work/docs/camera-rotation-design.md`
 
 ## Data Flow
 - Source maps: `/work/map-src`
@@ -175,20 +189,26 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
 - Zoom out:
   - Allow broad coverage but clamp before dense vector overdraw makes roads unreadable.
 - Riding mode:
-  - Active movement rotates map so actual direction of travel points up.
-  - Riding-mode heading should be derived from movement direction when motion data is available, with smooth rotation like driving navigation.
-  - User marker is not centered; it stays near lower quarter lane for forward look-ahead.
+  - Active confident movement rotates map so actual direction of travel points up.
+  - Riding-mode heading should be derived from trusted movement direction, with smooth rotation like driving navigation.
+  - `Heading Acquisition` keeps the rider centered until heading confidence is stable enough for `Travel-Up Auto`.
+  - `Travel-Up Auto` moves the rider to the lower quarter for forward look-ahead.
 - Stopped mode:
   - On stop, recenters user and after a short delay smoothly rotates map back to north-up.
   - Transition must be continuous for both position and rotation.
+- Moving north-up modes:
+  - `North Preview` is a temporary centered north-up view entered by a single tap on the north indicator.
+  - `North Locked` is a persistent centered north-up view entered by a double tap on the north indicator.
+  - Tap again unlocks north-up and returns to auto-follow when heading confidence is ready.
 - Manual pan behavior:
   - By panning user can see other parts of the map.
   - While panning, user location, which is beased on GPS point remains in actual GPS location of the rendered map. Only camera moves.
   - After pan idle timeout, camera recenters smoothly and follow resumes current rider position.
 - North indicator:
   - Show a small north indicator icon at top of the screen.
-  - Tap toggles temporary north-up override when map is in heading-up.
-  - If movement continues, auto-return to riding mode after timeout.
+  - Single tap enters temporary `North Preview`.
+  - Double tap enters `North Locked`.
+  - Preview auto-returns only after timeout and sufficient heading confidence.
 - Player marker visuals:
   - Riding mode marker should include a glowing yellow-green forward-facing shape.
   - Stopped mode marker should be larger and game-map readable.
@@ -200,6 +220,7 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
   - When movement is too small/noisy:
     - keep previous stable travel heading
     - do not snap to a new value
+    - do not snap back to north-up just because heading confidence dips briefly
   - While moving:
     - blend filtered travel vector toward latest motion vector
     - derive heading from filtered vector
@@ -208,6 +229,7 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
     - Riding west should rotate the map so west is up and north indicator points right.
     - Quick left/right wiggles should not cause fast camera twitching.
     - Stopping should preserve current heading briefly, then smoothly return to north-up.
+    - Starting from rest should remain centered and stable until heading confidence is ready.
 
 ## Zoom-Level Detail Extensibility
 - Runtime map query computes `MapQuerySpec` per frame from camera output.

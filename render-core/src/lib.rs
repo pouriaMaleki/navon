@@ -63,9 +63,9 @@ pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
 #[cfg(test)]
 mod tests {
     use runtime_core::api::{
-        CameraMode, CameraStateSnapshot, LodMask, MapLayer, MapPolylineCandidate, MapQuerySpec,
-        NormalizedScreenPoint, OverlayState, RuntimeConfig, RuntimeFrameOutput, WorldPoint,
-        ZoomBucket,
+        CameraMode, CameraOrientationMode, CameraStateSnapshot, LodMask, MapLayer,
+        MapPolylineCandidate, MapQuerySpec, NormalizedScreenPoint, OverlayState, RuntimeConfig,
+        RuntimeFrameOutput, WorldPoint, ZoomBucket,
     };
 
     use super::*;
@@ -75,10 +75,13 @@ mod tests {
             frame_index: 1,
             camera: CameraStateSnapshot {
                 mode: CameraMode::Riding,
+                orientation_mode: CameraOrientationMode::TravelUpAuto,
                 focus_world: WorldPoint::new(0.0, 0.0),
                 center_world: WorldPoint::new(0.0, 0.0),
                 zoom: 15.5,
                 orientation_rad: 0.0,
+                north_preview_progress: None,
+                compass_ack_progress: 0.0,
                 rider_anchor: NormalizedScreenPoint::CENTER,
                 follow_locked: false,
                 recenter_active: false,
@@ -87,6 +90,8 @@ mod tests {
                 north_indicator_visible: true,
                 north_up_active: false,
                 rider_heading_rad: Some(0.0),
+                north_preview_progress: None,
+                compass_ack_progress: 0.0,
             },
             map_query: MapQuerySpec::new(
                 WorldPoint::ORIGIN,
@@ -235,5 +240,67 @@ mod tests {
         );
 
         assert_ne!(north.pixels(), east.pixels());
+    }
+
+    #[test]
+    fn compass_visual_states_render_differently() {
+        let config = RuntimeConfig::default();
+        let geometry = MapQueryResult::default();
+        let mut preview_output = sample_output();
+        preview_output.camera.orientation_mode = CameraOrientationMode::NorthPreview;
+        preview_output.overlay.north_up_active = true;
+        preview_output.overlay.north_preview_progress = Some(0.6);
+        let mut locked_output = sample_output();
+        locked_output.camera.orientation_mode = CameraOrientationMode::NorthLocked;
+        locked_output.overlay.north_up_active = true;
+        let mut acquisition_output = sample_output();
+        acquisition_output.camera.orientation_mode = CameraOrientationMode::HeadingAcquisition;
+        acquisition_output.overlay.north_up_active = true;
+        let mut ack_output = sample_output();
+        ack_output.camera.orientation_mode = CameraOrientationMode::StoppedNorthUp;
+        ack_output.overlay.north_up_active = true;
+        ack_output.overlay.compass_ack_progress = 0.8;
+
+        let mut preview = Framebuffer::new(128, 128);
+        let mut locked = Framebuffer::new(128, 128);
+        let mut acquisition = Framebuffer::new(128, 128);
+        let mut ack = Framebuffer::new(128, 128);
+
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &preview_output,
+                geometry: &geometry,
+            },
+            &mut preview,
+        );
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &locked_output,
+                geometry: &geometry,
+            },
+            &mut locked,
+        );
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &acquisition_output,
+                geometry: &geometry,
+            },
+            &mut acquisition,
+        );
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &ack_output,
+                geometry: &geometry,
+            },
+            &mut ack,
+        );
+
+        assert_ne!(preview.pixels(), locked.pixels());
+        assert_ne!(preview.pixels(), acquisition.pixels());
+        assert_ne!(ack.pixels(), acquisition.pixels());
     }
 }

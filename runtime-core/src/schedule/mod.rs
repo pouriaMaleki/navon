@@ -199,7 +199,7 @@ fn map_query(
     camera: Res<CameraResource>,
     mut query: ResMut<QueryResource>,
 ) {
-    query.0 = map::build_query(&camera.0.snapshot(), config.0.viewport_size);
+    query.0 = map::build_query(&camera.0.snapshot(&config.0), config.0.viewport_size);
 }
 
 fn output_build(
@@ -211,7 +211,7 @@ fn output_build(
     query: Res<QueryResource>,
     mut output_resource: ResMut<OutputResource>,
 ) {
-    let camera_snapshot = camera.0.snapshot();
+    let camera_snapshot = camera.0.snapshot(&config.0);
     let diagnostics = config.0.diagnostics_enabled.then(|| {
         diagnostics::build_snapshot(
             frame_time.tick,
@@ -227,7 +227,6 @@ fn output_build(
         camera_snapshot,
         query.0.clone(),
         diagnostics,
-        camera.0.north_up_override_active() || camera.0.mode == crate::api::CameraMode::Stopped,
         motion.0.travel_heading_rad,
     );
 }

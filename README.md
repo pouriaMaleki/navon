@@ -37,15 +37,19 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 ## Target Runtime Behavior
 - Heading-up camera transform in shared Rust renderer.
 - Riding mode camera:
-  - heading-up
-  - rider anchor near lower quarter of display
+  - `Heading Acquisition` keeps the rider centered until movement direction is trustworthy.
+  - `Travel-Up Auto` rotates smoothly so trusted travel direction is up.
+  - only `Travel-Up Auto` uses the lower-quarter rider anchor.
 - Stopped mode camera:
   - centered rider
   - delayed smooth north-up settle
+- Moving north-up modes:
+  - single tap on the north indicator enters temporary `North Preview`
+  - double tap locks centered north-up until the user unlocks it
 - Zoom policy:
   - close zoom-in target around 100 m context
   - zoom-out bounded for readability
-- Temporary north-up override from the top-center north indicator.
+- Low-confidence movement holds the last trusted camera angle instead of following noisy raw course data.
 - Marker visuals come from shared editable SVG assets for the riding marker, stopped marker, and north indicator.
 - Dark high-contrast vector style with major/minor road hierarchy for circular minimap UI.
 - Emulator geolocation support using browser location APIs.
@@ -61,13 +65,15 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
   - `overlay`
 
 ## Navigation Behavior
-- Default while moving: riding mode with heading-up and lower-quarter rider anchor.
+- Default while moving with trusted heading: `Travel-Up Auto` with heading-up and lower-quarter rider anchor.
+- Movement without trusted heading: `Heading Acquisition` with a centered rider and a held stable angle.
 - Default while stopped: centered rider and north-up after delay.
 - One-finger drag: temporarily pan map.
 - Two-finger pinch: zoom in/out.
-- Two-finger rotate: temporarily rotate map heading while moving.
+- Two-finger rotate: temporarily rotate map heading only in `Travel-Up Auto`.
 - After brief idle: smooth auto-return to current GPS focus.
-- North indicator tap: temporary north-up override; auto-return to riding mode while moving.
+- North indicator single tap: temporary centered north-up preview.
+- North indicator double tap: lock centered north-up until unlocked.
 
 ## Map Data Flow
 - Source maps: `/work/map-src` (`*.mbtiles`)
@@ -106,6 +112,7 @@ Current status: `cargo xtask emu` is live; `prepare-map`, `bundle-device`, and `
 - Main plan: `/work/docs/current-plan.md`
 - Main TODO list: `/work/docs/todo.md`
 - Main spec: `/work/docs/project-spec.md`
+- Camera orientation UX: `/work/docs/camera-rotation-design.md`
 - Framework execution guide: `/work/docs/framework-execution-guide.md`
 - CVE tracking plan: `/work/docs/cve-tracking-plan.md`
 - Converter spec: `/work/map-vector-cli/docs/project-spec.md`

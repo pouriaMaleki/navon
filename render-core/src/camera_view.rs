@@ -50,7 +50,7 @@ impl Default for CameraView {
 
 #[cfg(test)]
 mod tests {
-    use runtime_core::api::{CameraMode, NormalizedScreenPoint};
+    use runtime_core::api::{CameraMode, CameraOrientationMode, NormalizedScreenPoint};
 
     use super::*;
 
@@ -60,10 +60,13 @@ mod tests {
             ViewportSize::new(200, 100),
             &CameraStateSnapshot {
                 mode: CameraMode::Stopped,
+                orientation_mode: CameraOrientationMode::StoppedNorthUp,
                 focus_world: WorldPoint::ORIGIN,
                 center_world: WorldPoint::new(25.0, 80.0),
                 zoom: 15.5,
                 orientation_rad: 0.0,
+                north_preview_progress: None,
+                compass_ack_progress: 0.0,
                 rider_anchor: NormalizedScreenPoint::CENTER,
                 follow_locked: false,
                 recenter_active: false,

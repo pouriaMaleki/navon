@@ -6,6 +6,7 @@ use crate::api::{GpsSample, WorldPoint};
 const EARTH_RADIUS_M: f64 = 6_378_137.0;
 const MAX_MERCATOR_LAT_DEG: f64 = 85.051_128_78;
 const MIN_HEADING_DELTA_M: f64 = 1.0;
+const MIN_CONTINUED_MOTION_DELTA_M: f64 = 0.05;
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct MotionIngestConfig {
@@ -23,6 +24,8 @@ pub struct MotionState {
     pub speed_mps: f32,
     pub travel_heading_rad: Option<f32>,
     pub filtered_motion_vector_m: Option<(f64, f64)>,
+    pub pending_motion_vector_m: Option<(f64, f64)>,
+    pub heading_confident: bool,
     pub is_moving: bool,
     pub gps_gap_duration: Duration,
     pub stopped_duration: Duration,
@@ -36,6 +39,8 @@ impl Default for MotionState {
             speed_mps: 0.0,
             travel_heading_rad: None,
             filtered_motion_vector_m: None,
+            pending_motion_vector_m: None,
+            heading_confident: false,
             is_moving: false,
             gps_gap_duration: Duration::ZERO,
             stopped_duration: Duration::ZERO,
@@ -53,9 +58,11 @@ impl MotionState {
         let was_moving = self.is_moving;
         let Some(sample) = gps else {
             self.gps_gap_duration += dt;
+            self.heading_confident = false;
             if self.gps_gap_duration >= config.gps_loss_stop_timeout {
                 self.speed_mps = 0.0;
                 self.is_moving = false;
+                self.pending_motion_vector_m = None;
                 self.advance_stopped_duration(dt, was_moving);
             }
             return;
@@ -75,24 +82,36 @@ impl MotionState {
 
         if self.is_moving {
             self.stopped_duration = Duration::ZERO;
-            self.travel_heading_rad = derive_heading(
-                previous_world,
-                current_world,
-                sample,
+            let step_motion = previous_world.map(|previous| {
+                let dx = current_world.x_m - previous.x_m;
+                let dy = current_world.y_m - previous.y_m;
+                (dx, dy)
+            });
+            let accumulated_motion = accumulate_motion_vector(
+                step_motion,
                 config.min_heading_displacement_m,
-                config.heading_filter_alpha,
-                self.filtered_motion_vector_m,
-                self.travel_heading_rad,
+                self.pending_motion_vector_m,
             );
-            self.filtered_motion_vector_m = update_filtered_motion_vector(
+            self.pending_motion_vector_m = accumulated_motion.pending_motion_vector_m;
+            let filtered_motion = update_filtered_motion_vector(
+                accumulated_motion.accepted_motion_vector_m,
                 previous_world,
                 current_world,
-                config.min_heading_displacement_m,
                 config.heading_filter_alpha,
                 self.filtered_motion_vector_m,
-            )
-            .or(self.filtered_motion_vector_m);
+            );
+            let continuing_motion = step_motion
+                .map(|(dx, dy)| dx.hypot(dy) >= MIN_CONTINUED_MOTION_DELTA_M)
+                .unwrap_or(false);
+            self.heading_confident = filtered_motion.is_some()
+                || (self.filtered_motion_vector_m.is_some() && continuing_motion);
+            if let Some(filtered_motion) = filtered_motion {
+                self.filtered_motion_vector_m = Some(filtered_motion);
+                self.travel_heading_rad = Some(heading_from_vector(filtered_motion));
+            }
         } else {
+            self.heading_confident = false;
+            self.pending_motion_vector_m = None;
             self.advance_stopped_duration(dt, was_moving);
         }
 
@@ -119,52 +138,20 @@ pub fn project_gps_to_world(sample: GpsSample) -> WorldPoint {
     WorldPoint::new(x_m, y_m)
 }
 
-fn derive_heading(
-    previous_world: Option<WorldPoint>,
-    current_world: WorldPoint,
-    sample: GpsSample,
-    min_heading_displacement_m: f64,
-    heading_filter_alpha: f32,
-    filtered_motion_vector_m: Option<(f64, f64)>,
-    previous_heading_rad: Option<f32>,
-) -> Option<f32> {
-    let filtered_motion = update_filtered_motion_vector(
-        previous_world,
-        current_world,
-        min_heading_displacement_m,
-        heading_filter_alpha,
-        filtered_motion_vector_m,
-    );
-
-    filtered_motion
-        .map(heading_from_vector)
-        .or(previous_heading_rad)
-        .or(sample.course_rad.map(normalize_bearing_rad))
-}
-
-fn heading_from_delta(
-    previous: WorldPoint,
-    current: WorldPoint,
-    min_heading_displacement_m: f64,
-) -> Option<(f64, f64)> {
-    let dx = current.x_m - previous.x_m;
-    let dy = current.y_m - previous.y_m;
-    if dx.hypot(dy) < min_heading_displacement_m.max(MIN_HEADING_DELTA_M) {
-        return None;
-    }
-
-    Some((dx, dy))
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct AccumulatedMotion {
+    accepted_motion_vector_m: Option<(f64, f64)>,
+    pending_motion_vector_m: Option<(f64, f64)>,
 }
 
 fn update_filtered_motion_vector(
-    previous_world: Option<WorldPoint>,
-    current_world: WorldPoint,
-    min_heading_displacement_m: f64,
+    accepted_motion_vector_m: Option<(f64, f64)>,
+    _previous_world: Option<WorldPoint>,
+    _current_world: WorldPoint,
     heading_filter_alpha: f32,
     previous_filtered_motion_vector_m: Option<(f64, f64)>,
 ) -> Option<(f64, f64)> {
-    let (next_dx, next_dy) =
-        heading_from_delta(previous_world?, current_world, min_heading_displacement_m)?;
+    let (next_dx, next_dy) = accepted_motion_vector_m?;
     let alpha = f64::from(heading_filter_alpha.clamp(0.0, 1.0));
     Some(match previous_filtered_motion_vector_m {
         Some((prev_dx, prev_dy)) => (
@@ -173,6 +160,33 @@ fn update_filtered_motion_vector(
         ),
         None => (next_dx, next_dy),
     })
+}
+
+fn accumulate_motion_vector(
+    step_motion_vector_m: Option<(f64, f64)>,
+    min_heading_displacement_m: f64,
+    pending_motion_vector_m: Option<(f64, f64)>,
+) -> AccumulatedMotion {
+    let Some((dx, dy)) = step_motion_vector_m else {
+        return AccumulatedMotion {
+            accepted_motion_vector_m: None,
+            pending_motion_vector_m,
+        };
+    };
+
+    let pending = pending_motion_vector_m.unwrap_or((0.0, 0.0));
+    let accumulated = (pending.0 + dx, pending.1 + dy);
+    if accumulated.0.hypot(accumulated.1) < min_heading_displacement_m.max(MIN_HEADING_DELTA_M) {
+        return AccumulatedMotion {
+            accepted_motion_vector_m: None,
+            pending_motion_vector_m: Some(accumulated),
+        };
+    }
+
+    AccumulatedMotion {
+        accepted_motion_vector_m: Some(accumulated),
+        pending_motion_vector_m: None,
+    }
 }
 
 fn heading_from_vector((dx, dy): (f64, f64)) -> f32 {

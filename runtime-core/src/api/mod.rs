@@ -12,7 +12,9 @@ pub use input::{
     GpsSample, RuntimeInputFrame, ScreenPoint, TouchContact, TouchContactFrame,
     TouchContactFrameError, TouchPhase, ViewportSize,
 };
-pub use output::{CameraMode, CameraStateSnapshot, OverlayState, RuntimeFrameOutput};
+pub use output::{
+    CameraMode, CameraOrientationMode, CameraStateSnapshot, OverlayState, RuntimeFrameOutput,
+};
 pub use query::{
     GeometryCandidate, LodMask, MapLayer, MapPointCandidate, MapPolylineCandidate, MapQueryResult,
     MapQuerySpec, WorldBounds, WorldPoint, ZoomBucket,
