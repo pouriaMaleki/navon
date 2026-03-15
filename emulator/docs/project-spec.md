@@ -9,7 +9,7 @@ Other emulator docs should reference this file instead of redefining product req
 Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for development and validation before flashing firmware.
 
 ### 1.2 In Scope
-- Device display simulation for Waveshare ESP32-P4 `800x800`.
+- Device display simulation for Waveshare ESP32-P4 `800x800`, presented through a round clipped screen viewport in the browser.
 - GPS-driven user location updates (live browser geolocation + simulation fallback).
 - Manual simulated bike movement fallback driven by keyboard and on-screen controls.
 - Touch/pointer interactions:
@@ -17,7 +17,8 @@ Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for develop
   - Single-pointer drag pan through shared Rust runtime behavior.
   - Two-pointer pinch zoom through shared Rust runtime behavior.
   - Two-pointer rotate heading through shared Rust runtime behavior.
-- Smooth auto-recenter through shared Rust runtime behavior.
+  - Desktop wheel-to-pinch synthesis as an emulator-only convenience, still forwarded as raw touch contacts.
+- Smooth auto-recenter and smooth riding/stopped display transitions through shared Rust runtime behavior.
 - Rendering through shared Rust renderer (`render-core`) via WASM bridge (`render-core-wasm`).
 
 ### 1.3 Strict Boundary
@@ -28,7 +29,7 @@ Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for develop
 ## 2. Functional Requirements
 
 ### 2.1 Display Simulation
-- Must render to a browser canvas at `800x800` pixels.
+- Must render to a browser canvas at `800x800` pixels and present it inside a circular clipped viewport that matches the target hardware shape.
 - Must upload grayscale framebuffer data from WASM each frame.
 - Must not apply emulator-only art direction that diverges from firmware output.
 
@@ -63,20 +64,21 @@ Provide a fast, browser-based simulator of ESP32-P4 minimap behavior for develop
 - Manual bike simulation must not directly set camera rotation policy or any emulator-only camera state in the renderer.
 
 ### 2.4 Gesture Input
-- Must normalize browser pointer activity into shared touch-contact frames.
-- Must preserve stable pointer IDs and touch phases (`started`, `moved`, `stationary`, `ended`, `cancelled`) for the wasm bridge.
+- Must normalize browser pointer and touch activity into shared touch-contact frames.
+- Must preserve stable pointer IDs and touch phases (`started`, `moved`, `stationary`, `ended`, `cancelled`) for the wasm bridge, including replay of multiple browser events within one animation tick.
 - Must not derive pan/pinch/rotate/tap semantics in TypeScript.
 
 ### 2.5 Camera Behavior
 - Must pass current geo/touch frame input to WASM on each update tick through a frame-driven bridge.
-- Riding-mode camera heading must track direction of travel smoothly when movement direction is available from shared runtime inputs.
+- Riding-mode camera heading must track direction of travel smoothly when movement direction is available from shared runtime inputs, and riding/stopped visual transitions must ease instead of snapping.
 - Current behavior note: travel direction used for camera heading is derived from filtered map-point movement in shared Rust camera controller.
 - Auto-recenter, follow-lock, north-up override, and gesture interpretation are owned by shared Rust.
 - During manual pan, rider marker should remain map-anchored while camera offset moves; follow-target lock/release policy is owned by shared Rust camera controller.
 - Must reset camera state on emulator reset.
 
 ### 2.6 Runtime Controls
-- Must expose controls for pause/resume, reset, and GPS permission request.
+- Must expose controls for reset and GPS permission request.
+- Desktop wheel zoom may be offered as an emulator convenience, but only by synthesizing raw touch contacts rather than TS-owned zoom policy.
 - Must display runtime errors without crashing the whole page.
 
 ## 3. Non-Functional Requirements

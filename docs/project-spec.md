@@ -12,7 +12,7 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
 - Two-finger rotate temporarily offsets heading while moving.
 - Temporary pan is allowed and smoothly recenters after pan idle timeout.
 - During manual pan, camera follow is locked to pan-start rider position so the rider location marker stays anchored; only camera offset moves until recenter completes.
-- North indicator is shown at top-right and supports temporary mode override.
+- North indicator is shown at top-center and supports temporary mode override.
 
 ## Architecture Separation
 - Main ESP32 project (`/work`): runtime camera/render/input behavior.
@@ -146,10 +146,12 @@ ESP32 bike minimap renderer in a video-game style UI. Similar devices: Garmin Bi
 - Firmware now builds shared `RuntimeInputFrame` values, runs the shared `runtime-core` -> `map-runtime` -> `render-core` frame loop, and exposes board-facing platform plus `esp_idf` provider boundaries; actual ESP-IDF peripheral acquisition, live board validation, and deploy flow wiring are still pending.
 - `render-core` and `render-core-wasm` now provide the emulator-facing end-to-end step/query/render slice from shared Rust through the same `map-runtime` query backend.
 - `render-core` now consumes runtime-owned query scale (`MapQuerySpec.meters_per_pixel`) directly instead of recomputing zoom policy internally.
+- `render-core` overlay visuals now come from shared editable SVG sources compiled at build time into deterministic alpha-mask assets.
 - Shared camera foundation now supports one-finger pan, two-finger pinch/rotate, follow-lock, auto-recenter, riding/stopped transitions, stopped north-up settle, rotated query coverage, bounded zoom configuration, and short GPS-dropout resilience.
 - ECS runtime architecture is documented in `/work/docs/runtime-ecs-architecture.md`.
 - Device touch integration is documented in `/work/docs/device-touch-integration-plan.md`.
 - Emulator web shell uses React UI + MobX stores, captures browser geolocation/raw touch contacts, and forwards them into shared Rust through a frame-driven wasm bridge.
+- Emulator presentation clips the square framebuffer into a round viewport and may synthesize desktop wheel input into raw pinch contacts without taking over zoom policy.
 - Browser geolocation normalization preserves unknown heading as `null` and forwards browser-reported horizontal accuracy into the shared GPS contract.
 - Firmware uses a `GT9271` bus-polled touch path; the target boundary is normalized contact frames from firmware with gesture and tap interpretation owned by `runtime-core`.
 - Firmware touch normalization targets the logical display viewport explicitly rather than assuming the controller extent matches panel resolution.

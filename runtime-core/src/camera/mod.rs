@@ -23,6 +23,11 @@ pub struct CameraState {
     pub north_up_override_remaining: Duration,
     pub time_since_manual_input: Duration,
     pub stopped_heading_reference_rad: f32,
+    pub anchor_transition_remaining: Duration,
+    pub anchor_transition_start: NormalizedScreenPoint,
+    pub anchor_transition_target: NormalizedScreenPoint,
+    pub riding_transition_remaining: Duration,
+    pub riding_transition_start_orientation_rad: f32,
 }
 
 impl Default for CameraState {
@@ -41,6 +46,11 @@ impl Default for CameraState {
             north_up_override_remaining: Duration::ZERO,
             time_since_manual_input: Duration::ZERO,
             stopped_heading_reference_rad: 0.0,
+            anchor_transition_remaining: Duration::ZERO,
+            anchor_transition_start: NormalizedScreenPoint::CENTER,
+            anchor_transition_target: NormalizedScreenPoint::CENTER,
+            riding_transition_remaining: Duration::ZERO,
+            riding_transition_start_orientation_rad: 0.0,
         }
     }
 }
@@ -54,14 +64,28 @@ impl CameraState {
         viewport_size: ViewportSize,
         config: &RuntimeConfig,
     ) {
+        let previous_mode = self.mode;
         let next_mode = if motion.is_moving {
             CameraMode::Riding
         } else {
             CameraMode::Stopped
         };
-        if next_mode == CameraMode::Stopped && self.mode == CameraMode::Riding {
+        let target_rider_anchor = match next_mode {
+            CameraMode::Riding => config.riding_rider_anchor,
+            CameraMode::Stopped => config.stopped_rider_anchor,
+        };
+        if next_mode != previous_mode {
+            self.anchor_transition_remaining = config.mode_transition_duration;
+            self.anchor_transition_start = self.rider_anchor;
+            self.anchor_transition_target = target_rider_anchor;
+        }
+        if next_mode == CameraMode::Stopped && previous_mode == CameraMode::Riding {
             self.stopped_heading_reference_rad = self.orientation_rad;
             self.north_up_override_remaining = Duration::ZERO;
+            self.riding_transition_remaining = Duration::ZERO;
+        } else if next_mode == CameraMode::Riding && previous_mode == CameraMode::Stopped {
+            self.riding_transition_remaining = config.mode_transition_duration;
+            self.riding_transition_start_orientation_rad = self.orientation_rad;
         }
         self.mode = next_mode;
 
@@ -71,11 +95,9 @@ impl CameraState {
 
         self.zoom = config.zoom_bounds.clamp(self.zoom);
         self.focus_world = motion.rider_world;
-        self.rider_anchor = match self.mode {
-            CameraMode::Riding => config.riding_rider_anchor,
-            CameraMode::Stopped => config.stopped_rider_anchor,
-        };
-        self.orientation_rad = self.resolve_orientation(motion, dt, config);
+        self.rider_anchor = self.advance_rider_anchor(target_rider_anchor, dt, config);
+        let target_orientation = self.resolve_target_orientation(motion, dt, config);
+        self.orientation_rad = self.advance_orientation(target_orientation, dt, config);
 
         let anchored_center = center_world_for_focus(
             self.focus_world,
@@ -210,7 +232,7 @@ impl CameraState {
         }
     }
 
-    fn resolve_orientation(
+    fn resolve_target_orientation(
         &self,
         motion: &MotionState,
         dt: Duration,
@@ -245,6 +267,66 @@ impl CameraState {
                     interpolate_bearing(hold_heading, 0.0, t.max(min_step).clamp(0.0, 1.0))
                 }
             }
+        }
+    }
+
+    fn advance_rider_anchor(
+        &mut self,
+        target_rider_anchor: NormalizedScreenPoint,
+        dt: Duration,
+        config: &RuntimeConfig,
+    ) -> NormalizedScreenPoint {
+        if self.anchor_transition_remaining == Duration::ZERO {
+            self.anchor_transition_target = target_rider_anchor;
+            return target_rider_anchor;
+        }
+        let remaining_after_step = self
+            .anchor_transition_remaining
+            .saturating_sub(dt.min(self.anchor_transition_remaining));
+        let progress = transition_progress(
+            self.anchor_transition_remaining,
+            remaining_after_step,
+            config.mode_transition_duration,
+        );
+        self.anchor_transition_remaining = remaining_after_step;
+        if self.anchor_transition_remaining == Duration::ZERO {
+            self.anchor_transition_target
+        } else {
+            lerp_screen_point(
+                self.anchor_transition_start,
+                self.anchor_transition_target,
+                progress,
+            )
+        }
+    }
+
+    fn advance_orientation(
+        &mut self,
+        target_orientation: f32,
+        dt: Duration,
+        config: &RuntimeConfig,
+    ) -> f32 {
+        if self.mode == CameraMode::Riding && self.riding_transition_remaining > Duration::ZERO {
+            let remaining_after_step = self
+                .riding_transition_remaining
+                .saturating_sub(dt.min(self.riding_transition_remaining));
+            let progress = transition_progress(
+                self.riding_transition_remaining,
+                remaining_after_step,
+                config.mode_transition_duration,
+            );
+            self.riding_transition_remaining = remaining_after_step;
+            if self.riding_transition_remaining == Duration::ZERO {
+                target_orientation
+            } else {
+                interpolate_bearing(
+                    self.riding_transition_start_orientation_rad,
+                    target_orientation,
+                    progress,
+                )
+            }
+        } else {
+            target_orientation
         }
     }
 }
@@ -299,6 +381,27 @@ fn north_indicator_hit(
     );
     (tap_position.x_px - indicator_center.x_px).hypot(tap_position.y_px - indicator_center.y_px)
         <= config.north_indicator_hit_radius_px
+}
+
+fn transition_progress(before: Duration, after: Duration, total: Duration) -> f32 {
+    if total.is_zero() {
+        return 1.0;
+    }
+    let elapsed = (total.saturating_sub(before).as_secs_f32()
+        + before.saturating_sub(after).as_secs_f32())
+    .clamp(0.0, total.as_secs_f32());
+    (elapsed / total.as_secs_f32()).clamp(0.0, 1.0)
+}
+
+fn lerp_screen_point(
+    from: NormalizedScreenPoint,
+    to: NormalizedScreenPoint,
+    t: f32,
+) -> NormalizedScreenPoint {
+    NormalizedScreenPoint::new(
+        from.x + ((to.x - from.x) * t),
+        from.y + ((to.y - from.y) * t),
+    )
 }
 
 fn interpolate_bearing(from_rad: f32, to_rad: f32, t: f32) -> f32 {

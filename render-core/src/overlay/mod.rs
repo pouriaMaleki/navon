@@ -1,3 +1,5 @@
+mod assets;
+
 use runtime_core::api::{CameraStateSnapshot, OverlayState, RuntimeConfig, ViewportSize};
 
 use crate::camera_view::CameraView;
@@ -15,27 +17,25 @@ pub fn draw_overlay(
     let style = RenderStyle::default();
     let camera_view = CameraView::new(viewport, camera, meters_per_pixel);
     let rider = camera_view.world_to_screen(camera.focus_world);
-    framebuffer.stamp_circle(
-        rider.x_px.round() as i32,
-        rider.y_px.round() as i32,
-        match camera.mode {
-            runtime_core::api::CameraMode::Riding => 5,
-            runtime_core::api::CameraMode::Stopped => 7,
-        },
-        style.rider_fill_intensity,
-    );
 
-    if let Some(rider_heading_rad) = overlay.rider_heading_rad {
-        let relative_heading = rider_heading_rad - camera.orientation_rad;
-        let heading_length = 12.0_f32;
-        let heading_tip_x = rider.x_px + (relative_heading.sin() * heading_length);
-        let heading_tip_y = rider.y_px - (relative_heading.cos() * heading_length);
-        framebuffer.draw_line(
-            rider,
-            runtime_core::api::ScreenPoint::new(heading_tip_x, heading_tip_y),
-            style.rider_heading_intensity,
-            2,
-        );
+    match camera.mode {
+        runtime_core::api::CameraMode::Riding => {
+            let relative_heading = overlay.rider_heading_rad.unwrap_or(camera.orientation_rad)
+                - camera.orientation_rad;
+            framebuffer.draw_rotated_mask(
+                rider,
+                assets::RIDER_MARKER_RIDING,
+                relative_heading,
+                style.rider_fill_intensity,
+            );
+        }
+        runtime_core::api::CameraMode::Stopped => {
+            framebuffer.draw_mask(
+                rider,
+                assets::RIDER_MARKER_STOPPED,
+                style.rider_fill_intensity,
+            );
+        }
     }
 
     if !overlay.north_indicator_visible {
@@ -51,18 +51,15 @@ pub fn draw_overlay(
     } else {
         style.north_indicator_idle_intensity
     };
-    framebuffer.stamp_circle(
-        indicator_center.x_px.round() as i32,
-        indicator_center.y_px.round() as i32,
-        10,
+    framebuffer.draw_mask(
+        indicator_center,
+        assets::NORTH_INDICATOR_BASE,
         indicator_intensity,
     );
-
-    let north_angle = -camera.orientation_rad;
-    let needle_length = 14.0_f32;
-    let needle_tip = runtime_core::api::ScreenPoint::new(
-        indicator_center.x_px + (north_angle.sin() * needle_length),
-        indicator_center.y_px - (north_angle.cos() * needle_length),
+    framebuffer.draw_rotated_mask(
+        indicator_center,
+        assets::NORTH_INDICATOR_NEEDLE,
+        -camera.orientation_rad,
+        255,
     );
-    framebuffer.draw_line(indicator_center, needle_tip, 255, 2);
 }

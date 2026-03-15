@@ -26,6 +26,7 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 - [x] Make motion state resilient to brief GPS dropouts instead of forcing an immediate stopped transition.
 - [x] Add rider motion confidence and filtered travel-heading estimation from GPS deltas.
 - [x] Implement riding/stopped camera state transitions with smooth north-up settle on stop.
+- [x] Add a short shared display-mode transition so riding/stopped anchor and heading changes ease instead of snapping.
 - [x] Implement pan, pinch, rotate, north-indicator override, and smooth auto-recenter behavior.
 - [x] Implement follow-lock behavior so manual pan preserves map-relative rider position until recenter.
 - [x] Implement zoom bucket and LOD mask selection in runtime-owned policy.
@@ -34,6 +35,7 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 - [x] Move or establish shared camera-view math and heading-up projection in `render-core`.
 - [x] Implement final screen-space visibility/clipping against runtime-provided camera view over queried geometry candidates.
 - [x] Define vector styling primitives for major/minor road hierarchy and rider marker overlays.
+- [x] Replace hardcoded overlay markers with shared editable SVG assets compiled into render-time alpha masks.
 - [x] Keep framebuffer generation deterministic for identical inputs across targets.
 - [x] Keep render scale sourced from runtime-owned query output rather than recomputing zoom policy inside `render-core`.
 
@@ -43,6 +45,7 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 - [x] Wire emulator wasm bridge to consume `RuntimeFrameOutput` rather than product logic in TypeScript.
 - [x] Wire firmware input translation for GPS and normalized touch contact frames into `RuntimeInputFrame`.
 - [x] Wire browser/emulator input translation to emit the same normalized touch contact frames into `RuntimeInputFrame`.
+- [x] Fix emulator browser input handling for mobile touch forwarding, queued per-event touch replay, and desktop wheel-to-pinch synthesis.
 - [x] Keep device-specific touch drivers and browser event capture outside shared runtime logic while moving gesture and tap semantics into shared Rust.
 - [x] Make `cargo xtask emu` rebuild wasm and start the emulator dev server from the repository root.
 - [x] Preserve browser GPS uncertainty by forwarding unknown heading as `null` and browser-reported horizontal accuracy into shared runtime inputs.
@@ -71,6 +74,7 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 - [x] Add parity-oriented fixtures that can be reused by wasm and firmware adapters and their shared map/query/render loop.
 - [x] Run workspace validation commands once the missing crates exist and are wired.
 - [x] Run emulator wasm build plus web lint/typecheck/build after the frame-driven bridge lands.
+- [x] Add frontend helper tests for logical touch remapping and wheel pinch synthesis.
 - [x] Run `cargo xtask emu` startup sanity check after wiring the real command.
 
 ## Documentation

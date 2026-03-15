@@ -9,9 +9,9 @@ Browser-based emulator for ESP32-P4 minimap behavior, backed by the shared Rust 
 - Indicator and marker visuals are rendered by shared Rust output; emulator UI should not add product-specific overlays on top of the round screen.
 
 ## What This Project Does
-- Simulates the target display profile (Waveshare ESP32-P4 `800x800`).
+- Simulates the target display profile (Waveshare ESP32-P4 `800x800`) and presents it through a round clipped viewport that matches the device form factor.
 - Feeds browser GPS data (or manual bike-sim fallback) into shared camera/runtime state.
-- Supports drag pan, pinch zoom, pinch rotate, and smooth auto-recenter through shared Rust behavior.
+- Supports drag pan, pinch zoom, pinch rotate, smooth riding/stopped transitions, and smooth auto-recenter through shared Rust behavior.
 - Supports keyboard and rendered arrow controls for deterministic simulated bike movement.
 - Reuses the same shared runtime/query/render path as firmware for visual and behavioral parity.
 
@@ -32,7 +32,7 @@ Then open the local URL printed by Vite (usually `http://localhost:5173`).
 1. Start emulator with `cargo xtask emu`.
 2. Grant location permission in browser to test live GPS mode.
 3. Use `ArrowUp`, `ArrowDown`, `ArrowLeft`, and `ArrowRight` for manual bike-sim movement when GPS is not live.
-4. Drag to pan, pinch to zoom/rotate, and wait for recenter.
+4. Drag to pan, pinch to zoom/rotate on touch devices, use the mouse wheel for emulator-only zoom on desktop, and wait for recenter.
 5. Tune bike physics in the `Bike Physics` section (`max speed`, `throttle accel`, steering, braking).
 6. Use `Request GPS` in UI if permission was denied initially.
 

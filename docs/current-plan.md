@@ -28,6 +28,7 @@ Execution guide: [`framework-execution-guide.md`](./framework-execution-guide.md
 - `map-runtime` now rejects invalid `.svm` magic/version/header payloads before parsing map geometry.
 - `render-core-wasm` now queries geometry through `map-runtime` and exposes a frame-driven `step_frame` bridge for emulator consumption.
 - Emulator web now forwards raw GPS and touch contacts into shared Rust and presents Rust-generated pixels without TS-owned camera interaction policy.
+- Emulator presentation now uses a round clipped screen viewport, mobile touch forwarding, and desktop wheel-to-pinch synthesis while keeping gesture semantics Rust-owned.
 - Emulator GPS normalization now preserves unknown heading as `null` and forwards browser-provided accuracy into shared runtime inputs.
 - `cargo xtask emu` now rebuilds `render-core-wasm` and starts the Vite emulator server as the repository-root entrypoint required by the emulator spec.
 - Firmware now runs a host-side shared `runtime-core` -> `map-runtime` -> `render-core` frame loop with tests covering query/render output and touch forwarding.

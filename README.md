@@ -17,14 +17,16 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 - `runtime-core::api` defines stable shared contracts for config, GPS/touch input, camera/query output, diagnostics, and map-query handoff.
 - `runtime-core` now steps a deterministic ECS runner that derives gestures/taps, filtered heading, interaction-aware riding/stopped camera state, and `MapQuerySpec` from shared inputs.
 - The current foundation fixes rotated query coverage for heading-up cameras, keeps the configured lower zoom range reachable, and preserves motion state across brief GPS gaps.
-- Shared Rust now owns one-finger pan, two-finger pinch/rotate, follow-lock, auto-recenter, north-indicator tap handling, and stopped north-up settle behavior.
+- Shared Rust now owns one-finger pan, two-finger pinch/rotate, follow-lock, auto-recenter, north-indicator tap handling, smooth riding/stopped display transitions, and stopped north-up settle behavior.
 - Firmware and wasm bridge helpers can construct `RuntimeInputFrame` values from raw adapter samples.
 - `render-core` now performs shared camera projection, clipping, overlay drawing, and deterministic grayscale framebuffer generation.
+- `render-core` now builds shared rider/north overlays from editable SVG asset sources at compile time instead of hardcoded marker geometry.
 - `render-core` now consumes the runtime-owned `MapQuerySpec.meters_per_pixel` scale directly instead of recomputing zoom policy internally.
 - `map-runtime` now owns the shared embedded `/work/map-data/city.svm` reader plus coarse spatial query index used by both firmware and wasm.
 - `map-runtime` now validates `.svm` magic/version/header bounds before parsing embedded map bytes.
 - `render-core-wasm` now steps `runtime-core`, queries shared map geometry through `map-runtime`, renders pixels, and exposes a frame-driven wasm API to the emulator.
 - Emulator web now forwards raw GPS and normalized touch contacts only; TypeScript no longer owns pan/pinch/rotate/recenter product policy.
+- Emulator presentation now clips the square framebuffer into a round screen, supports mobile touch forwarding, and adds desktop wheel-to-pinch synthesis as an emulator-only convenience.
 - Emulator geolocation normalization now preserves unknown heading as `null` and forwards browser accuracy into the shared GPS contract.
 - `cargo xtask emu` now rebuilds `render-core-wasm` and starts the emulator dev server from the repository root.
 - Firmware now has a board-facing platform boundary, GT9271 report decoding/normalization, RGB565 display conversion/upload helpers, and a platform loop on top of the shared runtime/query/render path.
@@ -43,11 +45,11 @@ Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map ex
 - Zoom policy:
   - close zoom-in target around 100 m context
   - zoom-out bounded for readability
-- Temporary north-up override from top-right north indicator.
-- Marker style upgrade (glowing directional riding marker + larger stopped marker).
+- Temporary north-up override from the top-center north indicator.
+- Marker visuals come from shared editable SVG assets for the riding marker, stopped marker, and north indicator.
 - Dark high-contrast vector style with major/minor road hierarchy for circular minimap UI.
 - Emulator geolocation support using browser location APIs.
-- Emulator pinch/pan touch interactions (works on mobile browsers).
+- Emulator pinch/pan touch interactions (works on mobile browsers) plus desktop wheel-driven synthetic pinch for zoom convenience.
 
 ## Render Core Internals
 - `render-core` public API is stable and stateless for adapters.

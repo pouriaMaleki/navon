@@ -24,16 +24,18 @@ Canonical requirements are defined in [`project-spec.md`](./project-spec.md).
 
 4. `emulator/web` (TypeScript)
 - Runtime shell for input, frame scheduling, and canvas presentation.
+- Presents the `800x800` framebuffer inside a round clipped viewport that matches the device form factor.
 - React UI components and MobX stores.
 - Manual simulated bike movement is handled by a separate physics module and store wiring.
 - `GeoStore` owns GPS source state and forwards either browser GPS or simulated bike samples.
+- `TouchStore` owns browser pointer/touch capture, queued raw contact replay, and desktop wheel-to-pinch synthesis while keeping gesture semantics in shared Rust.
 - `BikeSimStore` owns keyboard/on-screen control state and per-frame simulation updates.
 
 5. `xtask` (Rust CLI)
 - Builds WASM and runs emulator tooling workflow.
 
 ## Data Flow
-Browser input/geolocation -> MobX store state -> shared Rust runtime state -> runtime-owned map query -> Rust renderer pixel buffer -> canvas upload.
+Browser input/geolocation -> MobX store state -> shared Rust runtime state -> runtime-owned map query -> Rust renderer pixel buffer -> round-screen canvas upload.
 
 ## Frontend Organization
 - `ui/`: React components (view layer).

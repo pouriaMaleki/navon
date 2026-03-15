@@ -22,13 +22,17 @@ export const EmulatorPanel = observer(({ appStore }: EmulatorPanelProps) => {
 
   return (
     <section className={styles["panel"]}>
-      <canvas
-        ref={canvasRef}
-        className={styles["canvas"]}
-        width={800}
-        height={800}
-        aria-label="Minimap canvas"
-      />
+      <div className={styles["screen"]}>
+        <div className={styles["viewport"]}>
+          <canvas
+            ref={canvasRef}
+            className={styles["canvas"]}
+            width={800}
+            height={800}
+            aria-label="Minimap canvas"
+          />
+        </div>
+      </div>
       <BikeControls bikeSimStore={bikeSimStore} />
       {emulatorStore.errorMessage ? (
         <p className={styles["error"]}>Emulator error: {emulatorStore.errorMessage}</p>

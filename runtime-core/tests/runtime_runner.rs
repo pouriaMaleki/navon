@@ -75,11 +75,9 @@ fn moving_gps_sample_switches_camera_to_riding() {
     );
 
     assert_eq!(output.camera.mode, CameraMode::Riding);
-    assert!(output.camera.orientation_rad > 1.4 && output.camera.orientation_rad < 1.7);
-    assert_eq!(
-        output.camera.rider_anchor,
-        runtime.config().riding_rider_anchor
-    );
+    assert!(output.camera.orientation_rad > 0.05 && output.camera.orientation_rad < 1.7);
+    assert!(output.camera.rider_anchor.y > NormalizedScreenPoint::CENTER.y);
+    assert!(output.camera.rider_anchor.y < runtime.config().riding_rider_anchor.y);
     assert!(output.camera.center_world.x_m > output.camera.focus_world.x_m);
 }
 
@@ -293,6 +291,39 @@ fn manual_pan_sets_follow_lock_without_moving_rider_world_position() {
 }
 
 #[test]
+fn mode_transition_smooths_rider_anchor_between_stopped_and_riding() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    runtime.step(frame_with_gps(16, stopped_fix(-122.4194)));
+    let riding_start = runtime.step(frame_with_gps(16, moving_fix(-122.4184, 6.0)));
+    let riding_settled = runtime.step(frame_with_gps(220, moving_fix(-122.4174, 6.0)));
+    let stopped_start = runtime.step(frame_with_gps(16, stopped_fix(-122.4174)));
+
+    assert_eq!(riding_start.camera.mode, CameraMode::Riding);
+    assert!(riding_start.camera.rider_anchor.y > NormalizedScreenPoint::CENTER.y);
+    assert!(riding_start.camera.rider_anchor.y < interaction_config().riding_rider_anchor.y);
+    assert_eq!(
+        riding_settled.camera.rider_anchor,
+        interaction_config().riding_rider_anchor
+    );
+    assert!(stopped_start.camera.rider_anchor.y < interaction_config().riding_rider_anchor.y);
+    assert!(stopped_start.camera.rider_anchor.y > NormalizedScreenPoint::CENTER.y);
+}
+
+#[test]
+fn stopped_to_riding_orientation_eases_instead_of_snapping() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    runtime.step(frame_with_gps(16, stopped_fix(-122.4194)));
+    let riding_start = runtime.step(frame_with_gps(16, moving_fix(-122.4184, 6.0)));
+    let riding_mid = runtime.step(frame_with_gps(100, moving_fix(-122.4174, 6.0)));
+    let riding_settled = runtime.step(frame_with_gps(220, moving_fix(-122.4164, 6.0)));
+
+    assert!(riding_start.camera.orientation_rad > 0.0);
+    assert!(riding_start.camera.orientation_rad < std::f32::consts::FRAC_PI_2);
+    assert!(riding_mid.camera.orientation_rad > riding_start.camera.orientation_rad);
+    assert!((riding_settled.camera.orientation_rad - std::f32::consts::FRAC_PI_2).abs() < 0.05);
+}
+
+#[test]
 fn pan_idle_recenters_and_clears_follow_lock() {
     let mut runtime = RuntimeCore::new(interaction_config());
     let moving_fix = moving_fix(-122.4194, 6.0);
@@ -445,7 +476,7 @@ fn stationary_touch_hold_does_not_start_recenter() {
         ],
     ));
 
-    assert_eq!(rotated.camera.orientation_rad, held.camera.orientation_rad);
+    assert!(held.camera.orientation_rad >= rotated.camera.orientation_rad);
     assert!(!held.camera.recenter_active);
 }
 
@@ -457,8 +488,8 @@ fn stopped_transition_holds_heading_then_settles_to_north_up() {
     let stopped_hold = runtime.step(frame_with_gps(16, stopped_fix(-122.4184)));
     let stopped_settled = runtime.step(frame_with_gps(500, stopped_fix(-122.4184)));
 
-    assert!(riding.camera.orientation_rad > 1.4);
-    assert!(stopped_hold.camera.orientation_rad > 1.4);
+    assert!(riding.camera.orientation_rad > 0.0);
+    assert!(stopped_hold.camera.orientation_rad >= riding.camera.orientation_rad);
     assert!(stopped_settled.camera.orientation_rad.abs() < 0.05);
     assert!(stopped_settled.overlay.north_up_active);
 }
@@ -468,6 +499,7 @@ fn interaction_config() -> RuntimeConfig {
         pan_deadzone_px: 6.0,
         pan_recenter_timeout: Duration::from_millis(40),
         recenter_duration: Duration::from_millis(320),
+        mode_transition_duration: Duration::from_millis(180),
         north_up_override_timeout: Duration::from_millis(600),
         stopped_north_up_delay: Duration::from_millis(120),
         stopped_north_up_settle_duration: Duration::from_millis(240),

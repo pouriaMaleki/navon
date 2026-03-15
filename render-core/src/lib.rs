@@ -172,4 +172,68 @@ mod tests {
 
         assert_ne!(near.pixels(), far.pixels());
     }
+
+    #[test]
+    fn riding_marker_rotation_changes_overlay_pixels() {
+        let config = RuntimeConfig::default();
+        let geometry = MapQueryResult::default();
+        let mut north_output = sample_output();
+        north_output.overlay.rider_heading_rad = Some(0.0);
+        let mut east_output = sample_output();
+        east_output.overlay.rider_heading_rad = Some(std::f32::consts::FRAC_PI_2);
+
+        let mut north = Framebuffer::new(128, 128);
+        let mut east = Framebuffer::new(128, 128);
+
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &north_output,
+                geometry: &geometry,
+            },
+            &mut north,
+        );
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &east_output,
+                geometry: &geometry,
+            },
+            &mut east,
+        );
+
+        assert_ne!(north.pixels(), east.pixels());
+    }
+
+    #[test]
+    fn north_indicator_rotation_changes_overlay_pixels() {
+        let config = RuntimeConfig::default();
+        let geometry = MapQueryResult::default();
+        let mut north_up = sample_output();
+        north_up.camera.orientation_rad = 0.0;
+        let mut east_up = sample_output();
+        east_up.camera.orientation_rad = std::f32::consts::FRAC_PI_2;
+
+        let mut north = Framebuffer::new(128, 128);
+        let mut east = Framebuffer::new(128, 128);
+
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &north_up,
+                geometry: &geometry,
+            },
+            &mut north,
+        );
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &east_up,
+                geometry: &geometry,
+            },
+            &mut east,
+        );
+
+        assert_ne!(north.pixels(), east.pixels());
+    }
 }
