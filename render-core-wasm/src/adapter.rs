@@ -1,5 +1,5 @@
 use map_runtime::EmbeddedMapSource;
-use render_core::raster::Framebuffer;
+use render_core::raster::{Color, Framebuffer};
 use runtime_core::RuntimeCore;
 use runtime_core::api::{RuntimeConfig, RuntimeFrameOutput, RuntimeInputFrame};
 use runtime_core::map::MapSource;
@@ -35,7 +35,7 @@ where
             self.config.viewport_size.width_px,
             self.config.viewport_size.height_px,
         );
-        self.framebuffer.clear(0);
+        self.framebuffer.clear(Color::default());
         self.last_output = RuntimeFrameOutput::default();
     }
 

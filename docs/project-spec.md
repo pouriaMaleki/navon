@@ -26,6 +26,19 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - Manual pan temporarily releases follow, keeps the rider marker map-anchored, and smoothly recenters after idle.
 - The canonical orientation UX lives in [`/work/docs/camera-rotation-design.md`](/work/docs/camera-rotation-design.md).
 
+## Visual Palette
+- Shared map and overlay rendering use this palette:
+  - `#050B12`
+  - `#051E24`
+  - `#10132B`
+  - `#103B48`
+  - `#077070`
+  - `#D7FF3F`
+- Background stays near-black.
+- Map geometry uses the dark blue and teal range.
+- Rider markers use `#D7FF3F`.
+- Emulator and device should render from the same shared-Rust palette choices whenever possible.
+
 ## Architecture Boundaries
 - `/work` owns runtime camera, motion, input, query, and render behavior.
 - `/work/map-vector-cli` owns host-side map conversion and `.svm` format generation only.

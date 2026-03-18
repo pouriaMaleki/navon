@@ -1,25 +1,34 @@
 use runtime_core::api::MapLayer;
 
+use crate::raster::Color;
+
+pub const COLOR_BACKGROUND_CANVAS: Color = Color::new(0x05, 0x0B, 0x12);
+pub const COLOR_SURFACE_BASE: Color = Color::new(0x05, 0x1E, 0x24);
+pub const COLOR_SURFACE_ELEVATED: Color = Color::new(0x10, 0x13, 0x2B);
+pub const COLOR_BORDER_STRONG: Color = Color::new(0x10, 0x3B, 0x48);
+pub const COLOR_ACCENT_PRIMARY: Color = Color::new(0x12, 0xA3, 0xA3);
+pub const COLOR_ACCENT_HIGHLIGHT: Color = Color::new(0xD7, 0xFF, 0x3F);
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StrokeStyle {
-    pub intensity: u8,
+    pub color: Color,
     pub thickness_px: u8,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RenderStyle {
-    pub background_intensity: u8,
+    pub background_color: Color,
     pub major_road: StrokeStyle,
     pub minor_road: StrokeStyle,
     pub path: StrokeStyle,
-    pub rider_fill_intensity: u8,
-    pub rider_heading_intensity: u8,
-    pub north_indicator_active_intensity: u8,
-    pub north_indicator_acquisition_intensity: u8,
-    pub north_indicator_idle_intensity: u8,
-    pub north_indicator_locked_intensity: u8,
-    pub north_indicator_ring_intensity: u8,
-    pub north_indicator_ack_intensity: u8,
+    pub rider_fill_color: Color,
+    pub rider_heading_color: Color,
+    pub north_indicator_active_color: Color,
+    pub north_indicator_acquisition_color: Color,
+    pub north_indicator_idle_color: Color,
+    pub north_indicator_locked_color: Color,
+    pub north_indicator_ring_color: Color,
+    pub north_indicator_ack_color: Color,
 }
 
 impl RenderStyle {
@@ -36,27 +45,27 @@ impl RenderStyle {
 impl Default for RenderStyle {
     fn default() -> Self {
         Self {
-            background_intensity: 18,
+            background_color: COLOR_BACKGROUND_CANVAS,
             major_road: StrokeStyle {
-                intensity: 220,
+                color: COLOR_ACCENT_PRIMARY,
                 thickness_px: 3,
             },
             minor_road: StrokeStyle {
-                intensity: 184,
+                color: COLOR_ACCENT_PRIMARY,
                 thickness_px: 2,
             },
             path: StrokeStyle {
-                intensity: 144,
+                color: COLOR_ACCENT_PRIMARY,
                 thickness_px: 1,
             },
-            rider_fill_intensity: 255,
-            rider_heading_intensity: 230,
-            north_indicator_active_intensity: 240,
-            north_indicator_acquisition_intensity: 184,
-            north_indicator_idle_intensity: 120,
-            north_indicator_locked_intensity: 255,
-            north_indicator_ring_intensity: 208,
-            north_indicator_ack_intensity: 220,
+            rider_fill_color: COLOR_ACCENT_HIGHLIGHT,
+            rider_heading_color: COLOR_BORDER_STRONG,
+            north_indicator_active_color: COLOR_BORDER_STRONG,
+            north_indicator_acquisition_color: COLOR_SURFACE_ELEVATED,
+            north_indicator_idle_color: COLOR_SURFACE_BASE,
+            north_indicator_locked_color: COLOR_ACCENT_PRIMARY,
+            north_indicator_ring_color: COLOR_BORDER_STRONG,
+            north_indicator_ack_color: COLOR_ACCENT_PRIMARY,
         }
     }
 }

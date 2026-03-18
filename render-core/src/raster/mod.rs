@@ -1,5 +1,26 @@
 use runtime_core::api::ScreenPoint;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct Color {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+}
+
+impl Color {
+    pub const fn new(r: u8, g: u8, b: u8) -> Self {
+        Self { r, g, b }
+    }
+
+    const fn scale(self, alpha: u8) -> Self {
+        Self {
+            r: ((self.r as u16 * alpha as u16) / 255) as u8,
+            g: ((self.g as u16 * alpha as u16) / 255) as u8,
+            b: ((self.b as u16 * alpha as u16) / 255) as u8,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct AlphaMask {
     width: u32,
@@ -44,7 +65,7 @@ impl Framebuffer {
         Self {
             width,
             height,
-            pixels: vec![0; (width as usize) * (height as usize)],
+            pixels: vec![0; (width as usize) * (height as usize) * 4],
         }
     }
 
@@ -54,7 +75,8 @@ impl Framebuffer {
         }
         self.width = width;
         self.height = height;
-        self.pixels.resize((width as usize) * (height as usize), 0);
+        self.pixels
+            .resize((width as usize) * (height as usize) * 4, 0);
     }
 
     pub fn width(&self) -> u32 {
@@ -73,11 +95,16 @@ impl Framebuffer {
         &mut self.pixels
     }
 
-    pub fn clear(&mut self, value: u8) {
-        self.pixels.fill(value);
+    pub fn clear(&mut self, color: Color) {
+        for rgba in self.pixels.chunks_exact_mut(4) {
+            rgba[0] = color.r;
+            rgba[1] = color.g;
+            rgba[2] = color.b;
+            rgba[3] = 255;
+        }
     }
 
-    pub fn set_pixel(&mut self, x: i32, y: i32, value: u8) {
+    pub fn set_pixel(&mut self, x: i32, y: i32, color: Color) {
         if x < 0 || y < 0 {
             return;
         }
@@ -86,11 +113,20 @@ impl Framebuffer {
         if x >= width || y >= height {
             return;
         }
-        let index = (y as usize * self.width as usize) + x as usize;
-        self.pixels[index] = self.pixels[index].max(value);
+        let index = ((y as usize * self.width as usize) + x as usize) * 4;
+        self.pixels[index] = self.pixels[index].max(color.r);
+        self.pixels[index + 1] = self.pixels[index + 1].max(color.g);
+        self.pixels[index + 2] = self.pixels[index + 2].max(color.b);
+        self.pixels[index + 3] = 255;
     }
 
-    pub fn draw_line(&mut self, from: ScreenPoint, to: ScreenPoint, value: u8, thickness_px: u8) {
+    pub fn draw_line(
+        &mut self,
+        from: ScreenPoint,
+        to: ScreenPoint,
+        color: Color,
+        thickness_px: u8,
+    ) {
         let mut x0 = from.x_px.round() as i32;
         let mut y0 = from.y_px.round() as i32;
         let x1 = to.x_px.round() as i32;
@@ -102,7 +138,7 @@ impl Framebuffer {
         let mut error = dx + dy;
 
         loop {
-            self.stamp_circle(x0, y0, thickness_px.max(1), value);
+            self.stamp_circle(x0, y0, thickness_px.max(1), color);
             if x0 == x1 && y0 == y1 {
                 break;
             }
@@ -118,20 +154,20 @@ impl Framebuffer {
         }
     }
 
-    pub fn stamp_circle(&mut self, cx: i32, cy: i32, radius_px: u8, value: u8) {
+    pub fn stamp_circle(&mut self, cx: i32, cy: i32, radius_px: u8, color: Color) {
         let radius = radius_px.max(1) as i32;
         let radius_sq = radius * radius;
         for dy in -radius..=radius {
             for dx in -radius..=radius {
                 if (dx * dx) + (dy * dy) <= radius_sq {
-                    self.set_pixel(cx + dx, cy + dy, value);
+                    self.set_pixel(cx + dx, cy + dy, color);
                 }
             }
         }
     }
 
-    pub fn draw_mask(&mut self, center: ScreenPoint, mask: AlphaMask, intensity: u8) {
-        self.draw_rotated_mask(center, mask, 0.0, intensity);
+    pub fn draw_mask(&mut self, center: ScreenPoint, mask: AlphaMask, color: Color) {
+        self.draw_rotated_mask(center, mask, 0.0, color);
     }
 
     pub fn draw_rotated_mask(
@@ -139,9 +175,9 @@ impl Framebuffer {
         center: ScreenPoint,
         mask: AlphaMask,
         angle_rad: f32,
-        intensity: u8,
+        color: Color,
     ) {
-        self.draw_rotated_mask_with_filter(center, mask, angle_rad, intensity, |_x, _y| true);
+        self.draw_rotated_mask_with_filter(center, mask, angle_rad, color, |_x, _y| true);
     }
 
     pub fn draw_rotated_mask_radial_progress(
@@ -149,7 +185,7 @@ impl Framebuffer {
         center: ScreenPoint,
         mask: AlphaMask,
         angle_rad: f32,
-        intensity: u8,
+        color: Color,
         progress: f32,
         start_angle_rad: f32,
     ) {
@@ -158,12 +194,12 @@ impl Framebuffer {
             return;
         }
         if clamped_progress >= 1.0 {
-            self.draw_rotated_mask(center, mask, angle_rad, intensity);
+            self.draw_rotated_mask(center, mask, angle_rad, color);
             return;
         }
 
         let sweep_rad = std::f32::consts::TAU * clamped_progress;
-        self.draw_rotated_mask_with_filter(center, mask, angle_rad, intensity, |local_x, local_y| {
+        self.draw_rotated_mask_with_filter(center, mask, angle_rad, color, |local_x, local_y| {
             if local_x == 0.0 && local_y == 0.0 {
                 return true;
             }
@@ -183,7 +219,7 @@ impl Framebuffer {
         center: ScreenPoint,
         mask: AlphaMask,
         angle_rad: f32,
-        intensity: u8,
+        color: Color,
         mut include_pixel: impl FnMut(f32, f32) -> bool,
     ) {
         let half_width = mask.width() as f32 / 2.0;
@@ -208,8 +244,7 @@ impl Framebuffer {
                 if alpha == 0 {
                     continue;
                 }
-                let value = ((u16::from(intensity) * u16::from(alpha)) / 255) as u8;
-                self.set_pixel(x, y, value);
+                self.set_pixel(x, y, color.scale(alpha));
             }
         }
     }
