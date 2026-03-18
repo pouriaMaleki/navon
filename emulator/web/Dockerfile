@@ -1,4 +1,4 @@
-FROM rust:1.85-bookworm AS wasm-builder
+FROM rust:1.88-bookworm AS wasm-builder
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends curl pkg-config libssl-dev ca-certificates \
