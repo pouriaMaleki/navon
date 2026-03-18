@@ -4,5 +4,5 @@ services:
       context: .
       dockerfile: emulator/web/Dockerfile
     ports:
-      - "${EMULATOR_PORT:-4173}:4173"
+      - "0.0.0.0:${EMULATOR_PORT:-4173}:4173"
     restart: unless-stopped
