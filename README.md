@@ -47,6 +47,7 @@ cargo xtask deploy-device --port /dev/ttyUSB0
 ## Documentation
 - Main spec: [`/work/docs/project-spec.md`](/work/docs/project-spec.md)
 - Camera UX: [`/work/docs/camera-rotation-design.md`](/work/docs/camera-rotation-design.md)
+- Map presentation system: [`/work/docs/map-presentation-system-design.md`](/work/docs/map-presentation-system-design.md)
 - Runtime architecture: [`/work/docs/runtime-ecs-architecture.md`](/work/docs/runtime-ecs-architecture.md)
 - Main plan: [`/work/docs/current-plan.md`](/work/docs/current-plan.md)
 - Main TODO: [`/work/docs/todo.md`](/work/docs/todo.md)

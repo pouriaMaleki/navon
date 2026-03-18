@@ -16,6 +16,6 @@ pub use output::{
     CameraMode, CameraOrientationMode, CameraStateSnapshot, OverlayState, RuntimeFrameOutput,
 };
 pub use query::{
-    GeometryCandidate, LodMask, MapLayer, MapPointCandidate, MapPolylineCandidate, MapQueryResult,
-    MapQuerySpec, WorldBounds, WorldPoint, ZoomBucket,
+    GeometryCandidate, LodMask, MapLayer, MapPointCandidate, MapPolylineCandidate,
+    MapPresentationBand, MapQueryResult, MapQuerySpec, WorldBounds, WorldPoint,
 };

@@ -1,9 +1,9 @@
 use std::time::Duration;
 
 use runtime_core::api::{
-    CameraMode, GeometryCandidate, GpsSample, MapLayer, MapPolylineCandidate, MapQueryResult,
-    MapQuerySpec, RuntimeFrameOutput, ScreenPoint, TouchPhase, ViewportSize, WorldPoint,
-    ZoomBucket,
+    CameraMode, GeometryCandidate, GpsSample, MapLayer, MapPolylineCandidate, MapPresentationBand,
+    MapQueryResult, MapQuerySpec, RuntimeFrameOutput, ScreenPoint, TouchPhase, ViewportSize,
+    WorldPoint,
 };
 use runtime_core::map::MapSource;
 
@@ -45,21 +45,21 @@ impl MapSource for FixtureMapSource {
     fn query(&self, spec: &MapQuerySpec) -> MapQueryResult {
         let center = spec.center;
         let horizontal = GeometryCandidate::Polyline(MapPolylineCandidate {
-            layer: MapLayer::MajorRoad,
+            layer: MapLayer::ArterialRoad,
             points: vec![
                 WorldPoint::new(spec.bounds.min.x_m, center.y_m),
                 WorldPoint::new(spec.bounds.max.x_m, center.y_m),
             ],
         });
         let vertical = GeometryCandidate::Polyline(MapPolylineCandidate {
-            layer: MapLayer::MinorRoad,
+            layer: MapLayer::StreetRoad,
             points: vec![
                 WorldPoint::new(center.x_m, spec.bounds.min.y_m),
                 WorldPoint::new(center.x_m, spec.bounds.max.y_m),
             ],
         });
         let diagonal = GeometryCandidate::Polyline(MapPolylineCandidate {
-            layer: MapLayer::Path,
+            layer: MapLayer::BikeRouteMain,
             points: vec![
                 WorldPoint::new(spec.bounds.min.x_m, spec.bounds.min.y_m),
                 WorldPoint::new(spec.bounds.max.x_m, spec.bounds.max.y_m),
@@ -67,10 +67,10 @@ impl MapSource for FixtureMapSource {
         });
 
         let mut geometry = vec![horizontal];
-        if spec.lod_mask.contains(MapLayer::MinorRoad) {
+        if spec.lod_mask.contains(MapLayer::StreetRoad) {
             geometry.push(vertical);
         }
-        if spec.lod_mask.contains(MapLayer::Path) {
+        if spec.lod_mask.contains(MapLayer::BikeRouteMain) {
             geometry.push(diagonal);
         }
 
@@ -87,8 +87,8 @@ pub struct ParitySnapshot {
     pub recenter_active: bool,
     pub north_up_active: bool,
     pub rider_heading_rad: Option<f32>,
-    pub zoom_bucket: ZoomBucket,
-    pub lod_mask_bits: u8,
+    pub presentation_band: MapPresentationBand,
+    pub lod_mask_bits: u16,
     pub geometry_count: usize,
     pub lit_pixel_count: usize,
     pub pixel_hash: u64,
@@ -104,7 +104,7 @@ impl ParitySnapshot {
             recenter_active: output.camera.recenter_active,
             north_up_active: output.overlay.north_up_active,
             rider_heading_rad: output.overlay.rider_heading_rad,
-            zoom_bucket: output.map_query.zoom_bucket,
+            presentation_band: output.map_query.presentation_band,
             lod_mask_bits: output.map_query.lod_mask.bits(),
             geometry_count,
             lit_pixel_count: pixels.iter().copied().filter(|value| *value > 0).count(),
@@ -120,7 +120,7 @@ impl ParitySnapshot {
             && self.recenter_active == other.recenter_active
             && self.north_up_active == other.north_up_active
             && approx_option_f32(self.rider_heading_rad, other.rider_heading_rad)
-            && self.zoom_bucket == other.zoom_bucket
+            && self.presentation_band == other.presentation_band
             && self.lod_mask_bits == other.lod_mask_bits
             && self.geometry_count == other.geometry_count
             && self.lit_pixel_count == other.lit_pixel_count

@@ -22,7 +22,7 @@ pub fn build_snapshot(
         touch_contact_count,
         active_touch_contacts,
         camera_mode: camera.mode,
-        zoom_bucket: map_query.zoom_bucket,
+        presentation_band: map_query.presentation_band,
         meters_per_pixel: map_query.meters_per_pixel,
     }
 }

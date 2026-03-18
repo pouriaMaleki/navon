@@ -1,5 +1,5 @@
 use flate2::read::{GzDecoder, ZlibDecoder};
-use geo_types::{Geometry, LineString, MultiLineString};
+use geo_types::{Geometry, LineString, MultiLineString, MultiPolygon, Polygon};
 use mvt_reader::Reader;
 use mvt_reader::feature::{Feature, Value};
 use rusqlite::Connection;
@@ -12,8 +12,14 @@ const MAGIC: &[u8; 4] = b"SVM1";
 const VERSION: u16 = 1;
 const TILE_EXTENT: f64 = 4096.0;
 const DEFAULT_TARGET_ZOOM: i32 = 16;
-const DEFAULT_MAX_SEGMENTS: usize = 1_500_000;
+const DEFAULT_MAX_SEGMENTS: usize = 5_000_000;
 const DEFAULT_PROFILE: ConvertProfile = ConvertProfile::Bike;
+const FEATURE_ARTERIAL_ROAD: u8 = 1;
+const FEATURE_STREET_ROAD: u8 = 2;
+const FEATURE_BIKE_ROUTE_MAIN: u8 = 3;
+const FEATURE_BIKE_ROUTE_LOCAL: u8 = 4;
+const FEATURE_FOOTPATH: u8 = 5;
+const FEATURE_BUILDING_OUTLINE: u8 = 6;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ConvertProfile {
@@ -195,8 +201,6 @@ fn convert_mbtiles_to_standard(cfg: &ConvertArgs) -> Result<StandardMap, String>
             if !should_use_layer(&lname, cfg.profile) {
                 continue;
             }
-            let road_class = classify_road(&lname);
-
             let feats = reader
                 .get_features_as::<f32>(layer.layer_index)
                 .map_err(|e| format!("feature decode failed: {e}"))?;
@@ -204,7 +208,10 @@ fn convert_mbtiles_to_standard(cfg: &ConvertArgs) -> Result<StandardMap, String>
                 if !should_use_feature(&lname, &feature, cfg.profile) {
                     continue;
                 }
-                push_geometry_segments(&feature.geometry, tx, xyz_ty, road_class, &mut segments);
+                let Some(feature_class) = classify_feature(&lname, &feature) else {
+                    continue;
+                };
+                push_geometry_segments(&feature.geometry, tx, xyz_ty, feature_class, &mut segments);
                 if segments.len() >= cfg.max_segments {
                     break;
                 }
@@ -333,9 +340,18 @@ fn select_zoom_from_available(zooms: &[i32], target: i32) -> Option<i32> {
 
 fn should_use_layer(layer: &str, profile: ConvertProfile) -> bool {
     match profile {
-        ConvertProfile::All => ["transport", "road", "street", "highway", "path", "rail"]
-            .iter()
-            .any(|k| layer.contains(k)),
+        ConvertProfile::All => [
+            "transport",
+            "road",
+            "street",
+            "highway",
+            "path",
+            "rail",
+            "cycle",
+            "building",
+        ]
+        .iter()
+        .any(|k| layer.contains(k)),
         ConvertProfile::Bike => [
             "transport",
             "road",
@@ -344,6 +360,7 @@ fn should_use_layer(layer: &str, profile: ConvertProfile) -> bool {
             "path",
             "rail",
             "cycle",
+            "building",
         ]
         .iter()
         .any(|k| layer.contains(k)),
@@ -358,7 +375,13 @@ fn should_use_feature(layer_name: &str, feature: &Feature<f32>, profile: Convert
 }
 
 fn is_bike_excluded_transport(layer_name: &str, feature: &Feature<f32>) -> bool {
-    if layer_name.contains("water") {
+    if layer_name.contains("water")
+        || layer_name.contains("rail")
+        || layer_name.contains("metro")
+        || layer_name.contains("tram")
+        || layer_name.contains("train")
+        || layer_name.contains("subway")
+    {
         return true;
     }
 
@@ -367,7 +390,19 @@ fn is_bike_excluded_transport(layer_name: &str, feature: &Feature<f32>) -> bool 
     };
 
     let blocked = [
-        "ferry", "boat", "ship", "water", "waterway", "seaway", "marine",
+        "ferry",
+        "boat",
+        "ship",
+        "water",
+        "waterway",
+        "seaway",
+        "marine",
+        "rail",
+        "tram",
+        "metro",
+        "train",
+        "subway",
+        "light_rail",
     ];
 
     for (k, v) in props {
@@ -403,37 +438,110 @@ fn mvt_value_to_ascii(v: &Value) -> Option<String> {
     }
 }
 
-fn classify_road(layer: &str) -> u8 {
-    if layer.contains("motorway") || layer.contains("highway") {
-        1
-    } else if layer.contains("trunk") || layer.contains("primary") {
-        2
-    } else if layer.contains("secondary") || layer.contains("tertiary") {
-        3
-    } else {
-        4
+fn classify_feature(layer_name: &str, feature: &Feature<f32>) -> Option<u8> {
+    let class_text = classification_text(layer_name, feature);
+    if class_text.contains("building") {
+        return Some(FEATURE_BUILDING_OUTLINE);
     }
+
+    if contains_any(&class_text, &["cycle", "bike", "bicycle"]) {
+        if contains_any(
+            &class_text,
+            &[
+                "trunk",
+                "primary",
+                "secondary",
+                "route",
+                "network",
+                "ncn",
+                "rcn",
+            ],
+        ) {
+            return Some(FEATURE_BIKE_ROUTE_MAIN);
+        }
+        return Some(FEATURE_BIKE_ROUTE_LOCAL);
+    }
+
+    if contains_any(
+        &class_text,
+        &[
+            "footway",
+            "foot",
+            "pedestrian",
+            "track",
+            "trail",
+            "steps",
+            "walk",
+            "path",
+        ],
+    ) {
+        return Some(FEATURE_FOOTPATH);
+    }
+
+    if contains_any(
+        &class_text,
+        &[
+            "motorway",
+            "highway",
+            "trunk",
+            "primary",
+            "secondary",
+            "tertiary",
+            "arterial",
+        ],
+    ) {
+        return Some(FEATURE_ARTERIAL_ROAD);
+    }
+
+    if contains_any(
+        &class_text,
+        &[
+            "road",
+            "street",
+            "residential",
+            "service",
+            "living_street",
+            "unclassified",
+            "transport",
+        ],
+    ) {
+        return Some(FEATURE_STREET_ROAD);
+    }
+
+    None
 }
 
 fn push_geometry_segments(
     geometry: &Geometry<f32>,
     tx: i32,
     ty: i32,
-    road_class: u8,
+    feature_class: u8,
     out: &mut Vec<Segment>,
 ) {
     match geometry {
-        Geometry::LineString(ls) => push_linestring(ls, tx, ty, road_class, out),
+        Geometry::LineString(ls) => push_linestring(ls, tx, ty, feature_class, out),
         Geometry::MultiLineString(MultiLineString(lines)) => {
             for ls in lines {
-                push_linestring(ls, tx, ty, road_class, out);
+                push_linestring(ls, tx, ty, feature_class, out);
+            }
+        }
+        Geometry::Polygon(polygon) => push_polygon_outline(polygon, tx, ty, feature_class, out),
+        Geometry::MultiPolygon(MultiPolygon(polygons)) => {
+            for polygon in polygons {
+                push_polygon_outline(polygon, tx, ty, feature_class, out);
             }
         }
         _ => {}
     }
 }
 
-fn push_linestring(ls: &LineString<f32>, tx: i32, ty: i32, road_class: u8, out: &mut Vec<Segment>) {
+fn push_linestring(
+    ls: &LineString<f32>,
+    tx: i32,
+    ty: i32,
+    feature_class: u8,
+    out: &mut Vec<Segment>,
+) {
     if ls.0.len() < 2 {
         return;
     }
@@ -448,11 +556,52 @@ fn push_linestring(ls: &LineString<f32>, tx: i32, ty: i32, road_class: u8, out: 
             y1: a.1,
             x2: b.0,
             y2: b.1,
-            road_class,
+            road_class: feature_class,
             lane_count: 0,
             attr_id: 0,
         });
     }
+}
+
+fn push_polygon_outline(
+    polygon: &Polygon<f32>,
+    tx: i32,
+    ty: i32,
+    feature_class: u8,
+    out: &mut Vec<Segment>,
+) {
+    push_linestring(polygon.exterior(), tx, ty, feature_class, out);
+}
+
+fn classification_text(layer_name: &str, feature: &Feature<f32>) -> String {
+    let mut parts = vec![layer_name.to_ascii_lowercase()];
+    if let Some(props) = feature.properties.as_ref() {
+        for (key, value) in props {
+            let key = key.to_ascii_lowercase();
+            if !matches!(
+                key.as_str(),
+                "class"
+                    | "subclass"
+                    | "type"
+                    | "route"
+                    | "network"
+                    | "transport"
+                    | "kind"
+                    | "highway"
+                    | "category"
+            ) {
+                continue;
+            }
+            if let Some(value) = mvt_value_to_ascii(value) {
+                parts.push(value);
+            }
+        }
+    }
+    parts.join(" ")
+}
+
+fn contains_any(haystack: &str, needles: &[&str]) -> bool {
+    needles.iter().any(|needle| haystack.contains(needle))
 }
 
 fn tile_coord_to_world(tx: i32, ty: i32, x: f32, y: f32) -> (i32, i32) {
@@ -510,7 +659,13 @@ fn compute_bounds(segments: &[Segment]) -> Bounds {
 
 #[cfg(test)]
 mod tests {
-    use super::{select_zoom_from_available, usage};
+    use super::{
+        ConvertProfile, FEATURE_ARTERIAL_ROAD, FEATURE_BIKE_ROUTE_LOCAL, FEATURE_BUILDING_OUTLINE,
+        FEATURE_FOOTPATH, classify_feature, select_zoom_from_available, usage,
+    };
+    use geo_types::{Geometry, LineString};
+    use mvt_reader::feature::{Feature, Value};
+    use std::collections::HashMap;
 
     #[test]
     fn select_zoom_prefers_nearest_below_or_equal_target() {
@@ -535,5 +690,65 @@ mod tests {
     fn usage_only_advertises_convert_mbtiles() {
         assert!(usage().contains("convert-mbtiles"));
         assert!(!usage().contains("emit-rust-window"));
+    }
+
+    #[test]
+    fn classify_building_from_layer_name() {
+        let feature = sample_feature([("class", Value::String("building".into()))]);
+        assert_eq!(
+            classify_feature("building", &feature),
+            Some(FEATURE_BUILDING_OUTLINE)
+        );
+    }
+
+    #[test]
+    fn classify_bike_local_from_cycle_terms() {
+        let feature = sample_feature([("class", Value::String("cycleway".into()))]);
+        assert_eq!(
+            classify_feature("transportation", &feature),
+            Some(FEATURE_BIKE_ROUTE_LOCAL)
+        );
+    }
+
+    #[test]
+    fn classify_arterial_and_footpath() {
+        let arterial = sample_feature([("class", Value::String("primary".into()))]);
+        assert_eq!(
+            classify_feature("transportation", &arterial),
+            Some(FEATURE_ARTERIAL_ROAD)
+        );
+
+        let footpath = sample_feature([("class", Value::String("footway".into()))]);
+        assert_eq!(
+            classify_feature("transportation", &footpath),
+            Some(FEATURE_FOOTPATH)
+        );
+    }
+
+    #[test]
+    fn bike_profile_keeps_building_layers() {
+        assert!(super::should_use_layer("building", ConvertProfile::Bike));
+    }
+
+    #[test]
+    fn bike_profile_excludes_rail_and_tram_transport() {
+        let rail = sample_feature([("class", Value::String("rail".into()))]);
+        assert!(super::is_bike_excluded_transport("transportation", &rail));
+
+        let tram = sample_feature([("class", Value::String("tram".into()))]);
+        assert!(super::is_bike_excluded_transport("transportation", &tram));
+    }
+
+    fn sample_feature<const N: usize>(entries: [(&str, Value); N]) -> Feature<f32> {
+        Feature {
+            geometry: Geometry::LineString(LineString::new(vec![])),
+            id: None,
+            properties: Some(
+                entries
+                    .into_iter()
+                    .map(|(key, value)| (key.to_owned(), value))
+                    .collect::<HashMap<_, _>>(),
+            ),
+        }
     }
 }

@@ -1,6 +1,6 @@
 use crate::api::{
-    CameraStateSnapshot, LodMask, MapLayer, MapQueryResult, MapQuerySpec, ViewportSize,
-    WorldBounds, ZoomBucket,
+    CameraStateSnapshot, LodMask, MapLayer, MapPresentationBand, MapQueryResult, MapQuerySpec,
+    ViewportSize, WorldBounds,
 };
 
 pub trait MapSource {
@@ -16,14 +16,14 @@ pub fn build_query(camera: &CameraStateSnapshot, viewport_size: ViewportSize) ->
         local_half_height_m,
         camera.orientation_rad,
     );
-    let zoom_bucket = zoom_bucket_for(camera.zoom);
+    let presentation_band = presentation_band_for(camera.zoom);
     MapQuerySpec::new(
         camera.center_world,
         WorldBounds::from_center(camera.center_world, half_width_m, half_height_m),
         meters_per_pixel,
         camera.zoom,
-        zoom_bucket,
-        lod_mask_for(zoom_bucket),
+        presentation_band,
+        lod_mask_for(presentation_band),
     )
 }
 
@@ -43,31 +43,46 @@ pub fn meters_per_pixel_for_zoom(zoom: f32) -> f64 {
     156_543.033_92 / 2.0_f64.powf(f64::from(zoom))
 }
 
-pub fn zoom_bucket_for(zoom: f32) -> ZoomBucket {
-    if zoom >= 15.5 {
-        ZoomBucket::Detail
-    } else if zoom >= 13.5 {
-        ZoomBucket::Neighborhood
+pub fn presentation_band_for(zoom: f32) -> MapPresentationBand {
+    if zoom >= 16.5 {
+        MapPresentationBand::CloseDetail
+    } else if zoom >= 14.5 {
+        MapPresentationBand::RideDetail
+    } else if zoom >= 12.5 {
+        MapPresentationBand::NetworkOverview
     } else {
-        ZoomBucket::Overview
+        MapPresentationBand::DistrictOverview
     }
 }
 
-pub fn lod_mask_for(bucket: ZoomBucket) -> LodMask {
-    match bucket {
-        ZoomBucket::Detail => LodMask::from_layers(&[
-            MapLayer::MajorRoad,
-            MapLayer::MinorRoad,
-            MapLayer::Path,
+pub fn lod_mask_for(band: MapPresentationBand) -> LodMask {
+    match band {
+        MapPresentationBand::CloseDetail => LodMask::from_layers(&[
+            MapLayer::ArterialRoad,
+            MapLayer::StreetRoad,
+            MapLayer::BikeRouteMain,
+            MapLayer::BikeRouteLocal,
+            MapLayer::Footpath,
+            MapLayer::BuildingOutline,
             MapLayer::RiderOverlay,
         ]),
-        ZoomBucket::Neighborhood => LodMask::from_layers(&[
-            MapLayer::MajorRoad,
-            MapLayer::MinorRoad,
+        MapPresentationBand::RideDetail => LodMask::from_layers(&[
+            MapLayer::ArterialRoad,
+            MapLayer::StreetRoad,
+            MapLayer::BikeRouteMain,
+            MapLayer::BikeRouteLocal,
+            MapLayer::BuildingOutline,
             MapLayer::RiderOverlay,
         ]),
-        ZoomBucket::Overview => {
-            LodMask::from_layers(&[MapLayer::MajorRoad, MapLayer::RiderOverlay])
-        }
+        MapPresentationBand::NetworkOverview => LodMask::from_layers(&[
+            MapLayer::ArterialRoad,
+            MapLayer::BikeRouteMain,
+            MapLayer::RiderOverlay,
+        ]),
+        MapPresentationBand::DistrictOverview => LodMask::from_layers(&[
+            MapLayer::ArterialRoad,
+            MapLayer::BikeRouteMain,
+            MapLayer::RiderOverlay,
+        ]),
     }
 }
