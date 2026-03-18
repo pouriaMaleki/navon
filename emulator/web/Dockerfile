@@ -16,7 +16,7 @@ FROM node:20-bookworm-slim
 
 WORKDIR /app
 
-RUN npm install --global serve
+RUN npm install --global http-server
 
 COPY emulator/web/package.json emulator/web/package-lock.json ./
 RUN npm ci
@@ -33,4 +33,4 @@ RUN npm run build
 
 EXPOSE 4173
 
-CMD ["serve", "-s", "dist", "-l", "tcp://0.0.0.0:4173"]
+CMD ["http-server", "dist", "-a", "0.0.0.0", "-p", "4173", "-c-1"]
