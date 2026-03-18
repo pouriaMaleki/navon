@@ -1,9 +1,11 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { Esp32ScreenEmulator } from "../core/emulator";
-import { WAVESHARE_ESP32_P4_3_4 } from "../core/screenProfiles";
+import type { ScreenProfile } from "../core/types";
 import { createWasmProgram } from "../programs/wasmProgram";
 import type { WasmRuntimeState } from "../types";
 import type { AppStore } from "./AppStore";
+
+type ScreenProfileFactory = (canvas: HTMLCanvasElement) => ScreenProfile;
 
 export class EmulatorStore {
   isReady = false;
@@ -17,7 +19,10 @@ export class EmulatorStore {
   private emulator: Esp32ScreenEmulator<WasmRuntimeState> | null = null;
   private customState: WasmRuntimeState | null = null;
 
-  constructor(private readonly appStore: AppStore) {
+  constructor(
+    private readonly appStore: AppStore,
+    private readonly profileFactory: ScreenProfileFactory,
+  ) {
     makeAutoObservable<EmulatorStore, "appStore" | "emulator" | "customState">(
       this,
       {
@@ -38,13 +43,10 @@ export class EmulatorStore {
 
     try {
       const { initialState, program } = await createWasmProgram(0);
-      this.emulator = new Esp32ScreenEmulator(
-        canvas,
-        WAVESHARE_ESP32_P4_3_4,
-        initialState,
-        program,
-        { onFrame: this.recordFrameTiming },
-      );
+      const profile = this.profileFactory(canvas);
+      this.emulator = new Esp32ScreenEmulator(canvas, profile, initialState, program, {
+        onFrame: this.recordFrameTiming,
+      });
       this.customState = this.emulator.customState();
       this.emulator.renderOnce();
       this.emulator.start();

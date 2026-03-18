@@ -6,37 +6,46 @@ import styles from "./EmulatorPanel.module.css";
 
 type EmulatorPanelProps = {
   appStore: AppStore;
+  className?: string | undefined;
+  variant?: "default" | "fullscreen" | "web_fullscreen";
+  showBikeControls?: boolean;
 };
 
-export const EmulatorPanel = observer(({ appStore }: EmulatorPanelProps) => {
-  const { bikeSimStore, emulatorStore } = appStore;
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+function joinClassNames(...classNames: Array<string | undefined>): string {
+  return classNames.filter(Boolean).join(" ");
+}
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
-    void emulatorStore.init(canvas);
-  }, [emulatorStore]);
+export const EmulatorPanel = observer(
+  ({ appStore, className, variant = "default", showBikeControls = true }: EmulatorPanelProps) => {
+    const { bikeSimStore, emulatorStore } = appStore;
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  return (
-    <section className={styles["panel"]}>
-      <div className={styles["screen"]}>
-        <div className={styles["viewport"]}>
-          <canvas
-            ref={canvasRef}
-            className={styles["canvas"]}
-            width={800}
-            height={800}
-            aria-label="Minimap canvas"
-          />
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) {
+        return;
+      }
+      void emulatorStore.init(canvas);
+    }, [emulatorStore]);
+
+    return (
+      <section className={joinClassNames(styles["panel"], className)} data-variant={variant}>
+        <div className={styles["screen"]}>
+          <div className={styles["viewport"]}>
+            <canvas
+              ref={canvasRef}
+              className={styles["canvas"]}
+              width={800}
+              height={800}
+              aria-label="Minimap canvas"
+            />
+          </div>
         </div>
-      </div>
-      <BikeControls bikeSimStore={bikeSimStore} />
-      {emulatorStore.errorMessage ? (
-        <p className={styles["error"]}>Emulator error: {emulatorStore.errorMessage}</p>
-      ) : null}
-    </section>
-  );
-});
+        {showBikeControls ? <BikeControls bikeSimStore={bikeSimStore} /> : null}
+        {emulatorStore.errorMessage ? (
+          <p className={styles["error"]}>Emulator error: {emulatorStore.errorMessage}</p>
+        ) : null}
+      </section>
+    );
+  },
+);

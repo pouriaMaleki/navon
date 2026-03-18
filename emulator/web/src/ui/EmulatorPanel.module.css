@@ -7,6 +7,17 @@
   padding: 14px;
 }
 
+.panel[data-variant="fullscreen"],
+.panel[data-variant="web_fullscreen"] {
+  margin-top: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
 .screen {
   width: min(100%, 800px);
   aspect-ratio: 1;
@@ -25,11 +36,48 @@
     0 18px 40px rgb(0 0 0 / 0.32);
 }
 
+.panel[data-variant="fullscreen"] .screen,
+.panel[data-variant="web_fullscreen"] .screen {
+  width: min(100vw, 100vh);
+  height: min(100vw, 100vh);
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.panel[data-variant="web_fullscreen"] .screen {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+@supports (height: 100dvh) {
+  .panel[data-variant="fullscreen"] .screen {
+    width: min(100dvw, 100dvh);
+    height: min(100dvw, 100dvh);
+  }
+
+  .panel[data-variant="web_fullscreen"] .screen {
+    width: 100dvw;
+    height: 100dvh;
+  }
+}
+
 .viewport {
   width: 100%;
   height: 100%;
   border-radius: 50%;
   overflow: hidden;
+  background: #05080b;
+}
+
+.panel[data-variant="fullscreen"] .viewport,
+.panel[data-variant="web_fullscreen"] .viewport {
+  border-radius: 0;
   background: #05080b;
 }
 
@@ -45,4 +93,15 @@
   margin: 12px 0 0;
   color: #ff8b99;
   font-size: 0.9rem;
+}
+
+.panel[data-variant="fullscreen"] .error,
+.panel[data-variant="web_fullscreen"] .error {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgb(19 9 14 / 0.92);
 }

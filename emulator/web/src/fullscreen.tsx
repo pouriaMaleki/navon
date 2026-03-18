@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { installMobileGestureGuards } from "./mobile/installMobileGestureGuards";
 import { AppStore } from "./stores/AppStore";
-import { App } from "./ui/App";
+import { FullscreenApp } from "./ui/FullscreenApp";
 
 const rootEl = document.getElementById("root");
 if (!(rootEl instanceof HTMLDivElement)) {
@@ -11,4 +11,4 @@ if (!(rootEl instanceof HTMLDivElement)) {
 installMobileGestureGuards();
 
 const appStore = new AppStore();
-createRoot(rootEl).render(<App appStore={appStore} />);
+createRoot(rootEl).render(<FullscreenApp appStore={appStore} />);

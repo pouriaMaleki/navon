@@ -1,0 +1,9 @@
+.git
+.github
+.xtask
+target
+emulator/web/node_modules
+emulator/web/dist
+emulator/web/wasm-pkg
+npm-debug.log
+

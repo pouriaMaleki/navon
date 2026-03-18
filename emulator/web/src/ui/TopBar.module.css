@@ -1,5 +1,20 @@
 .topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
   color: #d5dbe3;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.copy {
+  min-width: 0;
 }
 
 .title {
@@ -10,4 +25,29 @@
 .subtitle {
   margin: 8px 0 0;
   color: #9fb0c3;
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #315062;
+  border-radius: 999px;
+  background: rgb(20 36 46 / 0.92);
+  color: #d7ff3f;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
 }
