@@ -13,7 +13,7 @@ This document describes how the emulator frontend is structured with React, MobX
 ## Directory Conventions
 - `web/src/ui`: presentational components and small UI composition logic.
 - `web/src/stores`: stateful orchestration, runtime side effects, browser APIs.
-- `web/src/programs`: WASM render program adapter and camera update logic.
+- `web/src/programs`: WASM render program adapter and frame bridge.
 - `web/src/core`: lower-level emulator engine/canvas primitives.
 - `web/src/types.ts`: shared types used across stores/programs/core.
 
@@ -22,7 +22,7 @@ This document describes how the emulator frontend is structured with React, MobX
   - `AppStore`: composition root.
   - `EmulatorStore`: emulator lifecycle and control actions.
   - `GeoStore`: geolocation + simulation fallback.
-  - `TouchStore`: gesture translation to camera inputs.
+  - `TouchStore`: raw touch/pointer normalization and replay into shared runtime inputs.
 - Use `makeAutoObservable(this, overrides, { autoBind: true })`.
 - Mark non-observable/private implementation fields with annotation overrides.
 - Keep side effects in store methods, not in render functions.

@@ -27,7 +27,7 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 - [x] Add rider motion confidence and filtered travel-heading estimation from GPS deltas.
 - [x] Implement riding/stopped camera state transitions with smooth north-up settle on stop.
 - [x] Add a short shared display-mode transition so riding/stopped anchor and heading changes ease instead of snapping.
-- [x] Implement pan, pinch, rotate, north-indicator override, and smooth auto-recenter behavior.
+- [x] Implement pan, pinch, rotate, north-indicator preview/lock behavior, and smooth auto-recenter behavior.
 - [x] Implement follow-lock behavior so manual pan preserves map-relative rider position until recenter.
 - [x] Implement zoom bucket and LOD mask selection in runtime-owned policy.
 
@@ -70,7 +70,7 @@ Plan reference: [`current-plan.md`](./current-plan.md)
 - [x] Add unit tests for motion filtering, heading smoothing, zoom bounds, and camera interpolation.
 - [x] Add query/render tests for bbox selection, edge-touching geometry, projection, clipping, and deterministic framebuffer output.
 - [x] Add parity fixtures proving identical `TouchContactFrame` sequences resolve to the same gestures/taps across firmware and wasm paths.
-- [x] Add scenario tests for ride, stop, pan, recenter, and north-up override sequences.
+- [x] Add scenario tests for ride, stop, pan, recenter, and compass interaction sequences.
 - [x] Add parity-oriented fixtures that can be reused by wasm and firmware adapters and their shared map/query/render loop.
 - [x] Run workspace validation commands once the missing crates exist and are wired.
 - [x] Run emulator wasm build plus web lint/typecheck/build after the frame-driven bridge lands.

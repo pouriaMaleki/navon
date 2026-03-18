@@ -1,91 +1,29 @@
 # ESP32 Bike Minimap Platform
 
-Rust-based minimap platform for ESP32, aimed at a bike-mounted game-style map experience.
+Rust-based bike minimap platform with shared runtime behavior for firmware and emulator.
 
-## Product Split
-- Main ESP32 project (`/work`): runtime minimap behavior (GPS follow, heading-up, zoom/pan).
-- Map conversion project (`/work/map-vector-cli`): host-side city map conversion into `.svm`.
+## Product Summary
+- GPS-following round minimap with vector rendering.
+- Shared camera UX:
+  - `Heading Acquisition`
+  - `Travel-Up Auto`
+  - `North Preview`
+  - `North Locked`
+  - `Stopped North-Up`
+- Confident movement uses smooth travel-up rotation and lower-quarter rider anchor.
+- Stopped, heading-acquisition, and moving north-up states keep the rider centered.
+- Shared Rust owns pan, pinch, rotate, follow-lock, auto-recenter, compass interaction, and heading-confidence behavior.
 
-## Runtime Architecture
-- `runtime-core`: shared runtime foundation with stable adapter-facing contracts and an internal `bevy_ecs` deterministic frame schedule for motion, camera, and map-query output.
-- `render-core`: stateless render primitives (`CameraView` + queried world geometry -> framebuffer).
-- `map-runtime`: shared embedded `.svm` reader and coarse bbox/LOD query backend used by adapters.
-- `MapSource` implementations: coarse bbox/LOD data lookup behind `MapQuerySpec`.
-- `firmware` and `render-core-wasm`: platform adapters that translate device/browser I/O into shared normalized input contracts and output surfaces only.
+## Workspace Layout
+- `/work`: main runtime/render/input behavior.
+- `/work/map-vector-cli`: host-side map conversion into `.svm`.
+- `runtime-core`: shared runtime policy and deterministic frame stepping.
+- `render-core`: stateless renderer and overlay drawing.
+- `map-runtime`: shared `.svm` parsing and coarse map query backend.
+- `render-core-wasm`: wasm adapter for the emulator.
+- `firmware`: device adapter over the shared runtime/query/render path.
 
-## Current Slice Status
-- `runtime-core::api` defines stable shared contracts for config, GPS/touch input, camera/query output, diagnostics, and map-query handoff.
-- `runtime-core` now steps a deterministic ECS runner that derives gestures/taps, filtered heading, interaction-aware riding/stopped camera state, and `MapQuerySpec` from shared inputs.
-- The current foundation fixes rotated query coverage for heading-up cameras, keeps the configured lower zoom range reachable, and preserves motion state across brief GPS gaps.
-- Shared Rust now owns one-finger pan, two-finger pinch/rotate, follow-lock, auto-recenter, north-indicator tap handling, smooth riding/stopped display transitions, and stopped north-up settle behavior.
-- Firmware and wasm bridge helpers can construct `RuntimeInputFrame` values from raw adapter samples.
-- `render-core` now performs shared camera projection, clipping, overlay drawing, and deterministic grayscale framebuffer generation.
-- `render-core` now builds shared rider/north overlays from editable SVG asset sources at compile time instead of hardcoded marker geometry.
-- `render-core` now consumes the runtime-owned `MapQuerySpec.meters_per_pixel` scale directly instead of recomputing zoom policy internally.
-- `map-runtime` now owns the shared embedded `/work/map-data/city.svm` reader plus coarse spatial query index used by both firmware and wasm.
-- `map-runtime` now validates `.svm` magic/version/header bounds before parsing embedded map bytes.
-- `render-core-wasm` now steps `runtime-core`, queries shared map geometry through `map-runtime`, renders pixels, and exposes a frame-driven wasm API to the emulator.
-- Emulator web now forwards raw GPS and normalized touch contacts only; TypeScript no longer owns pan/pinch/rotate/recenter product policy.
-- Emulator presentation now clips the square framebuffer into a round screen, supports mobile touch forwarding, and adds desktop wheel-to-pinch synthesis as an emulator-only convenience.
-- Emulator geolocation normalization now preserves unknown heading as `null` and forwards browser accuracy into the shared GPS contract.
-- `cargo xtask emu` now rebuilds `render-core-wasm` and starts the emulator dev server from the repository root.
-- Firmware now has a board-facing platform boundary, GT9271 report decoding/normalization, RGB565 display conversion/upload helpers, and a platform loop on top of the shared runtime/query/render path.
-- Firmware touch normalization now targets the logical display viewport instead of assuming controller range equals panel size.
-- Firmware now also has concrete `esp_idf` provider modules for GT9271 register access, panel upload, and NMEA GPS parsing over the existing firmware provider traits.
-- Real ESP-IDF peripheral acquisition, live on-device validation, and device-side `xtask` flows are still pending.
-
-## Target Runtime Behavior
-- Heading-up camera transform in shared Rust renderer.
-- Riding mode camera:
-  - `Heading Acquisition` keeps the rider centered until movement direction is trustworthy.
-  - `Travel-Up Auto` rotates smoothly so trusted travel direction is up.
-  - only `Travel-Up Auto` uses the lower-quarter rider anchor.
-- Stopped mode camera:
-  - centered rider
-  - delayed smooth north-up settle
-- Moving north-up modes:
-  - single tap on the north indicator enters temporary `North Preview`
-  - double tap locks centered north-up until the user unlocks it
-- Zoom policy:
-  - close zoom-in target around 100 m context
-  - zoom-out bounded for readability
-- Low-confidence movement holds the last trusted camera angle instead of following noisy raw course data.
-- Marker visuals come from shared editable SVG assets for the riding marker, stopped marker, and north indicator.
-- Dark high-contrast vector style with major/minor road hierarchy for circular minimap UI.
-- Emulator geolocation support using browser location APIs.
-- Emulator pinch/pan touch interactions (works on mobile browsers) plus desktop wheel-driven synthetic pinch for zoom convenience.
-
-## Render Core Internals
-- `render-core` public API is stable and stateless for adapters.
-- Internal modules are split by concern:
-  - `camera_view`
-  - `raster`
-  - `style`
-  - `visibility`
-  - `overlay`
-
-## Navigation Behavior
-- Default while moving with trusted heading: `Travel-Up Auto` with heading-up and lower-quarter rider anchor.
-- Movement without trusted heading: `Heading Acquisition` with a centered rider and a held stable angle.
-- Default while stopped: centered rider and north-up after delay.
-- One-finger drag: temporarily pan map.
-- Two-finger pinch: zoom in/out.
-- Two-finger rotate: temporarily rotate map heading only in `Travel-Up Auto`.
-- After brief idle: smooth auto-return to current GPS focus.
-- North indicator single tap: temporary centered north-up preview.
-- North indicator double tap: lock centered north-up until unlocked.
-
-## Map Data Flow
-- Source maps: `/work/map-src` (`*.mbtiles`)
-- Converted maps: `/work/map-data` (`city.svm`)
-- Current runtime bridge: embedded `.svm` bytes + shared `map-runtime` coarse query index for firmware and emulator integration.
-- `cargo xtask prepare-map` applies a bike profile that excludes ferry/boat/water transport lanes.
-
-## Commands
-Prerequisites:
-- `wasm-pack` for emulator builds (`cargo install wasm-pack`)
-- JS package manager for emulator web deps (`npm` recommended; `pnpm`/`bun` supported)
-
+## Common Commands
 Prepare maps:
 ```bash
 cargo xtask prepare-map
@@ -96,26 +34,21 @@ Run emulator:
 cargo xtask emu
 ```
 
-Bundle firmware + map for device:
+Bundle firmware:
 ```bash
 cargo xtask bundle-device
 ```
 
-Deploy firmware (requires `espflash`):
+Deploy firmware:
 ```bash
 cargo xtask deploy-device --port /dev/ttyUSB0
 ```
 
-Current status: `cargo xtask emu` is live; `prepare-map`, `bundle-device`, and `deploy-device` still need real command bodies.
-
-## Specs and Plans
-- Main plan: `/work/docs/current-plan.md`
-- Main TODO list: `/work/docs/todo.md`
-- Main spec: `/work/docs/project-spec.md`
-- Camera orientation UX: `/work/docs/camera-rotation-design.md`
-- Framework execution guide: `/work/docs/framework-execution-guide.md`
-- CVE tracking plan: `/work/docs/cve-tracking-plan.md`
-- Converter spec: `/work/map-vector-cli/docs/project-spec.md`
-- Converter plan: `/work/map-vector-cli/docs/current-plan.md`
-- Emulator spec: `/work/emulator/docs/project-spec.md`
-- Emulator plan: `/work/emulator/docs/current-plan.md`
+## Documentation
+- Main spec: [`/work/docs/project-spec.md`](/work/docs/project-spec.md)
+- Camera UX: [`/work/docs/camera-rotation-design.md`](/work/docs/camera-rotation-design.md)
+- Runtime architecture: [`/work/docs/runtime-ecs-architecture.md`](/work/docs/runtime-ecs-architecture.md)
+- Main plan: [`/work/docs/current-plan.md`](/work/docs/current-plan.md)
+- Main TODO: [`/work/docs/todo.md`](/work/docs/todo.md)
+- Emulator spec: [`/work/emulator/docs/project-spec.md`](/work/emulator/docs/project-spec.md)
+- Converter spec: [`/work/map-vector-cli/docs/project-spec.md`](/work/map-vector-cli/docs/project-spec.md)

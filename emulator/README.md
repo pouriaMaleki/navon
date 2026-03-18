@@ -1,66 +1,56 @@
 # ESP32-P4 Web Emulator
 
-Browser-based emulator for ESP32-P4 minimap behavior, backed by the shared Rust runtime and renderer (`runtime-core` + `render-core` via WASM).
+Browser emulator for the ESP32 bike minimap, backed by the shared Rust runtime and renderer.
 
-## Boundary
-- Emulator is a hardware/runtime harness for display + browser input/GPS wiring.
-- Product motion, camera, and interaction policy must live in the shared Rust runtime pipeline led by `runtime-core`, not in emulator-only TypeScript logic.
-- `render-core` is limited to stateless projection, clipping, styling, overlay drawing, and rasterization over runtime-owned outputs.
-- Indicator and marker visuals are rendered by shared Rust output; emulator UI should not add product-specific overlays on top of the round screen.
+## Purpose
+- Simulate the target display shape and browser/device input path before flashing firmware.
+- Reuse the same shared Rust behavior as firmware for camera, motion, query, and overlay logic.
+- Keep emulator TypeScript focused on input forwarding, lifecycle, and presentation.
 
-## What This Project Does
-- Simulates the target display profile (Waveshare ESP32-P4 `800x800`) and presents it through a round clipped viewport that matches the device form factor.
-- Feeds browser GPS data (or manual bike-sim fallback) into shared camera/runtime state.
-- Supports drag pan, pinch zoom, pinch rotate, smooth riding/stopped transitions, and smooth auto-recenter through shared Rust behavior.
-- Uses shared Rust camera UX:
-  - confident movement uses smooth travel-up rotation
+## Shared Behavior
+- Browser GPS or manual bike simulation feed shared runtime inputs.
+- Shared Rust owns:
+  - riding/stopped camera transitions
+  - heading-confidence handling
+  - pan, pinch, and rotate behavior
+  - auto-recenter and follow-lock
+  - compass preview/lock interactions
+- Current camera UX:
+  - confident movement uses smooth `Travel-Up Auto`
   - stopped view returns to centered north-up
-  - single tap gives temporary north preview
-  - double tap locks north-up until unlocked
-- Supports keyboard and rendered arrow controls for deterministic simulated bike movement.
-- Reuses the same shared runtime/query/render path as firmware for visual and behavioral parity.
+  - single tap enters temporary `North Preview`
+  - double tap enters `North Locked`
 
 ## Quick Start
 Prerequisites:
 - Rust toolchain
-- `wasm-pack` (`cargo install wasm-pack`)
-- Node.js `>=20.19` (Node 22 recommended)
+- `wasm-pack`
+- Node.js `>=20.19`
 
 Run from repo root:
 ```bash
 cargo xtask emu
 ```
 
-Then open the local URL printed by Vite (usually `http://localhost:5173`).
+Then open the local URL printed by Vite.
 
 ## Common Workflow
-1. Start emulator with `cargo xtask emu`.
-2. Grant location permission in browser to test live GPS mode.
-3. Use `ArrowUp`, `ArrowDown`, `ArrowLeft`, and `ArrowRight` for manual bike-sim movement when GPS is not live.
-4. Drag to pan, pinch to zoom on touch devices, rotate only during travel-up auto, use the mouse wheel for emulator-only zoom on desktop, and wait for recenter.
-5. Tune bike physics in the `Bike Physics` section (`max speed`, `throttle accel`, steering, braking).
-6. Use `Request GPS` in UI if permission was denied initially.
+1. Start the emulator with `cargo xtask emu`.
+2. Grant location permission to test live GPS mode.
+3. Use arrow keys or on-screen controls for deterministic bike simulation.
+4. Drag to pan, pinch to zoom, rotate only while in `Travel-Up Auto`, and wait for recenter.
+5. Use the bike-physics controls to tune simulation behavior when needed.
 
-## Development Commands
+## Web Checks
 Run in `emulator/web`:
 ```bash
 npm run lint
-npm run lint:fix
-npm run format
 npm run typecheck
 npm run build
 ```
 
 ## Documentation
-- Canonical emulator spec: [`docs/project-spec.md`](./docs/project-spec.md)
-- Canonical camera orientation UX: [`../docs/camera-rotation-design.md`](../docs/camera-rotation-design.md)
-- Current implementation plan: [`docs/current-plan.md`](./docs/current-plan.md)
-- Architecture overview: [`docs/architecture.md`](./docs/architecture.md)
-- React + MobX + CSS Modules setup: [`docs/frontend-stack.md`](./docs/frontend-stack.md)
-
-## Repository Layout
-- `web/`: Vite + React app for emulator runtime.
-- `web/src/programs`: WASM-backed render program binding.
-- `web/src/stores`: MobX state and input/geolocation integration.
-- `web/src/ui`: React components styled with CSS Modules.
-- `run.sh`: convenience wrapper delegating to `cargo xtask emu`.
+- Emulator spec: [`./docs/project-spec.md`](./docs/project-spec.md)
+- Camera UX: [`../docs/camera-rotation-design.md`](../docs/camera-rotation-design.md)
+- Architecture: [`./docs/architecture.md`](./docs/architecture.md)
+- Frontend stack: [`./docs/frontend-stack.md`](./docs/frontend-stack.md)
