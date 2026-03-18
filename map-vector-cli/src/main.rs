@@ -1,3 +1,5 @@
+mod helsinki_water_posts;
+
 use flate2::read::{GzDecoder, ZlibDecoder};
 use geo_types::{Geometry, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon};
 use mvt_reader::Reader;
@@ -11,6 +13,7 @@ use std::path::{Path, PathBuf};
 const MAGIC: &[u8; 4] = b"SVM1";
 const VERSION: u16 = 1;
 const TILE_EXTENT: f64 = 4096.0;
+const MAX_WEB_MERCATOR_LAT_DEG: f64 = 85.051_128_78;
 const DEFAULT_TARGET_ZOOM: i32 = 16;
 const DEFAULT_MAX_SEGMENTS: usize = 5_000_000;
 const DEFAULT_PROFILE: ConvertProfile = ConvertProfile::Bike;
@@ -234,7 +237,14 @@ fn convert_mbtiles_to_standard(cfg: &ConvertArgs) -> Result<StandardMap, String>
         }
     }
 
-    if segments.len() > cfg.max_segments {
+    let supplemental_segments = hardcoded_helsinki_water_post_segments(cfg.input.as_path(), z);
+    if !supplemental_segments.is_empty() {
+        let keep_len = cfg.max_segments.saturating_sub(supplemental_segments.len());
+        if segments.len() > keep_len {
+            segments.truncate(keep_len);
+        }
+        segments.extend(supplemental_segments);
+    } else if segments.len() > cfg.max_segments {
         segments.truncate(cfg.max_segments);
     }
     let bounds = compute_bounds(&segments);
@@ -610,7 +620,6 @@ fn classify_poi_feature(layer_name: &str, class_text: &str) -> Option<u8> {
             "water tap",
             "fountain",
             "spring",
-            "water_park",
         ],
     ) {
         return Some(FEATURE_WATER);
@@ -735,6 +744,46 @@ fn contains_any(haystack: &str, needles: &[&str]) -> bool {
     needles.iter().any(|needle| haystack.contains(needle))
 }
 
+fn hardcoded_helsinki_water_post_segments(input: &Path, source_zoom: i32) -> Vec<Segment> {
+    if !is_helsinki_source(input) {
+        return Vec::new();
+    }
+
+    helsinki_water_posts::HELSINKI_WATER_POSTS_LON_LAT
+        .iter()
+        .copied()
+        .map(|(lon_deg, lat_deg)| lon_lat_to_world_point(lon_deg, lat_deg, source_zoom))
+        .map(|(x, y)| Segment {
+            x1: x,
+            y1: y,
+            x2: x,
+            y2: y,
+            road_class: FEATURE_WATER,
+            geometry_kind: GEOMETRY_POINT,
+            attr_id: 0,
+        })
+        .collect()
+}
+
+fn is_helsinki_source(input: &Path) -> bool {
+    input
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(|name| name.to_ascii_lowercase().contains("helsinki"))
+        .unwrap_or(false)
+}
+
+fn lon_lat_to_world_point(lon_deg: f64, lat_deg: f64, source_zoom: i32) -> (i32, i32) {
+    let scale = TILE_EXTENT * 2.0_f64.powi(source_zoom);
+    let clamped_lat = lat_deg.clamp(-MAX_WEB_MERCATOR_LAT_DEG, MAX_WEB_MERCATOR_LAT_DEG);
+    let lat_rad = clamped_lat.to_radians();
+    let world_x = ((lon_deg + 180.0) / 360.0 * scale).round() as i32;
+    let mercator_y =
+        (1.0 - ((lat_rad.tan() + (1.0 / lat_rad.cos())).ln() / std::f64::consts::PI)) / 2.0;
+    let world_y = -(mercator_y * scale).round() as i32;
+    (world_x, world_y)
+}
+
 fn tile_coord_to_world(tx: i32, ty: i32, x: f32, y: f32) -> (i32, i32) {
     let wx = (tx as f64 * TILE_EXTENT + x as f64).round() as i32;
     let wy = -((ty as f64 * TILE_EXTENT + y as f64).round() as i32);
@@ -794,11 +843,13 @@ mod tests {
         ConvertProfile, FEATURE_ARTERIAL_ROAD, FEATURE_BIKE_PARKING, FEATURE_BIKE_REPAIR,
         FEATURE_BIKE_ROUTE_LOCAL, FEATURE_BUILDING_OUTLINE, FEATURE_CAFE, FEATURE_FOOTPATH,
         FEATURE_RESTAURANT, FEATURE_SUPERMARKET, FEATURE_WATER, FEATURE_WC, classify_feature,
-        select_zoom_from_available, usage,
+        hardcoded_helsinki_water_post_segments, is_helsinki_source, select_zoom_from_available,
+        usage,
     };
     use geo_types::{Geometry, LineString};
     use mvt_reader::feature::{Feature, Value};
     use std::collections::HashMap;
+    use std::path::Path;
 
     #[test]
     fn select_zoom_prefers_nearest_below_or_equal_target() {
@@ -914,8 +965,36 @@ mod tests {
         let water = sample_feature([("class", Value::String("drinking_water".into()))]);
         assert_eq!(classify_feature("poi", &water), Some(FEATURE_WATER));
 
+        let water_park = sample_feature([("class", Value::String("water_park".into()))]);
+        assert_eq!(classify_feature("poi", &water_park), None);
+
         let wc = sample_feature([("class", Value::String("toilets".into()))]);
         assert_eq!(classify_feature("poi", &wc), Some(FEATURE_WC));
+    }
+
+    #[test]
+    fn hardcoded_water_posts_only_apply_to_helsinki_sources() {
+        assert!(is_helsinki_source(Path::new(
+            "osm_finland_helsinki.mbtiles"
+        )));
+        assert!(!is_helsinki_source(Path::new("osm_finland_turku.mbtiles")));
+    }
+
+    #[test]
+    fn hardcoded_helsinki_water_posts_generate_point_segments() {
+        let segments =
+            hardcoded_helsinki_water_post_segments(Path::new("osm_finland_helsinki.mbtiles"), 14);
+        assert_eq!(segments.len(), 67);
+        assert!(
+            segments
+                .iter()
+                .all(|segment| segment.road_class == FEATURE_WATER)
+        );
+        assert!(
+            segments
+                .iter()
+                .all(|segment| segment.geometry_kind == super::GEOMETRY_POINT)
+        );
     }
 
     fn sample_feature<const N: usize>(entries: [(&str, Value); N]) -> Feature<f32> {
