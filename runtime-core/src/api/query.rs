@@ -71,6 +71,13 @@ pub enum MapLayer {
     BikeRouteLocal,
     Footpath,
     BuildingOutline,
+    BikeParking,
+    BikeRepair,
+    Supermarket,
+    Restaurant,
+    Cafe,
+    Water,
+    Wc,
     RiderOverlay,
 }
 
@@ -83,8 +90,28 @@ impl MapLayer {
             Self::BikeRouteLocal => 1 << 3,
             Self::Footpath => 1 << 4,
             Self::BuildingOutline => 1 << 5,
-            Self::RiderOverlay => 1 << 6,
+            Self::BikeParking => 1 << 6,
+            Self::BikeRepair => 1 << 7,
+            Self::Supermarket => 1 << 8,
+            Self::Restaurant => 1 << 9,
+            Self::Cafe => 1 << 10,
+            Self::Water => 1 << 11,
+            Self::Wc => 1 << 12,
+            Self::RiderOverlay => 1 << 13,
         }
+    }
+
+    pub const fn is_point(self) -> bool {
+        matches!(
+            self,
+            Self::BikeParking
+                | Self::BikeRepair
+                | Self::Supermarket
+                | Self::Restaurant
+                | Self::Cafe
+                | Self::Water
+                | Self::Wc
+        )
     }
 }
 

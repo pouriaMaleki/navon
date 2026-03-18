@@ -45,6 +45,8 @@ pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
         }
     }
 
+    render_points(&camera_view, viewport, &style, scene.geometry, framebuffer);
+
     draw_overlay(
         scene.config,
         &scene.output.camera,
@@ -55,12 +57,117 @@ pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
     );
 }
 
+fn render_points(
+    camera_view: &CameraView,
+    viewport: ViewportSize,
+    style: &RenderStyle,
+    geometry: &MapQueryResult,
+    framebuffer: &mut Framebuffer,
+) {
+    let mut points = geometry
+        .geometry
+        .iter()
+        .filter_map(|candidate| match candidate {
+            runtime_core::api::GeometryCandidate::Point(point) => {
+                let point_style = style.point_for_layer(point.layer)?;
+                let screen = camera_view.world_to_screen(point.position);
+                if !point_within_viewport(screen, viewport, point_style.badge_radius_px) {
+                    return None;
+                }
+                Some((point.layer, point_style, screen))
+            }
+            runtime_core::api::GeometryCandidate::Polyline(_) => None,
+        })
+        .collect::<Vec<_>>();
+
+    points.sort_by_key(|(layer, _, _)| point_priority(*layer));
+
+    let mut accepted = Vec::new();
+    for (layer, point_style, screen) in points {
+        if accepted.iter().any(
+            |(existing, existing_layer, spacing): &(
+                runtime_core::api::ScreenPoint,
+                runtime_core::api::MapLayer,
+                f32,
+            )| {
+                let dx = existing.x_px - screen.x_px;
+                let dy = existing.y_px - screen.y_px;
+                let min_spacing = if *existing_layer == layer {
+                    spacing.max(f32::from(point_style.min_spacing_px))
+                } else {
+                    8.0
+                };
+                (dx * dx) + (dy * dy) < min_spacing * min_spacing
+            },
+        ) {
+            continue;
+        }
+
+        draw_poi_marker(framebuffer, screen, layer, point_style);
+
+        accepted.push((screen, layer, f32::from(point_style.min_spacing_px)));
+    }
+}
+
+fn draw_poi_marker(
+    framebuffer: &mut Framebuffer,
+    screen: runtime_core::api::ScreenPoint,
+    layer: runtime_core::api::MapLayer,
+    point_style: crate::style::PointStyle,
+) {
+    framebuffer.stamp_circle(
+        screen.x_px.round() as i32,
+        screen.y_px.round() as i32,
+        point_style.badge_radius_px,
+        point_style.badge_color,
+    );
+    framebuffer.draw_mask(screen, poi_asset_for_layer(layer), point_style.icon_color);
+}
+
+fn poi_asset_for_layer(layer: runtime_core::api::MapLayer) -> crate::raster::AlphaMask {
+    match layer {
+        runtime_core::api::MapLayer::BikeParking => crate::overlay::assets::POI_BIKE_PARKING,
+        runtime_core::api::MapLayer::BikeRepair => crate::overlay::assets::POI_BIKE_REPAIR,
+        runtime_core::api::MapLayer::Supermarket => crate::overlay::assets::POI_SUPERMARKET,
+        runtime_core::api::MapLayer::Restaurant => crate::overlay::assets::POI_RESTAURANT,
+        runtime_core::api::MapLayer::Cafe => crate::overlay::assets::POI_CAFE,
+        runtime_core::api::MapLayer::Water => crate::overlay::assets::POI_WATER,
+        runtime_core::api::MapLayer::Wc => crate::overlay::assets::POI_WC,
+        _ => crate::overlay::assets::POI_BIKE_PARKING,
+    }
+}
+
+fn point_within_viewport(
+    screen: runtime_core::api::ScreenPoint,
+    viewport: ViewportSize,
+    radius_px: u8,
+) -> bool {
+    let margin = f32::from(radius_px) + 1.0;
+    screen.x_px >= -margin
+        && screen.y_px >= -margin
+        && screen.x_px <= viewport.width_px as f32 + margin
+        && screen.y_px <= viewport.height_px as f32 + margin
+}
+
+fn point_priority(layer: runtime_core::api::MapLayer) -> u8 {
+    match layer {
+        runtime_core::api::MapLayer::BikeRepair => 0,
+        runtime_core::api::MapLayer::BikeParking => 1,
+        runtime_core::api::MapLayer::Water => 2,
+        runtime_core::api::MapLayer::Wc => 3,
+        runtime_core::api::MapLayer::Supermarket => 4,
+        runtime_core::api::MapLayer::Cafe => 5,
+        runtime_core::api::MapLayer::Restaurant => 6,
+        _ => 7,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use runtime_core::api::{
         CameraMode, CameraOrientationMode, CameraStateSnapshot, LodMask, MapLayer,
-        MapPolylineCandidate, MapPresentationBand, MapQuerySpec, NormalizedScreenPoint,
-        OverlayState, RuntimeConfig, RuntimeFrameOutput, WorldPoint,
+        MapPointCandidate, MapPolylineCandidate, MapPresentationBand, MapQuerySpec,
+        NormalizedScreenPoint, OverlayState, RuntimeConfig, RuntimeFrameOutput, WorldPoint,
     };
 
     use super::*;
@@ -299,5 +406,49 @@ mod tests {
         assert_ne!(preview.pixels(), locked.pixels());
         assert_ne!(preview.pixels(), acquisition.pixels());
         assert_ne!(ack.pixels(), acquisition.pixels());
+    }
+
+    #[test]
+    fn poi_points_render_distinct_marker_pixels() {
+        let config = RuntimeConfig::default();
+        let output = sample_output();
+        let empty_geometry = MapQueryResult::default();
+        let geometry = MapQueryResult {
+            geometry: vec![
+                runtime_core::api::GeometryCandidate::Point(MapPointCandidate {
+                    layer: MapLayer::BikeParking,
+                    position: WorldPoint::new(0.0, 0.0),
+                }),
+                runtime_core::api::GeometryCandidate::Point(MapPointCandidate {
+                    layer: MapLayer::BikeRepair,
+                    position: WorldPoint::new(16.0, 12.0),
+                }),
+                runtime_core::api::GeometryCandidate::Point(MapPointCandidate {
+                    layer: MapLayer::Restaurant,
+                    position: WorldPoint::new(-16.0, -12.0),
+                }),
+            ],
+        };
+        let mut empty = Framebuffer::new(128, 128);
+        let mut framebuffer = Framebuffer::new(128, 128);
+
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &output,
+                geometry: &empty_geometry,
+            },
+            &mut empty,
+        );
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &output,
+                geometry: &geometry,
+            },
+            &mut framebuffer,
+        );
+
+        assert_ne!(empty.pixels(), framebuffer.pixels());
     }
 }

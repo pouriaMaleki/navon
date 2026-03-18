@@ -16,6 +16,14 @@ pub struct StrokeStyle {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PointStyle {
+    pub badge_color: Color,
+    pub icon_color: Color,
+    pub badge_radius_px: u8,
+    pub min_spacing_px: u8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RenderStyle {
     pub background_color: Color,
     pub arterial_road: StrokeStyle,
@@ -24,6 +32,13 @@ pub struct RenderStyle {
     pub bike_route_local: StrokeStyle,
     pub footpath: StrokeStyle,
     pub building_outline: StrokeStyle,
+    pub bike_parking: PointStyle,
+    pub bike_repair: PointStyle,
+    pub supermarket: PointStyle,
+    pub restaurant: PointStyle,
+    pub cafe: PointStyle,
+    pub water: PointStyle,
+    pub wc: PointStyle,
     pub rider_fill_color: Color,
     pub rider_heading_color: Color,
     pub north_indicator_active_color: Color,
@@ -44,12 +59,32 @@ impl RenderStyle {
             MapLayer::Footpath => self.footpath,
             MapLayer::BuildingOutline => self.building_outline,
             MapLayer::RiderOverlay => self.arterial_road,
+            _ => self.arterial_road,
+        }
+    }
+
+    pub fn point_for_layer(self, layer: MapLayer) -> Option<PointStyle> {
+        match layer {
+            MapLayer::BikeParking => Some(self.bike_parking),
+            MapLayer::BikeRepair => Some(self.bike_repair),
+            MapLayer::Supermarket => Some(self.supermarket),
+            MapLayer::Restaurant => Some(self.restaurant),
+            MapLayer::Cafe => Some(self.cafe),
+            MapLayer::Water => Some(self.water),
+            MapLayer::Wc => Some(self.wc),
+            _ => None,
         }
     }
 }
 
 impl Default for RenderStyle {
     fn default() -> Self {
+        let shared_poi_style = PointStyle {
+            badge_color: COLOR_SURFACE_ELEVATED,
+            icon_color: COLOR_ACCENT_PRIMARY,
+            badge_radius_px: 8,
+            min_spacing_px: 20,
+        };
         Self {
             background_color: COLOR_BACKGROUND_CANVAS,
             arterial_road: StrokeStyle {
@@ -76,6 +111,13 @@ impl Default for RenderStyle {
                 color: COLOR_SURFACE_ELEVATED,
                 thickness_px: 1,
             },
+            bike_parking: shared_poi_style,
+            bike_repair: shared_poi_style,
+            supermarket: shared_poi_style,
+            restaurant: shared_poi_style,
+            cafe: shared_poi_style,
+            water: shared_poi_style,
+            wc: shared_poi_style,
             rider_fill_color: COLOR_ACCENT_HIGHLIGHT,
             rider_heading_color: COLOR_BORDER_STRONG,
             north_indicator_active_color: COLOR_BORDER_STRONG,

@@ -1,4 +1,4 @@
-mod assets;
+pub(crate) mod assets;
 
 use runtime_core::api::{
     CameraOrientationMode, CameraStateSnapshot, OverlayState, RuntimeConfig, ScreenPoint,

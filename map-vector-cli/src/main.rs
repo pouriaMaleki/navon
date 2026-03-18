@@ -1,5 +1,5 @@
 use flate2::read::{GzDecoder, ZlibDecoder};
-use geo_types::{Geometry, LineString, MultiLineString, MultiPolygon, Polygon};
+use geo_types::{Geometry, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon};
 use mvt_reader::Reader;
 use mvt_reader::feature::{Feature, Value};
 use rusqlite::Connection;
@@ -20,6 +20,15 @@ const FEATURE_BIKE_ROUTE_MAIN: u8 = 3;
 const FEATURE_BIKE_ROUTE_LOCAL: u8 = 4;
 const FEATURE_FOOTPATH: u8 = 5;
 const FEATURE_BUILDING_OUTLINE: u8 = 6;
+const FEATURE_BIKE_PARKING: u8 = 7;
+const FEATURE_BIKE_REPAIR: u8 = 8;
+const FEATURE_SUPERMARKET: u8 = 9;
+const FEATURE_RESTAURANT: u8 = 10;
+const FEATURE_CAFE: u8 = 11;
+const FEATURE_WATER: u8 = 12;
+const FEATURE_WC: u8 = 13;
+const GEOMETRY_POLYLINE: u8 = 0;
+const GEOMETRY_POINT: u8 = 1;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ConvertProfile {
@@ -46,7 +55,7 @@ struct Segment {
     x2: i32,
     y2: i32,
     road_class: u8,
-    lane_count: u8,
+    geometry_kind: u8,
     attr_id: u32,
 }
 
@@ -283,7 +292,7 @@ fn write_standard_map(path: &Path, map: &StandardMap) -> Result<(), String> {
         write_i32(&mut buf, s.x2)?;
         write_i32(&mut buf, s.y2)?;
         buf.push(s.road_class);
-        buf.push(s.lane_count);
+        buf.push(s.geometry_kind);
         write_u16(&mut buf, 0)?;
         write_u32(&mut buf, s.attr_id)?;
     }
@@ -349,6 +358,7 @@ fn should_use_layer(layer: &str, profile: ConvertProfile) -> bool {
             "rail",
             "cycle",
             "building",
+            "poi",
         ]
         .iter()
         .any(|k| layer.contains(k)),
@@ -361,6 +371,7 @@ fn should_use_layer(layer: &str, profile: ConvertProfile) -> bool {
             "rail",
             "cycle",
             "building",
+            "poi",
         ]
         .iter()
         .any(|k| layer.contains(k)),
@@ -375,6 +386,17 @@ fn should_use_feature(layer_name: &str, feature: &Feature<f32>, profile: Convert
 }
 
 fn is_bike_excluded_transport(layer_name: &str, feature: &Feature<f32>) -> bool {
+    if !(layer_name.contains("transport")
+        || layer_name.contains("road")
+        || layer_name.contains("street")
+        || layer_name.contains("highway")
+        || layer_name.contains("path")
+        || layer_name.contains("rail")
+        || layer_name.contains("cycle"))
+    {
+        return false;
+    }
+
     if layer_name.contains("water")
         || layer_name.contains("rail")
         || layer_name.contains("metro")
@@ -440,6 +462,10 @@ fn mvt_value_to_ascii(v: &Value) -> Option<String> {
 
 fn classify_feature(layer_name: &str, feature: &Feature<f32>) -> Option<u8> {
     let class_text = classification_text(layer_name, feature);
+    if let Some(poi_class) = classify_poi_feature(layer_name, &class_text) {
+        return Some(poi_class);
+    }
+
     if class_text.contains("building") {
         return Some(FEATURE_BUILDING_OUTLINE);
     }
@@ -511,6 +537,92 @@ fn classify_feature(layer_name: &str, feature: &Feature<f32>) -> Option<u8> {
     None
 }
 
+fn classify_poi_feature(layer_name: &str, class_text: &str) -> Option<u8> {
+    if !layer_name.contains("poi") {
+        return None;
+    }
+
+    if contains_any(class_text, &["bicycle_parking"])
+        || (class_text.contains("parking") && contains_any(class_text, &["bicycle", "bike"]))
+    {
+        return Some(FEATURE_BIKE_PARKING);
+    }
+
+    if contains_any(
+        class_text,
+        &[
+            "bicycle_repair_station",
+            "repair_station",
+            "repair station",
+            "bike repair",
+            "bicycle repair",
+            "bicycle_rental",
+            "bike rental",
+            "bicycle shop",
+            "bike shop",
+            "cycle repair",
+            "compressed_air",
+            "air pump",
+            "bike pump",
+            "bicycle pump",
+        ],
+    ) || (contains_any(class_text, &["bicycle", "bike", "cycle"])
+        && contains_any(
+            class_text,
+            &["repair", "rental", "service", "shop", "workshop", "bicycle"],
+        ))
+    {
+        return Some(FEATURE_BIKE_REPAIR);
+    }
+
+    if contains_any(
+        class_text,
+        &["supermarket", "grocery", "convenience", "general"],
+    ) {
+        return Some(FEATURE_SUPERMARKET);
+    }
+
+    if contains_any(
+        class_text,
+        &[
+            "restaurant",
+            "fast_food",
+            "fast food",
+            "food_court",
+            "food court",
+        ],
+    ) {
+        return Some(FEATURE_RESTAURANT);
+    }
+
+    if contains_any(class_text, &["cafe", "bakery"]) {
+        return Some(FEATURE_CAFE);
+    }
+
+    if contains_any(
+        class_text,
+        &[
+            "drinking_water",
+            "drinking water",
+            "water_point",
+            "water point",
+            "water_tap",
+            "water tap",
+            "fountain",
+            "spring",
+            "water_park",
+        ],
+    ) {
+        return Some(FEATURE_WATER);
+    }
+
+    if contains_any(class_text, &["toilets", "toilet", "wc", "restroom"]) {
+        return Some(FEATURE_WC);
+    }
+
+    None
+}
+
 fn push_geometry_segments(
     geometry: &Geometry<f32>,
     tx: i32,
@@ -523,6 +635,12 @@ fn push_geometry_segments(
         Geometry::MultiLineString(MultiLineString(lines)) => {
             for ls in lines {
                 push_linestring(ls, tx, ty, feature_class, out);
+            }
+        }
+        Geometry::Point(point) => push_point(point, tx, ty, feature_class, out),
+        Geometry::MultiPoint(MultiPoint(points)) => {
+            for point in points {
+                push_point(point, tx, ty, feature_class, out);
             }
         }
         Geometry::Polygon(polygon) => push_polygon_outline(polygon, tx, ty, feature_class, out),
@@ -557,10 +675,23 @@ fn push_linestring(
             x2: b.0,
             y2: b.1,
             road_class: feature_class,
-            lane_count: 0,
+            geometry_kind: GEOMETRY_POLYLINE,
             attr_id: 0,
         });
     }
+}
+
+fn push_point(point: &Point<f32>, tx: i32, ty: i32, feature_class: u8, out: &mut Vec<Segment>) {
+    let world = tile_coord_to_world(tx, ty, point.x(), point.y());
+    out.push(Segment {
+        x1: world.0,
+        y1: world.1,
+        x2: world.0,
+        y2: world.1,
+        road_class: feature_class,
+        geometry_kind: GEOMETRY_POINT,
+        attr_id: 0,
+    });
 }
 
 fn push_polygon_outline(
@@ -660,8 +791,10 @@ fn compute_bounds(segments: &[Segment]) -> Bounds {
 #[cfg(test)]
 mod tests {
     use super::{
-        ConvertProfile, FEATURE_ARTERIAL_ROAD, FEATURE_BIKE_ROUTE_LOCAL, FEATURE_BUILDING_OUTLINE,
-        FEATURE_FOOTPATH, classify_feature, select_zoom_from_available, usage,
+        ConvertProfile, FEATURE_ARTERIAL_ROAD, FEATURE_BIKE_PARKING, FEATURE_BIKE_REPAIR,
+        FEATURE_BIKE_ROUTE_LOCAL, FEATURE_BUILDING_OUTLINE, FEATURE_CAFE, FEATURE_FOOTPATH,
+        FEATURE_RESTAURANT, FEATURE_SUPERMARKET, FEATURE_WATER, FEATURE_WC, classify_feature,
+        select_zoom_from_available, usage,
     };
     use geo_types::{Geometry, LineString};
     use mvt_reader::feature::{Feature, Value};
@@ -728,6 +861,7 @@ mod tests {
     #[test]
     fn bike_profile_keeps_building_layers() {
         assert!(super::should_use_layer("building", ConvertProfile::Bike));
+        assert!(super::should_use_layer("poi", ConvertProfile::Bike));
     }
 
     #[test]
@@ -737,6 +871,51 @@ mod tests {
 
         let tram = sample_feature([("class", Value::String("tram".into()))]);
         assert!(super::is_bike_excluded_transport("transportation", &tram));
+    }
+
+    #[test]
+    fn classify_bike_poi_categories() {
+        let parking = sample_feature([
+            ("class", Value::String("parking".into())),
+            ("subclass", Value::String("bicycle".into())),
+        ]);
+        assert_eq!(
+            classify_feature("poi", &parking),
+            Some(FEATURE_BIKE_PARKING)
+        );
+
+        let repair = sample_feature([("subclass", Value::String("bicycle_repair_station".into()))]);
+        assert_eq!(classify_feature("poi", &repair), Some(FEATURE_BIKE_REPAIR));
+
+        let bicycle = sample_feature([
+            ("class", Value::String("bicycle".into())),
+            ("subclass", Value::String("bicycle".into())),
+        ]);
+        assert_eq!(classify_feature("poi", &bicycle), Some(FEATURE_BIKE_REPAIR));
+    }
+
+    #[test]
+    fn classify_essentials_poi_categories() {
+        let supermarket = sample_feature([("subclass", Value::String("supermarket".into()))]);
+        assert_eq!(
+            classify_feature("poi", &supermarket),
+            Some(FEATURE_SUPERMARKET)
+        );
+
+        let restaurant = sample_feature([("subclass", Value::String("restaurant".into()))]);
+        assert_eq!(
+            classify_feature("poi", &restaurant),
+            Some(FEATURE_RESTAURANT)
+        );
+
+        let cafe = sample_feature([("subclass", Value::String("cafe".into()))]);
+        assert_eq!(classify_feature("poi", &cafe), Some(FEATURE_CAFE));
+
+        let water = sample_feature([("class", Value::String("drinking_water".into()))]);
+        assert_eq!(classify_feature("poi", &water), Some(FEATURE_WATER));
+
+        let wc = sample_feature([("class", Value::String("toilets".into()))]);
+        assert_eq!(classify_feature("poi", &wc), Some(FEATURE_WC));
     }
 
     fn sample_feature<const N: usize>(entries: [(&str, Value); N]) -> Feature<f32> {

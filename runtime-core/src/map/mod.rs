@@ -64,6 +64,13 @@ pub fn lod_mask_for(band: MapPresentationBand) -> LodMask {
             MapLayer::BikeRouteLocal,
             MapLayer::Footpath,
             MapLayer::BuildingOutline,
+            MapLayer::BikeParking,
+            MapLayer::BikeRepair,
+            MapLayer::Supermarket,
+            MapLayer::Restaurant,
+            MapLayer::Cafe,
+            MapLayer::Water,
+            MapLayer::Wc,
             MapLayer::RiderOverlay,
         ]),
         MapPresentationBand::RideDetail => LodMask::from_layers(&[
