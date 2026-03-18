@@ -13,7 +13,7 @@ Add a real-device touch input module for the Waveshare `ESP32-P4-WIFI6-Touch-LCD
 - The touch assembly also exposes dedicated `TP_INT` and `TP_RST` lines in the Waveshare schematic; exact GPIO mapping should be captured in a board config module when implementation starts.
 
 ## Architecture Boundary
-- `runtime-core` owns camera behavior, normalized touch/contact interpretation, gesture recognition, tap recognition, north-up override rules, follow-lock/recenter policy, and tap interpretation for product controls.
+- `runtime-core` owns camera behavior, normalized touch/contact interpretation, gesture recognition, tap recognition, compass interaction rules, follow-lock/recenter policy, and tap interpretation for product controls.
 - `render-core` owns overlay drawing only; it does not own touch semantics or camera state.
 - Firmware touch module owns:
   - GT9271 bring-up

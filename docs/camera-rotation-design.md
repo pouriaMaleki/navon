@@ -1,11 +1,10 @@
 # Camera Rotation UX Design
 
-This document is the canonical camera-orientation UX specification for the bike minimap.
-Implementation planning and code should reference this file instead of redefining the behavior in multiple places.
+This document is the canonical camera-orientation UX specification for the bike minimap. Firmware and emulator should follow this behavior through shared Rust runtime code.
 
 ## Summary
-- Shared Rust owns all orientation behavior for firmware and emulator.
-- The camera uses two top-level motion modes:
+- Shared Rust owns orientation behavior.
+- The camera has two top-level motion modes:
   - `Stopped`
   - `Riding`
 - The orientation UX is expressed through five user-visible substates:
@@ -14,7 +13,13 @@ Implementation planning and code should reference this file instead of redefinin
   - `Travel-Up Auto`
   - `North Preview`
   - `North Locked`
-- Compass feedback is icon-only by default. The compass visual state must distinguish auto-follow, temporary preview, and locked north-up without adding a text badge in the normal product UI.
+- Compass feedback is icon-only by default.
+- The compass must visibly distinguish:
+  - auto-follow
+  - heading acquisition
+  - temporary north preview with countdown/progress
+  - locked north-up
+  - brief acknowledgement when tapped while already north-up
 
 ## Orientation States
 
@@ -25,7 +30,7 @@ Implementation planning and code should reference this file instead of redefinin
 - When the rider stops after travel-up motion, the camera holds the last trusted travel angle briefly, then settles smoothly back to north-up.
 
 ### Heading Acquisition
-- Entered when speed/motion suggests riding has started but travel direction is not yet trustworthy enough for travel-up rotation.
+- Entered when riding has started but travel direction is not yet trustworthy enough for travel-up rotation.
 - Rider remains centered.
 - The map holds the last trusted angle instead of following noisy raw GPS course data.
 - From a stationary start, this means the map stays north-up until heading confidence is good enough to transition.
@@ -40,13 +45,13 @@ Implementation planning and code should reference this file instead of redefinin
 - Triggered by a single tap on the north indicator while `Travel-Up Auto` is active.
 - The camera animates to centered north-up.
 - This mode is temporary and is meant for quick re-orientation, not a permanent browsing mode.
-- The compass should show an active temporary state, including a visible countdown/progress treatment.
+- The compass shows an active temporary state with visible countdown/progress.
 
 ### North Locked
 - Triggered by a double tap on the north indicator while moving, or by double tapping during `North Preview`.
 - The camera stays centered and north-up even while movement continues.
 - This mode persists until the user taps the north indicator again to unlock it.
-- The compass should show a persistent locked state without a temporary countdown treatment.
+- The compass shows a persistent locked state without a temporary countdown treatment.
 
 ## State Transitions
 - `Stopped North-Up -> Heading Acquisition`:
@@ -94,7 +99,7 @@ Moving north-up modes remain centered so they read like a conventional map view.
 - Double tap:
   - from `Travel-Up Auto`, enter `North Locked`
   - from `North Preview`, convert the temporary preview into `North Locked`
-- In stopped or heading-acquisition states, tapping the compass should not create a separate mode change beyond a brief acknowledgement, because the map is already north-up.
+- In stopped or heading-acquisition states, tapping the compass should not change mode, but should give a brief acknowledgement pulse because the map is already north-up.
 
 ## Gesture Policy
 - One-finger pan: allowed in all states
@@ -110,10 +115,9 @@ Moving north-up modes remain centered so they read like a conventional map view.
 - Heading acquisition hold before travel-up is trusted: about `0.8 s`
 - North preview timeout: about `2.5 s`
 - Double-tap recognition window: about `400 ms`
+- Compass acknowledgement pulse: about `0.22 s`
 - Stop hold before north-up settle begins: about `600 ms`
 - Stop settle duration back to north-up: about `900 ms`
-
-These are product defaults for implementation planning. Final config fields and exact thresholds can be tuned during runtime implementation.
 
 ## Validation Scenarios
 - Start moving from rest with noisy GPS:
@@ -130,6 +134,9 @@ These are product defaults for implementation planning. Final config fields and 
   - preview auto-returns only after timeout and adequate heading confidence
 - Double tap north indicator while riding:
   - north-up remains pinned during continued movement until explicitly unlocked
+- Tap north indicator while already north-up:
+  - mode does not change
+  - compass gives a brief acknowledgement pulse
 - Drop heading confidence while still moving:
   - hold the last trusted angle
   - do not snap to raw course jitter
@@ -140,10 +147,7 @@ These are product defaults for implementation planning. Final config fields and 
   - browsing works without losing rider/map relationship
   - recenter restores the appropriate orientation mode cleanly
 
-## Future Planning Notes
-- Runtime output will likely need an orientation substate beyond the current coarse `riding` / `stopped` split.
-- Overlay output will likely need explicit compass visual states for:
-  - auto-follow
-  - temporary north preview
-  - locked north-up
-- Emulator diagnostics should expose heading-confidence or heading-ready status so "moving but not rotating yet" is easy to validate during development.
+## Implementation Notes
+- `CameraOrientationMode` in shared runtime output is the canonical orientation state surface.
+- Shared overlay output carries preview progress and compass acknowledgement progress for renderer/device parity.
+- Emulator and device diagnostics should expose heading-confidence state when debugging “moving but not rotating yet” issues.

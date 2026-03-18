@@ -45,7 +45,7 @@ Lead the project as a framework-first Rust buildout where shared runtime behavio
 ### Milestone 2: Runtime Behavior
 - Move shared touch/contact interpretation, motion estimation, and camera policy into `runtime-core`.
 - Keep the runtime deterministic from ordered input frames.
-- Implement follow-lock, pan, pinch, rotate, tap handling, recenter, and north-up policy in shared Rust from normalized contact inputs.
+- Implement follow-lock, pan, pinch, rotate, tap handling, recenter, and compass interaction policy in shared Rust from normalized contact inputs.
 
 ### Milestone 3: Rendering Integration
 - Route `RuntimeFrameOutput` and queried geometry into `render-core`.
@@ -81,7 +81,7 @@ Lead the project as a framework-first Rust buildout where shared runtime behavio
   - ride to stop
   - stop to ride
   - pan to idle to recenter
-  - north-up override and timeout
+  - compass preview, lock, unlock, and acknowledgement
   - zoom bucket changes
 
 ### Parity Validation

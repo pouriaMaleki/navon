@@ -40,7 +40,7 @@
 ### Internal Derived Events
 - `GestureEvent` (`Pan`, `Pinch`, `Rotate`)
 - `TapEvent`
-- `NorthUpRequest` derived from shared tap/control-hit handling or synthetic tests
+- compass interaction requests derived from shared tap/control-hit handling or synthetic tests
 
 ## Deterministic Schedule Order
 1. `InputIngestSet`
@@ -61,7 +61,7 @@
 ## Current Foundation Guarantees
 - Internal execution uses a fixed `bevy_ecs` schedule order that matches the declared frame stages.
 - Shared Rust derives one-finger pan, two-finger pinch/rotate, and tap semantics from `TouchContactFrame`.
-- Follow-lock, auto-recenter, and north-up override live in shared runtime camera policy.
+- Follow-lock, auto-recenter, and compass preview/lock behavior live in shared runtime camera policy.
 - Query bounds account for camera rotation so heading-up views do not under-query corners.
 - Zoom clamping preserves the configured minimum and maximum range.
 - Brief GPS gaps preserve prior motion state until the configured timeout elapses.

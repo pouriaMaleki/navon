@@ -6,7 +6,7 @@ Spec reference: [`project-spec.md`](./project-spec.md)
 1. Keep emulator focused on hardware simulation: display + GPS + touch gestures.
 2. Keep rendering parity with shared Rust/WASM renderer.
 3. Add manual bike-sim GPS fallback with keyboard/on-screen controls for deterministic movement testing.
-4. Keep interaction behavior simple: pinch zoom, drag pan, smooth recenter.
+4. Keep emulator input thin and let shared Rust own pan/zoom/rotate/compass policy.
 5. Maintain stable web build/typecheck workflow.
 6. Keep docs open-source friendly and easy to onboard from.
 
