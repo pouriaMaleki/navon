@@ -1,11 +1,11 @@
 FROM rust:1.85-bookworm AS wasm-builder
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends pkg-config libssl-dev ca-certificates \
+  && apt-get install -y --no-install-recommends curl pkg-config libssl-dev ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
 RUN rustup target add wasm32-unknown-unknown \
-  && cargo install wasm-pack --locked
+  && curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
 
 WORKDIR /work
 COPY . .
