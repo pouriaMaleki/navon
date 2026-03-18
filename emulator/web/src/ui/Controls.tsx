@@ -10,6 +10,7 @@ type ControlsProps = {
 export const Controls = observer(({ appStore }: ControlsProps) => {
   const { bikeSimStore, emulatorStore, geoStore } = appStore;
   const disabled = !emulatorStore.isReady || emulatorStore.isLoading;
+  const requestGpsDisabled = !emulatorStore.isReady || geoStore.isRequestInFlight;
   const perfText =
     emulatorStore.frameSamples > 0
       ? `${emulatorStore.fps.toFixed(1)} fps / ${emulatorStore.frameDtAvgMs.toFixed(1)} ms`
@@ -30,11 +31,13 @@ export const Controls = observer(({ appStore }: ControlsProps) => {
           className={styles["button"]}
           type="button"
           onClick={geoStore.requestLiveGps}
-          disabled={!emulatorStore.isReady}
+          disabled={requestGpsDisabled}
         >
-          Request GPS
+          {geoStore.requestButtonLabel}
         </button>
-        <span className={styles["status"]}>{geoStore.statusText}</span>
+        <span className={styles["status"]} data-tone={geoStore.statusTone}>
+          {geoStore.statusText}
+        </span>
         <span className={styles["metrics"]}>Frame: {perfText}</span>
       </div>
 

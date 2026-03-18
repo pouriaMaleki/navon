@@ -18,6 +18,7 @@ export class EmulatorStore {
 
   private emulator: Esp32ScreenEmulator<WasmRuntimeState> | null = null;
   private customState: WasmRuntimeState | null = null;
+  private activeProfile: ScreenProfile | null = null;
 
   constructor(
     private readonly appStore: AppStore,
@@ -35,18 +36,52 @@ export class EmulatorStore {
   }
 
   async init(canvas: HTMLCanvasElement): Promise<void> {
-    if (this.emulator || this.isLoading) {
+    await this.startForCanvas(canvas);
+  }
+
+  async syncCanvasProfile(canvas: HTMLCanvasElement): Promise<void> {
+    const nextProfile = this.profileFactory(canvas);
+    if (!this.emulator) {
+      await this.startForCanvas(canvas, nextProfile);
       return;
+    }
+    if (
+      this.activeProfile &&
+      this.activeProfile.width === nextProfile.width &&
+      this.activeProfile.height === nextProfile.height
+    ) {
+      return;
+    }
+
+    await this.startForCanvas(canvas, nextProfile);
+  }
+
+  private async startForCanvas(
+    canvas: HTMLCanvasElement,
+    profileOverride?: ScreenProfile,
+  ): Promise<void> {
+    if (this.emulator || this.isLoading) {
+      if (
+        this.isLoading ||
+        (this.activeProfile &&
+          profileOverride &&
+          this.activeProfile.width === profileOverride.width &&
+          this.activeProfile.height === profileOverride.height)
+      ) {
+        return;
+      }
     }
     this.isLoading = true;
     this.errorMessage = null;
+    this.shutdownRuntime();
 
     try {
       const { initialState, program } = await createWasmProgram(0);
-      const profile = this.profileFactory(canvas);
+      const profile = profileOverride ?? this.profileFactory(canvas);
       this.emulator = new Esp32ScreenEmulator(canvas, profile, initialState, program, {
         onFrame: this.recordFrameTiming,
       });
+      this.activeProfile = profile;
       this.customState = this.emulator.customState();
       this.emulator.renderOnce();
       this.emulator.start();
@@ -81,6 +116,14 @@ export class EmulatorStore {
   }
 
   dispose(): void {
+    this.shutdownRuntime();
+    this.resetFrameTiming();
+    this.activeProfile = null;
+    this.isReady = false;
+    this.isLoading = false;
+  }
+
+  private shutdownRuntime(): void {
     this.appStore.geoStore.dispose();
     this.appStore.bikeSimStore.dispose();
     this.appStore.touchStore.dispose();
@@ -89,9 +132,7 @@ export class EmulatorStore {
     }
     this.emulator = null;
     this.customState = null;
-    this.resetFrameTiming();
-    this.isReady = false;
-    this.isLoading = false;
+    this.activeProfile = null;
   }
 
   private recordFrameTiming(dtMs: number): void {
