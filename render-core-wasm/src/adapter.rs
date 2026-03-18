@@ -104,7 +104,7 @@ mod tests {
         fn query(&self, _spec: &runtime_core::api::MapQuerySpec) -> MapQueryResult {
             MapQueryResult {
                 geometry: vec![GeometryCandidate::Polyline(MapPolylineCandidate {
-                    layer: MapLayer::MajorRoad,
+                    layer: MapLayer::ArterialRoad,
                     points: vec![WorldPoint::new(-50.0, 0.0), WorldPoint::new(50.0, 0.0)],
                 })],
             }

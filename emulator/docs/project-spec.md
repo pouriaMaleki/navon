@@ -49,7 +49,7 @@ This is the canonical specification for the emulator module. Other emulator docs
   - `#051E24`
   - `#10132B`
   - `#103B48`
-  - `#077070`
+  - `#12A3A3`
   - `#D7FF3F`
 - Rider markers use `#D7FF3F`.
 

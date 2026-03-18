@@ -50,44 +50,51 @@ impl Default for WorldBounds {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ZoomBucket {
-    Detail,
-    Neighborhood,
-    Overview,
+pub enum MapPresentationBand {
+    CloseDetail,
+    RideDetail,
+    NetworkOverview,
+    DistrictOverview,
 }
 
-impl Default for ZoomBucket {
+impl Default for MapPresentationBand {
     fn default() -> Self {
-        Self::Neighborhood
+        Self::RideDetail
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MapLayer {
-    MajorRoad,
-    MinorRoad,
-    Path,
+    ArterialRoad,
+    StreetRoad,
+    BikeRouteMain,
+    BikeRouteLocal,
+    Footpath,
+    BuildingOutline,
     RiderOverlay,
 }
 
 impl MapLayer {
-    const fn bit(self) -> u8 {
+    const fn bit(self) -> u16 {
         match self {
-            Self::MajorRoad => 1 << 0,
-            Self::MinorRoad => 1 << 1,
-            Self::Path => 1 << 2,
-            Self::RiderOverlay => 1 << 3,
+            Self::ArterialRoad => 1 << 0,
+            Self::StreetRoad => 1 << 1,
+            Self::BikeRouteMain => 1 << 2,
+            Self::BikeRouteLocal => 1 << 3,
+            Self::Footpath => 1 << 4,
+            Self::BuildingOutline => 1 << 5,
+            Self::RiderOverlay => 1 << 6,
         }
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct LodMask(u8);
+pub struct LodMask(u16);
 
 impl LodMask {
     pub const NONE: Self = Self(0);
 
-    pub const fn bits(self) -> u8 {
+    pub const fn bits(self) -> u16 {
         self.0
     }
 
@@ -113,7 +120,7 @@ pub struct MapQuerySpec {
     pub bounds: WorldBounds,
     pub meters_per_pixel: f64,
     pub zoom: f32,
-    pub zoom_bucket: ZoomBucket,
+    pub presentation_band: MapPresentationBand,
     pub lod_mask: LodMask,
 }
 
@@ -123,7 +130,7 @@ impl MapQuerySpec {
         bounds: WorldBounds,
         meters_per_pixel: f64,
         zoom: f32,
-        zoom_bucket: ZoomBucket,
+        presentation_band: MapPresentationBand,
         lod_mask: LodMask,
     ) -> Self {
         Self {
@@ -131,7 +138,7 @@ impl MapQuerySpec {
             bounds,
             meters_per_pixel,
             zoom,
-            zoom_bucket,
+            presentation_band,
             lod_mask,
         }
     }
@@ -144,7 +151,7 @@ impl Default for MapQuerySpec {
             bounds: WorldBounds::default(),
             meters_per_pixel: 1.0,
             zoom: 0.0,
-            zoom_bucket: ZoomBucket::Neighborhood,
+            presentation_band: MapPresentationBand::RideDetail,
             lod_mask: LodMask::NONE,
         }
     }

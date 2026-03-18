@@ -59,8 +59,8 @@ pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
 mod tests {
     use runtime_core::api::{
         CameraMode, CameraOrientationMode, CameraStateSnapshot, LodMask, MapLayer,
-        MapPolylineCandidate, MapQuerySpec, NormalizedScreenPoint, OverlayState, RuntimeConfig,
-        RuntimeFrameOutput, WorldPoint, ZoomBucket,
+        MapPolylineCandidate, MapPresentationBand, MapQuerySpec, NormalizedScreenPoint,
+        OverlayState, RuntimeConfig, RuntimeFrameOutput, WorldPoint,
     };
 
     use super::*;
@@ -93,8 +93,8 @@ mod tests {
                 runtime_core::api::WorldBounds::from_center(WorldPoint::ORIGIN, 64.0, 64.0),
                 1.0,
                 15.5,
-                ZoomBucket::Detail,
-                LodMask::from_layers(&[MapLayer::MajorRoad]),
+                MapPresentationBand::CloseDetail,
+                LodMask::from_layers(&[MapLayer::ArterialRoad]),
             ),
             ..RuntimeFrameOutput::default()
         }
@@ -107,7 +107,7 @@ mod tests {
         let geometry = MapQueryResult {
             geometry: vec![runtime_core::api::GeometryCandidate::Polyline(
                 MapPolylineCandidate {
-                    layer: MapLayer::MajorRoad,
+                    layer: MapLayer::ArterialRoad,
                     points: vec![WorldPoint::new(-40.0, 0.0), WorldPoint::new(40.0, 0.0)],
                 },
             )],
@@ -124,16 +124,11 @@ mod tests {
         render_frame(scene, &mut second);
 
         assert_eq!(first.pixels(), second.pixels());
-        assert!(
-            first
-                .pixels()
-                .chunks_exact(4)
-                .any(|rgba| {
-                    rgba[0] == RenderStyle::default().major_road.color.r
-                        && rgba[1] == RenderStyle::default().major_road.color.g
-                        && rgba[2] == RenderStyle::default().major_road.color.b
-                })
-        );
+        assert!(first.pixels().chunks_exact(4).any(|rgba| {
+            rgba[0] == RenderStyle::default().arterial_road.color.r
+                && rgba[1] == RenderStyle::default().arterial_road.color.g
+                && rgba[2] == RenderStyle::default().arterial_road.color.b
+        }));
         assert!(first.pixels().chunks_exact(4).any(|rgba| {
             rgba[0] == RenderStyle::default().rider_fill_color.r
                 && rgba[1] == RenderStyle::default().rider_fill_color.g
@@ -147,7 +142,7 @@ mod tests {
         let geometry = MapQueryResult {
             geometry: vec![runtime_core::api::GeometryCandidate::Polyline(
                 MapPolylineCandidate {
-                    layer: MapLayer::MajorRoad,
+                    layer: MapLayer::ArterialRoad,
                     points: vec![WorldPoint::new(-40.0, 0.0), WorldPoint::new(40.0, 0.0)],
                 },
             )],

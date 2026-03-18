@@ -298,9 +298,13 @@ fn segment_intersects_bounds(segment: SegmentRecord, bounds: SourceBounds) -> bo
 
 fn map_layer_for_road_class(road_class: u8) -> MapLayer {
     match road_class {
-        1 | 2 => MapLayer::MajorRoad,
-        3 => MapLayer::MinorRoad,
-        _ => MapLayer::Path,
+        1 => MapLayer::ArterialRoad,
+        2 => MapLayer::StreetRoad,
+        3 => MapLayer::BikeRouteMain,
+        4 => MapLayer::BikeRouteLocal,
+        5 => MapLayer::Footpath,
+        6 => MapLayer::BuildingOutline,
+        _ => MapLayer::Footpath,
     }
 }
 
@@ -349,7 +353,8 @@ fn read_i32(bytes: &[u8], offset: usize) -> Result<i32, String> {
 
 #[cfg(test)]
 mod tests {
-    use runtime_core::api::{LodMask, MapLayer, MapQuerySpec, ZoomBucket};
+    use runtime_core::api::{GpsSample, LodMask, MapLayer, MapPresentationBand, MapQuerySpec};
+    use runtime_core::motion::project_gps_to_world;
 
     use super::*;
 
@@ -381,8 +386,14 @@ mod tests {
             bounds,
             1.0,
             15.5,
-            ZoomBucket::Detail,
-            LodMask::from_layers(&[MapLayer::MajorRoad, MapLayer::MinorRoad, MapLayer::Path]),
+            MapPresentationBand::CloseDetail,
+            LodMask::from_layers(&[
+                MapLayer::ArterialRoad,
+                MapLayer::StreetRoad,
+                MapLayer::BikeRouteMain,
+                MapLayer::BikeRouteLocal,
+                MapLayer::Footpath,
+            ]),
         )
     }
 
@@ -497,5 +508,40 @@ mod tests {
             EmbeddedMapSource::from_svm_bytes(&bytes).expect_err("truncated segment payload");
 
         assert!(error.contains("segment payload is truncated"));
+    }
+
+    #[test]
+    fn embedded_city_map_returns_geometry_for_helsinki_query() {
+        let source = EmbeddedMapSource::default();
+        let center = project_gps_to_world(GpsSample {
+            lat_deg: 60.17442,
+            lon_deg: 24.94210,
+            speed_mps: 0.0,
+            course_rad: None,
+            horizontal_accuracy_m: None,
+        });
+        let bounds = WorldBounds::from_center(center, 300.0, 300.0);
+        let spec = MapQuerySpec::new(
+            center,
+            bounds,
+            1.0,
+            15.5,
+            MapPresentationBand::CloseDetail,
+            LodMask::from_layers(&[
+                MapLayer::ArterialRoad,
+                MapLayer::StreetRoad,
+                MapLayer::BikeRouteMain,
+                MapLayer::BikeRouteLocal,
+                MapLayer::Footpath,
+                MapLayer::BuildingOutline,
+            ]),
+        );
+
+        let result = source.query(&spec);
+
+        assert!(
+            !result.geometry.is_empty(),
+            "expected embedded city.svm to return geometry near Helsinki"
+        );
     }
 }

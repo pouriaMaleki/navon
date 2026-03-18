@@ -1,6 +1,6 @@
 use super::input::ViewportSize;
 use super::output::CameraMode;
-use super::query::ZoomBucket;
+use super::query::MapPresentationBand;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DiagnosticsSnapshot {
@@ -10,7 +10,7 @@ pub struct DiagnosticsSnapshot {
     pub touch_contact_count: usize,
     pub active_touch_contacts: usize,
     pub camera_mode: CameraMode,
-    pub zoom_bucket: ZoomBucket,
+    pub presentation_band: MapPresentationBand,
     pub meters_per_pixel: f64,
 }
 
@@ -23,7 +23,7 @@ impl Default for DiagnosticsSnapshot {
             touch_contact_count: 0,
             active_touch_contacts: 0,
             camera_mode: CameraMode::Stopped,
-            zoom_bucket: ZoomBucket::Neighborhood,
+            presentation_band: MapPresentationBand::RideDetail,
             meters_per_pixel: 1.0,
         }
     }

@@ -32,7 +32,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
   - `#051E24`
   - `#10132B`
   - `#103B48`
-  - `#077070`
+  - `#12A3A3`
   - `#D7FF3F`
 - Background stays near-black.
 - Map geometry uses the dark blue and teal range.
@@ -58,6 +58,13 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - `firmware` and `render-core-wasm` are adapters:
   - they translate platform I/O into shared contracts
   - they must not own product camera policy
+
+## Map Presentation Direction
+- The map system should evolve from a flat road-layer model into a zoom-aware presentation system with richer feature classes and declarative profiles.
+- The preferred direction is one generated regional map package with multiple internal feature classes and LOD slices, rather than many unrelated zoom-specific files.
+- Shared Rust runtime should choose the active presentation band from zoom and camera state.
+- Converter-owned declarative profiles should decide which features exist for `bike`, `car`, `transit`, and future map modes.
+- The canonical design lives in [`/work/docs/map-presentation-system-design.md`](/work/docs/map-presentation-system-design.md).
 
 ## Shared Runtime Contracts
 - `RuntimeInputFrame`: ordered per-frame input envelope containing `dt`, optional GPS, and optional normalized touch contacts.
@@ -90,6 +97,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 
 ## Supporting References
 - Camera orientation UX: [`/work/docs/camera-rotation-design.md`](/work/docs/camera-rotation-design.md)
+- Map presentation system: [`/work/docs/map-presentation-system-design.md`](/work/docs/map-presentation-system-design.md)
 - Runtime architecture decision: [`/work/docs/runtime-ecs-architecture.md`](/work/docs/runtime-ecs-architecture.md)
 - Framework execution guide: [`/work/docs/framework-execution-guide.md`](/work/docs/framework-execution-guide.md)
 - Device touch integration: [`/work/docs/device-touch-integration-plan.md`](/work/docs/device-touch-integration-plan.md)

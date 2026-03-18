@@ -18,9 +18,12 @@ pub struct StrokeStyle {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RenderStyle {
     pub background_color: Color,
-    pub major_road: StrokeStyle,
-    pub minor_road: StrokeStyle,
-    pub path: StrokeStyle,
+    pub arterial_road: StrokeStyle,
+    pub street_road: StrokeStyle,
+    pub bike_route_main: StrokeStyle,
+    pub bike_route_local: StrokeStyle,
+    pub footpath: StrokeStyle,
+    pub building_outline: StrokeStyle,
     pub rider_fill_color: Color,
     pub rider_heading_color: Color,
     pub north_indicator_active_color: Color,
@@ -34,10 +37,13 @@ pub struct RenderStyle {
 impl RenderStyle {
     pub fn stroke_for_layer(self, layer: MapLayer) -> StrokeStyle {
         match layer {
-            MapLayer::MajorRoad => self.major_road,
-            MapLayer::MinorRoad => self.minor_road,
-            MapLayer::Path => self.path,
-            MapLayer::RiderOverlay => self.major_road,
+            MapLayer::ArterialRoad => self.arterial_road,
+            MapLayer::StreetRoad => self.street_road,
+            MapLayer::BikeRouteMain => self.bike_route_main,
+            MapLayer::BikeRouteLocal => self.bike_route_local,
+            MapLayer::Footpath => self.footpath,
+            MapLayer::BuildingOutline => self.building_outline,
+            MapLayer::RiderOverlay => self.arterial_road,
         }
     }
 }
@@ -46,16 +52,28 @@ impl Default for RenderStyle {
     fn default() -> Self {
         Self {
             background_color: COLOR_BACKGROUND_CANVAS,
-            major_road: StrokeStyle {
+            arterial_road: StrokeStyle {
                 color: COLOR_ACCENT_PRIMARY,
                 thickness_px: 3,
             },
-            minor_road: StrokeStyle {
+            street_road: StrokeStyle {
                 color: COLOR_ACCENT_PRIMARY,
                 thickness_px: 2,
             },
-            path: StrokeStyle {
+            bike_route_main: StrokeStyle {
                 color: COLOR_ACCENT_PRIMARY,
+                thickness_px: 2,
+            },
+            bike_route_local: StrokeStyle {
+                color: COLOR_BORDER_STRONG,
+                thickness_px: 1,
+            },
+            footpath: StrokeStyle {
+                color: COLOR_SURFACE_BASE,
+                thickness_px: 1,
+            },
+            building_outline: StrokeStyle {
+                color: COLOR_SURFACE_ELEVATED,
                 thickness_px: 1,
             },
             rider_fill_color: COLOR_ACCENT_HIGHLIGHT,

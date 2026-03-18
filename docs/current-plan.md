@@ -12,11 +12,13 @@ Execution guide: [`framework-execution-guide.md`](./framework-execution-guide.md
 6. Integrate firmware and wasm as thin adapters that translate GPS and normalized touch contact frames only, while keeping coarse map lookup behind behavior-free `MapSource` implementations. Status: wasm/emulator slice is completed; firmware host-side runtime/query/render slice is completed; firmware board-facing platform boundary and concrete `esp_idf` provider modules are in place; real ESP-IDF peripheral acquisition remains pending.
 7. Add scenario tests and diagnostics early so future features can extend the framework without regressions.
 8. Prepare the runtime for shared direct `.svm` loading after the current embedded `map-runtime` bridge path is stable.
+9. Design and implement a declarative zoom-aware map presentation system with richer feature classes, multiple presentation bands, and converter-owned profiles.
 
 ## Current Focus
 - Wire actual ESP-IDF peripheral acquisition and hardware handles into the new firmware `esp_idf` providers without reintroducing adapter-owned behavior.
 - Replace the remaining device-oriented `xtask` stubs once firmware bundling and deploy flows have real implementations behind them.
 - Design the next direct `.svm` runtime loading layer after the shared embedded bridge path has parity coverage.
+- Plan the next map-system foundation so runtime/query/render can move beyond the current flat road/path model into richer zoom-aware presentation bands.
 
 ## Recent Progress
 - `runtime-core::api` now exposes stable config, input, output, diagnostics, and map-query contract modules.
@@ -36,6 +38,7 @@ Execution guide: [`framework-execution-guide.md`](./framework-execution-guide.md
 - Firmware now exposes a board-facing platform loop, GT9271 report decoding/normalization, board config for Waveshare defaults, and RGB565 display upload helpers while keeping product behavior in shared Rust.
 - Firmware touch normalization now explicitly targets the logical viewport size instead of assuming controller extent equals display extent.
 - Firmware now also exposes concrete `esp_idf` provider modules for GT9271 register access, panel upload, NMEA GPS parsing, and device-platform assembly on top of the existing provider traits.
+- A new map presentation design direction is now defined: richer feature classes, four zoom presentation bands, declarative converter profiles, and a preference for one multi-LOD regional map package.
 
 ## Immediate Correction Pass
 - Replace the hand-rolled runner with a real internal `bevy_ecs` schedule and resources. Status: completed.
