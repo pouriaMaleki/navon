@@ -25,7 +25,7 @@ pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
     let camera_view = CameraView::new(viewport, &scene.output.camera, meters_per_pixel);
     let style = RenderStyle::default();
 
-    framebuffer.clear(style.background_intensity);
+    framebuffer.clear(style.background_color);
 
     for candidate in &scene.geometry.geometry {
         if let runtime_core::api::GeometryCandidate::Polyline(polyline) = candidate {
@@ -39,12 +39,7 @@ pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
                 if let Some((clip_from, clip_to)) =
                     clip_segment_to_viewport(from_screen, to_screen, viewport)
                 {
-                    framebuffer.draw_line(
-                        clip_from,
-                        clip_to,
-                        stroke.intensity,
-                        stroke.thickness_px,
-                    );
+                    framebuffer.draw_line(clip_from, clip_to, stroke.color, stroke.thickness_px);
                 }
             }
         }
@@ -132,11 +127,18 @@ mod tests {
         assert!(
             first
                 .pixels()
-                .iter()
-                .copied()
-                .any(|value| value == RenderStyle::default().major_road.intensity)
+                .chunks_exact(4)
+                .any(|rgba| {
+                    rgba[0] == RenderStyle::default().major_road.color.r
+                        && rgba[1] == RenderStyle::default().major_road.color.g
+                        && rgba[2] == RenderStyle::default().major_road.color.b
+                })
         );
-        assert!(first.pixels().iter().copied().any(|value| value > 240));
+        assert!(first.pixels().chunks_exact(4).any(|rgba| {
+            rgba[0] == RenderStyle::default().rider_fill_color.r
+                && rgba[1] == RenderStyle::default().rider_fill_color.g
+                && rgba[2] == RenderStyle::default().rider_fill_color.b
+        }));
     }
 
     #[test]

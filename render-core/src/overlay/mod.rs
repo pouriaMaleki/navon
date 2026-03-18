@@ -33,15 +33,11 @@ pub fn draw_overlay(
                 rider,
                 assets::RIDER_MARKER_RIDING,
                 relative_heading,
-                style.rider_fill_intensity,
+                style.rider_fill_color,
             );
         }
         runtime_core::api::CameraMode::Stopped => {
-            framebuffer.draw_mask(
-                rider,
-                assets::RIDER_MARKER_STOPPED,
-                style.rider_fill_intensity,
-            );
+            framebuffer.draw_mask(rider, assets::RIDER_MARKER_STOPPED, style.rider_fill_color);
         }
     }
 
@@ -53,12 +49,12 @@ pub fn draw_overlay(
         config.north_indicator_center.x * viewport.width_px as f32,
         config.north_indicator_center.y * viewport.height_px as f32,
     );
-    let indicator_intensity = match camera.orientation_mode {
-        CameraOrientationMode::TravelUpAuto => style.north_indicator_idle_intensity,
-        CameraOrientationMode::HeadingAcquisition => style.north_indicator_acquisition_intensity,
-        CameraOrientationMode::NorthLocked => style.north_indicator_locked_intensity,
+    let indicator_color = match camera.orientation_mode {
+        CameraOrientationMode::TravelUpAuto => style.north_indicator_idle_color,
+        CameraOrientationMode::HeadingAcquisition => style.north_indicator_acquisition_color,
+        CameraOrientationMode::NorthLocked => style.north_indicator_locked_color,
         CameraOrientationMode::StoppedNorthUp | CameraOrientationMode::NorthPreview => {
-            style.north_indicator_active_intensity
+            style.north_indicator_active_color
         }
     };
     let indicator_base = if matches!(camera.orientation_mode, CameraOrientationMode::NorthLocked) {
@@ -66,12 +62,12 @@ pub fn draw_overlay(
     } else {
         assets::NORTH_INDICATOR_BASE
     };
-    framebuffer.draw_mask(indicator_center, indicator_base, indicator_intensity);
+    framebuffer.draw_mask(indicator_center, indicator_base, indicator_color);
     framebuffer.draw_rotated_mask(
         indicator_center,
         assets::NORTH_INDICATOR_NEEDLE,
         -camera.orientation_rad,
-        255,
+        style.rider_fill_color,
     );
 
     if let Some(progress) = overlay.north_preview_progress {
@@ -79,7 +75,7 @@ pub fn draw_overlay(
             indicator_center,
             assets::NORTH_INDICATOR_LOCKED_BASE,
             0.0,
-            style.north_indicator_locked_intensity,
+            style.north_indicator_locked_color,
             progress,
             TOP_START_ANGLE_RAD,
         );
@@ -87,7 +83,7 @@ pub fn draw_overlay(
             indicator_center,
             assets::NORTH_INDICATOR_NEEDLE,
             -camera.orientation_rad,
-            255,
+            style.rider_fill_color,
         );
     }
 
@@ -96,7 +92,7 @@ pub fn draw_overlay(
             framebuffer,
             indicator_center,
             overlay.compass_ack_progress,
-            style.north_indicator_ack_intensity,
+            style.north_indicator_ack_color,
         );
     }
 }
@@ -105,7 +101,7 @@ fn draw_ack_pulse(
     framebuffer: &mut Framebuffer,
     center: ScreenPoint,
     progress: f32,
-    intensity: u8,
+    color: crate::raster::Color,
 ) {
     let clamped = progress.clamp(0.0, 1.0);
     if clamped <= 0.0 {
@@ -114,8 +110,12 @@ fn draw_ack_pulse(
 
     let radius_px =
         NORTH_INDICATOR_ACK_BASE_RADIUS_PX + ((1.0 - clamped) * NORTH_INDICATOR_ACK_EXPANSION_PX);
-    let pulse_intensity = (f32::from(intensity) * clamped).round().clamp(0.0, 255.0) as u8;
-    draw_ring(framebuffer, center, radius_px, 1, pulse_intensity);
+    let pulse_color = crate::raster::Color::new(
+        (f32::from(color.r) * clamped).round().clamp(0.0, 255.0) as u8,
+        (f32::from(color.g) * clamped).round().clamp(0.0, 255.0) as u8,
+        (f32::from(color.b) * clamped).round().clamp(0.0, 255.0) as u8,
+    );
+    draw_ring(framebuffer, center, radius_px, 1, pulse_color);
 }
 
 fn draw_ring(
@@ -123,7 +123,7 @@ fn draw_ring(
     center: ScreenPoint,
     radius_px: f32,
     thickness_px: u8,
-    intensity: u8,
+    color: crate::raster::Color,
 ) {
     let segments = 64usize;
     let angle_step = std::f32::consts::TAU / segments as f32;
@@ -135,7 +135,7 @@ fn draw_ring(
             x.round() as i32,
             y.round() as i32,
             thickness_px.max(1),
-            intensity,
+            color,
         );
     }
 }

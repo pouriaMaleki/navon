@@ -25,16 +25,10 @@ export class CanvasTarget {
     if (buffer.width !== this.canvas.width || buffer.height !== this.canvas.height) {
       throw new Error("Framebuffer and canvas resolution mismatch");
     }
-
-    let j = 0;
-    for (let i = 0; i < buffer.pixels.length; i += 1) {
-      const v = buffer.pixels[i] ?? 0;
-      this.rgba[j] = v;
-      this.rgba[j + 1] = v;
-      this.rgba[j + 2] = v;
-      this.rgba[j + 3] = 255;
-      j += 4;
+    if (buffer.pixels.length !== this.rgba.length) {
+      throw new Error("Framebuffer byte length mismatch");
     }
+    this.rgba.set(buffer.pixels);
     this.ctx.putImageData(this.imageData, 0, 0);
   }
 }

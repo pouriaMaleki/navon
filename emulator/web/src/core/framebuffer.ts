@@ -8,18 +8,24 @@ export class FrameBuffer {
   constructor(width: number, height: number) {
     this.width = width;
     this.height = height;
-    this.pixels = new Uint8Array(width * height);
+    this.pixels = new Uint8Array(width * height * 4);
   }
 
   clear(value: number): void {
-    this.pixels.fill(clampByte(value));
+    const v = clampByte(value);
+    for (let i = 0; i < this.pixels.length; i += 4) {
+      this.pixels[i] = v;
+      this.pixels[i + 1] = v;
+      this.pixels[i + 2] = v;
+      this.pixels[i + 3] = 255;
+    }
   }
 
   setPixel(x: number, y: number, value: number): void {
     if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
       return;
     }
-    const idx = y * this.width + x;
+    const idx = (y * this.width + x) * 4;
     const v = clampByte(value);
     const current = this.pixels[idx];
     if (current === undefined) {
@@ -27,6 +33,9 @@ export class FrameBuffer {
     }
     if (v > current) {
       this.pixels[idx] = v;
+      this.pixels[idx + 1] = v;
+      this.pixels[idx + 2] = v;
+      this.pixels[idx + 3] = 255;
     }
   }
 
