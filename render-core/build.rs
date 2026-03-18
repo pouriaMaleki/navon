@@ -7,6 +7,7 @@ use resvg::{tiny_skia, usvg};
 fn main() {
     let manifest_dir = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").expect("manifest dir"));
     let asset_dir = manifest_dir.join("assets/overlay");
+    let poi_asset_dir = asset_dir.join("poi");
     let out_path =
         PathBuf::from(std::env::var("OUT_DIR").expect("out dir")).join("overlay_assets.rs");
     let assets = [
@@ -30,6 +31,13 @@ fn main() {
             "RIDER_MARKER_STOPPED",
             asset_dir.join("rider_marker_stopped.svg"),
         ),
+        ("POI_BIKE_PARKING", poi_asset_dir.join("bike-lock.svg")),
+        ("POI_BIKE_REPAIR", poi_asset_dir.join("bike-repair.svg")),
+        ("POI_SUPERMARKET", poi_asset_dir.join("grocery.svg")),
+        ("POI_RESTAURANT", poi_asset_dir.join("restaurant.svg")),
+        ("POI_CAFE", poi_asset_dir.join("restaurant.svg")),
+        ("POI_WATER", poi_asset_dir.join("water.svg")),
+        ("POI_WC", poi_asset_dir.join("wc.svg")),
     ];
 
     let mut generated = String::new();

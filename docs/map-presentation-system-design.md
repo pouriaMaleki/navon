@@ -24,42 +24,48 @@ For stopped use, slow movement, and high zoom.
   - local bike paths
   - smaller paths where useful
   - building outlines near the rider
+  - nearby bike parking, bike repair, supermarket, and food POIs
 - Building outlines should render in low-contrast colors close to the background.
 - Dense geometry is acceptable because the user is zoomed in enough to read it.
 
 ### 2. Ride Detail
 For the normal riding/default zoom.
 - Show:
-  - major streets
-  - minor streets
-  - main bike lanes
-  - important local bike paths
-  - simplified building outlines
+  - arterial roads
+  - street roads
+  - main bike routes
+  - local bike routes
+  - building outlines
+  - bike parking
+  - bike repair / pump stations
 - Remove path noise that does not help riding decisions.
+- Rail, metro, train, tram, and other transit track geometry should stay hidden in the bike profile.
+- Hide lower-priority essentials like supermarkets and food in this band.
 - The map should still feel place-aware, but cleaner than `Close Detail`.
 
 ### 3. Network Overview
 For zoomed-out riding and route awareness.
 - Show:
-  - major streets
-  - selected minor streets
+  - arterial roads
   - main bike corridors
-  - simplified street centerlines
 - Hide:
   - small paths
   - service-level detail
+  - ordinary street-road detail
   - building outlines
 - Streets that are currently stored as many parallel edges should be generalized into fewer visual lines where possible.
+- Until true geometry generalization exists, the overview band should avoid requesting street-level detail that makes split Helsinki corridors look doubled.
 
 ### 4. District Overview
 For high-level orientation.
 - Show:
-  - very important streets
+  - arterial roads
   - major bike corridors
   - neighborhood or district names
 - Hide:
   - local paths
-  - most minor streets
+  - most street-level geometry
+  - rail and transit lines
   - building geometry
 - The goal is fast mental orientation, not local navigation detail.
 
@@ -157,6 +163,7 @@ Geometry types should also expand over time:
 - polyline: roads, bike lanes, paths
 - polygon or outline: buildings, blocks
 - point or label anchor: neighborhoods, major street names
+- point POIs: bike parking, repair, supermarket, food
 
 ## Ownership Boundaries
 - `/work/map-vector-cli`
@@ -213,12 +220,17 @@ Expected visual behavior:
 ### Phase 3: Generalization
 - Merge or simplify street geometry for farther zoom bands.
 - Reduce duplicate parallel linework where a single centerline is preferable.
+- Replace the current coarse “hide lower-priority street layers” workaround with true geometric deduplication and centerline-style overview output.
 
 ### Phase 4: Labels
 - Add neighborhood and major-road labels as a sparse overlay.
 - Keep labels out of the first foundation slice unless geometry and LOD behavior are already stable.
 
-### Phase 5: Alternate Profiles
+### Phase 5: POI Enrichment
+- Add dedicated POI icon assets and richer provider-side normalization.
+- Add clustering or aggregation only after the base non-interactive POI layer is stable.
+
+### Phase 6: Alternate Profiles
 - Add profile variants like `car` or `transit` without rewriting runtime policy.
 
 ## First Concrete Slice
@@ -230,6 +242,9 @@ Recommended first slice:
 - expanded line feature classes
 - building outlines in close and ride detail only
 - no label rendering yet
+- bike profile excludes rail, metro, train, and tram geometry
+- overview bands prefer arterial + bike-main geometry over dense street-level detail
+- first POI slice shows bike utility in ride detail and utility + essentials in close detail
 
 This gets the biggest UX improvement while keeping the first milestone realistic.
 
@@ -239,6 +254,7 @@ The next planning and implementation work should touch:
 - [`/work/map-vector-cli/docs/current-plan.md`](/work/map-vector-cli/docs/current-plan.md)
 - [`/work/docs/project-spec.md`](/work/docs/project-spec.md)
 - [`/work/docs/current-plan.md`](/work/docs/current-plan.md)
+- [`/work/docs/poi-layer-design.md`](/work/docs/poi-layer-design.md)
 - `runtime-core` map query model
 - `map-runtime` `.svm` reader/query backend
 - `render-core` style and geometry rendering

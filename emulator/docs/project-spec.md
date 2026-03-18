@@ -53,6 +53,14 @@ This is the canonical specification for the emulator module. Other emulator docs
   - `#D7FF3F`
 - Rider markers use `#D7FF3F`.
 
+## Map Content Requirements
+- Emulator map content should mirror shared Rust presentation-band behavior rather than emulator-specific layer toggles.
+- Current POI behavior:
+  - `Close Detail` shows bicycle parking, bicycle repair, supermarkets, and food
+  - `Ride Detail` shows bicycle parking and bicycle repair only
+  - overview bands hide POIs
+- POI rendering remains part of the shared runtime/query/render path, so future device behavior should match the emulator.
+
 ## Manual Bike Simulation Requirements
 - Arrow keys and on-screen controls must drive deterministic simulated movement.
 - Default tuning should feel bicycle-like rather than arcade-snappy.

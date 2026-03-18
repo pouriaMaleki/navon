@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 
 use runtime_core::api::{
-    GeometryCandidate, MapLayer, MapPolylineCandidate, MapQueryResult, MapQuerySpec, WorldBounds,
-    WorldPoint,
+    GeometryCandidate, MapLayer, MapPointCandidate, MapPolylineCandidate, MapQueryResult,
+    MapQuerySpec, WorldBounds, WorldPoint,
 };
 use runtime_core::map::MapSource;
 
@@ -23,6 +23,7 @@ struct SegmentRecord {
     x2: i32,
     y2: i32,
     road_class: u8,
+    geometry_kind: u8,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -182,6 +183,9 @@ impl EmbeddedMapSource {
                 road_class: *bytes
                     .get(offset + 16)
                     .ok_or("unexpected eof while reading road_class")?,
+                geometry_kind: *bytes
+                    .get(offset + 17)
+                    .ok_or("unexpected eof while reading geometry_kind")?,
             });
             offset += 24;
         }
@@ -257,22 +261,30 @@ impl MapSource for EmbeddedMapSource {
             if !segment_intersects_bounds(segment, query_bounds) {
                 continue;
             }
-            let layer = map_layer_for_road_class(segment.road_class);
+            let layer = map_layer_for_feature_class(segment.road_class);
             if !spec.lod_mask.contains(layer) {
                 continue;
             }
+            let start = WorldPoint::new(
+                source_x_to_meters(segment.x1, self.meters_per_world_unit),
+                source_y_to_meters(segment.y1, self.meters_per_world_unit),
+            );
+            let end = WorldPoint::new(
+                source_x_to_meters(segment.x2, self.meters_per_world_unit),
+                source_y_to_meters(segment.y2, self.meters_per_world_unit),
+            );
+
+            if segment.geometry_kind == 1 || layer.is_point() {
+                geometry.push(GeometryCandidate::Point(MapPointCandidate {
+                    layer,
+                    position: start,
+                }));
+                continue;
+            }
+
             geometry.push(GeometryCandidate::Polyline(MapPolylineCandidate {
                 layer,
-                points: vec![
-                    WorldPoint::new(
-                        source_x_to_meters(segment.x1, self.meters_per_world_unit),
-                        source_y_to_meters(segment.y1, self.meters_per_world_unit),
-                    ),
-                    WorldPoint::new(
-                        source_x_to_meters(segment.x2, self.meters_per_world_unit),
-                        source_y_to_meters(segment.y2, self.meters_per_world_unit),
-                    ),
-                ],
+                points: vec![start, end],
             }));
         }
         MapQueryResult { geometry }
@@ -296,14 +308,21 @@ fn segment_intersects_bounds(segment: SegmentRecord, bounds: SourceBounds) -> bo
         || segment_bounds.min_y > bounds.max_y)
 }
 
-fn map_layer_for_road_class(road_class: u8) -> MapLayer {
-    match road_class {
+fn map_layer_for_feature_class(feature_class: u8) -> MapLayer {
+    match feature_class {
         1 => MapLayer::ArterialRoad,
         2 => MapLayer::StreetRoad,
         3 => MapLayer::BikeRouteMain,
         4 => MapLayer::BikeRouteLocal,
         5 => MapLayer::Footpath,
         6 => MapLayer::BuildingOutline,
+        7 => MapLayer::BikeParking,
+        8 => MapLayer::BikeRepair,
+        9 => MapLayer::Supermarket,
+        10 => MapLayer::Restaurant,
+        11 => MapLayer::Cafe,
+        12 => MapLayer::Water,
+        13 => MapLayer::Wc,
         _ => MapLayer::Footpath,
     }
 }
@@ -353,7 +372,9 @@ fn read_i32(bytes: &[u8], offset: usize) -> Result<i32, String> {
 
 #[cfg(test)]
 mod tests {
-    use runtime_core::api::{GpsSample, LodMask, MapLayer, MapPresentationBand, MapQuerySpec};
+    use runtime_core::api::{
+        GpsSample, LodMask, MapLayer, MapPointCandidate, MapPresentationBand, MapQuerySpec,
+    };
     use runtime_core::motion::project_gps_to_world;
 
     use super::*;
@@ -393,6 +414,13 @@ mod tests {
                 MapLayer::BikeRouteMain,
                 MapLayer::BikeRouteLocal,
                 MapLayer::Footpath,
+                MapLayer::BikeParking,
+                MapLayer::BikeRepair,
+                MapLayer::Supermarket,
+                MapLayer::Restaurant,
+                MapLayer::Cafe,
+                MapLayer::Water,
+                MapLayer::Wc,
             ]),
         )
     }
@@ -408,6 +436,7 @@ mod tests {
                     x2: 2_000,
                     y2: -1_000,
                     road_class: 1,
+                    geometry_kind: 0,
                 },
                 SegmentRecord {
                     x1: 50_000,
@@ -415,6 +444,7 @@ mod tests {
                     x2: 52_000,
                     y2: -50_000,
                     road_class: 3,
+                    geometry_kind: 0,
                 },
             ],
         );
@@ -445,6 +475,7 @@ mod tests {
                 x2: 2_000,
                 y2: -1_000,
                 road_class: 1,
+                geometry_kind: 0,
             }],
         );
         let meters_per_unit = source.meters_per_world_unit;
@@ -534,6 +565,13 @@ mod tests {
                 MapLayer::BikeRouteLocal,
                 MapLayer::Footpath,
                 MapLayer::BuildingOutline,
+                MapLayer::BikeParking,
+                MapLayer::BikeRepair,
+                MapLayer::Supermarket,
+                MapLayer::Restaurant,
+                MapLayer::Cafe,
+                MapLayer::Water,
+                MapLayer::Wc,
             ]),
         );
 
@@ -543,5 +581,81 @@ mod tests {
             !result.geometry.is_empty(),
             "expected embedded city.svm to return geometry near Helsinki"
         );
+    }
+
+    #[test]
+    fn embedded_city_map_returns_poi_points_for_helsinki_query() {
+        let source = EmbeddedMapSource::default();
+        let center = project_gps_to_world(GpsSample {
+            lat_deg: 60.1699,
+            lon_deg: 24.9384,
+            speed_mps: 0.0,
+            course_rad: None,
+            horizontal_accuracy_m: None,
+        });
+        let bounds = WorldBounds::from_center(center, 1_200.0, 1_200.0);
+        let spec = MapQuerySpec::new(
+            center,
+            bounds,
+            1.0,
+            16.8,
+            MapPresentationBand::CloseDetail,
+            LodMask::from_layers(&[
+                MapLayer::BikeParking,
+                MapLayer::BikeRepair,
+                MapLayer::Supermarket,
+                MapLayer::Restaurant,
+                MapLayer::Cafe,
+                MapLayer::Water,
+                MapLayer::Wc,
+            ]),
+        );
+
+        let result = source.query(&spec);
+
+        assert!(
+            result
+                .geometry
+                .iter()
+                .any(|candidate| matches!(candidate, GeometryCandidate::Point(_))),
+            "expected embedded city.svm to return POI points near Helsinki city center"
+        );
+    }
+
+    #[test]
+    fn query_decodes_point_records_into_point_geometry() {
+        let source = EmbeddedMapSource::from_segments(
+            14,
+            vec![SegmentRecord {
+                x1: 1_000,
+                y1: -1_000,
+                x2: 1_000,
+                y2: -1_000,
+                road_class: 7,
+                geometry_kind: 1,
+            }],
+        );
+        let meters_per_unit = source.meters_per_world_unit;
+        let bounds = WorldBounds {
+            min: WorldPoint::new(
+                source_x_to_meters(500, meters_per_unit),
+                source_y_to_meters(-1_500, meters_per_unit),
+            ),
+            max: WorldPoint::new(
+                source_x_to_meters(1_500, meters_per_unit),
+                source_y_to_meters(-500, meters_per_unit),
+            ),
+        };
+
+        let result = source.query(&spec(bounds));
+
+        assert_eq!(result.geometry.len(), 1);
+        assert!(matches!(
+            &result.geometry[0],
+            GeometryCandidate::Point(MapPointCandidate {
+                layer: MapLayer::BikeParking,
+                ..
+            })
+        ));
     }
 }

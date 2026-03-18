@@ -64,7 +64,20 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - The preferred direction is one generated regional map package with multiple internal feature classes and LOD slices, rather than many unrelated zoom-specific files.
 - Shared Rust runtime should choose the active presentation band from zoom and camera state.
 - Converter-owned declarative profiles should decide which features exist for `bike`, `car`, `transit`, and future map modes.
+- The current `bike` presentation should hide rail transit geometry and keep farther overview bands cleaner by preferring arterial-road and main-bike-route layers over dense street-level detail.
 - The canonical design lives in [`/work/docs/map-presentation-system-design.md`](/work/docs/map-presentation-system-design.md).
+
+## POI Layer Direction
+- The current shared POI slice supports:
+  - bicycle parking
+  - bicycle repair / pump stations
+  - supermarkets
+  - food
+- `Close Detail` should show all four categories with decluttered markers.
+- `Ride Detail` should keep only bike utility POIs visible.
+- `Network Overview` and `District Overview` should hide POIs.
+- POI normalization belongs in the converter, not in runtime adapters.
+- The canonical POI UX and ownership design lives in [`/work/docs/poi-layer-design.md`](/work/docs/poi-layer-design.md).
 
 ## Shared Runtime Contracts
 - `RuntimeInputFrame`: ordered per-frame input envelope containing `dt`, optional GPS, and optional normalized touch contacts.
@@ -98,6 +111,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 ## Supporting References
 - Camera orientation UX: [`/work/docs/camera-rotation-design.md`](/work/docs/camera-rotation-design.md)
 - Map presentation system: [`/work/docs/map-presentation-system-design.md`](/work/docs/map-presentation-system-design.md)
+- POI layer design: [`/work/docs/poi-layer-design.md`](/work/docs/poi-layer-design.md)
 - Runtime architecture decision: [`/work/docs/runtime-ecs-architecture.md`](/work/docs/runtime-ecs-architecture.md)
 - Framework execution guide: [`/work/docs/framework-execution-guide.md`](/work/docs/framework-execution-guide.md)
 - Device touch integration: [`/work/docs/device-touch-integration-plan.md`](/work/docs/device-touch-integration-plan.md)

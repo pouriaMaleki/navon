@@ -19,6 +19,7 @@ Execution guide: [`framework-execution-guide.md`](./framework-execution-guide.md
 - Replace the remaining device-oriented `xtask` stubs once firmware bundling and deploy flows have real implementations behind them.
 - Design the next direct `.svm` runtime loading layer after the shared embedded bridge path has parity coverage.
 - Plan the next map-system foundation so runtime/query/render can move beyond the current flat road/path model into richer zoom-aware presentation bands.
+- Replace the current overview-band simplification workaround with real street generalization and later POI clustering/label support.
 
 ## Recent Progress
 - `runtime-core::api` now exposes stable config, input, output, diagnostics, and map-query contract modules.
@@ -39,6 +40,8 @@ Execution guide: [`framework-execution-guide.md`](./framework-execution-guide.md
 - Firmware touch normalization now explicitly targets the logical viewport size instead of assuming controller extent equals display extent.
 - Firmware now also exposes concrete `esp_idf` provider modules for GT9271 register access, panel upload, NMEA GPS parsing, and device-platform assembly on top of the existing provider traits.
 - A new map presentation design direction is now defined: richer feature classes, four zoom presentation bands, declarative converter profiles, and a preference for one multi-LOD regional map package.
+- The current bike-map slice now hides rail/metro/train/tram geometry and keeps overview zooms cleaner by dropping ordinary street-road detail before true geometry generalization exists.
+- The first shared POI slice now normalizes bike parking, bike repair, supermarket, and food points from the source map package, with ride-detail limited to bike utility and close-detail showing utility plus essentials.
 
 ## Immediate Correction Pass
 - Replace the hand-rolled runner with a real internal `bevy_ecs` schedule and resources. Status: completed.
