@@ -28,6 +28,42 @@ export const EmulatorPanel = observer(
       void emulatorStore.init(canvas);
     }, [emulatorStore]);
 
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) {
+        return;
+      }
+
+      let frameId = 0;
+      const scheduleSync = () => {
+        if (frameId !== 0) {
+          return;
+        }
+        frameId = window.requestAnimationFrame(() => {
+          frameId = 0;
+          void emulatorStore.syncCanvasProfile(canvas);
+        });
+      };
+
+      const resizeObserver = new ResizeObserver(() => {
+        scheduleSync();
+      });
+      resizeObserver.observe(canvas);
+
+      const viewport = window.visualViewport;
+      viewport?.addEventListener("resize", scheduleSync);
+      window.addEventListener("orientationchange", scheduleSync);
+
+      return () => {
+        if (frameId !== 0) {
+          window.cancelAnimationFrame(frameId);
+        }
+        resizeObserver.disconnect();
+        viewport?.removeEventListener("resize", scheduleSync);
+        window.removeEventListener("orientationchange", scheduleSync);
+      };
+    }, [emulatorStore]);
+
     return (
       <section className={joinClassNames(styles["panel"], className)} data-variant={variant}>
         <div className={styles["screen"]}>

@@ -12,6 +12,7 @@ type FullscreenAppProps = {
 
 export const FullscreenApp = observer(({ appStore }: FullscreenAppProps) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const gpsNeedsAttention = appStore.geoStore.needsUserAction;
 
   useEffect(() => {
     return () => {
@@ -33,11 +34,13 @@ export const FullscreenApp = observer(({ appStore }: FullscreenAppProps) => {
         type="button"
         aria-expanded={drawerOpen}
         aria-controls="fullscreen-control-drawer"
+        data-gps-attention={gpsNeedsAttention ? "1" : "0"}
         onClick={() => {
           setDrawerOpen((open) => !open);
         }}
       >
         <span className={styles["toggleLabel"]}>Tools</span>
+        {gpsNeedsAttention ? <span className={styles["toggleBadge"]}>GPS</span> : null}
       </button>
 
       <aside
@@ -49,6 +52,9 @@ export const FullscreenApp = observer(({ appStore }: FullscreenAppProps) => {
           <div>
             <p className={styles["eyebrow"]}>Fullscreen Emulator</p>
             <h1 className={styles["title"]}>Minimap</h1>
+            <p className={styles["gpsStatus"]} data-tone={appStore.geoStore.statusTone}>
+              {appStore.geoStore.statusText}
+            </p>
           </div>
           <button
             className={styles["closeButton"]}

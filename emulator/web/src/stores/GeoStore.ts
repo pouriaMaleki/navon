@@ -5,12 +5,28 @@ const DEFAULT_LAT = 60.17442;
 const DEFAULT_LON = 24.9421;
 const EARTH_RADIUS_M = 6_371_000;
 const MOTION_DISTANCE_NOISE_M = 1.5;
+const AUTO_REQUEST_GRACE_MS = 3_000;
+const AUTO_REQUEST_TIMEOUT_MS = 4_000;
+const USER_REQUEST_TIMEOUT_MS = 12_000;
+
+type GpsMode =
+  | "initializing"
+  | "unsupported"
+  | "insecure_context"
+  | "simulated"
+  | "requesting_auto"
+  | "awaiting_user_gesture"
+  | "requesting_user"
+  | "live"
+  | "denied"
+  | "error";
 
 export class GeoStore {
-  statusText = "GPS: initializing";
+  mode: GpsMode = "initializing";
   isLive = false;
 
   private watchId: number | null = null;
+  private autoRequestTimerId: number | null = null;
   private customState: WasmRuntimeState | null = null;
   private prevLat = 0;
   private prevLon = 0;
@@ -26,11 +42,19 @@ export class GeoStore {
   constructor() {
     makeAutoObservable<
       GeoStore,
-      "watchId" | "customState" | "prevLat" | "prevLon" | "hasPrev" | "prevTsMs" | "simulatedSample"
+      | "watchId"
+      | "autoRequestTimerId"
+      | "customState"
+      | "prevLat"
+      | "prevLon"
+      | "hasPrev"
+      | "prevTsMs"
+      | "simulatedSample"
     >(
       this,
       {
         watchId: false,
+        autoRequestTimerId: false,
         customState: false,
         prevLat: false,
         prevLon: false,
@@ -50,69 +74,13 @@ export class GeoStore {
     if (!this.customState) {
       return;
     }
-    this.enableSimulatedMode();
-    this.requestLiveGps();
+    this.activateSimulatedRuntimeSample();
+    this.mode = "simulated";
+    this.requestAutoLiveGps();
   }
 
   requestLiveGps(): void {
-    if (!this.customState) {
-      return;
-    }
-
-    if (!("geolocation" in navigator)) {
-      this.statusText = "GPS: unavailable (bike sim)";
-      return;
-    }
-
-    if (!window.isSecureContext) {
-      this.statusText = "GPS: blocked (secure context required, bike sim)";
-      return;
-    }
-
-    if (this.watchId !== null) {
-      navigator.geolocation.clearWatch(this.watchId);
-      this.watchId = null;
-    }
-
-    this.statusText = "GPS: requesting permission";
-    this.watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        if (!this.customState) {
-          return;
-        }
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        const tsMs = position.timestamp;
-        this.isLive = true;
-        this.statusText = "GPS: live";
-
-        const sample = this.buildLiveGpsSample(position);
-        this.writeGpsSample(sample);
-        this.simulatedSample = {
-          lat,
-          lon,
-          headingRad: sample.courseRad ?? this.simulatedSample.headingRad,
-          speedMps: sample.speedMps,
-        };
-
-        this.prevLat = lat;
-        this.prevLon = lon;
-        this.prevTsMs = tsMs;
-        this.hasPrev = true;
-      },
-      (error) => {
-        if (!this.customState) {
-          return;
-        }
-        this.enableSimulatedMode();
-        if (error.code === error.PERMISSION_DENIED) {
-          this.statusText = "GPS: denied (bike sim)";
-          return;
-        }
-        this.statusText = "GPS: error (bike sim)";
-      },
-      { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 },
-    );
+    this.requestUserLiveGps();
   }
 
   applySimulatedSample(sample: SimulatedGeoSample): void {
@@ -127,20 +95,89 @@ export class GeoStore {
       courseRad: sample.headingRad,
       horizontalAccuracyM: null,
     });
-    this.statusText = "GPS: simulated (bike controls)";
   }
 
   dispose(): void {
-    if (this.watchId !== null && "geolocation" in navigator) {
-      navigator.geolocation.clearWatch(this.watchId);
-      this.watchId = null;
-    }
+    this.clearPendingGeolocation();
     this.customState = null;
     this.hasPrev = false;
     this.prevTsMs = 0;
+    this.mode = "initializing";
+    this.isLive = false;
   }
 
-  private enableSimulatedMode(): void {
+  get statusText(): string {
+    switch (this.mode) {
+      case "unsupported":
+        return "GPS: unavailable (bike sim)";
+      case "insecure_context":
+        return "GPS: blocked (secure context required, bike sim)";
+      case "requesting_auto":
+        return "GPS: requesting permission";
+      case "awaiting_user_gesture":
+        return "GPS: tap Request GPS for live position";
+      case "requesting_user":
+        return "GPS: requesting permission";
+      case "live":
+        return "GPS: live";
+      case "denied":
+        return "GPS: denied (bike sim)";
+      case "error":
+        return "GPS: error (bike sim)";
+      case "simulated":
+        return "GPS: simulated (bike controls)";
+      default:
+        return "GPS: initializing";
+    }
+  }
+
+  get requestButtonLabel(): string {
+    switch (this.mode) {
+      case "requesting_auto":
+      case "requesting_user":
+        return "Requesting GPS...";
+      case "denied":
+      case "error":
+      case "awaiting_user_gesture":
+        return "Retry GPS";
+      default:
+        return "Request GPS";
+    }
+  }
+
+  get isRequestInFlight(): boolean {
+    return this.mode === "requesting_auto" || this.mode === "requesting_user";
+  }
+
+  get needsUserAction(): boolean {
+    return (
+      this.mode === "awaiting_user_gesture" ||
+      this.mode === "denied" ||
+      this.mode === "error" ||
+      this.mode === "insecure_context" ||
+      this.mode === "unsupported"
+    );
+  }
+
+  get statusTone(): "live" | "pending" | "attention" | "muted" {
+    switch (this.mode) {
+      case "live":
+        return "live";
+      case "requesting_auto":
+      case "requesting_user":
+        return "pending";
+      case "awaiting_user_gesture":
+      case "denied":
+      case "error":
+      case "insecure_context":
+      case "unsupported":
+        return "attention";
+      default:
+        return "muted";
+    }
+  }
+
+  private activateSimulatedRuntimeSample(): void {
     if (!this.customState) {
       return;
     }
@@ -152,7 +189,175 @@ export class GeoStore {
       courseRad: this.simulatedSample.headingRad,
       horizontalAccuracyM: null,
     });
-    this.statusText = "GPS: simulated (bike controls)";
+  }
+
+  private requestAutoLiveGps(): void {
+    if (!this.canAttemptLiveGps()) {
+      return;
+    }
+
+    this.clearPendingGeolocation();
+    this.isLive = false;
+    this.mode = "requesting_auto";
+    this.autoRequestTimerId = window.setTimeout(() => {
+      if (this.mode !== "requesting_auto" || this.isLive) {
+        return;
+      }
+      this.clearWatch();
+      this.mode = "awaiting_user_gesture";
+    }, AUTO_REQUEST_GRACE_MS);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        this.clearAutoRequestTimer();
+        this.handleLivePosition(position);
+        this.startLiveWatch();
+      },
+      (error) => {
+        this.clearAutoRequestTimer();
+        this.handleAutoRequestError(error);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 1_000,
+        timeout: AUTO_REQUEST_TIMEOUT_MS,
+      },
+    );
+  }
+
+  private requestUserLiveGps(): void {
+    if (!this.canAttemptLiveGps()) {
+      return;
+    }
+
+    this.clearPendingGeolocation();
+    this.isLive = false;
+    this.mode = "requesting_user";
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        this.handleLivePosition(position);
+        this.startLiveWatch();
+      },
+      (error) => {
+        this.handleUserRequestError(error);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: USER_REQUEST_TIMEOUT_MS,
+      },
+    );
+  }
+
+  private canAttemptLiveGps(): boolean {
+    if (!this.customState) {
+      return false;
+    }
+
+    if (!("geolocation" in navigator)) {
+      this.mode = "unsupported";
+      return false;
+    }
+
+    if (!window.isSecureContext) {
+      this.mode = "insecure_context";
+      return false;
+    }
+
+    return true;
+  }
+
+  private startLiveWatch(): void {
+    this.clearWatch();
+    this.watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        this.handleLivePosition(position);
+      },
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          this.activateSimulatedRuntimeSample();
+          this.mode = "denied";
+          return;
+        }
+
+        this.activateSimulatedRuntimeSample();
+        this.mode = "error";
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 1_000,
+        timeout: USER_REQUEST_TIMEOUT_MS,
+      },
+    );
+  }
+
+  private handleLivePosition(position: GeolocationPosition): void {
+    if (!this.customState) {
+      return;
+    }
+
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+    const tsMs = position.timestamp;
+    this.isLive = true;
+    this.mode = "live";
+
+    const sample = this.buildLiveGpsSample(position);
+    this.writeGpsSample(sample);
+    this.simulatedSample = {
+      lat,
+      lon,
+      headingRad: sample.courseRad ?? this.simulatedSample.headingRad,
+      speedMps: sample.speedMps,
+    };
+
+    this.prevLat = lat;
+    this.prevLon = lon;
+    this.prevTsMs = tsMs;
+    this.hasPrev = true;
+  }
+
+  private handleAutoRequestError(error: GeolocationPositionError): void {
+    this.activateSimulatedRuntimeSample();
+    if (error.code === error.PERMISSION_DENIED) {
+      this.mode = "denied";
+      return;
+    }
+
+    this.mode = "awaiting_user_gesture";
+  }
+
+  private handleUserRequestError(error: GeolocationPositionError): void {
+    this.activateSimulatedRuntimeSample();
+    if (error.code === error.PERMISSION_DENIED) {
+      this.mode = "denied";
+      return;
+    }
+
+    this.mode = "error";
+  }
+
+  private clearPendingGeolocation(): void {
+    this.clearAutoRequestTimer();
+    this.clearWatch();
+  }
+
+  private clearAutoRequestTimer(): void {
+    if (this.autoRequestTimerId === null) {
+      return;
+    }
+    window.clearTimeout(this.autoRequestTimerId);
+    this.autoRequestTimerId = null;
+  }
+
+  private clearWatch(): void {
+    if (this.watchId === null || !("geolocation" in navigator)) {
+      this.watchId = null;
+      return;
+    }
+    navigator.geolocation.clearWatch(this.watchId);
+    this.watchId = null;
   }
 
   private buildLiveGpsSample(position: GeolocationPosition): RuntimeGpsInput {
