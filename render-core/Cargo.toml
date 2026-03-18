@@ -8,3 +8,6 @@ path = "src/lib.rs"
 
 [dependencies]
 runtime-core = { path = "../runtime-core" }
+
+[build-dependencies]
+resvg = { version = "0.47.0", default-features = false }

@@ -9,6 +9,10 @@ use crate::camera_view::CameraView;
 use crate::raster::Framebuffer;
 use crate::style::RenderStyle;
 
+const NORTH_INDICATOR_ACK_BASE_RADIUS_PX: f32 = 20.0;
+const NORTH_INDICATOR_ACK_EXPANSION_PX: f32 = 12.0;
+const TOP_START_ANGLE_RAD: f32 = -std::f32::consts::FRAC_PI_2;
+
 pub fn draw_overlay(
     config: &RuntimeConfig,
     camera: &CameraStateSnapshot,
@@ -57,11 +61,12 @@ pub fn draw_overlay(
             style.north_indicator_active_intensity
         }
     };
-    framebuffer.draw_mask(
-        indicator_center,
-        assets::NORTH_INDICATOR_BASE,
-        indicator_intensity,
-    );
+    let indicator_base = if matches!(camera.orientation_mode, CameraOrientationMode::NorthLocked) {
+        assets::NORTH_INDICATOR_LOCKED_BASE
+    } else {
+        assets::NORTH_INDICATOR_BASE
+    };
+    framebuffer.draw_mask(indicator_center, indicator_base, indicator_intensity);
     framebuffer.draw_rotated_mask(
         indicator_center,
         assets::NORTH_INDICATOR_NEEDLE,
@@ -70,24 +75,19 @@ pub fn draw_overlay(
     );
 
     if let Some(progress) = overlay.north_preview_progress {
-        draw_progress_ring(
-            framebuffer,
+        framebuffer.draw_rotated_mask_radial_progress(
             indicator_center,
-            12.0,
-            2,
-            progress,
-            style.north_indicator_ring_intensity,
-        );
-    }
-
-    if matches!(camera.orientation_mode, CameraOrientationMode::NorthLocked) {
-        draw_progress_ring(
-            framebuffer,
-            indicator_center,
-            12.0,
-            2,
-            1.0,
+            assets::NORTH_INDICATOR_LOCKED_BASE,
+            0.0,
             style.north_indicator_locked_intensity,
+            progress,
+            TOP_START_ANGLE_RAD,
+        );
+        framebuffer.draw_rotated_mask(
+            indicator_center,
+            assets::NORTH_INDICATOR_NEEDLE,
+            -camera.orientation_rad,
+            255,
         );
     }
 
@@ -97,36 +97,6 @@ pub fn draw_overlay(
             indicator_center,
             overlay.compass_ack_progress,
             style.north_indicator_ack_intensity,
-        );
-    }
-}
-
-fn draw_progress_ring(
-    framebuffer: &mut Framebuffer,
-    center: ScreenPoint,
-    radius_px: f32,
-    thickness_px: u8,
-    progress: f32,
-    intensity: u8,
-) {
-    let clamped_progress = progress.clamp(0.0, 1.0);
-    if clamped_progress <= 0.0 {
-        return;
-    }
-
-    let segments = ((64.0 * clamped_progress).ceil() as usize).max(1);
-    let start_angle = -std::f32::consts::FRAC_PI_2;
-    let end_angle = start_angle + (std::f32::consts::TAU * clamped_progress);
-    let angle_step = (end_angle - start_angle) / segments as f32;
-    for segment in 0..=segments {
-        let angle = start_angle + (angle_step * segment as f32);
-        let x = center.x_px + (radius_px * angle.cos());
-        let y = center.y_px + (radius_px * angle.sin());
-        framebuffer.stamp_circle(
-            x.round() as i32,
-            y.round() as i32,
-            thickness_px.max(1),
-            intensity,
         );
     }
 }
@@ -142,7 +112,30 @@ fn draw_ack_pulse(
         return;
     }
 
-    let radius_px = 10.0 + ((1.0 - clamped) * 8.0);
+    let radius_px =
+        NORTH_INDICATOR_ACK_BASE_RADIUS_PX + ((1.0 - clamped) * NORTH_INDICATOR_ACK_EXPANSION_PX);
     let pulse_intensity = (f32::from(intensity) * clamped).round().clamp(0.0, 255.0) as u8;
-    draw_progress_ring(framebuffer, center, radius_px, 1, 1.0, pulse_intensity);
+    draw_ring(framebuffer, center, radius_px, 1, pulse_intensity);
+}
+
+fn draw_ring(
+    framebuffer: &mut Framebuffer,
+    center: ScreenPoint,
+    radius_px: f32,
+    thickness_px: u8,
+    intensity: u8,
+) {
+    let segments = 64usize;
+    let angle_step = std::f32::consts::TAU / segments as f32;
+    for segment in 0..=segments {
+        let angle = TOP_START_ANGLE_RAD + (angle_step * segment as f32);
+        let x = center.x_px + (radius_px * angle.cos());
+        let y = center.y_px + (radius_px * angle.sin());
+        framebuffer.stamp_circle(
+            x.round() as i32,
+            y.round() as i32,
+            thickness_px.max(1),
+            intensity,
+        );
+    }
 }

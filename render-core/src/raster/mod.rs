@@ -141,6 +141,51 @@ impl Framebuffer {
         angle_rad: f32,
         intensity: u8,
     ) {
+        self.draw_rotated_mask_with_filter(center, mask, angle_rad, intensity, |_x, _y| true);
+    }
+
+    pub fn draw_rotated_mask_radial_progress(
+        &mut self,
+        center: ScreenPoint,
+        mask: AlphaMask,
+        angle_rad: f32,
+        intensity: u8,
+        progress: f32,
+        start_angle_rad: f32,
+    ) {
+        let clamped_progress = progress.clamp(0.0, 1.0);
+        if clamped_progress <= 0.0 {
+            return;
+        }
+        if clamped_progress >= 1.0 {
+            self.draw_rotated_mask(center, mask, angle_rad, intensity);
+            return;
+        }
+
+        let sweep_rad = std::f32::consts::TAU * clamped_progress;
+        self.draw_rotated_mask_with_filter(center, mask, angle_rad, intensity, |local_x, local_y| {
+            if local_x == 0.0 && local_y == 0.0 {
+                return true;
+            }
+            let mut delta = local_y.atan2(local_x) - start_angle_rad;
+            while delta < 0.0 {
+                delta += std::f32::consts::TAU;
+            }
+            while delta >= std::f32::consts::TAU {
+                delta -= std::f32::consts::TAU;
+            }
+            delta <= sweep_rad
+        });
+    }
+
+    fn draw_rotated_mask_with_filter(
+        &mut self,
+        center: ScreenPoint,
+        mask: AlphaMask,
+        angle_rad: f32,
+        intensity: u8,
+        mut include_pixel: impl FnMut(f32, f32) -> bool,
+    ) {
         let half_width = mask.width() as f32 / 2.0;
         let half_height = mask.height() as f32 / 2.0;
         let sin_theta = angle_rad.sin();
@@ -154,6 +199,9 @@ impl Framebuffer {
             for x in min_x..=max_x {
                 let local_x = x as f32 + 0.5 - center.x_px;
                 let local_y = y as f32 + 0.5 - center.y_px;
+                if !include_pixel(local_x, local_y) {
+                    continue;
+                }
                 let source_x = (local_x * cos_theta) + (local_y * sin_theta) + half_width;
                 let source_y = (-local_x * sin_theta) + (local_y * cos_theta) + half_height;
                 let alpha = mask.alpha_at(source_x.floor() as i32, source_y.floor() as i32);
