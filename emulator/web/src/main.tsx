@@ -10,5 +10,5 @@ if (!(rootEl instanceof HTMLDivElement)) {
 
 installMobileGestureGuards();
 
-const appStore = new AppStore();
+const appStore = new AppStore({ autoRequestLiveGps: false });
 createRoot(rootEl).render(<App appStore={appStore} />);
