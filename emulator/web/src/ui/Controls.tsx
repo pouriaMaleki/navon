@@ -5,9 +5,10 @@ import styles from "./Controls.module.css";
 
 type ControlsProps = {
   appStore: AppStore;
+  showGpsControls?: boolean;
 };
 
-export const Controls = observer(({ appStore }: ControlsProps) => {
+export const Controls = observer(({ appStore, showGpsControls = true }: ControlsProps) => {
   const { bikeSimStore, emulatorStore, geoStore } = appStore;
   const disabled = !emulatorStore.isReady || emulatorStore.isLoading;
   const requestGpsDisabled = !emulatorStore.isReady || geoStore.isRequestInFlight;
@@ -27,14 +28,16 @@ export const Controls = observer(({ appStore }: ControlsProps) => {
         >
           Reset
         </button>
-        <button
-          className={styles["button"]}
-          type="button"
-          onClick={geoStore.requestLiveGps}
-          disabled={requestGpsDisabled}
-        >
-          {geoStore.requestButtonLabel}
-        </button>
+        {showGpsControls ? (
+          <button
+            className={styles["button"]}
+            type="button"
+            onClick={geoStore.requestLiveGps}
+            disabled={requestGpsDisabled}
+          >
+            {geoStore.requestButtonLabel}
+          </button>
+        ) : null}
         <span className={styles["status"]} data-tone={geoStore.statusTone}>
           {geoStore.statusText}
         </span>

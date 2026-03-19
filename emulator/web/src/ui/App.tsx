@@ -21,7 +21,7 @@ export const App = observer(({ appStore }: AppProps) => {
     <main className={styles["app"]}>
       <TopBar />
       <EmulatorPanel appStore={appStore} />
-      <Controls appStore={appStore} />
+      <Controls appStore={appStore} showGpsControls={false} />
     </main>
   );
 });

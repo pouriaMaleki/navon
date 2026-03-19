@@ -11,5 +11,5 @@ if (!(rootEl instanceof HTMLDivElement)) {
 
 installMobileGestureGuards();
 
-const appStore = new AppStore({ screenProfile: browserViewportProfile });
+const appStore = new AppStore({ screenProfile: browserViewportProfile, autoRequestLiveGps: true });
 createRoot(rootEl).render(<WebFullscreenApp appStore={appStore} />);

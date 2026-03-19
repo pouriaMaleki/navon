@@ -22,7 +22,6 @@ COPY emulator/web/package.json emulator/web/package-lock.json ./
 RUN npm ci
 
 COPY emulator/web/index.html ./
-COPY emulator/web/fullscreen.html ./
 COPY emulator/web/web-fullscreen.html ./
 COPY emulator/web/tsconfig.json ./
 COPY emulator/web/vite.config.ts ./

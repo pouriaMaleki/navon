@@ -10,7 +10,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
-        fullscreen: resolve(__dirname, "fullscreen.html"),
         webFullscreen: resolve(__dirname, "web-fullscreen.html"),
       },
     },

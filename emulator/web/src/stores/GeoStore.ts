@@ -21,9 +21,14 @@ type GpsMode =
   | "denied"
   | "error";
 
+type GeoStoreOptions = {
+  autoRequestLiveGps?: boolean;
+};
+
 export class GeoStore {
   mode: GpsMode = "initializing";
   isLive = false;
+  readonly autoRequestLiveGps: boolean;
 
   private watchId: number | null = null;
   private autoRequestTimerId: number | null = null;
@@ -39,7 +44,8 @@ export class GeoStore {
     speedMps: 0,
   };
 
-  constructor() {
+  constructor(options?: GeoStoreOptions) {
+    this.autoRequestLiveGps = options?.autoRequestLiveGps ?? true;
     makeAutoObservable<
       GeoStore,
       | "watchId"
@@ -76,7 +82,9 @@ export class GeoStore {
     }
     this.activateSimulatedRuntimeSample();
     this.mode = "simulated";
-    this.requestAutoLiveGps();
+    if (this.autoRequestLiveGps) {
+      this.requestAutoLiveGps();
+    }
   }
 
   requestLiveGps(): void {
@@ -174,6 +182,23 @@ export class GeoStore {
         return "attention";
       default:
         return "muted";
+    }
+  }
+
+  get guidanceText(): string | null {
+    switch (this.mode) {
+      case "awaiting_user_gesture":
+        return "Tap Request GPS to trigger the browser permission prompt.";
+      case "denied":
+        return "Allow Location for this site in Safari settings, then request GPS again.";
+      case "insecure_context":
+        return "Live GPS needs HTTPS on iPhone browsers.";
+      case "unsupported":
+        return "This browser does not expose geolocation to the emulator.";
+      case "error":
+        return "The browser could not resolve a live position yet. Try again outdoors.";
+      default:
+        return null;
     }
   }
 
