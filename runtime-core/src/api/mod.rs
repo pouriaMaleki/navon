@@ -5,7 +5,7 @@ pub mod input;
 pub mod output;
 pub mod query;
 
-pub use config::{NormalizedScreenPoint, RuntimeConfig, ZoomBounds};
+pub use config::{NormalizedScreenPoint, RuntimeConfig, SpeedUnit, ZoomBounds};
 pub use diagnostics::DiagnosticsSnapshot;
 pub use events::{GestureEventKind, TapEvent};
 pub use input::{

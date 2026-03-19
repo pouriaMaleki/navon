@@ -109,7 +109,9 @@ mod tests {
             backlight_gpio: None,
         });
         let mut render = RenderFramebuffer::new(2, 2);
-        render.pixels_mut().copy_from_slice(&[0, 64, 128, 255]);
+        render.pixels_mut().copy_from_slice(&[
+            0, 64, 128, 255, 0, 64, 128, 255, 0, 64, 128, 255, 0, 64, 128, 255,
+        ]);
 
         display.present(&render).expect("display upload");
 

@@ -1,4 +1,4 @@
-use super::config::NormalizedScreenPoint;
+use super::config::{NormalizedScreenPoint, SpeedUnit};
 use super::diagnostics::DiagnosticsSnapshot;
 use super::query::{MapQuerySpec, WorldPoint};
 
@@ -69,6 +69,9 @@ pub struct OverlayState {
     pub rider_heading_rad: Option<f32>,
     pub north_preview_progress: Option<f32>,
     pub compass_ack_progress: f32,
+    pub speed_panel_visible: bool,
+    pub speed_display_value: u16,
+    pub speed_unit: SpeedUnit,
 }
 
 impl Default for OverlayState {
@@ -79,6 +82,9 @@ impl Default for OverlayState {
             rider_heading_rad: None,
             north_preview_progress: None,
             compass_ack_progress: 0.0,
+            speed_panel_visible: false,
+            speed_display_value: 0,
+            speed_unit: SpeedUnit::Kph,
         }
     }
 }

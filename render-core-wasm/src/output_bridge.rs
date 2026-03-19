@@ -19,6 +19,12 @@ pub struct JsFrameState {
     pub recenter_active: bool,
     #[serde(rename = "northUpActive")]
     pub north_up_active: bool,
+    #[serde(rename = "speedVisible")]
+    pub speed_visible: bool,
+    #[serde(rename = "speedValue")]
+    pub speed_value: u16,
+    #[serde(rename = "speedUnit")]
+    pub speed_unit: &'static str,
     #[serde(rename = "geometryCount")]
     pub geometry_count: usize,
 }
@@ -43,6 +49,9 @@ impl JsFrameState {
             follow_locked: output.camera.follow_locked,
             recenter_active: output.camera.recenter_active,
             north_up_active: output.overlay.north_up_active,
+            speed_visible: output.overlay.speed_panel_visible,
+            speed_value: output.overlay.speed_display_value,
+            speed_unit: output.overlay.speed_unit.as_str(),
             geometry_count: geometry.geometry.len(),
         }
     }

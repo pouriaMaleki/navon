@@ -89,6 +89,9 @@ export type RuntimeFrameState = {
   followLocked: boolean;
   recenterActive: boolean;
   northUpActive: boolean;
+  speedVisible: boolean;
+  speedValue: number;
+  speedUnit: "kph" | "mph";
   geometryCount: number;
 };
 

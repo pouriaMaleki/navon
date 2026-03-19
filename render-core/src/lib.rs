@@ -167,7 +167,8 @@ mod tests {
     use runtime_core::api::{
         CameraMode, CameraOrientationMode, CameraStateSnapshot, LodMask, MapLayer,
         MapPointCandidate, MapPolylineCandidate, MapPresentationBand, MapQuerySpec,
-        NormalizedScreenPoint, OverlayState, RuntimeConfig, RuntimeFrameOutput, WorldPoint,
+        NormalizedScreenPoint, OverlayState, RuntimeConfig, RuntimeFrameOutput, SpeedUnit,
+        WorldPoint,
     };
 
     use super::*;
@@ -194,6 +195,9 @@ mod tests {
                 rider_heading_rad: Some(0.0),
                 north_preview_progress: None,
                 compass_ack_progress: 0.0,
+                speed_panel_visible: false,
+                speed_display_value: 0,
+                speed_unit: SpeedUnit::Kph,
             },
             map_query: MapQuerySpec::new(
                 WorldPoint::ORIGIN,
@@ -406,6 +410,73 @@ mod tests {
         assert_ne!(preview.pixels(), locked.pixels());
         assert_ne!(preview.pixels(), acquisition.pixels());
         assert_ne!(ack.pixels(), acquisition.pixels());
+    }
+
+    #[test]
+    fn speed_panel_renders_black_bottom_band_when_visible() {
+        let config = RuntimeConfig::default();
+        let geometry = MapQueryResult::default();
+        let mut output = sample_output();
+        output.overlay.speed_panel_visible = true;
+        output.overlay.speed_display_value = 22;
+        output.overlay.speed_unit = SpeedUnit::Kph;
+        let mut framebuffer = Framebuffer::new(128, 128);
+
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &output,
+                geometry: &geometry,
+            },
+            &mut framebuffer,
+        );
+
+        let panel_start = (framebuffer.height() as f32 * 0.75).round() as usize;
+        let has_black_panel_pixel =
+            framebuffer
+                .pixels()
+                .chunks_exact(4)
+                .enumerate()
+                .any(|(index, rgba)| {
+                    let y = index / framebuffer.width() as usize;
+                    y >= panel_start && rgba[0] == 0 && rgba[1] == 0 && rgba[2] == 0
+                });
+
+        assert!(has_black_panel_pixel);
+    }
+
+    #[test]
+    fn speed_panel_unit_render_changes_pixels() {
+        let config = RuntimeConfig::default();
+        let geometry = MapQueryResult::default();
+        let mut kph_output = sample_output();
+        kph_output.overlay.speed_panel_visible = true;
+        kph_output.overlay.speed_display_value = 18;
+        kph_output.overlay.speed_unit = SpeedUnit::Kph;
+        let mut mph_output = kph_output.clone();
+        mph_output.overlay.speed_unit = SpeedUnit::Mph;
+
+        let mut kph = Framebuffer::new(128, 128);
+        let mut mph = Framebuffer::new(128, 128);
+
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &kph_output,
+                geometry: &geometry,
+            },
+            &mut kph,
+        );
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &mph_output,
+                geometry: &geometry,
+            },
+            &mut mph,
+        );
+
+        assert_ne!(kph.pixels(), mph.pixels());
     }
 
     #[test]

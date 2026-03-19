@@ -120,6 +120,22 @@ impl Framebuffer {
         self.pixels[index + 3] = 255;
     }
 
+    pub fn set_pixel_overwrite(&mut self, x: i32, y: i32, color: Color) {
+        if x < 0 || y < 0 {
+            return;
+        }
+        let width = self.width as i32;
+        let height = self.height as i32;
+        if x >= width || y >= height {
+            return;
+        }
+        let index = ((y as usize * self.width as usize) + x as usize) * 4;
+        self.pixels[index] = color.r;
+        self.pixels[index + 1] = color.g;
+        self.pixels[index + 2] = color.b;
+        self.pixels[index + 3] = 255;
+    }
+
     pub fn draw_line(
         &mut self,
         from: ScreenPoint,
@@ -162,6 +178,28 @@ impl Framebuffer {
                 if (dx * dx) + (dy * dy) <= radius_sq {
                     self.set_pixel(cx + dx, cy + dy, color);
                 }
+            }
+        }
+    }
+
+    pub fn fill_rect(&mut self, x: i32, y: i32, width: u32, height: u32, color: Color) {
+        if width == 0 || height == 0 {
+            return;
+        }
+        for y_offset in 0..height as i32 {
+            for x_offset in 0..width as i32 {
+                self.set_pixel(x + x_offset, y + y_offset, color);
+            }
+        }
+    }
+
+    pub fn fill_rect_overwrite(&mut self, x: i32, y: i32, width: u32, height: u32, color: Color) {
+        if width == 0 || height == 0 {
+            return;
+        }
+        for y_offset in 0..height as i32 {
+            for x_offset in 0..width as i32 {
+                self.set_pixel_overwrite(x + x_offset, y + y_offset, color);
             }
         }
     }

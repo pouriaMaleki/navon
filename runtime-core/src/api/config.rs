@@ -2,6 +2,46 @@ use std::time::Duration;
 
 use super::input::ViewportSize;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum SpeedUnit {
+    #[default]
+    Kph,
+    Mph,
+}
+
+impl SpeedUnit {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Kph => "kph",
+            Self::Mph => "mph",
+        }
+    }
+
+    pub const fn toggled(self) -> Self {
+        match self {
+            Self::Kph => Self::Mph,
+            Self::Mph => Self::Kph,
+        }
+    }
+
+    pub fn rounded_display_value_from_mps(self, speed_mps: f32) -> u16 {
+        let speed = speed_mps.max(0.0);
+        let factor = match self {
+            Self::Kph => 3.6,
+            Self::Mph => 2.236_936_3,
+        };
+        (speed * factor).round().clamp(0.0, u16::MAX as f32) as u16
+    }
+
+    pub fn from_storage_str(value: &str) -> Option<Self> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "kph" => Some(Self::Kph),
+            "mph" => Some(Self::Mph),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct NormalizedScreenPoint {
     pub x: f32,
@@ -51,6 +91,7 @@ impl Default for ZoomBounds {
 #[derive(Debug, Clone, PartialEq)]
 pub struct RuntimeConfig {
     pub viewport_size: ViewportSize,
+    pub default_speed_unit: SpeedUnit,
     pub riding_rider_anchor: NormalizedScreenPoint,
     pub stopped_rider_anchor: NormalizedScreenPoint,
     pub north_indicator_center: NormalizedScreenPoint,
@@ -81,6 +122,7 @@ impl Default for RuntimeConfig {
     fn default() -> Self {
         Self {
             viewport_size: ViewportSize::new(480, 480),
+            default_speed_unit: SpeedUnit::Kph,
             riding_rider_anchor: NormalizedScreenPoint::new(0.5, 0.72),
             stopped_rider_anchor: NormalizedScreenPoint::CENTER,
             north_indicator_center: NormalizedScreenPoint::new(0.5, 0.12),

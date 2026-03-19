@@ -1,14 +1,19 @@
-import initWasm, { type InitOutput, MinimapWasmEmulator } from "../../wasm-pkg/render_core_wasm.js";
 import type { RenderProgram } from "../core/types";
 
 import type { RuntimeTouchInput, WasmRuntimeState } from "../types";
+
+const SPEED_UNIT_STORAGE_KEY = "esp32-minimap.speed-unit";
 
 export async function createWasmProgram(profileId = 0): Promise<{
   initialState: WasmRuntimeState;
   program: RenderProgram<WasmRuntimeState>;
 }> {
+  const { default: initWasm, MinimapWasmEmulator } = await import(
+    "../../wasm-pkg/render_core_wasm.js"
+  );
+  type InitOutput = Awaited<ReturnType<typeof initWasm>>;
   const wasm: InitOutput = await initWasm();
-  const emu = new MinimapWasmEmulator(profileId);
+  const emu = new MinimapWasmEmulator(profileId, readStoredSpeedUnit(globalThis.localStorage));
 
   const program: RenderProgram<WasmRuntimeState> = {
     init(state) {
@@ -34,6 +39,7 @@ export async function createWasmProgram(profileId = 0): Promise<{
         );
       }
       state.custom.frame = JSON.parse(snapshotJson) as NonNullable<WasmRuntimeState["frame"]>;
+      persistSpeedUnit(globalThis.localStorage, state.custom.frame.speedUnit);
     },
     render(state, surface) {
       const ptr = state.custom.emu.pixels_ptr();
@@ -53,6 +59,31 @@ export async function createWasmProgram(profileId = 0): Promise<{
     },
     program,
   };
+}
+
+export function readStoredSpeedUnit(
+  storage: Pick<Storage, "getItem"> | null | undefined,
+): "kph" | "mph" | undefined {
+  try {
+    const value = storage?.getItem(SPEED_UNIT_STORAGE_KEY) ?? null;
+    if (value === "kph" || value === "mph") {
+      return value;
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
+
+export function persistSpeedUnit(
+  storage: Pick<Storage, "setItem"> | null | undefined,
+  unit: "kph" | "mph",
+): void {
+  try {
+    storage?.setItem(SPEED_UNIT_STORAGE_KEY, unit);
+  } catch {
+    // Ignore storage write failures so rendering remains uninterrupted.
+  }
 }
 
 function consumeTouchFrames(

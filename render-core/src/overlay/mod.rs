@@ -12,6 +12,10 @@ use crate::style::RenderStyle;
 const NORTH_INDICATOR_ACK_BASE_RADIUS_PX: f32 = 20.0;
 const NORTH_INDICATOR_ACK_EXPANSION_PX: f32 = 12.0;
 const TOP_START_ANGLE_RAD: f32 = -std::f32::consts::FRAC_PI_2;
+const SPEED_PANEL_HEIGHT_RATIO: f32 = 0.25;
+const SPEED_PANEL_UNIT_SCALE_PX: i32 = 5;
+const UNIT_GLYPH_WIDTH: usize = 3;
+const UNIT_GLYPH_HEIGHT: usize = 5;
 
 pub fn draw_overlay(
     config: &RuntimeConfig,
@@ -41,59 +45,62 @@ pub fn draw_overlay(
         }
     }
 
-    if !overlay.north_indicator_visible {
-        return;
-    }
-
-    let indicator_center = runtime_core::api::ScreenPoint::new(
-        config.north_indicator_center.x * viewport.width_px as f32,
-        config.north_indicator_center.y * viewport.height_px as f32,
-    );
-    let indicator_color = match camera.orientation_mode {
-        CameraOrientationMode::TravelUpAuto => style.north_indicator_idle_color,
-        CameraOrientationMode::HeadingAcquisition => style.north_indicator_acquisition_color,
-        CameraOrientationMode::NorthLocked => style.north_indicator_locked_color,
-        CameraOrientationMode::StoppedNorthUp | CameraOrientationMode::NorthPreview => {
-            style.north_indicator_active_color
-        }
-    };
-    let indicator_base = if matches!(camera.orientation_mode, CameraOrientationMode::NorthLocked) {
-        assets::NORTH_INDICATOR_LOCKED_BASE
-    } else {
-        assets::NORTH_INDICATOR_BASE
-    };
-    framebuffer.draw_mask(indicator_center, indicator_base, indicator_color);
-    framebuffer.draw_rotated_mask(
-        indicator_center,
-        assets::NORTH_INDICATOR_NEEDLE,
-        -camera.orientation_rad,
-        style.rider_fill_color,
-    );
-
-    if let Some(progress) = overlay.north_preview_progress {
-        framebuffer.draw_rotated_mask_radial_progress(
-            indicator_center,
-            assets::NORTH_INDICATOR_LOCKED_BASE,
-            0.0,
-            style.north_indicator_locked_color,
-            progress,
-            TOP_START_ANGLE_RAD,
+    if overlay.north_indicator_visible {
+        let indicator_center = runtime_core::api::ScreenPoint::new(
+            config.north_indicator_center.x * viewport.width_px as f32,
+            config.north_indicator_center.y * viewport.height_px as f32,
         );
+        let indicator_color = match camera.orientation_mode {
+            CameraOrientationMode::TravelUpAuto => style.north_indicator_idle_color,
+            CameraOrientationMode::HeadingAcquisition => style.north_indicator_acquisition_color,
+            CameraOrientationMode::NorthLocked => style.north_indicator_locked_color,
+            CameraOrientationMode::StoppedNorthUp | CameraOrientationMode::NorthPreview => {
+                style.north_indicator_active_color
+            }
+        };
+        let indicator_base =
+            if matches!(camera.orientation_mode, CameraOrientationMode::NorthLocked) {
+                assets::NORTH_INDICATOR_LOCKED_BASE
+            } else {
+                assets::NORTH_INDICATOR_BASE
+            };
+        framebuffer.draw_mask(indicator_center, indicator_base, indicator_color);
         framebuffer.draw_rotated_mask(
             indicator_center,
             assets::NORTH_INDICATOR_NEEDLE,
             -camera.orientation_rad,
             style.rider_fill_color,
         );
+
+        if let Some(progress) = overlay.north_preview_progress {
+            framebuffer.draw_rotated_mask_radial_progress(
+                indicator_center,
+                assets::NORTH_INDICATOR_LOCKED_BASE,
+                0.0,
+                style.north_indicator_locked_color,
+                progress,
+                TOP_START_ANGLE_RAD,
+            );
+            framebuffer.draw_rotated_mask(
+                indicator_center,
+                assets::NORTH_INDICATOR_NEEDLE,
+                -camera.orientation_rad,
+                style.rider_fill_color,
+            );
+        }
+
+        if overlay.compass_ack_progress > 0.0 {
+            draw_ack_pulse(
+                framebuffer,
+                indicator_center,
+                overlay.compass_ack_progress,
+                style.north_indicator_ack_color,
+            );
+        }
     }
 
-    if overlay.compass_ack_progress > 0.0 {
-        draw_ack_pulse(
-            framebuffer,
-            indicator_center,
-            overlay.compass_ack_progress,
-            style.north_indicator_ack_color,
-        );
+    if overlay.speed_panel_visible {
+        draw_speed_panel(framebuffer, viewport, overlay, &style);
     }
 }
 
@@ -139,3 +146,173 @@ fn draw_ring(
         );
     }
 }
+
+fn draw_speed_panel(
+    framebuffer: &mut Framebuffer,
+    viewport: ViewportSize,
+    overlay: &OverlayState,
+    style: &RenderStyle,
+) {
+    let panel_top = ((viewport.height_px as f32) * (1.0 - SPEED_PANEL_HEIGHT_RATIO)).round() as i32;
+    let panel_height = viewport.height_px.saturating_sub(panel_top.max(0) as u32);
+    framebuffer.fill_rect_overwrite(
+        0,
+        panel_top,
+        viewport.width_px,
+        panel_height,
+        style.speed_panel_background_color,
+    );
+
+    let digits = overlay.speed_display_value.to_string();
+    let digit_height = ((panel_height as f32) * 0.48).round().max(36.0) as i32;
+    let digit_width = (digit_height as f32 * 0.56).round() as i32;
+    let digit_thickness = (digit_height / 7).max(4);
+    let digit_gap = (digit_width / 5).max(8);
+    let total_digits_width =
+        digits.len() as i32 * digit_width + ((digits.len().saturating_sub(1)) as i32 * digit_gap);
+    let digits_origin_x = ((viewport.width_px as i32 - total_digits_width) / 2).max(0);
+    let digits_origin_y = panel_top + ((panel_height as i32 - digit_height) / 2) - 18;
+
+    for (index, digit) in digits.chars().enumerate() {
+        draw_segment_digit(
+            framebuffer,
+            digit,
+            digits_origin_x + index as i32 * (digit_width + digit_gap),
+            digits_origin_y,
+            digit_width,
+            digit_height,
+            digit_thickness,
+            style.speed_panel_text_color,
+        );
+    }
+
+    let unit_patterns = match overlay.speed_unit {
+        runtime_core::api::SpeedUnit::Kph => [UNIT_GLYPH_K, UNIT_GLYPH_P, UNIT_GLYPH_H],
+        runtime_core::api::SpeedUnit::Mph => [UNIT_GLYPH_M, UNIT_GLYPH_P, UNIT_GLYPH_H],
+    };
+    let unit_gap = SPEED_PANEL_UNIT_SCALE_PX;
+    let unit_total_width =
+        (unit_patterns.len() as i32 * UNIT_GLYPH_WIDTH as i32 * SPEED_PANEL_UNIT_SCALE_PX)
+            + ((unit_patterns.len().saturating_sub(1) as i32) * unit_gap);
+    let unit_origin_x = ((viewport.width_px as i32 - unit_total_width) / 2).max(0);
+    let unit_origin_y =
+        panel_top + panel_height as i32 - UNIT_GLYPH_HEIGHT as i32 * SPEED_PANEL_UNIT_SCALE_PX - 18;
+    for (index, glyph) in unit_patterns.into_iter().enumerate() {
+        draw_unit_glyph(
+            framebuffer,
+            glyph,
+            unit_origin_x
+                + index as i32 * (UNIT_GLYPH_WIDTH as i32 * SPEED_PANEL_UNIT_SCALE_PX + unit_gap),
+            unit_origin_y,
+            SPEED_PANEL_UNIT_SCALE_PX,
+            style.speed_panel_text_color,
+        );
+    }
+}
+
+fn draw_segment_digit(
+    framebuffer: &mut Framebuffer,
+    digit: char,
+    x: i32,
+    y: i32,
+    width: i32,
+    height: i32,
+    thickness: i32,
+    color: crate::raster::Color,
+) {
+    let vertical_height = ((height - thickness * 3) / 2).max(1);
+    let top_y = y;
+    let middle_y = y + thickness + vertical_height;
+    let bottom_y = y + thickness * 2 + vertical_height * 2;
+    let left_x = x;
+    let right_x = x + width - thickness;
+
+    let segments = match digit {
+        '0' => [true, true, true, false, true, true, true],
+        '1' => [false, false, true, false, false, true, false],
+        '2' => [true, false, true, true, true, false, true],
+        '3' => [true, false, true, true, false, true, true],
+        '4' => [false, true, true, true, false, true, false],
+        '5' => [true, true, false, true, false, true, true],
+        '6' => [true, true, false, true, true, true, true],
+        '7' => [true, false, true, false, false, true, false],
+        '8' => [true, true, true, true, true, true, true],
+        '9' => [true, true, true, true, false, true, true],
+        _ => [false, false, false, false, false, false, false],
+    };
+
+    if segments[0] {
+        framebuffer.fill_rect(x, top_y, width as u32, thickness as u32, color);
+    }
+    if segments[1] {
+        framebuffer.fill_rect(
+            left_x,
+            top_y + thickness,
+            thickness as u32,
+            vertical_height as u32,
+            color,
+        );
+    }
+    if segments[2] {
+        framebuffer.fill_rect(
+            right_x,
+            top_y + thickness,
+            thickness as u32,
+            vertical_height as u32,
+            color,
+        );
+    }
+    if segments[3] {
+        framebuffer.fill_rect(x, middle_y, width as u32, thickness as u32, color);
+    }
+    if segments[4] {
+        framebuffer.fill_rect(
+            left_x,
+            middle_y + thickness,
+            thickness as u32,
+            vertical_height as u32,
+            color,
+        );
+    }
+    if segments[5] {
+        framebuffer.fill_rect(
+            right_x,
+            middle_y + thickness,
+            thickness as u32,
+            vertical_height as u32,
+            color,
+        );
+    }
+    if segments[6] {
+        framebuffer.fill_rect(x, bottom_y, width as u32, thickness as u32, color);
+    }
+}
+
+fn draw_unit_glyph(
+    framebuffer: &mut Framebuffer,
+    glyph: [&'static str; UNIT_GLYPH_HEIGHT],
+    x: i32,
+    y: i32,
+    scale_px: i32,
+    color: crate::raster::Color,
+) {
+    for (row_index, row) in glyph.into_iter().enumerate() {
+        for (column_index, pixel) in row.chars().enumerate() {
+            if pixel != '1' {
+                continue;
+            }
+            framebuffer.fill_rect(
+                x + column_index as i32 * scale_px,
+                y + row_index as i32 * scale_px,
+                scale_px as u32,
+                scale_px as u32,
+                color,
+            );
+        }
+    }
+}
+
+const UNIT_GLYPH_K: [&str; UNIT_GLYPH_HEIGHT] = ["101", "101", "110", "101", "101"];
+const UNIT_GLYPH_M: [&str; UNIT_GLYPH_HEIGHT] = ["101", "111", "111", "101", "101"];
+const UNIT_GLYPH_P: [&str; UNIT_GLYPH_HEIGHT] = ["110", "101", "110", "100", "100"];
+const UNIT_GLYPH_H: [&str; UNIT_GLYPH_HEIGHT] = ["101", "101", "111", "101", "101"];
