@@ -42,6 +42,7 @@ Execution guide: [`framework-execution-guide.md`](./framework-execution-guide.md
 - A new map presentation design direction is now defined: richer feature classes, four zoom presentation bands, declarative converter profiles, and a preference for one multi-LOD regional map package.
 - The current bike-map slice now hides rail/metro/train/tram geometry and keeps overview zooms cleaner by dropping ordinary street-road detail before true geometry generalization exists.
 - The first shared POI slice now normalizes bike parking, bike repair, supermarket, and food points from the source map package, with ride-detail limited to bike utility and close-detail showing utility plus essentials.
+- Shared Rust camera behavior now distinguishes temporary riding pan from sticky stopped browse, with stopped recenter delegated to an explicit north-indicator tap.
 
 ## Immediate Correction Pass
 - Replace the hand-rolled runner with a real internal `bevy_ecs` schedule and resources. Status: completed.

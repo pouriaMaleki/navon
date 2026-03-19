@@ -100,6 +100,8 @@ Moving north-up modes remain centered so they read like a conventional map view.
   - from `Travel-Up Auto`, enter `North Locked`
   - from `North Preview`, convert the temporary preview into `North Locked`
 - In stopped or heading-acquisition states, tapping the compass should not change mode, but should give a brief acknowledgement pulse because the map is already north-up.
+- Exception for stopped browse:
+  - if the map is manually panned away from the rider while stopped, tapping the north indicator should trigger recenter instead of only acknowledgement
 
 ## Gesture Policy
 - One-finger pan: allowed in all states
@@ -108,6 +110,11 @@ Moving north-up modes remain centered so they read like a conventional map view.
 - During manual pan:
   - rider position stays anchored to the actual GPS location in map space
   - only camera offset changes until recenter completes
+- During stopped manual pan:
+  - no idle recenter timeout should run
+  - the stopped browse offset remains until the user taps the north indicator or real riding resumes
+- During riding manual pan:
+  - idle recenter continues to behave as the temporary browse escape hatch
 - During `North Preview`, the preview countdown pauses while touch interaction is active
 - After pan idle timeout and recenter, the camera returns to the orientation state that should currently apply
 
@@ -146,6 +153,12 @@ Moving north-up modes remain centered so they read like a conventional map view.
 - Pan and pinch in any state:
   - browsing works without losing rider/map relationship
   - recenter restores the appropriate orientation mode cleanly
+- Pan while stopped:
+  - map remains in the browsed position without timing out back to center
+  - north-indicator tap recenters to rider location
+- Resume movement after stopped browse:
+  - stopped browse exits
+  - riding follow/recenter behavior resumes automatically
 
 ## Implementation Notes
 - `CameraOrientationMode` in shared runtime output is the canonical orientation state surface.

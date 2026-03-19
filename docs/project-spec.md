@@ -23,7 +23,11 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - Tapping the north indicator while already north-up should not change mode, but should give a brief acknowledgement pulse.
 - Low-confidence movement must hold the last trusted camera angle instead of following noisy raw GPS course data.
 - One-finger pan, two-finger pinch, and two-finger rotate are shared-Rust behaviors; rotate is only active in `Travel-Up Auto`.
-- Manual pan temporarily releases follow, keeps the rider marker map-anchored, and smoothly recenters after idle.
+- While riding, manual pan temporarily releases follow, keeps the rider marker map-anchored, and smoothly recenters after idle.
+- While stopped, manual pan enters a sticky browse state:
+  - no idle recenter timeout runs
+  - the map stays where the user left it
+  - tapping the north indicator recenters to the current rider location
 - The canonical orientation UX lives in [`/work/docs/camera-rotation-design.md`](/work/docs/camera-rotation-design.md).
 
 ## Visual Palette

@@ -40,6 +40,9 @@ This is the canonical specification for the emulator module. Other emulator docs
 - Tapping again unlocks north-up and returns to auto-follow when heading confidence is ready.
 - Tapping the compass while already north-up should give a brief acknowledgement pulse without changing mode.
 - During manual pan, the rider marker remains map-anchored while only camera offset moves.
+- While riding, manual pan is temporary and auto-recenters after idle.
+- While stopped, manual pan is sticky and must not auto-recenter after idle.
+- While stopped and browsed away from center, tapping the north indicator must recenter to the rider location.
 - Emulator reset must reset shared runtime camera state.
 
 ## Visual Palette
