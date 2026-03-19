@@ -368,6 +368,106 @@ fn pan_idle_recenters_and_clears_follow_lock() {
 }
 
 #[test]
+fn stopped_pan_idle_does_not_recenter() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    runtime.step(frame_with_gps(16, stopped_fix(-122.4194)));
+    runtime.step(frame_with_touch(
+        16,
+        stopped_fix(-122.4194),
+        1,
+        vec![touch(1, TouchPhase::Started, 100.0, 100.0)],
+    ));
+    runtime.step(frame_with_touch(
+        16,
+        stopped_fix(-122.4194),
+        2,
+        vec![touch(1, TouchPhase::Moved, 125.0, 100.0)],
+    ));
+    let panned = runtime.step(frame_with_touch(
+        16,
+        stopped_fix(-122.4194),
+        3,
+        vec![touch(1, TouchPhase::Moved, 150.0, 115.0)],
+    ));
+    let held = runtime.step(frame_with_gps(400, stopped_fix(-122.4194)));
+
+    assert!(panned.camera.follow_locked);
+    assert_ne!(panned.camera.center_world, panned.camera.focus_world);
+    assert!(held.camera.follow_locked);
+    assert!(!held.camera.recenter_active);
+    assert_ne!(held.camera.center_world, held.camera.focus_world);
+}
+
+#[test]
+fn stopped_pan_recenters_from_north_indicator_tap() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    runtime.step(frame_with_gps(16, stopped_fix(-122.4194)));
+    runtime.step(frame_with_touch(
+        16,
+        stopped_fix(-122.4194),
+        1,
+        vec![touch(1, TouchPhase::Started, 100.0, 100.0)],
+    ));
+    runtime.step(frame_with_touch(
+        16,
+        stopped_fix(-122.4194),
+        2,
+        vec![touch(1, TouchPhase::Moved, 125.0, 100.0)],
+    ));
+    runtime.step(frame_with_touch(
+        16,
+        stopped_fix(-122.4194),
+        3,
+        vec![touch(1, TouchPhase::Moved, 150.0, 115.0)],
+    ));
+    runtime.step(frame_with_touch(16, stopped_fix(-122.4194), 4, vec![]));
+    let tapped = compass_tap(
+        &mut runtime,
+        stopped_fix(-122.4194),
+        stopped_fix(-122.4194),
+        10,
+    );
+    let recentered = runtime.step(frame_with_gps(400, stopped_fix(-122.4194)));
+
+    assert_eq!(tapped.camera.orientation_mode, CameraOrientationMode::StoppedNorthUp);
+    assert!(!recentered.camera.follow_locked);
+    assert!(!recentered.camera.recenter_active);
+    assert_eq!(recentered.camera.center_world, recentered.camera.focus_world);
+}
+
+#[test]
+fn stopped_pan_resumes_follow_when_riding_restarts() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    runtime.step(frame_with_gps(16, stopped_fix(-122.4194)));
+    runtime.step(frame_with_touch(
+        16,
+        stopped_fix(-122.4194),
+        1,
+        vec![touch(1, TouchPhase::Started, 100.0, 100.0)],
+    ));
+    runtime.step(frame_with_touch(
+        16,
+        stopped_fix(-122.4194),
+        2,
+        vec![touch(1, TouchPhase::Moved, 125.0, 100.0)],
+    ));
+    runtime.step(frame_with_touch(
+        16,
+        stopped_fix(-122.4194),
+        3,
+        vec![touch(1, TouchPhase::Moved, 150.0, 115.0)],
+    ));
+    runtime.step(frame_with_touch(16, stopped_fix(-122.4194), 4, vec![]));
+    runtime.step(frame_with_gps(400, stopped_fix(-122.4194)));
+    let resumed = runtime.step(frame_with_gps(16, moving_fix(-122.4184, 6.0)));
+    let recentered = runtime.step(frame_with_gps(400, moving_fix(-122.4174, 6.0)));
+
+    assert_eq!(resumed.camera.mode, CameraMode::Riding);
+    assert_ne!(resumed.camera.center_world, resumed.camera.focus_world);
+    assert!(!recentered.camera.follow_locked);
+}
+
+#[test]
 fn pinch_can_zoom_below_default_without_exceeding_bounds() {
     let mut runtime = RuntimeCore::new(interaction_config());
     let moving_fix = prime_travel_up(&mut runtime);
@@ -537,6 +637,7 @@ fn north_indicator_tap_acknowledges_without_mode_change_when_already_north_up() 
         CameraOrientationMode::StoppedNorthUp
     );
     assert!(stopped_ack.overlay.compass_ack_progress > 0.0);
+    assert!(!stopped_ack.camera.recenter_active);
     assert_eq!(
         acquisition_ack.camera.orientation_mode,
         CameraOrientationMode::HeadingAcquisition

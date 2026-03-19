@@ -27,6 +27,7 @@ pub struct CameraState {
     pub compass_ack_remaining: Duration,
     pub last_compass_tap_age: Option<Duration>,
     pub time_since_manual_input: Duration,
+    pub recenter_requested: bool,
     pub stopped_heading_reference_rad: f32,
     pub heading_ready_duration: Duration,
     pub heading_acquired: bool,
@@ -59,6 +60,7 @@ impl Default for CameraState {
             compass_ack_remaining: Duration::ZERO,
             last_compass_tap_age: None,
             time_since_manual_input: Duration::ZERO,
+            recenter_requested: false,
             stopped_heading_reference_rad: 0.0,
             heading_ready_duration: Duration::ZERO,
             heading_acquired: false,
@@ -234,6 +236,11 @@ impl CameraState {
             return;
         }
 
+        if self.mode == CameraMode::Stopped && self.has_manual_camera_offset() {
+            self.recenter_requested = true;
+            return;
+        }
+
         if self.mode != CameraMode::Riding || !self.heading_acquired {
             self.compass_ack_remaining = config.compass_ack_duration;
             return;
@@ -267,6 +274,7 @@ impl CameraState {
         if interaction_active {
             self.time_since_manual_input = Duration::ZERO;
             self.recenter_active = false;
+            self.recenter_requested = false;
         } else {
             self.time_since_manual_input += dt;
         }
@@ -277,6 +285,7 @@ impl CameraState {
             self.pan_offset_world_m.0 += dx_m;
             self.pan_offset_world_m.1 += dy_m;
             self.follow_locked = true;
+            self.recenter_requested = false;
         }
 
         if (gesture.pinch_scale - 1.0).abs() > f32::EPSILON && gesture.pinch_scale > 0.0 {
@@ -325,10 +334,11 @@ impl CameraState {
     }
 
     fn advance_recenter(&mut self, dt: Duration, config: &RuntimeConfig) {
-        let should_recenter = self.time_since_manual_input >= config.pan_recenter_timeout
-            && (self.pan_offset_world_m.0 != 0.0
-                || self.pan_offset_world_m.1 != 0.0
-                || self.heading_offset_rad != 0.0);
+        let has_manual_offset = self.has_manual_camera_offset();
+        let idle_timeout_elapsed = self.time_since_manual_input >= config.pan_recenter_timeout;
+        let should_recenter = has_manual_offset
+            && (self.recenter_requested
+                || (self.mode == CameraMode::Riding && idle_timeout_elapsed));
 
         if !should_recenter {
             return;
@@ -347,7 +357,14 @@ impl CameraState {
             self.heading_offset_rad = 0.0;
             self.follow_locked = false;
             self.recenter_active = false;
+            self.recenter_requested = false;
         }
+    }
+
+    fn has_manual_camera_offset(&self) -> bool {
+        self.pan_offset_world_m.0 != 0.0
+            || self.pan_offset_world_m.1 != 0.0
+            || self.heading_offset_rad != 0.0
     }
 
     fn resolve_orientation_mode(&self) -> CameraOrientationMode {
