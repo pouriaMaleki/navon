@@ -85,7 +85,7 @@ impl Default for RuntimeConfig {
             stopped_rider_anchor: NormalizedScreenPoint::CENTER,
             north_indicator_center: NormalizedScreenPoint::new(0.5, 0.12),
             zoom_bounds: ZoomBounds::default(),
-            riding_speed_threshold_mps: 1.5,
+            riding_speed_threshold_mps: 0.9,
             stopped_speed_threshold_mps: 0.6,
             gps_loss_stop_timeout: Duration::from_millis(1_000),
             tap_max_duration: Duration::from_millis(260),
