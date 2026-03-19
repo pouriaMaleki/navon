@@ -5,6 +5,7 @@ use runtime_core::map::MapSource;
 use crate::app::{App, AppError, FrameResult};
 use crate::display::DisplayBackend;
 use crate::gps::{GpsError, GpsInput, GpsProvider};
+use crate::settings::{NullSettingsStore, SettingsStore};
 use crate::touch::{TouchError, TouchInput, TouchSource};
 
 pub trait FrameClock {
@@ -86,28 +87,31 @@ pub struct RuntimePlatform<
     C,
     S = crate::map_source::MapSourceBridge,
     B = crate::display::MemoryDisplayBackend,
+    U = NullSettingsStore,
 > where
     T: TouchSource,
     G: GpsProvider,
     C: FrameClock,
     S: MapSource,
     B: DisplayBackend,
+    U: SettingsStore,
 {
-    app: App<S, B>,
+    app: App<S, B, U>,
     touch: T,
     gps: G,
     clock: C,
 }
 
-impl<T, G, C, S, B> RuntimePlatform<T, G, C, S, B>
+impl<T, G, C, S, B, U> RuntimePlatform<T, G, C, S, B, U>
 where
     T: TouchSource,
     G: GpsProvider,
     C: FrameClock,
     S: MapSource,
     B: DisplayBackend,
+    U: SettingsStore,
 {
-    pub fn new(app: App<S, B>, touch: T, gps: G, clock: C) -> Self {
+    pub fn new(app: App<S, B, U>, touch: T, gps: G, clock: C) -> Self {
         Self {
             app,
             touch,
@@ -123,7 +127,7 @@ where
         Ok(self.app.step_frame(dt, gps, touch)?)
     }
 
-    pub fn app(&self) -> &App<S, B> {
+    pub fn app(&self) -> &App<S, B, U> {
         &self.app
     }
 }

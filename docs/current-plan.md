@@ -43,6 +43,7 @@ Execution guide: [`framework-execution-guide.md`](./framework-execution-guide.md
 - The current bike-map slice now hides rail/metro/train/tram geometry and keeps overview zooms cleaner by dropping ordinary street-road detail before true geometry generalization exists.
 - The first shared POI slice now normalizes bike parking, bike repair, supermarket, and food points from the source map package, with ride-detail limited to bike utility and close-detail showing utility plus essentials.
 - Shared Rust camera behavior now distinguishes temporary riding pan from sticky stopped browse, with stopped recenter delegated to an explicit north-indicator tap.
+- Shared Rust now also owns a moving-only bottom speed overlay with `kph` / `mph` toggle behavior, while emulator and firmware adapters are responsible only for persisting the chosen unit.
 
 ## Immediate Correction Pass
 - Replace the hand-rolled runner with a real internal `bevy_ecs` schedule and resources. Status: completed.

@@ -1,13 +1,14 @@
 use runtime_core::api::RuntimeConfig;
 use runtime_core::map::MapSource;
 
-use crate::app::App;
+use crate::app::{App, AppBuildError};
 use crate::board_config::{BoardConfig, DisplayConfig, TouchControllerConfig};
 use crate::display::{DisplayBackend, DisplayError};
 use crate::framebuffer::Framebuffer;
 use crate::gps::{GpsError, GpsInput, GpsProvider};
 use crate::map_source::MapSourceBridge;
 use crate::platform::{RuntimePlatform, SystemFrameClock};
+use crate::settings::{DefaultSettingsStore, SettingsStore, default_settings_store};
 use crate::touch::{Gt9271Transport, PollingTouchSource, TouchError};
 
 const GT9271_PRODUCT_ID_REGISTER: u16 = 0x8140;
@@ -282,22 +283,61 @@ where
     }
 }
 
-pub type DevicePlatform<T, R, I, D, G, S, P> = RuntimePlatform<
+pub type DevicePlatform<T, R, I, D, G, S, P, U = DefaultSettingsStore> = RuntimePlatform<
     PollingTouchSource<EspIdfGt9271Transport<T, R, I, D>>,
     G,
     SystemFrameClock,
     S,
     EspIdfDisplayBackend<P>,
+    U,
 >;
 
-pub type DefaultDevicePlatform<T, R, I, D, G, P> =
-    DevicePlatform<T, R, I, D, G, MapSourceBridge, P>;
+pub type DefaultDevicePlatform<T, R, I, D, G, P, U = DefaultSettingsStore> =
+    DevicePlatform<T, R, I, D, G, MapSourceBridge, P, U>;
 
-pub type DevicePlatformResult<T, R, I, D, G, S, P> =
-    Result<DevicePlatform<T, R, I, D, G, S, P>, DisplayError>;
+pub type DevicePlatformResult<T, R, I, D, G, S, P, U = DefaultSettingsStore> =
+    Result<DevicePlatform<T, R, I, D, G, S, P, U>, AppBuildError>;
 
-pub type DefaultDevicePlatformResult<T, R, I, D, G, P> =
-    Result<DefaultDevicePlatform<T, R, I, D, G, P>, DisplayError>;
+pub type DefaultDevicePlatformResult<T, R, I, D, G, P, U = DefaultSettingsStore> =
+    Result<DefaultDevicePlatform<T, R, I, D, G, P, U>, AppBuildError>;
+
+pub fn build_device_platform_with_settings<T, R, I, D, P, G, S, U>(
+    board: BoardConfig,
+    map_source: S,
+    touch_transport: EspIdfGt9271Transport<T, R, I, D>,
+    display_backend: EspIdfDisplayBackend<P>,
+    gps_provider: G,
+    speed_unit_store: U,
+) -> DevicePlatformResult<T, R, I, D, G, S, P, U>
+where
+    T: EspIdfI2cBus,
+    R: EspIdfOutputPin,
+    I: EspIdfOutputPin,
+    D: EspIdfDelay,
+    P: EspIdfPanel,
+    G: GpsProvider,
+    S: MapSource,
+    U: SettingsStore,
+{
+    let runtime_config = RuntimeConfig {
+        viewport_size: board.viewport_size,
+        ..RuntimeConfig::default()
+    };
+    let touch_source = PollingTouchSource::new(board.touch, touch_transport);
+    let app = App::with_parts_and_settings(
+        board,
+        runtime_config,
+        map_source,
+        display_backend,
+        speed_unit_store,
+    )?;
+    Ok(RuntimePlatform::new(
+        app,
+        touch_source,
+        gps_provider,
+        SystemFrameClock::new(board.frame_interval),
+    ))
+}
 
 pub fn build_device_platform<T, R, I, D, P, G, S>(
     board: BoardConfig,
@@ -315,18 +355,14 @@ where
     G: GpsProvider,
     S: MapSource,
 {
-    let runtime_config = RuntimeConfig {
-        viewport_size: board.viewport_size,
-        ..RuntimeConfig::default()
-    };
-    let touch_source = PollingTouchSource::new(board.touch, touch_transport);
-    let app = App::with_parts(board, runtime_config, map_source, display_backend)?;
-    Ok(RuntimePlatform::new(
-        app,
-        touch_source,
+    build_device_platform_with_settings(
+        board,
+        map_source,
+        touch_transport,
+        display_backend,
         gps_provider,
-        SystemFrameClock::new(board.frame_interval),
-    ))
+        default_settings_store()?,
+    )
 }
 
 pub fn build_default_device_platform<T, R, I, D, P, G>(
@@ -592,7 +628,9 @@ mod tests {
         };
         let mut framebuffer = Framebuffer::new(2, 2, PanelPixelFormat::Rgb565Le);
         let mut render = render_core::raster::Framebuffer::new(2, 2);
-        render.pixels_mut().copy_from_slice(&[0, 64, 128, 255]);
+        render.pixels_mut().copy_from_slice(&[
+            0, 64, 128, 255, 0, 64, 128, 255, 0, 64, 128, 255, 0, 64, 128, 255,
+        ]);
         framebuffer.present_from_render(&render);
 
         backend.initialize(config).expect("panel init");

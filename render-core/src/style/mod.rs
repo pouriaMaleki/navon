@@ -3,11 +3,13 @@ use runtime_core::api::MapLayer;
 use crate::raster::Color;
 
 pub const COLOR_BACKGROUND_CANVAS: Color = Color::new(0x05, 0x0B, 0x12);
+pub const COLOR_SURFACE_INVERSE: Color = Color::new(0x00, 0x00, 0x00);
 pub const COLOR_SURFACE_BASE: Color = Color::new(0x05, 0x1E, 0x24);
 pub const COLOR_SURFACE_ELEVATED: Color = Color::new(0x10, 0x13, 0x2B);
 pub const COLOR_BORDER_STRONG: Color = Color::new(0x10, 0x3B, 0x48);
 pub const COLOR_ACCENT_PRIMARY: Color = Color::new(0x12, 0xA3, 0xA3);
 pub const COLOR_ACCENT_HIGHLIGHT: Color = Color::new(0xD7, 0xFF, 0x3F);
+pub const COLOR_TEXT_PRIMARY: Color = Color::new(0xFF, 0xFF, 0xFF);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StrokeStyle {
@@ -47,6 +49,8 @@ pub struct RenderStyle {
     pub north_indicator_locked_color: Color,
     pub north_indicator_ring_color: Color,
     pub north_indicator_ack_color: Color,
+    pub speed_panel_background_color: Color,
+    pub speed_panel_text_color: Color,
 }
 
 impl RenderStyle {
@@ -126,6 +130,8 @@ impl Default for RenderStyle {
             north_indicator_locked_color: COLOR_ACCENT_PRIMARY,
             north_indicator_ring_color: COLOR_BORDER_STRONG,
             north_indicator_ack_color: COLOR_ACCENT_PRIMARY,
+            speed_panel_background_color: COLOR_SURFACE_INVERSE,
+            speed_panel_text_color: COLOR_TEXT_PRIMARY,
         }
     }
 }

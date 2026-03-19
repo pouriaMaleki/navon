@@ -3,7 +3,7 @@ use std::time::Duration;
 use runtime_core::RuntimeCore;
 use runtime_core::api::{
     CameraMode, CameraOrientationMode, CameraStateSnapshot, MapQuerySpec, NormalizedScreenPoint,
-    RuntimeConfig, RuntimeInputFrame, ScreenPoint, TouchContact, TouchContactFrame,
+    RuntimeConfig, RuntimeInputFrame, ScreenPoint, SpeedUnit, TouchContact, TouchContactFrame,
     TouchContactFrameError, TouchPhase, ViewportSize, WorldPoint,
 };
 use runtime_core::camera::CameraState;
@@ -49,6 +49,8 @@ fn default_frame_is_centered_and_north_up() {
     assert_eq!(output.camera.rider_anchor, NormalizedScreenPoint::CENTER);
     assert!(output.overlay.north_up_active);
     assert!(output.overlay.rider_heading_rad.is_none());
+    assert!(!output.overlay.speed_panel_visible);
+    assert_eq!(output.overlay.speed_unit, SpeedUnit::Kph);
 }
 
 #[test]
@@ -66,6 +68,39 @@ fn moving_gps_sample_enters_heading_acquisition_before_travel_up() {
     assert_eq!(output.camera.rider_anchor, NormalizedScreenPoint::CENTER);
     assert!(output.overlay.north_up_active);
     assert!(output.camera.orientation_rad.abs() < 0.001);
+    assert!(output.overlay.speed_panel_visible);
+    assert_eq!(output.overlay.speed_display_value, 20);
+    assert_eq!(output.overlay.speed_unit, SpeedUnit::Kph);
+}
+
+#[test]
+fn speed_panel_tap_toggles_units_while_moving() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    let moving = prime_travel_up(&mut runtime);
+    let initial = runtime.step(frame_with_gps(16, moving));
+    let toggled_once = speed_panel_tap(&mut runtime, moving, 20);
+    let toggled_twice = speed_panel_tap(&mut runtime, moving, 22);
+
+    assert_eq!(initial.overlay.speed_unit, SpeedUnit::Kph);
+    assert_eq!(initial.overlay.speed_display_value, 22);
+    assert_eq!(toggled_once.overlay.speed_unit, SpeedUnit::Mph);
+    assert_eq!(toggled_once.overlay.speed_display_value, 13);
+    assert_eq!(toggled_twice.overlay.speed_unit, SpeedUnit::Kph);
+}
+
+#[test]
+fn speed_panel_tap_does_not_change_compass_mode() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    let moving = prime_travel_up(&mut runtime);
+    let toggled = speed_panel_tap(&mut runtime, moving, 30);
+
+    assert!(toggled.overlay.speed_panel_visible);
+    assert_eq!(toggled.overlay.speed_unit, SpeedUnit::Mph);
+    assert!(!matches!(
+        toggled.camera.orientation_mode,
+        CameraOrientationMode::NorthPreview | CameraOrientationMode::NorthLocked
+    ));
+    assert!(toggled.overlay.north_preview_progress.is_none());
 }
 
 #[test]
@@ -222,6 +257,12 @@ fn riding_north_is_not_reported_as_north_up_mode() {
         MapQuerySpec::default(),
         None,
         Some(0.0),
+        &MotionState {
+            is_moving: true,
+            speed_mps: 4.0,
+            ..MotionState::default()
+        },
+        &runtime_core::overlay_ui::OverlayUiState::new(SpeedUnit::Kph),
     );
 
     assert!(!output.overlay.north_up_active);
@@ -429,10 +470,16 @@ fn stopped_pan_recenters_from_north_indicator_tap() {
     );
     let recentered = runtime.step(frame_with_gps(400, stopped_fix(-122.4194)));
 
-    assert_eq!(tapped.camera.orientation_mode, CameraOrientationMode::StoppedNorthUp);
+    assert_eq!(
+        tapped.camera.orientation_mode,
+        CameraOrientationMode::StoppedNorthUp
+    );
     assert!(!recentered.camera.follow_locked);
     assert!(!recentered.camera.recenter_active);
-    assert_eq!(recentered.camera.center_world, recentered.camera.focus_world);
+    assert_eq!(
+        recentered.camera.center_world,
+        recentered.camera.focus_world
+    );
 }
 
 #[test]
@@ -879,6 +926,10 @@ fn compass_touch(phase: TouchPhase) -> TouchContact {
     touch(1, phase, center.x * 480.0, center.y * 480.0)
 }
 
+fn speed_panel_touch(phase: TouchPhase) -> TouchContact {
+    touch(1, phase, 240.0, 430.0)
+}
+
 fn compass_tap(
     runtime: &mut RuntimeCore,
     started_gps: runtime_core::api::GpsSample,
@@ -892,6 +943,29 @@ fn compass_tap(
         vec![compass_touch(TouchPhase::Started)],
     ));
     runtime.step(frame_with_touch(16, released_gps, sequence + 1, vec![]))
+}
+
+fn speed_panel_tap(
+    runtime: &mut RuntimeCore,
+    gps: runtime_core::api::GpsSample,
+    sequence: u64,
+) -> runtime_core::api::RuntimeFrameOutput {
+    let released_gps = runtime_core::api::GpsSample {
+        lon_deg: gps.lon_deg + 0.001,
+        ..gps
+    };
+    runtime.step(frame_with_touch(
+        16,
+        gps,
+        sequence,
+        vec![speed_panel_touch(TouchPhase::Started)],
+    ));
+    runtime.step(frame_with_touch(
+        16,
+        released_gps,
+        sequence + 1,
+        vec![speed_panel_touch(TouchPhase::Ended)],
+    ))
 }
 
 fn prime_travel_up(runtime: &mut RuntimeCore) -> runtime_core::api::GpsSample {

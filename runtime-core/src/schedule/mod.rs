@@ -13,22 +13,25 @@ use crate::input::taps::TapState;
 use crate::map;
 use crate::motion::{MotionIngestConfig, MotionState};
 use crate::output;
+use crate::overlay_ui::OverlayUiState;
 
 #[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ScheduleSet {
     InputIngest,
     MotionFusion,
     CameraPolicy,
+    OverlayUiPolicy,
     MapQuery,
     OutputBuild,
 }
 
 impl ScheduleSet {
-    pub const fn ordered() -> [Self; 5] {
+    pub const fn ordered() -> [Self; 6] {
         [
             Self::InputIngest,
             Self::MotionFusion,
             Self::CameraPolicy,
+            Self::OverlayUiPolicy,
             Self::MapQuery,
             Self::OutputBuild,
         ]
@@ -57,6 +60,9 @@ struct QueryResource(pub MapQuerySpec);
 #[derive(Resource, Debug, Clone, Default)]
 struct OutputResource(pub RuntimeFrameOutput);
 
+#[derive(Resource, Debug, Clone, Default)]
+struct OverlayUiResource(pub OverlayUiState);
+
 pub struct RuntimeRunner {
     world: World,
     schedule: Schedule,
@@ -77,6 +83,9 @@ impl RuntimeRunner {
             zoom: config.zoom_bounds.default,
             ..CameraState::default()
         }));
+        world.insert_resource(OverlayUiResource(OverlayUiState::new(
+            config.default_speed_unit,
+        )));
         world.insert_resource(QueryResource::default());
         world.insert_resource(OutputResource::default());
 
@@ -86,6 +95,7 @@ impl RuntimeRunner {
                 ScheduleSet::InputIngest,
                 ScheduleSet::MotionFusion,
                 ScheduleSet::CameraPolicy,
+                ScheduleSet::OverlayUiPolicy,
                 ScheduleSet::MapQuery,
                 ScheduleSet::OutputBuild,
             )
@@ -95,6 +105,7 @@ impl RuntimeRunner {
             input_ingest.in_set(ScheduleSet::InputIngest),
             motion_fusion.in_set(ScheduleSet::MotionFusion),
             camera_policy.in_set(ScheduleSet::CameraPolicy),
+            overlay_ui_policy.in_set(ScheduleSet::OverlayUiPolicy),
             map_query.in_set(ScheduleSet::MapQuery),
             output_build.in_set(ScheduleSet::OutputBuild),
         ));
@@ -202,12 +213,27 @@ fn map_query(
     query.0 = map::build_query(&camera.0.snapshot(&config.0), config.0.viewport_size);
 }
 
+fn overlay_ui_policy(
+    config: Res<RuntimeConfigResource>,
+    motion: Res<MotionResource>,
+    derived_input: Res<DerivedInputState>,
+    mut overlay_ui: ResMut<OverlayUiResource>,
+) {
+    overlay_ui.0.advance(
+        &motion.0,
+        derived_input.tap.as_ref(),
+        config.0.viewport_size,
+        &config.0,
+    );
+}
+
 fn output_build(
     frame_time: Res<FrameTime>,
     config: Res<RuntimeConfigResource>,
     pending: Res<PendingInput>,
     motion: Res<MotionResource>,
     camera: Res<CameraResource>,
+    overlay_ui: Res<OverlayUiResource>,
     query: Res<QueryResource>,
     mut output_resource: ResMut<OutputResource>,
 ) {
@@ -228,5 +254,7 @@ fn output_build(
         query.0.clone(),
         diagnostics,
         motion.0.travel_heading_rad,
+        &motion.0,
+        &overlay_ui.0,
     );
 }

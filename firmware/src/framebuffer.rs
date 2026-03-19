@@ -16,7 +16,7 @@ impl Framebuffer {
         Self {
             width,
             height,
-            pixels: vec![0; width as usize * height as usize],
+            pixels: vec![0; width as usize * height as usize * 4],
             panel_pixels: Vec::new(),
             panel_format,
         }
@@ -28,7 +28,7 @@ impl Framebuffer {
         self.pixels.clear();
         self.pixels.extend_from_slice(framebuffer.pixels());
         self.panel_pixels = match self.panel_format {
-            PanelPixelFormat::Rgb565Le => grayscale_to_rgb565_le(framebuffer.pixels()),
+            PanelPixelFormat::Rgb565Le => rgba_to_rgb565_le(framebuffer.pixels()),
         };
     }
 
@@ -67,12 +67,12 @@ impl Default for Framebuffer {
     }
 }
 
-pub fn grayscale_to_rgb565_le(pixels: &[u8]) -> Vec<u8> {
-    let mut converted = Vec::with_capacity(pixels.len() * 2);
-    for pixel in pixels {
-        let red = (u16::from(*pixel) * 31 / 255) << 11;
-        let green = (u16::from(*pixel) * 63 / 255) << 5;
-        let blue = u16::from(*pixel) * 31 / 255;
+pub fn rgba_to_rgb565_le(pixels: &[u8]) -> Vec<u8> {
+    let mut converted = Vec::with_capacity((pixels.len() / 4) * 2);
+    for rgba in pixels.chunks_exact(4) {
+        let red = (u16::from(rgba[0]) * 31 / 255) << 11;
+        let green = (u16::from(rgba[1]) * 63 / 255) << 5;
+        let blue = u16::from(rgba[2]) * 31 / 255;
         let rgb565 = red | green | blue;
         converted.extend_from_slice(&rgb565.to_le_bytes());
     }
@@ -84,8 +84,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn converts_grayscale_to_rgb565_little_endian() {
-        let converted = grayscale_to_rgb565_le(&[0x00, 0xff, 0x80]);
+    fn converts_rgba_to_rgb565_little_endian() {
+        let converted = rgba_to_rgb565_le(&[
+            0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0x80, 0x80, 0x80, 0xff,
+        ]);
 
         assert_eq!(converted.len(), 6);
         assert_eq!(&converted[0..2], &0x0000_u16.to_le_bytes());

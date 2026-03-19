@@ -28,6 +28,13 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
   - no idle recenter timeout runs
   - the map stays where the user left it
   - tapping the north indicator recenters to the current rider location
+- While moving, a shared-Rust speed overlay appears in the bottom quarter:
+  - solid black panel
+  - large white rounded speed digits
+  - smaller white `kph` or `mph` unit label
+  - tapping the panel toggles units
+  - default unit is `kph`
+  - the chosen unit should persist across restart in both firmware and emulator adapters
 - The canonical orientation UX lives in [`/work/docs/camera-rotation-design.md`](/work/docs/camera-rotation-design.md).
 
 ## Visual Palette

@@ -11,3 +11,6 @@ path = "src/main.rs"
 map-runtime = { path = "../map-runtime" }
 render-core = { path = "../render-core" }
 runtime-core = { path = "../runtime-core" }
+
+[target.'cfg(target_os = "espidf")'.dependencies]
+esp-idf-svc = "0.52.1"

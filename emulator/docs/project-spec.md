@@ -43,6 +43,9 @@ This is the canonical specification for the emulator module. Other emulator docs
 - While riding, manual pan is temporary and auto-recenters after idle.
 - While stopped, manual pan is sticky and must not auto-recenter after idle.
 - While stopped and browsed away from center, tapping the north indicator must recenter to the rider location.
+- While moving, the shared runtime should render the speed overlay in the bottom quarter with a solid black panel, white digits, and a `kph` / `mph` unit label.
+- Tapping the speed panel must toggle units without affecting compass mode.
+- Emulator adapters should restore the last selected speed unit from local storage and persist changes coming back from shared Rust.
 - Emulator reset must reset shared runtime camera state.
 
 ## Visual Palette
