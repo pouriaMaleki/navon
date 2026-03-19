@@ -7,4 +7,4 @@ edition = "2024"
 path = "src/lib.rs"
 
 [dependencies]
-bevy_ecs = "0.17.2"
+bevy_ecs = "0.18.1"
