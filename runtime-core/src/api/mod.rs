@@ -4,6 +4,7 @@ pub mod events;
 pub mod input;
 pub mod output;
 pub mod query;
+pub mod route;
 
 pub use config::{NormalizedScreenPoint, RuntimeConfig, SpeedUnit, ZoomBounds};
 pub use diagnostics::DiagnosticsSnapshot;
@@ -18,4 +19,10 @@ pub use output::{
 pub use query::{
     GeometryCandidate, LodMask, MapLayer, MapPointCandidate, MapPolylineCandidate,
     MapPresentationBand, MapQueryResult, MapQuerySpec, WorldBounds, WorldPoint,
+};
+pub use route::{
+    CURRENT_ROUTE_PACKAGE_VERSION, GeoPoint, RouteClearMessage, RouteManeuver, RouteManeuverType,
+    RoutePackage, RoutePackageError, RoutePackageVersion, RouteProvenance, RouteProvider,
+    RouteRerouteRequestMessage, RouteSetMessage, RouteStatusMessage, RouteSummary,
+    RouteSyncMessage, RouteSyncStatusCode, RouteUpdateMessage,
 };
