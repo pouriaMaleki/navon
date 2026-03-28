@@ -57,14 +57,7 @@ impl MotionState {
     ) {
         let was_moving = self.is_moving;
         let Some(sample) = gps else {
-            self.gps_gap_duration += dt;
-            self.heading_confident = false;
-            if self.gps_gap_duration >= config.gps_loss_stop_timeout {
-                self.speed_mps = 0.0;
-                self.is_moving = false;
-                self.pending_motion_vector_m = None;
-                self.advance_stopped_duration(dt, was_moving);
-            }
+            self.advance_without_new_fix(dt, was_moving, config);
             return;
         };
 
@@ -116,6 +109,24 @@ impl MotionState {
         }
 
         self.last_fix = Some(sample);
+    }
+
+    fn advance_without_new_fix(
+        &mut self,
+        dt: Duration,
+        was_moving: bool,
+        config: MotionIngestConfig,
+    ) {
+        self.gps_gap_duration += dt;
+        if self.gps_gap_duration < config.gps_loss_stop_timeout {
+            return;
+        }
+
+        self.speed_mps = 0.0;
+        self.is_moving = false;
+        self.heading_confident = false;
+        self.pending_motion_vector_m = None;
+        self.advance_stopped_duration(dt, was_moving);
     }
 
     fn advance_stopped_duration(&mut self, dt: Duration, was_moving: bool) {

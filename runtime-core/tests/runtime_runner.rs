@@ -308,6 +308,34 @@ fn gps_dropout_keeps_motion_state_alive_during_grace_period() {
 }
 
 #[test]
+fn sparse_gps_updates_can_still_reach_travel_up_auto() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    runtime.step(frame_with_gps(16, stopped_fix(-122.4194)));
+    runtime.step(frame_with_gps(16, moving_fix(-122.4184, 6.0)));
+    runtime.step(frame_with_gps(16, moving_fix(-122.4174, 6.0)));
+
+    let mut output = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480)),
+    );
+    for _ in 0..16 {
+        if output.camera.orientation_mode == CameraOrientationMode::TravelUpAuto {
+            break;
+        }
+        output = runtime.step(
+            RuntimeInputFrame::new(Duration::from_millis(16))
+                .with_viewport(ViewportSize::new(480, 480)),
+        );
+    }
+
+    assert_eq!(output.camera.mode, CameraMode::Riding);
+    assert_eq!(
+        output.camera.orientation_mode,
+        CameraOrientationMode::TravelUpAuto
+    );
+}
+
+#[test]
 fn gps_dropout_eventually_falls_back_to_stopped_after_timeout() {
     let mut runtime = RuntimeCore::default();
     runtime.step(
@@ -852,6 +880,98 @@ fn stopped_transition_holds_heading_then_settles_to_north_up() {
         stopped_settled.camera.orientation_mode,
         CameraOrientationMode::StoppedNorthUp
     );
+}
+
+#[test]
+fn travel_up_camera_tracks_direction_across_multiple_headings() {
+    const BASE_LAT_DEG: f64 = 37.7749;
+    const BASE_LON_DEG: f64 = -122.4194;
+    const SPEED_MPS: f32 = 6.0;
+    const ANGLE_TOLERANCE_RAD: f32 = 0.05;
+    let heading_cases: [(&str, f64, f64); 4] = [
+        ("north", 0.00009, 0.0),
+        ("east", 0.0, 0.00011),
+        ("north-east", 0.00009, 0.00011),
+        ("south-west", -0.00009, -0.00011),
+    ];
+
+    for (case_name, lat_step, lon_step) in heading_cases {
+        let mut runtime = RuntimeCore::new(interaction_config());
+        let point1 = (BASE_LAT_DEG + lat_step, BASE_LON_DEG + lon_step);
+        let point2 = (
+            BASE_LAT_DEG + (2.0 * lat_step),
+            BASE_LON_DEG + (2.0 * lon_step),
+        );
+        let point3 = (
+            BASE_LAT_DEG + (3.0 * lat_step),
+            BASE_LON_DEG + (3.0 * lon_step),
+        );
+
+        runtime.step(frame_with_gps(
+            16,
+            directional_fix(BASE_LAT_DEG, BASE_LON_DEG, 0.0),
+        ));
+        runtime.step(frame_with_gps(
+            16,
+            directional_fix(point1.0, point1.1, SPEED_MPS),
+        ));
+        runtime.step(frame_with_gps(
+            140,
+            directional_fix(point2.0, point2.1, SPEED_MPS),
+        ));
+        let settled = runtime.step(frame_with_gps(
+            220,
+            directional_fix(point3.0, point3.1, SPEED_MPS),
+        ));
+
+        let expected_heading_rad = expected_heading_from_points(point2, point3);
+        let orientation_error_rad =
+            signed_angle_delta(settled.camera.orientation_rad, expected_heading_rad).abs();
+
+        assert_eq!(
+            settled.camera.orientation_mode,
+            CameraOrientationMode::TravelUpAuto,
+            "case {case_name} did not reach travel-up"
+        );
+        assert!(
+            !settled.overlay.north_up_active,
+            "case {case_name} still reported north-up"
+        );
+        assert!(
+            orientation_error_rad < ANGLE_TOLERANCE_RAD,
+            "case {case_name} orientation error {orientation_error_rad} rad exceeded {ANGLE_TOLERANCE_RAD} rad"
+        );
+    }
+}
+
+fn directional_fix(lat_deg: f64, lon_deg: f64, speed_mps: f32) -> runtime_core::api::GpsSample {
+    runtime_core::api::GpsSample {
+        lat_deg,
+        lon_deg,
+        speed_mps,
+        course_rad: None,
+        horizontal_accuracy_m: Some(3.0),
+    }
+}
+
+fn expected_heading_from_points(start: (f64, f64), end: (f64, f64)) -> f32 {
+    let start_world =
+        runtime_core::motion::project_gps_to_world(directional_fix(start.0, start.1, 0.0));
+    let end_world = runtime_core::motion::project_gps_to_world(directional_fix(end.0, end.1, 0.0));
+    let dx = end_world.x_m - start_world.x_m;
+    let dy = end_world.y_m - start_world.y_m;
+    runtime_core::motion::normalize_bearing_rad(dx.atan2(dy) as f32)
+}
+
+fn signed_angle_delta(actual: f32, expected: f32) -> f32 {
+    let tau = std::f32::consts::TAU;
+    let mut delta = (actual - expected) % tau;
+    if delta > std::f32::consts::PI {
+        delta -= tau;
+    } else if delta < -std::f32::consts::PI {
+        delta += tau;
+    }
+    delta
 }
 
 fn interaction_config() -> RuntimeConfig {

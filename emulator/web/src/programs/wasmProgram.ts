@@ -24,8 +24,12 @@ export async function createWasmProgram(profileId = 0): Promise<{
     },
     update(state) {
       const steps = consumeTouchFrames(state.custom, Math.max(0, state.time.dtMs));
+      const gpsSample = state.custom.gps;
+      state.custom.gps = null;
+
       let snapshotJson = "";
-      for (const step of steps) {
+      const gpsStepIndex = Math.max(0, steps.length - 1);
+      for (const [index, step] of steps.entries()) {
         snapshotJson = state.custom.emu.step_frame(
           step.dtMs,
           JSON.stringify({
@@ -33,7 +37,7 @@ export async function createWasmProgram(profileId = 0): Promise<{
               widthPx: state.profile.width,
               heightPx: state.profile.height,
             },
-            gps: state.custom.gps,
+            gps: index === gpsStepIndex ? gpsSample : null,
             touch: step.touch,
           }),
         );
