@@ -50,4 +50,6 @@ On first run after this change, host auth directories are migrated once when pre
 - `~/.codex` -> `~/.devcontainer-homes/esp32-map/.codex`
 - `~/.claude` -> `~/.devcontainer-homes/esp32-map/.claude`
 - `~/.gemini` -> `~/.devcontainer-homes/esp32-map/.gemini`
+Host SSH keys are mounted from `~/.ssh` to `/home/vscode/.ssh` for Git operations.
+Devcontainer runtime is pinned to DNS servers `1.1.1.1` and `8.8.8.8` to avoid host resolver issues.
 Production deployment remains unchanged and still uses [compose.yaml](/host/esp32-map/compose.yaml) only.
