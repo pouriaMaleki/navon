@@ -1,88 +1,131 @@
-# Main TODO
+# Routing Program TODO
 
 Spec reference: [`project-spec.md`](./project-spec.md)
 Plan reference: [`current-plan.md`](./current-plan.md)
 
-## Framework Bootstrap
-- [x] Create `runtime-core` crate with `api`, `schedule`, `input`, `motion`, `camera`, `map`, `output`, and `diagnostics` modules.
-- [x] Create `render-core` crate with pure `camera_view`, `visibility`, `style`, `raster`, and `overlay` modules.
-- [x] Create `render-core-wasm` crate as a thin wasm adapter over shared Rust runtime/render crates.
-- [x] Restore a valid workspace build for the declared crate graph in the root `Cargo.toml`.
+## Delivery Order
+- Phase alignment: Epic A -> Epic B -> Epic C -> Epic D -> Epic E -> Epic F
+- Parallelization rule: only run epics in parallel when dependencies are explicitly marked satisfied
+- Ownership rule: companion controls planning and reroute, shared runtime controls following and alert state, render-core controls route visuals
 
-## Public Contracts
-- [x] Define `RuntimeInputFrame`, `TouchContact`, `TouchContactFrame`, `RuntimeFrameOutput`, `RuntimeConfig`, `MapQuerySpec`, and runtime diagnostics snapshot types.
-- [x] Define map query and map-source traits so runtime policy can stay independent from generated Rust maps vs future direct `.svm` loading.
-- [x] Keep `RuntimeFrameOutput` limited to camera/query/overlay state and diagnostics rather than queried geometry buffers.
-- [x] Keep adapter APIs free of `bevy_ecs` types and world mutation details.
+## Epic A: Route Package Contract
+Depends on:
+- None
 
-## Runtime Core
-- [x] Implement shared contact-frame ingestion plus gesture and tap derivation in `runtime-core::input`.
-- [x] Implement a deterministic runtime runner skeleton with ordered schedule stages and stable output assembly.
-- [x] Implement deterministic ECS schedule sets: input ingest, motion fusion, camera policy, map query, output build.
-- [x] Replace the temporary hand-rolled runner with an internal `bevy_ecs`-backed schedule so implementation matches the architecture docs.
-- [x] Fix rotated `MapQuerySpec` coverage for heading-up cameras.
-- [x] Fix zoom lower-bound handling so the configured minimum is reachable.
-- [x] Fix north-up output semantics so riding north is not mislabeled as north-up mode.
-- [x] Make motion state resilient to brief GPS dropouts instead of forcing an immediate stopped transition.
-- [x] Add rider motion confidence and filtered travel-heading estimation from GPS deltas.
-- [x] Implement riding/stopped camera state transitions with smooth north-up settle on stop.
-- [x] Add a short shared display-mode transition so riding/stopped anchor and heading changes ease instead of snapping.
-- [x] Implement pan, pinch, rotate, north-indicator preview/lock behavior, and smooth auto-recenter behavior.
-- [x] Implement follow-lock behavior so manual pan preserves map-relative rider position until recenter.
-- [x] Implement zoom bucket and LOD mask selection in runtime-owned policy.
+### Work Items
+- [ ] Define a versioned source-agnostic `RoutePackage` schema.
+- [ ] Define maneuver model, route summary model, and provenance metadata model.
+- [ ] Define compatibility policy for schema evolution.
+- [ ] Create canonical fixture set for HSL, Google ingest, OSM, GPX, FIT, TCX, and Garmin inputs.
+- [ ] Document contract invariants and normalization guarantees.
 
-## Render Core
-- [x] Move or establish shared camera-view math and heading-up projection in `render-core`.
-- [x] Implement final screen-space visibility/clipping against runtime-provided camera view over queried geometry candidates.
-- [x] Define vector styling primitives for major/minor road hierarchy and rider marker overlays.
-- [x] Replace hardcoded overlay markers with shared editable SVG assets compiled into render-time alpha masks.
-- [x] Keep framebuffer generation deterministic for identical inputs across targets.
-- [x] Keep render scale sourced from runtime-owned query output rather than recomputing zoom policy inside `render-core`.
+### Definition of Done
+- [ ] Schema supports all listed providers without provider-specific runtime branching.
+- [ ] Fixture corpus validates cleanly against schema.
+- [ ] Backward compatibility rules are documented with explicit migration path for breaking changes.
+- [ ] Contract documentation is sufficient for independent client implementation.
 
-## Adapter Integration
-- [x] Add firmware bridge helpers that convert raw GPS/touch samples into `RuntimeInputFrame`.
-- [x] Add wasm bridge helpers that construct `RuntimeInputFrame` values and translate `RuntimeFrameOutput` into a JS-facing snapshot.
-- [x] Wire emulator wasm bridge to consume `RuntimeFrameOutput` rather than product logic in TypeScript.
-- [x] Wire firmware input translation for GPS and normalized touch contact frames into `RuntimeInputFrame`.
-- [x] Wire browser/emulator input translation to emit the same normalized touch contact frames into `RuntimeInputFrame`.
-- [x] Fix emulator browser input handling for mobile touch forwarding, queued per-event touch replay, and desktop wheel-to-pinch synthesis.
-- [x] Keep device-specific touch drivers and browser event capture outside shared runtime logic while moving gesture and tap semantics into shared Rust.
-- [x] Make `cargo xtask emu` rebuild wasm and start the emulator dev server from the repository root.
-- [x] Preserve browser GPS uncertainty by forwarding unknown heading as `null` and browser-reported horizontal accuracy into shared runtime inputs.
-- [x] Wire a firmware host-side frame loop that steps `runtime-core`, queries map geometry, renders through `render-core`, and presents into a device-facing framebuffer abstraction.
-- [x] Add a firmware platform loop abstraction for frame timing plus GPS/touch polling around the shared runtime/query/render path.
-- [x] Add GT9271 report decoding and logical-screen normalization helpers in firmware touch handling.
-- [x] Normalize firmware touch input into logical viewport space independently from raw controller coordinate extent.
-- [x] Add display upload/conversion helpers for RGB565-style panel presentation.
-- [x] Add concrete `esp_idf` provider modules for GT9271 transport, panel upload, and NMEA GPS input on top of the firmware provider traits.
-- [ ] Wire actual ESP-IDF peripheral acquisition and live hardware handles into those providers in the firmware platform loop.
+## Epic B: Companion Routing Orchestrator
+Depends on:
+- Epic A
 
-## Map Data Evolution
-- [x] Implement an embedded `.svm` bridge that answers `MapSource::query(&MapQuerySpec)` with coarse bbox + LOD candidate selection.
-- [x] Reuse the same query backend for firmware and wasm through a shared `map-runtime` crate.
-- [x] Validate embedded `.svm` magic/version/header bounds before parsing map bytes in `map-runtime`.
-- [ ] Design the next direct `.svm` runtime loading layer without coupling file parsing to camera/render policy.
-- [ ] Extend map metadata only through runtime/query contracts needed for future LOD and overlays.
+### Work Items
+- [ ] Build provider adapter interface and adapter lifecycle contract.
+- [ ] Implement provider adapters for HSL, Google ingest, OSM, GPX/FIT/TCX, Garmin API/import.
+- [ ] Implement normalization pipeline from each provider payload to `RoutePackage`.
+- [ ] Implement provider picker UX with source provenance visibility.
+- [ ] Implement reroute orchestration and replacement route publishing.
 
-## Validation
-- [x] Add focused contract tests for touch validation, stopped defaults, riding transition, and map-query bounds.
-- [x] Add regression tests for rotated query coverage, zoom lower bound, north-up semantics, and GPS-dropout resilience.
-- [x] Add unit tests for motion filtering, heading smoothing, zoom bounds, and camera interpolation.
-- [x] Add query/render tests for bbox selection, edge-touching geometry, projection, clipping, and deterministic framebuffer output.
-- [x] Add parity fixtures proving identical `TouchContactFrame` sequences resolve to the same gestures/taps across firmware and wasm paths.
-- [x] Add scenario tests for ride, stop, pan, recenter, and compass interaction sequences.
-- [x] Add parity-oriented fixtures that can be reused by wasm and firmware adapters and their shared map/query/render loop.
-- [x] Run workspace validation commands once the missing crates exist and are wired.
-- [x] Run emulator wasm build plus web lint/typecheck/build after the frame-driven bridge lands.
-- [x] Add frontend helper tests for logical touch remapping and wheel pinch synthesis.
-- [x] Run `cargo xtask emu` startup sanity check after wiring the real command.
+### Definition of Done
+- [ ] Destination-to-`RoutePackage` generation works for each launch provider path.
+- [ ] Provider failures produce deterministic fallback or actionable user error states.
+- [ ] Reroute requests produce replacement packages without app restart.
+- [ ] Output route packages are byte-for-byte schema-valid against Epic A contracts.
 
-## Documentation
-- [x] Update main spec with framework foundation rules and delivery order.
-- [x] Add main `current-plan.md`.
-- [x] Add main `todo.md`.
-- [x] Add framework execution and validation guide.
-- [x] Add source tree and ownership guide.
-- [x] Reconcile linked architecture docs to one ownership and query/render handoff model.
-- [x] Reconcile README crate descriptions with the implemented crate layout once bootstrap begins.
-- [x] Document the shared `map-runtime` crate and firmware host-side slice in the canonical references.
+## Epic C: Device Sync Transport
+Depends on:
+- Epic A
+- Epic B
+
+### Work Items
+- [ ] Define message protocol for `set`, `update`, `clear`, `status`, and `reroute_request`.
+- [ ] Implement BLE-first transport with route chunking and flow control.
+- [ ] Implement checksum verification, dedupe, and idempotent replay handling.
+- [ ] Implement transfer resume/retry for interrupted sessions.
+- [ ] Add optional Wi-Fi transport path behind same message contract.
+- [ ] Add route version lifecycle handling on device.
+
+### Definition of Done
+- [ ] Route transfer remains correct under interrupted sessions and resumed transfer.
+- [ ] Duplicate packets do not corrupt route state.
+- [ ] Checksum mismatch is detected and recovered with deterministic retry behavior.
+- [ ] Device route state always reflects last acknowledged route version.
+
+## Epic D: Shared Runtime Route-Follow Engine
+Depends on:
+- Epic A
+- Epic C
+
+### Work Items
+- [ ] Extend runtime input contracts with route lifecycle events.
+- [ ] Implement route progress projection over active route geometry.
+- [ ] Implement off-route detection with hysteresis to prevent oscillation.
+- [ ] Implement major-turn alert trigger state and timing policy.
+- [ ] Implement runtime reroute request event surface.
+- [ ] Extend runtime output contracts with route follow and alert state.
+- [ ] Add alert policy config contract for off-route and major-turn behavior.
+
+### Definition of Done
+- [ ] Runtime route follow behavior is deterministic for identical input sequences.
+- [ ] Off-route detection is stable and does not flap under normal GPS jitter.
+- [ ] Major-turn alerts trigger consistently with configured thresholds.
+- [ ] Runtime output contains all route state needed by render without adapter-owned logic.
+
+## Epic E: Shared Rendering and UX
+Depends on:
+- Epic D
+
+### Work Items
+- [ ] Implement route highlight rendering in `render-core`.
+- [ ] Implement completed versus remaining route segment styling.
+- [ ] Implement map-first off-route alert visualization.
+- [ ] Implement map-first major-turn alert visualization.
+- [ ] Implement configurable alert verbosity plumbing and rendering behavior.
+- [ ] Ensure route/alert readability across zoom and orientation modes.
+
+### Definition of Done
+- [ ] Route highlight stays clearly visible in riding presentation bands.
+- [ ] Off-route and major-turn alerts are legible with existing overlay stack.
+- [ ] Alert verbosity settings map to deterministic rendering behavior.
+- [ ] Firmware and emulator render behavior remains parity-consistent for route overlays.
+
+## Epic F: Validation and Field Readiness
+Depends on:
+- Epic A
+- Epic B
+- Epic C
+- Epic D
+- Epic E
+
+### Work Items
+- [ ] Add provider contract conformance tests.
+- [ ] Add sync reliability and fault-injection tests for packet loss/interruption.
+- [ ] Add runtime scenario tests for route progress, off-route, and reroute replacement.
+- [ ] Add rendering snapshot/readability tests for route and alerts.
+- [ ] Execute Helsinki field validation rides with HSL-first scenarios.
+- [ ] Execute cross-source validation for OSM fallback, Google ingest, GPX, and Garmin flows.
+- [ ] Add compliance validation checks and release gates for Google ingest path.
+
+### Definition of Done
+- [ ] All provider adapters pass conformance test suite.
+- [ ] Sync transport passes reliability suite with deterministic recovery behavior.
+- [ ] Runtime and render route behavior pass deterministic regression suites.
+- [ ] Field validation confirms stable follow and reroute user experience in Helsinki conditions.
+- [ ] Compliance and legal gating artifacts are complete for planned launch sources.
+
+## Program-Level Acceptance Criteria
+- [ ] Companion app remains sole authority for planning and rerouting decisions.
+- [ ] ESP route following works offline after successful route sync.
+- [ ] Runtime and render ownership boundaries are preserved with no adapter-owned routing logic.
+- [ ] End-to-end route loop works across HSL, OSM fallback, Google ingest, GPX import, Garmin API/import.
+- [ ] Observability and operational diagnostics are available for sync, follow, off-route, and reroute lifecycle.
