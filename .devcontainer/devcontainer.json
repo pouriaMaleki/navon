@@ -1,28 +1,31 @@
 {
   "name": "ESP32 Rust Dev",
-  "dockerComposeFile": "../compose.yaml",
-  "service": "dev",
+  "build": {
+    "context": "..",
+    "dockerfile": "../infra/devcontainer/Containerfile"
+  },
+  "initializeCommand": "bash .devcontainer/scripts/init-host-home.sh",
   "workspaceFolder": "/work",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/work,type=bind",
+  "mounts": [
+    "source=${localEnv:HOME}/.devcontainer-homes/esp32-map,target=/home/vscode,type=bind,consistency=cached"
+  ],
   "remoteUser": "vscode",
-  "forwardPorts": [5173, 5174, 5175],
+  "containerEnv": {
+    "CARGO_TARGET_DIR": "/work/target/devcontainer",
+    "GIT_CONFIG_GLOBAL": "/home/vscode/.config/git/config",
+    "TZ": "Europe/Helsinki"
+  },
+  "forwardPorts": [
+    5173
+  ],
   "portsAttributes": {
     "5173": {
       "label": "Emulator (Vite)",
       "onAutoForward": "notify"
-    },
-    "5174": {
-      "label": "Emulator (Vite alt)",
-      "onAutoForward": "silent"
-    },
-    "5175": {
-      "label": "Emulator (Vite alt)",
-      "onAutoForward": "silent"
     }
   },
   "postCreateCommand": "bash infra/devcontainer/scripts/post-create.sh",
-  "features": {
-    "./features/agent-persistence": {}
-  },
   "customizations": {
     "vscode": {
       "settings": {

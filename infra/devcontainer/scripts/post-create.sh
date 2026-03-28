@@ -42,6 +42,11 @@ if ! command -v wasm-pack >/dev/null 2>&1; then
   CARGO_HOME="${CARGO_HOME:-/usr/local/cargo}" cargo install wasm-pack
 fi
 
+# Install emulator web dependencies for the first `cargo xtask emu` run.
+if [ -f /work/emulator/web/package-lock.json ] && [ ! -d /work/emulator/web/node_modules ]; then
+  (cd /work/emulator/web && npm ci)
+fi
+
 # Keep local bun usable in future shells when present.
 if [ -x "${HOME}/.bun/bin/bun" ] && ! grep -q 'export PATH="$HOME/.bun/bin:$PATH"' "${HOME}/.bashrc"; then
   printf '\nexport PATH="$HOME/.bun/bin:$PATH"\n' >> "${HOME}/.bashrc"
