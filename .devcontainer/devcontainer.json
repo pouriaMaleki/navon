@@ -7,8 +7,13 @@
   "initializeCommand": "bash .devcontainer/scripts/init-host-home.sh",
   "workspaceFolder": "/work",
   "workspaceMount": "source=${localWorkspaceFolder},target=/work,type=bind",
+  "runArgs": [
+    "--dns=1.1.1.1",
+    "--dns=8.8.8.8"
+  ],
   "mounts": [
-    "source=${localEnv:HOME}/.devcontainer-homes/esp32-map,target=/home/vscode,type=bind,consistency=cached"
+    "source=${localEnv:HOME}/.devcontainer-homes/esp32-map,target=/home/vscode,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
   ],
   "remoteUser": "vscode",
   "containerEnv": {

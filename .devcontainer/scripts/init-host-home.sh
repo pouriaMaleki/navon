@@ -5,6 +5,7 @@ HOST_HOME="${HOME:?HOME is required}"
 PERSIST_HOME="${HOST_HOME}/.devcontainer-homes/esp32-map"
 MIGRATION_MARKER="${PERSIST_HOME}/.migration_v1_done"
 
+mkdir -p "${HOST_HOME}/.ssh"
 mkdir -p "${PERSIST_HOME}"
 
 if [ -f "${MIGRATION_MARKER}" ]; then
