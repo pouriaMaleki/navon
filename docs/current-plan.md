@@ -1,59 +1,276 @@
-# Main Current Plan
+# Routing Program Technical Plan
 
 Spec reference: [`project-spec.md`](./project-spec.md)
-Execution guide: [`framework-execution-guide.md`](./framework-execution-guide.md)
+Runtime architecture reference: [`runtime-ecs-architecture.md`](./runtime-ecs-architecture.md)
+Execution guide reference: [`framework-execution-guide.md`](./framework-execution-guide.md)
 
-## Plan
-1. Build the shared Rust framework first so firmware and wasm consume one runtime behavior model.
-2. Restore the intended workspace crate graph by introducing `runtime-core`, `render-core`, and `render-core-wasm` with strict boundaries.
-3. Define small stable public contracts for `RuntimeInputFrame`, `TouchContact`, `TouchContactFrame`, `RuntimeFrameOutput`, `RuntimeConfig`, `MapQuerySpec`, `DiagnosticsSnapshot`, and map query handoff before writing feature logic. Status: completed.
-4. Implement deterministic runtime stepping in `runtime-core` for shared touch/contact interpretation, motion fusion, camera policy, follow-lock, recentering, and `MapQuerySpec` generation. Status: completed.
-5. Keep `render-core` stateless and pure so it owns projection, final visibility/clipping, styling, and rasterization and can be tested independently. Status: emulator-facing render-core MVP is completed.
-6. Integrate firmware and wasm as thin adapters that translate GPS and normalized touch contact frames only, while keeping coarse map lookup behind behavior-free `MapSource` implementations. Status: wasm/emulator slice is completed; firmware host-side runtime/query/render slice is completed; firmware board-facing platform boundary and concrete `esp_idf` provider modules are in place; real ESP-IDF peripheral acquisition remains pending.
-7. Add scenario tests and diagnostics early so future features can extend the framework without regressions.
-8. Prepare the runtime for shared direct `.svm` loading after the current embedded `map-runtime` bridge path is stable.
-9. Design and implement a declarative zoom-aware map presentation system with richer feature classes, multiple presentation bands, and converter-owned profiles.
+## Architecture Vision
+Phone-orchestrated routing with ESP-optimized route following.
 
-## Current Focus
-- Wire actual ESP-IDF peripheral acquisition and hardware handles into the new firmware `esp_idf` providers without reintroducing adapter-owned behavior.
-- Replace the remaining device-oriented `xtask` stubs once firmware bundling and deploy flows have real implementations behind them.
-- Design the next direct `.svm` runtime loading layer after the shared embedded bridge path has parity coverage.
-- Plan the next map-system foundation so runtime/query/render can move beyond the current flat road/path model into richer zoom-aware presentation bands.
-- Replace the current overview-band simplification workaround with real street generalization and later POI clustering/label support.
+The product is built around a map-first riding UX:
+- route highlight is the primary guidance surface
+- off-route and major-turn alerts are secondary, configurable overlays
+- the system can extend alert verbosity later without changing core contracts
 
-## Recent Progress
-- `runtime-core::api` now exposes stable config, input, output, diagnostics, and map-query contract modules.
-- `runtime-core` now owns a deterministic `bevy_ecs` schedule that produces shared gesture/tap interpretation, filtered motion heading, interaction-aware camera snapshots, and `MapQuerySpec` output.
-- Firmware and wasm bridge helpers now build shared `RuntimeInputFrame` values instead of staying as empty placeholders.
-- `render-core` now owns the shared camera projection, visibility/clipping, overlay drawing, and grayscale framebuffer path used by the emulator.
-- `render-core` now consumes runtime-owned `MapQuerySpec.meters_per_pixel` values directly instead of recomputing zoom policy.
-- `map-runtime` now owns the shared embedded `.svm` reader and coarse bbox + LOD lookup backend used by adapters.
-- `map-runtime` now rejects invalid `.svm` magic/version/header payloads before parsing map geometry.
-- `render-core-wasm` now queries geometry through `map-runtime` and exposes a frame-driven `step_frame` bridge for emulator consumption.
-- Emulator web now forwards raw GPS and touch contacts into shared Rust and presents Rust-generated pixels without TS-owned camera interaction policy.
-- Emulator presentation now uses a round clipped screen viewport, mobile touch forwarding, and desktop wheel-to-pinch synthesis while keeping gesture semantics Rust-owned.
-- Emulator GPS normalization now preserves unknown heading as `null` and forwards browser-provided accuracy into shared runtime inputs.
-- `cargo xtask emu` now rebuilds `render-core-wasm` and starts the Vite emulator server as the repository-root entrypoint required by the emulator spec.
-- Firmware now runs a host-side shared `runtime-core` -> `map-runtime` -> `render-core` frame loop with tests covering query/render output and touch forwarding.
-- `parity-fixtures` now provides canonical frame sequences, a deterministic fixture `MapSource`, and frame-by-frame parity assertions across firmware and wasm normalization/query/render paths.
-- Firmware now exposes a board-facing platform loop, GT9271 report decoding/normalization, board config for Waveshare defaults, and RGB565 display upload helpers while keeping product behavior in shared Rust.
-- Firmware touch normalization now explicitly targets the logical viewport size instead of assuming controller extent equals display extent.
-- Firmware now also exposes concrete `esp_idf` provider modules for GT9271 register access, panel upload, NMEA GPS parsing, and device-platform assembly on top of the existing provider traits.
-- A new map presentation design direction is now defined: richer feature classes, four zoom presentation bands, declarative converter profiles, and a preference for one multi-LOD regional map package.
-- The current bike-map slice now hides rail/metro/train/tram geometry and keeps overview zooms cleaner by dropping ordinary street-road detail before true geometry generalization exists.
-- The first shared POI slice now normalizes bike parking, bike repair, supermarket, and food points from the source map package, with ride-detail limited to bike utility and close-detail showing utility plus essentials.
-- Shared Rust camera behavior now distinguishes temporary riding pan from sticky stopped browse, with stopped recenter delegated to an explicit north-indicator tap.
-- Shared Rust now also owns a moving-only bottom speed overlay with `kph` / `mph` toggle behavior, while emulator and firmware adapters are responsible only for persisting the chosen unit.
+Performance principle:
+- heavy planning and rerouting stay off-device on companion app infrastructure
+- deterministic low-latency route-follow logic runs in shared Rust on device and emulator
 
-## Immediate Correction Pass
-- Replace the hand-rolled runner with a real internal `bevy_ecs` schedule and resources. Status: completed.
-- Add regression tests that pin the reviewed foundation issues so later work cannot silently reintroduce them. Status: completed.
+## System Architecture
 
-## Exit Criteria For The Foundation Phase
-- Workspace builds with the planned crate graph in place.
-- `runtime-core` exposes adapter-safe public APIs without leaking ECS internals.
-- Firmware and wasm adapters emit normalized contact data rather than adapter-defined pan/pinch/rotate/tap behavior.
-- `render-core` owns pure render primitives and remains platform-agnostic.
-- `RuntimeFrameOutput` exposes camera/query intent and diagnostics rather than queried geometry buffers.
-- One deterministic frame pipeline is documented and testable from ordered input frames.
-- Main docs, plan, and task list stay aligned with implementation reality and agree on ownership boundaries.
+### Core Direction
+- Routing is a two-plane system:
+  - Control plane: companion app plans routes, owns provider integrations, and publishes route updates.
+  - Runtime plane: shared Rust follows the active route, drives alerts, and renders route UI.
+- ESP is optimized for on-ride responsiveness and reliability, not full route planning.
+- Offline operation target is route follow and alerting after a successful sync.
+
+### Routing Sources and Strategy
+Provider picker supports:
+- HSL Digitransit
+- Google ingest path
+- OSM-based routing
+- GPX import
+- FIT import
+- TCX import
+- Garmin direct API integration
+- Garmin file import path
+
+Source strategy rules:
+- all provider outputs must normalize into one source-agnostic `RoutePackage` contract
+- provider-specific fields stay in provenance metadata, not in shared runtime behavior logic
+- if source capability differs, normalize at companion layer, never in firmware adapter logic
+
+Google governance rule:
+- Google ingest is intentionally included as a product decision
+- compliance and legal risk is explicitly accepted and tracked as a parallel governance stream
+- release gating must include compliance sign-off for any Google-backed on-device rendering path
+
+## Ownership Guards
+
+### Companion App
+Controls:
+- provider credentials and auth flows
+- route planning requests and reroute decisions
+- source payload parsing and normalization
+- route package versioning and sync orchestration
+
+Implements:
+- provider adapter stack
+- provider picker UX
+- normalized `RoutePackage` publisher
+- sync state UX and failure recovery UX
+
+Must not:
+- implement route-follow math used by runtime-core
+- implement render styling logic that belongs to render-core
+- bypass route package schema and push provider-native payloads directly to adapters
+
+### `runtime-core`
+Controls:
+- route-follow state machine
+- snapped route progress projection
+- off-route detection and hysteresis
+- major-turn alert trigger timing
+- alert policy evaluation
+
+Implements:
+- deterministic route-follow computations in schedule
+- runtime route state in output snapshot
+- reroute request event surfacing
+
+Must not:
+- call network/provider APIs
+- parse provider-specific route formats
+- own transport packetization or BLE/Wi-Fi session details
+
+### `render-core`
+Controls:
+- route and alert visualization behavior
+- route line layering and style policy
+- completed versus remaining route rendering
+- alert component layout and readability
+
+Implements:
+- map-first route highlight visuals
+- off-route and major-turn overlay rendering
+
+Must not:
+- decide reroute
+- compute progress state
+- parse route package transport payloads
+
+### `map-runtime`
+Controls:
+- map query and geometry lookup
+
+Implements:
+- shared map geometry access for route overlay rendering context
+
+Must not:
+- perform route planning
+- decide alerts or route-follow policy
+
+### Firmware + WASM Adapters
+Controls:
+- transport ingress and egress only
+- platform IO integration with shared contracts
+
+Implements:
+- message bridging into `RuntimeInputFrame` and route ingress contracts
+- output forwarding to platform surfaces
+
+Must not:
+- implement routing business logic
+- fork behavior between device and emulator beyond platform IO constraints
+
+## Control and Data Flow
+1. User chooses provider and destination in companion app.
+2. Companion app requests/plans route from selected source.
+3. Companion app normalizes source payload into `RoutePackage`.
+4. Companion app syncs package to ESP over BLE first, Wi-Fi optional.
+5. Adapter ingests package into shared runtime route state.
+6. `runtime-core` computes progress, off-route state, and major-turn alert events.
+7. `render-core` draws route highlight and alert overlays.
+8. If off-route is detected, runtime emits reroute request context.
+9. Companion app performs reroute and pushes replacement `RoutePackage`.
+
+## Public Contracts
+
+### Route Package Contract
+- `RoutePackage` is source-agnostic and versioned.
+- Contains:
+  - route identity and version
+  - geometry polyline payload
+  - maneuver list with distance context and maneuver classification
+  - summary metadata (distance, duration, destination labels)
+  - source provenance metadata and generation timestamp
+- Compatibility policy:
+  - backward-compatible additions only for minor version changes
+  - explicit migration path for breaking version bumps
+
+### Sync Message Contract
+Message types:
+- `set`
+- `update`
+- `clear`
+- `status`
+- `reroute_request`
+
+Transport contract requirements:
+- chunking and sequence integrity
+- checksum verification
+- resume and retry semantics
+- idempotent handling for duplicate message delivery
+
+### Runtime Contract Extensions
+`RuntimeInputFrame` extension direction:
+- route lifecycle ingress events
+- sync/transport status ingress where needed for UI
+
+`RuntimeFrameOutput` extension direction:
+- active route follow state
+- off-route status
+- next major-turn alert payload
+- route summary fields needed by overlay
+
+### Alert Policy Contract
+- Default policy: off-route plus major-turn alerts.
+- Policy values must be runtime-configurable and forward-compatible.
+- Future policy levels must extend the same contract without replacing it.
+
+## Program Phases
+
+### Stage 1: HSL-First Routing Vertical Slice (Detailed)
+Goal:
+- ship a complete Helsinki-quality routing loop from planning to on-device following using HSL as the first production provider
+
+Implementation lanes:
+- Companion planning lane:
+  - implement `HslRoutingAdapter` against Digitransit routing API for bike routes
+  - support origin and destination as lat/lon inputs with rider profile defaults
+  - map HSL itinerary response into internal provider model before normalization
+- Normalization lane:
+  - normalize HSL geometry into `RoutePackage.geometry`
+  - normalize maneuver semantics into canonical maneuver types and distance fields
+  - attach source provenance as `provider = hsl_digitransit` with generation timestamp
+- Sync lane:
+  - send normalized HSL route via `set` message and wait for explicit device ack/status
+  - handle chunking, checksum, and retry semantics for first-route sync
+- Runtime lane:
+  - activate route-follow state from synced package
+  - compute progress projection and off-route detection baseline
+  - emit reroute request event when off-route hysteresis threshold is crossed
+- Render lane:
+  - render primary route highlight over map
+  - render off-route warning and major-turn alert overlay in map-first style
+- Failure-handling lane:
+  - no-route and timeout errors become companion-level actionable states
+  - if HSL route payload lacks maneuver detail, fallback to geometry-only following with off-route alerts
+
+Stage 1 exit criteria:
+- HSL route can be planned, normalized, synced, and followed end-to-end on emulator and device
+- off-route detection triggers companion reroute request loop successfully
+- route visualization and alerts remain readable while riding in Helsinki field validation runs
+- deterministic tests cover HSL payload normalization, runtime follow behavior, and sync retry handling
+
+### Stage 2: Contracts and Multi-Provider Scaffold
+- Generalize provider adapter interface from HSL-first implementation
+- Harden route package versioning and compatibility policy
+- Add provider fixture corpus for OSM, Google ingest, GPX/FIT/TCX, Garmin API/import
+
+Exit criteria:
+- provider interface is stable and source-agnostic
+- route package fixtures validate against schema across all target source types
+
+### Stage 3: Sync, Persistence, Runtime Hardening
+- Expand BLE-first sync protocol to full lifecycle (`set`, `update`, `clear`, `status`, `reroute_request`)
+- add route persistence and route version lifecycle handling
+- harden runtime route-follow and reroute state transitions
+
+Exit criteria:
+- interrupted sync recovers without route corruption
+- route can be persisted, restored, and replaced deterministically
+- runtime route states remain deterministic under dropout and reroute scenarios
+
+### Stage 4: Rendering and Alert UX Expansion
+- refine route styling for completed versus remaining segments
+- refine configurable alert policy behavior and rendering
+- validate readability across zoom/orientation/motion transitions
+
+Exit criteria:
+- route line and alerts are consistently legible in riding states
+- alert policy toggles are reflected deterministically in runtime and render output
+
+### Stage 5: Multi-Provider Hardening and Field Validation
+- harden non-HSL adapters and normalization edge handling
+- execute field validation for Helsinki and fallback-provider scenarios
+- validate cross-source reroute behavior
+
+Exit criteria:
+- provider fallback behavior is deterministic
+- field scenarios pass for target riding conditions and reroute loops
+
+### Stage 6: Productionization, Observability, Compliance Closure
+- add telemetry and diagnostics for planning, sync, follow, and reroute lifecycle
+- complete compliance sign-off workstream, including Google path governance
+- finalize rollout and support playbook
+
+Exit criteria:
+- operational dashboards and incident procedures are defined
+- compliance gate sign-off is recorded
+- launch checklist is complete
+
+## Quality and Validation Strategy
+- Contract conformance tests across all providers.
+- Sync reliability tests under packet loss and interrupted sessions.
+- Runtime determinism tests for route progress and off-route stability.
+- Rendering snapshot and readability tests across motion/orientation states.
+- End-to-end tests for HSL, OSM fallback, Google ingest, GPX import, Garmin API/import, and live reroute loop.
+
+## Explicit Program Assumptions
+- Implementation effort is unconstrained; UX and performance are top priorities.
+- Companion app is the orchestration authority for planning and rerouting.
+- ESP does not execute full route planning in v1.
+- Offline target is route follow and alerts after successful sync.
+- Existing shared-Rust ownership boundaries are extended, not replaced.
