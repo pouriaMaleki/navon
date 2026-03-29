@@ -4,7 +4,7 @@ use runtime_core::api::{
     CameraOrientationMode, CameraStateSnapshot, OverlayState, RuntimeConfig, ScreenPoint,
     ViewportSize,
 };
-use runtime_core::route::RouteRenderState;
+use runtime_core::route::{RouteRenderState, TurnAlertKind};
 
 use crate::camera_view::CameraView;
 use crate::raster::Framebuffer;
@@ -107,6 +107,8 @@ pub fn draw_overlay(
 
     if route.off_route {
         draw_off_route_banner(framebuffer, viewport, &style);
+    } else if let Some(alert) = route.upcoming_turn_alert.as_ref() {
+        draw_major_turn_banner(framebuffer, viewport, &style, alert);
     }
 }
 
@@ -158,12 +160,46 @@ fn draw_off_route_banner(
     viewport: ViewportSize,
     style: &RenderStyle,
 ) {
+    draw_status_banner(
+        framebuffer,
+        viewport,
+        style.off_route_banner_border_color,
+        style.off_route_banner_background_color,
+        style.off_route_banner_text_color,
+        "OFF ROUTE",
+    );
+}
+
+fn draw_major_turn_banner(
+    framebuffer: &mut Framebuffer,
+    viewport: ViewportSize,
+    style: &RenderStyle,
+    alert: &runtime_core::route::UpcomingTurnAlert,
+) {
+    let text = format_major_turn_banner_text(alert);
+    draw_status_banner(
+        framebuffer,
+        viewport,
+        style.major_turn_banner_border_color,
+        style.major_turn_banner_background_color,
+        style.major_turn_banner_text_color,
+        &text,
+    );
+}
+
+fn draw_status_banner(
+    framebuffer: &mut Framebuffer,
+    viewport: ViewportSize,
+    border_color: crate::raster::Color,
+    background_color: crate::raster::Color,
+    text_color: crate::raster::Color,
+    text: &str,
+) {
     let scale_px = 2;
     let padding_x = 10;
     let padding_y = 6;
     let spacing_px = 2;
     let gap_px = 4;
-    let text = "OFF ROUTE";
     let text_width = measure_banner_text_width(text, scale_px, spacing_px, gap_px);
     let banner_width = (text_width + padding_x * 2).max(104) as u32;
     let banner_height = (7 * scale_px + padding_y * 2) as u32;
@@ -175,14 +211,14 @@ fn draw_off_route_banner(
         banner_y - 2,
         banner_width + 4,
         banner_height + 4,
-        style.off_route_banner_border_color,
+        border_color,
     );
     framebuffer.fill_rect_overwrite(
         banner_x,
         banner_y,
         banner_width,
         banner_height,
-        style.off_route_banner_background_color,
+        background_color,
     );
     draw_banner_text(
         framebuffer,
@@ -192,8 +228,19 @@ fn draw_off_route_banner(
         scale_px,
         spacing_px,
         gap_px,
-        style.off_route_banner_text_color,
+        text_color,
     );
+}
+
+fn format_major_turn_banner_text(alert: &runtime_core::route::UpcomingTurnAlert) -> String {
+    let label = match alert.kind {
+        TurnAlertKind::Left => "LEFT",
+        TurnAlertKind::Right => "RIGHT",
+        TurnAlertKind::Uturn => "UTURN",
+        TurnAlertKind::Generic => "TURN",
+    };
+    let meters = alert.distance_remaining_m.max(0.0).round() as u16;
+    format!("{label} {meters}M")
 }
 
 fn measure_banner_text_width(text: &str, scale_px: i32, spacing_px: i32, gap_px: i32) -> i32 {
@@ -261,11 +308,59 @@ fn draw_banner_glyph(
 
 fn banner_glyph(ch: char) -> Option<[&'static str; 7]> {
     match ch {
+        '0' => Some([
+            "01110", "10001", "10011", "10101", "11001", "10001", "01110",
+        ]),
+        '1' => Some([
+            "00100", "01100", "00100", "00100", "00100", "00100", "01110",
+        ]),
+        '2' => Some([
+            "01110", "10001", "00001", "00010", "00100", "01000", "11111",
+        ]),
+        '3' => Some([
+            "11110", "00001", "00001", "01110", "00001", "00001", "11110",
+        ]),
+        '4' => Some([
+            "00010", "00110", "01010", "10010", "11111", "00010", "00010",
+        ]),
+        '5' => Some([
+            "11111", "10000", "10000", "11110", "00001", "00001", "11110",
+        ]),
+        '6' => Some([
+            "01110", "10000", "10000", "11110", "10001", "10001", "01110",
+        ]),
+        '7' => Some([
+            "11111", "00001", "00010", "00100", "01000", "01000", "01000",
+        ]),
+        '8' => Some([
+            "01110", "10001", "10001", "01110", "10001", "10001", "01110",
+        ]),
+        '9' => Some([
+            "01110", "10001", "10001", "01111", "00001", "00001", "01110",
+        ]),
         'E' => Some([
             "11111", "10000", "11110", "10000", "10000", "10000", "11111",
         ]),
         'F' => Some([
             "11111", "10000", "11110", "10000", "10000", "10000", "10000",
+        ]),
+        'G' => Some([
+            "01110", "10001", "10000", "10111", "10001", "10001", "01110",
+        ]),
+        'H' => Some([
+            "10001", "10001", "10001", "11111", "10001", "10001", "10001",
+        ]),
+        'I' => Some([
+            "01110", "00100", "00100", "00100", "00100", "00100", "01110",
+        ]),
+        'L' => Some([
+            "10000", "10000", "10000", "10000", "10000", "10000", "11111",
+        ]),
+        'M' => Some([
+            "10001", "11011", "10101", "10101", "10001", "10001", "10001",
+        ]),
+        'N' => Some([
+            "10001", "11001", "10101", "10011", "10001", "10001", "10001",
         ]),
         'O' => Some([
             "01110", "10001", "10001", "10001", "10001", "10001", "01110",

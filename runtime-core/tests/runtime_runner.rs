@@ -965,6 +965,14 @@ fn route_sync_set_populates_render_route_state() {
     assert_eq!(output.route.completed_geometry_world.len(), 1);
     assert_eq!(output.route.remaining_geometry_world.len(), 3);
     assert!(!output.route.off_route);
+    assert_eq!(
+        output
+            .route
+            .upcoming_turn_alert
+            .as_ref()
+            .map(|alert| alert.kind),
+        Some(runtime_core::route::TurnAlertKind::Right)
+    );
 }
 
 #[test]
@@ -989,6 +997,52 @@ fn route_progress_marks_completed_and_remaining_geometry() {
     assert!(progressed.route.progress_distance_m.unwrap_or_default() > 0.0);
     assert!(progressed.route.completed_geometry_world.len() >= 2);
     assert!(progressed.route.remaining_geometry_world.len() >= 2);
+}
+
+#[test]
+fn route_major_turn_alert_updates_as_progress_advances() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+
+    let initial = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7749, -122.4194, 0.0))
+            .with_route_sync(RouteSyncMessage::Set(RouteSetMessage {
+                route: sample_render_route_package("demo-route", 1),
+            })),
+    );
+
+    let progressed = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(220))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7756, -122.4188, 6.0)),
+    );
+
+    assert_eq!(
+        initial
+            .route
+            .upcoming_turn_alert
+            .as_ref()
+            .map(|alert| alert.kind),
+        Some(runtime_core::route::TurnAlertKind::Right)
+    );
+    assert!(
+        initial
+            .route
+            .upcoming_turn_alert
+            .as_ref()
+            .map(|alert| alert.distance_remaining_m)
+            .unwrap_or_default()
+            <= 80.0
+    );
+    assert_eq!(
+        progressed
+            .route
+            .upcoming_turn_alert
+            .as_ref()
+            .map(|alert| alert.kind),
+        Some(runtime_core::route::TurnAlertKind::Left)
+    );
 }
 
 #[test]
@@ -1107,8 +1161,24 @@ fn sample_render_route_package(route_id: &str, revision: u64) -> RoutePackage {
                 maneuver_type: RouteManeuverType::Depart,
                 location: GeoPoint::new(37.7749, -122.4194),
                 distance_from_start_m: 0.0,
-                distance_to_next_m: Some(140.0),
+                distance_to_next_m: Some(60.0),
                 instruction_text: Some("Start".to_owned()),
+            },
+            RouteManeuver {
+                id: "turn-right".to_owned(),
+                maneuver_type: RouteManeuverType::Right,
+                location: GeoPoint::new(37.7752, -122.4190),
+                distance_from_start_m: 60.0,
+                distance_to_next_m: Some(70.0),
+                instruction_text: Some("Turn right".to_owned()),
+            },
+            RouteManeuver {
+                id: "turn-left".to_owned(),
+                maneuver_type: RouteManeuverType::Left,
+                location: GeoPoint::new(37.7759, -122.41845),
+                distance_from_start_m: 160.0,
+                distance_to_next_m: Some(160.0),
+                instruction_text: Some("Turn left".to_owned()),
             },
             RouteManeuver {
                 id: "arrive".to_owned(),

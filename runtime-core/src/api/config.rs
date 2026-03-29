@@ -117,6 +117,7 @@ pub struct RuntimeConfig {
     pub heading_filter_alpha: f32,
     pub off_route_enter_distance_m: f64,
     pub off_route_exit_distance_m: f64,
+    pub major_turn_alert_distance_m: f64,
     pub diagnostics_enabled: bool,
 }
 
@@ -150,6 +151,7 @@ impl Default for RuntimeConfig {
             heading_filter_alpha: 0.25,
             off_route_enter_distance_m: 35.0,
             off_route_exit_distance_m: 22.0,
+            major_turn_alert_distance_m: 80.0,
             diagnostics_enabled: true,
         }
     }

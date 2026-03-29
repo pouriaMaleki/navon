@@ -1,10 +1,25 @@
 use crate::api::input::GpsSample;
 use crate::api::query::WorldPoint;
 use crate::api::route::{
-    GeoPoint, RoutePackage, RoutePackageError, RouteSyncMessage, RouteSyncStatusCode,
-    RouteUpdateMessage,
+    GeoPoint, RouteManeuver, RouteManeuverType, RoutePackage, RoutePackageError, RouteSyncMessage,
+    RouteSyncStatusCode, RouteUpdateMessage,
 };
 use crate::motion::project_gps_to_world;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TurnAlertKind {
+    Left,
+    Right,
+    Uturn,
+    Generic,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct UpcomingTurnAlert {
+    pub kind: TurnAlertKind,
+    pub distance_remaining_m: f32,
+    pub instruction_text: Option<String>,
+}
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct RouteRenderState {
@@ -13,6 +28,7 @@ pub struct RouteRenderState {
     pub progress_distance_m: Option<f64>,
     pub off_route: bool,
     pub off_route_distance_m: Option<f64>,
+    pub upcoming_turn_alert: Option<UpcomingTurnAlert>,
     pub geometry_world: Vec<WorldPoint>,
     pub completed_geometry_world: Vec<WorldPoint>,
     pub remaining_geometry_world: Vec<WorldPoint>,
@@ -31,7 +47,16 @@ struct ActiveRoute {
     progress_distance_m: f64,
     off_route: bool,
     off_route_distance_m: f64,
+    upcoming_turn_alert: Option<UpcomingTurnAlert>,
+    maneuvers: Vec<StoredManeuver>,
     geometry_world: Vec<WorldPoint>,
+}
+
+#[derive(Debug, Clone)]
+struct StoredManeuver {
+    maneuver_type: RouteManeuverType,
+    distance_along_route_m: f32,
+    instruction_text: Option<String>,
 }
 
 impl ActiveRouteState {
@@ -78,6 +103,7 @@ impl ActiveRouteState {
         rider_world: WorldPoint,
         off_route_enter_distance_m: f64,
         off_route_exit_distance_m: f64,
+        major_turn_alert_distance_m: f64,
     ) {
         let Some(active) = &mut self.active else {
             return;
@@ -86,6 +112,7 @@ impl ActiveRouteState {
             rider_world,
             off_route_enter_distance_m,
             off_route_exit_distance_m,
+            major_turn_alert_distance_m,
         );
     }
 
@@ -129,6 +156,12 @@ impl ActiveRoute {
             progress_distance_m: 0.0,
             off_route: false,
             off_route_distance_m: 0.0,
+            upcoming_turn_alert: None,
+            maneuvers: route
+                .maneuvers
+                .iter()
+                .map(|maneuver| StoredManeuver::from_route_maneuver(maneuver, &geometry_world))
+                .collect(),
             geometry_world,
         })
     }
@@ -138,6 +171,7 @@ impl ActiveRoute {
         rider_world: WorldPoint,
         off_route_enter_distance_m: f64,
         off_route_exit_distance_m: f64,
+        major_turn_alert_distance_m: f64,
     ) {
         let projection = project_onto_polyline(&self.geometry_world, rider_world);
         self.progress_distance_m = self
@@ -152,6 +186,11 @@ impl ActiveRoute {
         } else if projection.distance_to_route_m >= off_route_enter_distance_m {
             self.off_route = true;
         }
+        self.upcoming_turn_alert = compute_upcoming_turn_alert_from_stored(
+            &self.maneuvers,
+            self.progress_distance_m,
+            major_turn_alert_distance_m,
+        );
     }
 
     fn snapshot(&self) -> RouteRenderState {
@@ -163,10 +202,64 @@ impl ActiveRoute {
             progress_distance_m: Some(self.progress_distance_m),
             off_route: self.off_route,
             off_route_distance_m: Some(self.off_route_distance_m),
+            upcoming_turn_alert: self.upcoming_turn_alert.clone(),
             geometry_world: self.geometry_world.clone(),
             completed_geometry_world,
             remaining_geometry_world,
         }
+    }
+}
+
+impl StoredManeuver {
+    fn from_route_maneuver(maneuver: &RouteManeuver, geometry_world: &[WorldPoint]) -> Self {
+        let location_world = geo_to_world(&maneuver.location);
+        let projection = project_onto_polyline(geometry_world, location_world);
+        Self {
+            maneuver_type: maneuver.maneuver_type,
+            distance_along_route_m: projection.progress_distance_m as f32,
+            instruction_text: maneuver.instruction_text.clone(),
+        }
+    }
+}
+
+fn compute_upcoming_turn_alert_from_stored(
+    maneuvers: &[StoredManeuver],
+    progress_distance_m: f64,
+    threshold_m: f64,
+) -> Option<UpcomingTurnAlert> {
+    for maneuver in maneuvers {
+        let Some(kind) = turn_alert_kind(maneuver.maneuver_type) else {
+            continue;
+        };
+        let distance_remaining_m = f64::from(maneuver.distance_along_route_m) - progress_distance_m;
+        if distance_remaining_m < 0.0 {
+            continue;
+        }
+        if distance_remaining_m > threshold_m {
+            return None;
+        }
+        return Some(UpcomingTurnAlert {
+            kind,
+            distance_remaining_m: distance_remaining_m as f32,
+            instruction_text: maneuver.instruction_text.clone(),
+        });
+    }
+    None
+}
+
+fn turn_alert_kind(maneuver_type: RouteManeuverType) -> Option<TurnAlertKind> {
+    match maneuver_type {
+        RouteManeuverType::Left | RouteManeuverType::SharpLeft | RouteManeuverType::SlightLeft => {
+            Some(TurnAlertKind::Left)
+        }
+        RouteManeuverType::Right
+        | RouteManeuverType::SharpRight
+        | RouteManeuverType::SlightRight => Some(TurnAlertKind::Right),
+        RouteManeuverType::Uturn => Some(TurnAlertKind::Uturn),
+        RouteManeuverType::Roundabout | RouteManeuverType::Merge | RouteManeuverType::Ramp => {
+            Some(TurnAlertKind::Generic)
+        }
+        RouteManeuverType::Depart | RouteManeuverType::Straight | RouteManeuverType::Arrive => None,
     }
 }
 
@@ -372,6 +465,7 @@ mod tests {
         assert_eq!(snapshot.progress_distance_m, Some(0.0));
         assert!(!snapshot.off_route);
         assert_eq!(snapshot.off_route_distance_m, Some(0.0));
+        assert!(snapshot.upcoming_turn_alert.is_none());
         assert_eq!(snapshot.geometry_world.len(), 2);
         assert_eq!(snapshot.completed_geometry_world.len(), 1);
         assert_eq!(snapshot.remaining_geometry_world.len(), 2);
@@ -406,15 +500,15 @@ mod tests {
         }));
 
         let first_progress_world = geo_to_world(&GeoPoint::new(60.1704, 24.9384));
-        state.advance_progress(first_progress_world, 18.0, 12.0);
+        state.advance_progress(first_progress_world, 18.0, 12.0, 80.0);
         let first_snapshot = state.snapshot();
 
         let second_progress_world = geo_to_world(&GeoPoint::new(60.1713, 24.9384));
-        state.advance_progress(second_progress_world, 18.0, 12.0);
+        state.advance_progress(second_progress_world, 18.0, 12.0, 80.0);
         let second_snapshot = state.snapshot();
 
         let backward_jitter_world = geo_to_world(&GeoPoint::new(60.1702, 24.9384));
-        state.advance_progress(backward_jitter_world, 18.0, 12.0);
+        state.advance_progress(backward_jitter_world, 18.0, 12.0, 80.0);
         let jitter_snapshot = state.snapshot();
 
         assert!(first_snapshot.progress_distance_m.unwrap_or_default() > 0.0);
@@ -431,6 +525,80 @@ mod tests {
     }
 
     #[test]
+    fn upcoming_major_turn_alert_advances_between_maneuvers() {
+        let mut state = ActiveRouteState::default();
+        state.apply_sync(&RouteSyncMessage::Set(RouteSetMessage {
+            route: RoutePackage {
+                geometry: vec![
+                    GeoPoint::new(37.7749, -122.4194),
+                    GeoPoint::new(37.7756, -122.4188),
+                    GeoPoint::new(37.7763, -122.4179),
+                ],
+                maneuvers: vec![
+                    RouteManeuver {
+                        id: "depart".to_owned(),
+                        maneuver_type: RouteManeuverType::Depart,
+                        location: GeoPoint::new(37.7749, -122.4194),
+                        distance_from_start_m: 0.0,
+                        distance_to_next_m: Some(60.0),
+                        instruction_text: Some("Start".to_owned()),
+                    },
+                    RouteManeuver {
+                        id: "right".to_owned(),
+                        maneuver_type: RouteManeuverType::Right,
+                        location: GeoPoint::new(37.7752, -122.4190),
+                        distance_from_start_m: 60.0,
+                        distance_to_next_m: Some(70.0),
+                        instruction_text: Some("Turn right".to_owned()),
+                    },
+                    RouteManeuver {
+                        id: "left".to_owned(),
+                        maneuver_type: RouteManeuverType::Left,
+                        location: GeoPoint::new(37.7758, -122.4185),
+                        distance_from_start_m: 130.0,
+                        distance_to_next_m: None,
+                        instruction_text: Some("Turn left".to_owned()),
+                    },
+                ],
+                summary: RouteSummary {
+                    total_distance_m: 200.0,
+                    estimated_duration_s: 80,
+                    start_label: None,
+                    destination_label: None,
+                },
+                provenance: RouteProvenance {
+                    provider: RouteProvider::HslDigitransit,
+                    source_ref: None,
+                    generated_at_unix_ms: 0,
+                },
+                version: CURRENT_ROUTE_PACKAGE_VERSION,
+                route_id: "route-4".to_owned(),
+                revision: 1,
+            },
+        }));
+
+        let start_world = geo_to_world(&GeoPoint::new(37.7749, -122.4194));
+        state.advance_progress(start_world, 35.0, 22.0, 80.0);
+        let initial = state.snapshot();
+        assert_eq!(
+            initial.upcoming_turn_alert.as_ref().map(|alert| alert.kind),
+            Some(TurnAlertKind::Right)
+        );
+
+        let progressed_world = geo_to_world(&GeoPoint::new(37.77555, -122.41885));
+        state.advance_progress(progressed_world, 35.0, 22.0, 80.0);
+        let progressed = state.snapshot();
+
+        assert_eq!(
+            progressed
+                .upcoming_turn_alert
+                .as_ref()
+                .map(|alert| alert.kind),
+            Some(TurnAlertKind::Left)
+        );
+    }
+
+    #[test]
     fn off_route_hysteresis_requires_returning_within_exit_threshold() {
         let mut state = ActiveRouteState::default();
         state.apply_sync(&RouteSyncMessage::Set(RouteSetMessage {
@@ -444,15 +612,15 @@ mod tests {
         }));
 
         let far_from_route = geo_to_world(&GeoPoint::new(60.1708, 24.93875));
-        state.advance_progress(far_from_route, 18.0, 12.0);
+        state.advance_progress(far_from_route, 18.0, 12.0, 80.0);
         let off_route = state.snapshot();
 
         let still_outside_exit = geo_to_world(&GeoPoint::new(60.1708, 24.93858));
-        state.advance_progress(still_outside_exit, 18.0, 12.0);
+        state.advance_progress(still_outside_exit, 18.0, 12.0, 80.0);
         let holding = state.snapshot();
 
         let back_on_route = geo_to_world(&GeoPoint::new(60.1708, 24.93846));
-        state.advance_progress(back_on_route, 18.0, 12.0);
+        state.advance_progress(back_on_route, 18.0, 12.0, 80.0);
         let recovered = state.snapshot();
 
         assert!(off_route.off_route);
