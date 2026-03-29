@@ -49,7 +49,7 @@ pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
         &camera_view,
         viewport,
         &style,
-        &scene.output.route.geometry_world,
+        &scene.output.route,
         framebuffer,
     );
 
@@ -69,7 +69,33 @@ fn render_route_overlay(
     camera_view: &CameraView,
     viewport: ViewportSize,
     style: &RenderStyle,
+    route: &runtime_core::route::RouteRenderState,
+    framebuffer: &mut Framebuffer,
+) {
+    draw_route_polyline(
+        camera_view,
+        viewport,
+        &route.completed_geometry_world,
+        style.completed_route_backdrop,
+        style.completed_route_line,
+        framebuffer,
+    );
+    draw_route_polyline(
+        camera_view,
+        viewport,
+        &route.remaining_geometry_world,
+        style.remaining_route_backdrop,
+        style.remaining_route_line,
+        framebuffer,
+    );
+}
+
+fn draw_route_polyline(
+    camera_view: &CameraView,
+    viewport: ViewportSize,
     route_geometry_world: &[runtime_core::api::WorldPoint],
+    backdrop: crate::style::StrokeStyle,
+    line: crate::style::StrokeStyle,
     framebuffer: &mut Framebuffer,
 ) {
     for segment in route_geometry_world.windows(2) {
@@ -81,18 +107,8 @@ fn render_route_overlay(
         if let Some((clip_from, clip_to)) =
             clip_segment_to_viewport(from_screen, to_screen, viewport)
         {
-            framebuffer.draw_line(
-                clip_from,
-                clip_to,
-                style.active_route_backdrop.color,
-                style.active_route_backdrop.thickness_px,
-            );
-            framebuffer.draw_line(
-                clip_from,
-                clip_to,
-                style.active_route_line.color,
-                style.active_route_line.thickness_px,
-            );
+            framebuffer.draw_line(clip_from, clip_to, backdrop.color, backdrop.thickness_px);
+            framebuffer.draw_line(clip_from, clip_to, line.color, line.thickness_px);
         }
     }
 }
@@ -564,7 +580,7 @@ mod tests {
     }
 
     #[test]
-    fn active_route_overlay_renders_highlight_pixels() {
+    fn active_route_overlay_renders_completed_and_remaining_pixels() {
         let config = RuntimeConfig::default();
         let geometry = MapQueryResult::default();
         let mut output = sample_output();
@@ -575,6 +591,10 @@ mod tests {
             WorldPoint::new(-5.0, 10.0),
             WorldPoint::new(25.0, 22.0),
         ];
+        output.route.completed_geometry_world =
+            vec![WorldPoint::new(-30.0, -20.0), WorldPoint::new(-5.0, 10.0)];
+        output.route.remaining_geometry_world =
+            vec![WorldPoint::new(-5.0, 10.0), WorldPoint::new(25.0, 22.0)];
 
         let mut framebuffer = Framebuffer::new(128, 128);
         render_frame(
@@ -588,9 +608,14 @@ mod tests {
 
         let style = RenderStyle::default();
         assert!(framebuffer.pixels().chunks_exact(4).any(|rgba| {
-            rgba[0] == style.active_route_line.color.r
-                && rgba[1] == style.active_route_line.color.g
-                && rgba[2] == style.active_route_line.color.b
+            rgba[0] == style.completed_route_line.color.r
+                && rgba[1] == style.completed_route_line.color.g
+                && rgba[2] == style.completed_route_line.color.b
+        }));
+        assert!(framebuffer.pixels().chunks_exact(4).any(|rgba| {
+            rgba[0] == style.remaining_route_line.color.r
+                && rgba[1] == style.remaining_route_line.color.g
+                && rgba[2] == style.remaining_route_line.color.b
         }));
     }
 }

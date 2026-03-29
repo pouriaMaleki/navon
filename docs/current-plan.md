@@ -185,8 +185,9 @@ Transport contract requirements:
 - Added provider fixture contract coverage (HSL, Google ingest, OSM, GPX, FIT, TCX, Garmin API/file).
 - Extended `RuntimeInputFrame` with route sync ingress and `RuntimeFrameOutput` with active route render state baseline.
 - Added runtime route state application for `set`/`update`/`clear` flows and deterministic tests for set/clear behavior.
-- Added route highlight rendering in `render-core` with visible route overlay style and tests.
-- Wired emulator wasm bridge + web program to inject a demo route on first GPS sample for visible checkpoint verification.
+- Implemented snapped route progress projection in `runtime-core`, including monotonic progress behavior under backward GPS jitter.
+- Added completed-versus-remaining route rendering in `render-core` so route follow state is visually inspectable while riding.
+- Wired emulator wasm bridge + web program to inject a Helsinki demo route with quick turns on first GPS sample for visible checkpoint verification.
 
 ## Program Phases
 

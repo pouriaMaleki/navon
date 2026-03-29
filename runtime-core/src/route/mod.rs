@@ -10,7 +10,10 @@ use crate::motion::project_gps_to_world;
 pub struct RouteRenderState {
     pub route_id: Option<String>,
     pub revision: Option<u64>,
+    pub progress_distance_m: Option<f64>,
     pub geometry_world: Vec<WorldPoint>,
+    pub completed_geometry_world: Vec<WorldPoint>,
+    pub remaining_geometry_world: Vec<WorldPoint>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -22,6 +25,8 @@ pub struct ActiveRouteState {
 struct ActiveRoute {
     route_id: String,
     revision: u64,
+    total_distance_m: f64,
+    progress_distance_m: f64,
     geometry_world: Vec<WorldPoint>,
 }
 
@@ -60,12 +65,15 @@ impl ActiveRouteState {
     pub fn snapshot(&self) -> RouteRenderState {
         self.active
             .as_ref()
-            .map(|active| RouteRenderState {
-                route_id: Some(active.route_id.clone()),
-                revision: Some(active.revision),
-                geometry_world: active.geometry_world.clone(),
-            })
+            .map(ActiveRoute::snapshot)
             .unwrap_or_default()
+    }
+
+    pub fn advance_progress(&mut self, rider_world: WorldPoint) {
+        let Some(active) = &mut self.active else {
+            return;
+        };
+        active.advance_progress(rider_world);
     }
 
     fn apply_update(&mut self, update: &RouteUpdateMessage) {
@@ -99,11 +107,36 @@ impl ActiveRouteState {
 impl ActiveRoute {
     fn from_package(route: &RoutePackage) -> Result<Self, RoutePackageError> {
         route.validate()?;
+        let geometry_world = route.geometry.iter().map(geo_to_world).collect::<Vec<_>>();
+        let total_distance_m = polyline_total_distance(&geometry_world);
         Ok(Self {
             route_id: route.route_id.clone(),
             revision: route.revision,
-            geometry_world: route.geometry.iter().map(geo_to_world).collect(),
+            total_distance_m,
+            progress_distance_m: 0.0,
+            geometry_world,
         })
+    }
+
+    fn advance_progress(&mut self, rider_world: WorldPoint) {
+        let projected_distance_m = project_progress_distance(&self.geometry_world, rider_world);
+        self.progress_distance_m = self
+            .progress_distance_m
+            .max(projected_distance_m)
+            .clamp(0.0, self.total_distance_m);
+    }
+
+    fn snapshot(&self) -> RouteRenderState {
+        let (completed_geometry_world, remaining_geometry_world) =
+            split_polyline_at_distance(&self.geometry_world, self.progress_distance_m);
+        RouteRenderState {
+            route_id: Some(self.route_id.clone()),
+            revision: Some(self.revision),
+            progress_distance_m: Some(self.progress_distance_m),
+            geometry_world: self.geometry_world.clone(),
+            completed_geometry_world,
+            remaining_geometry_world,
+        }
     }
 }
 
@@ -115,6 +148,137 @@ fn geo_to_world(point: &GeoPoint) -> WorldPoint {
         course_rad: None,
         horizontal_accuracy_m: None,
     })
+}
+
+fn polyline_total_distance(points: &[WorldPoint]) -> f64 {
+    points
+        .windows(2)
+        .map(|segment| distance(segment[0], segment[1]))
+        .sum()
+}
+
+fn project_progress_distance(points: &[WorldPoint], rider_world: WorldPoint) -> f64 {
+    let mut best_distance_sq = f64::INFINITY;
+    let mut best_progress_distance_m = 0.0;
+    let mut traversed_distance_m = 0.0;
+
+    for segment in points.windows(2) {
+        let [start, end] = segment else {
+            continue;
+        };
+        let segment_length_m = distance(*start, *end);
+        if segment_length_m <= f64::EPSILON {
+            continue;
+        }
+
+        let (projection, t) = project_point_onto_segment(rider_world, *start, *end);
+        let dx = rider_world.x_m - projection.x_m;
+        let dy = rider_world.y_m - projection.y_m;
+        let distance_sq = (dx * dx) + (dy * dy);
+        if distance_sq < best_distance_sq {
+            best_distance_sq = distance_sq;
+            best_progress_distance_m = traversed_distance_m + (segment_length_m * t);
+        }
+
+        traversed_distance_m += segment_length_m;
+    }
+
+    best_progress_distance_m
+}
+
+fn split_polyline_at_distance(
+    points: &[WorldPoint],
+    progress_distance_m: f64,
+) -> (Vec<WorldPoint>, Vec<WorldPoint>) {
+    if points.is_empty() {
+        return (Vec::new(), Vec::new());
+    }
+    if points.len() == 1 {
+        return (vec![points[0]], vec![points[0]]);
+    }
+
+    if progress_distance_m <= 0.0 {
+        return (vec![points[0]], points.to_vec());
+    }
+
+    let total_distance_m = polyline_total_distance(points);
+    if progress_distance_m >= total_distance_m {
+        return (
+            points.to_vec(),
+            vec![*points.last().expect("non-empty route")],
+        );
+    }
+
+    let mut completed = vec![points[0]];
+    let mut traversed_distance_m = 0.0;
+
+    for (segment_index, segment) in points.windows(2).enumerate() {
+        let [start, end] = segment else {
+            continue;
+        };
+        let segment_length_m = distance(*start, *end);
+        if segment_length_m <= f64::EPSILON {
+            continue;
+        }
+
+        let next_distance_m = traversed_distance_m + segment_length_m;
+        if progress_distance_m >= next_distance_m {
+            completed.push(*end);
+            traversed_distance_m = next_distance_m;
+            continue;
+        }
+
+        let local_t =
+            ((progress_distance_m - traversed_distance_m) / segment_length_m).clamp(0.0, 1.0);
+        let split_point = lerp(*start, *end, local_t);
+        if completed.last().copied() != Some(split_point) {
+            completed.push(split_point);
+        }
+
+        let mut remaining = vec![split_point];
+        if split_point != *end {
+            remaining.push(*end);
+        }
+        remaining.extend(points.iter().copied().skip(segment_index + 2));
+        return (completed, remaining);
+    }
+
+    (
+        points.to_vec(),
+        vec![*points.last().expect("non-empty route")],
+    )
+}
+
+fn project_point_onto_segment(
+    point: WorldPoint,
+    start: WorldPoint,
+    end: WorldPoint,
+) -> (WorldPoint, f64) {
+    let vx = end.x_m - start.x_m;
+    let vy = end.y_m - start.y_m;
+    let segment_length_sq = (vx * vx) + (vy * vy);
+    if segment_length_sq <= f64::EPSILON {
+        return (start, 0.0);
+    }
+
+    let wx = point.x_m - start.x_m;
+    let wy = point.y_m - start.y_m;
+    let t = ((wx * vx) + (wy * vy)) / segment_length_sq;
+    let t = t.clamp(0.0, 1.0);
+    (lerp(start, end, t), t)
+}
+
+fn distance(a: WorldPoint, b: WorldPoint) -> f64 {
+    let dx = b.x_m - a.x_m;
+    let dy = b.y_m - a.y_m;
+    dx.hypot(dy)
+}
+
+fn lerp(start: WorldPoint, end: WorldPoint, t: f64) -> WorldPoint {
+    WorldPoint::new(
+        start.x_m + ((end.x_m - start.x_m) * t),
+        start.y_m + ((end.y_m - start.y_m) * t),
+    )
 }
 
 #[cfg(test)]
@@ -167,7 +331,10 @@ mod tests {
         let snapshot = state.snapshot();
         assert_eq!(snapshot.route_id.as_deref(), Some("route-1"));
         assert_eq!(snapshot.revision, Some(1));
+        assert_eq!(snapshot.progress_distance_m, Some(0.0));
         assert_eq!(snapshot.geometry_world.len(), 2);
+        assert_eq!(snapshot.completed_geometry_world.len(), 1);
+        assert_eq!(snapshot.remaining_geometry_world.len(), 2);
     }
 
     #[test]
@@ -182,5 +349,44 @@ mod tests {
         }));
 
         assert!(state.snapshot().route_id.is_none());
+    }
+
+    #[test]
+    fn progress_projection_advances_completed_geometry_without_regressing() {
+        let mut state = ActiveRouteState::default();
+        state.apply_sync(&RouteSyncMessage::Set(RouteSetMessage {
+            route: RoutePackage {
+                geometry: vec![
+                    GeoPoint::new(60.1699, 24.9384),
+                    GeoPoint::new(60.1708, 24.9384),
+                    GeoPoint::new(60.1717, 24.9384),
+                ],
+                ..sample_route("route-2", 1)
+            },
+        }));
+
+        let first_progress_world = geo_to_world(&GeoPoint::new(60.1704, 24.9384));
+        state.advance_progress(first_progress_world);
+        let first_snapshot = state.snapshot();
+
+        let second_progress_world = geo_to_world(&GeoPoint::new(60.1713, 24.9384));
+        state.advance_progress(second_progress_world);
+        let second_snapshot = state.snapshot();
+
+        let backward_jitter_world = geo_to_world(&GeoPoint::new(60.1702, 24.9384));
+        state.advance_progress(backward_jitter_world);
+        let jitter_snapshot = state.snapshot();
+
+        assert!(first_snapshot.progress_distance_m.unwrap_or_default() > 0.0);
+        assert!(
+            second_snapshot.progress_distance_m.unwrap_or_default()
+                > first_snapshot.progress_distance_m.unwrap_or_default()
+        );
+        assert_eq!(
+            jitter_snapshot.progress_distance_m,
+            second_snapshot.progress_distance_m
+        );
+        assert!(second_snapshot.completed_geometry_world.len() >= 2);
+        assert!(second_snapshot.remaining_geometry_world.len() >= 2);
     }
 }
