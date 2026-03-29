@@ -118,6 +118,7 @@ pub struct RuntimeConfig {
     pub off_route_enter_distance_m: f64,
     pub off_route_exit_distance_m: f64,
     pub major_turn_alert_distance_m: f64,
+    pub reroute_request_delay: Duration,
     pub diagnostics_enabled: bool,
 }
 
@@ -152,6 +153,7 @@ impl Default for RuntimeConfig {
             off_route_enter_distance_m: 35.0,
             off_route_exit_distance_m: 22.0,
             major_turn_alert_distance_m: 80.0,
+            reroute_request_delay: Duration::from_millis(2_000),
             diagnostics_enabled: true,
         }
     }

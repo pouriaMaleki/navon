@@ -105,7 +105,9 @@ pub fn draw_overlay(
         draw_speed_panel(framebuffer, viewport, overlay, &style);
     }
 
-    if route.off_route {
+    if route.reroute_requested {
+        draw_reroute_banner(framebuffer, viewport, &style);
+    } else if route.off_route {
         draw_off_route_banner(framebuffer, viewport, &style);
     } else if let Some(alert) = route.upcoming_turn_alert.as_ref() {
         draw_major_turn_banner(framebuffer, viewport, &style, alert);
@@ -167,6 +169,17 @@ fn draw_off_route_banner(
         style.off_route_banner_background_color,
         style.off_route_banner_text_color,
         "OFF ROUTE",
+    );
+}
+
+fn draw_reroute_banner(framebuffer: &mut Framebuffer, viewport: ViewportSize, style: &RenderStyle) {
+    draw_status_banner(
+        framebuffer,
+        viewport,
+        style.reroute_banner_border_color,
+        style.reroute_banner_background_color,
+        style.reroute_banner_text_color,
+        "REROUTING",
     );
 }
 

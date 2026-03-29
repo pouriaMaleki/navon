@@ -61,6 +61,9 @@ pub struct RenderStyle {
     pub major_turn_banner_background_color: Color,
     pub major_turn_banner_border_color: Color,
     pub major_turn_banner_text_color: Color,
+    pub reroute_banner_background_color: Color,
+    pub reroute_banner_border_color: Color,
+    pub reroute_banner_text_color: Color,
 }
 
 impl RenderStyle {
@@ -164,6 +167,9 @@ impl Default for RenderStyle {
             major_turn_banner_background_color: COLOR_ACCENT_PRIMARY,
             major_turn_banner_border_color: COLOR_SURFACE_INVERSE,
             major_turn_banner_text_color: COLOR_SURFACE_INVERSE,
+            reroute_banner_background_color: COLOR_ACCENT_HIGHLIGHT,
+            reroute_banner_border_color: COLOR_SURFACE_INVERSE,
+            reroute_banner_text_color: COLOR_SURFACE_INVERSE,
         }
     }
 }

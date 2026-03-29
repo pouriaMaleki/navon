@@ -72,7 +72,7 @@ Depends on:
 - [x] Implement route progress projection over active route geometry.
 - [x] Implement off-route detection with hysteresis to prevent oscillation.
 - [x] Implement major-turn alert trigger state and timing policy.
-- [ ] Implement runtime reroute request event surface.
+- [x] Implement runtime reroute request event surface.
 - [x] Extend runtime output contracts with route follow state (active route geometry/state baseline).
 - [ ] Add alert policy config contract for off-route and major-turn behavior.
 
@@ -80,7 +80,7 @@ Depends on:
 - [x] Runtime route follow behavior is deterministic for identical input sequences for route activation and progress projection scenarios.
 - [x] Off-route detection is stable in deterministic runtime scenarios with explicit enter/exit hysteresis coverage.
 - [x] Major-turn alerts trigger consistently in deterministic runtime scenarios with route-progress-driven maneuver switching.
-- [ ] Runtime output contains all route state needed by render without adapter-owned logic.
+- [x] Runtime output contains all route state needed by render for route progress, off-route, reroute request, and major-turn alert behavior.
 
 ## Epic E: Shared Rendering and UX
 Depends on:
@@ -111,8 +111,8 @@ Depends on:
 ### Work Items
 - [x] Add provider contract conformance tests.
 - [ ] Add sync reliability and fault-injection tests for packet loss/interruption.
-- [~] Add runtime scenario tests for route progress, off-route, and reroute replacement. Progress projection, off-route hysteresis, and major-turn alert coverage are in place; reroute scenarios remain.
-- [~] Add rendering snapshot/readability tests for route and alerts. Route overlay, off-route banner, and major-turn banner coverage are in place; broader readability/snapshot coverage remains.
+- [~] Add runtime scenario tests for route progress, off-route, and reroute replacement. Progress projection, off-route hysteresis, reroute request surfacing, and major-turn alert coverage are in place; replacement-route scenarios remain.
+- [~] Add rendering snapshot/readability tests for route and alerts. Route overlay, off-route banner, rerouting banner, and major-turn banner coverage are in place; broader readability/snapshot coverage remains.
 - [ ] Execute Helsinki field validation rides with HSL-first scenarios.
 - [ ] Execute cross-source validation for OSM fallback, Google ingest, GPX, and Garmin flows.
 - [ ] Add compliance validation checks and release gates for Google ingest path.

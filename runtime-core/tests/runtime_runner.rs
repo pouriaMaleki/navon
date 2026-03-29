@@ -973,6 +973,7 @@ fn route_sync_set_populates_render_route_state() {
             .map(|alert| alert.kind),
         Some(runtime_core::route::TurnAlertKind::Right)
     );
+    assert!(!output.route.reroute_requested);
 }
 
 #[test]
@@ -1043,6 +1044,47 @@ fn route_major_turn_alert_updates_as_progress_advances() {
             .map(|alert| alert.kind),
         Some(runtime_core::route::TurnAlertKind::Left)
     );
+}
+
+#[test]
+fn route_reroute_request_surfaces_after_sustained_off_route() {
+    let mut config = interaction_config();
+    config.off_route_enter_distance_m = 35.0;
+    config.off_route_exit_distance_m = 22.0;
+    config.reroute_request_delay = Duration::from_millis(500);
+    let mut runtime = RuntimeCore::new(config);
+
+    runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7749, -122.4194, 0.0))
+            .with_route_sync(RouteSyncMessage::Set(RouteSetMessage {
+                route: sample_render_route_package("demo-route", 1),
+            })),
+    );
+
+    let off_route = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(260))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7751, -122.4177, 6.0)),
+    );
+    let rerouting = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(260))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7751, -122.4177, 6.0)),
+    );
+    let recovered = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(220))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7756, -122.4188, 6.0)),
+    );
+
+    assert!(off_route.route.off_route);
+    assert!(!off_route.route.reroute_requested);
+    assert!(rerouting.route.off_route);
+    assert!(rerouting.route.reroute_requested);
+    assert!(!recovered.route.off_route);
+    assert!(!recovered.route.reroute_requested);
 }
 
 #[test]
