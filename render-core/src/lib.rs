@@ -581,6 +581,35 @@ mod tests {
     }
 
     #[test]
+    fn major_turn_alert_renders_banner_pixels() {
+        let config = RuntimeConfig::default();
+        let geometry = MapQueryResult::default();
+        let mut output = sample_output();
+        output.route.upcoming_turn_alert = Some(runtime_core::route::UpcomingTurnAlert {
+            kind: runtime_core::route::TurnAlertKind::Left,
+            distance_remaining_m: 42.0,
+            instruction_text: Some("Turn left".to_owned()),
+        });
+
+        let mut framebuffer = Framebuffer::new(160, 160);
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &output,
+                geometry: &geometry,
+            },
+            &mut framebuffer,
+        );
+
+        let style = RenderStyle::default();
+        assert!(framebuffer.pixels().chunks_exact(4).any(|rgba| {
+            rgba[0] == style.major_turn_banner_background_color.r
+                && rgba[1] == style.major_turn_banner_background_color.g
+                && rgba[2] == style.major_turn_banner_background_color.b
+        }));
+    }
+
+    #[test]
     fn off_route_alert_renders_warning_banner_pixels() {
         let config = RuntimeConfig::default();
         let geometry = MapQueryResult::default();

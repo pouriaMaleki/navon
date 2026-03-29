@@ -187,8 +187,10 @@ Transport contract requirements:
 - Added runtime route state application for `set`/`update`/`clear` flows and deterministic tests for set/clear behavior.
 - Implemented snapped route progress projection in `runtime-core`, including monotonic progress behavior under backward GPS jitter.
 - Added hysteresis-based off-route detection in `runtime-core` with deterministic recovery once the rider returns within the exit threshold.
+- Added major-turn alert timing in `runtime-core` based on upcoming maneuver distance and major-turn classification.
 - Added completed-versus-remaining route rendering in `render-core` so route follow state is visually inspectable while riding.
 - Added a first map-first off-route warning banner in `render-core` for visible route deviation feedback.
+- Added a first major-turn banner in `render-core` showing turn direction plus remaining meters.
 - Wired emulator wasm bridge + web program to inject a Helsinki demo route with quick turns on first GPS sample for visible checkpoint verification.
 
 ## Program Phases

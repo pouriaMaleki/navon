@@ -253,6 +253,7 @@ fn output_build(
             motion.0.rider_world,
             config.0.off_route_enter_distance_m,
             config.0.off_route_exit_distance_m,
+            config.0.major_turn_alert_distance_m,
         );
     }
 
