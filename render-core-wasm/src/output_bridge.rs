@@ -31,6 +31,10 @@ pub struct JsFrameState {
     pub route_active: bool,
     #[serde(rename = "routePointCount")]
     pub route_point_count: usize,
+    #[serde(rename = "routeOffRoute")]
+    pub route_off_route: bool,
+    #[serde(rename = "routeRerouteRequested")]
+    pub route_reroute_requested: bool,
 }
 
 impl JsFrameState {
@@ -59,6 +63,8 @@ impl JsFrameState {
             geometry_count: geometry.geometry.len(),
             route_active: output.route.route_id.is_some(),
             route_point_count: output.route.geometry_world.len(),
+            route_off_route: output.route.off_route,
+            route_reroute_requested: output.route.reroute_requested,
         }
     }
 }

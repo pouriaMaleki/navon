@@ -193,7 +193,11 @@ Transport contract requirements:
 - Added a first map-first off-route warning banner in `render-core` for visible route deviation feedback.
 - Added a first major-turn banner in `render-core` showing turn direction plus remaining meters.
 - Added a rerouting banner in `render-core` so sustained off-route state is visibly distinguishable from transient deviation.
-- Wired emulator wasm bridge + web program to inject a Helsinki demo route with quick turns on first GPS sample for visible checkpoint verification.
+- Added deterministic runtime coverage for replacement-route activation after reroute request.
+- Added a shared route alert verbosity contract in `runtime-core` so policy controls live in shared config instead of emulator-only behavior.
+- Added configurable alert verbosity rendering in `render-core`, including suppression of major-turn banners in `essential` mode and expanded banner phrasing in `detailed` mode.
+- Added viewport-fitting banner text and render coverage for small-view and rotated-camera readability.
+- Wired emulator wasm bridge + web program to inject a Helsinki demo route with quick turns on first GPS sample, to simulate delayed reroute replacement when the runtime requests rerouting, and to accept `?routeAlerts=essential|standard|detailed` for visible alert policy checks.
 
 ## Program Phases
 

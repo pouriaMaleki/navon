@@ -75,6 +75,8 @@ export type RuntimeTouchInput = {
   contacts: RawTouchContact[];
 };
 
+export type RouteAlertVerbosity = "essential" | "standard" | "detailed";
+
 export type RuntimeFrameState = {
   frameIndex: number;
   cameraMode: "riding" | "stopped";
@@ -95,6 +97,8 @@ export type RuntimeFrameState = {
   geometryCount: number;
   routeActive: boolean;
   routePointCount: number;
+  routeOffRoute: boolean;
+  routeRerouteRequested: boolean;
 };
 
 export type WasmRuntimeState = {
@@ -104,4 +108,6 @@ export type WasmRuntimeState = {
   pendingTouchFrames: RuntimeTouchInput[];
   frame: RuntimeFrameState | null;
   routeSeeded: boolean;
+  rerouteApplied: boolean;
+  reroutePendingSinceMs: number | null;
 };

@@ -74,7 +74,7 @@ Depends on:
 - [x] Implement major-turn alert trigger state and timing policy.
 - [x] Implement runtime reroute request event surface.
 - [x] Extend runtime output contracts with route follow state (active route geometry/state baseline).
-- [ ] Add alert policy config contract for off-route and major-turn behavior.
+- [x] Add alert policy config contract for off-route and major-turn behavior.
 
 ### Definition of Done
 - [x] Runtime route follow behavior is deterministic for identical input sequences for route activation and progress projection scenarios.
@@ -91,14 +91,14 @@ Depends on:
 - [x] Implement completed versus remaining route segment styling.
 - [x] Implement map-first off-route alert visualization.
 - [x] Implement map-first major-turn alert visualization.
-- [ ] Implement configurable alert verbosity plumbing and rendering behavior.
-- [ ] Ensure route/alert readability across zoom and orientation modes.
+- [x] Implement configurable alert verbosity plumbing and rendering behavior.
+- [x] Ensure route/alert readability across zoom and orientation modes.
 
 ### Definition of Done
-- [ ] Route highlight stays clearly visible in riding presentation bands.
-- [ ] Off-route and major-turn alerts are legible with existing overlay stack.
-- [ ] Alert verbosity settings map to deterministic rendering behavior.
-- [ ] Firmware and emulator render behavior remains parity-consistent for route overlays.
+- [x] Route highlight stays clearly visible in riding presentation bands for the current emulator/device-parity render path.
+- [x] Off-route and major-turn alerts are legible with existing overlay stack.
+- [x] Alert verbosity settings map to deterministic rendering behavior.
+- [x] Firmware and emulator render behavior remains parity-consistent for route overlays in the shared Rust + wasm bridge path.
 
 ## Epic F: Validation and Field Readiness
 Depends on:
@@ -111,8 +111,8 @@ Depends on:
 ### Work Items
 - [x] Add provider contract conformance tests.
 - [ ] Add sync reliability and fault-injection tests for packet loss/interruption.
-- [~] Add runtime scenario tests for route progress, off-route, and reroute replacement. Progress projection, off-route hysteresis, reroute request surfacing, and major-turn alert coverage are in place; replacement-route scenarios remain.
-- [~] Add rendering snapshot/readability tests for route and alerts. Route overlay, off-route banner, rerouting banner, and major-turn banner coverage are in place; broader readability/snapshot coverage remains.
+- [x] Add runtime scenario tests for route progress, off-route, and reroute replacement.
+- [x] Add rendering snapshot/readability tests for route and alerts.
 - [ ] Execute Helsinki field validation rides with HSL-first scenarios.
 - [ ] Execute cross-source validation for OSM fallback, Google ingest, GPX, and Garmin flows.
 - [ ] Add compliance validation checks and release gates for Google ingest path.
@@ -120,7 +120,7 @@ Depends on:
 ### Definition of Done
 - [ ] All provider adapters pass conformance test suite.
 - [ ] Sync transport passes reliability suite with deterministic recovery behavior.
-- [ ] Runtime and render route behavior pass deterministic regression suites.
+- [x] Runtime and render route behavior pass deterministic regression suites for the current route-follow, alert, and reroute-replacement scope.
 - [ ] Field validation confirms stable follow and reroute user experience in Helsinki conditions.
 - [ ] Compliance and legal gating artifacts are complete for planned launch sources.
 

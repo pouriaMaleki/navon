@@ -3,10 +3,10 @@ use std::time::Duration;
 use runtime_core::RuntimeCore;
 use runtime_core::api::{
     CURRENT_ROUTE_PACKAGE_VERSION, CameraMode, CameraOrientationMode, CameraStateSnapshot,
-    GeoPoint, MapQuerySpec, NormalizedScreenPoint, RouteManeuver, RouteManeuverType, RoutePackage,
-    RouteProvenance, RouteProvider, RouteSetMessage, RouteSummary, RouteSyncMessage, RuntimeConfig,
-    RuntimeInputFrame, ScreenPoint, SpeedUnit, TouchContact, TouchContactFrame,
-    TouchContactFrameError, TouchPhase, ViewportSize, WorldPoint,
+    GeoPoint, MapQuerySpec, NormalizedScreenPoint, RouteAlertVerbosity, RouteManeuver,
+    RouteManeuverType, RoutePackage, RouteProvenance, RouteProvider, RouteSetMessage, RouteSummary,
+    RouteSyncMessage, RouteUpdateMessage, RuntimeConfig, RuntimeInputFrame, ScreenPoint, SpeedUnit,
+    TouchContact, TouchContactFrame, TouchContactFrameError, TouchPhase, ViewportSize, WorldPoint,
 };
 use runtime_core::camera::CameraState;
 use runtime_core::input::staging::DerivedInputState;
@@ -1001,6 +1001,31 @@ fn route_progress_marks_completed_and_remaining_geometry() {
 }
 
 #[test]
+fn essential_alert_verbosity_suppresses_major_turn_alerts() {
+    let mut config = interaction_config();
+    config.route_alert_verbosity = RouteAlertVerbosity::Essential;
+    let mut runtime = RuntimeCore::new(config);
+
+    runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7749, -122.4194, 0.0))
+            .with_route_sync(RouteSyncMessage::Set(RouteSetMessage {
+                route: sample_render_route_package("demo-route", 1),
+            })),
+    );
+
+    let progressed = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(220))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7752, -122.4190, 6.0)),
+    );
+
+    assert!(progressed.route.route_id.is_some());
+    assert!(progressed.route.upcoming_turn_alert.is_none());
+}
+
+#[test]
 fn route_major_turn_alert_updates_as_progress_advances() {
     let mut runtime = RuntimeCore::new(interaction_config());
 
@@ -1038,6 +1063,50 @@ fn route_major_turn_alert_updates_as_progress_advances() {
     );
     assert_eq!(
         progressed
+            .route
+            .upcoming_turn_alert
+            .as_ref()
+            .map(|alert| alert.kind),
+        Some(runtime_core::route::TurnAlertKind::Left)
+    );
+}
+
+#[test]
+fn route_major_turn_alert_switches_only_after_crossing_maneuver_projection() {
+    let mut config = interaction_config();
+    config.major_turn_alert_distance_m = 200.0;
+    let mut runtime = RuntimeCore::new(config);
+
+    runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7749, -122.4194, 0.0))
+            .with_route_sync(RouteSyncMessage::Set(RouteSetMessage {
+                route: sample_render_route_package("demo-route", 1),
+            })),
+    );
+
+    let just_before = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(220))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.77518, -122.41902, 6.0)),
+    );
+    let just_after = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(220))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.77528, -122.41894, 6.0)),
+    );
+
+    assert_eq!(
+        just_before
+            .route
+            .upcoming_turn_alert
+            .as_ref()
+            .map(|alert| alert.kind),
+        Some(runtime_core::route::TurnAlertKind::Right)
+    );
+    assert_eq!(
+        just_after
             .route
             .upcoming_turn_alert
             .as_ref()
@@ -1085,6 +1154,185 @@ fn route_reroute_request_surfaces_after_sustained_off_route() {
     assert!(rerouting.route.reroute_requested);
     assert!(!recovered.route.off_route);
     assert!(!recovered.route.reroute_requested);
+}
+
+#[test]
+fn route_update_replaces_route_after_reroute_request() {
+    let mut config = interaction_config();
+    config.off_route_enter_distance_m = 35.0;
+    config.off_route_exit_distance_m = 22.0;
+    config.reroute_request_delay = Duration::from_millis(500);
+    let mut runtime = RuntimeCore::new(config);
+
+    runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7749, -122.4194, 0.0))
+            .with_route_sync(RouteSyncMessage::Set(RouteSetMessage {
+                route: sample_render_route_package("demo-route", 1),
+            })),
+    );
+
+    runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(260))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7751, -122.4177, 6.0)),
+    );
+    let rerouting = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(260))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7751, -122.4177, 6.0)),
+    );
+    let replaced = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7751, -122.4177, 6.0))
+            .with_route_sync(RouteSyncMessage::Update(RouteUpdateMessage {
+                route_id: "demo-route".to_owned(),
+                revision: 2,
+                route: sample_replacement_render_route_package("demo-route", 2, 37.7751, -122.4177),
+            })),
+    );
+
+    assert!(rerouting.route.reroute_requested);
+    assert_eq!(replaced.route.route_id.as_deref(), Some("demo-route"));
+    assert_eq!(replaced.route.revision, Some(2));
+    assert!(!replaced.route.off_route);
+    assert!(!replaced.route.reroute_requested);
+    assert_eq!(replaced.route.geometry_world.len(), 5);
+
+    let expected_start =
+        runtime_core::motion::project_gps_to_world(directional_fix(37.7751, -122.4177, 0.0));
+    let actual_start = replaced.route.geometry_world[0];
+    assert!((actual_start.x_m - expected_start.x_m).abs() < 0.5);
+    assert!((actual_start.y_m - expected_start.y_m).abs() < 0.5);
+}
+
+#[test]
+fn route_update_uses_geometry_derived_turn_direction_after_reroute() {
+    let mut config = interaction_config();
+    config.route_alert_verbosity = RouteAlertVerbosity::Detailed;
+    config.off_route_enter_distance_m = 35.0;
+    config.off_route_exit_distance_m = 22.0;
+    config.reroute_request_delay = Duration::from_millis(500);
+    let mut runtime = RuntimeCore::new(config);
+
+    runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7749, -122.4194, 0.0))
+            .with_route_sync(RouteSyncMessage::Set(RouteSetMessage {
+                route: sample_render_route_package("demo-route", 1),
+            })),
+    );
+
+    runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(260))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7751, -122.4177, 6.0)),
+    );
+    runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(260))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7751, -122.4177, 6.0)),
+    );
+
+    let replaced = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7751, -122.4177, 6.0))
+            .with_route_sync(RouteSyncMessage::Update(RouteUpdateMessage {
+                route_id: "demo-route".to_owned(),
+                revision: 2,
+                route: sample_mismatched_replacement_render_route_package(
+                    "demo-route",
+                    2,
+                    37.7751,
+                    -122.4177,
+                ),
+            })),
+    );
+
+    assert_eq!(replaced.route.route_id.as_deref(), Some("demo-route"));
+    assert_eq!(
+        replaced
+            .route
+            .upcoming_turn_alert
+            .as_ref()
+            .map(|alert| alert.kind),
+        Some(runtime_core::route::TurnAlertKind::Left)
+    );
+    assert_eq!(
+        replaced
+            .route
+            .upcoming_turn_alert
+            .as_ref()
+            .and_then(|alert| alert.instruction_text.as_deref()),
+        Some("Provider said right")
+    );
+}
+
+#[test]
+fn route_reroute_request_can_reenter_after_replacement_route_recovers() {
+    let mut config = interaction_config();
+    config.off_route_enter_distance_m = 35.0;
+    config.off_route_exit_distance_m = 22.0;
+    config.reroute_request_delay = Duration::from_millis(500);
+    let mut runtime = RuntimeCore::new(config);
+
+    runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7749, -122.4194, 0.0))
+            .with_route_sync(RouteSyncMessage::Set(RouteSetMessage {
+                route: sample_render_route_package("demo-route", 1),
+            })),
+    );
+
+    runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(260))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7751, -122.4177, 6.0)),
+    );
+    let first_reroute = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(260))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7751, -122.4177, 6.0)),
+    );
+
+    let replaced = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7751, -122.4177, 6.0))
+            .with_route_sync(RouteSyncMessage::Update(RouteUpdateMessage {
+                route_id: "demo-route".to_owned(),
+                revision: 2,
+                route: sample_replacement_render_route_package("demo-route", 2, 37.7751, -122.4177),
+            })),
+    );
+    let recovered = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(220))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7755, -122.41755, 6.0)),
+    );
+
+    runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(260))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7760, -122.4170, 6.0)),
+    );
+    let second_reroute = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(260))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7760, -122.4170, 6.0)),
+    );
+
+    assert!(first_reroute.route.reroute_requested);
+    assert!(!replaced.route.reroute_requested);
+    assert!(!recovered.route.off_route);
+    assert!(!recovered.route.reroute_requested);
+    assert!(second_reroute.route.off_route);
+    assert!(second_reroute.route.reroute_requested);
 }
 
 #[test]
@@ -1240,6 +1488,127 @@ fn sample_render_route_package(route_id: &str, revision: u64) -> RoutePackage {
         provenance: RouteProvenance {
             provider: RouteProvider::HslDigitransit,
             source_ref: Some("runtime-test".to_owned()),
+            generated_at_unix_ms: 1_764_113_200_000,
+        },
+    }
+}
+
+fn sample_replacement_render_route_package(
+    route_id: &str,
+    revision: u64,
+    start_lat_deg: f64,
+    start_lon_deg: f64,
+) -> RoutePackage {
+    RoutePackage {
+        version: CURRENT_ROUTE_PACKAGE_VERSION,
+        route_id: route_id.to_owned(),
+        revision,
+        geometry: vec![
+            GeoPoint::new(start_lat_deg, start_lon_deg),
+            GeoPoint::new(start_lat_deg + 0.0002, start_lon_deg + 0.00012),
+            GeoPoint::new(37.7755, -122.41755),
+            GeoPoint::new(37.7760, -122.41815),
+            GeoPoint::new(37.7763, -122.4179),
+        ],
+        maneuvers: vec![
+            RouteManeuver {
+                id: "depart-reroute".to_owned(),
+                maneuver_type: RouteManeuverType::Depart,
+                location: GeoPoint::new(start_lat_deg, start_lon_deg),
+                distance_from_start_m: 0.0,
+                distance_to_next_m: Some(30.0),
+                instruction_text: Some("Rejoin from current position".to_owned()),
+            },
+            RouteManeuver {
+                id: "right-reroute".to_owned(),
+                maneuver_type: RouteManeuverType::Right,
+                location: GeoPoint::new(start_lat_deg + 0.0002, start_lon_deg + 0.00012),
+                distance_from_start_m: 30.0,
+                distance_to_next_m: Some(70.0),
+                instruction_text: Some("Take alternate corridor".to_owned()),
+            },
+            RouteManeuver {
+                id: "left-reroute".to_owned(),
+                maneuver_type: RouteManeuverType::Left,
+                location: GeoPoint::new(37.7755, -122.41755),
+                distance_from_start_m: 100.0,
+                distance_to_next_m: Some(80.0),
+                instruction_text: Some("Cut back toward destination".to_owned()),
+            },
+            RouteManeuver {
+                id: "arrive-reroute".to_owned(),
+                maneuver_type: RouteManeuverType::Arrive,
+                location: GeoPoint::new(37.7763, -122.4179),
+                distance_from_start_m: 210.0,
+                distance_to_next_m: None,
+                instruction_text: Some("Arrive".to_owned()),
+            },
+        ],
+        summary: RouteSummary {
+            total_distance_m: 210.0,
+            estimated_duration_s: 90,
+            start_label: Some("Current Position".to_owned()),
+            destination_label: Some("Destination".to_owned()),
+        },
+        provenance: RouteProvenance {
+            provider: RouteProvider::HslDigitransit,
+            source_ref: Some("runtime-reroute-test".to_owned()),
+            generated_at_unix_ms: 1_764_113_200_000,
+        },
+    }
+}
+
+fn sample_mismatched_replacement_render_route_package(
+    route_id: &str,
+    revision: u64,
+    start_lat_deg: f64,
+    start_lon_deg: f64,
+) -> RoutePackage {
+    RoutePackage {
+        version: CURRENT_ROUTE_PACKAGE_VERSION,
+        route_id: route_id.to_owned(),
+        revision,
+        geometry: vec![
+            GeoPoint::new(start_lat_deg, start_lon_deg),
+            GeoPoint::new(start_lat_deg + 0.00045, start_lon_deg),
+            GeoPoint::new(start_lat_deg + 0.00045, start_lon_deg - 0.0006),
+            GeoPoint::new(start_lat_deg + 0.00065, start_lon_deg - 0.0008),
+        ],
+        maneuvers: vec![
+            RouteManeuver {
+                id: "depart-reroute-mismatch".to_owned(),
+                maneuver_type: RouteManeuverType::Depart,
+                location: GeoPoint::new(start_lat_deg, start_lon_deg),
+                distance_from_start_m: 0.0,
+                distance_to_next_m: Some(50.0),
+                instruction_text: Some("Rejoin from current position".to_owned()),
+            },
+            RouteManeuver {
+                id: "wrong-right-reroute".to_owned(),
+                maneuver_type: RouteManeuverType::Right,
+                location: GeoPoint::new(start_lat_deg + 0.00045, start_lon_deg),
+                distance_from_start_m: 50.0,
+                distance_to_next_m: Some(80.0),
+                instruction_text: Some("Provider said right".to_owned()),
+            },
+            RouteManeuver {
+                id: "arrive-reroute-mismatch".to_owned(),
+                maneuver_type: RouteManeuverType::Arrive,
+                location: GeoPoint::new(start_lat_deg + 0.00065, start_lon_deg - 0.0008),
+                distance_from_start_m: 180.0,
+                distance_to_next_m: None,
+                instruction_text: Some("Arrive".to_owned()),
+            },
+        ],
+        summary: RouteSummary {
+            total_distance_m: 180.0,
+            estimated_duration_s: 70,
+            start_label: Some("Current Position".to_owned()),
+            destination_label: Some("Destination".to_owned()),
+        },
+        provenance: RouteProvenance {
+            provider: RouteProvider::HslDigitransit,
+            source_ref: Some("runtime-reroute-mismatch-test".to_owned()),
             generated_at_unix_ms: 1_764_113_200_000,
         },
     }

@@ -6,7 +6,9 @@ pub mod output;
 pub mod query;
 pub mod route;
 
-pub use config::{NormalizedScreenPoint, RuntimeConfig, SpeedUnit, ZoomBounds};
+pub use config::{
+    NormalizedScreenPoint, RouteAlertVerbosity, RuntimeConfig, SpeedUnit, ZoomBounds,
+};
 pub use diagnostics::DiagnosticsSnapshot;
 pub use events::{GestureEventKind, TapEvent};
 pub use input::{

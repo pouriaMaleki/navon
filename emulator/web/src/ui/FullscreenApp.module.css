@@ -43,6 +43,47 @@
   padding: 0;
 }
 
+.floatingDock {
+  position: absolute;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 30;
+  display: inline-flex;
+  align-items: end;
+  gap: 10px;
+  transform: translateX(-50%);
+}
+
+.menuWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.menu {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  z-index: 35;
+  min-width: 180px;
+  padding: 12px;
+  border: 1px solid rgb(36 66 82 / 0.85);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgb(5 11 18 / 0.96) 0%, rgb(5 30 36 / 0.96) 100%);
+  box-shadow: 0 18px 42px rgb(0 0 0 / 0.32);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 8px);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.menu[data-open="1"] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
 .toggle {
   position: absolute;
   top: 50%;
@@ -70,11 +111,12 @@
 }
 
 .toggle[data-placement="bottom"] {
+  position: relative;
   top: auto;
   right: auto;
-  left: 50%;
-  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-  transform: translateX(-50%);
+  left: auto;
+  bottom: auto;
+  transform: none;
   writing-mode: horizontal-tb;
   text-orientation: initial;
   padding: 12px 18px;
@@ -229,16 +271,21 @@
 }
 
 @media (max-width: 700px) {
+  .floatingDock {
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    gap: 8px;
+  }
+
   .toggle {
     right: 10px;
     padding: 10px 8px;
   }
 
   .toggle[data-placement="bottom"] {
-    left: 50%;
+    left: auto;
     right: auto;
-    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-    transform: translateX(-50%);
+    bottom: auto;
+    transform: none;
     padding: 11px 16px;
   }
 

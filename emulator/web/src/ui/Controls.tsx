@@ -1,6 +1,7 @@
 import { observer } from "mobx-react-lite";
 import type { ChangeEvent } from "react";
 import type { AppStore } from "../stores/AppStore";
+import { RouteAlertControls } from "./RouteAlertControls";
 import styles from "./Controls.module.css";
 
 type ControlsProps = {
@@ -43,6 +44,8 @@ export const Controls = observer(({ appStore, showGpsControls = true }: Controls
         </span>
         <span className={styles["metrics"]}>Frame: {perfText}</span>
       </div>
+
+      <RouteAlertControls appStore={appStore} />
 
       <section className={styles["tuning"]} aria-label="Bike physics tuning">
         <header className={styles["tuningHeader"]}>
