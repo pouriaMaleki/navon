@@ -55,6 +55,9 @@ pub struct RenderStyle {
     pub north_indicator_ack_color: Color,
     pub speed_panel_background_color: Color,
     pub speed_panel_text_color: Color,
+    pub off_route_banner_background_color: Color,
+    pub off_route_banner_border_color: Color,
+    pub off_route_banner_text_color: Color,
 }
 
 impl RenderStyle {
@@ -152,6 +155,9 @@ impl Default for RenderStyle {
             north_indicator_ack_color: COLOR_ACCENT_PRIMARY,
             speed_panel_background_color: COLOR_SURFACE_INVERSE,
             speed_panel_text_color: COLOR_TEXT_PRIMARY,
+            off_route_banner_background_color: Color::new(0xD7, 0x7A, 0x00),
+            off_route_banner_border_color: COLOR_SURFACE_INVERSE,
+            off_route_banner_text_color: COLOR_SURFACE_INVERSE,
         }
     }
 }

@@ -964,6 +964,7 @@ fn route_sync_set_populates_render_route_state() {
     assert_eq!(output.route.geometry_world.len(), 3);
     assert_eq!(output.route.completed_geometry_world.len(), 1);
     assert_eq!(output.route.remaining_geometry_world.len(), 3);
+    assert!(!output.route.off_route);
 }
 
 #[test]
@@ -988,6 +989,48 @@ fn route_progress_marks_completed_and_remaining_geometry() {
     assert!(progressed.route.progress_distance_m.unwrap_or_default() > 0.0);
     assert!(progressed.route.completed_geometry_world.len() >= 2);
     assert!(progressed.route.remaining_geometry_world.len() >= 2);
+}
+
+#[test]
+fn route_off_route_alert_has_hysteresis() {
+    let mut config = interaction_config();
+    config.off_route_enter_distance_m = 35.0;
+    config.off_route_exit_distance_m = 22.0;
+    let mut runtime = RuntimeCore::new(config);
+
+    runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7749, -122.4194, 0.0))
+            .with_route_sync(RouteSyncMessage::Set(RouteSetMessage {
+                route: sample_render_route_package("demo-route", 1),
+            })),
+    );
+
+    let off_route = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(220))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7751, -122.4177, 6.0)),
+    );
+
+    let holding = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(220))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7751, -122.4180, 6.0)),
+    );
+
+    let recovered = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(220))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7756, -122.4188, 6.0)),
+    );
+
+    assert!(off_route.route.off_route);
+    assert!(off_route.route.off_route_distance_m.unwrap_or_default() >= 35.0);
+    assert!(holding.route.off_route);
+    assert!(holding.route.off_route_distance_m.unwrap_or_default() > 22.0);
+    assert!(!recovered.route.off_route);
+    assert!(recovered.route.off_route_distance_m.unwrap_or_default() < 22.0);
 }
 
 #[test]

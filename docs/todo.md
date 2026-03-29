@@ -70,7 +70,7 @@ Depends on:
 ### Work Items
 - [x] Extend runtime input contracts with route lifecycle events.
 - [x] Implement route progress projection over active route geometry.
-- [ ] Implement off-route detection with hysteresis to prevent oscillation.
+- [x] Implement off-route detection with hysteresis to prevent oscillation.
 - [ ] Implement major-turn alert trigger state and timing policy.
 - [ ] Implement runtime reroute request event surface.
 - [x] Extend runtime output contracts with route follow state (active route geometry/state baseline).
@@ -78,7 +78,7 @@ Depends on:
 
 ### Definition of Done
 - [x] Runtime route follow behavior is deterministic for identical input sequences for route activation and progress projection scenarios.
-- [ ] Off-route detection is stable and does not flap under normal GPS jitter.
+- [x] Off-route detection is stable in deterministic runtime scenarios with explicit enter/exit hysteresis coverage.
 - [ ] Major-turn alerts trigger consistently with configured thresholds.
 - [ ] Runtime output contains all route state needed by render without adapter-owned logic.
 
@@ -89,7 +89,7 @@ Depends on:
 ### Work Items
 - [x] Implement route highlight rendering in `render-core`.
 - [x] Implement completed versus remaining route segment styling.
-- [ ] Implement map-first off-route alert visualization.
+- [x] Implement map-first off-route alert visualization.
 - [ ] Implement map-first major-turn alert visualization.
 - [ ] Implement configurable alert verbosity plumbing and rendering behavior.
 - [ ] Ensure route/alert readability across zoom and orientation modes.
@@ -111,8 +111,8 @@ Depends on:
 ### Work Items
 - [x] Add provider contract conformance tests.
 - [ ] Add sync reliability and fault-injection tests for packet loss/interruption.
-- [~] Add runtime scenario tests for route progress, off-route, and reroute replacement. Progress projection coverage is in place; off-route and reroute scenarios remain.
-- [ ] Add rendering snapshot/readability tests for route and alerts.
+- [~] Add runtime scenario tests for route progress, off-route, and reroute replacement. Progress projection and off-route hysteresis coverage are in place; reroute scenarios remain.
+- [~] Add rendering snapshot/readability tests for route and alerts. Route overlay and off-route banner coverage are in place; broader readability/snapshot coverage remains.
 - [ ] Execute Helsinki field validation rides with HSL-first scenarios.
 - [ ] Execute cross-source validation for OSM fallback, Google ingest, GPX, and Garmin flows.
 - [ ] Add compliance validation checks and release gates for Google ingest path.

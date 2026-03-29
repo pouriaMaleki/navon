@@ -249,7 +249,11 @@ fn output_build(
     mut output_resource: ResMut<OutputResource>,
 ) {
     if pending.frame.gps.is_some() {
-        route.0.advance_progress(motion.0.rider_world);
+        route.0.advance_progress(
+            motion.0.rider_world,
+            config.0.off_route_enter_distance_m,
+            config.0.off_route_exit_distance_m,
+        );
     }
 
     let camera_snapshot = camera.0.snapshot(&config.0);

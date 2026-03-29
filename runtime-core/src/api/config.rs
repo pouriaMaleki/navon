@@ -115,6 +115,8 @@ pub struct RuntimeConfig {
     pub stopped_north_up_settle_duration: Duration,
     pub min_heading_displacement_m: f64,
     pub heading_filter_alpha: f32,
+    pub off_route_enter_distance_m: f64,
+    pub off_route_exit_distance_m: f64,
     pub diagnostics_enabled: bool,
 }
 
@@ -146,6 +148,8 @@ impl Default for RuntimeConfig {
             stopped_north_up_settle_duration: Duration::from_millis(900),
             min_heading_displacement_m: 3.0,
             heading_filter_alpha: 0.25,
+            off_route_enter_distance_m: 35.0,
+            off_route_exit_distance_m: 22.0,
             diagnostics_enabled: true,
         }
     }
