@@ -59,6 +59,7 @@ pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
         scene.config,
         &scene.output.camera,
         &scene.output.overlay,
+        &scene.output.route,
         viewport,
         meters_per_pixel,
         framebuffer,
@@ -577,6 +578,36 @@ mod tests {
         );
 
         assert_ne!(empty.pixels(), framebuffer.pixels());
+    }
+
+    #[test]
+    fn off_route_alert_renders_warning_banner_pixels() {
+        let config = RuntimeConfig::default();
+        let geometry = MapQueryResult::default();
+        let mut output = sample_output();
+        output.route.off_route = true;
+
+        let mut framebuffer = Framebuffer::new(160, 160);
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &output,
+                geometry: &geometry,
+            },
+            &mut framebuffer,
+        );
+
+        let style = RenderStyle::default();
+        assert!(framebuffer.pixels().chunks_exact(4).any(|rgba| {
+            rgba[0] == style.off_route_banner_background_color.r
+                && rgba[1] == style.off_route_banner_background_color.g
+                && rgba[2] == style.off_route_banner_background_color.b
+        }));
+        assert!(framebuffer.pixels().chunks_exact(4).any(|rgba| {
+            rgba[0] == style.off_route_banner_text_color.r
+                && rgba[1] == style.off_route_banner_text_color.g
+                && rgba[2] == style.off_route_banner_text_color.b
+        }));
     }
 
     #[test]

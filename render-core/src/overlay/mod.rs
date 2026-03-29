@@ -4,6 +4,7 @@ use runtime_core::api::{
     CameraOrientationMode, CameraStateSnapshot, OverlayState, RuntimeConfig, ScreenPoint,
     ViewportSize,
 };
+use runtime_core::route::RouteRenderState;
 
 use crate::camera_view::CameraView;
 use crate::raster::Framebuffer;
@@ -21,6 +22,7 @@ pub fn draw_overlay(
     config: &RuntimeConfig,
     camera: &CameraStateSnapshot,
     overlay: &OverlayState,
+    route: &RouteRenderState,
     viewport: ViewportSize,
     meters_per_pixel: f64,
     framebuffer: &mut Framebuffer,
@@ -102,6 +104,10 @@ pub fn draw_overlay(
     if overlay.speed_panel_visible {
         draw_speed_panel(framebuffer, viewport, overlay, &style);
     }
+
+    if route.off_route {
+        draw_off_route_banner(framebuffer, viewport, &style);
+    }
 }
 
 fn draw_ack_pulse(
@@ -144,6 +150,136 @@ fn draw_ring(
             thickness_px.max(1),
             color,
         );
+    }
+}
+
+fn draw_off_route_banner(
+    framebuffer: &mut Framebuffer,
+    viewport: ViewportSize,
+    style: &RenderStyle,
+) {
+    let scale_px = 2;
+    let padding_x = 10;
+    let padding_y = 6;
+    let spacing_px = 2;
+    let gap_px = 4;
+    let text = "OFF ROUTE";
+    let text_width = measure_banner_text_width(text, scale_px, spacing_px, gap_px);
+    let banner_width = (text_width + padding_x * 2).max(104) as u32;
+    let banner_height = (7 * scale_px + padding_y * 2) as u32;
+    let banner_x = ((viewport.width_px as i32 - banner_width as i32) / 2).max(8);
+    let banner_y = 18;
+
+    framebuffer.fill_rect_overwrite(
+        banner_x - 2,
+        banner_y - 2,
+        banner_width + 4,
+        banner_height + 4,
+        style.off_route_banner_border_color,
+    );
+    framebuffer.fill_rect_overwrite(
+        banner_x,
+        banner_y,
+        banner_width,
+        banner_height,
+        style.off_route_banner_background_color,
+    );
+    draw_banner_text(
+        framebuffer,
+        text,
+        banner_x + padding_x,
+        banner_y + padding_y,
+        scale_px,
+        spacing_px,
+        gap_px,
+        style.off_route_banner_text_color,
+    );
+}
+
+fn measure_banner_text_width(text: &str, scale_px: i32, spacing_px: i32, gap_px: i32) -> i32 {
+    let mut width = 0;
+    let mut first = true;
+    for ch in text.chars() {
+        if !first {
+            width += if ch == ' ' { gap_px } else { spacing_px };
+        }
+        width += if ch == ' ' {
+            3 * scale_px
+        } else {
+            5 * scale_px
+        };
+        first = false;
+    }
+    width
+}
+
+fn draw_banner_text(
+    framebuffer: &mut Framebuffer,
+    text: &str,
+    mut x: i32,
+    y: i32,
+    scale_px: i32,
+    spacing_px: i32,
+    gap_px: i32,
+    color: crate::raster::Color,
+) {
+    for ch in text.chars() {
+        if ch == ' ' {
+            x += 3 * scale_px + gap_px;
+            continue;
+        }
+        if let Some(glyph) = banner_glyph(ch) {
+            draw_banner_glyph(framebuffer, glyph, x, y, scale_px, color);
+        }
+        x += 5 * scale_px + spacing_px;
+    }
+}
+
+fn draw_banner_glyph(
+    framebuffer: &mut Framebuffer,
+    glyph: [&'static str; 7],
+    x: i32,
+    y: i32,
+    scale_px: i32,
+    color: crate::raster::Color,
+) {
+    for (row_index, row) in glyph.into_iter().enumerate() {
+        for (column_index, pixel) in row.chars().enumerate() {
+            if pixel != '1' {
+                continue;
+            }
+            framebuffer.fill_rect_overwrite(
+                x + column_index as i32 * scale_px,
+                y + row_index as i32 * scale_px,
+                scale_px as u32,
+                scale_px as u32,
+                color,
+            );
+        }
+    }
+}
+
+fn banner_glyph(ch: char) -> Option<[&'static str; 7]> {
+    match ch {
+        'E' => Some([
+            "11111", "10000", "11110", "10000", "10000", "10000", "11111",
+        ]),
+        'F' => Some([
+            "11111", "10000", "11110", "10000", "10000", "10000", "10000",
+        ]),
+        'O' => Some([
+            "01110", "10001", "10001", "10001", "10001", "10001", "01110",
+        ]),
+        'R' => Some([
+            "11110", "10001", "10001", "11110", "10100", "10010", "10001",
+        ]),
+        'T' => Some([
+            "11111", "00100", "00100", "00100", "00100", "00100", "00100",
+        ]),
+        'U' => Some([
+            "10001", "10001", "10001", "10001", "10001", "10001", "01110",
+        ]),
+        _ => None,
     }
 }
 
