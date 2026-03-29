@@ -2,9 +2,11 @@ use std::time::Duration;
 
 use runtime_core::RuntimeCore;
 use runtime_core::api::{
-    CameraMode, CameraOrientationMode, CameraStateSnapshot, MapQuerySpec, NormalizedScreenPoint,
-    RuntimeConfig, RuntimeInputFrame, ScreenPoint, SpeedUnit, TouchContact, TouchContactFrame,
-    TouchContactFrameError, TouchPhase, ViewportSize, WorldPoint,
+    CameraMode, CameraOrientationMode, CameraStateSnapshot, CURRENT_ROUTE_PACKAGE_VERSION,
+    GeoPoint, MapQuerySpec, NormalizedScreenPoint, RouteManeuver, RouteManeuverType,
+    RoutePackage, RouteProvenance, RouteProvider, RouteSetMessage, RouteSummary,
+    RouteSyncMessage, RuntimeConfig, RuntimeInputFrame, ScreenPoint, SpeedUnit, TouchContact,
+    TouchContactFrame, TouchContactFrameError, TouchPhase, ViewportSize, WorldPoint,
 };
 use runtime_core::camera::CameraState;
 use runtime_core::input::staging::DerivedInputState;
@@ -263,6 +265,7 @@ fn riding_north_is_not_reported_as_north_up_mode() {
             ..MotionState::default()
         },
         &runtime_core::overlay_ui::OverlayUiState::new(SpeedUnit::Kph),
+        runtime_core::route::RouteRenderState::default(),
     );
 
     assert!(!output.overlay.north_up_active);
@@ -944,6 +947,49 @@ fn travel_up_camera_tracks_direction_across_multiple_headings() {
     }
 }
 
+#[test]
+fn route_sync_set_populates_render_route_state() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+    let route = sample_render_route_package("demo-route", 1);
+
+    let output = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(stopped_fix(-122.4194))
+            .with_route_sync(RouteSyncMessage::Set(RouteSetMessage { route })),
+    );
+
+    assert_eq!(output.route.route_id.as_deref(), Some("demo-route"));
+    assert_eq!(output.route.revision, Some(1));
+    assert_eq!(output.route.geometry_world.len(), 3);
+}
+
+#[test]
+fn route_sync_clear_removes_render_route_state() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+
+    runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(stopped_fix(-122.4194))
+            .with_route_sync(RouteSyncMessage::Set(RouteSetMessage {
+                route: sample_render_route_package("demo-route", 1),
+            })),
+    );
+
+    let output = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(stopped_fix(-122.4194))
+            .with_route_sync(RouteSyncMessage::Clear(runtime_core::api::RouteClearMessage {
+                route_id: Some("demo-route".to_owned()),
+            })),
+    );
+
+    assert!(output.route.route_id.is_none());
+    assert!(output.route.geometry_world.is_empty());
+}
+
 fn directional_fix(lat_deg: f64, lon_deg: f64, speed_mps: f32) -> runtime_core::api::GpsSample {
     runtime_core::api::GpsSample {
         lat_deg,
@@ -972,6 +1018,48 @@ fn signed_angle_delta(actual: f32, expected: f32) -> f32 {
         delta += tau;
     }
     delta
+}
+
+fn sample_render_route_package(route_id: &str, revision: u64) -> RoutePackage {
+    RoutePackage {
+        version: CURRENT_ROUTE_PACKAGE_VERSION,
+        route_id: route_id.to_owned(),
+        revision,
+        geometry: vec![
+            GeoPoint::new(37.7749, -122.4194),
+            GeoPoint::new(37.7756, -122.4188),
+            GeoPoint::new(37.7763, -122.4179),
+        ],
+        maneuvers: vec![
+            RouteManeuver {
+                id: "depart".to_owned(),
+                maneuver_type: RouteManeuverType::Depart,
+                location: GeoPoint::new(37.7749, -122.4194),
+                distance_from_start_m: 0.0,
+                distance_to_next_m: Some(140.0),
+                instruction_text: Some("Start".to_owned()),
+            },
+            RouteManeuver {
+                id: "arrive".to_owned(),
+                maneuver_type: RouteManeuverType::Arrive,
+                location: GeoPoint::new(37.7763, -122.4179),
+                distance_from_start_m: 320.0,
+                distance_to_next_m: None,
+                instruction_text: Some("Arrive".to_owned()),
+            },
+        ],
+        summary: RouteSummary {
+            total_distance_m: 320.0,
+            estimated_duration_s: 120,
+            start_label: Some("Start".to_owned()),
+            destination_label: Some("Destination".to_owned()),
+        },
+        provenance: RouteProvenance {
+            provider: RouteProvider::HslDigitransit,
+            source_ref: Some("runtime-test".to_owned()),
+            generated_at_unix_ms: 1_764_113_200_000,
+        },
+    }
 }
 
 fn interaction_config() -> RuntimeConfig {

@@ -27,6 +27,10 @@ pub struct JsFrameState {
     pub speed_unit: &'static str,
     #[serde(rename = "geometryCount")]
     pub geometry_count: usize,
+    #[serde(rename = "routeActive")]
+    pub route_active: bool,
+    #[serde(rename = "routePointCount")]
+    pub route_point_count: usize,
 }
 
 impl JsFrameState {
@@ -53,6 +57,8 @@ impl JsFrameState {
             speed_value: output.overlay.speed_display_value,
             speed_unit: output.overlay.speed_unit.as_str(),
             geometry_count: geometry.geometry.len(),
+            route_active: output.route.route_id.is_some(),
+            route_point_count: output.route.geometry_world.len(),
         }
     }
 }

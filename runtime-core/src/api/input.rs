@@ -1,5 +1,7 @@
 use std::time::Duration;
 
+use super::route::RouteSyncMessage;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ViewportSize {
     pub width_px: u32,
@@ -129,6 +131,7 @@ fn validate_contact_ids(contacts: &[TouchContact]) -> Result<(), TouchContactFra
 pub struct RuntimeInputFrame {
     pub dt: Duration,
     pub gps: Option<GpsSample>,
+    pub route_sync: Option<RouteSyncMessage>,
     pub touch: Option<TouchContactFrame>,
     pub viewport_size: Option<ViewportSize>,
 }
@@ -138,6 +141,7 @@ impl RuntimeInputFrame {
         Self {
             dt,
             gps: None,
+            route_sync: None,
             touch: None,
             viewport_size: None,
         }
@@ -150,6 +154,11 @@ impl RuntimeInputFrame {
 
     pub fn with_touch(mut self, touch: TouchContactFrame) -> Self {
         self.touch = Some(touch);
+        self
+    }
+
+    pub fn with_route_sync(mut self, route_sync: RouteSyncMessage) -> Self {
+        self.route_sync = Some(route_sync);
         self
     }
 

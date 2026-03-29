@@ -1,6 +1,7 @@
 use super::config::{NormalizedScreenPoint, SpeedUnit};
 use super::diagnostics::DiagnosticsSnapshot;
 use super::query::{MapQuerySpec, WorldPoint};
+use crate::route::RouteRenderState;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CameraMode {
@@ -95,5 +96,6 @@ pub struct RuntimeFrameOutput {
     pub camera: CameraStateSnapshot,
     pub map_query: MapQuerySpec,
     pub overlay: OverlayState,
+    pub route: RouteRenderState,
     pub diagnostics: Option<DiagnosticsSnapshot>,
 }

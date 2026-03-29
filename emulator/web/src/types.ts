@@ -93,6 +93,8 @@ export type RuntimeFrameState = {
   speedValue: number;
   speedUnit: "kph" | "mph";
   geometryCount: number;
+  routeActive: boolean;
+  routePointCount: number;
 };
 
 export type WasmRuntimeState = {
@@ -101,4 +103,5 @@ export type WasmRuntimeState = {
   activeTouch: RuntimeTouchInput | null;
   pendingTouchFrames: RuntimeTouchInput[];
   frame: RuntimeFrameState | null;
+  routeSeeded: boolean;
 };

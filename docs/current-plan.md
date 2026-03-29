@@ -3,6 +3,7 @@
 Spec reference: [`project-spec.md`](./project-spec.md)
 Runtime architecture reference: [`runtime-ecs-architecture.md`](./runtime-ecs-architecture.md)
 Execution guide reference: [`framework-execution-guide.md`](./framework-execution-guide.md)
+Route contract reference: [`route-package-contract.md`](./route-package-contract.md)
 
 ## Architecture Vision
 Phone-orchestrated routing with ESP-optimized route following.
@@ -178,6 +179,14 @@ Transport contract requirements:
 - Default policy: off-route plus major-turn alerts.
 - Policy values must be runtime-configurable and forward-compatible.
 - Future policy levels must extend the same contract without replacing it.
+
+## Implementation Checkpoint (March 29, 2026)
+- Delivered versioned route package and sync contracts in shared `runtime-core` API.
+- Added provider fixture contract coverage (HSL, Google ingest, OSM, GPX, FIT, TCX, Garmin API/file).
+- Extended `RuntimeInputFrame` with route sync ingress and `RuntimeFrameOutput` with active route render state baseline.
+- Added runtime route state application for `set`/`update`/`clear` flows and deterministic tests for set/clear behavior.
+- Added route highlight rendering in `render-core` with visible route overlay style and tests.
+- Wired emulator wasm bridge + web program to inject a demo route on first GPS sample for visible checkpoint verification.
 
 ## Program Phases
 

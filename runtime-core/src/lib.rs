@@ -6,6 +6,7 @@ pub mod map;
 pub mod motion;
 pub mod output;
 pub mod overlay_ui;
+pub mod route;
 pub mod schedule;
 
 use api::{RuntimeConfig, RuntimeFrameOutput, RuntimeInputFrame};

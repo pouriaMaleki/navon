@@ -45,6 +45,14 @@ pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
         }
     }
 
+    render_route_overlay(
+        &camera_view,
+        viewport,
+        &style,
+        &scene.output.route.geometry_world,
+        framebuffer,
+    );
+
     render_points(&camera_view, viewport, &style, scene.geometry, framebuffer);
 
     draw_overlay(
@@ -55,6 +63,38 @@ pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
         meters_per_pixel,
         framebuffer,
     );
+}
+
+fn render_route_overlay(
+    camera_view: &CameraView,
+    viewport: ViewportSize,
+    style: &RenderStyle,
+    route_geometry_world: &[runtime_core::api::WorldPoint],
+    framebuffer: &mut Framebuffer,
+) {
+    for segment in route_geometry_world.windows(2) {
+        let [from, to] = segment else {
+            continue;
+        };
+        let from_screen = camera_view.world_to_screen(*from);
+        let to_screen = camera_view.world_to_screen(*to);
+        if let Some((clip_from, clip_to)) =
+            clip_segment_to_viewport(from_screen, to_screen, viewport)
+        {
+            framebuffer.draw_line(
+                clip_from,
+                clip_to,
+                style.active_route_backdrop.color,
+                style.active_route_backdrop.thickness_px,
+            );
+            framebuffer.draw_line(
+                clip_from,
+                clip_to,
+                style.active_route_line.color,
+                style.active_route_line.thickness_px,
+            );
+        }
+    }
 }
 
 fn render_points(
@@ -521,5 +561,36 @@ mod tests {
         );
 
         assert_ne!(empty.pixels(), framebuffer.pixels());
+    }
+
+    #[test]
+    fn active_route_overlay_renders_highlight_pixels() {
+        let config = RuntimeConfig::default();
+        let geometry = MapQueryResult::default();
+        let mut output = sample_output();
+        output.route.route_id = Some("demo-route".to_owned());
+        output.route.revision = Some(1);
+        output.route.geometry_world = vec![
+            WorldPoint::new(-30.0, -20.0),
+            WorldPoint::new(-5.0, 10.0),
+            WorldPoint::new(25.0, 22.0),
+        ];
+
+        let mut framebuffer = Framebuffer::new(128, 128);
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &output,
+                geometry: &geometry,
+            },
+            &mut framebuffer,
+        );
+
+        let style = RenderStyle::default();
+        assert!(framebuffer.pixels().chunks_exact(4).any(|rgba| {
+            rgba[0] == style.active_route_line.color.r
+                && rgba[1] == style.active_route_line.color.g
+                && rgba[2] == style.active_route_line.color.b
+        }));
     }
 }
