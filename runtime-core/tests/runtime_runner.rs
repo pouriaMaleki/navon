@@ -2,11 +2,11 @@ use std::time::Duration;
 
 use runtime_core::RuntimeCore;
 use runtime_core::api::{
-    CameraMode, CameraOrientationMode, CameraStateSnapshot, CURRENT_ROUTE_PACKAGE_VERSION,
-    GeoPoint, MapQuerySpec, NormalizedScreenPoint, RouteManeuver, RouteManeuverType,
-    RoutePackage, RouteProvenance, RouteProvider, RouteSetMessage, RouteSummary,
-    RouteSyncMessage, RuntimeConfig, RuntimeInputFrame, ScreenPoint, SpeedUnit, TouchContact,
-    TouchContactFrame, TouchContactFrameError, TouchPhase, ViewportSize, WorldPoint,
+    CURRENT_ROUTE_PACKAGE_VERSION, CameraMode, CameraOrientationMode, CameraStateSnapshot,
+    GeoPoint, MapQuerySpec, NormalizedScreenPoint, RouteManeuver, RouteManeuverType, RoutePackage,
+    RouteProvenance, RouteProvider, RouteSetMessage, RouteSummary, RouteSyncMessage, RuntimeConfig,
+    RuntimeInputFrame, ScreenPoint, SpeedUnit, TouchContact, TouchContactFrame,
+    TouchContactFrameError, TouchPhase, ViewportSize, WorldPoint,
 };
 use runtime_core::camera::CameraState;
 use runtime_core::input::staging::DerivedInputState;
@@ -962,6 +962,32 @@ fn route_sync_set_populates_render_route_state() {
     assert_eq!(output.route.route_id.as_deref(), Some("demo-route"));
     assert_eq!(output.route.revision, Some(1));
     assert_eq!(output.route.geometry_world.len(), 3);
+    assert_eq!(output.route.completed_geometry_world.len(), 1);
+    assert_eq!(output.route.remaining_geometry_world.len(), 3);
+}
+
+#[test]
+fn route_progress_marks_completed_and_remaining_geometry() {
+    let mut runtime = RuntimeCore::new(interaction_config());
+
+    runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(16))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7749, -122.4194, 0.0))
+            .with_route_sync(RouteSyncMessage::Set(RouteSetMessage {
+                route: sample_render_route_package("demo-route", 1),
+            })),
+    );
+
+    let progressed = runtime.step(
+        RuntimeInputFrame::new(Duration::from_millis(220))
+            .with_viewport(ViewportSize::new(480, 480))
+            .with_gps(directional_fix(37.7756, -122.4188, 6.0)),
+    );
+
+    assert!(progressed.route.progress_distance_m.unwrap_or_default() > 0.0);
+    assert!(progressed.route.completed_geometry_world.len() >= 2);
+    assert!(progressed.route.remaining_geometry_world.len() >= 2);
 }
 
 #[test]
@@ -981,9 +1007,11 @@ fn route_sync_clear_removes_render_route_state() {
         RuntimeInputFrame::new(Duration::from_millis(16))
             .with_viewport(ViewportSize::new(480, 480))
             .with_gps(stopped_fix(-122.4194))
-            .with_route_sync(RouteSyncMessage::Clear(runtime_core::api::RouteClearMessage {
-                route_id: Some("demo-route".to_owned()),
-            })),
+            .with_route_sync(RouteSyncMessage::Clear(
+                runtime_core::api::RouteClearMessage {
+                    route_id: Some("demo-route".to_owned()),
+                },
+            )),
     );
 
     assert!(output.route.route_id.is_none());

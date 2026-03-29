@@ -3,8 +3,6 @@ import type { RenderProgram } from "../core/types";
 import type { RuntimeGpsInput, RuntimeTouchInput, WasmRuntimeState } from "../types";
 
 const SPEED_UNIT_STORAGE_KEY = "esp32-minimap.speed-unit";
-const DEG_LAT_PER_M = 1 / 111_320;
-
 type RuntimeRouteSyncInput =
   | {
       type: "set";
@@ -169,72 +167,119 @@ function consumeTouchFrames(
   }));
 }
 
-function buildDemoRouteSync(gps: RuntimeGpsInput): RuntimeRouteSyncInput {
-  const start = { latDeg: gps.latDeg, lonDeg: gps.lonDeg };
-  const p1 = offsetLatLon(gps.latDeg, gps.lonDeg, 120, 20);
-  const p2 = offsetLatLon(gps.latDeg, gps.lonDeg, 240, 110);
-  const p3 = offsetLatLon(gps.latDeg, gps.lonDeg, 330, 190);
-  const routeId = `demo-${Math.round(gps.latDeg * 1e5)}-${Math.round(gps.lonDeg * 1e5)}`;
+function buildDemoRouteSync(_gps: RuntimeGpsInput): RuntimeRouteSyncInput {
+  const start = { latDeg: 60.17442, lonDeg: 24.9421 };
+  const p1 = { latDeg: 60.17495, lonDeg: 24.94208 };
+  const p2 = { latDeg: 60.17497, lonDeg: 24.94262 };
+  const p3 = { latDeg: 60.17524, lonDeg: 24.94264 };
+  const p4 = { latDeg: 60.17525, lonDeg: 24.94228 };
+  const p5 = { latDeg: 60.17555, lonDeg: 24.9423 };
+  const p6 = { latDeg: 60.17556, lonDeg: 24.94288 };
+  const p7 = { latDeg: 60.17582, lonDeg: 24.9429 };
+  const p8 = { latDeg: 60.17584, lonDeg: 24.94246 };
+  const finish = { latDeg: 60.1761, lonDeg: 24.94248 };
+  const geometry = [start, p1, p2, p3, p4, p5, p6, p7, p8, finish];
 
   return {
     type: "set",
     route: {
       version: { major: 1, minor: 0 },
-      routeId,
-      revision: 1,
-      geometry: [start, p1, p2, p3],
+      routeId: "demo-helsinki-zigzag",
+      revision: 2,
+      geometry,
       maneuvers: [
         {
           id: "depart",
           maneuverType: "depart",
           location: start,
           distanceFromStartM: 0,
-          distanceToNextM: 140,
-          instructionText: "Start riding",
+          distanceToNextM: 59,
+          instructionText: "Roll north out of the start",
         },
         {
-          id: "turn",
+          id: "right-1",
           maneuverType: "right",
           location: p1,
-          distanceFromStartM: 140,
-          distanceToNextM: 220,
-          instructionText: "Turn slight right",
+          distanceFromStartM: 59,
+          distanceToNextM: 30,
+          instructionText: "Quick right",
+        },
+        {
+          id: "left-1",
+          maneuverType: "left",
+          location: p2,
+          distanceFromStartM: 89,
+          distanceToNextM: 30,
+          instructionText: "Immediate left",
+        },
+        {
+          id: "left-2",
+          maneuverType: "left",
+          location: p3,
+          distanceFromStartM: 119,
+          distanceToNextM: 20,
+          instructionText: "Short left jog",
+        },
+        {
+          id: "right-2",
+          maneuverType: "right",
+          location: p4,
+          distanceFromStartM: 139,
+          distanceToNextM: 33,
+          instructionText: "Snap back right",
+        },
+        {
+          id: "right-3",
+          maneuverType: "right",
+          location: p5,
+          distanceFromStartM: 172,
+          distanceToNextM: 32,
+          instructionText: "Another quick right",
+        },
+        {
+          id: "left-3",
+          maneuverType: "left",
+          location: p6,
+          distanceFromStartM: 204,
+          distanceToNextM: 29,
+          instructionText: "Immediate left again",
+        },
+        {
+          id: "left-4",
+          maneuverType: "left",
+          location: p7,
+          distanceFromStartM: 233,
+          distanceToNextM: 24,
+          instructionText: "Tight left",
+        },
+        {
+          id: "right-4",
+          maneuverType: "right",
+          location: p8,
+          distanceFromStartM: 258,
+          distanceToNextM: 29,
+          instructionText: "Finish with a right kink",
         },
         {
           id: "arrive",
           maneuverType: "arrive",
-          location: p3,
-          distanceFromStartM: 360,
+          location: finish,
+          distanceFromStartM: 287,
           distanceToNextM: null,
           instructionText: "Arrive",
         },
       ],
       summary: {
-        totalDistanceM: 360,
-        estimatedDurationS: 130,
-        startLabel: "Start",
-        destinationLabel: "Demo Destination",
+        totalDistanceM: 287,
+        estimatedDurationS: 105,
+        startLabel: "Helsinki Demo Start",
+        destinationLabel: "Helsinki Zigzag Finish",
       },
       provenance: {
         provider: "hsl_digitransit",
-        sourceRef: "emulator-demo-route",
+        sourceRef: "emulator-helsinki-zigzag",
         generatedAtUnixMs: Date.now(),
       },
     },
-  };
-}
-
-function offsetLatLon(
-  latDeg: number,
-  lonDeg: number,
-  northMeters: number,
-  eastMeters: number,
-): { latDeg: number; lonDeg: number } {
-  const latDelta = northMeters * DEG_LAT_PER_M;
-  const lonScale = Math.max(0.2, Math.cos((latDeg * Math.PI) / 180));
-  const lonDelta = eastMeters * (DEG_LAT_PER_M / lonScale);
-  return {
-    latDeg: latDeg + latDelta,
-    lonDeg: lonDeg + lonDelta,
   };
 }

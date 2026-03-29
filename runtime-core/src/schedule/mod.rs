@@ -245,9 +245,13 @@ fn output_build(
     camera: Res<CameraResource>,
     overlay_ui: Res<OverlayUiResource>,
     query: Res<QueryResource>,
-    route: Res<RouteResource>,
+    mut route: ResMut<RouteResource>,
     mut output_resource: ResMut<OutputResource>,
 ) {
+    if pending.frame.gps.is_some() {
+        route.0.advance_progress(motion.0.rider_world);
+    }
+
     let camera_snapshot = camera.0.snapshot(&config.0);
     let diagnostics = config.0.diagnostics_enabled.then(|| {
         diagnostics::build_snapshot(

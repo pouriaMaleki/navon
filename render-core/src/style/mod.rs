@@ -41,8 +41,10 @@ pub struct RenderStyle {
     pub cafe: PointStyle,
     pub water: PointStyle,
     pub wc: PointStyle,
-    pub active_route_backdrop: StrokeStyle,
-    pub active_route_line: StrokeStyle,
+    pub completed_route_backdrop: StrokeStyle,
+    pub completed_route_line: StrokeStyle,
+    pub remaining_route_backdrop: StrokeStyle,
+    pub remaining_route_line: StrokeStyle,
     pub rider_fill_color: Color,
     pub rider_heading_color: Color,
     pub north_indicator_active_color: Color,
@@ -124,11 +126,19 @@ impl Default for RenderStyle {
             cafe: shared_poi_style,
             water: shared_poi_style,
             wc: shared_poi_style,
-            active_route_backdrop: StrokeStyle {
+            completed_route_backdrop: StrokeStyle {
                 color: COLOR_SURFACE_INVERSE,
                 thickness_px: 6,
             },
-            active_route_line: StrokeStyle {
+            completed_route_line: StrokeStyle {
+                color: COLOR_ACCENT_PRIMARY,
+                thickness_px: 4,
+            },
+            remaining_route_backdrop: StrokeStyle {
+                color: COLOR_SURFACE_INVERSE,
+                thickness_px: 6,
+            },
+            remaining_route_line: StrokeStyle {
                 color: COLOR_ACCENT_HIGHLIGHT,
                 thickness_px: 4,
             },
