@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 
-use runtime_core::api::{RuntimeConfig, SpeedUnit};
+use runtime_core::api::{RouteAlertVerbosity, RuntimeConfig, SpeedUnit};
 
 use crate::adapter::AdapterState;
 use crate::input_bridge::InputBridge;
@@ -17,7 +17,11 @@ pub struct MinimapWasmEmulator {
 #[wasm_bindgen]
 impl MinimapWasmEmulator {
     #[wasm_bindgen(constructor)]
-    pub fn new(_profile: u32, default_speed_unit: Option<String>) -> Self {
+    pub fn new(
+        _profile: u32,
+        default_speed_unit: Option<String>,
+        route_alert_verbosity: Option<String>,
+    ) -> Self {
         panic_hook::install();
         let mut config = RuntimeConfig::default();
         if let Some(unit) = default_speed_unit
@@ -25,6 +29,12 @@ impl MinimapWasmEmulator {
             .and_then(SpeedUnit::from_storage_str)
         {
             config.default_speed_unit = unit;
+        }
+        if let Some(verbosity) = route_alert_verbosity
+            .as_deref()
+            .and_then(RouteAlertVerbosity::from_storage_str)
+        {
+            config.route_alert_verbosity = verbosity;
         }
         Self {
             state: AdapterState::new(config),

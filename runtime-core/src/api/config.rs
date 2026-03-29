@@ -42,6 +42,41 @@ impl SpeedUnit {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum RouteAlertVerbosity {
+    Essential,
+    #[default]
+    Standard,
+    Detailed,
+}
+
+impl RouteAlertVerbosity {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Essential => "essential",
+            Self::Standard => "standard",
+            Self::Detailed => "detailed",
+        }
+    }
+
+    pub fn from_storage_str(value: &str) -> Option<Self> {
+        match value.trim().to_ascii_lowercase().as_str() {
+            "essential" | "minimal" => Some(Self::Essential),
+            "standard" | "default" => Some(Self::Standard),
+            "detailed" | "verbose" => Some(Self::Detailed),
+            _ => None,
+        }
+    }
+
+    pub const fn major_turn_enabled(self) -> bool {
+        !matches!(self, Self::Essential)
+    }
+
+    pub const fn detailed_major_turn_text(self) -> bool {
+        matches!(self, Self::Detailed)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct NormalizedScreenPoint {
     pub x: f32,
@@ -92,6 +127,7 @@ impl Default for ZoomBounds {
 pub struct RuntimeConfig {
     pub viewport_size: ViewportSize,
     pub default_speed_unit: SpeedUnit,
+    pub route_alert_verbosity: RouteAlertVerbosity,
     pub riding_rider_anchor: NormalizedScreenPoint,
     pub stopped_rider_anchor: NormalizedScreenPoint,
     pub north_indicator_center: NormalizedScreenPoint,
@@ -127,6 +163,7 @@ impl Default for RuntimeConfig {
         Self {
             viewport_size: ViewportSize::new(480, 480),
             default_speed_unit: SpeedUnit::Kph,
+            route_alert_verbosity: RouteAlertVerbosity::Standard,
             riding_rider_anchor: NormalizedScreenPoint::new(0.5, 0.72),
             stopped_rider_anchor: NormalizedScreenPoint::CENTER,
             north_indicator_center: NormalizedScreenPoint::new(0.5, 0.12),

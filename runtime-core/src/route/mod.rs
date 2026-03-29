@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use crate::api::config::RouteAlertVerbosity;
 use crate::api::input::GpsSample;
 use crate::api::query::WorldPoint;
 use crate::api::route::{
@@ -59,7 +60,7 @@ struct ActiveRoute {
 
 #[derive(Debug, Clone)]
 struct StoredManeuver {
-    maneuver_type: RouteManeuverType,
+    alert_kind: Option<TurnAlertKind>,
     distance_along_route_m: f32,
     instruction_text: Option<String>,
 }
@@ -109,6 +110,7 @@ impl ActiveRouteState {
         off_route_enter_distance_m: f64,
         off_route_exit_distance_m: f64,
         major_turn_alert_distance_m: f64,
+        route_alert_verbosity: RouteAlertVerbosity,
         reroute_request_delay: Duration,
         dt: Duration,
     ) {
@@ -120,6 +122,7 @@ impl ActiveRouteState {
             off_route_enter_distance_m,
             off_route_exit_distance_m,
             major_turn_alert_distance_m,
+            route_alert_verbosity,
             reroute_request_delay,
             dt,
         );
@@ -183,6 +186,7 @@ impl ActiveRoute {
         off_route_enter_distance_m: f64,
         off_route_exit_distance_m: f64,
         major_turn_alert_distance_m: f64,
+        route_alert_verbosity: RouteAlertVerbosity,
         reroute_request_delay: Duration,
         dt: Duration,
     ) {
@@ -213,11 +217,15 @@ impl ActiveRoute {
             self.off_route_duration = Duration::ZERO;
             self.reroute_requested = false;
         }
-        self.upcoming_turn_alert = compute_upcoming_turn_alert_from_stored(
-            &self.maneuvers,
-            self.progress_distance_m,
-            major_turn_alert_distance_m,
-        );
+        self.upcoming_turn_alert = if route_alert_verbosity.major_turn_enabled() {
+            compute_upcoming_turn_alert_from_stored(
+                &self.maneuvers,
+                self.progress_distance_m,
+                major_turn_alert_distance_m,
+            )
+        } else {
+            None
+        };
     }
 
     fn snapshot(&self) -> RouteRenderState {
@@ -242,9 +250,14 @@ impl StoredManeuver {
     fn from_route_maneuver(maneuver: &RouteManeuver, geometry_world: &[WorldPoint]) -> Self {
         let location_world = geo_to_world(&maneuver.location);
         let projection = project_onto_polyline(geometry_world, location_world);
+        let distance_along_route_m = projection.progress_distance_m as f32;
         Self {
-            maneuver_type: maneuver.maneuver_type,
-            distance_along_route_m: projection.progress_distance_m as f32,
+            alert_kind: canonical_turn_alert_kind(
+                maneuver.maneuver_type,
+                geometry_world,
+                projection.progress_distance_m,
+            ),
+            distance_along_route_m,
             instruction_text: maneuver.instruction_text.clone(),
         }
     }
@@ -256,7 +269,7 @@ fn compute_upcoming_turn_alert_from_stored(
     threshold_m: f64,
 ) -> Option<UpcomingTurnAlert> {
     for maneuver in maneuvers {
-        let Some(kind) = turn_alert_kind(maneuver.maneuver_type) else {
+        let Some(kind) = maneuver.alert_kind else {
             continue;
         };
         let distance_remaining_m = f64::from(maneuver.distance_along_route_m) - progress_distance_m;
@@ -275,7 +288,74 @@ fn compute_upcoming_turn_alert_from_stored(
     None
 }
 
-fn turn_alert_kind(maneuver_type: RouteManeuverType) -> Option<TurnAlertKind> {
+const TURN_CLASSIFICATION_SAMPLE_M: f64 = 12.0;
+const TURN_CLASSIFICATION_THRESHOLD_RAD: f64 = 0.35;
+const UTURN_CLASSIFICATION_THRESHOLD_RAD: f64 = 2.35;
+
+fn canonical_turn_alert_kind(
+    maneuver_type: RouteManeuverType,
+    geometry_world: &[WorldPoint],
+    distance_along_route_m: f64,
+) -> Option<TurnAlertKind> {
+    match maneuver_type {
+        RouteManeuverType::Depart | RouteManeuverType::Straight | RouteManeuverType::Arrive => None,
+        RouteManeuverType::Roundabout | RouteManeuverType::Merge | RouteManeuverType::Ramp => {
+            Some(TurnAlertKind::Generic)
+        }
+        _ => derive_turn_alert_kind_from_geometry(geometry_world, distance_along_route_m)
+            .or_else(|| declared_turn_alert_kind(maneuver_type)),
+    }
+}
+
+fn derive_turn_alert_kind_from_geometry(
+    geometry_world: &[WorldPoint],
+    distance_along_route_m: f64,
+) -> Option<TurnAlertKind> {
+    let total_distance_m = polyline_total_distance(geometry_world);
+    if total_distance_m <= f64::EPSILON {
+        return None;
+    }
+
+    let sample_distance_m = TURN_CLASSIFICATION_SAMPLE_M.min(total_distance_m * 0.5);
+    if sample_distance_m <= f64::EPSILON {
+        return None;
+    }
+
+    let clamped_distance_m = distance_along_route_m.clamp(0.0, total_distance_m);
+    let before = point_at_distance_on_polyline(
+        geometry_world,
+        (clamped_distance_m - sample_distance_m).max(0.0),
+    )?;
+    let at = point_at_distance_on_polyline(geometry_world, clamped_distance_m)?;
+    let after = point_at_distance_on_polyline(
+        geometry_world,
+        (clamped_distance_m + sample_distance_m).min(total_distance_m),
+    )?;
+
+    let incoming = (at.x_m - before.x_m, at.y_m - before.y_m);
+    let outgoing = (after.x_m - at.x_m, after.y_m - at.y_m);
+    let incoming_length_m = incoming.0.hypot(incoming.1);
+    let outgoing_length_m = outgoing.0.hypot(outgoing.1);
+    if incoming_length_m <= f64::EPSILON || outgoing_length_m <= f64::EPSILON {
+        return None;
+    }
+
+    let signed_angle_rad = signed_turn_angle_rad(incoming, outgoing);
+    let absolute_angle_rad = signed_angle_rad.abs();
+    if absolute_angle_rad >= UTURN_CLASSIFICATION_THRESHOLD_RAD {
+        return Some(TurnAlertKind::Uturn);
+    }
+    if absolute_angle_rad < TURN_CLASSIFICATION_THRESHOLD_RAD {
+        return None;
+    }
+    if signed_angle_rad > 0.0 {
+        Some(TurnAlertKind::Left)
+    } else {
+        Some(TurnAlertKind::Right)
+    }
+}
+
+fn declared_turn_alert_kind(maneuver_type: RouteManeuverType) -> Option<TurnAlertKind> {
     match maneuver_type {
         RouteManeuverType::Left | RouteManeuverType::SharpLeft | RouteManeuverType::SlightLeft => {
             Some(TurnAlertKind::Left)
@@ -440,6 +520,43 @@ fn lerp(start: WorldPoint, end: WorldPoint, t: f64) -> WorldPoint {
     )
 }
 
+fn point_at_distance_on_polyline(
+    points: &[WorldPoint],
+    target_distance_m: f64,
+) -> Option<WorldPoint> {
+    let first = points.first().copied()?;
+    if points.len() == 1 {
+        return Some(first);
+    }
+
+    let clamped_distance_m = target_distance_m.max(0.0);
+    let mut traversed_distance_m = 0.0;
+    for segment in points.windows(2) {
+        let [start, end] = segment else {
+            continue;
+        };
+        let segment_length_m = distance(*start, *end);
+        if segment_length_m <= f64::EPSILON {
+            continue;
+        }
+        let next_distance_m = traversed_distance_m + segment_length_m;
+        if clamped_distance_m <= next_distance_m {
+            let local_t =
+                ((clamped_distance_m - traversed_distance_m) / segment_length_m).clamp(0.0, 1.0);
+            return Some(lerp(*start, *end, local_t));
+        }
+        traversed_distance_m = next_distance_m;
+    }
+
+    points.last().copied()
+}
+
+fn signed_turn_angle_rad(incoming: (f64, f64), outgoing: (f64, f64)) -> f64 {
+    let cross = incoming.0 * outgoing.1 - incoming.1 * outgoing.0;
+    let dot = incoming.0 * outgoing.0 + incoming.1 * outgoing.1;
+    cross.atan2(dot)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::api::route::{
@@ -534,6 +651,7 @@ mod tests {
             18.0,
             12.0,
             80.0,
+            RouteAlertVerbosity::Standard,
             Duration::from_secs(2),
             Duration::from_millis(16),
         );
@@ -545,6 +663,7 @@ mod tests {
             18.0,
             12.0,
             80.0,
+            RouteAlertVerbosity::Standard,
             Duration::from_secs(2),
             Duration::from_millis(16),
         );
@@ -556,6 +675,7 @@ mod tests {
             18.0,
             12.0,
             80.0,
+            RouteAlertVerbosity::Standard,
             Duration::from_secs(2),
             Duration::from_millis(16),
         );
@@ -633,6 +753,7 @@ mod tests {
             35.0,
             22.0,
             80.0,
+            RouteAlertVerbosity::Standard,
             Duration::from_secs(2),
             Duration::from_millis(16),
         );
@@ -648,6 +769,7 @@ mod tests {
             35.0,
             22.0,
             80.0,
+            RouteAlertVerbosity::Standard,
             Duration::from_secs(2),
             Duration::from_millis(16),
         );
@@ -659,6 +781,79 @@ mod tests {
                 .as_ref()
                 .map(|alert| alert.kind),
             Some(TurnAlertKind::Left)
+        );
+    }
+
+    #[test]
+    fn geometry_canonicalizes_turn_direction_when_metadata_disagrees() {
+        let mut state = ActiveRouteState::default();
+        state.apply_sync(&RouteSyncMessage::Set(RouteSetMessage {
+            route: RoutePackage {
+                geometry: vec![
+                    GeoPoint::new(37.7749, -122.4194),
+                    GeoPoint::new(37.7755, -122.4194),
+                    GeoPoint::new(37.7755, -122.4202),
+                ],
+                maneuvers: vec![
+                    RouteManeuver {
+                        id: "depart".to_owned(),
+                        maneuver_type: RouteManeuverType::Depart,
+                        location: GeoPoint::new(37.7749, -122.4194),
+                        distance_from_start_m: 0.0,
+                        distance_to_next_m: Some(60.0),
+                        instruction_text: Some("Start".to_owned()),
+                    },
+                    RouteManeuver {
+                        id: "wrong-right".to_owned(),
+                        maneuver_type: RouteManeuverType::Right,
+                        location: GeoPoint::new(37.7755, -122.4194),
+                        distance_from_start_m: 60.0,
+                        distance_to_next_m: None,
+                        instruction_text: Some("Provider said right".to_owned()),
+                    },
+                ],
+                summary: RouteSummary {
+                    total_distance_m: 140.0,
+                    estimated_duration_s: 60,
+                    start_label: None,
+                    destination_label: None,
+                },
+                provenance: RouteProvenance {
+                    provider: RouteProvider::HslDigitransit,
+                    source_ref: None,
+                    generated_at_unix_ms: 0,
+                },
+                version: CURRENT_ROUTE_PACKAGE_VERSION,
+                route_id: "route-geometry-canonical".to_owned(),
+                revision: 1,
+            },
+        }));
+
+        let start_world = geo_to_world(&GeoPoint::new(37.7749, -122.4194));
+        state.advance_progress(
+            start_world,
+            35.0,
+            22.0,
+            200.0,
+            RouteAlertVerbosity::Detailed,
+            Duration::from_secs(2),
+            Duration::from_millis(16),
+        );
+        let snapshot = state.snapshot();
+
+        assert_eq!(
+            snapshot
+                .upcoming_turn_alert
+                .as_ref()
+                .map(|alert| alert.kind),
+            Some(TurnAlertKind::Left)
+        );
+        assert_eq!(
+            snapshot
+                .upcoming_turn_alert
+                .as_ref()
+                .and_then(|alert| alert.instruction_text.as_deref()),
+            Some("Provider said right")
         );
     }
 
@@ -681,6 +876,7 @@ mod tests {
             18.0,
             12.0,
             80.0,
+            RouteAlertVerbosity::Standard,
             Duration::from_millis(600),
             Duration::from_millis(300),
         );
@@ -690,6 +886,7 @@ mod tests {
             18.0,
             12.0,
             80.0,
+            RouteAlertVerbosity::Standard,
             Duration::from_millis(600),
             Duration::from_millis(300),
         );
@@ -720,6 +917,7 @@ mod tests {
             18.0,
             12.0,
             80.0,
+            RouteAlertVerbosity::Standard,
             Duration::from_secs(2),
             Duration::from_millis(16),
         );
@@ -731,6 +929,7 @@ mod tests {
             18.0,
             12.0,
             80.0,
+            RouteAlertVerbosity::Standard,
             Duration::from_secs(2),
             Duration::from_millis(16),
         );
@@ -742,6 +941,7 @@ mod tests {
             18.0,
             12.0,
             80.0,
+            RouteAlertVerbosity::Standard,
             Duration::from_secs(2),
             Duration::from_millis(16),
         );

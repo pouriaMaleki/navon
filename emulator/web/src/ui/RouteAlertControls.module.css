@@ -1,0 +1,64 @@
+.panel {
+  display: grid;
+  gap: 10px;
+}
+
+.header {
+  display: grid;
+  gap: 4px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7fb8c5;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  color: #d5dbe3;
+}
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.segmented[data-compact="1"] {
+  display: grid;
+}
+
+.button {
+  border: 1px solid #315062;
+  border-radius: 999px;
+  background: rgb(10 24 34 / 0.92);
+  color: #9fb0c3;
+  min-height: 40px;
+  padding: 0 14px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.button[data-active="1"] {
+  border-color: rgb(110 138 36 / 0.82);
+  background: rgb(28 38 10 / 0.56);
+  color: #d7ff3f;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.help {
+  margin: 0;
+  color: #9fb0c3;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}

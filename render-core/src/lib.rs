@@ -610,6 +610,76 @@ mod tests {
     }
 
     #[test]
+    fn essential_alert_verbosity_hides_major_turn_banner() {
+        let standard_config = RuntimeConfig::default();
+        let mut essential_config = RuntimeConfig::default();
+        essential_config.route_alert_verbosity = runtime_core::api::RouteAlertVerbosity::Essential;
+        let geometry = MapQueryResult::default();
+        let mut output = sample_output();
+        output.route.upcoming_turn_alert = Some(runtime_core::route::UpcomingTurnAlert {
+            kind: runtime_core::route::TurnAlertKind::Left,
+            distance_remaining_m: 42.0,
+            instruction_text: Some("Turn left".to_owned()),
+        });
+
+        let mut standard = Framebuffer::new(160, 160);
+        let mut essential = Framebuffer::new(160, 160);
+        render_frame(
+            RenderScene {
+                config: &standard_config,
+                output: &output,
+                geometry: &geometry,
+            },
+            &mut standard,
+        );
+        render_frame(
+            RenderScene {
+                config: &essential_config,
+                output: &output,
+                geometry: &geometry,
+            },
+            &mut essential,
+        );
+
+        assert_ne!(standard.pixels(), essential.pixels());
+    }
+
+    #[test]
+    fn detailed_alert_verbosity_changes_major_turn_banner_layout() {
+        let standard_config = RuntimeConfig::default();
+        let mut detailed_config = RuntimeConfig::default();
+        detailed_config.route_alert_verbosity = runtime_core::api::RouteAlertVerbosity::Detailed;
+        let geometry = MapQueryResult::default();
+        let mut output = sample_output();
+        output.route.upcoming_turn_alert = Some(runtime_core::route::UpcomingTurnAlert {
+            kind: runtime_core::route::TurnAlertKind::Right,
+            distance_remaining_m: 42.0,
+            instruction_text: Some("Turn right".to_owned()),
+        });
+
+        let mut standard = Framebuffer::new(160, 160);
+        let mut detailed = Framebuffer::new(160, 160);
+        render_frame(
+            RenderScene {
+                config: &standard_config,
+                output: &output,
+                geometry: &geometry,
+            },
+            &mut standard,
+        );
+        render_frame(
+            RenderScene {
+                config: &detailed_config,
+                output: &output,
+                geometry: &geometry,
+            },
+            &mut detailed,
+        );
+
+        assert_ne!(standard.pixels(), detailed.pixels());
+    }
+
+    #[test]
     fn reroute_request_renders_banner_pixels() {
         let config = RuntimeConfig::default();
         let geometry = MapQueryResult::default();
@@ -662,6 +732,80 @@ mod tests {
             rgba[0] == style.off_route_banner_text_color.r
                 && rgba[1] == style.off_route_banner_text_color.g
                 && rgba[2] == style.off_route_banner_text_color.b
+        }));
+    }
+
+    #[test]
+    fn detailed_alert_banner_stays_visible_on_small_viewport() {
+        let mut config = RuntimeConfig::default();
+        config.route_alert_verbosity = runtime_core::api::RouteAlertVerbosity::Detailed;
+        let geometry = MapQueryResult::default();
+        let mut output = sample_output();
+        output.camera.orientation_mode = runtime_core::api::CameraOrientationMode::NorthLocked;
+        output.camera.orientation_rad = 1.2;
+        output.route.upcoming_turn_alert = Some(runtime_core::route::UpcomingTurnAlert {
+            kind: runtime_core::route::TurnAlertKind::Left,
+            distance_remaining_m: 42.0,
+            instruction_text: Some("Turn left".to_owned()),
+        });
+
+        let mut framebuffer = Framebuffer::new(96, 96);
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &output,
+                geometry: &geometry,
+            },
+            &mut framebuffer,
+        );
+
+        let style = RenderStyle::default();
+        assert!(framebuffer.pixels().chunks_exact(4).any(|rgba| {
+            rgba[0] == style.major_turn_banner_background_color.r
+                && rgba[1] == style.major_turn_banner_background_color.g
+                && rgba[2] == style.major_turn_banner_background_color.b
+        }));
+    }
+
+    #[test]
+    fn active_route_overlay_stays_visible_when_camera_rotates() {
+        let config = RuntimeConfig::default();
+        let geometry = MapQueryResult::default();
+        let mut output = sample_output();
+        output.camera.orientation_mode = runtime_core::api::CameraOrientationMode::TravelUpAuto;
+        output.camera.orientation_rad = 1.1;
+        output.route.route_id = Some("demo-route".to_owned());
+        output.route.revision = Some(1);
+        output.route.geometry_world = vec![
+            WorldPoint::new(-30.0, -20.0),
+            WorldPoint::new(-5.0, 10.0),
+            WorldPoint::new(25.0, 22.0),
+        ];
+        output.route.completed_geometry_world =
+            vec![WorldPoint::new(-30.0, -20.0), WorldPoint::new(-5.0, 10.0)];
+        output.route.remaining_geometry_world =
+            vec![WorldPoint::new(-5.0, 10.0), WorldPoint::new(25.0, 22.0)];
+
+        let mut framebuffer = Framebuffer::new(128, 128);
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &output,
+                geometry: &geometry,
+            },
+            &mut framebuffer,
+        );
+
+        let style = RenderStyle::default();
+        assert!(framebuffer.pixels().chunks_exact(4).any(|rgba| {
+            rgba[0] == style.completed_route_line.color.r
+                && rgba[1] == style.completed_route_line.color.g
+                && rgba[2] == style.completed_route_line.color.b
+        }));
+        assert!(framebuffer.pixels().chunks_exact(4).any(|rgba| {
+            rgba[0] == style.remaining_route_line.color.r
+                && rgba[1] == style.remaining_route_line.color.g
+                && rgba[2] == style.remaining_route_line.color.b
         }));
     }
 

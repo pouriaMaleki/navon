@@ -40,6 +40,13 @@ cargo xtask deploy-device --port /dev/ttyUSB0
 3. Implement.
 4. Reconcile docs and validate commands.
 
+## Invariant Checklist
+- Identify the authoritative data source before editing behavior that can be represented in more than one way.
+- Write down the invariants touched by the change before changing logic.
+- Add or extend regression tests for every touched invariant, especially around ordering, timing, and state-machine reset behavior.
+- Validate bridge, demo, and fixture data against shared-core expectations instead of trusting duplicated labels or hand-maintained semantics.
+
+
 ## Emulator Dev Notes (LLM Quick Rules)
 - Emulator is a hardware/runtime simulator (`emulator/web`), not product-specific UI logic.
 - Keep canonical emulator requirements in `/work/emulator/docs/project-spec.md`; other emulator docs should reference it.

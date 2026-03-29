@@ -94,6 +94,31 @@ Lead the project as a framework-first Rust buildout where shared runtime behavio
 - Scenario tests for runtime behavior.
 - Emulator web lint/typecheck/build when wasm-facing code changes.
 
+## Invariant-Driven Implementation Rules
+1. Use a single source of truth for behavior-critical semantics.
+   - Do not let timing come from one representation and classification or labels come from another unless there is an explicit validation or canonicalization step.
+   - If multiple representations exist, document which one is authoritative before editing logic.
+2. Prefer derived state over duplicated state.
+   - When direction, classification, or progress can be derived from geometry or canonical runtime state, derive it instead of hand-maintaining duplicate labels.
+3. Design state machines for re-entry, not only first activation.
+   - Any `pending`, `applied`, `active`, or `locked` flag must have explicit reset conditions and tested re-entry behavior.
+4. Hold demo and test fixtures to production-like invariants.
+   - Demo routes, emulator helpers, and fixtures must satisfy the same invariants as shared-core inputs.
+   - Fixture builders should fail fast when geometry, metadata, or state assumptions drift.
+5. Define ordered-geometry progression rules explicitly.
+   - When rejoining, snapping, or projecting onto ordered geometry, choose whether behavior prefers nearest, previous, or next progress and add edge tests near boundaries.
+6. Close every bugfix with an executable guard.
+   - Any bugfix that changes logic must add or extend at least one regression test for the failure mode.
+
+## Regression Test Patterns
+Use the smallest test that can lock the invariant:
+- Contract tests: schema, normalization, and canonical fixture validity.
+- State-machine regression tests: repeated activation, reset, and re-entry behavior.
+- Fixture-validity tests: fail fast when demo or bridge data drifts from shared-core expectations.
+- End-to-end scenario tests: cross-subsystem behaviors such as reroute loops, alert transitions, and bridge orchestration.
+
+Keep tests colocated with the subsystem they protect. Prefer deterministic scenario inputs over manual visual verification whenever behavior depends on ordering, timing, or progression thresholds.
+
 ## Architecture Review Rules
 Every implementation PR should be checked against these rules:
 1. Does this logic live in the correct crate?

@@ -109,8 +109,16 @@ pub fn draw_overlay(
         draw_reroute_banner(framebuffer, viewport, &style);
     } else if route.off_route {
         draw_off_route_banner(framebuffer, viewport, &style);
-    } else if let Some(alert) = route.upcoming_turn_alert.as_ref() {
-        draw_major_turn_banner(framebuffer, viewport, &style, alert);
+    } else if config.route_alert_verbosity.major_turn_enabled() {
+        if let Some(alert) = route.upcoming_turn_alert.as_ref() {
+            draw_major_turn_banner(
+                framebuffer,
+                viewport,
+                &style,
+                alert,
+                config.route_alert_verbosity.detailed_major_turn_text(),
+            );
+        }
     }
 }
 
@@ -188,8 +196,9 @@ fn draw_major_turn_banner(
     viewport: ViewportSize,
     style: &RenderStyle,
     alert: &runtime_core::route::UpcomingTurnAlert,
+    include_instruction_text: bool,
 ) {
-    let text = format_major_turn_banner_text(alert);
+    let text = format_major_turn_banner_text(alert, include_instruction_text);
     draw_status_banner(
         framebuffer,
         viewport,
@@ -213,8 +222,17 @@ fn draw_status_banner(
     let padding_y = 6;
     let spacing_px = 2;
     let gap_px = 4;
-    let text_width = measure_banner_text_width(text, scale_px, spacing_px, gap_px);
-    let banner_width = (text_width + padding_x * 2).max(104) as u32;
+    let fitted_text = fit_banner_text(
+        text,
+        viewport.width_px as i32 - 24,
+        scale_px,
+        spacing_px,
+        gap_px,
+    );
+    let text_width = measure_banner_text_width(&fitted_text, scale_px, spacing_px, gap_px);
+    let banner_width = (text_width + padding_x * 2)
+        .max(104)
+        .min((viewport.width_px as i32 - 16).max(104)) as u32;
     let banner_height = (7 * scale_px + padding_y * 2) as u32;
     let banner_x = ((viewport.width_px as i32 - banner_width as i32) / 2).max(8);
     let banner_y = 18;
@@ -245,7 +263,10 @@ fn draw_status_banner(
     );
 }
 
-fn format_major_turn_banner_text(alert: &runtime_core::route::UpcomingTurnAlert) -> String {
+fn format_major_turn_banner_text(
+    alert: &runtime_core::route::UpcomingTurnAlert,
+    include_instruction_text: bool,
+) -> String {
     let label = match alert.kind {
         TurnAlertKind::Left => "LEFT",
         TurnAlertKind::Right => "RIGHT",
@@ -253,7 +274,36 @@ fn format_major_turn_banner_text(alert: &runtime_core::route::UpcomingTurnAlert)
         TurnAlertKind::Generic => "TURN",
     };
     let meters = alert.distance_remaining_m.max(0.0).round() as u16;
+    if include_instruction_text {
+        return match alert.kind {
+            TurnAlertKind::Left | TurnAlertKind::Right => format!("{label} TURN {meters}M"),
+            TurnAlertKind::Uturn | TurnAlertKind::Generic => format!("{label} {meters}M"),
+        };
+    }
     format!("{label} {meters}M")
+}
+
+fn fit_banner_text(
+    text: &str,
+    max_width_px: i32,
+    scale_px: i32,
+    spacing_px: i32,
+    gap_px: i32,
+) -> String {
+    if measure_banner_text_width(text, scale_px, spacing_px, gap_px) <= max_width_px {
+        return text.to_owned();
+    }
+
+    let mut parts = text.split_whitespace().collect::<Vec<_>>();
+    while parts.len() > 1 {
+        parts.pop();
+        let candidate = parts.join(" ");
+        if measure_banner_text_width(&candidate, scale_px, spacing_px, gap_px) <= max_width_px {
+            return candidate;
+        }
+    }
+
+    parts.first().copied().unwrap_or("").to_owned()
 }
 
 fn measure_banner_text_width(text: &str, scale_px: i32, spacing_px: i32, gap_px: i32) -> i32 {

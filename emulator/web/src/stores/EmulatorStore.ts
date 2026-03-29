@@ -19,27 +19,31 @@ export class EmulatorStore {
   private emulator: Esp32ScreenEmulator<WasmRuntimeState> | null = null;
   private customState: WasmRuntimeState | null = null;
   private activeProfile: ScreenProfile | null = null;
+  private activeCanvas: HTMLCanvasElement | null = null;
 
   constructor(
     private readonly appStore: AppStore,
     private readonly profileFactory: ScreenProfileFactory,
   ) {
-    makeAutoObservable<EmulatorStore, "appStore" | "emulator" | "customState">(
+    makeAutoObservable<EmulatorStore, "appStore" | "emulator" | "customState" | "activeCanvas">(
       this,
       {
         appStore: false,
         emulator: false,
         customState: false,
+        activeCanvas: false,
       },
       { autoBind: true },
     );
   }
 
   async init(canvas: HTMLCanvasElement): Promise<void> {
+    this.activeCanvas = canvas;
     await this.startForCanvas(canvas);
   }
 
   async syncCanvasProfile(canvas: HTMLCanvasElement): Promise<void> {
+    this.activeCanvas = canvas;
     const nextProfile = this.profileFactory(canvas);
     if (!this.emulator) {
       await this.startForCanvas(canvas, nextProfile);
@@ -56,10 +60,18 @@ export class EmulatorStore {
     await this.startForCanvas(canvas, nextProfile);
   }
 
+  async restartRuntime(): Promise<void> {
+    if (!this.activeCanvas) {
+      return;
+    }
+    await this.startForCanvas(this.activeCanvas);
+  }
+
   private async startForCanvas(
     canvas: HTMLCanvasElement,
     profileOverride?: ScreenProfile,
   ): Promise<void> {
+    this.activeCanvas = canvas;
     if (this.emulator || this.isLoading) {
       if (
         this.isLoading ||
@@ -76,7 +88,9 @@ export class EmulatorStore {
     this.shutdownRuntime();
 
     try {
-      const { initialState, program } = await createWasmProgram(0);
+      const { initialState, program } = await createWasmProgram(0, {
+        routeAlertVerbosity: this.appStore.routeAlertVerbosity,
+      });
       const profile = profileOverride ?? this.profileFactory(canvas);
       this.emulator = new Esp32ScreenEmulator(canvas, profile, initialState, program, {
         onFrame: this.recordFrameTiming,
@@ -118,6 +132,7 @@ export class EmulatorStore {
   dispose(): void {
     this.shutdownRuntime();
     this.resetFrameTiming();
+    this.activeCanvas = null;
     this.activeProfile = null;
     this.isReady = false;
     this.isLoading = false;
