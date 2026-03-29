@@ -5,6 +5,7 @@ use crate::api::{
 };
 use crate::motion::MotionState;
 use crate::overlay_ui::OverlayUiState;
+use crate::route::RouteRenderState;
 
 pub fn build_frame_output(
     frame_index: u64,
@@ -14,6 +15,7 @@ pub fn build_frame_output(
     rider_heading_rad: Option<f32>,
     motion: &MotionState,
     overlay_ui: &OverlayUiState,
+    route: RouteRenderState,
 ) -> RuntimeFrameOutput {
     let mut overlay = OverlayState {
         north_indicator_visible: true,
@@ -32,6 +34,7 @@ pub fn build_frame_output(
         camera,
         map_query,
         overlay,
+        route,
         diagnostics,
     }
 }

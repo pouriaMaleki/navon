@@ -14,6 +14,7 @@ use crate::map;
 use crate::motion::{MotionIngestConfig, MotionState};
 use crate::output;
 use crate::overlay_ui::OverlayUiState;
+use crate::route::ActiveRouteState;
 
 #[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ScheduleSet {
@@ -61,6 +62,9 @@ struct QueryResource(pub MapQuerySpec);
 struct OutputResource(pub RuntimeFrameOutput);
 
 #[derive(Resource, Debug, Clone, Default)]
+struct RouteResource(pub ActiveRouteState);
+
+#[derive(Resource, Debug, Clone, Default)]
 struct OverlayUiResource(pub OverlayUiState);
 
 pub struct RuntimeRunner {
@@ -88,6 +92,7 @@ impl RuntimeRunner {
         )));
         world.insert_resource(QueryResource::default());
         world.insert_resource(OutputResource::default());
+        world.insert_resource(RouteResource::default());
 
         let mut schedule = Schedule::default();
         schedule.configure_sets(
@@ -144,6 +149,7 @@ fn input_ingest(
     mut gesture_state: ResMut<GestureState>,
     mut tap_state: ResMut<TapState>,
     mut derived_input: ResMut<DerivedInputState>,
+    mut route: ResMut<RouteResource>,
 ) {
     if let Some(viewport_size) = pending
         .frame
@@ -168,6 +174,10 @@ fn input_ingest(
     );
     derived_input.gesture = gesture;
     derived_input.tap = tap;
+
+    if let Some(route_sync) = pending.frame.route_sync.as_ref() {
+        route.0.apply_sync(route_sync);
+    }
 }
 
 fn motion_fusion(
@@ -235,6 +245,7 @@ fn output_build(
     camera: Res<CameraResource>,
     overlay_ui: Res<OverlayUiResource>,
     query: Res<QueryResource>,
+    route: Res<RouteResource>,
     mut output_resource: ResMut<OutputResource>,
 ) {
     let camera_snapshot = camera.0.snapshot(&config.0);
@@ -256,5 +267,6 @@ fn output_build(
         motion.0.travel_heading_rad,
         &motion.0,
         &overlay_ui.0,
+        route.0.snapshot(),
     );
 }

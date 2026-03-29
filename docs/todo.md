@@ -2,6 +2,7 @@
 
 Spec reference: [`project-spec.md`](./project-spec.md)
 Plan reference: [`current-plan.md`](./current-plan.md)
+Contract reference: [`route-package-contract.md`](./route-package-contract.md)
 
 ## Delivery Order
 - Phase alignment: Epic A -> Epic B -> Epic C -> Epic D -> Epic E -> Epic F
@@ -13,16 +14,16 @@ Depends on:
 - None
 
 ### Work Items
-- [ ] Define a versioned source-agnostic `RoutePackage` schema.
-- [ ] Define maneuver model, route summary model, and provenance metadata model.
-- [ ] Define compatibility policy for schema evolution.
-- [ ] Create canonical fixture set for HSL, Google ingest, OSM, GPX, FIT, TCX, and Garmin inputs.
-- [ ] Document contract invariants and normalization guarantees.
+- [x] Define a versioned source-agnostic `RoutePackage` schema.
+- [x] Define maneuver model, route summary model, and provenance metadata model.
+- [x] Define compatibility policy for schema evolution.
+- [x] Create canonical fixture set for HSL, Google ingest, OSM, GPX, FIT, TCX, and Garmin inputs.
+- [x] Document contract invariants and normalization guarantees.
 
 ### Definition of Done
-- [ ] Schema supports all listed providers without provider-specific runtime branching.
-- [ ] Fixture corpus validates cleanly against schema.
-- [ ] Backward compatibility rules are documented with explicit migration path for breaking changes.
+- [x] Schema supports all listed providers without provider-specific runtime branching.
+- [x] Fixture corpus validates cleanly against schema.
+- [x] Backward compatibility rules are documented with explicit migration path for breaking changes.
 - [ ] Contract documentation is sufficient for independent client implementation.
 
 ## Epic B: Companion Routing Orchestrator
@@ -67,12 +68,12 @@ Depends on:
 - Epic C
 
 ### Work Items
-- [ ] Extend runtime input contracts with route lifecycle events.
+- [x] Extend runtime input contracts with route lifecycle events.
 - [ ] Implement route progress projection over active route geometry.
 - [ ] Implement off-route detection with hysteresis to prevent oscillation.
 - [ ] Implement major-turn alert trigger state and timing policy.
 - [ ] Implement runtime reroute request event surface.
-- [ ] Extend runtime output contracts with route follow and alert state.
+- [x] Extend runtime output contracts with route follow state (active route geometry/state baseline).
 - [ ] Add alert policy config contract for off-route and major-turn behavior.
 
 ### Definition of Done
@@ -86,7 +87,7 @@ Depends on:
 - Epic D
 
 ### Work Items
-- [ ] Implement route highlight rendering in `render-core`.
+- [x] Implement route highlight rendering in `render-core`.
 - [ ] Implement completed versus remaining route segment styling.
 - [ ] Implement map-first off-route alert visualization.
 - [ ] Implement map-first major-turn alert visualization.
@@ -108,7 +109,7 @@ Depends on:
 - Epic E
 
 ### Work Items
-- [ ] Add provider contract conformance tests.
+- [x] Add provider contract conformance tests.
 - [ ] Add sync reliability and fault-injection tests for packet loss/interruption.
 - [ ] Add runtime scenario tests for route progress, off-route, and reroute replacement.
 - [ ] Add rendering snapshot/readability tests for route and alerts.
