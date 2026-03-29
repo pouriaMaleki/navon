@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::api::input::GpsSample;
 use crate::api::query::WorldPoint;
 use crate::api::route::{
@@ -28,6 +30,7 @@ pub struct RouteRenderState {
     pub progress_distance_m: Option<f64>,
     pub off_route: bool,
     pub off_route_distance_m: Option<f64>,
+    pub reroute_requested: bool,
     pub upcoming_turn_alert: Option<UpcomingTurnAlert>,
     pub geometry_world: Vec<WorldPoint>,
     pub completed_geometry_world: Vec<WorldPoint>,
@@ -47,6 +50,8 @@ struct ActiveRoute {
     progress_distance_m: f64,
     off_route: bool,
     off_route_distance_m: f64,
+    off_route_duration: Duration,
+    reroute_requested: bool,
     upcoming_turn_alert: Option<UpcomingTurnAlert>,
     maneuvers: Vec<StoredManeuver>,
     geometry_world: Vec<WorldPoint>,
@@ -104,6 +109,8 @@ impl ActiveRouteState {
         off_route_enter_distance_m: f64,
         off_route_exit_distance_m: f64,
         major_turn_alert_distance_m: f64,
+        reroute_request_delay: Duration,
+        dt: Duration,
     ) {
         let Some(active) = &mut self.active else {
             return;
@@ -113,6 +120,8 @@ impl ActiveRouteState {
             off_route_enter_distance_m,
             off_route_exit_distance_m,
             major_turn_alert_distance_m,
+            reroute_request_delay,
+            dt,
         );
     }
 
@@ -156,6 +165,8 @@ impl ActiveRoute {
             progress_distance_m: 0.0,
             off_route: false,
             off_route_distance_m: 0.0,
+            off_route_duration: Duration::ZERO,
+            reroute_requested: false,
             upcoming_turn_alert: None,
             maneuvers: route
                 .maneuvers
@@ -172,6 +183,8 @@ impl ActiveRoute {
         off_route_enter_distance_m: f64,
         off_route_exit_distance_m: f64,
         major_turn_alert_distance_m: f64,
+        reroute_request_delay: Duration,
+        dt: Duration,
     ) {
         let projection = project_onto_polyline(&self.geometry_world, rider_world);
         self.progress_distance_m = self
@@ -179,12 +192,26 @@ impl ActiveRoute {
             .max(projection.progress_distance_m)
             .clamp(0.0, self.total_distance_m);
         self.off_route_distance_m = projection.distance_to_route_m;
+        let was_off_route = self.off_route;
         if self.off_route {
             if projection.distance_to_route_m <= off_route_exit_distance_m {
                 self.off_route = false;
             }
         } else if projection.distance_to_route_m >= off_route_enter_distance_m {
             self.off_route = true;
+        }
+        if self.off_route {
+            self.off_route_duration = if was_off_route {
+                self.off_route_duration.saturating_add(dt)
+            } else {
+                dt
+            };
+            if self.off_route_duration >= reroute_request_delay {
+                self.reroute_requested = true;
+            }
+        } else {
+            self.off_route_duration = Duration::ZERO;
+            self.reroute_requested = false;
         }
         self.upcoming_turn_alert = compute_upcoming_turn_alert_from_stored(
             &self.maneuvers,
@@ -202,6 +229,7 @@ impl ActiveRoute {
             progress_distance_m: Some(self.progress_distance_m),
             off_route: self.off_route,
             off_route_distance_m: Some(self.off_route_distance_m),
+            reroute_requested: self.reroute_requested,
             upcoming_turn_alert: self.upcoming_turn_alert.clone(),
             geometry_world: self.geometry_world.clone(),
             completed_geometry_world,
@@ -465,6 +493,7 @@ mod tests {
         assert_eq!(snapshot.progress_distance_m, Some(0.0));
         assert!(!snapshot.off_route);
         assert_eq!(snapshot.off_route_distance_m, Some(0.0));
+        assert!(!snapshot.reroute_requested);
         assert!(snapshot.upcoming_turn_alert.is_none());
         assert_eq!(snapshot.geometry_world.len(), 2);
         assert_eq!(snapshot.completed_geometry_world.len(), 1);
@@ -500,15 +529,36 @@ mod tests {
         }));
 
         let first_progress_world = geo_to_world(&GeoPoint::new(60.1704, 24.9384));
-        state.advance_progress(first_progress_world, 18.0, 12.0, 80.0);
+        state.advance_progress(
+            first_progress_world,
+            18.0,
+            12.0,
+            80.0,
+            Duration::from_secs(2),
+            Duration::from_millis(16),
+        );
         let first_snapshot = state.snapshot();
 
         let second_progress_world = geo_to_world(&GeoPoint::new(60.1713, 24.9384));
-        state.advance_progress(second_progress_world, 18.0, 12.0, 80.0);
+        state.advance_progress(
+            second_progress_world,
+            18.0,
+            12.0,
+            80.0,
+            Duration::from_secs(2),
+            Duration::from_millis(16),
+        );
         let second_snapshot = state.snapshot();
 
         let backward_jitter_world = geo_to_world(&GeoPoint::new(60.1702, 24.9384));
-        state.advance_progress(backward_jitter_world, 18.0, 12.0, 80.0);
+        state.advance_progress(
+            backward_jitter_world,
+            18.0,
+            12.0,
+            80.0,
+            Duration::from_secs(2),
+            Duration::from_millis(16),
+        );
         let jitter_snapshot = state.snapshot();
 
         assert!(first_snapshot.progress_distance_m.unwrap_or_default() > 0.0);
@@ -578,7 +628,14 @@ mod tests {
         }));
 
         let start_world = geo_to_world(&GeoPoint::new(37.7749, -122.4194));
-        state.advance_progress(start_world, 35.0, 22.0, 80.0);
+        state.advance_progress(
+            start_world,
+            35.0,
+            22.0,
+            80.0,
+            Duration::from_secs(2),
+            Duration::from_millis(16),
+        );
         let initial = state.snapshot();
         assert_eq!(
             initial.upcoming_turn_alert.as_ref().map(|alert| alert.kind),
@@ -586,7 +643,14 @@ mod tests {
         );
 
         let progressed_world = geo_to_world(&GeoPoint::new(37.77555, -122.41885));
-        state.advance_progress(progressed_world, 35.0, 22.0, 80.0);
+        state.advance_progress(
+            progressed_world,
+            35.0,
+            22.0,
+            80.0,
+            Duration::from_secs(2),
+            Duration::from_millis(16),
+        );
         let progressed = state.snapshot();
 
         assert_eq!(
@@ -596,6 +660,45 @@ mod tests {
                 .map(|alert| alert.kind),
             Some(TurnAlertKind::Left)
         );
+    }
+
+    #[test]
+    fn sustained_off_route_triggers_reroute_request_surface() {
+        let mut state = ActiveRouteState::default();
+        state.apply_sync(&RouteSyncMessage::Set(RouteSetMessage {
+            route: RoutePackage {
+                geometry: vec![
+                    GeoPoint::new(60.1699, 24.9384),
+                    GeoPoint::new(60.1717, 24.9384),
+                ],
+                ..sample_route("route-5", 1)
+            },
+        }));
+
+        let far_from_route = geo_to_world(&GeoPoint::new(60.1708, 24.93875));
+        state.advance_progress(
+            far_from_route,
+            18.0,
+            12.0,
+            80.0,
+            Duration::from_millis(600),
+            Duration::from_millis(300),
+        );
+        let first = state.snapshot();
+        state.advance_progress(
+            far_from_route,
+            18.0,
+            12.0,
+            80.0,
+            Duration::from_millis(600),
+            Duration::from_millis(300),
+        );
+        let second = state.snapshot();
+
+        assert!(first.off_route);
+        assert!(!first.reroute_requested);
+        assert!(second.off_route);
+        assert!(second.reroute_requested);
     }
 
     #[test]
@@ -612,15 +715,36 @@ mod tests {
         }));
 
         let far_from_route = geo_to_world(&GeoPoint::new(60.1708, 24.93875));
-        state.advance_progress(far_from_route, 18.0, 12.0, 80.0);
+        state.advance_progress(
+            far_from_route,
+            18.0,
+            12.0,
+            80.0,
+            Duration::from_secs(2),
+            Duration::from_millis(16),
+        );
         let off_route = state.snapshot();
 
         let still_outside_exit = geo_to_world(&GeoPoint::new(60.1708, 24.93858));
-        state.advance_progress(still_outside_exit, 18.0, 12.0, 80.0);
+        state.advance_progress(
+            still_outside_exit,
+            18.0,
+            12.0,
+            80.0,
+            Duration::from_secs(2),
+            Duration::from_millis(16),
+        );
         let holding = state.snapshot();
 
         let back_on_route = geo_to_world(&GeoPoint::new(60.1708, 24.93846));
-        state.advance_progress(back_on_route, 18.0, 12.0, 80.0);
+        state.advance_progress(
+            back_on_route,
+            18.0,
+            12.0,
+            80.0,
+            Duration::from_secs(2),
+            Duration::from_millis(16),
+        );
         let recovered = state.snapshot();
 
         assert!(off_route.off_route);

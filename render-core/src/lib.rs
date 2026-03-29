@@ -610,6 +610,32 @@ mod tests {
     }
 
     #[test]
+    fn reroute_request_renders_banner_pixels() {
+        let config = RuntimeConfig::default();
+        let geometry = MapQueryResult::default();
+        let mut output = sample_output();
+        output.route.reroute_requested = true;
+        output.route.off_route = true;
+
+        let mut framebuffer = Framebuffer::new(160, 160);
+        render_frame(
+            RenderScene {
+                config: &config,
+                output: &output,
+                geometry: &geometry,
+            },
+            &mut framebuffer,
+        );
+
+        let style = RenderStyle::default();
+        assert!(framebuffer.pixels().chunks_exact(4).any(|rgba| {
+            rgba[0] == style.reroute_banner_background_color.r
+                && rgba[1] == style.reroute_banner_background_color.g
+                && rgba[2] == style.reroute_banner_background_color.b
+        }));
+    }
+
+    #[test]
     fn off_route_alert_renders_warning_banner_pixels() {
         let config = RuntimeConfig::default();
         let geometry = MapQueryResult::default();

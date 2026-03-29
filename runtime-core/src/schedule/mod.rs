@@ -254,6 +254,8 @@ fn output_build(
             config.0.off_route_enter_distance_m,
             config.0.off_route_exit_distance_m,
             config.0.major_turn_alert_distance_m,
+            config.0.reroute_request_delay,
+            frame_time.dt,
         );
     }
 
