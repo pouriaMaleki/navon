@@ -54,10 +54,12 @@ class CompanionAppState : ViewModel() {
         routeRequest = routeRequest.copy(providerId = selectedProviderId)
         viewModelScope.launch {
             preview = provider.planRoute(routeRequest)
+            val selectedPackage = preview.selectedAlternative?.normalizedPackage
             activeSession = activeSession.copy(
-                routeIdentifier = preview.routeIdentifier,
-                routeRevision = preview.routeRevision,
-                destinationLabel = provider.providerId.displayName + " route",
+                routeIdentifier = selectedPackage?.routeIdentifier ?: preview.routeIdentifier,
+                routeRevision = selectedPackage?.revision ?: preview.routeRevision,
+                destinationLabel = selectedPackage?.summary?.destinationLabel ?: provider.providerId.displayName + " route",
+                destinationCoordinate = routeRequest.destination,
                 providerId = provider.providerId,
             )
             persistence.saveRecentDestination(routeRequest.destination)
@@ -70,6 +72,11 @@ class CompanionAppState : ViewModel() {
         viewModelScope.launch {
             val normalized = provider.normalizePreview(preview, routeRequest)
             bleService.sendRoute(normalized)
+            activeSession = activeSession.copy(
+                routeIdentifier = normalized.routeIdentifier,
+                routeRevision = normalized.revision,
+                destinationLabel = normalized.summary.destinationLabel ?: activeSession.destinationLabel,
+            )
             persistence.saveSession(activeSession)
             refreshDiagnostics()
         }

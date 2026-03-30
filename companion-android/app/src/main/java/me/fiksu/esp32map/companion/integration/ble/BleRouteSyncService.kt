@@ -29,11 +29,12 @@ class BleRouteSyncService : RouteSyncTransport {
     }
 
     override suspend fun sendRoute(route: NormalizedRoutePackage) {
+        mutableState.value = mutableState.value.copy(routeSyncState = RouteSyncState.PREPARING)
         mutableState.value = mutableState.value.copy(routeSyncState = RouteSyncState.TRANSFERRING)
         mutableState.value = mutableState.value.copy(routeSyncState = RouteSyncState.AWAITING_ACK)
         mutableState.value = mutableState.value.copy(
             routeSyncState = RouteSyncState.SYNCED,
-            lastSyncResult = "Synced route ${route.routeIdentifier} rev ${route.revision}",
+            lastSyncResult = "Synced route ${route.routeIdentifier} rev ${route.revision} • ${route.geometryPointCount} pts / ${route.maneuverCount} maneuvers",
         )
     }
 

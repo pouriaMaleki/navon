@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.StateFlow
 import me.fiksu.esp32map.companion.app.CompanionAppState
 import me.fiksu.esp32map.companion.domain.RouteProviderId
 
@@ -143,9 +145,14 @@ private fun RoutePreviewScreen(padding: PaddingValues, appState: CompanionAppSta
                 Column {
                     Text(alternative.title, style = MaterialTheme.typography.titleMedium)
                     Text(alternative.subtitle)
-                    Text("${alternative.distanceMeters} m • ${alternative.durationSeconds / 60} min")
+                    Text(alternative.normalizedPackage.summaryLine)
+                    Text("${alternative.normalizedPackage.geometryPointCount} geometry points • ${alternative.normalizedPackage.maneuverCount} maneuvers")
                 }
             }
+        }
+        appState.preview.selectedAlternative?.normalizedPackage?.let { selected ->
+            Text("Provenance: ${selected.provenance.providerId.displayName}")
+            Text("Source: ${selected.provenance.sourceReference ?: "None"}")
         }
         Button(onClick = appState::sendSelectedRoute, enabled = appState.preview.routeIdentifier != null) {
             Text("Send to device")
@@ -175,6 +182,9 @@ private fun ActiveRideScreen(padding: PaddingValues, appState: CompanionAppState
         Text("Revision: ${appState.activeSession.routeRevision ?: 0}")
         Text("Destination: ${appState.activeSession.destinationLabel}")
         Text("Provider: ${appState.activeSession.providerId.displayName}")
+        appState.activeSession.destinationCoordinate?.let { destination ->
+            Text("Destination lat/lon: %.5f, %.5f".format(destination.latitude, destination.longitude))
+        }
         Text("Last reroute: ${appState.activeSession.lastRerouteReason ?: "No reroute yet"}")
         Text("Reroute time: ${appState.activeSession.lastRerouteTimestamp ?: "Never"}")
     }
@@ -224,6 +234,6 @@ private fun CoordinateField(label: String, value: Double, onValueChange: (Double
 }
 
 @Composable
-private fun <T> kotlinx.coroutines.flow.StateFlow<T>.collectAsStateCompat(): androidx.compose.runtime.State<T> {
+private fun <T> StateFlow<T>.collectAsStateCompat(): State<T> {
     return collectAsState(initial = value)
 }

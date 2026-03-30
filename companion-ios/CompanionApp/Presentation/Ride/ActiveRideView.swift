@@ -11,6 +11,9 @@ struct ActiveRideView: View {
                     Text("Revision: \(appModel.activeSession.routeRevision.map(String.init) ?? "0")")
                     Text("Destination: \(appModel.activeSession.destinationLabel)")
                     Text("Provider: \(appModel.activeSession.providerID.displayName)")
+                    if let destination = appModel.activeSession.destinationCoordinate {
+                        Text(String(format: "Destination lat/lon: %.5f, %.5f", destination.latitude, destination.longitude))
+                    }
                 }
 
                 Section("Reroute") {

@@ -34,14 +34,15 @@ Depends on:
 - [x] Scaffold native iOS and Android companion app shells with presentation/domain/integration boundaries.
 - [x] Build provider adapter interface and adapter lifecycle contract.
 - [ ] Implement provider adapters for HSL, Google ingest, OSM, GPX/FIT/TCX, Garmin API/import.
-- [ ] Implement normalization pipeline from each provider payload to `RoutePackage`.
+- [x] Implement HSL normalization pipeline from provider payload shape to `RoutePackage`.
 - [x] Implement provider picker UX with source provenance visibility.
 - [ ] Implement reroute orchestration and replacement route publishing.
 
 Current checkpoint:
 - Native app shells exist in `companion-ios` and `companion-android`.
-- HSL and BLE are scaffolded as explicit seams with demo-backed implementations.
-- Next implementation step is replacing the demo HSL adapter with a real Digitransit-backed normalization flow, then wiring BLE message-contract ownership on top of the transport seam.
+- HSL now has Digitransit-shaped request builders plus fixture-backed normalization into full route packages in both native apps.
+- BLE still needs real message-contract ownership, chunking, ack/retry behavior, and device-session integration.
+- Next implementation step is wiring the explicit sync message contract (`set`, `update`, `clear`, `status`, `reroute_request`) on top of the native BLE transport seam.
 
 ### Definition of Done
 - [ ] Destination-to-`RoutePackage` generation works for each launch provider path.
