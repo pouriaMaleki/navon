@@ -1,0 +1,23 @@
+name: ESP32MapCompanion
+options:
+  bundleIdPrefix: me.fiksu.esp32map
+configs:
+  Debug: debug
+  Release: release
+targets:
+  ESP32MapCompanion:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - CompanionApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: me.fiksu.esp32map.companion.ios
+        PRODUCT_NAME: ESP32MapCompanion
+        INFOPLIST_FILE: CompanionApp/Info.plist
+        SWIFT_VERSION: 5.10
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1,2"
+    scheme:
+      testTargets: []

@@ -31,11 +31,17 @@ Depends on:
 - Epic A
 
 ### Work Items
-- [ ] Build provider adapter interface and adapter lifecycle contract.
+- [x] Scaffold native iOS and Android companion app shells with presentation/domain/integration boundaries.
+- [x] Build provider adapter interface and adapter lifecycle contract.
 - [ ] Implement provider adapters for HSL, Google ingest, OSM, GPX/FIT/TCX, Garmin API/import.
 - [ ] Implement normalization pipeline from each provider payload to `RoutePackage`.
-- [ ] Implement provider picker UX with source provenance visibility.
+- [x] Implement provider picker UX with source provenance visibility.
 - [ ] Implement reroute orchestration and replacement route publishing.
+
+Current checkpoint:
+- Native app shells exist in `companion-ios` and `companion-android`.
+- HSL and BLE are scaffolded as explicit seams with demo-backed implementations.
+- Next implementation step is replacing the demo HSL adapter with a real Digitransit-backed normalization flow, then wiring BLE message-contract ownership on top of the transport seam.
 
 ### Definition of Done
 - [ ] Destination-to-`RoutePackage` generation works for each launch provider path.
