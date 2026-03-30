@@ -25,3 +25,6 @@ open ESP32MapCompanion.xcodeproj
 
 ## Automation
 GitHub Actions automation and MacBook self-hosted runner setup are documented in [`../docs/companion-builds.md`](../docs/companion-builds.md).
+
+## Signed Device Builds
+Use the `Companion iOS` GitHub Actions workflow with `build_kind=signed_device` to create an installable signed IPA on your self-hosted MacBook runner. The full setup and iPhone install steps are documented in [`../docs/companion-builds.md`](../docs/companion-builds.md).
