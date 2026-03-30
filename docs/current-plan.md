@@ -180,6 +180,12 @@ Transport contract requirements:
 - Policy values must be runtime-configurable and forward-compatible.
 - Future policy levels must extend the same contract without replacing it.
 
+## Implementation Checkpoint (March 30, 2026, Native Sync Contract Slice)
+- Added explicit native companion sync message models for `set`, `update`, `clear`, `status`, and `reroute_request` in both iOS and Android app domains.
+- Upgraded native BLE sync services to track outbound and inbound message state, active route version, status codes, and clear versus replace lifecycle transitions.
+- Updated native app models so route publishing now chooses between `set` and `update` based on active synced route ownership, and reroute simulation now enters through an explicit `reroute_request` message.
+- Updated native device/settings surfaces to expose message flow and sync lifecycle state directly for manual verification.
+
 ## Implementation Checkpoint (March 30, 2026, HSL Normalization Slice)
 - Upgraded native companion route package models in `companion-ios` and `companion-android` to carry geometry, maneuvers, summary, version, and provenance instead of summary-only placeholders.
 - Implemented Digitransit-shaped HSL request builders in both native apps so the provider seam now has a concrete GraphQL request contract for route planning.

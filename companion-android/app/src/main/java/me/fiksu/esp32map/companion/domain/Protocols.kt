@@ -11,8 +11,11 @@ interface RoutingProvider {
 interface RouteSyncTransport {
     suspend fun scanForDevices()
     suspend fun connectToLastKnownDevice()
-    suspend fun sendRoute(route: NormalizedRoutePackage)
-    suspend fun clearRoute(routeIdentifier: String?)
+    suspend fun publishSet(route: NormalizedRoutePackage)
+    suspend fun publishUpdate(route: NormalizedRoutePackage)
+    suspend fun publishClear(routeIdentifier: String?)
+    suspend fun receiveStatus(message: RouteStatusMessage)
+    suspend fun receiveRerouteRequest(message: RouteRerouteRequestMessage)
 }
 
 interface RouteSessionStore {

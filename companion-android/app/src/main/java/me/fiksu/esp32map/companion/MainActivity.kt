@@ -165,12 +165,23 @@ private fun DeviceScreen(padding: PaddingValues, appState: CompanionAppState) {
     ScreenColumn(padding) {
         Text("Connection: ${appState.syncSession.connectionState}")
         Text("Route sync: ${appState.syncSession.routeSyncState}")
+        Text("Active route: ${appState.syncSession.activeRouteIdentifier ?: "None"}")
+        Text("Active revision: ${appState.syncSession.activeRouteRevision ?: 0}")
         Text("Last sync: ${appState.syncSession.lastSyncResult}")
+        Text("Outbound: ${appState.syncSession.lastOutboundMessage?.debugSummary ?: "None"}")
+        Text("Inbound: ${appState.syncSession.lastInboundMessage?.debugSummary ?: "None"}")
+        Text("Status code: ${appState.syncSession.lastStatusCode?.name ?: "NONE"}")
         Button(onClick = appState::connectToDevice) {
             Text("Reconnect")
         }
+        Button(onClick = appState::sendSelectedRoute) {
+            Text("Send route message")
+        }
+        Button(onClick = appState::clearActiveRoute) {
+            Text("Clear active route")
+        }
         Button(onClick = appState::triggerDemoReroute) {
-            Text("Trigger demo reroute")
+            Text("Simulate reroute request")
         }
     }
 }
@@ -201,6 +212,8 @@ private fun SettingsScreen(padding: PaddingValues, appState: CompanionAppState) 
         Text("BLE: ${diagnostics.bleState}")
         Text("Sync: ${diagnostics.lastSyncResult}")
         Text("Reroute: ${diagnostics.lastRerouteOutcome}")
+        Text("Last outbound kind: ${appState.syncSession.lastOutboundMessage?.kindLabel ?: "none"}")
+        Text("Last inbound kind: ${appState.syncSession.lastInboundMessage?.kindLabel ?: "none"}")
     }
 }
 

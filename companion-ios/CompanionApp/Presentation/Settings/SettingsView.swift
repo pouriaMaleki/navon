@@ -26,6 +26,11 @@ struct SettingsView: View {
                     Text("Sync: \(diagnostics.lastSyncResult)")
                     Text("Reroute: \(diagnostics.lastRerouteOutcome)")
                 }
+
+                Section("Sync contract") {
+                    Text("Last outbound: \(appModel.bleService.sessionState.lastOutboundMessage?.kindLabel ?? "none")")
+                    Text("Last inbound: \(appModel.bleService.sessionState.lastInboundMessage?.kindLabel ?? "none")")
+                }
             }
             .navigationTitle("Settings")
             .onAppear { appModel.refreshDiagnostics() }

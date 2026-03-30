@@ -12,6 +12,7 @@ import me.fiksu.esp32map.companion.domain.CoordinatePoint
 import me.fiksu.esp32map.companion.domain.RoutePlanRequest
 import me.fiksu.esp32map.companion.domain.RoutePreviewModel
 import me.fiksu.esp32map.companion.domain.RouteProviderId
+import me.fiksu.esp32map.companion.domain.RouteRerouteRequestMessage
 import me.fiksu.esp32map.companion.domain.RoutingProvider
 import me.fiksu.esp32map.companion.domain.SyncSessionState
 import me.fiksu.esp32map.companion.integration.ble.BleRouteSyncService
@@ -71,13 +72,29 @@ class CompanionAppState : ViewModel() {
         val provider = providers[selectedProviderId] ?: return
         viewModelScope.launch {
             val normalized = provider.normalizePreview(preview, routeRequest)
-            bleService.sendRoute(normalized)
+            val shouldUpdate = syncSession.activeRouteIdentifier == normalized.routeIdentifier && syncSession.activeRouteRevision != null
+            if (shouldUpdate) {
+                bleService.publishUpdate(normalized)
+            } else {
+                bleService.publishSet(normalized)
+            }
             activeSession = activeSession.copy(
                 routeIdentifier = normalized.routeIdentifier,
                 routeRevision = normalized.revision,
                 destinationLabel = normalized.summary.destinationLabel ?: activeSession.destinationLabel,
             )
             persistence.saveSession(activeSession)
+            refreshDiagnostics()
+        }
+    }
+
+    fun clearActiveRoute() {
+        viewModelScope.launch {
+            bleService.publishClear(activeSession.routeIdentifier)
+            activeSession = activeSession.copy(
+                routeIdentifier = null,
+                routeRevision = null,
+            )
             refreshDiagnostics()
         }
     }
@@ -93,7 +110,18 @@ class CompanionAppState : ViewModel() {
     fun triggerDemoReroute() {
         val provider = providers[selectedProviderId] ?: return
         viewModelScope.launch {
-            preview = provider.replanRoute(activeSession, routeRequest.origin)
+            val routeIdentifier = activeSession.routeIdentifier ?: "preview-route"
+            val routeRevision = activeSession.routeRevision ?: 1
+            val riderLocation = routeRequest.origin
+            bleService.receiveRerouteRequest(
+                RouteRerouteRequestMessage(
+                    routeIdentifier = routeIdentifier,
+                    revision = routeRevision,
+                    riderLocation = riderLocation,
+                    reason = "User drifted off route",
+                ),
+            )
+            preview = provider.replanRoute(activeSession, riderLocation)
             activeSession = activeSession.copy(
                 routeRevision = (activeSession.routeRevision ?: 0) + 1,
                 lastRerouteReason = "Device requested reroute",
