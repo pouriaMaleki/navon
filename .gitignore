@@ -37,3 +37,12 @@
 
 # Generated runtime map bridge module
 /render-core-wasm/src/generated_map.rs
+
+# Native companion app artifacts
+/companion-ios/ESP32MapCompanion.xcodeproj/
+/companion-ios/build/
+/companion-ios/DerivedData/
+/companion-android/.gradle/
+/companion-android/build/
+/companion-android/app/build/
+/companion-android/local.properties

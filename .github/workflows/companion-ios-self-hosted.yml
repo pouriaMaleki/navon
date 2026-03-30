@@ -1,0 +1,61 @@
+name: Companion iOS
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/companion-ios-self-hosted.yml'
+      - 'companion-ios/**'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/companion-ios-self-hosted.yml'
+      - 'companion-ios/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build iOS App Shell
+    runs-on:
+      - self-hosted
+      - macOS
+    defaults:
+      run:
+        working-directory: companion-ios
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Ensure XcodeGen is available
+        shell: bash
+        run: |
+          if command -v xcodegen >/dev/null 2>&1; then
+            exit 0
+          fi
+
+          if ! command -v brew >/dev/null 2>&1; then
+            echo 'Homebrew is required on the self-hosted macOS runner to install xcodegen.' >&2
+            exit 1
+          fi
+
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build unsigned simulator app
+        run: |
+          xcodebuild \
+            -project ESP32MapCompanion.xcodeproj \
+            -scheme ESP32MapCompanion \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build

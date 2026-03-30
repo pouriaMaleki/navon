@@ -180,6 +180,14 @@ Transport contract requirements:
 - Policy values must be runtime-configurable and forward-compatible.
 - Future policy levels must extend the same contract without replacing it.
 
+## Implementation Checkpoint (March 30, 2026)
+- Added native companion app scaffolds in `companion-ios` and `companion-android` with explicit presentation/domain/integration boundaries.
+- Added iOS SwiftUI app shell covering launch, planning, preview, device, ride, and settings surfaces.
+- Added Android Jetpack Compose app shell covering launch, planning, preview, device, ride, and settings surfaces.
+- Added first HSL provider seam in both native apps with demo-backed planning, reroute, and normalization stubs behind provider interfaces.
+- Added first BLE sync seam in both native apps with explicit route send, clear, connect, and sync-state boundaries behind transport interfaces.
+- Added persistence and diagnostics seams in both native apps so route history, active session state, and sync/reroute reporting have a stable ownership home before production integration.
+
 ## Implementation Checkpoint (March 29, 2026)
 - Delivered versioned route package and sync contracts in shared `runtime-core` API.
 - Added provider fixture contract coverage (HSL, Google ingest, OSM, GPX, FIT, TCX, Garmin API/file).

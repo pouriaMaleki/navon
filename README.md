@@ -53,3 +53,13 @@ On first run after this change, host auth directories are migrated once when pre
 Host SSH keys are mounted from `~/.ssh` to `/home/vscode/.ssh` for Git operations.
 Devcontainer runtime is pinned to DNS servers `1.1.1.1` and `8.8.8.8` to avoid host resolver issues.
 Production deployment remains unchanged and still uses [compose.yaml](/host/esp32-map/compose.yaml) only.
+
+## Native Companion Apps
+Native companion app scaffolds now live in `companion-ios` and `companion-android`.
+
+They define the first app shell, HSL provider seam, BLE sync seam, reroute orchestration seam, and persistence/diagnostics boundaries for the routing program.
+
+Build notes:
+- iOS uses XcodeGen to keep project configuration in text.
+- Android uses Gradle Kotlin DSL for Android Studio / CLI builds on machines with Android SDK installed.
+- Automated mobile build setup is documented in [`docs/companion-builds.md`](./docs/companion-builds.md).
