@@ -77,6 +77,74 @@ data class NormalizedRoutePackage(
     val summaryLine: String get() = "${summary.totalDistanceMeters.toInt()} m • ${maxOf(summary.estimatedDurationSeconds / 60, 1)} min"
 }
 
+enum class RouteSyncStatusCode {
+    ACCEPTED,
+    APPLYING,
+    ACTIVE,
+    CLEARED,
+    REJECTED,
+    RETRYABLE_FAILURE,
+    FATAL_FAILURE,
+}
+
+data class RouteSetMessage(
+    val route: NormalizedRoutePackage,
+)
+
+data class RouteUpdateMessage(
+    val routeIdentifier: String,
+    val revision: Int,
+    val route: NormalizedRoutePackage,
+)
+
+data class RouteClearMessage(
+    val routeIdentifier: String?,
+)
+
+data class RouteStatusMessage(
+    val routeIdentifier: String?,
+    val revision: Int?,
+    val status: RouteSyncStatusCode,
+    val detail: String?,
+)
+
+data class RouteRerouteRequestMessage(
+    val routeIdentifier: String,
+    val revision: Int,
+    val riderLocation: CoordinatePoint,
+    val reason: String,
+)
+
+sealed interface RouteSyncMessage {
+    val kindLabel: String
+    val debugSummary: String
+
+    data class Set(val message: RouteSetMessage) : RouteSyncMessage {
+        override val kindLabel: String = "set"
+        override val debugSummary: String = "set ${message.route.routeIdentifier} rev ${message.route.revision}"
+    }
+
+    data class Update(val message: RouteUpdateMessage) : RouteSyncMessage {
+        override val kindLabel: String = "update"
+        override val debugSummary: String = "update ${message.routeIdentifier} rev ${message.revision}"
+    }
+
+    data class Clear(val message: RouteClearMessage) : RouteSyncMessage {
+        override val kindLabel: String = "clear"
+        override val debugSummary: String = "clear ${message.routeIdentifier ?: "current"}"
+    }
+
+    data class Status(val message: RouteStatusMessage) : RouteSyncMessage {
+        override val kindLabel: String = "status"
+        override val debugSummary: String = "status ${message.status.name.lowercase()} ${message.routeIdentifier ?: "none"}"
+    }
+
+    data class RerouteRequest(val message: RouteRerouteRequestMessage) : RouteSyncMessage {
+        override val kindLabel: String = "reroute_request"
+        override val debugSummary: String = "reroute_request ${message.routeIdentifier} rev ${message.revision}"
+    }
+}
+
 data class RoutePlanRequest(
     val origin: CoordinatePoint,
     val destination: CoordinatePoint,
@@ -133,6 +201,11 @@ data class SyncSessionState(
     val routeSyncState: RouteSyncState = RouteSyncState.IDLE,
     val lastSyncResult: String = "Not sent yet",
     val lastDeviceName: String? = null,
+    val activeRouteIdentifier: String? = null,
+    val activeRouteRevision: Int? = null,
+    val lastOutboundMessage: RouteSyncMessage? = null,
+    val lastInboundMessage: RouteSyncMessage? = null,
+    val lastStatusCode: RouteSyncStatusCode? = null,
 )
 
 data class CompanionDiagnostics(

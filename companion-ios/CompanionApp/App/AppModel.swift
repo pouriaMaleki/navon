@@ -62,11 +62,28 @@ final class AppModel: ObservableObject {
         guard let provider = availableProvider else { return }
         do {
             let normalized = try provider.normalizePreview(preview, request: routeRequest)
-            try await bleService.sendRoute(normalized)
+            let shouldUpdate = bleService.sessionState.activeRouteIdentifier == normalized.routeIdentifier
+                && bleService.sessionState.activeRouteRevision != nil
+            if shouldUpdate {
+                try await bleService.publishUpdate(normalized)
+            } else {
+                try await bleService.publishSet(normalized)
+            }
             activeSession.routeIdentifier = normalized.routeIdentifier
             activeSession.routeRevision = normalized.revision
             activeSession.destinationLabel = normalized.summary.destinationLabel ?? activeSession.destinationLabel
             persistence.saveSession(activeSession)
+            refreshDiagnostics()
+        } catch {
+            refreshDiagnostics()
+        }
+    }
+
+    func clearActiveRoute() async {
+        do {
+            try await bleService.publishClear(routeIdentifier: activeSession.routeIdentifier)
+            activeSession.routeIdentifier = nil
+            activeSession.routeRevision = nil
             refreshDiagnostics()
         } catch {
             refreshDiagnostics()
@@ -81,8 +98,18 @@ final class AppModel: ObservableObject {
 
     func handleDemoRerouteRequest() async {
         guard let provider = availableProvider else { return }
+        let routeIdentifier = activeSession.routeIdentifier ?? "preview-route"
+        let routeRevision = activeSession.routeRevision ?? 1
+        let riderLocation = routeRequest.origin
+        await bleService.receiveRerouteRequest(
+            RouteRerouteRequestMessage(
+                routeIdentifier: routeIdentifier,
+                revision: routeRevision,
+                riderLocation: riderLocation,
+                reason: "User drifted off route"
+            )
+        )
         do {
-            let riderLocation = routeRequest.origin
             preview = try await provider.replanRoute(using: activeSession, riderLocation: riderLocation)
             activeSession.routeRevision = (activeSession.routeRevision ?? 0) + 1
             activeSession.lastRerouteReason = "Device requested reroute"

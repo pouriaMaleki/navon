@@ -41,8 +41,8 @@ Depends on:
 Current checkpoint:
 - Native app shells exist in `companion-ios` and `companion-android`.
 - HSL now has Digitransit-shaped request builders plus fixture-backed normalization into full route packages in both native apps.
-- BLE still needs real message-contract ownership, chunking, ack/retry behavior, and device-session integration.
-- Next implementation step is wiring the explicit sync message contract (`set`, `update`, `clear`, `status`, `reroute_request`) on top of the native BLE transport seam.
+- Native BLE seams now expose explicit `set` / `update` / `clear` / `status` / `reroute_request` message flow and visible session state.
+- Next implementation step is chunking, checksum, resume/retry, and device-version lifecycle on top of this explicit message contract.
 
 ### Definition of Done
 - [ ] Destination-to-`RoutePackage` generation works for each launch provider path.
@@ -56,7 +56,7 @@ Depends on:
 - Epic B
 
 ### Work Items
-- [ ] Define message protocol for `set`, `update`, `clear`, `status`, and `reroute_request`.
+- [x] Define message protocol for `set`, `update`, `clear`, `status`, and `reroute_request`.
 - [ ] Implement BLE-first transport with route chunking and flow control.
 - [ ] Implement checksum verification, dedupe, and idempotent replay handling.
 - [ ] Implement transfer resume/retry for interrupted sessions.
