@@ -180,6 +180,13 @@ Transport contract requirements:
 - Policy values must be runtime-configurable and forward-compatible.
 - Future policy levels must extend the same contract without replacing it.
 
+## Implementation Checkpoint (March 30, 2026, HSL Normalization Slice)
+- Upgraded native companion route package models in `companion-ios` and `companion-android` to carry geometry, maneuvers, summary, version, and provenance instead of summary-only placeholders.
+- Implemented Digitransit-shaped HSL request builders in both native apps so the provider seam now has a concrete GraphQL request contract for route planning.
+- Implemented fixture-backed HSL itinerary normalization in both native apps so route alternatives now embed fully normalized route packages with geometry and maneuver metadata.
+- Updated native preview and ride surfaces to expose normalized route package details, including geometry-point count, maneuver count, provenance, and destination context.
+- Updated native BLE sync stubs to report normalized route package transfer summaries instead of placeholder counts.
+
 ## Implementation Checkpoint (March 30, 2026)
 - Added native companion app scaffolds in `companion-ios` and `companion-android` with explicit presentation/domain/integration boundaries.
 - Added iOS SwiftUI app shell covering launch, planning, preview, device, ride, and settings surfaces.

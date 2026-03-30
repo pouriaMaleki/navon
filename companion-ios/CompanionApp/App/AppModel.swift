@@ -14,6 +14,7 @@ final class AppModel: ObservableObject {
         routeIdentifier: nil,
         routeRevision: nil,
         destinationLabel: "No destination",
+        destinationCoordinate: nil,
         providerID: .hsl,
         lastRerouteReason: nil,
         lastRerouteTimestamp: nil
@@ -44,9 +45,11 @@ final class AppModel: ObservableObject {
         guard let provider = availableProvider else { return }
         do {
             preview = try await provider.planRoute(routeRequest)
-            activeSession.routeIdentifier = preview.routeIdentifier
-            activeSession.routeRevision = preview.routeRevision
-            activeSession.destinationLabel = provider.providerID.displayName + " route"
+            let selectedPackage = preview.selectedAlternative?.normalizedPackage
+            activeSession.routeIdentifier = selectedPackage?.routeIdentifier ?? preview.routeIdentifier
+            activeSession.routeRevision = selectedPackage?.revision ?? preview.routeRevision
+            activeSession.destinationLabel = selectedPackage?.summary.destinationLabel ?? provider.providerID.displayName + " route"
+            activeSession.destinationCoordinate = routeRequest.destination
             activeSession.providerID = provider.providerID
             persistence.saveRecentDestination(routeRequest.destination)
             refreshDiagnostics()
@@ -60,6 +63,9 @@ final class AppModel: ObservableObject {
         do {
             let normalized = try provider.normalizePreview(preview, request: routeRequest)
             try await bleService.sendRoute(normalized)
+            activeSession.routeIdentifier = normalized.routeIdentifier
+            activeSession.routeRevision = normalized.revision
+            activeSession.destinationLabel = normalized.summary.destinationLabel ?? activeSession.destinationLabel
             persistence.saveSession(activeSession)
             refreshDiagnostics()
         } catch {

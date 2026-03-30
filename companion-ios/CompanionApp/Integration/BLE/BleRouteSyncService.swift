@@ -22,10 +22,11 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
     }
 
     func sendRoute(_ route: NormalizedRoutePackage) async throws {
+        sessionState.routeSyncState = .preparing
         sessionState.routeSyncState = .transferring
         sessionState.routeSyncState = .awaitingAck
         sessionState.routeSyncState = .synced
-        sessionState.lastSyncResult = "Synced route \(route.routeIdentifier) rev \(route.revision)"
+        sessionState.lastSyncResult = "Synced route \(route.routeIdentifier) rev \(route.revision) • \(route.geometryPointCount) pts / \(route.maneuverCount) maneuvers"
     }
 
     func clearRoute(routeIdentifier: String?) async throws {

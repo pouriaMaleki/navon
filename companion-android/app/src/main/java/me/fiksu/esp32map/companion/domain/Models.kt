@@ -16,6 +16,67 @@ data class CoordinatePoint(
     val longitude: Double,
 )
 
+data class RoutePackageVersion(
+    val major: Int,
+    val minor: Int,
+) {
+    companion object {
+        val CURRENT = RoutePackageVersion(1, 0)
+    }
+}
+
+enum class RouteManeuverType {
+    DEPART,
+    STRAIGHT,
+    SLIGHT_LEFT,
+    LEFT,
+    SHARP_LEFT,
+    SLIGHT_RIGHT,
+    RIGHT,
+    SHARP_RIGHT,
+    UTURN,
+    ROUNDABOUT,
+    MERGE,
+    RAMP,
+    ARRIVE,
+}
+
+data class RouteManeuver(
+    val id: String,
+    val maneuverType: RouteManeuverType,
+    val location: CoordinatePoint,
+    val distanceFromStartMeters: Double,
+    val distanceToNextMeters: Double?,
+    val instructionText: String?,
+)
+
+data class RouteSummary(
+    val totalDistanceMeters: Double,
+    val estimatedDurationSeconds: Int,
+    val startLabel: String?,
+    val destinationLabel: String?,
+)
+
+data class RouteProvenance(
+    val providerId: RouteProviderId,
+    val sourceReference: String?,
+    val generatedAtUnixMs: Long,
+)
+
+data class NormalizedRoutePackage(
+    val version: RoutePackageVersion,
+    val routeIdentifier: String,
+    val revision: Int,
+    val geometry: List<CoordinatePoint>,
+    val maneuvers: List<RouteManeuver>,
+    val summary: RouteSummary,
+    val provenance: RouteProvenance,
+) {
+    val geometryPointCount: Int get() = geometry.size
+    val maneuverCount: Int get() = maneuvers.size
+    val summaryLine: String get() = "${summary.totalDistanceMeters.toInt()} m • ${maxOf(summary.estimatedDurationSeconds / 60, 1)} min"
+}
+
 data class RoutePlanRequest(
     val origin: CoordinatePoint,
     val destination: CoordinatePoint,
@@ -28,6 +89,7 @@ data class RouteAlternative(
     val subtitle: String,
     val distanceMeters: Int,
     val durationSeconds: Int,
+    val normalizedPackage: NormalizedRoutePackage,
 )
 
 data class RoutePreviewModel(
@@ -35,12 +97,16 @@ data class RoutePreviewModel(
     val selectedAlternativeId: String? = null,
     val routeIdentifier: String? = null,
     val routeRevision: Int? = null,
-)
+) {
+    val selectedAlternative: RouteAlternative?
+        get() = alternatives.firstOrNull { it.id == selectedAlternativeId } ?: alternatives.firstOrNull()
+}
 
 data class ActiveRouteSession(
     val routeIdentifier: String? = null,
     val routeRevision: Int? = null,
     val destinationLabel: String = "No destination",
+    val destinationCoordinate: CoordinatePoint? = null,
     val providerId: RouteProviderId = RouteProviderId.HSL,
     val lastRerouteReason: String? = null,
     val lastRerouteTimestamp: String? = null,
@@ -76,13 +142,4 @@ data class CompanionDiagnostics(
     val bleState: String,
     val lastSyncResult: String,
     val lastRerouteOutcome: String,
-)
-
-data class NormalizedRoutePackage(
-    val routeIdentifier: String,
-    val revision: Int,
-    val providerId: RouteProviderId,
-    val summary: String,
-    val geometryPointCount: Int,
-    val maneuverCount: Int,
 )

@@ -1,6 +1,6 @@
 import Foundation
 
-enum RouteProviderID: String, CaseIterable, Identifiable {
+enum RouteProviderID: String, CaseIterable, Identifiable, Codable {
     case hsl
     case osm
     case googleIngest
@@ -43,6 +43,69 @@ struct CoordinatePoint: Equatable, Codable {
     var longitude: Double
 }
 
+struct RoutePackageVersion: Equatable, Codable {
+    var major: UInt16
+    var minor: UInt16
+
+    static let current = RoutePackageVersion(major: 1, minor: 0)
+}
+
+enum RouteManeuverType: String, Equatable, Codable {
+    case depart
+    case straight
+    case slightLeft
+    case left
+    case sharpLeft
+    case slightRight
+    case right
+    case sharpRight
+    case uturn
+    case roundabout
+    case merge
+    case ramp
+    case arrive
+}
+
+struct RouteManeuver: Equatable, Codable {
+    var id: String
+    var maneuverType: RouteManeuverType
+    var location: CoordinatePoint
+    var distanceFromStartMeters: Double
+    var distanceToNextMeters: Double?
+    var instructionText: String?
+}
+
+struct RouteSummary: Equatable, Codable {
+    var totalDistanceMeters: Double
+    var estimatedDurationSeconds: Int
+    var startLabel: String?
+    var destinationLabel: String?
+}
+
+struct RouteProvenance: Equatable, Codable {
+    var providerID: RouteProviderID
+    var sourceReference: String?
+    var generatedAtUnixMs: UInt64
+}
+
+struct NormalizedRoutePackage: Equatable, Codable {
+    var version: RoutePackageVersion
+    var routeIdentifier: String
+    var revision: Int
+    var geometry: [CoordinatePoint]
+    var maneuvers: [RouteManeuver]
+    var summary: RouteSummary
+    var provenance: RouteProvenance
+
+    var geometryPointCount: Int { geometry.count }
+    var maneuverCount: Int { maneuvers.count }
+
+    var summaryLine: String {
+        let minutes = max(summary.estimatedDurationSeconds / 60, 1)
+        return "\(Int(summary.totalDistanceMeters)) m • \(minutes) min"
+    }
+}
+
 struct RoutePlanRequest: Equatable {
     var origin: CoordinatePoint
     var destination: CoordinatePoint
@@ -55,6 +118,7 @@ struct RouteAlternative: Identifiable, Equatable {
     var subtitle: String
     var distanceMeters: Int
     var durationSeconds: Int
+    var normalizedPackage: NormalizedRoutePackage
 }
 
 struct RoutePreviewModel: Equatable {
@@ -62,12 +126,17 @@ struct RoutePreviewModel: Equatable {
     var selectedAlternativeID: UUID?
     var routeIdentifier: String?
     var routeRevision: Int?
+
+    var selectedAlternative: RouteAlternative? {
+        alternatives.first { $0.id == selectedAlternativeID } ?? alternatives.first
+    }
 }
 
 struct ActiveRouteSession: Equatable {
     var routeIdentifier: String?
     var routeRevision: Int?
     var destinationLabel: String
+    var destinationCoordinate: CoordinatePoint?
     var providerID: RouteProviderID
     var lastRerouteReason: String?
     var lastRerouteTimestamp: Date?

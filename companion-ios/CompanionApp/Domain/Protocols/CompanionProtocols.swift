@@ -21,12 +21,3 @@ protocol RouteSessionStore {
     func loadLastSession() -> ActiveRouteSession?
     func saveSession(_ session: ActiveRouteSession)
 }
-
-struct NormalizedRoutePackage: Equatable {
-    var routeIdentifier: String
-    var revision: Int
-    var providerID: RouteProviderID
-    var summary: String
-    var geometryPointCount: Int
-    var maneuverCount: Int
-}

@@ -17,8 +17,11 @@ struct RoutePreviewView: View {
                                     .font(.headline)
                                 Text(alternative.subtitle)
                                     .foregroundStyle(.secondary)
-                                Text("\(alternative.distanceMeters) m • \(alternative.durationSeconds / 60) min")
+                                Text(alternative.normalizedPackage.summaryLine)
                                     .font(.caption)
+                                Text("\(alternative.normalizedPackage.geometryPointCount) geometry points • \(alternative.normalizedPackage.maneuverCount) maneuvers")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -27,6 +30,10 @@ struct RoutePreviewView: View {
                 Section("Send") {
                     Text("Route id: \(appModel.preview.routeIdentifier ?? "None")")
                     Text("Revision: \(appModel.preview.routeRevision.map(String.init) ?? "0")")
+                    if let selected = appModel.preview.selectedAlternative?.normalizedPackage {
+                        Text("Provenance: \(selected.provenance.providerID.displayName)")
+                        Text("Source: \(selected.provenance.sourceReference ?? "None")")
+                    }
                     Button("Send to device") {
                         Task { await appModel.sendSelectedRoute() }
                     }
