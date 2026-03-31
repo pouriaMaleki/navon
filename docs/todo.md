@@ -61,7 +61,8 @@ Current checkpoint:
 - Native BLE transport seams in iOS and Android now use real CoreBluetooth / Android BLE packet IO when a compatible ESP32 route-sync peripheral is available, while preserving the existing chunked transfer/session state model.
 - Firmware now owns device-side route sync reassembly, checksum verification, stale-revision rejection, duplicate replay dedupe, conflicting same-revision detection, runtime route ingress, platform-to-runtime status publication, and outbound reroute-request publication.
 - The BLE wire contract is now fixed in code and docs across firmware plus both native companion apps, including service/characteristic UUIDs, packet envelopes for `chunk` and `sync_message` traffic, and actual GATT adapter implementations on all three sides where the target silicon exposes standard BLE APIs. The ESP32-P4 production board still needs its external-radio path wired separately.
-- Next implementation step is deterministic fault-injection tests around live packet loss/resume behavior plus field validation against real ESP hardware.
+- Deterministic firmware fault-injection coverage now exists for interrupted transfer resume, out-of-order chunks, checksum mismatch handling, and malformed payload handling.
+- Next implementation step is field validation against real ESP hardware and companion-side live adapter fault injection.
 
 ### Work Items
 - [x] Define message protocol for `set`, `update`, `clear`, `status`, and `reroute_request`.
@@ -72,10 +73,10 @@ Current checkpoint:
 - [x] Add route version lifecycle handling on device.
 
 ### Definition of Done
-- [ ] Route transfer remains correct under interrupted sessions and resumed transfer.
-- [ ] Duplicate packets do not corrupt route state.
-- [ ] Checksum mismatch is detected and recovered with deterministic retry behavior.
-- [ ] Device route state always reflects last acknowledged route version.
+- [x] Route transfer remains correct under interrupted sessions and resumed transfer.
+- [x] Duplicate packets do not corrupt route state.
+- [x] Checksum mismatch is detected and recovered with deterministic retry behavior.
+- [x] Device route state always reflects last acknowledged route version.
 
 ## Epic D: Shared Runtime Route-Follow Engine
 Depends on:
@@ -125,7 +126,7 @@ Depends on:
 
 ### Work Items
 - [x] Add provider contract conformance tests.
-- [ ] Add sync reliability and fault-injection tests for packet loss/interruption.
+- [x] Add sync reliability and fault-injection tests for packet loss/interruption.
 - [x] Add runtime scenario tests for route progress, off-route, and reroute replacement.
 - [x] Add rendering snapshot/readability tests for route and alerts.
 - [ ] Execute Helsinki field validation rides with HSL-first scenarios.
@@ -134,7 +135,7 @@ Depends on:
 
 ### Definition of Done
 - [ ] All provider adapters pass conformance test suite.
-- [ ] Sync transport passes reliability suite with deterministic recovery behavior.
+- [x] Sync transport passes reliability suite with deterministic recovery behavior.
 - [x] Runtime and render route behavior pass deterministic regression suites for the current route-follow, alert, and reroute-replacement scope.
 - [ ] Field validation confirms stable follow and reroute user experience in Helsinki conditions.
 - [ ] Compliance and legal gating artifacts are complete for planned launch sources.

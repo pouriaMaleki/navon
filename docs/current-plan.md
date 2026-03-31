@@ -181,6 +181,11 @@ Transport contract requirements:
 - Policy values must be runtime-configurable and forward-compatible.
 - Future policy levels must extend the same contract without replacing it.
 
+## Implementation Checkpoint (March 31, 2026, Transport Fault-Hardening Slice)
+- Hardened the firmware route-sync platform loop so malformed or corrupted inbound transfers emit explicit `retryable_failure` or `fatal_failure` sync statuses instead of aborting the frame loop.
+- Added deterministic transport reliability coverage for resumed interrupted transfers, out-of-order chunk delivery, checksum mismatch handling, and malformed payload handling.
+- Preserved the shared ownership rule that transport adapters report sync-state outcomes while runtime/render remain isolated from transport corruption details.
+
 ## Implementation Checkpoint (March 31, 2026, Live BLE Integration Slice)
 - Integrated real CoreBluetooth central/client wiring in the iOS companion app, including scan, connect, GATT service discovery, route chunk writes, notification subscription, and Bluetooth permission prompts/usage descriptions.
 - Integrated real Android BLE/GATT central wiring in the Android companion app, including permission-gated scan/connect, characteristic discovery, route chunk writes, notification subscription, and on-device permission request UI.
