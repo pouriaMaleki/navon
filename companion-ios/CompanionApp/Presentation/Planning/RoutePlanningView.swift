@@ -12,7 +12,7 @@ struct RoutePlanningView: View {
                             HStack {
                                 Text(provider.displayName)
                                 if !provider.isAvailableInV1 {
-                                    Text("Coming soon")
+                                    Text(provider.supportsCompanionPreview ? "Sample preview" : "Coming soon")
                                         .foregroundStyle(.secondary)
                                 }
                             }
@@ -23,7 +23,7 @@ struct RoutePlanningView: View {
 
                 Section("Planning mode") {
                     Text(appModel.settings.preferLiveHslRouting ? "Live HSL enabled" : "Sample HSL routes")
-                    Text(appModel.settings.preferLiveHslRouting ? "Routes will use Digitransit when a subscription key is configured." : "Routes are currently generated from the built-in sample fixtures.")
+                    Text(appModel.settings.preferLiveHslRouting ? "Routes will use Digitransit when a subscription key is configured." : "Routes are currently generated from the built-in sample fixtures or sample-backed provider adapters.")
                         .foregroundStyle(.secondary)
                 }
 
@@ -45,10 +45,10 @@ struct RoutePlanningView: View {
                 }
 
                 Section {
-                    Button("Plan HSL route") {
+                    Button("Plan \(appModel.selectedProviderID.displayName) route") {
                         Task { await appModel.planRoute() }
                     }
-                    .disabled(!appModel.selectedProviderID.isAvailableInV1)
+                    .disabled(!appModel.selectedProviderCanPlan)
                 }
             }
             .navigationTitle("Plan route")
