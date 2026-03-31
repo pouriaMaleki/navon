@@ -173,7 +173,10 @@ where
     pub fn run_frame(&mut self) -> Result<FrameResult, PlatformError> {
         let mut route_sync_statuses = Vec::new();
         while let Some(chunk) = self.route_sync.poll_chunk()? {
-            route_sync_statuses.extend(self.app.ingest_route_sync_chunk(chunk)?);
+            match self.app.ingest_route_sync_chunk(chunk) {
+                Ok(statuses) => route_sync_statuses.extend(statuses),
+                Err(error) => route_sync_statuses.push(error.as_status_message()),
+            }
         }
 
         let dt = self.clock.next_dt();
@@ -459,6 +462,68 @@ mod tests {
                 .map(RouteSyncMessage::Status)
                 .collect::<Vec<_>>()
         );
+    }
+
+    #[test]
+    fn runtime_platform_reports_retryable_failure_for_checksum_mismatch_without_crashing() {
+        let board = crate::board_config::BoardConfig::default();
+        let app = App::default();
+        let message = RouteSyncMessage::Set(RouteSetMessage {
+            route: sample_route(1),
+        });
+        let mut chunks = chunk_sync_message(&message, "transfer-1", 32);
+        chunks[0].checksum_hex = "deadbeef".to_owned();
+        let route_sync = SequenceRouteSyncIo::new(chunks);
+        let mut platform = RuntimePlatform::with_route_sync(
+            app,
+            NullTouchSource,
+            NullGpsProvider,
+            FixedFrameClock::new(board.frame_interval),
+            route_sync,
+        );
+
+        let frame = platform.run_frame().expect("platform frame should survive checksum mismatch");
+
+        assert_eq!(frame.route_sync_statuses.len(), 1);
+        assert_eq!(frame.route_sync_statuses[0].status, RouteSyncStatusCode::RetryableFailure);
+        assert_eq!(platform.route_sync().published_messages().len(), 1);
+        assert!(matches!(
+            platform.route_sync().published_messages()[0].first(),
+            Some(RouteSyncMessage::Status(status)) if status.status == RouteSyncStatusCode::RetryableFailure
+        ));
+    }
+
+    #[test]
+    fn runtime_platform_reports_fatal_failure_for_malformed_payload_without_crashing() {
+        let board = crate::board_config::BoardConfig::default();
+        let app = App::default();
+        let payload = b"kind=set
+route_id=broken-only".to_vec();
+        let chunk = RouteTransferChunk {
+            transfer_id: "broken-transfer".to_owned(),
+            chunk_index: 0,
+            total_chunks: 1,
+            checksum_hex: crate::route_sync::checksum_hex(&payload),
+            payload_fragment: payload,
+        };
+        let route_sync = SequenceRouteSyncIo::new([chunk]);
+        let mut platform = RuntimePlatform::with_route_sync(
+            app,
+            NullTouchSource,
+            NullGpsProvider,
+            FixedFrameClock::new(board.frame_interval),
+            route_sync,
+        );
+
+        let frame = platform.run_frame().expect("platform frame should survive malformed payload");
+
+        assert_eq!(frame.route_sync_statuses.len(), 1);
+        assert_eq!(frame.route_sync_statuses[0].status, RouteSyncStatusCode::FatalFailure);
+        assert_eq!(platform.route_sync().published_messages().len(), 1);
+        assert!(matches!(
+            platform.route_sync().published_messages()[0].first(),
+            Some(RouteSyncMessage::Status(status)) if status.status == RouteSyncStatusCode::FatalFailure
+        ));
     }
 
     #[test]

@@ -47,6 +47,63 @@ impl From<RoutePackageError> for RouteSyncTransportError {
     }
 }
 
+impl RouteSyncTransportError {
+    pub fn status_code(&self) -> RouteSyncStatusCode {
+        match self {
+            Self::EmptyTransferId
+            | Self::InvalidChunkIndex { .. }
+            | Self::ConflictingChunkData { .. }
+            | Self::ChecksumMismatch { .. } => RouteSyncStatusCode::RetryableFailure,
+            Self::Utf8Payload
+            | Self::MissingField(_)
+            | Self::InvalidField { .. }
+            | Self::InvalidMessageKind(_)
+            | Self::RoutePackage(_) => RouteSyncStatusCode::FatalFailure,
+        }
+    }
+
+    pub fn detail_message(&self) -> String {
+        match self {
+            Self::EmptyTransferId => "Rejected route transfer chunk with an empty transfer id".to_owned(),
+            Self::InvalidChunkIndex { chunk_index, total_chunks } => format!(
+                "Rejected route transfer chunk index {} for total chunk count {}",
+                chunk_index, total_chunks
+            ),
+            Self::ConflictingChunkData {
+                transfer_id,
+                chunk_index,
+            } => format!(
+                "Conflicting payload received for transfer {} chunk {}",
+                transfer_id, chunk_index
+            ),
+            Self::ChecksumMismatch { expected, actual } => format!(
+                "Route transfer checksum mismatch: expected {}, got {}",
+                expected, actual
+            ),
+            Self::Utf8Payload => "Route transfer payload was not valid UTF-8".to_owned(),
+            Self::MissingField(field) => format!("Route transfer payload is missing required field {field}"),
+            Self::InvalidField { field, value } => {
+                format!("Route transfer payload field {field} had invalid value {value}")
+            }
+            Self::InvalidMessageKind(kind) => {
+                format!("Route transfer payload uses unsupported message kind {kind}")
+            }
+            Self::RoutePackage(error) => {
+                format!("Route package validation failed: {error:?}")
+            }
+        }
+    }
+
+    pub fn as_status_message(&self) -> RouteStatusMessage {
+        RouteStatusMessage {
+            route_id: None,
+            revision: None,
+            status: self.status_code(),
+            detail: Some(self.detail_message()),
+        }
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct RouteSyncTransport {
     active_route_id: Option<String>,
@@ -817,7 +874,7 @@ fn route_revision_of_message(message: &RouteSyncMessage) -> Option<u64> {
     }
 }
 
-fn checksum_hex(payload: &[u8]) -> String {
+pub(crate) fn checksum_hex(payload: &[u8]) -> String {
     let mut hash: u32 = 2_166_136_261;
     for byte in payload {
         hash ^= u32::from(*byte);
@@ -1020,6 +1077,65 @@ mod tests {
         assert_eq!(statuses.len(), 2);
         assert_eq!(final_status.status, RouteSyncStatusCode::Cleared);
         assert_eq!(transport.active_route_id(), None);
+    }
+
+    #[test]
+    fn interrupted_transfer_resumes_when_remaining_chunks_arrive_later() {
+        let message = RouteSyncMessage::Set(RouteSetMessage {
+            route: sample_route(1),
+        });
+        let chunks = chunk_sync_message(&message, "transfer-1", 20);
+        let mut transport = RouteSyncTransport::default();
+
+        for chunk in chunks.iter().take(2).cloned() {
+            let statuses = transport.ingest_chunk(chunk).expect("partial chunk ingestion");
+            assert!(statuses.is_empty());
+        }
+        assert!(transport.take_pending_runtime_message().is_none());
+
+        for chunk in chunks.iter().skip(2).cloned() {
+            let is_final_chunk = chunk.chunk_index + 1 == chunk.total_chunks;
+            let statuses = transport.ingest_chunk(chunk).expect("resumed chunk ingestion");
+            if is_final_chunk {
+                assert_eq!(statuses.len(), 2);
+                assert_eq!(statuses[0].status, RouteSyncStatusCode::Accepted);
+                assert_eq!(statuses[1].status, RouteSyncStatusCode::Applying);
+            } else {
+                assert!(statuses.is_empty());
+            }
+        }
+
+        let applied = transport
+            .complete_applied_message()
+            .expect("active status after resumed transfer");
+        assert_eq!(applied.status, RouteSyncStatusCode::Active);
+        assert_eq!(transport.active_route_revision(), Some(1));
+    }
+
+    #[test]
+    fn out_of_order_chunks_are_reassembled_successfully() {
+        let message = RouteSyncMessage::Set(RouteSetMessage {
+            route: sample_route(1),
+        });
+        let mut chunks = chunk_sync_message(&message, "transfer-1", 18);
+        chunks.reverse();
+        let mut transport = RouteSyncTransport::default();
+        let mut final_statuses = Vec::new();
+
+        for chunk in chunks {
+            let statuses = transport.ingest_chunk(chunk).expect("out of order chunk ingestion");
+            if !statuses.is_empty() {
+                final_statuses = statuses;
+            }
+        }
+
+        assert_eq!(final_statuses.len(), 2);
+        assert_eq!(final_statuses[0].status, RouteSyncStatusCode::Accepted);
+        assert_eq!(final_statuses[1].status, RouteSyncStatusCode::Applying);
+        assert_eq!(
+            transport.complete_applied_message().expect("active status").status,
+            RouteSyncStatusCode::Active
+        );
     }
 
     #[test]
