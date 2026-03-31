@@ -202,6 +202,13 @@ enum class RouteSyncState {
     FAILED,
 }
 
+enum class RouteSyncFaultInjectionMode(val displayName: String) {
+    RETRYABLE_INTERRUPTION("Retryable interruption"),
+    WRITE_FAILURE("Write failure"),
+    DISCONNECT_AFTER_CHUNK_WRITE("Disconnect after chunk"),
+    DROP_NEXT_INBOUND_STATUS("Drop next inbound status"),
+}
+
 data class RouteTransferProgress(
     val transferIdentifier: String,
     val messageKind: String,
@@ -232,6 +239,7 @@ data class SyncSessionState(
     val activeRouteChecksumHex: String? = null,
     val transferProgress: RouteTransferProgress? = null,
     val retryableInterruptionArmed: Boolean = false,
+    val armedFaultInjectionMode: RouteSyncFaultInjectionMode? = null,
     val lastOutboundMessage: RouteSyncMessage? = null,
     val lastInboundMessage: RouteSyncMessage? = null,
     val lastStatusCode: RouteSyncStatusCode? = null,

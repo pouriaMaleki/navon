@@ -19,6 +19,7 @@ struct DeviceView: View {
 
                 Section("Transfer") {
                     Text("Retry fault armed: \(appModel.bleService.sessionState.retryableInterruptionArmed ? "Yes" : "No")")
+                    Text("Armed fault: \(appModel.bleService.sessionState.armedFaultInjectionMode?.displayName ?? "None")")
                     if let transfer = appModel.bleService.sessionState.transferProgress {
                         Text("Transfer id: \(transfer.transferIdentifier)")
                         Text("Kind: \(transfer.messageKind)")
@@ -47,8 +48,17 @@ struct DeviceView: View {
                     Button("Send route message") {
                         Task { await appModel.sendSelectedRoute() }
                     }
-                    Button("Arm next transfer interruption") {
+                    Button("Arm retryable interruption") {
                         appModel.armRetryableInterruptionOnNextTransfer()
+                    }
+                    Button("Arm write failure") {
+                        appModel.armWriteFailureOnNextTransfer()
+                    }
+                    Button("Arm disconnect after chunk") {
+                        appModel.armDisconnectAfterNextChunkWrite()
+                    }
+                    Button("Arm drop next inbound status") {
+                        appModel.armDropNextInboundStatus()
                     }
                     Button("Resume pending transfer") {
                         Task { await appModel.resumePendingTransfer() }

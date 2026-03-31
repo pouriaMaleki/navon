@@ -246,6 +246,28 @@ enum RouteSyncState: String, Equatable {
     case failed
 }
 
+enum RouteSyncFaultInjectionMode: String, Equatable, Codable, CaseIterable, Identifiable {
+    case retryableInterruption
+    case writeFailure
+    case disconnectAfterChunkWrite
+    case dropNextInboundStatus
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .retryableInterruption:
+            return "Retryable interruption"
+        case .writeFailure:
+            return "Write failure"
+        case .disconnectAfterChunkWrite:
+            return "Disconnect after chunk"
+        case .dropNextInboundStatus:
+            return "Drop next inbound status"
+        }
+    }
+}
+
 struct RouteTransferProgress: Equatable {
     var transferIdentifier: String
     var messageKind: String
@@ -278,6 +300,7 @@ struct SyncSessionState: Equatable {
     var activeRouteChecksumHex: String?
     var transferProgress: RouteTransferProgress?
     var retryableInterruptionArmed: Bool
+    var armedFaultInjectionMode: RouteSyncFaultInjectionMode?
     var lastOutboundMessage: RouteSyncMessage?
     var lastInboundMessage: RouteSyncMessage?
     var lastStatusCode: RouteSyncStatusCode?

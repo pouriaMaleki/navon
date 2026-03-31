@@ -124,6 +124,21 @@ final class AppModel: ObservableObject {
         refreshDiagnostics()
     }
 
+    func armWriteFailureOnNextTransfer() {
+        bleService.armFaultInjection(.writeFailure)
+        refreshDiagnostics()
+    }
+
+    func armDisconnectAfterNextChunkWrite() {
+        bleService.armFaultInjection(.disconnectAfterChunkWrite)
+        refreshDiagnostics()
+    }
+
+    func armDropNextInboundStatus() {
+        bleService.armFaultInjection(.dropNextInboundStatus)
+        refreshDiagnostics()
+    }
+
     func connectToDevice() async {
         await bleService.scanForDevices()
         await bleService.connectToLastKnownDevice()

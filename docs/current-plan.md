@@ -186,6 +186,11 @@ Transport contract requirements:
 - Added deterministic transport reliability coverage for resumed interrupted transfers, out-of-order chunk delivery, checksum mismatch handling, and malformed payload handling.
 - Preserved the shared ownership rule that transport adapters report sync-state outcomes while runtime/render remain isolated from transport corruption details.
 
+## Implementation Checkpoint (March 31, 2026, Companion BLE Fault-Injection Slice)
+- Added live companion-side BLE fault injection controls for retryable interruption, write failure, disconnect-after-chunk, and dropped inbound status paths in both iOS and Android app shells so transport recovery can be exercised without changing firmware behavior.
+- Hardened the native BLE sync services so live disconnects and write failures remain resumable pending transfers instead of collapsing into idle state or incorrectly falling through to simulated success.
+- Added acknowledgement timeout recovery that rewinds completed chunk uploads into a replayable failed transfer when the final device status never arrives, aligning companion behavior with the same deterministic retry posture already enforced in firmware.
+
 ## Implementation Checkpoint (March 31, 2026, Live BLE Integration Slice)
 - Integrated real CoreBluetooth central/client wiring in the iOS companion app, including scan, connect, GATT service discovery, route chunk writes, notification subscription, and Bluetooth permission prompts/usage descriptions.
 - Integrated real Android BLE/GATT central wiring in the Android companion app, including permission-gated scan/connect, characteristic discovery, route chunk writes, notification subscription, and on-device permission request UI.

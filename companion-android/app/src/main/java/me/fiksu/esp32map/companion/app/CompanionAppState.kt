@@ -124,6 +124,21 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
         refreshDiagnostics()
     }
 
+    fun armWriteFailureOnNextTransfer() {
+        bleService.armFaultInjection(me.fiksu.esp32map.companion.domain.RouteSyncFaultInjectionMode.WRITE_FAILURE)
+        refreshDiagnostics()
+    }
+
+    fun armDisconnectAfterNextChunkWrite() {
+        bleService.armFaultInjection(me.fiksu.esp32map.companion.domain.RouteSyncFaultInjectionMode.DISCONNECT_AFTER_CHUNK_WRITE)
+        refreshDiagnostics()
+    }
+
+    fun armDropNextInboundStatus() {
+        bleService.armFaultInjection(me.fiksu.esp32map.companion.domain.RouteSyncFaultInjectionMode.DROP_NEXT_INBOUND_STATUS)
+        refreshDiagnostics()
+    }
+
     fun connectToDevice() {
         viewModelScope.launch {
             bleService.scanForDevices()

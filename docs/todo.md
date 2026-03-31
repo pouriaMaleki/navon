@@ -44,7 +44,8 @@ Current checkpoint:
 - Native preview screens now let the user choose a specific route alternative before sync instead of silently sending the first alternative.
 - Native ride/device screens now let the user drive reroute publishing from an explicit rider location, so replacement-route generation no longer depends on a hidden origin-only demo path.
 - Native BLE seams now have real CoreBluetooth and Android BLE/GATT clients wired into the same chunked transfer/session model that was originally simulated, while preserving the simulated fallback path when no BLE connection is active.
-- Next implementation step is fault-injection hardening around live BLE packet loss/resume behavior and end-to-end device validation against the ESP GATT server.
+- Native device screens now expose live BLE fault-injection controls for retryable interruption, write failure, disconnect-after-chunk, and dropped inbound status so packet-loss and ack-loss recovery can be exercised against the same chunked session model used by real CoreBluetooth and Android BLE clients.
+- Next implementation step is end-to-end device validation against the ESP GATT server on BLE-capable hardware, followed by the ESP32-P4 external-radio path and remaining provider breadth.
 
 ### Definition of Done
 - [ ] Destination-to-`RoutePackage` generation works for each launch provider path.
@@ -62,7 +63,8 @@ Current checkpoint:
 - Firmware now owns device-side route sync reassembly, checksum verification, stale-revision rejection, duplicate replay dedupe, conflicting same-revision detection, runtime route ingress, platform-to-runtime status publication, and outbound reroute-request publication.
 - The BLE wire contract is now fixed in code and docs across firmware plus both native companion apps, including service/characteristic UUIDs, packet envelopes for `chunk` and `sync_message` traffic, and actual GATT adapter implementations on all three sides where the target silicon exposes standard BLE APIs. The ESP32-P4 production board still needs its external-radio path wired separately.
 - Deterministic firmware fault-injection coverage now exists for interrupted transfer resume, out-of-order chunks, checksum mismatch handling, and malformed payload handling.
-- Next implementation step is field validation against real ESP hardware and companion-side live adapter fault injection.
+- Native companion apps now expose matching live adapter fault-injection controls and acknowledgement-timeout recovery so the phone-side transport loop can be validated against the same failure classes.
+- Next implementation step is field validation against real ESP hardware, then the ESP32-P4 external-radio path and optional Wi-Fi transport.
 
 ### Work Items
 - [x] Define message protocol for `set`, `update`, `clear`, `status`, and `reroute_request`.

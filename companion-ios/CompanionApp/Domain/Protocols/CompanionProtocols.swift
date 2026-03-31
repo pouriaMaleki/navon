@@ -16,6 +16,7 @@ protocol RouteSyncTransport {
     func publishClear(routeIdentifier: String?) async throws
     func resumePendingTransfer() async throws
     func armRetryableInterruptionOnNextTransfer()
+    func armFaultInjection(_ mode: RouteSyncFaultInjectionMode)
     func receiveStatus(_ message: RouteStatusMessage) async
     func receiveRerouteRequest(_ message: RouteRerouteRequestMessage) async
 }
