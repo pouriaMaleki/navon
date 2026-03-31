@@ -16,6 +16,7 @@ interface RouteSyncTransport {
     suspend fun publishClear(routeIdentifier: String?)
     suspend fun resumePendingTransfer()
     fun armRetryableInterruptionOnNextTransfer()
+    fun armFaultInjection(mode: RouteSyncFaultInjectionMode)
     suspend fun receiveStatus(message: RouteStatusMessage)
     suspend fun receiveRerouteRequest(message: RouteRerouteRequestMessage)
 }

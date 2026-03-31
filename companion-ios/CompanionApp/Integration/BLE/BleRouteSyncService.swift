@@ -15,26 +15,23 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
         activeRouteChecksumHex: nil,
         transferProgress: nil,
         retryableInterruptionArmed: false,
+        armedFaultInjectionMode: nil,
         lastOutboundMessage: nil,
         lastInboundMessage: nil,
         lastStatusCode: nil
     )
 
     private let chunkSizeBytes = 96
+    private let ackTimeoutNanoseconds: UInt64 = 2_000_000_000
     private let bluetoothClient: CoreBluetoothRouteSyncClient
     private var pendingTransfer: PendingTransfer?
+    private var ackTimeoutTask: Task<Void, Never>?
 
     init(bluetoothClient: CoreBluetoothRouteSyncClient = CoreBluetoothRouteSyncClient()) {
         self.bluetoothClient = bluetoothClient
         self.bluetoothClient.onConnectionStateChange = { [weak self] state, name in
             Task { @MainActor in
-                self?.sessionState.connectionState = state
-                if let name {
-                    self?.sessionState.lastDeviceName = name
-                }
-                if state == .disconnected {
-                    self?.sessionState.routeSyncState = .idle
-                }
+                self?.handleConnectionStateChange(state, name: name)
             }
         }
         self.bluetoothClient.onSyncMessage = { [weak self] message in
@@ -48,7 +45,7 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
         sessionState.connectionState = .scanning
         do {
             sessionState.lastDeviceName = try await bluetoothClient.scanForRouteSyncPeripheral()
-            sessionState.lastSyncResult = "Discovered \(sessionState.lastDeviceName ?? "ESP32 Bike Minimap")"
+            sessionState.lastSyncResult = "Discovered \(sessionState.lastDeviceName ?? \"ESP32 Bike Minimap\")"
         } catch {
             sessionState.connectionState = .disconnected
             sessionState.lastSyncResult = error.localizedDescription
@@ -60,7 +57,7 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
         do {
             sessionState.lastDeviceName = try await bluetoothClient.connectToScannedPeripheral()
             sessionState.connectionState = .connected
-            sessionState.lastSyncResult = "Connected to \(sessionState.lastDeviceName ?? "ESP32 Bike Minimap")"
+            sessionState.lastSyncResult = "Connected to \(sessionState.lastDeviceName ?? \"ESP32 Bike Minimap\")"
         } catch {
             sessionState.connectionState = .disconnected
             sessionState.lastSyncResult = error.localizedDescription
@@ -88,16 +85,32 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
     }
 
     func resumePendingTransfer() async throws {
-        guard pendingTransfer != nil else {
+        guard var transfer = pendingTransfer else {
             throw TransferError.noPendingTransfer
+        }
+        if transfer.nextChunkIndex >= transfer.chunkEnvelopes.count {
+            transfer.nextChunkIndex = 0
+            pendingTransfer = transfer
+            sessionState.transferProgress = transfer.progress(chunkSizeBytes: chunkSizeBytes)
         }
         sessionState.routeSyncState = .transferring
         try await drainPendingTransfer()
     }
 
     func armRetryableInterruptionOnNextTransfer() {
-        sessionState.retryableInterruptionArmed = true
-        sessionState.lastSyncResult = "Next transfer will simulate one retryable BLE interruption"
+        armFaultInjection(.retryableInterruption)
+    }
+
+    func armFaultInjection(_ mode: RouteSyncFaultInjectionMode) {
+        sessionState.armedFaultInjectionMode = mode
+        switch mode {
+        case .retryableInterruption:
+            sessionState.retryableInterruptionArmed = true
+        case .writeFailure, .disconnectAfterChunkWrite, .dropNextInboundStatus:
+            sessionState.retryableInterruptionArmed = false
+            bluetoothClient.armDebugFault(mode)
+        }
+        sessionState.lastSyncResult = "Armed \(mode.displayName.lowercased()) for the next BLE sync cycle"
     }
 
     func receiveStatus(_ message: RouteStatusMessage) async {
@@ -109,6 +122,7 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
     }
 
     private func beginTransfer(_ message: RouteSyncMessage) async throws {
+        cancelAckTimeout()
         let transferIdentifier = UUID().uuidString
         let payload = BleRouteSyncCodec.canonicalPayloadData(for: message)
         let transfer = PendingTransfer(
@@ -123,7 +137,8 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
             ),
             nextChunkIndex: 0,
             retryCount: 0,
-            lastError: nil
+            lastError: nil,
+            usingLiveTransport: bluetoothClient.isReady
         )
         pendingTransfer = transfer
         sessionState.routeSyncState = .preparing
@@ -140,6 +155,7 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
             throw TransferError.noPendingTransfer
         }
 
+        cancelAckTimeout()
         sessionState.routeSyncState = .transferring
         while transfer.nextChunkIndex < transfer.chunkEnvelopes.count {
             try await Task.sleep(nanoseconds: 80_000_000)
@@ -147,6 +163,7 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
 
             if sessionState.retryableInterruptionArmed {
                 sessionState.retryableInterruptionArmed = false
+                sessionState.armedFaultInjectionMode = nil
                 transfer.retryCount += 1
                 transfer.lastError = "Simulated BLE interruption at chunk \(chunkNumber)/\(transfer.chunkEnvelopes.count)"
                 pendingTransfer = transfer
@@ -156,9 +173,19 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
                 return
             }
 
+            if transfer.usingLiveTransport && !bluetoothClient.isReady {
+                failTransferDueToDisconnect(&transfer, detail: "BLE transport disconnected before chunk \(chunkNumber)/\(transfer.chunkEnvelopes.count) could be written")
+                return
+            }
+
             let envelope = transfer.chunkEnvelopes[transfer.nextChunkIndex]
-            if bluetoothClient.isReady {
-                try await bluetoothClient.write(packet: .chunk(envelope))
+            if transfer.usingLiveTransport {
+                do {
+                    try await bluetoothClient.write(packet: .chunk(envelope))
+                } catch {
+                    failTransfer(&transfer, detail: error.localizedDescription, restartFromFirstChunk: false)
+                    return
+                }
             }
 
             transfer.nextChunkIndex = chunkNumber
@@ -168,9 +195,14 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
             sessionState.lastSyncResult = "Transferred chunk \(chunkNumber)/\(transfer.chunkEnvelopes.count) (\(transfer.progress(chunkSizeBytes: chunkSizeBytes).percentComplete)%)"
         }
 
-        if bluetoothClient.isReady {
+        if transfer.usingLiveTransport {
+            guard bluetoothClient.isReady else {
+                failTransferDueToDisconnect(&transfer, detail: "BLE transport disconnected after chunk upload finished; full transfer must be replayed")
+                return
+            }
             sessionState.routeSyncState = .awaitingAck
             sessionState.lastSyncResult = "Waiting for ESP32 acknowledgement over BLE"
+            scheduleAckTimeout()
         } else {
             await simulateDeviceCompletion(for: transfer)
         }
@@ -190,7 +222,7 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
                 routeIdentifier: transfer.routeIdentifier,
                 revision: transfer.routeRevision,
                 status: .applying,
-                detail: "Applying route revision \(transfer.routeRevision.map(String.init) ?? "0") on device"
+                detail: "Applying route revision \(transfer.routeRevision.map(String.init) ?? \"0\") on device"
             )
         )
         await receiveStatus(finalStatus(for: transfer))
@@ -207,7 +239,9 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
             case .accepted, .applying:
                 sessionState.routeSyncState = .awaitingAck
                 sessionState.lastSyncResult = status.detail ?? "Waiting for device acknowledgement"
+                scheduleAckTimeout()
             case .active:
+                cancelAckTimeout()
                 sessionState.routeSyncState = .synced
                 sessionState.activeRouteIdentifier = status.routeIdentifier
                 sessionState.activeRouteRevision = status.revision
@@ -216,8 +250,10 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
                 sessionState.pendingRouteRevision = nil
                 sessionState.transferProgress = nil
                 sessionState.lastSyncResult = status.detail ?? "Device activated route"
+                sessionState.armedFaultInjectionMode = nil
                 pendingTransfer = nil
             case .cleared:
+                cancelAckTimeout()
                 sessionState.routeSyncState = .idle
                 sessionState.pendingRouteIdentifier = nil
                 sessionState.pendingRouteRevision = nil
@@ -226,22 +262,51 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
                 sessionState.activeRouteChecksumHex = nil
                 sessionState.transferProgress = nil
                 sessionState.lastSyncResult = status.detail ?? "Device cleared route"
+                sessionState.armedFaultInjectionMode = nil
                 pendingTransfer = nil
             case .retryableFailure:
+                cancelAckTimeout()
+                if var transfer = pendingTransfer {
+                    transfer.retryCount += 1
+                    transfer.lastError = status.detail ?? "Device reported retryable sync failure"
+                    transfer.nextChunkIndex = 0
+                    pendingTransfer = transfer
+                    sessionState.transferProgress = transfer.progress(chunkSizeBytes: chunkSizeBytes)
+                }
                 sessionState.routeSyncState = .failed
                 sessionState.lastSyncResult = status.detail ?? "Device reported retryable sync failure"
+                sessionState.armedFaultInjectionMode = nil
             case .rejected, .fatalFailure:
+                cancelAckTimeout()
                 sessionState.routeSyncState = .failed
                 sessionState.pendingRouteIdentifier = nil
                 sessionState.pendingRouteRevision = nil
                 sessionState.transferProgress = nil
                 sessionState.lastSyncResult = status.detail ?? "Device reported sync failure"
+                sessionState.armedFaultInjectionMode = nil
                 pendingTransfer = nil
             }
         case .rerouteRequest(let request):
             sessionState.lastSyncResult = "Device requested reroute for \(request.routeIdentifier)"
         case .set, .update, .clear:
             sessionState.lastSyncResult = "Received unexpected inbound \(decodedMessage.kindLabel) message"
+        }
+    }
+
+    private func handleConnectionStateChange(_ state: DeviceConnectionState, name: String?) {
+        sessionState.connectionState = state
+        if let name {
+            sessionState.lastDeviceName = name
+        }
+        guard state == .disconnected else {
+            return
+        }
+
+        cancelAckTimeout()
+        if var transfer = pendingTransfer, transfer.usingLiveTransport {
+            failTransferDueToDisconnect(&transfer, detail: "BLE transport disconnected; reconnect and resume the pending transfer")
+        } else {
+            sessionState.routeSyncState = .idle
         }
     }
 
@@ -255,9 +320,9 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
                 detail: "Device cleared active route"
             )
         case .set(let message):
-            return finalRouteStatus(for: message.route, checksumHex: transfer.checksumHex, kindLabel: transfer.message.kindLabel)
+            return finalRouteStatus(for: message.route, checksumHex: transfer.checksumHex, kindLabel: transfer.message.kindLabel, usingLiveTransport: transfer.usingLiveTransport)
         case .update(let message):
-            return finalRouteStatus(for: message.route, checksumHex: transfer.checksumHex, kindLabel: transfer.message.kindLabel)
+            return finalRouteStatus(for: message.route, checksumHex: transfer.checksumHex, kindLabel: transfer.message.kindLabel, usingLiveTransport: transfer.usingLiveTransport)
         case .status, .rerouteRequest:
             return RouteStatusMessage(
                 routeIdentifier: transfer.routeIdentifier,
@@ -268,7 +333,7 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
         }
     }
 
-    private func finalRouteStatus(for route: NormalizedRoutePackage, checksumHex: String, kindLabel: String) -> RouteStatusMessage {
+    private func finalRouteStatus(for route: NormalizedRoutePackage, checksumHex: String, kindLabel: String, usingLiveTransport: Bool) -> RouteStatusMessage {
         if let activeRouteIdentifier = sessionState.activeRouteIdentifier,
            activeRouteIdentifier == route.routeIdentifier,
            let activeRouteRevision = sessionState.activeRouteRevision {
@@ -303,7 +368,7 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
             routeIdentifier: route.routeIdentifier,
             revision: route.revision,
             status: .active,
-            detail: bluetoothClient.isReady
+            detail: usingLiveTransport
                 ? "Route revision \(route.revision) applied on ESP32 over CoreBluetooth via \(kindLabel)"
                 : "Route revision \(route.revision) applied over simulated BLE via \(kindLabel)"
         )
@@ -321,6 +386,49 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
         }
         return message
     }
+
+    private func failTransfer(_ transfer: inout PendingTransfer, detail: String, restartFromFirstChunk: Bool) {
+        cancelAckTimeout()
+        transfer.retryCount += 1
+        transfer.lastError = detail
+        if restartFromFirstChunk || transfer.nextChunkIndex >= transfer.chunkEnvelopes.count {
+            transfer.nextChunkIndex = 0
+        }
+        pendingTransfer = transfer
+        sessionState.transferProgress = transfer.progress(chunkSizeBytes: chunkSizeBytes)
+        sessionState.routeSyncState = .failed
+        sessionState.lastSyncResult = detail
+        sessionState.armedFaultInjectionMode = nil
+    }
+
+    private func failTransferDueToDisconnect(_ transfer: inout PendingTransfer, detail: String) {
+        failTransfer(&transfer, detail: detail, restartFromFirstChunk: transfer.nextChunkIndex >= transfer.chunkEnvelopes.count)
+    }
+
+    private func scheduleAckTimeout() {
+        cancelAckTimeout()
+        ackTimeoutTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: ackTimeoutNanoseconds)
+            await MainActor.run {
+                guard let self,
+                      self.sessionState.routeSyncState == .awaitingAck,
+                      var transfer = self.pendingTransfer else { return }
+                transfer.retryCount += 1
+                transfer.lastError = "Timed out waiting for ESP32 acknowledgement; replay the route transfer"
+                transfer.nextChunkIndex = 0
+                self.pendingTransfer = transfer
+                self.sessionState.transferProgress = transfer.progress(chunkSizeBytes: self.chunkSizeBytes)
+                self.sessionState.routeSyncState = .failed
+                self.sessionState.lastSyncResult = transfer.lastError ?? "Timed out waiting for device acknowledgement"
+                self.sessionState.armedFaultInjectionMode = nil
+            }
+        }
+    }
+
+    private func cancelAckTimeout() {
+        ackTimeoutTask?.cancel()
+        ackTimeoutTask = nil
+    }
 }
 
 private extension BleRouteSyncService {
@@ -333,6 +441,7 @@ private extension BleRouteSyncService {
         var nextChunkIndex: Int
         var retryCount: Int
         var lastError: String?
+        var usingLiveTransport: Bool
 
         var routeIdentifier: String? {
             switch message {

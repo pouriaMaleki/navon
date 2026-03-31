@@ -43,6 +43,8 @@ final class CoreBluetoothRouteSyncClient: NSObject {
     var onSyncMessage: ((RouteSyncMessage) -> Void)?
     var onConnectionStateChange: ((DeviceConnectionState, String?) -> Void)?
 
+    private var armedDebugFault: RouteSyncFaultInjectionMode?
+
     private lazy var centralManager = CBCentralManager(delegate: self, queue: nil)
     private var discoveredPeripheral: CBPeripheral?
     private var connectedPeripheral: CBPeripheral?
@@ -60,6 +62,10 @@ final class CoreBluetoothRouteSyncClient: NSObject {
 
     var isReady: Bool {
         connectedPeripheral != nil && chunkWriteCharacteristic != nil && eventNotifyCharacteristic != nil
+    }
+
+    func armDebugFault(_ mode: RouteSyncFaultInjectionMode) {
+        armedDebugFault = mode
     }
 
     func scanForRouteSyncPeripheral(timeout: TimeInterval = 6.0) async throws -> String {
@@ -107,6 +113,16 @@ final class CoreBluetoothRouteSyncClient: NSObject {
             throw CoreBluetoothRouteSyncError.characteristicMissing
         }
 
+        if armedDebugFault == .writeFailure {
+            armedDebugFault = nil
+            throw CoreBluetoothRouteSyncError.writeFailed("Injected BLE write failure before packet send")
+        }
+
+        let disconnectAfterWrite = armedDebugFault == .disconnectAfterChunkWrite
+        if disconnectAfterWrite {
+            armedDebugFault = nil
+        }
+
         let payload = BleRouteSyncCodec.encode(packet)
         let writeType: CBCharacteristicWriteType = characteristic.properties.contains(.write) ? .withResponse : .withoutResponse
         if writeType == .withResponse {
@@ -117,6 +133,11 @@ final class CoreBluetoothRouteSyncClient: NSObject {
         } else {
             peripheral.writeValue(payload, for: characteristic, type: .withoutResponse)
             try await Task.sleep(nanoseconds: 20_000_000)
+        }
+
+        if disconnectAfterWrite {
+            centralManager.cancelPeripheralConnection(peripheral)
+            throw CoreBluetoothRouteSyncError.disconnected("Injected BLE disconnect after chunk write")
         }
     }
 
@@ -285,6 +306,10 @@ extension CoreBluetoothRouteSyncClient: CBPeripheralDelegate {
             let packet = try BleRouteSyncCodec.decode(value)
             guard case .syncMessage(let message) = packet else {
                 throw CoreBluetoothRouteSyncError.invalidInboundPacket
+            }
+            if armedDebugFault == .dropNextInboundStatus, case .status = message {
+                armedDebugFault = nil
+                return
             }
             onSyncMessage?(message)
         } catch {

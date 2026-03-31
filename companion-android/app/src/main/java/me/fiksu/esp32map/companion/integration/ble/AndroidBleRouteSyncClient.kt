@@ -27,6 +27,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import me.fiksu.esp32map.companion.domain.DeviceConnectionState
+import me.fiksu.esp32map.companion.domain.RouteSyncFaultInjectionMode
 import me.fiksu.esp32map.companion.domain.RouteSyncMessage
 
 class AndroidBleRouteSyncClient(
@@ -47,9 +48,14 @@ class AndroidBleRouteSyncClient(
     private var pendingScanContinuation: kotlin.coroutines.Continuation<String>? = null
     private var pendingConnectContinuation: kotlin.coroutines.Continuation<String>? = null
     private var pendingWriteContinuation: kotlin.coroutines.Continuation<Unit>? = null
+    private var armedDebugFaultMode: RouteSyncFaultInjectionMode? = null
 
     val isReady: Boolean
         get() = bluetoothGatt != null && chunkWriteCharacteristic != null && eventNotifyCharacteristic != null
+
+    fun armDebugFault(mode: RouteSyncFaultInjectionMode) {
+        armedDebugFaultMode = mode
+    }
 
     suspend fun scanForRouteSyncPeripheral(timeoutMs: Long = 6_000): String {
         ensurePermissions()
@@ -116,6 +122,17 @@ class AndroidBleRouteSyncClient(
         ensurePermissions()
         val gatt = bluetoothGatt ?: error("BLE route-sync GATT connection is not ready")
         val characteristic = chunkWriteCharacteristic ?: error("BLE route chunk characteristic is missing")
+
+        if (armedDebugFaultMode == RouteSyncFaultInjectionMode.WRITE_FAILURE) {
+            armedDebugFaultMode = null
+            throw IllegalStateException("Injected BLE write failure before packet send")
+        }
+
+        val disconnectAfterWrite = armedDebugFaultMode == RouteSyncFaultInjectionMode.DISCONNECT_AFTER_CHUNK_WRITE
+        if (disconnectAfterWrite) {
+            armedDebugFaultMode = null
+        }
+
         characteristic.value = BleRouteSyncCodec.encode(packet)
         characteristic.writeType = if ((characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE) != 0) {
             BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
@@ -137,6 +154,12 @@ class AndroidBleRouteSyncClient(
                 error("BluetoothGatt.writeCharacteristic returned false")
             }
             delay(20)
+        }
+
+        if (disconnectAfterWrite) {
+            @Suppress("MissingPermission")
+            gatt.disconnect()
+            throw IllegalStateException("Injected BLE disconnect after chunk write")
         }
     }
 
@@ -237,6 +260,10 @@ class AndroidBleRouteSyncClient(
             }
             val packet = runCatching { BleRouteSyncCodec.decode(value) }.getOrNull() ?: return
             if (packet is BleRouteSyncPacket.SyncMessage) {
+                if (armedDebugFaultMode == RouteSyncFaultInjectionMode.DROP_NEXT_INBOUND_STATUS && packet.message is RouteSyncMessage.Status) {
+                    armedDebugFaultMode = null
+                    return
+                }
                 onSyncMessage?.invoke(packet.message)
             }
         }

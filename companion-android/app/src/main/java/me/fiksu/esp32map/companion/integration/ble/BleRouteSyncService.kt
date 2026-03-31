@@ -2,16 +2,22 @@ package me.fiksu.esp32map.companion.integration.ble
 
 import android.content.Context
 import java.util.UUID
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import me.fiksu.esp32map.companion.domain.DeviceConnectionState
 import me.fiksu.esp32map.companion.domain.NormalizedRoutePackage
 import me.fiksu.esp32map.companion.domain.RouteClearMessage
 import me.fiksu.esp32map.companion.domain.RouteRerouteRequestMessage
 import me.fiksu.esp32map.companion.domain.RouteSetMessage
 import me.fiksu.esp32map.companion.domain.RouteStatusMessage
+import me.fiksu.esp32map.companion.domain.RouteSyncFaultInjectionMode
 import me.fiksu.esp32map.companion.domain.RouteSyncMessage
 import me.fiksu.esp32map.companion.domain.RouteSyncState
 import me.fiksu.esp32map.companion.domain.RouteSyncStatusCode
@@ -27,20 +33,16 @@ class BleRouteSyncService(
     private val mutableState = MutableStateFlow(SyncSessionState())
     val state: StateFlow<SyncSessionState> = mutableState.asStateFlow()
 
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var pendingTransfer: PendingTransfer? = null
+    private var ackTimeoutJob: Job? = null
 
     init {
         bluetoothClient.onConnectionStateChange = { state, name ->
-            updateState {
-                it.copy(
-                    connectionState = state,
-                    lastDeviceName = name ?: it.lastDeviceName,
-                    routeSyncState = if (state == DeviceConnectionState.DISCONNECTED) RouteSyncState.IDLE else it.routeSyncState,
-                )
-            }
+            handleConnectionStateChange(state, name)
         }
         bluetoothClient.onSyncMessage = { message ->
-            kotlinx.coroutines.runBlocking {
+            serviceScope.launch {
                 handleInbound(message)
             }
         }
@@ -111,6 +113,11 @@ class BleRouteSyncService(
 
     override suspend fun resumePendingTransfer() {
         val transfer = pendingTransfer ?: error("No pending transfer to resume")
+        if (transfer.nextChunkIndex >= transfer.chunkEnvelopes.size) {
+            val restartedTransfer = transfer.copy(nextChunkIndex = 0)
+            pendingTransfer = restartedTransfer
+            updateState { it.copy(transferProgress = restartedTransfer.toProgress()) }
+        }
         updateState {
             it.copy(
                 routeSyncState = RouteSyncState.TRANSFERRING,
@@ -121,11 +128,33 @@ class BleRouteSyncService(
     }
 
     override fun armRetryableInterruptionOnNextTransfer() {
-        updateState {
-            it.copy(
-                retryableInterruptionArmed = true,
-                lastSyncResult = "Next transfer will simulate one retryable BLE interruption",
-            )
+        armFaultInjection(RouteSyncFaultInjectionMode.RETRYABLE_INTERRUPTION)
+    }
+
+    override fun armFaultInjection(mode: RouteSyncFaultInjectionMode) {
+        when (mode) {
+            RouteSyncFaultInjectionMode.RETRYABLE_INTERRUPTION -> {
+                updateState {
+                    it.copy(
+                        retryableInterruptionArmed = true,
+                        armedFaultInjectionMode = mode,
+                        lastSyncResult = "Armed ${mode.displayName.lowercase()} for the next BLE sync cycle",
+                    )
+                }
+            }
+            RouteSyncFaultInjectionMode.WRITE_FAILURE,
+            RouteSyncFaultInjectionMode.DISCONNECT_AFTER_CHUNK_WRITE,
+            RouteSyncFaultInjectionMode.DROP_NEXT_INBOUND_STATUS,
+            -> {
+                bluetoothClient.armDebugFault(mode)
+                updateState {
+                    it.copy(
+                        retryableInterruptionArmed = false,
+                        armedFaultInjectionMode = mode,
+                        lastSyncResult = "Armed ${mode.displayName.lowercase()} for the next BLE sync cycle",
+                    )
+                }
+            }
         }
     }
 
@@ -138,6 +167,7 @@ class BleRouteSyncService(
     }
 
     private suspend fun beginTransfer(message: RouteSyncMessage) {
+        cancelAckTimeout()
         val payload = BleRouteSyncCodec.canonicalPayloadBytes(message)
         val transferIdentifier = UUID.randomUUID().toString()
         val transfer = PendingTransfer(
@@ -153,6 +183,7 @@ class BleRouteSyncService(
             nextChunkIndex = 0,
             retryCount = 0,
             lastError = null,
+            usingLiveTransport = bluetoothClient.isReady,
         )
         pendingTransfer = transfer
         updateState {
@@ -170,6 +201,7 @@ class BleRouteSyncService(
 
     private suspend fun drainPendingTransfer() {
         var transfer = pendingTransfer ?: error("No pending transfer")
+        cancelAckTimeout()
         updateState { it.copy(routeSyncState = RouteSyncState.TRANSFERRING) }
 
         while (transfer.nextChunkIndex < transfer.chunkEnvelopes.size) {
@@ -184,6 +216,7 @@ class BleRouteSyncService(
                 updateState {
                     it.copy(
                         retryableInterruptionArmed = false,
+                        armedFaultInjectionMode = null,
                         routeSyncState = RouteSyncState.FAILED,
                         transferProgress = transfer.toProgress(),
                         lastSyncResult = transfer.lastError ?: "Transfer interrupted",
@@ -192,9 +225,26 @@ class BleRouteSyncService(
                 return
             }
 
+            if (transfer.usingLiveTransport && !bluetoothClient.isReady) {
+                transfer = failTransfer(
+                    transfer = transfer,
+                    detail = "BLE transport disconnected before chunk $chunkNumber/${transfer.chunkEnvelopes.size} could be written",
+                    restartFromFirstChunk = false,
+                )
+                return
+            }
+
             val envelope = transfer.chunkEnvelopes[transfer.nextChunkIndex]
-            if (bluetoothClient.isReady) {
-                bluetoothClient.write(BleRouteSyncPacket.Chunk(envelope))
+            if (transfer.usingLiveTransport) {
+                val writeResult = runCatching { bluetoothClient.write(BleRouteSyncPacket.Chunk(envelope)) }
+                if (writeResult.isFailure) {
+                    transfer = failTransfer(
+                        transfer = transfer,
+                        detail = writeResult.exceptionOrNull()?.localizedMessage ?: "BLE write failed",
+                        restartFromFirstChunk = false,
+                    )
+                    return
+                }
             }
 
             transfer = transfer.copy(nextChunkIndex = chunkNumber, lastError = null)
@@ -207,13 +257,22 @@ class BleRouteSyncService(
             }
         }
 
-        if (bluetoothClient.isReady) {
+        if (transfer.usingLiveTransport) {
+            if (!bluetoothClient.isReady) {
+                failTransfer(
+                    transfer = transfer,
+                    detail = "BLE transport disconnected after chunk upload finished; full transfer must be replayed",
+                    restartFromFirstChunk = true,
+                )
+                return
+            }
             updateState {
                 it.copy(
                     routeSyncState = RouteSyncState.AWAITING_ACK,
                     lastSyncResult = "Waiting for ESP32 acknowledgement over BLE",
                 )
             }
+            scheduleAckTimeout()
         } else {
             simulateDeviceCompletion(transfer)
         }
@@ -257,64 +316,110 @@ class BleRouteSyncService(
     }
 
     private fun applyStatus(status: RouteStatusMessage) {
+        when (status.status) {
+            RouteSyncStatusCode.ACCEPTED,
+            RouteSyncStatusCode.APPLYING,
+            -> {
+                updateState {
+                    it.copy(
+                        lastStatusCode = status.status,
+                        routeSyncState = RouteSyncState.AWAITING_ACK,
+                        lastSyncResult = status.detail ?: defaultStatusDetail(status.status),
+                    )
+                }
+                scheduleAckTimeout()
+            }
+            RouteSyncStatusCode.ACTIVE -> {
+                cancelAckTimeout()
+                updateState {
+                    it.copy(
+                        lastStatusCode = status.status,
+                        routeSyncState = RouteSyncState.SYNCED,
+                        pendingRouteIdentifier = null,
+                        pendingRouteRevision = null,
+                        activeRouteIdentifier = status.routeIdentifier,
+                        activeRouteRevision = status.revision,
+                        activeRouteChecksumHex = pendingTransfer?.checksumHex ?: it.activeRouteChecksumHex,
+                        transferProgress = null,
+                        armedFaultInjectionMode = null,
+                        lastSyncResult = status.detail ?: defaultStatusDetail(status.status),
+                    )
+                }
+                pendingTransfer = null
+            }
+            RouteSyncStatusCode.CLEARED -> {
+                cancelAckTimeout()
+                updateState {
+                    it.copy(
+                        lastStatusCode = status.status,
+                        routeSyncState = RouteSyncState.IDLE,
+                        pendingRouteIdentifier = null,
+                        pendingRouteRevision = null,
+                        activeRouteIdentifier = null,
+                        activeRouteRevision = null,
+                        activeRouteChecksumHex = null,
+                        transferProgress = null,
+                        armedFaultInjectionMode = null,
+                        lastSyncResult = status.detail ?: defaultStatusDetail(status.status),
+                    )
+                }
+                pendingTransfer = null
+            }
+            RouteSyncStatusCode.RETRYABLE_FAILURE -> {
+                cancelAckTimeout()
+                pendingTransfer = pendingTransfer?.copy(
+                    retryCount = (pendingTransfer?.retryCount ?: 0) + 1,
+                    nextChunkIndex = 0,
+                    lastError = status.detail ?: defaultStatusDetail(status.status),
+                )
+                updateState {
+                    it.copy(
+                        lastStatusCode = status.status,
+                        routeSyncState = RouteSyncState.FAILED,
+                        transferProgress = pendingTransfer?.toProgress() ?: it.transferProgress,
+                        armedFaultInjectionMode = null,
+                        lastSyncResult = status.detail ?: defaultStatusDetail(status.status),
+                    )
+                }
+            }
+            RouteSyncStatusCode.REJECTED,
+            RouteSyncStatusCode.FATAL_FAILURE,
+            -> {
+                cancelAckTimeout()
+                updateState {
+                    it.copy(
+                        lastStatusCode = status.status,
+                        routeSyncState = RouteSyncState.FAILED,
+                        pendingRouteIdentifier = null,
+                        pendingRouteRevision = null,
+                        transferProgress = null,
+                        armedFaultInjectionMode = null,
+                        lastSyncResult = status.detail ?: defaultStatusDetail(status.status),
+                    )
+                }
+                pendingTransfer = null
+            }
+        }
+    }
+
+    private fun handleConnectionStateChange(state: DeviceConnectionState, name: String?) {
         updateState {
             it.copy(
-                lastStatusCode = status.status,
-                routeSyncState = when (status.status) {
-                    RouteSyncStatusCode.ACCEPTED,
-                    RouteSyncStatusCode.APPLYING,
-                    -> RouteSyncState.AWAITING_ACK
-                    RouteSyncStatusCode.ACTIVE -> RouteSyncState.SYNCED
-                    RouteSyncStatusCode.CLEARED -> RouteSyncState.IDLE
-                    RouteSyncStatusCode.RETRYABLE_FAILURE,
-                    RouteSyncStatusCode.REJECTED,
-                    RouteSyncStatusCode.FATAL_FAILURE,
-                    -> RouteSyncState.FAILED
+                connectionState = state,
+                lastDeviceName = name ?: it.lastDeviceName,
+                routeSyncState = if (state == DeviceConnectionState.DISCONNECTED && pendingTransfer == null) {
+                    RouteSyncState.IDLE
+                } else {
+                    it.routeSyncState
                 },
-                pendingRouteIdentifier = when (status.status) {
-                    RouteSyncStatusCode.ACTIVE,
-                    RouteSyncStatusCode.CLEARED,
-                    RouteSyncStatusCode.REJECTED,
-                    RouteSyncStatusCode.FATAL_FAILURE,
-                    -> null
-                    else -> it.pendingRouteIdentifier
-                },
-                pendingRouteRevision = when (status.status) {
-                    RouteSyncStatusCode.ACTIVE,
-                    RouteSyncStatusCode.CLEARED,
-                    RouteSyncStatusCode.REJECTED,
-                    RouteSyncStatusCode.FATAL_FAILURE,
-                    -> null
-                    else -> it.pendingRouteRevision
-                },
-                activeRouteIdentifier = when (status.status) {
-                    RouteSyncStatusCode.ACTIVE -> status.routeIdentifier
-                    RouteSyncStatusCode.CLEARED -> null
-                    else -> it.activeRouteIdentifier
-                },
-                activeRouteRevision = when (status.status) {
-                    RouteSyncStatusCode.ACTIVE -> status.revision
-                    RouteSyncStatusCode.CLEARED -> null
-                    else -> it.activeRouteRevision
-                },
-                activeRouteChecksumHex = when (status.status) {
-                    RouteSyncStatusCode.ACTIVE -> pendingTransfer?.checksumHex ?: it.activeRouteChecksumHex
-                    RouteSyncStatusCode.CLEARED -> null
-                    else -> it.activeRouteChecksumHex
-                },
-                transferProgress = when (status.status) {
-                    RouteSyncStatusCode.ACTIVE,
-                    RouteSyncStatusCode.CLEARED,
-                    RouteSyncStatusCode.REJECTED,
-                    RouteSyncStatusCode.FATAL_FAILURE,
-                    -> null
-                    else -> it.transferProgress
-                },
-                lastSyncResult = status.detail ?: defaultStatusDetail(status.status),
             )
         }
-        if (status.status == RouteSyncStatusCode.ACTIVE || status.status == RouteSyncStatusCode.CLEARED || status.status == RouteSyncStatusCode.REJECTED || status.status == RouteSyncStatusCode.FATAL_FAILURE) {
-            pendingTransfer = null
+        if (state == DeviceConnectionState.DISCONNECTED && pendingTransfer?.usingLiveTransport == true) {
+            failTransfer(
+                transfer = pendingTransfer ?: return,
+                detail = "BLE transport disconnected; reconnect and resume the pending transfer",
+                restartFromFirstChunk = (pendingTransfer?.nextChunkIndex ?: 0) >= (pendingTransfer?.chunkEnvelopes?.size ?: 0),
+            )
         }
     }
 
@@ -328,8 +433,8 @@ class BleRouteSyncService(
                     detail = "Device cleared active route",
                 )
             }
-            is RouteSyncMessage.Set -> finalRouteStatus(message.message.route, transfer.checksumHex, transfer.message.kindLabel)
-            is RouteSyncMessage.Update -> finalRouteStatus(message.message.route, transfer.checksumHex, transfer.message.kindLabel)
+            is RouteSyncMessage.Set -> finalRouteStatus(message.message.route, transfer.checksumHex, transfer.message.kindLabel, transfer.usingLiveTransport)
+            is RouteSyncMessage.Update -> finalRouteStatus(message.message.route, transfer.checksumHex, transfer.message.kindLabel, transfer.usingLiveTransport)
             is RouteSyncMessage.Status,
             is RouteSyncMessage.RerouteRequest,
             -> {
@@ -347,6 +452,7 @@ class BleRouteSyncService(
         route: NormalizedRoutePackage,
         checksumHex: String,
         kindLabel: String,
+        usingLiveTransport: Boolean,
     ): RouteStatusMessage {
         val activeRouteIdentifier = mutableState.value.activeRouteIdentifier
         val activeRouteRevision = mutableState.value.activeRouteRevision
@@ -380,7 +486,7 @@ class BleRouteSyncService(
             routeIdentifier = route.routeIdentifier,
             revision = route.revision,
             status = RouteSyncStatusCode.ACTIVE,
-            detail = if (bluetoothClient.isReady) {
+            detail = if (usingLiveTransport) {
                 "Route revision ${route.revision} applied on ESP32 over Android BLE via $kindLabel"
             } else {
                 "Route revision ${route.revision} applied over simulated BLE via $kindLabel"
@@ -394,6 +500,57 @@ class BleRouteSyncService(
             val decodedPacket = BleRouteSyncCodec.decode(BleRouteSyncCodec.encode(packet))
             (decodedPacket as? BleRouteSyncPacket.SyncMessage)?.message ?: message
         }.getOrElse { message }
+    }
+
+    private fun failTransfer(
+        transfer: PendingTransfer,
+        detail: String,
+        restartFromFirstChunk: Boolean,
+    ): PendingTransfer {
+        cancelAckTimeout()
+        val failedTransfer = transfer.copy(
+            retryCount = transfer.retryCount + 1,
+            lastError = detail,
+            nextChunkIndex = if (restartFromFirstChunk || transfer.nextChunkIndex >= transfer.chunkEnvelopes.size) 0 else transfer.nextChunkIndex,
+        )
+        pendingTransfer = failedTransfer
+        updateState {
+            it.copy(
+                routeSyncState = RouteSyncState.FAILED,
+                transferProgress = failedTransfer.toProgress(),
+                armedFaultInjectionMode = null,
+                lastSyncResult = detail,
+            )
+        }
+        return failedTransfer
+    }
+
+    private fun scheduleAckTimeout() {
+        cancelAckTimeout()
+        ackTimeoutJob = serviceScope.launch {
+            delay(2_000)
+            val transfer = pendingTransfer ?: return@launch
+            if (mutableState.value.routeSyncState != RouteSyncState.AWAITING_ACK) return@launch
+            val restartedTransfer = transfer.copy(
+                retryCount = transfer.retryCount + 1,
+                nextChunkIndex = 0,
+                lastError = "Timed out waiting for ESP32 acknowledgement; replay the route transfer",
+            )
+            pendingTransfer = restartedTransfer
+            updateState {
+                it.copy(
+                    routeSyncState = RouteSyncState.FAILED,
+                    transferProgress = restartedTransfer.toProgress(),
+                    armedFaultInjectionMode = null,
+                    lastSyncResult = restartedTransfer.lastError ?: "Timed out waiting for device acknowledgement",
+                )
+            }
+        }
+    }
+
+    private fun cancelAckTimeout() {
+        ackTimeoutJob?.cancel()
+        ackTimeoutJob = null
     }
 
     private fun defaultStatusDetail(status: RouteSyncStatusCode): String {
@@ -421,6 +578,7 @@ class BleRouteSyncService(
         val nextChunkIndex: Int,
         val retryCount: Int,
         val lastError: String?,
+        val usingLiveTransport: Boolean,
     ) {
         val routeIdentifier: String?
             get() = when (message) {

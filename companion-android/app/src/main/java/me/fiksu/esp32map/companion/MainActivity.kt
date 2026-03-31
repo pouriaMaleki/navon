@@ -208,6 +208,7 @@ private fun DeviceScreen(padding: PaddingValues, appState: CompanionAppState) {
         Text("Active checksum: ${appState.syncSession.activeRouteChecksumHex ?: "None"}")
         Text("Last sync: ${appState.syncSession.lastSyncResult}")
         Text("Retry fault armed: ${if (appState.syncSession.retryableInterruptionArmed) "Yes" else "No"}")
+        Text("Armed fault: ${appState.syncSession.armedFaultInjectionMode?.displayName ?: "None"}")
         appState.syncSession.transferProgress?.let { transfer ->
             Text("Transfer id: ${transfer.transferIdentifier}")
             Text("Kind: ${transfer.messageKind}")
@@ -229,7 +230,16 @@ private fun DeviceScreen(padding: PaddingValues, appState: CompanionAppState) {
             Text("Send route message")
         }
         Button(onClick = appState::armRetryableInterruptionOnNextTransfer) {
-            Text("Arm next transfer interruption")
+            Text("Arm retryable interruption")
+        }
+        Button(onClick = appState::armWriteFailureOnNextTransfer) {
+            Text("Arm write failure")
+        }
+        Button(onClick = appState::armDisconnectAfterNextChunkWrite) {
+            Text("Arm disconnect after chunk")
+        }
+        Button(onClick = appState::armDropNextInboundStatus) {
+            Text("Arm drop next inbound status")
         }
         Button(onClick = appState::resumePendingTransfer) {
             Text("Resume pending transfer")
