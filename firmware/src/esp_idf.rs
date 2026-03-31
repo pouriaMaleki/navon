@@ -3,11 +3,11 @@ use runtime_core::map::MapSource;
 
 use crate::app::{App, AppBuildError};
 use crate::board_config::{BoardConfig, DisplayConfig, TouchControllerConfig};
-use crate::display::{DisplayBackend, DisplayError};
+use crate::display::{DisplayBackend, DisplayError, MemoryDisplayBackend};
 use crate::framebuffer::Framebuffer;
-use crate::gps::{GpsError, GpsInput, GpsProvider};
+use crate::gps::{GpsError, GpsInput, GpsProvider, NullGpsProvider};
 use crate::map_source::MapSourceBridge;
-use crate::platform::{RuntimePlatform, SystemFrameClock};
+use crate::platform::{NullTouchSource, RouteSyncIo, RuntimePlatform, SystemFrameClock};
 use crate::settings::{DefaultSettingsStore, SettingsStore, default_settings_store};
 use crate::touch::{Gt9271Transport, PollingTouchSource, TouchError};
 
@@ -301,6 +301,128 @@ pub type DevicePlatformResult<T, R, I, D, G, S, P, U = DefaultSettingsStore> =
 pub type DefaultDevicePlatformResult<T, R, I, D, G, P, U = DefaultSettingsStore> =
     Result<DefaultDevicePlatform<T, R, I, D, G, P, U>, AppBuildError>;
 
+pub type HeadlessRouteSyncDevicePlatform<Q, U = DefaultSettingsStore> = RuntimePlatform<
+    NullTouchSource,
+    NullGpsProvider,
+    SystemFrameClock,
+    MapSourceBridge,
+    MemoryDisplayBackend,
+    U,
+    Q,
+>;
+
+pub type HeadlessRouteSyncDevicePlatformResult<Q, U = DefaultSettingsStore> =
+    Result<HeadlessRouteSyncDevicePlatform<Q, U>, AppBuildError>;
+
+pub fn build_headless_route_sync_platform_with_settings<Q, U>(
+    board: BoardConfig,
+    speed_unit_store: U,
+    route_sync: Q,
+) -> HeadlessRouteSyncDevicePlatformResult<Q, U>
+where
+    Q: RouteSyncIo,
+    U: SettingsStore,
+{
+    let runtime_config = RuntimeConfig {
+        viewport_size: board.viewport_size,
+        ..RuntimeConfig::default()
+    };
+    let app = App::with_parts_and_settings(
+        board,
+        runtime_config,
+        MapSourceBridge::default(),
+        MemoryDisplayBackend::default(),
+        speed_unit_store,
+    )?;
+    Ok(RuntimePlatform::with_route_sync(
+        app,
+        NullTouchSource,
+        NullGpsProvider,
+        SystemFrameClock::new(board.frame_interval),
+        route_sync,
+    ))
+}
+
+pub fn build_headless_route_sync_platform<Q>(
+    board: BoardConfig,
+    route_sync: Q,
+) -> HeadlessRouteSyncDevicePlatformResult<Q>
+where
+    Q: RouteSyncIo,
+{
+    build_headless_route_sync_platform_with_settings(board, default_settings_store()?, route_sync)
+}
+
+pub fn build_device_platform_with_route_sync_and_settings<T, R, I, D, P, G, S, U, Q>(
+    board: BoardConfig,
+    map_source: S,
+    touch_transport: EspIdfGt9271Transport<T, R, I, D>,
+    display_backend: EspIdfDisplayBackend<P>,
+    gps_provider: G,
+    speed_unit_store: U,
+    route_sync: Q,
+) -> Result<RuntimePlatform<PollingTouchSource<EspIdfGt9271Transport<T, R, I, D>>, G, SystemFrameClock, S, EspIdfDisplayBackend<P>, U, Q>, AppBuildError>
+where
+    T: EspIdfI2cBus,
+    R: EspIdfOutputPin,
+    I: EspIdfOutputPin,
+    D: EspIdfDelay,
+    P: EspIdfPanel,
+    G: GpsProvider,
+    S: MapSource,
+    U: SettingsStore,
+    Q: RouteSyncIo,
+{
+    let runtime_config = RuntimeConfig {
+        viewport_size: board.viewport_size,
+        ..RuntimeConfig::default()
+    };
+    let touch_source = PollingTouchSource::new(board.touch, touch_transport);
+    let app = App::with_parts_and_settings(
+        board,
+        runtime_config,
+        map_source,
+        display_backend,
+        speed_unit_store,
+    )?;
+    Ok(RuntimePlatform::with_route_sync(
+        app,
+        touch_source,
+        gps_provider,
+        SystemFrameClock::new(board.frame_interval),
+        route_sync,
+    ))
+}
+
+pub fn build_device_platform_with_route_sync<T, R, I, D, P, G, S, Q>(
+    board: BoardConfig,
+    map_source: S,
+    touch_transport: EspIdfGt9271Transport<T, R, I, D>,
+    display_backend: EspIdfDisplayBackend<P>,
+    gps_provider: G,
+    route_sync: Q,
+) -> Result<RuntimePlatform<PollingTouchSource<EspIdfGt9271Transport<T, R, I, D>>, G, SystemFrameClock, S, EspIdfDisplayBackend<P>, DefaultSettingsStore, Q>, AppBuildError>
+where
+    T: EspIdfI2cBus,
+    R: EspIdfOutputPin,
+    I: EspIdfOutputPin,
+    D: EspIdfDelay,
+    P: EspIdfPanel,
+    G: GpsProvider,
+    S: MapSource,
+    Q: RouteSyncIo,
+{
+    build_device_platform_with_route_sync_and_settings(
+        board,
+        map_source,
+        touch_transport,
+        display_backend,
+        gps_provider,
+        default_settings_store()?,
+        route_sync,
+    )
+}
+
 pub fn build_device_platform_with_settings<T, R, I, D, P, G, S, U>(
     board: BoardConfig,
     map_source: S,
@@ -388,9 +510,40 @@ where
     )
 }
 
-#[cfg(target_os = "espidf")]
+#[cfg(all(target_os = "espidf", not(any(esp32s2, esp32p4)), esp_idf_bt_enabled, esp_idf_bt_bluedroid_enabled))]
 pub fn run_device_main() -> Result<(), String> {
-    Err("real ESP-IDF peripheral acquisition is not linked in this workspace build".to_owned())
+    use std::thread;
+
+    use esp_idf_svc::bt::{Ble, BtDriver};
+    use esp_idf_svc::hal::peripherals::Peripherals;
+    use esp_idf_svc::log::EspLogger;
+    use esp_idf_svc::sys;
+
+    sys::link_patches();
+    EspLogger::initialize_default();
+
+    let peripherals = Peripherals::take().map_err(|error| format!("failed to take ESP-IDF peripherals: {error:?}"))?;
+    let board = BoardConfig::default();
+    let bt_driver = BtDriver::<Ble>::new(peripherals.modem, None)
+        .map_err(|error| format!("failed to initialize Bluetooth controller: {error:?}"))?;
+    let route_sync = crate::esp_idf_ble::EspIdfBleRouteSyncIo::new(bt_driver)
+        .map_err(|error| format!("failed to initialize BLE GATT route-sync service: {error:?}"))?;
+    let mut platform = build_headless_route_sync_platform(board, route_sync)
+        .map_err(|error| format!("failed to build headless BLE route-sync platform: {error:?}"))?;
+
+    println!("ESP route-sync BLE service online: {} / {} / {}", crate::esp_idf_ble::gatt_service_summary().0, crate::esp_idf_ble::gatt_service_summary().1, crate::esp_idf_ble::gatt_service_summary().2);
+
+    loop {
+        platform
+            .run_frame()
+            .map_err(|error| format!("device frame failed: {error:?}"))?;
+        thread::sleep(board.frame_interval);
+    }
+}
+
+#[cfg(all(target_os = "espidf", not(all(not(any(esp32s2, esp32p4)), esp_idf_bt_enabled, esp_idf_bt_bluedroid_enabled))))]
+pub fn run_device_main() -> Result<(), String> {
+    Err("this ESP-IDF target does not expose the standard Bluedroid BLE APIs required by the route-sync GATT server; on the Waveshare ESP32-P4 board this must be implemented through the external radio path instead of esp-idf-svc::bt".to_owned())
 }
 
 #[cfg(not(target_os = "espidf"))]
@@ -674,4 +827,14 @@ mod tests {
         let frame = platform.run_frame().expect("frame");
         assert_eq!(frame.output.frame_index, 1);
     }
+    #[test]
+    fn build_headless_route_sync_platform_runs_without_touch_or_gps_hardware() {
+        let board = BoardConfig::default();
+        let mut platform = build_headless_route_sync_platform(board, crate::platform::NullRouteSyncIo)
+            .expect("headless route-sync platform");
+
+        let frame = platform.run_frame().expect("headless frame");
+        assert_eq!(frame.output.frame_index, 1);
+    }
+
 }

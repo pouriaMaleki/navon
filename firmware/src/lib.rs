@@ -2,6 +2,7 @@ pub mod app;
 pub mod board_config;
 pub mod display;
 pub mod esp_idf;
+pub mod esp_idf_ble;
 pub mod framebuffer;
 pub mod gps;
 pub mod input_bridge;

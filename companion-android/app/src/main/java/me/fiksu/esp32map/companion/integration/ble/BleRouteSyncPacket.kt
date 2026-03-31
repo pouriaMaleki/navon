@@ -144,7 +144,6 @@ object BleRouteSyncCodec {
             "reroute_request" -> RouteSyncMessage.RerouteRequest(
                 RouteRerouteRequestMessage(
                     routeIdentifier = optionalStringField(fields, "route_id") ?: "none",
-                    revision = optionalIntField(fields, "revision") ?: 0,
                     riderLocation = parseCoordinatePoint(requiredField(fields, "rider")),
                     reason = requiredField(fields, "reason"),
                 ),
@@ -171,7 +170,6 @@ object BleRouteSyncCodec {
             is RouteSyncMessage.RerouteRequest -> listOf(
                 "kind=reroute_request",
                 "route_id=${message.message.routeIdentifier}",
-                "revision=${message.message.revision}",
                 "rider=${"%.6f,%.6f".format(message.message.riderLocation.latitude, message.message.riderLocation.longitude)}",
                 "reason=${message.message.reason}",
             ).joinToString("\n")

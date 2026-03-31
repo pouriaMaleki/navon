@@ -1,9 +1,10 @@
 package me.fiksu.esp32map.companion.app
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -21,7 +22,7 @@ import me.fiksu.esp32map.companion.integration.diagnostics.CompanionDiagnosticsS
 import me.fiksu.esp32map.companion.integration.hsl.HslRoutingAdapter
 import me.fiksu.esp32map.companion.integration.persistence.CompanionPersistence
 
-class CompanionAppState : ViewModel() {
+class CompanionAppState(application: Application) : AndroidViewModel(application) {
     var selectedProviderId by mutableStateOf(RouteProviderId.HSL)
     var settings by mutableStateOf(CompanionSettings())
     var simulatedRiderLocation by mutableStateOf(CoordinatePoint(60.1699, 24.9384))
@@ -38,7 +39,7 @@ class CompanionAppState : ViewModel() {
 
     val diagnosticsStore = CompanionDiagnosticsStore()
     val persistence = CompanionPersistence()
-    val bleService = BleRouteSyncService()
+    val bleService = BleRouteSyncService(application.applicationContext)
 
     private val providers: Map<RouteProviderId, RoutingProvider> = mapOf(
         RouteProviderId.HSL to HslRoutingAdapter(settingsProvider = { settings }),
@@ -135,12 +136,10 @@ class CompanionAppState : ViewModel() {
         val provider = providers[selectedProviderId] ?: return
         viewModelScope.launch {
             val routeIdentifier = activeSession.routeIdentifier ?: "preview-route"
-            val routeRevision = activeSession.routeRevision ?: 1
             val riderLocation = simulatedRiderLocation
             bleService.receiveRerouteRequest(
                 RouteRerouteRequestMessage(
                     routeIdentifier = routeIdentifier,
-                    revision = routeRevision,
                     riderLocation = riderLocation,
                     reason = "User drifted off route",
                 ),

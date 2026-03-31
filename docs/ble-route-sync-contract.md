@@ -94,12 +94,15 @@ Important compatibility note:
 Implemented in firmware:
 - packet encode/decode for `chunk` and `sync_message` in firmware
 - route chunk reassembly and runtime ingress in firmware
-- platform bridge for inbound chunk polling and outbound status publication in firmware
-- deterministic firmware tests for packet round-trips and runtime activation
+- platform bridge for inbound chunk polling plus outbound `status` and `reroute_request` publication in firmware
+- ESP-IDF BLE/GATT server adapter for the fixed route-sync service and characteristics on BLE-capable ESP-IDF targets
+- deterministic firmware tests for packet round-trips, runtime activation, and reroute-request publication from the platform seam
+
+Implemented in native companion apps:
 - matching packet codec and GATT constants mirrored into both native companion apps
+- CoreBluetooth central/client adapter on iOS for scan, connect, chunk writes, and notification handling
+- Android BLE/GATT central adapter for scan, connect, chunk writes, notification handling, and runtime permission prompting
 
 Remaining implementation work:
-- CoreBluetooth adapter using this GATT contract
-- Android BLE adapter using this GATT contract
-- ESP-IDF BLE/GATT adapter using this GATT contract
-- packet-loss / interruption fault-injection tests against live adapters
+- live packet-loss / interruption fault-injection tests against the concrete adapters
+- full field validation on real ESP32 hardware and both mobile platforms

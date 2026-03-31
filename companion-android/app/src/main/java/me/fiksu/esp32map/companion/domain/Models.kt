@@ -110,7 +110,6 @@ data class RouteStatusMessage(
 
 data class RouteRerouteRequestMessage(
     val routeIdentifier: String,
-    val revision: Int,
     val riderLocation: CoordinatePoint,
     val reason: String,
 )
@@ -141,7 +140,7 @@ sealed interface RouteSyncMessage {
 
     data class RerouteRequest(val message: RouteRerouteRequestMessage) : RouteSyncMessage {
         override val kindLabel: String = "reroute_request"
-        override val debugSummary: String = "reroute_request ${message.routeIdentifier} rev ${message.revision}"
+        override val debugSummary: String = "reroute_request ${message.routeIdentifier}"
     }
 }
 

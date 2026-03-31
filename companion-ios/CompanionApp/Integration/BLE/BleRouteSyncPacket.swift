@@ -147,7 +147,6 @@ enum BleRouteSyncCodec {
             return [
                 "kind=reroute_request",
                 "route_id=\(message.routeIdentifier)",
-                "revision=\(message.revision)",
                 String(format: "rider=%.6f,%.6f", message.riderLocation.latitude, message.riderLocation.longitude),
                 "reason=\(message.reason)"
             ].joined(separator: "\n")
@@ -222,7 +221,6 @@ enum BleRouteSyncCodec {
             return .rerouteRequest(
                 RouteRerouteRequestMessage(
                     routeIdentifier: optionalStringField("route_id", in: fields) ?? "none",
-                    revision: try optionalIntField("revision", in: fields) ?? 0,
                     riderLocation: try parseCoordinatePoint(try requiredField("rider", in: fields)),
                     reason: try requiredField("reason", in: fields)
                 )
