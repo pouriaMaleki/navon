@@ -59,6 +59,12 @@ Native companion app scaffolds now live in `companion-ios` and `companion-androi
 
 They define the first app shell, HSL provider seam, BLE sync seam, reroute orchestration seam, and persistence/diagnostics boundaries for the routing program.
 
+Current companion checkpoint:
+- in-app HSL planning can run in live Digitransit mode when a subscription key is configured
+- sample fallback remains available when live planning is disabled or unavailable
+- route alternatives can be chosen before sync
+- reroute requests can be driven from an editable rider location in the app shell
+
 Build notes:
 - iOS uses XcodeGen to keep project configuration in text.
 - Android uses Gradle Kotlin DSL for Android Studio / CLI builds on machines with Android SDK installed.

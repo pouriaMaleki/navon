@@ -6,6 +6,16 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section("HSL routing") {
+                    Toggle("Prefer live HSL routing", isOn: $appModel.settings.preferLiveHslRouting)
+                    SecureField("Digitransit subscription key", text: $appModel.settings.hslSubscriptionKey)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    Text("Endpoint: \(appModel.settings.hslEndpointURL)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("Provider shell") {
                     ForEach(appModel.providerOptions) { provider in
                         HStack {
@@ -30,10 +40,15 @@ struct SettingsView: View {
                 Section("Sync contract") {
                     Text("Last outbound: \(appModel.bleService.sessionState.lastOutboundMessage?.kindLabel ?? "none")")
                     Text("Last inbound: \(appModel.bleService.sessionState.lastInboundMessage?.kindLabel ?? "none")")
+                    Text("Pending route: \(appModel.bleService.sessionState.pendingRouteIdentifier ?? "none")")
+                    Text("Checksum: \(appModel.bleService.sessionState.activeRouteChecksumHex ?? "none")")
                 }
             }
             .navigationTitle("Settings")
             .onAppear { appModel.refreshDiagnostics() }
+            .onChange(of: appModel.settings) { _, _ in
+                appModel.persistSettings()
+            }
         }
     }
 }

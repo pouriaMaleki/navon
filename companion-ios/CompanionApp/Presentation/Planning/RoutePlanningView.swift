@@ -21,6 +21,12 @@ struct RoutePlanningView: View {
                     }
                 }
 
+                Section("Planning mode") {
+                    Text(appModel.settings.preferLiveHslRouting ? "Live HSL enabled" : "Sample HSL routes")
+                    Text(appModel.settings.preferLiveHslRouting ? "Routes will use Digitransit when a subscription key is configured." : "Routes are currently generated from the built-in sample fixtures.")
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("Origin") {
                     CoordinateEditor(title: "Latitude", value: $appModel.routeRequest.origin.latitude)
                     CoordinateEditor(title: "Longitude", value: $appModel.routeRequest.origin.longitude)
@@ -29,6 +35,13 @@ struct RoutePlanningView: View {
                 Section("Destination") {
                     CoordinateEditor(title: "Latitude", value: $appModel.routeRequest.destination.latitude)
                     CoordinateEditor(title: "Longitude", value: $appModel.routeRequest.destination.longitude)
+                }
+
+                if let notice = appModel.preview.planningNotice {
+                    Section("Last planning notice") {
+                        Text(notice)
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 Section {

@@ -40,9 +40,11 @@ Depends on:
 
 Current checkpoint:
 - Native app shells exist in `companion-ios` and `companion-android`.
-- HSL now has Digitransit-shaped request builders plus fixture-backed normalization into full route packages in both native apps.
-- Native BLE seams now expose explicit `set` / `update` / `clear` / `status` / `reroute_request` message flow and visible session state.
-- Next implementation step is chunking, checksum, resume/retry, and device-version lifecycle on top of this explicit message contract.
+- HSL now supports live Digitransit planning with in-app subscription-key configuration plus explicit fallback to sample routes when live routing is unavailable.
+- Native preview screens now let the user choose a specific route alternative before sync instead of silently sending the first alternative.
+- Native ride/device screens now let the user drive reroute publishing from an explicit rider location, so replacement-route generation no longer depends on a hidden origin-only demo path.
+- Native BLE seams now simulate chunked transfer sessions with checksum tracking, retry/resume handling, and route-version lifecycle guards for stale, duplicate, and conflicting payloads.
+- Next implementation step is replacing the simulated transfer engine with real CoreBluetooth and Android BLE packet IO, then wiring these live-planning and reroute flows on top of the same transport state model.
 
 ### Definition of Done
 - [ ] Destination-to-`RoutePackage` generation works for each launch provider path.
@@ -54,6 +56,11 @@ Current checkpoint:
 Depends on:
 - Epic A
 - Epic B
+
+Current checkpoint:
+- Native BLE transport seams in iOS and Android now run chunked transfer sessions with visible payload size, checksum, retry/resume, and pending/active route lifecycle state.
+- Duplicate replay, stale revision, and conflicting same-revision payload handling now exist in the transport seam so device-version rules are visible before real BLE packetization lands.
+- Next implementation step is replacing the simulated chunk sender with actual platform BLE packet IO and adding deterministic fault-injection tests around packet loss and resume behavior.
 
 ### Work Items
 - [x] Define message protocol for `set`, `update`, `clear`, `status`, and `reroute_request`.

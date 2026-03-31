@@ -92,6 +92,10 @@ private fun LaunchScreen(padding: PaddingValues, appState: CompanionAppState) {
         Text("BLE state: ${appState.syncSession.connectionState}")
         Text("Last device: ${appState.syncSession.lastDeviceName ?: "None"}")
         Text("Route: ${appState.activeSession.routeIdentifier ?: "None"}")
+        Text("Planning mode: ${if (appState.settings.preferLiveHslRouting) "Live HSL" else "Sample HSL"}")
+        appState.preview.planningNotice?.let {
+            Text("Planning notice: $it")
+        }
         Button(onClick = appState::connectToDevice) {
             Text("Connect to device")
         }
@@ -113,6 +117,15 @@ private fun RoutePlanningScreen(padding: PaddingValues, appState: CompanionAppSt
             )
         }
 
+        Text(if (appState.settings.preferLiveHslRouting) "Live HSL enabled" else "Sample HSL routes")
+        Text(
+            if (appState.settings.preferLiveHslRouting) {
+                "Routes will use Digitransit when a subscription key is configured."
+            } else {
+                "Routes are currently generated from the built-in sample fixtures."
+            },
+        )
+
         CoordinateField("Origin latitude", appState.routeRequest.origin.latitude) {
             appState.routeRequest = appState.routeRequest.copy(origin = appState.routeRequest.origin.copy(latitude = it))
         }
@@ -124,6 +137,10 @@ private fun RoutePlanningScreen(padding: PaddingValues, appState: CompanionAppSt
         }
         CoordinateField("Destination longitude", appState.routeRequest.destination.longitude) {
             appState.routeRequest = appState.routeRequest.copy(destination = appState.routeRequest.destination.copy(longitude = it))
+        }
+
+        appState.preview.planningNotice?.let {
+            Text("Last planning notice: $it")
         }
 
         Button(
@@ -140,6 +157,9 @@ private fun RoutePreviewScreen(padding: PaddingValues, appState: CompanionAppSta
     ScreenColumn(padding) {
         Text("Route id: ${appState.preview.routeIdentifier ?: "None"}")
         Text("Revision: ${appState.preview.routeRevision ?: 0}")
+        appState.preview.planningNotice?.let {
+            Text("Planning notice: $it")
+        }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(appState.preview.alternatives) { alternative ->
                 Column {
@@ -147,6 +167,12 @@ private fun RoutePreviewScreen(padding: PaddingValues, appState: CompanionAppSta
                     Text(alternative.subtitle)
                     Text(alternative.normalizedPackage.summaryLine)
                     Text("${alternative.normalizedPackage.geometryPointCount} geometry points • ${alternative.normalizedPackage.maneuverCount} maneuvers")
+                    Button(
+                        onClick = { appState.selectAlternative(alternative.id) },
+                        enabled = appState.preview.selectedAlternativeId != alternative.id,
+                    ) {
+                        Text(if (appState.preview.selectedAlternativeId == alternative.id) "Using this route" else "Use this route")
+                    }
                 }
             }
         }
@@ -165,9 +191,24 @@ private fun DeviceScreen(padding: PaddingValues, appState: CompanionAppState) {
     ScreenColumn(padding) {
         Text("Connection: ${appState.syncSession.connectionState}")
         Text("Route sync: ${appState.syncSession.routeSyncState}")
+        Text("Pending route: ${appState.syncSession.pendingRouteIdentifier ?: "None"}")
+        Text("Pending revision: ${appState.syncSession.pendingRouteRevision ?: 0}")
         Text("Active route: ${appState.syncSession.activeRouteIdentifier ?: "None"}")
         Text("Active revision: ${appState.syncSession.activeRouteRevision ?: 0}")
+        Text("Active checksum: ${appState.syncSession.activeRouteChecksumHex ?: "None"}")
         Text("Last sync: ${appState.syncSession.lastSyncResult}")
+        Text("Retry fault armed: ${if (appState.syncSession.retryableInterruptionArmed) "Yes" else "No"}")
+        appState.syncSession.transferProgress?.let { transfer ->
+            Text("Transfer id: ${transfer.transferIdentifier}")
+            Text("Kind: ${transfer.messageKind}")
+            Text("Payload: ${transfer.payloadBytes} B")
+            Text("Chunks: ${transfer.acknowledgedChunks}/${transfer.totalChunks} @ ${transfer.chunkSizeBytes} B")
+            Text("Progress: ${transfer.percentComplete}%")
+            Text("Retries: ${transfer.retryCount}")
+            Text("Checksum: ${transfer.checksumHex}")
+            Text("Resume chunk: ${(transfer.resumeChunkIndex?.plus(1)) ?: "Complete"}")
+            Text("Last transfer error: ${transfer.lastError ?: "None"}")
+        } ?: Text("No active transfer")
         Text("Outbound: ${appState.syncSession.lastOutboundMessage?.debugSummary ?: "None"}")
         Text("Inbound: ${appState.syncSession.lastInboundMessage?.debugSummary ?: "None"}")
         Text("Status code: ${appState.syncSession.lastStatusCode?.name ?: "NONE"}")
@@ -177,11 +218,17 @@ private fun DeviceScreen(padding: PaddingValues, appState: CompanionAppState) {
         Button(onClick = appState::sendSelectedRoute) {
             Text("Send route message")
         }
+        Button(onClick = appState::armRetryableInterruptionOnNextTransfer) {
+            Text("Arm next transfer interruption")
+        }
+        Button(onClick = appState::resumePendingTransfer) {
+            Text("Resume pending transfer")
+        }
         Button(onClick = appState::clearActiveRoute) {
             Text("Clear active route")
         }
-        Button(onClick = appState::triggerDemoReroute) {
-            Text("Simulate reroute request")
+        Button(onClick = appState::triggerReroute) {
+            Text("Request reroute from rider location")
         }
     }
 }
@@ -196,8 +243,20 @@ private fun ActiveRideScreen(padding: PaddingValues, appState: CompanionAppState
         appState.activeSession.destinationCoordinate?.let { destination ->
             Text("Destination lat/lon: %.5f, %.5f".format(destination.latitude, destination.longitude))
         }
+        CoordinateField("Rider latitude", appState.simulatedRiderLocation.latitude) {
+            appState.simulatedRiderLocation = appState.simulatedRiderLocation.copy(latitude = it)
+        }
+        CoordinateField("Rider longitude", appState.simulatedRiderLocation.longitude) {
+            appState.simulatedRiderLocation = appState.simulatedRiderLocation.copy(longitude = it)
+        }
         Text("Last reroute: ${appState.activeSession.lastRerouteReason ?: "No reroute yet"}")
         Text("Reroute time: ${appState.activeSession.lastRerouteTimestamp ?: "Never"}")
+        Button(
+            onClick = appState::triggerReroute,
+            enabled = appState.activeSession.destinationCoordinate != null,
+        ) {
+            Text("Request reroute from current rider location")
+        }
     }
 }
 
@@ -205,6 +264,24 @@ private fun ActiveRideScreen(padding: PaddingValues, appState: CompanionAppState
 private fun SettingsScreen(padding: PaddingValues, appState: CompanionAppState) {
     val diagnostics by appState.diagnosticsStore.state.collectAsStateCompat()
     ScreenColumn(padding) {
+        Text("HSL routing")
+        Button(onClick = {
+            appState.settings = appState.settings.copy(preferLiveHslRouting = !appState.settings.preferLiveHslRouting)
+            appState.persistSettings()
+        }) {
+            Text(if (appState.settings.preferLiveHslRouting) "Disable live HSL" else "Enable live HSL")
+        }
+        TextField(
+            value = appState.settings.hslSubscriptionKey,
+            onValueChange = {
+                appState.settings = appState.settings.copy(hslSubscriptionKey = it)
+                appState.persistSettings()
+            },
+            label = { Text("Digitransit subscription key") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Text("Endpoint: ${appState.settings.hslEndpointUrl}")
+
         Text("Diagnostics")
         Text("Provider: ${diagnostics.providerName}")
         Text("Route: ${diagnostics.routeIdentifier}")
@@ -214,6 +291,11 @@ private fun SettingsScreen(padding: PaddingValues, appState: CompanionAppState) 
         Text("Reroute: ${diagnostics.lastRerouteOutcome}")
         Text("Last outbound kind: ${appState.syncSession.lastOutboundMessage?.kindLabel ?: "none"}")
         Text("Last inbound kind: ${appState.syncSession.lastInboundMessage?.kindLabel ?: "none"}")
+        Text("Pending route: ${appState.syncSession.pendingRouteIdentifier ?: "none"}")
+        Text("Checksum: ${appState.syncSession.activeRouteChecksumHex ?: "none"}")
+        appState.preview.planningNotice?.let {
+            Text("Planning notice: $it")
+        }
     }
 }
 

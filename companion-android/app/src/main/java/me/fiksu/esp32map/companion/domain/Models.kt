@@ -151,6 +151,12 @@ data class RoutePlanRequest(
     val providerId: RouteProviderId,
 )
 
+data class CompanionSettings(
+    val preferLiveHslRouting: Boolean = false,
+    val hslSubscriptionKey: String = "",
+    val hslEndpointUrl: String = "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1",
+)
+
 data class RouteAlternative(
     val id: String,
     val title: String,
@@ -165,6 +171,7 @@ data class RoutePreviewModel(
     val selectedAlternativeId: String? = null,
     val routeIdentifier: String? = null,
     val routeRevision: Int? = null,
+    val planningNotice: String? = null,
 ) {
     val selectedAlternative: RouteAlternative?
         get() = alternatives.firstOrNull { it.id == selectedAlternativeId } ?: alternatives.firstOrNull()
@@ -196,13 +203,36 @@ enum class RouteSyncState {
     FAILED,
 }
 
+data class RouteTransferProgress(
+    val transferIdentifier: String,
+    val messageKind: String,
+    val routeIdentifier: String?,
+    val routeRevision: Int?,
+    val payloadBytes: Int,
+    val chunkSizeBytes: Int,
+    val totalChunks: Int,
+    val acknowledgedChunks: Int,
+    val retryCount: Int,
+    val checksumHex: String,
+    val resumeChunkIndex: Int?,
+    val lastError: String?,
+) {
+    val percentComplete: Int
+        get() = if (totalChunks == 0) 0 else ((acknowledgedChunks.toDouble() / totalChunks.toDouble()) * 100.0).toInt()
+}
+
 data class SyncSessionState(
     val connectionState: DeviceConnectionState = DeviceConnectionState.DISCONNECTED,
     val routeSyncState: RouteSyncState = RouteSyncState.IDLE,
     val lastSyncResult: String = "Not sent yet",
     val lastDeviceName: String? = null,
+    val pendingRouteIdentifier: String? = null,
+    val pendingRouteRevision: Int? = null,
     val activeRouteIdentifier: String? = null,
     val activeRouteRevision: Int? = null,
+    val activeRouteChecksumHex: String? = null,
+    val transferProgress: RouteTransferProgress? = null,
+    val retryableInterruptionArmed: Boolean = false,
     val lastOutboundMessage: RouteSyncMessage? = null,
     val lastInboundMessage: RouteSyncMessage? = null,
     val lastStatusCode: RouteSyncStatusCode? = null,
