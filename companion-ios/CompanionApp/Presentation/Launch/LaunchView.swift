@@ -18,6 +18,14 @@ struct LaunchView: View {
                     Text("Provider: \(appModel.selectedProviderID.displayName)")
                     Text("Route: \(appModel.activeSession.routeIdentifier ?? "None")")
                     Text("Sync: \(appModel.bleService.sessionState.routeSyncState.rawValue)")
+                    Text("Planning mode: \(appModel.settings.preferLiveHslRouting ? "Live HSL" : "Sample HSL")")
+                }
+
+                if let notice = appModel.preview.planningNotice {
+                    Section("Planning notice") {
+                        Text(notice)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             .navigationTitle("Companion")

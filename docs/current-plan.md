@@ -180,6 +180,17 @@ Transport contract requirements:
 - Policy values must be runtime-configurable and forward-compatible.
 - Future policy levels must extend the same contract without replacing it.
 
+## Implementation Checkpoint (March 31, 2026, Live HSL Companion Slice)
+- Upgraded both native companion apps from fixture-only planning shells into configurable HSL clients that can use live Digitransit routing when a subscription key is present, while falling back to sample routes with explicit planning notices when live routing is disabled or unavailable.
+- Added native settings flow for live-versus-sample HSL mode plus subscription-key entry so the planning source is visible and controllable inside the companion apps themselves.
+- Added route-alternative selection and rider-location-driven reroute controls in both native apps so reroute publishing is now exercised through an explicit companion UX instead of a hidden first-alternative demo path.
+
+## Implementation Checkpoint (March 31, 2026, Chunked Sync Session Slice)
+- Upgraded the native iOS and Android BLE sync seams from immediate route activation stubs into chunked transfer sessions with payload sizing, chunk counts, checksum tracking, pending-route lifecycle, and active-route checksum visibility.
+- Added deterministic retryable-interruption simulation plus explicit resume handling in both native apps so an interrupted transfer can continue from the pending chunk instead of restarting blindly.
+- Added route-version lifecycle handling in the native transport seam, including stale-revision rejection, duplicate replay dedupe, and conflicting-payload detection for same-revision transfers.
+- Updated native device and settings surfaces to expose transfer telemetry and pending-versus-active route state for manual verification before real BLE packet IO lands.
+
 ## Implementation Checkpoint (March 30, 2026, Native Sync Contract Slice)
 - Added explicit native companion sync message models for `set`, `update`, `clear`, `status`, and `reroute_request` in both iOS and Android app domains.
 - Upgraded native BLE sync services to track outbound and inbound message state, active route version, status codes, and clear versus replace lifecycle transitions.

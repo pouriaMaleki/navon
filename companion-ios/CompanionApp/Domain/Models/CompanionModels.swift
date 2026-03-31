@@ -188,6 +188,18 @@ struct RoutePlanRequest: Equatable {
     var providerID: RouteProviderID
 }
 
+struct CompanionSettings: Equatable {
+    var preferLiveHslRouting: Bool
+    var hslSubscriptionKey: String
+    var hslEndpointURL: String
+
+    static let defaults = CompanionSettings(
+        preferLiveHslRouting: false,
+        hslSubscriptionKey: "",
+        hslEndpointURL: "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1"
+    )
+}
+
 struct RouteAlternative: Identifiable, Equatable {
     let id: UUID
     var title: String
@@ -202,6 +214,7 @@ struct RoutePreviewModel: Equatable {
     var selectedAlternativeID: UUID?
     var routeIdentifier: String?
     var routeRevision: Int?
+    var planningNotice: String?
 
     var selectedAlternative: RouteAlternative? {
         alternatives.first { $0.id == selectedAlternativeID } ?? alternatives.first
@@ -234,13 +247,38 @@ enum RouteSyncState: String, Equatable {
     case failed
 }
 
+struct RouteTransferProgress: Equatable {
+    var transferIdentifier: String
+    var messageKind: String
+    var routeIdentifier: String?
+    var routeRevision: Int?
+    var payloadBytes: Int
+    var chunkSizeBytes: Int
+    var totalChunks: Int
+    var acknowledgedChunks: Int
+    var retryCount: Int
+    var checksumHex: String
+    var resumeChunkIndex: Int?
+    var lastError: String?
+
+    var percentComplete: Int {
+        guard totalChunks > 0 else { return 0 }
+        return Int((Double(acknowledgedChunks) / Double(totalChunks) * 100.0).rounded())
+    }
+}
+
 struct SyncSessionState: Equatable {
     var connectionState: DeviceConnectionState
     var routeSyncState: RouteSyncState
     var lastSyncResult: String
     var lastDeviceName: String?
+    var pendingRouteIdentifier: String?
+    var pendingRouteRevision: Int?
     var activeRouteIdentifier: String?
     var activeRouteRevision: Int?
+    var activeRouteChecksumHex: String?
+    var transferProgress: RouteTransferProgress?
+    var retryableInterruptionArmed: Bool
     var lastOutboundMessage: RouteSyncMessage?
     var lastInboundMessage: RouteSyncMessage?
     var lastStatusCode: RouteSyncStatusCode?

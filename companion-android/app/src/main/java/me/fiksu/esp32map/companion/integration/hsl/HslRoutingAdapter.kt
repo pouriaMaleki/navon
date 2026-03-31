@@ -1,10 +1,15 @@
 package me.fiksu.esp32map.companion.integration.hsl
 
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.UUID
 import kotlin.math.PI
+import kotlin.math.atan2
+import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.sqrt
-import java.util.UUID
 import me.fiksu.esp32map.companion.domain.ActiveRouteSession
+import me.fiksu.esp32map.companion.domain.CompanionSettings
 import me.fiksu.esp32map.companion.domain.CoordinatePoint
 import me.fiksu.esp32map.companion.domain.NormalizedRoutePackage
 import me.fiksu.esp32map.companion.domain.RouteAlternative
@@ -17,14 +22,17 @@ import me.fiksu.esp32map.companion.domain.RouteProvenance
 import me.fiksu.esp32map.companion.domain.RouteProviderId
 import me.fiksu.esp32map.companion.domain.RouteSummary
 import me.fiksu.esp32map.companion.domain.RoutingProvider
+import org.json.JSONArray
+import org.json.JSONObject
 
-class HslRoutingAdapter : RoutingProvider {
+class HslRoutingAdapter(
+    private val settingsProvider: () -> CompanionSettings = { CompanionSettings() },
+) : RoutingProvider {
     override val providerId: RouteProviderId = RouteProviderId.HSL
     override val isAvailableInV1: Boolean = true
 
     override suspend fun planRoute(request: RoutePlanRequest): RoutePreviewModel {
-        val response = sampleDigitransitResponse(request)
-        return normalizeResponse(response, request)
+        return planPreview(request, revisionOverride = null)
     }
 
     override suspend fun replanRoute(session: ActiveRouteSession, riderLocation: CoordinatePoint): RoutePreviewModel {
@@ -33,18 +41,48 @@ class HslRoutingAdapter : RoutingProvider {
             destination = session.destinationCoordinate ?: riderLocation,
             providerId = session.providerId,
         )
-        val response = sampleDigitransitResponse(rerouteRequest)
-        val preview = normalizeResponse(response, rerouteRequest)
-        return if (session.routeRevision != null) {
-            preview.copy(routeRevision = session.routeRevision + 1)
-        } else {
-            preview
-        }
+        return planPreview(rerouteRequest, revisionOverride = session.routeRevision?.plus(1))
     }
 
     override fun normalizePreview(preview: RoutePreviewModel, request: RoutePlanRequest): NormalizedRoutePackage {
         return preview.selectedAlternative?.normalizedPackage
             ?: error("No HSL alternative available for normalization")
+    }
+
+    private suspend fun planPreview(
+        request: RoutePlanRequest,
+        revisionOverride: Int?,
+    ): RoutePreviewModel {
+        val settings = settingsProvider()
+        if (settings.preferLiveHslRouting) {
+            val trimmedKey = settings.hslSubscriptionKey.trim()
+            if (trimmedKey.isEmpty()) {
+                return normalizeResponse(
+                    sampleDigitransitResponse(request, "Fallback sample: missing HSL subscription key"),
+                    request,
+                    revisionOverride,
+                    planningNotice = "No HSL subscription key configured. Showing sample route instead.",
+                )
+            }
+            return try {
+                val liveResponse = fetchLiveDigitransitResponse(request, settings)
+                normalizeResponse(liveResponse, request, revisionOverride, planningNotice = "Live HSL Digitransit")
+            } catch (error: Exception) {
+                normalizeResponse(
+                    sampleDigitransitResponse(request, "Fallback sample after live HSL failure"),
+                    request,
+                    revisionOverride,
+                    planningNotice = "Live HSL failed: ${error.message ?: error::class.simpleName}. Showing sample route instead.",
+                )
+            }
+        }
+
+        return normalizeResponse(
+            sampleDigitransitResponse(request, "Sample HSL route"),
+            request,
+            revisionOverride,
+            planningNotice = "Using sample HSL routes. Enable live HSL in Settings.",
+        )
     }
 
     fun makeGraphQlRequestBody(request: RoutePlanRequest): DigitransitGraphQlRequestBody {
@@ -60,15 +98,129 @@ class HslRoutingAdapter : RoutingProvider {
         )
     }
 
-    private fun normalizeResponse(response: DigitransitResponse, request: RoutePlanRequest): RoutePreviewModel {
+    private fun fetchLiveDigitransitResponse(
+        request: RoutePlanRequest,
+        settings: CompanionSettings,
+    ): DigitransitResponse {
+        val url = URL(settings.hslEndpointUrl)
+        val connection = (url.openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            doOutput = true
+            setRequestProperty("content-type", "application/json")
+            setRequestProperty("digitransit-subscription-key", settings.hslSubscriptionKey)
+        }
+        val requestBody = makeGraphQlRequestJson(request)
+        connection.outputStream.use { output ->
+            output.write(requestBody.toByteArray(Charsets.UTF_8))
+        }
+
+        val statusCode = connection.responseCode
+        val body = runCatching {
+            val stream = if (statusCode in 200..299) connection.inputStream else connection.errorStream
+            stream?.bufferedReader()?.use { it.readText() }.orEmpty()
+        }.getOrDefault("")
+        if (statusCode !in 200..299) {
+            throw IllegalStateException("HTTP $statusCode: $body")
+        }
+
+        val root = JSONObject(body)
+        val errors = root.optJSONArray("errors")
+        if (errors != null && errors.length() > 0) {
+            val message = buildString {
+                for (index in 0 until errors.length()) {
+                    if (index > 0) append(" | ")
+                    append(errors.getJSONObject(index).optString("message", "Unknown error"))
+                }
+            }
+            throw IllegalStateException(message)
+        }
+
+        val itinerariesJson = root
+            .optJSONObject("data")
+            ?.optJSONObject("plan")
+            ?.optJSONArray("itineraries")
+            ?: throw IllegalStateException("No HSL route alternatives were returned")
+
+        val itineraries = buildList {
+            for (index in 0 until itinerariesJson.length()) {
+                val itineraryJson = itinerariesJson.getJSONObject(index)
+                add(parseLiveItinerary(itineraryJson, index))
+            }
+        }
+
+        return DigitransitResponse(DigitransitData(DigitransitPlan(itineraries)))
+    }
+
+    private fun makeGraphQlRequestJson(request: RoutePlanRequest): String {
+        val body = JSONObject()
+        body.put("query", ROUTE_PLAN_QUERY)
+        body.put(
+            "variables",
+            JSONObject().apply {
+                put("from", JSONObject().put("lat", request.origin.latitude).put("lon", request.origin.longitude))
+                put("to", JSONObject().put("lat", request.destination.latitude).put("lon", request.destination.longitude))
+                put("numItineraries", 2)
+                put("transportModes", JSONArray().put(JSONObject().put("mode", "BICYCLE")))
+                put("optimize", "SAFE")
+            },
+        )
+        return body.toString()
+    }
+
+    private fun parseLiveItinerary(json: JSONObject, index: Int): DigitransitItinerary {
+        val legsJson = json.optJSONArray("legs") ?: JSONArray()
+        val legs = buildList {
+            for (legIndex in 0 until legsJson.length()) {
+                parseLiveLeg(legsJson.getJSONObject(legIndex))?.let(::add)
+            }
+        }
+        val firstLeg = legsJson.optJSONObject(0)
+        val lastLeg = legsJson.optJSONObject(legsJson.length() - 1)
+        return DigitransitItinerary(
+            durationSeconds = json.optDouble("duration", 0.0).toInt(),
+            systemNotice = if (index == 0) "HSL Digitransit live / fastest" else "HSL Digitransit live / alternative",
+            legs = legs,
+            steps = emptyList(),
+            startLabel = firstLeg?.optJSONObject("from")?.optString("name").orEmpty().ifBlank { "Current location" },
+            destinationLabel = lastLeg?.optJSONObject("to")?.optString("name").orEmpty().ifBlank { "Selected destination" },
+        )
+    }
+
+    private fun parseLiveLeg(json: JSONObject): DigitransitLeg? {
+        val geometry = decodePolyline(json.optJSONObject("legGeometry")?.optString("points").orEmpty())
+        val fallback = buildList {
+            json.optJSONObject("from")?.let {
+                add(CoordinatePoint(it.optDouble("lat"), it.optDouble("lon")))
+            }
+            json.optJSONObject("to")?.let {
+                val point = CoordinatePoint(it.optDouble("lat"), it.optDouble("lon"))
+                if (lastOrNull() != point) add(point)
+            }
+        }
+        val points = if (geometry.size >= 2) geometry else fallback
+        if (points.size < 2) return null
+        return DigitransitLeg(
+            mode = json.optString("mode", "BICYCLE"),
+            distanceMeters = json.optDouble("distance", 0.0),
+            geometry = points,
+        )
+    }
+
+    private fun normalizeResponse(
+        response: DigitransitResponse,
+        request: RoutePlanRequest,
+        revisionOverride: Int?,
+        planningNotice: String?,
+    ): RoutePreviewModel {
         val alternatives = response.data.plan.itineraries.mapIndexed { index, itinerary ->
-            normalizeItinerary(itinerary, request, index)
+            normalizeItinerary(itinerary, request, index, revisionOverride ?: 1)
         }
         return RoutePreviewModel(
             alternatives = alternatives,
             selectedAlternativeId = alternatives.firstOrNull()?.id,
             routeIdentifier = alternatives.firstOrNull()?.normalizedPackage?.routeIdentifier,
             routeRevision = alternatives.firstOrNull()?.normalizedPackage?.revision,
+            planningNotice = planningNotice,
         )
     }
 
@@ -76,6 +228,7 @@ class HslRoutingAdapter : RoutingProvider {
         itinerary: DigitransitItinerary,
         request: RoutePlanRequest,
         alternativeIndex: Int,
+        revision: Int,
     ): RouteAlternative {
         val routeId = buildRouteIdentifier(request, alternativeIndex)
         val geometry = deduplicatedGeometry(itinerary.legs)
@@ -84,13 +237,13 @@ class HslRoutingAdapter : RoutingProvider {
         val summary = RouteSummary(
             totalDistanceMeters = totalDistance,
             estimatedDurationSeconds = itinerary.durationSeconds,
-            startLabel = "Current location",
-            destinationLabel = "Selected destination",
+            startLabel = itinerary.startLabel,
+            destinationLabel = itinerary.destinationLabel,
         )
         val routePackage = NormalizedRoutePackage(
             version = RoutePackageVersion.CURRENT,
             routeIdentifier = routeId,
-            revision = 1,
+            revision = revision,
             geometry = geometry,
             maneuvers = maneuvers,
             summary = summary,
@@ -102,7 +255,7 @@ class HslRoutingAdapter : RoutingProvider {
         )
         return RouteAlternative(
             id = UUID.randomUUID().toString(),
-            title = if (alternativeIndex == 0) "Fastest bike route" else "Quieter streets",
+            title = if (alternativeIndex == 0) "Fastest bike route" else "Alternative bike route",
             subtitle = itinerary.systemNotice,
             distanceMeters = totalDistance.toInt(),
             durationSeconds = itinerary.durationSeconds,
@@ -112,16 +265,17 @@ class HslRoutingAdapter : RoutingProvider {
 
     private fun buildManeuvers(itinerary: DigitransitItinerary, geometry: List<CoordinatePoint>): List<RouteManeuver> {
         val routeDistance = itinerary.legs.sumOf { it.distanceMeters }
+        val steps = if (itinerary.steps.isEmpty()) deriveSteps(geometry) else itinerary.steps
         val maneuvers = mutableListOf<RouteManeuver>()
         maneuvers += RouteManeuver(
             id = "depart",
             maneuverType = RouteManeuverType.DEPART,
             location = geometry.firstOrNull() ?: CoordinatePoint(0.0, 0.0),
             distanceFromStartMeters = 0.0,
-            distanceToNextMeters = itinerary.steps.firstOrNull()?.distanceFromStartMeters,
+            distanceToNextMeters = steps.firstOrNull()?.distanceFromStartMeters,
             instructionText = "Start riding",
         )
-        itinerary.steps.forEachIndexed { index, step ->
+        steps.forEachIndexed { index, step ->
             maneuvers += RouteManeuver(
                 id = "step-$index",
                 maneuverType = maneuverType(step.relativeDirection),
@@ -140,6 +294,61 @@ class HslRoutingAdapter : RoutingProvider {
             instructionText = "Arrive at destination",
         )
         return maneuvers
+    }
+
+    private fun deriveSteps(geometry: List<CoordinatePoint>): List<DigitransitStep> {
+        if (geometry.size < 3) return emptyList()
+        val cumulative = cumulativeDistances(geometry)
+        return buildList {
+            for (index in 1 until geometry.lastIndex) {
+                val delta = turnDeltaDegrees(geometry[index - 1], geometry[index], geometry[index + 1])
+                val classification = classifyTurn(delta) ?: continue
+                val distanceToNext = if (index + 1 < cumulative.size) cumulative[index + 1] - cumulative[index] else null
+                add(
+                    DigitransitStep(
+                        relativeDirection = classification.first,
+                        location = geometry[index],
+                        distanceFromStartMeters = cumulative[index],
+                        distanceToNextMeters = distanceToNext,
+                        instruction = classification.second,
+                    ),
+                )
+            }
+        }
+    }
+
+    private fun cumulativeDistances(geometry: List<CoordinatePoint>): List<Double> {
+        val cumulative = mutableListOf(0.0)
+        geometry.zipWithNext().forEach { (start, end) ->
+            cumulative += cumulative.last() + approximateDistanceMeters(start, end)
+        }
+        return cumulative
+    }
+
+    private fun turnDeltaDegrees(previous: CoordinatePoint, current: CoordinatePoint, next: CoordinatePoint): Double {
+        val incoming = bearingDegrees(previous, current)
+        val outgoing = bearingDegrees(current, next)
+        var delta = outgoing - incoming
+        while (delta <= -180.0) delta += 360.0
+        while (delta > 180.0) delta -= 360.0
+        return delta
+    }
+
+    private fun bearingDegrees(start: CoordinatePoint, end: CoordinatePoint): Double {
+        val latScale = 111_320.0
+        val lonScale = cos(((start.latitude + end.latitude) / 2) * PI / 180.0) * 111_320.0
+        val latMeters = (end.latitude - start.latitude) * latScale
+        val lonMeters = (end.longitude - start.longitude) * lonScale
+        return atan2(lonMeters, latMeters) * 180.0 / PI
+    }
+
+    private fun classifyTurn(deltaDegrees: Double): Pair<String, String>? {
+        val magnitude = kotlin.math.abs(deltaDegrees)
+        if (magnitude < 25.0) return null
+        if (magnitude >= 170.0) return if (deltaDegrees > 0) "UTURN_RIGHT" to "Make a U-turn" else "UTURN_LEFT" to "Make a U-turn"
+        if (magnitude >= 110.0) return if (deltaDegrees > 0) "HARD_RIGHT" to "Turn sharply right" else "HARD_LEFT" to "Turn sharply left"
+        if (magnitude >= 50.0) return if (deltaDegrees > 0) "RIGHT" to "Turn right" else "LEFT" to "Turn left"
+        return if (deltaDegrees > 0) "SLIGHTLY_RIGHT" to "Bear right" else "SLIGHTLY_LEFT" to "Bear left"
     }
 
     private fun deduplicatedGeometry(legs: List<DigitransitLeg>): List<CoordinatePoint> {
@@ -174,7 +383,38 @@ class HslRoutingAdapter : RoutingProvider {
         }
     }
 
-    fun sampleDigitransitResponse(request: RoutePlanRequest): DigitransitResponse {
+    private fun decodePolyline(encoded: String): List<CoordinatePoint> {
+        if (encoded.isEmpty()) return emptyList()
+        val coordinates = mutableListOf<CoordinatePoint>()
+        var index = 0
+        var latitude = 0
+        var longitude = 0
+        while (index < encoded.length) {
+            var shift = 0
+            var result = 0
+            var value: Int
+            do {
+                value = encoded[index++].code - 63
+                result = result or ((value and 0x1f) shl shift)
+                shift += 5
+            } while (value >= 0x20 && index < encoded.length)
+            latitude += if ((result and 1) == 0) result shr 1 else (result shr 1).inv()
+
+            shift = 0
+            result = 0
+            do {
+                value = encoded[index++].code - 63
+                result = result or ((value and 0x1f) shl shift)
+                shift += 5
+            } while (value >= 0x20 && index < encoded.length)
+            longitude += if ((result and 1) == 0) result shr 1 else (result shr 1).inv()
+
+            coordinates += CoordinatePoint(latitude / 100_000.0, longitude / 100_000.0)
+        }
+        return coordinates
+    }
+
+    fun sampleDigitransitResponse(request: RoutePlanRequest, descriptor: String): DigitransitResponse {
         val origin = request.origin
         val destination = request.destination
         val midpointA = CoordinatePoint(
@@ -195,8 +435,8 @@ class HslRoutingAdapter : RoutingProvider {
             data = DigitransitData(
                 plan = DigitransitPlan(
                     itineraries = listOf(
-                        makeItinerary("HSL Digitransit bike / fastest", fastestGeometry, listOf("RIGHT", "LEFT")),
-                        makeItinerary("HSL Digitransit bike / quieter", quieterGeometry, listOf("LEFT", "RIGHT")),
+                        makeItinerary("$descriptor / fastest", fastestGeometry, listOf("RIGHT", "LEFT"), "Current location", "Selected destination"),
+                        makeItinerary("$descriptor / quieter", quieterGeometry, listOf("LEFT", "RIGHT"), "Current location", "Selected destination"),
                     ),
                 ),
             ),
@@ -207,6 +447,8 @@ class HslRoutingAdapter : RoutingProvider {
         systemNotice: String,
         geometry: List<CoordinatePoint>,
         turnInstructions: List<String>,
+        startLabel: String,
+        destinationLabel: String,
     ): DigitransitItinerary {
         val segmentDistances = geometry.zipWithNext().map { (start, end) ->
             approximateDistanceMeters(start, end)
@@ -231,6 +473,8 @@ class HslRoutingAdapter : RoutingProvider {
             systemNotice = systemNotice,
             legs = listOf(DigitransitLeg(mode = "BICYCLE", distanceMeters = totalDistance, geometry = geometry)),
             steps = steps,
+            startLabel = startLabel,
+            destinationLabel = destinationLabel,
         )
     }
 
@@ -281,6 +525,8 @@ class HslRoutingAdapter : RoutingProvider {
         val systemNotice: String,
         val legs: List<DigitransitLeg>,
         val steps: List<DigitransitStep>,
+        val startLabel: String,
+        val destinationLabel: String,
     )
 
     data class DigitransitLeg(
@@ -309,10 +555,19 @@ class HslRoutingAdapter : RoutingProvider {
               ) {
                 itineraries {
                   duration
-                  systemNotices
                   legs {
                     mode
                     distance
+                    from {
+                      lat
+                      lon
+                      name
+                    }
+                    to {
+                      lat
+                      lon
+                      name
+                    }
                     legGeometry {
                       points
                     }
