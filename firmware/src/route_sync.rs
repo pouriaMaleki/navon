@@ -99,9 +99,7 @@ impl RouteSyncTransport {
                 actual: actual_checksum,
             });
         }
-        let payload_text =
-            String::from_utf8(payload).map_err(|_| RouteSyncTransportError::Utf8Payload)?;
-        let message = parse_sync_message(&payload_text)?;
+        let message = decode_sync_message(&payload)?;
         self.accept_message(message, actual_checksum)
     }
 
@@ -319,6 +317,12 @@ pub fn chunk_sync_message(
         .collect()
 }
 
+pub fn decode_sync_message(payload: &[u8]) -> Result<RouteSyncMessage, RouteSyncTransportError> {
+    let payload_text =
+        String::from_utf8(payload.to_vec()).map_err(|_| RouteSyncTransportError::Utf8Payload)?;
+    parse_sync_message(&payload_text)
+}
+
 pub fn encode_sync_message(message: &RouteSyncMessage) -> String {
     match message {
         RouteSyncMessage::Set(set) => encode_route_message("set", &set.route),
@@ -385,6 +389,10 @@ fn encode_route_message(kind: &str, route: &RoutePackage) -> String {
                 maneuver.id.clone(),
                 encode_maneuver_type(maneuver.maneuver_type).to_owned(),
                 format!("{:.1}", maneuver.distance_from_start_m),
+                maneuver
+                    .distance_to_next_m
+                    .map(|distance| format!("{distance:.1}"))
+                    .unwrap_or_default(),
                 format!(
                     "{:.6},{:.6}",
                     maneuver.location.lat_deg, maneuver.location.lon_deg
@@ -566,34 +574,45 @@ fn parse_maneuvers(value: &str) -> Result<Vec<RouteManeuver>, RouteSyncTransport
     value
         .split(';')
         .map(|entry| {
-            let mut parts = entry.splitn(5, '|');
+            let parts = entry.splitn(6, '|').collect::<Vec<_>>();
             let id = parts
-                .next()
+                .first()
                 .ok_or(RouteSyncTransportError::MissingField("maneuver.id"))?
-                .to_owned();
+                .to_string();
             let maneuver_type = parse_maneuver_type(
                 parts
-                    .next()
+                    .get(1)
+                    .copied()
                     .ok_or(RouteSyncTransportError::MissingField("maneuver.type"))?,
             )?;
             let distance_from_start_m = parse_f32(
-                parts.next().ok_or(RouteSyncTransportError::MissingField(
-                    "maneuver.distance_from_start_m",
-                ))?,
+                parts
+                    .get(2)
+                    .copied()
+                    .ok_or(RouteSyncTransportError::MissingField(
+                        "maneuver.distance_from_start_m",
+                    ))?,
                 "maneuver.distance_from_start_m",
             )?;
-            let location = parse_geo_point(
-                parts
-                    .next()
-                    .ok_or(RouteSyncTransportError::MissingField("maneuver.location"))?,
-            )?;
-            let instruction_text = non_empty(parts.next().unwrap_or_default());
+            let (distance_to_next_m, location_value, instruction_value) = match parts.as_slice() {
+                [_, _, _, location, instruction] => (None, *location, *instruction),
+                [_, _, _, distance_to_next, location, instruction] => (
+                    non_empty(distance_to_next)
+                        .map(|value| parse_f32(value.as_str(), "maneuver.distance_to_next_m"))
+                        .transpose()?,
+                    *location,
+                    *instruction,
+                ),
+                _ => return Err(RouteSyncTransportError::MissingField("maneuver.location")),
+            };
+            let location = parse_geo_point(location_value)?;
+            let instruction_text = non_empty(instruction_value);
             Ok(RouteManeuver {
                 id,
                 maneuver_type,
                 location,
                 distance_from_start_m,
-                distance_to_next_m: None,
+                distance_to_next_m,
                 instruction_text,
             })
         })
