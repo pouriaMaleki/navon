@@ -181,6 +181,12 @@ Transport contract requirements:
 - Policy values must be runtime-configurable and forward-compatible.
 - Future policy levels must extend the same contract without replacing it.
 
+## Implementation Checkpoint (March 31, 2026, Live BLE Integration Slice)
+- Integrated real CoreBluetooth central/client wiring in the iOS companion app, including scan, connect, GATT service discovery, route chunk writes, notification subscription, and Bluetooth permission prompts/usage descriptions.
+- Integrated real Android BLE/GATT central wiring in the Android companion app, including permission-gated scan/connect, characteristic discovery, route chunk writes, notification subscription, and on-device permission request UI.
+- Added an ESP-IDF BLE/GATT server adapter around the fixed route-sync service/characteristic contract and exposed firmware builders that can construct a device platform with route-sync IO instead of the null transport. On BLE-capable ESP-IDF targets the device entrypoint can now boot a headless route-sync service directly; the Waveshare ESP32-P4 board remains blocked on its external radio path because standard `esp-idf-svc::bt` Bluedroid APIs are not available on `esp32p4`.
+- Extended the firmware platform loop to publish outbound `reroute_request` messages over the same sync-message channel the companions already decode, so live BLE now covers both route activation and reroute escalation.
+
 ## Implementation Checkpoint (March 31, 2026, Live HSL Companion Slice)
 - Upgraded both native companion apps from fixture-only planning shells into configurable HSL clients that can use live Digitransit routing when a subscription key is present, while falling back to sample routes with explicit planning notices when live routing is disabled or unavailable.
 - Added native settings flow for live-versus-sample HSL mode plus subscription-key entry so the planning source is visible and controllable inside the companion apps themselves.
@@ -212,7 +218,7 @@ Transport contract requirements:
 - Upgraded the native iOS and Android BLE sync seams from immediate route activation stubs into chunked transfer sessions with payload sizing, chunk counts, checksum tracking, pending-route lifecycle, and active-route checksum visibility.
 - Added deterministic retryable-interruption simulation plus explicit resume handling in both native apps so an interrupted transfer can continue from the pending chunk instead of restarting blindly.
 - Added route-version lifecycle handling in the native transport seam, including stale-revision rejection, duplicate replay dedupe, and conflicting-payload detection for same-revision transfers.
-- Updated native device and settings surfaces to expose transfer telemetry and pending-versus-active route state for manual verification before real BLE packet IO lands.
+- Updated native device and settings surfaces to expose transfer telemetry and pending-versus-active route state for manual verification while the real BLE backends are active.
 
 ## Implementation Checkpoint (March 30, 2026, Native Sync Contract Slice)
 - Added explicit native companion sync message models for `set`, `update`, `clear`, `status`, and `reroute_request` in both iOS and Android app domains.

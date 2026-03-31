@@ -139,7 +139,6 @@ struct RouteStatusMessage: Equatable, Codable {
 
 struct RouteRerouteRequestMessage: Equatable, Codable {
     var routeIdentifier: String
-    var revision: Int
     var riderLocation: CoordinatePoint
     var reason: String
 }
@@ -177,7 +176,7 @@ enum RouteSyncMessage: Equatable, Codable {
         case .status(let message):
             return "status \(message.status.rawValue) \(message.routeIdentifier ?? "none")"
         case .rerouteRequest(let message):
-            return "reroute_request \(message.routeIdentifier) rev \(message.revision)"
+            return "reroute_request \(message.routeIdentifier)"
         }
     }
 }

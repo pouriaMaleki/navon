@@ -43,8 +43,8 @@ Current checkpoint:
 - HSL now supports live Digitransit planning with in-app subscription-key configuration plus explicit fallback to sample routes when live routing is unavailable.
 - Native preview screens now let the user choose a specific route alternative before sync instead of silently sending the first alternative.
 - Native ride/device screens now let the user drive reroute publishing from an explicit rider location, so replacement-route generation no longer depends on a hidden origin-only demo path.
-- Native BLE seams now simulate chunked transfer sessions with checksum tracking, retry/resume handling, and route-version lifecycle guards for stale, duplicate, and conflicting payloads.
-- Next implementation step is replacing the simulated transfer engine with real CoreBluetooth and Android BLE packet IO, then wiring these live-planning and reroute flows on top of the same transport state model.
+- Native BLE seams now have real CoreBluetooth and Android BLE/GATT clients wired into the same chunked transfer/session model that was originally simulated, while preserving the simulated fallback path when no BLE connection is active.
+- Next implementation step is fault-injection hardening around live BLE packet loss/resume behavior and end-to-end device validation against the ESP GATT server.
 
 ### Definition of Done
 - [ ] Destination-to-`RoutePackage` generation works for each launch provider path.
@@ -58,16 +58,16 @@ Depends on:
 - Epic B
 
 Current checkpoint:
-- Native BLE transport seams in iOS and Android now run chunked transfer sessions with visible payload size, checksum, retry/resume, and pending/active route lifecycle state.
-- Firmware now owns device-side route sync reassembly, checksum verification, stale-revision rejection, duplicate replay dedupe, conflicting same-revision detection, runtime route ingress, and platform-to-runtime status publication.
-- The BLE wire contract is now fixed in code and docs across firmware plus both native companion apps, including service/characteristic UUIDs and packet envelopes for `chunk` and `sync_message` traffic.
-- Next implementation step is replacing the simulated/native placeholder transport seams with actual CoreBluetooth, Android BLE, and ESP-IDF packet IO against this fixed contract, then adding deterministic fault-injection tests around packet loss and resume behavior.
+- Native BLE transport seams in iOS and Android now use real CoreBluetooth / Android BLE packet IO when a compatible ESP32 route-sync peripheral is available, while preserving the existing chunked transfer/session state model.
+- Firmware now owns device-side route sync reassembly, checksum verification, stale-revision rejection, duplicate replay dedupe, conflicting same-revision detection, runtime route ingress, platform-to-runtime status publication, and outbound reroute-request publication.
+- The BLE wire contract is now fixed in code and docs across firmware plus both native companion apps, including service/characteristic UUIDs, packet envelopes for `chunk` and `sync_message` traffic, and actual GATT adapter implementations on all three sides where the target silicon exposes standard BLE APIs. The ESP32-P4 production board still needs its external-radio path wired separately.
+- Next implementation step is deterministic fault-injection tests around live packet loss/resume behavior plus field validation against real ESP hardware.
 
 ### Work Items
 - [x] Define message protocol for `set`, `update`, `clear`, `status`, and `reroute_request`.
-- [ ] Implement BLE-first transport with route chunking and flow control.
-- [ ] Implement checksum verification, dedupe, and idempotent replay handling.
-- [ ] Implement transfer resume/retry for interrupted sessions.
+- [x] Implement BLE-first transport with route chunking and flow control.
+- [x] Implement checksum verification, dedupe, and idempotent replay handling.
+- [x] Implement transfer resume/retry for interrupted sessions.
 - [ ] Add optional Wi-Fi transport path behind same message contract.
 - [x] Add route version lifecycle handling on device.
 

@@ -133,12 +133,10 @@ final class AppModel: ObservableObject {
     func handleRerouteRequest() async {
         guard let provider = availableProvider else { return }
         let routeIdentifier = activeSession.routeIdentifier ?? "preview-route"
-        let routeRevision = activeSession.routeRevision ?? 1
         let riderLocation = simulatedRiderLocation
         await bleService.receiveRerouteRequest(
             RouteRerouteRequestMessage(
                 routeIdentifier: routeIdentifier,
-                revision: routeRevision,
                 riderLocation: riderLocation,
                 reason: "User drifted off route"
             )

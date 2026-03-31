@@ -14,3 +14,12 @@ runtime-core = { path = "../runtime-core" }
 
 [target.'cfg(target_os = "espidf")'.dependencies]
 esp-idf-svc = "0.52.1"
+enumset = "1.1.10"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    "cfg(esp32s2)",
+    "cfg(esp32p4)",
+    "cfg(esp_idf_bt_enabled)",
+    "cfg(esp_idf_bt_bluedroid_enabled)",
+] }

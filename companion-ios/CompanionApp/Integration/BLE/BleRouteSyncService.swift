@@ -21,17 +21,50 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
     )
 
     private let chunkSizeBytes = 96
+    private let bluetoothClient: CoreBluetoothRouteSyncClient
     private var pendingTransfer: PendingTransfer?
+
+    init(bluetoothClient: CoreBluetoothRouteSyncClient = CoreBluetoothRouteSyncClient()) {
+        self.bluetoothClient = bluetoothClient
+        self.bluetoothClient.onConnectionStateChange = { [weak self] state, name in
+            Task { @MainActor in
+                self?.sessionState.connectionState = state
+                if let name {
+                    self?.sessionState.lastDeviceName = name
+                }
+                if state == .disconnected {
+                    self?.sessionState.routeSyncState = .idle
+                }
+            }
+        }
+        self.bluetoothClient.onSyncMessage = { [weak self] message in
+            Task { @MainActor in
+                await self?.handleInbound(message)
+            }
+        }
+    }
 
     func scanForDevices() async {
         sessionState.connectionState = .scanning
-        sessionState.lastDeviceName = "ESP32 Bike Minimap"
+        do {
+            sessionState.lastDeviceName = try await bluetoothClient.scanForRouteSyncPeripheral()
+            sessionState.lastSyncResult = "Discovered \(sessionState.lastDeviceName ?? "ESP32 Bike Minimap")"
+        } catch {
+            sessionState.connectionState = .disconnected
+            sessionState.lastSyncResult = error.localizedDescription
+        }
     }
 
     func connectToLastKnownDevice() async {
         sessionState.connectionState = .connecting
-        sessionState.connectionState = .connected
-        sessionState.lastDeviceName = sessionState.lastDeviceName ?? "ESP32 Bike Minimap"
+        do {
+            sessionState.lastDeviceName = try await bluetoothClient.connectToScannedPeripheral()
+            sessionState.connectionState = .connected
+            sessionState.lastSyncResult = "Connected to \(sessionState.lastDeviceName ?? "ESP32 Bike Minimap")"
+        } catch {
+            sessionState.connectionState = .disconnected
+            sessionState.lastSyncResult = error.localizedDescription
+        }
     }
 
     func publishSet(_ route: NormalizedRoutePackage) async throws {
@@ -55,11 +88,10 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
     }
 
     func resumePendingTransfer() async throws {
-        guard let transfer = pendingTransfer else {
+        guard pendingTransfer != nil else {
             throw TransferError.noPendingTransfer
         }
         sessionState.routeSyncState = .transferring
-        sessionState.lastSyncResult = "Resuming \(transfer.message.kindLabel) at chunk \(transfer.nextChunkIndex + 1)/\(transfer.totalChunks)"
         try await drainPendingTransfer()
     }
 
@@ -69,75 +101,37 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
     }
 
     func receiveStatus(_ message: RouteStatusMessage) async {
-        let decodedMessage = decodeInboundSyncMessage(.status(message))
-        guard case .status(let message) = decodedMessage else { return }
-        sessionState.lastInboundMessage = decodedMessage
-        sessionState.lastStatusCode = message.status
-        switch message.status {
-        case .accepted, .applying:
-            sessionState.routeSyncState = .awaitingAck
-            sessionState.lastSyncResult = message.detail ?? "Waiting for device acknowledgement"
-        case .active:
-            sessionState.routeSyncState = .synced
-            sessionState.activeRouteIdentifier = message.routeIdentifier
-            sessionState.activeRouteRevision = message.revision
-            sessionState.activeRouteChecksumHex = pendingTransfer?.checksumHex ?? sessionState.activeRouteChecksumHex
-            sessionState.pendingRouteIdentifier = nil
-            sessionState.pendingRouteRevision = nil
-            sessionState.transferProgress = nil
-            sessionState.lastSyncResult = message.detail ?? "Device activated route"
-            pendingTransfer = nil
-        case .cleared:
-            sessionState.routeSyncState = .idle
-            sessionState.pendingRouteIdentifier = nil
-            sessionState.pendingRouteRevision = nil
-            sessionState.activeRouteIdentifier = nil
-            sessionState.activeRouteRevision = nil
-            sessionState.activeRouteChecksumHex = nil
-            sessionState.transferProgress = nil
-            sessionState.lastSyncResult = message.detail ?? "Device cleared route"
-            pendingTransfer = nil
-        case .retryableFailure:
-            sessionState.routeSyncState = .failed
-            sessionState.lastSyncResult = message.detail ?? "Device reported retryable sync failure"
-        case .rejected, .fatalFailure:
-            sessionState.routeSyncState = .failed
-            sessionState.pendingRouteIdentifier = nil
-            sessionState.pendingRouteRevision = nil
-            sessionState.transferProgress = nil
-            sessionState.lastSyncResult = message.detail ?? "Device reported sync failure"
-            pendingTransfer = nil
-        }
+        await handleInbound(.status(message))
     }
 
     func receiveRerouteRequest(_ message: RouteRerouteRequestMessage) async {
-        let decodedMessage = decodeInboundSyncMessage(.rerouteRequest(message))
-        guard case .rerouteRequest(let message) = decodedMessage else { return }
-        sessionState.lastInboundMessage = decodedMessage
-        sessionState.lastSyncResult = "Device requested reroute for \(message.routeIdentifier)"
+        await handleInbound(.rerouteRequest(message))
     }
 
     private func beginTransfer(_ message: RouteSyncMessage) async throws {
+        let transferIdentifier = UUID().uuidString
         let payload = BleRouteSyncCodec.canonicalPayloadData(for: message)
-        let totalChunks = max(1, Int(ceil(Double(payload.count) / Double(chunkSizeBytes))))
-        let checksumHex = BleRouteSyncCodec.checksumHex(for: payload)
         let transfer = PendingTransfer(
-            identifier: UUID().uuidString,
+            identifier: transferIdentifier,
             message: message,
             payload: payload,
-            checksumHex: checksumHex,
-            totalChunks: totalChunks,
+            checksumHex: BleRouteSyncCodec.checksumHex(for: payload),
+            chunkEnvelopes: BleRouteSyncCodec.chunkEnvelopes(
+                for: message,
+                transferIdentifier: transferIdentifier,
+                chunkSizeBytes: chunkSizeBytes
+            ),
             nextChunkIndex: 0,
             retryCount: 0,
             lastError: nil
         )
         pendingTransfer = transfer
         sessionState.routeSyncState = .preparing
-        sessionState.pendingRouteIdentifier = routeIdentifier(for: message)
-        sessionState.pendingRouteRevision = routeRevision(for: message)
+        sessionState.pendingRouteIdentifier = transfer.routeIdentifier
+        sessionState.pendingRouteRevision = transfer.routeRevision
         sessionState.lastOutboundMessage = message
         sessionState.transferProgress = transfer.progress(chunkSizeBytes: chunkSizeBytes)
-        sessionState.lastSyncResult = "Prepared \(message.kindLabel) payload (\(payload.count) B across \(totalChunks) chunks)"
+        sessionState.lastSyncResult = "Prepared \(message.kindLabel) payload (\(transfer.payload.count) B across \(transfer.chunkEnvelopes.count) chunks)"
         try await drainPendingTransfer()
     }
 
@@ -147,40 +141,48 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
         }
 
         sessionState.routeSyncState = .transferring
-        while transfer.nextChunkIndex < transfer.totalChunks {
+        while transfer.nextChunkIndex < transfer.chunkEnvelopes.count {
             try await Task.sleep(nanoseconds: 80_000_000)
             let chunkNumber = transfer.nextChunkIndex + 1
 
             if sessionState.retryableInterruptionArmed {
                 sessionState.retryableInterruptionArmed = false
                 transfer.retryCount += 1
-                transfer.lastError = "Simulated BLE interruption at chunk \(chunkNumber)/\(transfer.totalChunks)"
+                transfer.lastError = "Simulated BLE interruption at chunk \(chunkNumber)/\(transfer.chunkEnvelopes.count)"
                 pendingTransfer = transfer
                 sessionState.transferProgress = transfer.progress(chunkSizeBytes: chunkSizeBytes)
-                await receiveStatus(
-                    RouteStatusMessage(
-                        routeIdentifier: transfer.routeIdentifier,
-                        revision: transfer.routeRevision,
-                        status: .retryableFailure,
-                        detail: "Transfer interrupted at chunk \(chunkNumber)/\(transfer.totalChunks); tap Resume pending transfer"
-                    )
-                )
+                sessionState.routeSyncState = .failed
+                sessionState.lastSyncResult = transfer.lastError ?? "Transfer interrupted"
                 return
+            }
+
+            let envelope = transfer.chunkEnvelopes[transfer.nextChunkIndex]
+            if bluetoothClient.isReady {
+                try await bluetoothClient.write(packet: .chunk(envelope))
             }
 
             transfer.nextChunkIndex = chunkNumber
             transfer.lastError = nil
             pendingTransfer = transfer
             sessionState.transferProgress = transfer.progress(chunkSizeBytes: chunkSizeBytes)
-            sessionState.lastSyncResult = "Transferred chunk \(chunkNumber)/\(transfer.totalChunks) (\(transfer.progress(chunkSizeBytes: chunkSizeBytes).percentComplete)%)"
+            sessionState.lastSyncResult = "Transferred chunk \(chunkNumber)/\(transfer.chunkEnvelopes.count) (\(transfer.progress(chunkSizeBytes: chunkSizeBytes).percentComplete)%)"
         }
 
+        if bluetoothClient.isReady {
+            sessionState.routeSyncState = .awaitingAck
+            sessionState.lastSyncResult = "Waiting for ESP32 acknowledgement over BLE"
+        } else {
+            await simulateDeviceCompletion(for: transfer)
+        }
+    }
+
+    private func simulateDeviceCompletion(for transfer: PendingTransfer) async {
         await receiveStatus(
             RouteStatusMessage(
                 routeIdentifier: transfer.routeIdentifier,
                 revision: transfer.routeRevision,
                 status: .accepted,
-                detail: "Checksum \(transfer.checksumHex) verified after \(transfer.totalChunks) chunks"
+                detail: "Checksum \(transfer.checksumHex) verified after \(transfer.chunkEnvelopes.count) chunks"
             )
         )
         await receiveStatus(
@@ -191,8 +193,56 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
                 detail: "Applying route revision \(transfer.routeRevision.map(String.init) ?? "0") on device"
             )
         )
-        let finalStatus = finalStatus(for: transfer)
-        await receiveStatus(finalStatus)
+        await receiveStatus(finalStatus(for: transfer))
+    }
+
+    private func handleInbound(_ message: RouteSyncMessage) async {
+        let decodedMessage = decodeInboundSyncMessage(message)
+        sessionState.lastInboundMessage = decodedMessage
+
+        switch decodedMessage {
+        case .status(let status):
+            sessionState.lastStatusCode = status.status
+            switch status.status {
+            case .accepted, .applying:
+                sessionState.routeSyncState = .awaitingAck
+                sessionState.lastSyncResult = status.detail ?? "Waiting for device acknowledgement"
+            case .active:
+                sessionState.routeSyncState = .synced
+                sessionState.activeRouteIdentifier = status.routeIdentifier
+                sessionState.activeRouteRevision = status.revision
+                sessionState.activeRouteChecksumHex = pendingTransfer?.checksumHex ?? sessionState.activeRouteChecksumHex
+                sessionState.pendingRouteIdentifier = nil
+                sessionState.pendingRouteRevision = nil
+                sessionState.transferProgress = nil
+                sessionState.lastSyncResult = status.detail ?? "Device activated route"
+                pendingTransfer = nil
+            case .cleared:
+                sessionState.routeSyncState = .idle
+                sessionState.pendingRouteIdentifier = nil
+                sessionState.pendingRouteRevision = nil
+                sessionState.activeRouteIdentifier = nil
+                sessionState.activeRouteRevision = nil
+                sessionState.activeRouteChecksumHex = nil
+                sessionState.transferProgress = nil
+                sessionState.lastSyncResult = status.detail ?? "Device cleared route"
+                pendingTransfer = nil
+            case .retryableFailure:
+                sessionState.routeSyncState = .failed
+                sessionState.lastSyncResult = status.detail ?? "Device reported retryable sync failure"
+            case .rejected, .fatalFailure:
+                sessionState.routeSyncState = .failed
+                sessionState.pendingRouteIdentifier = nil
+                sessionState.pendingRouteRevision = nil
+                sessionState.transferProgress = nil
+                sessionState.lastSyncResult = status.detail ?? "Device reported sync failure"
+                pendingTransfer = nil
+            }
+        case .rerouteRequest(let request):
+            sessionState.lastSyncResult = "Device requested reroute for \(request.routeIdentifier)"
+        case .set, .update, .clear:
+            sessionState.lastSyncResult = "Received unexpected inbound \(decodedMessage.kindLabel) message"
+        }
     }
 
     private func finalStatus(for transfer: PendingTransfer) -> RouteStatusMessage {
@@ -253,107 +303,23 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
             routeIdentifier: route.routeIdentifier,
             revision: route.revision,
             status: .active,
-            detail: "Route revision \(route.revision) applied over BLE via \(kindLabel)"
+            detail: bluetoothClient.isReady
+                ? "Route revision \(route.revision) applied on ESP32 over CoreBluetooth via \(kindLabel)"
+                : "Route revision \(route.revision) applied over simulated BLE via \(kindLabel)"
         )
     }
 
-    private func routeIdentifier(for message: RouteSyncMessage) -> String? {
-        switch message {
-        case .set(let message):
-            return message.route.routeIdentifier
-        case .update(let message):
-            return message.routeIdentifier
-        case .clear(let message):
-            return message.routeIdentifier
-        case .status(let message):
-            return message.routeIdentifier
-        case .rerouteRequest(let message):
-            return message.routeIdentifier
+    private func decodeInboundSyncMessage(_ message: RouteSyncMessage) -> RouteSyncMessage {
+        do {
+            let packet = BleRouteSyncPacket.syncMessage(message)
+            let decodedPacket = try BleRouteSyncCodec.decode(BleRouteSyncCodec.encode(packet))
+            if case let .syncMessage(decodedMessage) = decodedPacket {
+                return decodedMessage
+            }
+        } catch {
+            return message
         }
-    }
-
-    private func routeRevision(for message: RouteSyncMessage) -> Int? {
-        switch message {
-        case .set(let message):
-            return message.route.revision
-        case .update(let message):
-            return message.revision
-        case .clear:
-            return nil
-        case .status(let message):
-            return message.revision
-        case .rerouteRequest(let message):
-            return message.revision
-        }
-    }
-
-    private func canonicalPayloadData(for message: RouteSyncMessage) -> Data {
-        Data(canonicalPayloadString(for: message).utf8)
-    }
-
-    private func canonicalPayloadString(for message: RouteSyncMessage) -> String {
-        switch message {
-        case .set(let message):
-            return routePayloadString(kind: "set", route: message.route)
-        case .update(let message):
-            return routePayloadString(kind: "update", route: message.route)
-        case .clear(let message):
-            return [
-                "kind=clear",
-                "route_id=\(message.routeIdentifier ?? "current")"
-            ].joined(separator: "\n")
-        case .status(let message):
-            return [
-                "kind=status",
-                "route_id=\(message.routeIdentifier ?? "none")",
-                "revision=\(message.revision.map(String.init) ?? "none")",
-                "status=\(message.status.rawValue)",
-                "detail=\(message.detail ?? "")"
-            ].joined(separator: "\n")
-        case .rerouteRequest(let message):
-            return [
-                "kind=reroute_request",
-                "route_id=\(message.routeIdentifier)",
-                "revision=\(message.revision)",
-                String(format: "rider=%.6f,%.6f", message.riderLocation.latitude, message.riderLocation.longitude),
-                "reason=\(message.reason)"
-            ].joined(separator: "\n")
-        }
-    }
-
-    private func routePayloadString(kind: String, route: NormalizedRoutePackage) -> String {
-        let geometry = route.geometry.map {
-            String(format: "%.6f,%.6f", $0.latitude, $0.longitude)
-        }.joined(separator: ";")
-        let maneuvers = route.maneuvers.map { maneuver in
-            [
-                maneuver.id,
-                maneuver.maneuverType.rawValue,
-                String(format: "%.1f", maneuver.distanceFromStartMeters),
-                String(format: "%.6f,%.6f", maneuver.location.latitude, maneuver.location.longitude),
-                maneuver.instructionText ?? ""
-            ].joined(separator: "|")
-        }.joined(separator: ";")
-
-        return [
-            "kind=\(kind)",
-            "route_id=\(route.routeIdentifier)",
-            "revision=\(route.revision)",
-            "version=\(route.version.major).\(route.version.minor)",
-            String(format: "summary=%.1f|%d|%@|%@", route.summary.totalDistanceMeters, route.summary.estimatedDurationSeconds, route.summary.startLabel ?? "", route.summary.destinationLabel ?? ""),
-            "geometry=\(geometry)",
-            "maneuvers=\(maneuvers)",
-            "provenance=\(route.provenance.providerID.rawValue)|\(route.provenance.sourceReference ?? "")|\(route.provenance.generatedAtUnixMs)"
-        ].joined(separator: "\n")
-    }
-
-    private func checksumHex(for data: Data) -> String {
-        var hash: UInt32 = 2_166_136_261
-        for byte in data {
-            hash ^= UInt32(byte)
-            hash &*= 16_777_619
-        }
-        return String(format: "%08x", hash)
+        return message
     }
 }
 
@@ -363,7 +329,7 @@ private extension BleRouteSyncService {
         var message: RouteSyncMessage
         var payload: Data
         var checksumHex: String
-        var totalChunks: Int
+        var chunkEnvelopes: [RouteTransferChunkEnvelope]
         var nextChunkIndex: Int
         var retryCount: Int
         var lastError: String?
@@ -389,11 +355,9 @@ private extension BleRouteSyncService {
                 return message.route.revision
             case .update(let message):
                 return message.revision
-            case .clear:
+            case .clear, .rerouteRequest:
                 return nil
             case .status(let message):
-                return message.revision
-            case .rerouteRequest(let message):
                 return message.revision
             }
         }
@@ -406,30 +370,24 @@ private extension BleRouteSyncService {
                 routeRevision: routeRevision,
                 payloadBytes: payload.count,
                 chunkSizeBytes: chunkSizeBytes,
-                totalChunks: totalChunks,
+                totalChunks: chunkEnvelopes.count,
                 acknowledgedChunks: nextChunkIndex,
                 retryCount: retryCount,
                 checksumHex: checksumHex,
-                resumeChunkIndex: nextChunkIndex < totalChunks ? nextChunkIndex : nil,
+                resumeChunkIndex: nextChunkIndex < chunkEnvelopes.count ? nextChunkIndex : nil,
                 lastError: lastError
             )
         }
     }
 
-    private func decodeInboundSyncMessage(_ message: RouteSyncMessage) -> RouteSyncMessage {
-        do {
-            let packet = BleRouteSyncPacket.syncMessage(message)
-            let decodedPacket = try BleRouteSyncCodec.decode(BleRouteSyncCodec.encode(packet))
-            if case .syncMessage(let decodedMessage) = decodedPacket {
-                return decodedMessage
-            }
-        } catch {
-            return message
-        }
-        return message
-    }
-
-    enum TransferError: Error {
+    enum TransferError: LocalizedError {
         case noPendingTransfer
+
+        var errorDescription: String? {
+            switch self {
+            case .noPendingTransfer:
+                return "There is no pending BLE route transfer to resume"
+            }
+        }
     }
 }

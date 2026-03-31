@@ -1,9 +1,12 @@
 package me.fiksu.esp32map.companion
 
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -28,12 +31,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.StateFlow
 import me.fiksu.esp32map.companion.app.CompanionAppState
 import me.fiksu.esp32map.companion.domain.RouteProviderId
+import me.fiksu.esp32map.companion.integration.ble.AndroidBleRouteSyncClient
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -89,6 +95,8 @@ private fun CompanionApp(appState: CompanionAppState = viewModel()) {
 @Composable
 private fun LaunchScreen(padding: PaddingValues, appState: CompanionAppState) {
     ScreenColumn(padding) {
+        BluetoothPermissionSection()
+
         Text("BLE state: ${appState.syncSession.connectionState}")
         Text("Last device: ${appState.syncSession.lastDeviceName ?: "None"}")
         Text("Route: ${appState.activeSession.routeIdentifier ?: "None"}")
@@ -189,6 +197,8 @@ private fun RoutePreviewScreen(padding: PaddingValues, appState: CompanionAppSta
 @Composable
 private fun DeviceScreen(padding: PaddingValues, appState: CompanionAppState) {
     ScreenColumn(padding) {
+        BluetoothPermissionSection()
+
         Text("Connection: ${appState.syncSession.connectionState}")
         Text("Route sync: ${appState.syncSession.routeSyncState}")
         Text("Pending route: ${appState.syncSession.pendingRouteIdentifier ?: "None"}")
@@ -300,6 +310,26 @@ private fun SettingsScreen(padding: PaddingValues, appState: CompanionAppState) 
 }
 
 @Composable
+private fun BluetoothPermissionSection() {
+    val context = LocalContext.current
+    val missingPermissions = AndroidBleRouteSyncClient.requiredPermissions().filter {
+        ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+    }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { },
+    )
+
+    if (missingPermissions.isNotEmpty()) {
+        Text("Bluetooth permissions are required for route sync over BLE")
+        Button(onClick = { permissionLauncher.launch(missingPermissions.toTypedArray()) }) {
+            Text("Grant Bluetooth Permissions")
+        }
+    }
+}
+
+
+
 private fun ScreenColumn(
     padding: PaddingValues,
     content: @Composable ColumnScope.() -> Unit,

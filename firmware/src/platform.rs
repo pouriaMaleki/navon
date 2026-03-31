@@ -1,6 +1,6 @@
 use std::time::{Duration, Instant};
 
-use runtime_core::api::RouteStatusMessage;
+use runtime_core::api::{GeoPoint, RouteRerouteRequestMessage, RouteSyncMessage};
 use runtime_core::map::MapSource;
 
 use crate::app::{App, AppError, FrameResult};
@@ -65,7 +65,7 @@ pub enum RouteSyncIoError {
 
 pub trait RouteSyncIo {
     fn poll_chunk(&mut self) -> Result<Option<RouteTransferChunk>, RouteSyncIoError>;
-    fn publish_statuses(&mut self, statuses: &[RouteStatusMessage])
+    fn publish_messages(&mut self, messages: &[RouteSyncMessage])
     -> Result<(), RouteSyncIoError>;
 }
 
@@ -77,9 +77,9 @@ impl RouteSyncIo for NullRouteSyncIo {
         Ok(None)
     }
 
-    fn publish_statuses(
+    fn publish_messages(
         &mut self,
-        _statuses: &[RouteStatusMessage],
+        _messages: &[RouteSyncMessage],
     ) -> Result<(), RouteSyncIoError> {
         Ok(())
     }
@@ -146,6 +146,7 @@ pub struct RuntimePlatform<
     gps: G,
     clock: C,
     route_sync: R,
+    last_reroute_requested: bool,
 }
 
 impl<T, G, C, S, B, U, R> RuntimePlatform<T, G, C, S, B, U, R>
@@ -165,6 +166,7 @@ where
             gps,
             clock,
             route_sync,
+            last_reroute_requested: false,
         }
     }
 
@@ -180,8 +182,28 @@ where
         let mut frame = self.app.step_frame(dt, gps, touch)?;
         route_sync_statuses.extend(frame.route_sync_statuses.iter().cloned());
 
-        if !route_sync_statuses.is_empty() {
-            self.route_sync.publish_statuses(&route_sync_statuses)?;
+        let mut outbound_messages = route_sync_statuses
+            .iter()
+            .cloned()
+            .map(RouteSyncMessage::Status)
+            .collect::<Vec<_>>();
+
+        if frame.output.route.reroute_requested
+            && !self.last_reroute_requested
+            && frame.output.route.route_id.is_some()
+            && gps.is_some()
+        {
+            let gps = gps.expect("checked gps availability");
+            outbound_messages.push(RouteSyncMessage::RerouteRequest(RouteRerouteRequestMessage {
+                route_id: frame.output.route.route_id.clone(),
+                rider_position: GeoPoint::new(gps.lat_deg, gps.lon_deg),
+                reason: "off_route".to_owned(),
+            }));
+        }
+        self.last_reroute_requested = frame.output.route.reroute_requested;
+
+        if !outbound_messages.is_empty() {
+            self.route_sync.publish_messages(&outbound_messages)?;
             frame.route_sync_statuses = route_sync_statuses;
         }
 
@@ -267,7 +289,7 @@ mod tests {
     };
 
     use super::*;
-    use crate::gps::NullGpsProvider;
+    use crate::gps::{NullGpsProvider, SequenceGpsProvider};
     use crate::route_sync::chunk_sync_message;
 
     #[derive(Debug, Default)]
@@ -292,7 +314,7 @@ mod tests {
     #[derive(Debug, Default)]
     struct SequenceRouteSyncIo {
         inbound_chunks: VecDeque<RouteTransferChunk>,
-        published_batches: Vec<Vec<RouteStatusMessage>>,
+        published_batches: Vec<Vec<RouteSyncMessage>>,
     }
 
     impl SequenceRouteSyncIo {
@@ -303,7 +325,7 @@ mod tests {
             }
         }
 
-        fn published_statuses(&self) -> &[Vec<RouteStatusMessage>] {
+        fn published_messages(&self) -> &[Vec<RouteSyncMessage>] {
             &self.published_batches
         }
     }
@@ -313,11 +335,11 @@ mod tests {
             Ok(self.inbound_chunks.pop_front())
         }
 
-        fn publish_statuses(
+        fn publish_messages(
             &mut self,
-            statuses: &[RouteStatusMessage],
+            messages: &[RouteSyncMessage],
         ) -> Result<(), RouteSyncIoError> {
-            self.published_batches.push(statuses.to_vec());
+            self.published_batches.push(messages.to_vec());
             Ok(())
         }
     }
@@ -427,10 +449,59 @@ mod tests {
             frame.route_sync_statuses[2].status,
             RouteSyncStatusCode::Active
         );
-        assert_eq!(platform.route_sync().published_statuses().len(), 1);
+        assert_eq!(platform.route_sync().published_messages().len(), 1);
         assert_eq!(
-            platform.route_sync().published_statuses()[0],
-            frame.route_sync_statuses
+            platform.route_sync().published_messages()[0],
+            frame
+                .route_sync_statuses
+                .iter()
+                .cloned()
+                .map(RouteSyncMessage::Status)
+                .collect::<Vec<_>>()
         );
+    }
+
+    #[test]
+    fn runtime_platform_publishes_reroute_request_when_runtime_flags_off_route_reroute() {
+        let app = App::default();
+        let message = RouteSyncMessage::Set(RouteSetMessage {
+            route: sample_route(1),
+        });
+        let route_sync = SequenceRouteSyncIo::new(chunk_sync_message(&message, "transfer-1", 32));
+        let gps = SequenceGpsProvider::new([
+            Some(GpsInput {
+                lat_deg: 60.1699,
+                lon_deg: 24.9384,
+                speed_mps: 4.0,
+                course_rad: Some(0.0),
+                horizontal_accuracy_m: Some(4.0),
+            }),
+            Some(GpsInput {
+                lat_deg: 60.1799,
+                lon_deg: 24.9584,
+                speed_mps: 4.0,
+                course_rad: Some(0.0),
+                horizontal_accuracy_m: Some(4.0),
+            }),
+        ]);
+        let mut platform = RuntimePlatform::with_route_sync(
+            app,
+            NullTouchSource,
+            gps,
+            FixedFrameClock::new(Duration::from_secs(3)),
+            route_sync,
+        );
+
+        let _ = platform.run_frame().expect("activation frame");
+        let frame = platform.run_frame().expect("off-route reroute frame");
+
+        assert!(frame.output.route.reroute_requested);
+        assert_eq!(platform.route_sync().published_messages().len(), 2);
+        assert!(matches!(
+            platform.route_sync().published_messages()[1].last(),
+            Some(RouteSyncMessage::RerouteRequest(request))
+                if request.route_id.as_deref() == Some("hsl:kamppi->kallio:alt-0")
+                && request.reason == "off_route"
+        ));
     }
 }
