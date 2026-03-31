@@ -86,20 +86,22 @@ class BleRouteSyncService : RouteSyncTransport {
     }
 
     override suspend fun receiveStatus(message: RouteStatusMessage) {
+        val decodedMessage = decodeInboundSyncMessage(RouteSyncMessage.Status(message))
+        val statusMessage = decodedMessage as? RouteSyncMessage.Status ?: RouteSyncMessage.Status(message)
         updateState {
             it.copy(
-                lastInboundMessage = RouteSyncMessage.Status(message),
-                lastStatusCode = message.status,
+                lastInboundMessage = decodedMessage,
+                lastStatusCode = statusMessage.message.status,
             )
         }
-        when (message.status) {
+        when (statusMessage.message.status) {
             RouteSyncStatusCode.ACCEPTED,
             RouteSyncStatusCode.APPLYING,
             -> {
                 updateState {
                     it.copy(
                         routeSyncState = RouteSyncState.AWAITING_ACK,
-                        lastSyncResult = message.detail ?: "Waiting for device acknowledgement",
+                        lastSyncResult = statusMessage.message.detail ?: "Waiting for device acknowledgement",
                     )
                 }
             }
@@ -111,11 +113,11 @@ class BleRouteSyncService : RouteSyncTransport {
                         routeSyncState = RouteSyncState.SYNCED,
                         pendingRouteIdentifier = null,
                         pendingRouteRevision = null,
-                        activeRouteIdentifier = message.routeIdentifier,
-                        activeRouteRevision = message.revision,
+                        activeRouteIdentifier = statusMessage.message.routeIdentifier,
+                        activeRouteRevision = statusMessage.message.revision,
                         activeRouteChecksumHex = pendingTransfer?.checksumHex ?: it.activeRouteChecksumHex,
                         transferProgress = null,
-                        lastSyncResult = message.detail ?: "Device activated route",
+                        lastSyncResult = statusMessage.message.detail ?: "Device activated route",
                     )
                 }
                 pendingTransfer = null
@@ -132,7 +134,7 @@ class BleRouteSyncService : RouteSyncTransport {
                         activeRouteRevision = null,
                         activeRouteChecksumHex = null,
                         transferProgress = null,
-                        lastSyncResult = message.detail ?: "Device cleared route",
+                        lastSyncResult = statusMessage.message.detail ?: "Device cleared route",
                     )
                 }
                 pendingTransfer = null
@@ -143,7 +145,7 @@ class BleRouteSyncService : RouteSyncTransport {
                 updateState {
                     it.copy(
                         routeSyncState = RouteSyncState.FAILED,
-                        lastSyncResult = message.detail ?: "Device reported retryable sync failure",
+                        lastSyncResult = statusMessage.message.detail ?: "Device reported retryable sync failure",
                     )
                 }
             }
@@ -157,7 +159,7 @@ class BleRouteSyncService : RouteSyncTransport {
                         pendingRouteIdentifier = null,
                         pendingRouteRevision = null,
                         transferProgress = null,
-                        lastSyncResult = message.detail ?: "Device reported sync failure",
+                        lastSyncResult = statusMessage.message.detail ?: "Device reported sync failure",
                     )
                 }
                 pendingTransfer = null
@@ -166,22 +168,24 @@ class BleRouteSyncService : RouteSyncTransport {
     }
 
     override suspend fun receiveRerouteRequest(message: RouteRerouteRequestMessage) {
+        val decodedMessage = decodeInboundSyncMessage(RouteSyncMessage.RerouteRequest(message))
+        val rerouteMessage = decodedMessage as? RouteSyncMessage.RerouteRequest ?: RouteSyncMessage.RerouteRequest(message)
         updateState {
             it.copy(
-                lastInboundMessage = RouteSyncMessage.RerouteRequest(message),
-                lastSyncResult = "Device requested reroute for ${message.routeIdentifier}",
+                lastInboundMessage = decodedMessage,
+                lastSyncResult = "Device requested reroute for ${rerouteMessage.message.routeIdentifier}",
             )
         }
     }
 
     private suspend fun beginTransfer(message: RouteSyncMessage) {
-        val payload = canonicalPayloadString(message).encodeToByteArray()
+        val payload = BleRouteSyncCodec.canonicalPayloadBytes(message)
         val totalChunks = maxOf(1, ceil(payload.size.toDouble() / CHUNK_SIZE_BYTES.toDouble()).toInt())
         val transfer = PendingTransfer(
             identifier = UUID.randomUUID().toString(),
             message = message,
             payload = payload,
-            checksumHex = checksumHex(payload),
+            checksumHex = BleRouteSyncCodec.checksumHex(payload),
             totalChunks = totalChunks,
             nextChunkIndex = 0,
             retryCount = 0,
@@ -404,6 +408,14 @@ class BleRouteSyncService : RouteSyncTransport {
             hash = (hash * 16_777_619L) and 0xffff_ffffL
         }
         return "%08x".format(hash)
+    }
+
+    private fun decodeInboundSyncMessage(message: RouteSyncMessage): RouteSyncMessage {
+        return runCatching {
+            val packet = BleRouteSyncPacket.SyncMessage(message)
+            val decodedPacket = BleRouteSyncCodec.decode(BleRouteSyncCodec.encode(packet))
+            (decodedPacket as? BleRouteSyncPacket.SyncMessage)?.message ?: message
+        }.getOrElse { message }
     }
 
     private fun updateState(transform: (SyncSessionState) -> SyncSessionState) {

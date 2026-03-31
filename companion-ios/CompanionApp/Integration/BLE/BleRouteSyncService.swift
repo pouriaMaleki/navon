@@ -69,7 +69,9 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
     }
 
     func receiveStatus(_ message: RouteStatusMessage) async {
-        sessionState.lastInboundMessage = .status(message)
+        let decodedMessage = decodeInboundSyncMessage(.status(message))
+        guard case .status(let message) = decodedMessage else { return }
+        sessionState.lastInboundMessage = decodedMessage
         sessionState.lastStatusCode = message.status
         switch message.status {
         case .accepted, .applying:
@@ -109,14 +111,16 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
     }
 
     func receiveRerouteRequest(_ message: RouteRerouteRequestMessage) async {
-        sessionState.lastInboundMessage = .rerouteRequest(message)
+        let decodedMessage = decodeInboundSyncMessage(.rerouteRequest(message))
+        guard case .rerouteRequest(let message) = decodedMessage else { return }
+        sessionState.lastInboundMessage = decodedMessage
         sessionState.lastSyncResult = "Device requested reroute for \(message.routeIdentifier)"
     }
 
     private func beginTransfer(_ message: RouteSyncMessage) async throws {
-        let payload = canonicalPayloadData(for: message)
+        let payload = BleRouteSyncCodec.canonicalPayloadData(for: message)
         let totalChunks = max(1, Int(ceil(Double(payload.count) / Double(chunkSizeBytes))))
-        let checksumHex = checksumHex(for: payload)
+        let checksumHex = BleRouteSyncCodec.checksumHex(for: payload)
         let transfer = PendingTransfer(
             identifier: UUID().uuidString,
             message: message,
@@ -410,6 +414,19 @@ private extension BleRouteSyncService {
                 lastError: lastError
             )
         }
+    }
+
+    private func decodeInboundSyncMessage(_ message: RouteSyncMessage) -> RouteSyncMessage {
+        do {
+            let packet = BleRouteSyncPacket.syncMessage(message)
+            let decodedPacket = try BleRouteSyncCodec.decode(BleRouteSyncCodec.encode(packet))
+            if case .syncMessage(let decodedMessage) = decodedPacket {
+                return decodedMessage
+            }
+        } catch {
+            return message
+        }
+        return message
     }
 
     enum TransferError: Error {

@@ -186,6 +186,11 @@ Transport contract requirements:
 - Added native settings flow for live-versus-sample HSL mode plus subscription-key entry so the planning source is visible and controllable inside the companion apps themselves.
 - Added route-alternative selection and rider-location-driven reroute controls in both native apps so reroute publishing is now exercised through an explicit companion UX instead of a hidden first-alternative demo path.
 
+## Implementation Checkpoint (March 31, 2026, Companion BLE Contract Parity Slice)
+- Mirrored the fixed BLE route-sync GATT contract into both native companion apps with shared service/characteristic UUIDs plus companion-side packet framing for `chunk` and `sync_message` traffic.
+- Refactored the native simulated BLE sync services to source canonical payload bytes and checksum generation from the shared packet codec layer, reducing drift between companion payload construction and firmware decoding.
+- Added native companion-side decode paths for inbound `status` and `reroute_request` messages through the same BLE packet envelope, so future CoreBluetooth and Android BLE adapters can plug into an already-shaped packet contract instead of raw string payload helpers.
+
 ## Implementation Checkpoint (March 31, 2026, BLE Wire Contract Slice)
 - Added a first concrete BLE route-sync wire contract with fixed service and characteristic UUIDs plus a deterministic packet envelope for `chunk` and `sync_message` traffic.
 - Implemented firmware-side BLE packet encode/decode for inbound route chunks and outbound canonical sync messages so future CoreBluetooth, Android BLE, and ESP-IDF adapters can share one packet format instead of inventing platform-specific ones.
