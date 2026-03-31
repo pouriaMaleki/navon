@@ -9,6 +9,10 @@ enum class RouteProviderId(val displayName: String, val isAvailableInV1: Boolean
     TCX_IMPORT("TCX Import", false),
     GARMIN_API("Garmin API", false),
     GARMIN_FILE("Garmin File", false),
+    ;
+
+    val supportsCompanionPreview: Boolean
+        get() = true
 }
 
 data class CoordinatePoint(

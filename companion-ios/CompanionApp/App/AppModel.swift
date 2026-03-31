@@ -27,7 +27,14 @@ final class AppModel: ObservableObject {
     let bleService = BleRouteSyncService()
 
     private lazy var providers: [RouteProviderID: RoutingProvider] = [
-        .hsl: HslRoutingAdapter(settingsProvider: { [unowned self] in self.settings })
+        .hsl: HslRoutingAdapter(settingsProvider: { [unowned self] in self.settings }),
+        .osm: SampleRoutingAdapter(providerID: .osm),
+        .googleIngest: SampleRoutingAdapter(providerID: .googleIngest),
+        .gpxImport: SampleRoutingAdapter(providerID: .gpxImport),
+        .fitImport: SampleRoutingAdapter(providerID: .fitImport),
+        .tcxImport: SampleRoutingAdapter(providerID: .tcxImport),
+        .garminApi: SampleRoutingAdapter(providerID: .garminApi),
+        .garminFile: SampleRoutingAdapter(providerID: .garminFile)
     ]
 
     init() {
@@ -40,6 +47,10 @@ final class AppModel: ObservableObject {
 
     var availableProvider: RoutingProvider? {
         providers[selectedProviderID]
+    }
+
+    var selectedProviderCanPlan: Bool {
+        availableProvider != nil
     }
 
     func refreshDiagnostics() {

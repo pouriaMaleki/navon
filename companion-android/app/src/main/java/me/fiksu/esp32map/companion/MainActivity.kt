@@ -118,9 +118,15 @@ private fun RoutePlanningScreen(padding: PaddingValues, appState: CompanionAppSt
             FilterChip(
                 selected = appState.selectedProviderId == provider,
                 onClick = { appState.selectedProviderId = provider },
-                enabled = provider.isAvailableInV1,
+                enabled = provider.supportsCompanionPreview,
                 label = {
-                    Text(if (provider.isAvailableInV1) provider.displayName else "${provider.displayName} (Coming soon)")
+                    Text(
+                        when {
+                            provider.isAvailableInV1 -> provider.displayName
+                            provider.supportsCompanionPreview -> "${provider.displayName} (Sample preview)"
+                            else -> "${provider.displayName} (Coming soon)"
+                        },
+                    )
                 },
             )
         }
@@ -153,9 +159,9 @@ private fun RoutePlanningScreen(padding: PaddingValues, appState: CompanionAppSt
 
         Button(
             onClick = appState::planRoute,
-            enabled = appState.selectedProviderId.isAvailableInV1,
+            enabled = appState.selectedProviderCanPlan,
         ) {
-            Text("Plan HSL route")
+            Text("Plan ${appState.selectedProviderId.displayName} route")
         }
     }
 }

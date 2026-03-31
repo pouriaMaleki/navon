@@ -21,6 +21,7 @@ import me.fiksu.esp32map.companion.integration.ble.BleRouteSyncService
 import me.fiksu.esp32map.companion.integration.diagnostics.CompanionDiagnosticsStore
 import me.fiksu.esp32map.companion.integration.hsl.HslRoutingAdapter
 import me.fiksu.esp32map.companion.integration.persistence.CompanionPersistence
+import me.fiksu.esp32map.companion.integration.sample.SampleRoutingAdapter
 
 class CompanionAppState(application: Application) : AndroidViewModel(application) {
     var selectedProviderId by mutableStateOf(RouteProviderId.HSL)
@@ -43,7 +44,17 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
 
     private val providers: Map<RouteProviderId, RoutingProvider> = mapOf(
         RouteProviderId.HSL to HslRoutingAdapter(settingsProvider = { settings }),
+        RouteProviderId.OSM to SampleRoutingAdapter(RouteProviderId.OSM),
+        RouteProviderId.GOOGLE_INGEST to SampleRoutingAdapter(RouteProviderId.GOOGLE_INGEST),
+        RouteProviderId.GPX_IMPORT to SampleRoutingAdapter(RouteProviderId.GPX_IMPORT),
+        RouteProviderId.FIT_IMPORT to SampleRoutingAdapter(RouteProviderId.FIT_IMPORT),
+        RouteProviderId.TCX_IMPORT to SampleRoutingAdapter(RouteProviderId.TCX_IMPORT),
+        RouteProviderId.GARMIN_API to SampleRoutingAdapter(RouteProviderId.GARMIN_API),
+        RouteProviderId.GARMIN_FILE to SampleRoutingAdapter(RouteProviderId.GARMIN_FILE),
     )
+
+    val selectedProviderCanPlan: Boolean
+        get() = providers[selectedProviderId] != null
 
     init {
         settings = persistence.loadSettings()

@@ -36,6 +36,10 @@ enum RouteProviderID: String, CaseIterable, Identifiable, Codable {
     var isAvailableInV1: Bool {
         self == .hsl
     }
+
+    var supportsCompanionPreview: Bool {
+        true
+    }
 }
 
 struct CoordinatePoint: Equatable, Codable {
