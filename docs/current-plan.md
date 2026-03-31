@@ -185,6 +185,12 @@ Transport contract requirements:
 - Added native settings flow for live-versus-sample HSL mode plus subscription-key entry so the planning source is visible and controllable inside the companion apps themselves.
 - Added route-alternative selection and rider-location-driven reroute controls in both native apps so reroute publishing is now exercised through an explicit companion UX instead of a hidden first-alternative demo path.
 
+## Implementation Checkpoint (March 31, 2026, Firmware Route Sync Device Slice)
+- Added a firmware-side route sync transport module that reassembles chunked route payloads, verifies payload checksums, validates route package compatibility, and parses inbound `set`, `update`, and `clear` messages into shared `runtime-core` contracts.
+- Added device-side route lifecycle guards for stale revision rejection, duplicate replay dedupe, conflicting same-revision payload detection, and explicit applied-route status transitions so firmware now owns its side of route version integrity instead of trusting the companion blindly.
+- Wired the firmware app loop to ingest pending route sync messages into `RuntimeInputFrame`, apply them through shared runtime state, and emit post-apply `active` and `cleared` status messages for platform adapters to forward back over transport.
+- Added deterministic firmware tests covering chunk reassembly, checksum mismatch rejection, duplicate replay handling, stale revision rejection, clear handling, and end-to-end app integration of a chunked route transfer into runtime output state.
+
 ## Implementation Checkpoint (March 31, 2026, Chunked Sync Session Slice)
 - Upgraded the native iOS and Android BLE sync seams from immediate route activation stubs into chunked transfer sessions with payload sizing, chunk counts, checksum tracking, pending-route lifecycle, and active-route checksum visibility.
 - Added deterministic retryable-interruption simulation plus explicit resume handling in both native apps so an interrupted transfer can continue from the pending chunk instead of restarting blindly.

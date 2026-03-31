@@ -2,7 +2,9 @@ use std::time::Duration;
 
 use render_core::raster::Framebuffer as RenderFramebuffer;
 use runtime_core::RuntimeCore;
-use runtime_core::api::{RuntimeConfig, RuntimeFrameOutput, TouchContactFrameError};
+use runtime_core::api::{
+    RouteStatusMessage, RuntimeConfig, RuntimeFrameOutput, TouchContactFrameError,
+};
 use runtime_core::map::MapSource;
 
 use crate::board_config::BoardConfig;
@@ -10,6 +12,7 @@ use crate::display::{Display, DisplayBackend, DisplayError, MemoryDisplayBackend
 use crate::gps::GpsInput;
 use crate::input_bridge::InputBridge;
 use crate::map_source::MapSourceBridge;
+use crate::route_sync::{RouteSyncTransport, RouteSyncTransportError, RouteTransferChunk};
 use crate::settings::{DeviceSettings, NullSettingsStore, SettingsError, SettingsStore};
 use crate::touch::TouchInput;
 
@@ -18,6 +21,7 @@ pub struct FrameResult {
     pub output: RuntimeFrameOutput,
     pub geometry_count: usize,
     pub lit_pixel_count: usize,
+    pub route_sync_statuses: Vec<RouteStatusMessage>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -76,6 +80,7 @@ where
     display: Display<B>,
     settings_store: U,
     persisted_settings: DeviceSettings,
+    route_sync_transport: RouteSyncTransport,
 }
 
 impl<S, B, U> App<S, B, U>
@@ -104,6 +109,7 @@ where
             display: Display::with_backend(board.display, display_backend)?,
             settings_store,
             persisted_settings,
+            route_sync_transport: RouteSyncTransport::default(),
         })
     }
 
@@ -113,7 +119,12 @@ where
         gps: Option<GpsInput>,
         touch: Option<TouchInput>,
     ) -> Result<FrameResult, AppError> {
+        let pending_route_sync = self.route_sync_transport.take_pending_runtime_message();
         let input = self.input_bridge.frame_from_samples(dt, gps, touch)?;
+        let input = match pending_route_sync {
+            Some(route_sync) => input.with_route_sync(route_sync),
+            None => input,
+        };
         let output = self.runtime.step(input);
         let geometry = self.map_source.query(&output.map_query);
         render_core::render_frame(
@@ -134,15 +145,33 @@ where
             self.persisted_settings = next_settings;
         }
 
+        let route_sync_statuses = self
+            .route_sync_transport
+            .complete_applied_message()
+            .into_iter()
+            .collect();
+
         Ok(FrameResult {
             output,
             geometry_count: geometry.geometry.len(),
             lit_pixel_count: self.display.framebuffer().lit_pixel_count(),
+            route_sync_statuses,
         })
     }
 
     pub fn display(&self) -> &Display<B> {
         &self.display
+    }
+
+    pub fn ingest_route_sync_chunk(
+        &mut self,
+        chunk: RouteTransferChunk,
+    ) -> Result<Vec<RouteStatusMessage>, RouteSyncTransportError> {
+        self.route_sync_transport.ingest_chunk(chunk)
+    }
+
+    pub fn route_sync_transport(&self) -> &RouteSyncTransport {
+        &self.route_sync_transport
     }
 }
 
@@ -220,10 +249,15 @@ impl Default for App<MapSourceBridge, MemoryDisplayBackend, NullSettingsStore> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use runtime_core::api::{CameraMode, ScreenPoint, SpeedUnit, TouchPhase};
+    use runtime_core::api::{
+        CameraMode, GeoPoint, RouteManeuver, RouteManeuverType, RoutePackage, RoutePackageVersion,
+        RouteProvenance, RouteProvider, RouteSetMessage, RouteSummary, RouteSyncMessage,
+        ScreenPoint, SpeedUnit, TouchPhase,
+    };
 
     use crate::board_config::BoardConfig;
     use crate::display::MemoryDisplayBackend;
+    use crate::route_sync::chunk_sync_message;
     use crate::settings::{DeviceSettings, MemorySettingsStore};
     use crate::touch::RawTouchContact;
 
@@ -323,6 +357,86 @@ mod tests {
             .expect("touch drag");
 
         assert!(dragged.output.camera.follow_locked);
+    }
+
+    fn sample_route(revision: u64) -> RoutePackage {
+        RoutePackage {
+            version: RoutePackageVersion::new(1, 0),
+            route_id: "hsl:kamppi->kallio:alt-0".to_owned(),
+            revision,
+            geometry: vec![
+                GeoPoint::new(60.1699, 24.9384),
+                GeoPoint::new(60.1712, 24.9443),
+            ],
+            maneuvers: vec![
+                RouteManeuver {
+                    id: "depart".to_owned(),
+                    maneuver_type: RouteManeuverType::Depart,
+                    location: GeoPoint::new(60.1699, 24.9384),
+                    distance_from_start_m: 0.0,
+                    distance_to_next_m: Some(120.0),
+                    instruction_text: Some("Start riding".to_owned()),
+                },
+                RouteManeuver {
+                    id: "arrive".to_owned(),
+                    maneuver_type: RouteManeuverType::Arrive,
+                    location: GeoPoint::new(60.1712, 24.9443),
+                    distance_from_start_m: 120.0,
+                    distance_to_next_m: None,
+                    instruction_text: Some("Arrive".to_owned()),
+                },
+            ],
+            summary: RouteSummary {
+                total_distance_m: 120.0,
+                estimated_duration_s: 45,
+                start_label: Some("Kamppi".to_owned()),
+                destination_label: Some("Kallio".to_owned()),
+            },
+            provenance: RouteProvenance {
+                provider: RouteProvider::HslDigitransit,
+                source_ref: Some("digitransit:test".to_owned()),
+                generated_at_unix_ms: 1,
+            },
+        }
+    }
+
+    #[test]
+    fn app_applies_route_sync_transfer_into_runtime() {
+        let mut app = App::default();
+        let message = RouteSyncMessage::Set(RouteSetMessage {
+            route: sample_route(1),
+        });
+
+        let mut statuses = Vec::new();
+        for chunk in chunk_sync_message(&message, "transfer-1", 32) {
+            statuses.extend(app.ingest_route_sync_chunk(chunk).expect("chunk accepted"));
+        }
+
+        assert_eq!(statuses.len(), 2);
+        assert_eq!(
+            statuses[0].status,
+            runtime_core::api::RouteSyncStatusCode::Accepted
+        );
+        assert_eq!(
+            statuses[1].status,
+            runtime_core::api::RouteSyncStatusCode::Applying
+        );
+
+        let frame = app
+            .step_frame(Duration::from_millis(16), None, None)
+            .expect("frame with route sync");
+
+        assert_eq!(
+            frame.output.route.route_id.as_deref(),
+            Some("hsl:kamppi->kallio:alt-0")
+        );
+        assert_eq!(frame.output.route.revision, Some(1));
+        assert_eq!(frame.route_sync_statuses.len(), 1);
+        assert_eq!(
+            frame.route_sync_statuses[0].status,
+            runtime_core::api::RouteSyncStatusCode::Active
+        );
+        assert_eq!(app.route_sync_transport().active_route_revision(), Some(1));
     }
 
     #[test]
