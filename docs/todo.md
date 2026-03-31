@@ -59,9 +59,9 @@ Depends on:
 
 Current checkpoint:
 - Native BLE transport seams in iOS and Android now run chunked transfer sessions with visible payload size, checksum, retry/resume, and pending/active route lifecycle state.
-- Firmware now owns device-side route sync reassembly, checksum verification, stale-revision rejection, duplicate replay dedupe, conflicting same-revision detection, and runtime route ingress for chunked `set`/`update`/`clear` messages.
-- Firmware `RuntimePlatform` now bridges transport IO to the app/runtime loop by draining inbound route chunks each frame and publishing outbound status batches after route activation or clear completes.
-- Next implementation step is replacing the simulated/native placeholder transport seams with actual CoreBluetooth, Android BLE, and ESP-IDF packet IO against this bridge, then adding deterministic fault-injection tests around packet loss and resume behavior.
+- Firmware now owns device-side route sync reassembly, checksum verification, stale-revision rejection, duplicate replay dedupe, conflicting same-revision detection, runtime route ingress, and platform-to-runtime status publication.
+- The BLE wire contract is now fixed in code and docs, including service/characteristic UUIDs plus packet envelopes for `chunk` and `sync_message` traffic.
+- Next implementation step is replacing the simulated/native placeholder transport seams with actual CoreBluetooth, Android BLE, and ESP-IDF packet IO against this fixed contract, then adding deterministic fault-injection tests around packet loss and resume behavior.
 
 ### Work Items
 - [x] Define message protocol for `set`, `update`, `clear`, `status`, and `reroute_request`.

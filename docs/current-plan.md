@@ -4,6 +4,7 @@ Spec reference: [`project-spec.md`](./project-spec.md)
 Runtime architecture reference: [`runtime-ecs-architecture.md`](./runtime-ecs-architecture.md)
 Execution guide reference: [`framework-execution-guide.md`](./framework-execution-guide.md)
 Route contract reference: [`route-package-contract.md`](./route-package-contract.md)
+BLE sync contract reference: [`ble-route-sync-contract.md`](./ble-route-sync-contract.md)
 
 ## Architecture Vision
 Phone-orchestrated routing with ESP-optimized route following.
@@ -184,6 +185,12 @@ Transport contract requirements:
 - Upgraded both native companion apps from fixture-only planning shells into configurable HSL clients that can use live Digitransit routing when a subscription key is present, while falling back to sample routes with explicit planning notices when live routing is disabled or unavailable.
 - Added native settings flow for live-versus-sample HSL mode plus subscription-key entry so the planning source is visible and controllable inside the companion apps themselves.
 - Added route-alternative selection and rider-location-driven reroute controls in both native apps so reroute publishing is now exercised through an explicit companion UX instead of a hidden first-alternative demo path.
+
+## Implementation Checkpoint (March 31, 2026, BLE Wire Contract Slice)
+- Added a first concrete BLE route-sync wire contract with fixed service and characteristic UUIDs plus a deterministic packet envelope for `chunk` and `sync_message` traffic.
+- Implemented firmware-side BLE packet encode/decode for inbound route chunks and outbound canonical sync messages so future CoreBluetooth, Android BLE, and ESP-IDF adapters can share one packet format instead of inventing platform-specific ones.
+- Tightened canonical route payload fidelity by preserving maneuver `distance_to_next_m` while keeping decode backward-compatible with older payloads that omitted that field.
+- Added deterministic firmware tests for BLE packet round-trips, including chunk packets, route-set sync messages, and reroute request sync messages.
 
 ## Implementation Checkpoint (March 31, 2026, Firmware Route Sync Platform Bridge Slice)
 - Added a platform-level route sync IO seam in firmware so device adapters can poll inbound route chunks and publish outbound route status messages without embedding route business logic into the BLE layer.
