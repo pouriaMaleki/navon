@@ -60,7 +60,7 @@ Depends on:
 Current checkpoint:
 - Native BLE transport seams in iOS and Android now run chunked transfer sessions with visible payload size, checksum, retry/resume, and pending/active route lifecycle state.
 - Firmware now owns device-side route sync reassembly, checksum verification, stale-revision rejection, duplicate replay dedupe, conflicting same-revision detection, runtime route ingress, and platform-to-runtime status publication.
-- The BLE wire contract is now fixed in code and docs, including service/characteristic UUIDs plus packet envelopes for `chunk` and `sync_message` traffic.
+- The BLE wire contract is now fixed in code and docs across firmware plus both native companion apps, including service/characteristic UUIDs and packet envelopes for `chunk` and `sync_message` traffic.
 - Next implementation step is replacing the simulated/native placeholder transport seams with actual CoreBluetooth, Android BLE, and ESP-IDF packet IO against this fixed contract, then adding deterministic fault-injection tests around packet loss and resume behavior.
 
 ### Work Items

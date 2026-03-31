@@ -92,10 +92,11 @@ Important compatibility note:
 
 ## Current Implementation Status
 Implemented in firmware:
-- packet encode/decode for `chunk` and `sync_message`
-- route chunk reassembly and runtime ingress
-- platform bridge for inbound chunk polling and outbound status publication
-- deterministic tests for packet round-trips and runtime activation
+- packet encode/decode for `chunk` and `sync_message` in firmware
+- route chunk reassembly and runtime ingress in firmware
+- platform bridge for inbound chunk polling and outbound status publication in firmware
+- deterministic firmware tests for packet round-trips and runtime activation
+- matching packet codec and GATT constants mirrored into both native companion apps
 
 Remaining implementation work:
 - CoreBluetooth adapter using this GATT contract
