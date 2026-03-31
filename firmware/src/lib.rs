@@ -7,5 +7,6 @@ pub mod gps;
 pub mod input_bridge;
 pub mod map_source;
 pub mod platform;
+pub mod route_sync;
 pub mod settings;
 pub mod touch;
