@@ -185,6 +185,11 @@ Transport contract requirements:
 - Added native settings flow for live-versus-sample HSL mode plus subscription-key entry so the planning source is visible and controllable inside the companion apps themselves.
 - Added route-alternative selection and rider-location-driven reroute controls in both native apps so reroute publishing is now exercised through an explicit companion UX instead of a hidden first-alternative demo path.
 
+## Implementation Checkpoint (March 31, 2026, Firmware Route Sync Platform Bridge Slice)
+- Added a platform-level route sync IO seam in firmware so device adapters can poll inbound route chunks and publish outbound route status messages without embedding route business logic into the BLE layer.
+- Wired `RuntimePlatform` to drain inbound route chunks before each frame, feed accepted route messages into the app/runtime loop, and flush accepted/applying/active status batches back through the transport seam after frame execution.
+- Added deterministic firmware tests proving the platform bridge can carry a full chunked `set` transfer through route sync reassembly, runtime activation, and status publication using the same route-sync contract the future BLE backend will use.
+
 ## Implementation Checkpoint (March 31, 2026, Firmware Route Sync Device Slice)
 - Added a firmware-side route sync transport module that reassembles chunked route payloads, verifies payload checksums, validates route package compatibility, and parses inbound `set`, `update`, and `clear` messages into shared `runtime-core` contracts.
 - Added device-side route lifecycle guards for stale revision rejection, duplicate replay dedupe, conflicting same-revision payload detection, and explicit applied-route status transitions so firmware now owns its side of route version integrity instead of trusting the companion blindly.
