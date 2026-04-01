@@ -3,8 +3,10 @@
 ## Scope
 This repository tracks vulnerabilities across:
 - Rust workspace dependencies (`Cargo.lock` at repo root and workspace crates)
-- Emulator web dependencies (`emulator/web/package-lock.json`)
-- GitHub Actions dependencies (workflow action references via Dependabot + PR dependency review)
+- Emulator web dependencies (`emulator/web/package-lock.json`, which is the canonical JS security lockfile)
+- Android companion dependencies (`companion-android` Gradle dependency graph via GitHub dependency submission + GitHub security advisories/review)
+- GitHub Actions dependencies (workflow action references via PR dependency review and repository security tooling)
+- Future iOS third-party dependency manifests, which must add repository CI coverage in the same change that introduces them
 
 ## Reporting
 - For confidential reports, use GitHub private vulnerability reporting if enabled.
@@ -16,11 +18,14 @@ This repository tracks vulnerabilities across:
 - Medium/Low: batch in routine dependency maintenance.
 
 ## CVE Workflow
-1. Dependabot opens security and version update PRs.
-2. `Security Audit` workflow runs:
+1. `Security Audit` workflow runs:
    - `Dependency Review` on pull requests (fail on high/critical)
    - `cargo audit` on pull requests and daily schedule
    - `npm audit` on pull requests and daily schedule
+   - dependency-manifest guard on pull requests and daily schedule
+2. `Android Dependency Submission` workflow runs on pull requests and pushes to `main`:
+   - resolves `companion-android` Gradle dependencies
+   - uploads/submits the dependency graph so GitHub security features can track Android advisories
 3. `CodeQL` workflow runs on pull requests and weekly schedule.
 4. Findings are triaged and tracked in issues.
 
@@ -31,6 +36,8 @@ This repository tracks vulnerabilities across:
   - `Dependency Review`
   - `Cargo Audit`
   - `NPM Audit`
+  - `Dependency Manifest Coverage`
+  - `Android Dependency Graph`
   - `Analyze (javascript-typescript)`
   - `Analyze (rust)`
 

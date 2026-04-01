@@ -186,6 +186,11 @@ Transport contract requirements:
 - Added deterministic transport reliability coverage for resumed interrupted transfers, out-of-order chunk delivery, checksum mismatch handling, and malformed payload handling.
 - Preserved the shared ownership rule that transport adapters report sync-state outcomes while runtime/render remain isolated from transport corruption details.
 
+## Implementation Checkpoint (April 1, 2026, Security Coverage Expansion Slice)
+- Expanded repository CVE coverage to include Android companion dependency tracking through Gradle dependency submission.
+- Declared `emulator/web/package-lock.json` as the canonical JavaScript security lockfile so npm-based audit results stay authoritative even while `bun.lock` remains present for local tooling.
+- Added a dependency-manifest guard so future third-party iOS or other unmanaged dependency ecosystems cannot land without CI security coverage in the same change.
+
 ## Implementation Checkpoint (March 31, 2026, Companion BLE Fault-Injection Slice)
 - Added live companion-side BLE fault injection controls for retryable interruption, write failure, disconnect-after-chunk, and dropped inbound status paths in both iOS and Android app shells so transport recovery can be exercised without changing firmware behavior.
 - Hardened the native BLE sync services so live disconnects and write failures remain resumable pending transfers instead of collapsing into idle state or incorrectly falling through to simulated success.

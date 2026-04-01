@@ -1,0 +1,85 @@
+name: Android Dependency Submission
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/android-dependency-submission.yml"
+      - ".github/dependabot.yml"
+      - "companion-android/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/android-dependency-submission.yml"
+      - ".github/dependabot.yml"
+      - "companion-android/**"
+  workflow_dispatch:
+
+jobs:
+  android-dependency-graph-pr:
+    name: Android Dependency Graph
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager --install \
+            'platform-tools' \
+            'platforms;android-35' \
+            'build-tools;35.0.0'
+
+      - name: Generate Android dependency graph
+        uses: gradle/actions/dependency-submission@v4
+        with:
+          build-root-directory: companion-android
+          gradle-version: 8.10.2
+          dependency-graph: generate-and-upload
+          dependency-graph-continue-on-failure: false
+
+  android-dependency-graph-main:
+    name: Android Dependency Graph
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager --install \
+            'platform-tools' \
+            'platforms;android-35' \
+            'build-tools;35.0.0'
+
+      - name: Submit Android dependency graph
+        uses: gradle/actions/dependency-submission@v4
+        with:
+          build-root-directory: companion-android
+          gradle-version: 8.10.2
+          dependency-graph: generate-submit-and-upload
+          dependency-graph-continue-on-failure: false

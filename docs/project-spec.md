@@ -108,6 +108,13 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
   - scenario tests for ride/stop/pan/recenter/compass flows
   - parity fixtures for firmware and wasm paths
 
+## Security And Dependency Tracking
+- Rust workspace dependencies must pass repository vulnerability scanning through the root workspace lockfile.
+- Emulator web dependencies must pass repository vulnerability scanning through `emulator/web/package-lock.json`.
+- `emulator/web/package-lock.json` is the canonical JavaScript lockfile for repository security automation; any additional JS lockfiles must not become the sole source of dependency truth.
+- Android companion dependencies must be published into GitHub dependency tracking so repository security advisories and dependency review can cover that subtree.
+- iOS companion dependency managers must not be introduced without adding repository CVE coverage in CI during the same change.
+
 ## Current Implementation Direction
 - Shared Rust already owns:
   - riding/stopped camera policy
