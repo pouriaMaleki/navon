@@ -19,7 +19,7 @@
 - [ ] Add conversion fixture tests.
 - [ ] Add next adapters architecture (`geojson`, `osm.pbf`).
 - [ ] Add converter dependency CVE checks via workspace `cargo audit`.
-- [ ] Ensure converter crates are included in Dependabot cargo updates.
+- [ ] Ensure converter crates remain covered by repository-owned Rust CVE checks without relying on auto-update PR tooling.
 - [ ] Add declarative conversion profiles that define presentation bands and feature sets.
 - [x] Expand classification beyond `major` / `minor` / `path`.
 - [ ] Split converter normalization into profile/provider modules so city-specific official POI sources can plug into the same normalized categories.

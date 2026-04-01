@@ -11,6 +11,41 @@ permissions:
   pull-requests: write
 
 jobs:
+  dependency-manifest-coverage:
+    name: Dependency Manifest Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify dependency manifest coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          unsupported_manifests="$(
+            rg --files -g 'Package.swift' -g 'Package.resolved' -g 'Podfile' -g 'Podfile.lock' -g 'Cartfile' -g 'Cartfile.resolved' -g 'Gemfile' -g 'Gemfile.lock' .
+          )"
+
+          if [ -n "$unsupported_manifests" ]; then
+            echo "Unsupported dependency manifests detected:" >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$unsupported_manifests" >> "$GITHUB_STEP_SUMMARY"
+            echo "Add repository CVE coverage for these ecosystems in the same change." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          extra_package_locks="$(
+            rg --files -g 'package-lock.json' . | grep -v '^emulator/web/package-lock.json$' || true
+          )"
+          if [ -n "$extra_package_locks" ]; then
+            echo "Unexpected package-lock.json files detected:" >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$extra_package_locks" >> "$GITHUB_STEP_SUMMARY"
+            echo "Extend CVE automation before adding additional npm dependency roots." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          echo "Dependency manifest coverage looks current." >> "$GITHUB_STEP_SUMMARY"
+
   dependency-review:
     name: Dependency Review
     if: github.event_name == 'pull_request'
