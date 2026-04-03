@@ -34,7 +34,7 @@ enum RouteProviderID: String, CaseIterable, Identifiable, Codable {
     }
 
     var isAvailableInV1: Bool {
-        self == .hsl
+        self == .hsl || self == .gpxImport
     }
 
     var supportsCompanionPreview: Bool {

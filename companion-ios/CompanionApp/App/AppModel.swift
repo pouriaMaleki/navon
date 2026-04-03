@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UniformTypeIdentifiers
 
 @MainActor
 final class AppModel: ObservableObject {
@@ -30,7 +31,7 @@ final class AppModel: ObservableObject {
         .hsl: HslRoutingAdapter(settingsProvider: { [unowned self] in self.settings }),
         .osm: SampleRoutingAdapter(providerID: .osm),
         .googleIngest: SampleRoutingAdapter(providerID: .googleIngest),
-        .gpxImport: SampleRoutingAdapter(providerID: .gpxImport),
+        .gpxImport: GpxRoutingAdapter(),
         .fitImport: SampleRoutingAdapter(providerID: .fitImport),
         .tcxImport: SampleRoutingAdapter(providerID: .tcxImport),
         .garminApi: SampleRoutingAdapter(providerID: .garminApi),
@@ -50,7 +51,7 @@ final class AppModel: ObservableObject {
     }
 
     var selectedProviderCanPlan: Bool {
-        availableProvider != nil
+        selectedProviderID != .gpxImport && availableProvider != nil
     }
 
     func refreshDiagnostics() {
@@ -59,6 +60,40 @@ final class AppModel: ObservableObject {
 
     func persistSettings() {
         persistence.saveSettings(settings)
+    }
+
+    func importGpxFile(from url: URL) async {
+        do {
+            let accessGranted = url.startAccessingSecurityScopedResource()
+            defer {
+                if accessGranted {
+                    url.stopAccessingSecurityScopedResource()
+                }
+            }
+            let data = try Data(contentsOf: url)
+            guard let adapter = providers[.gpxImport] as? GpxRoutingAdapter else { return }
+            let preview = try adapter.importFile(named: url.lastPathComponent, data: data)
+            self.selectedProviderID = .gpxImport
+            self.preview = preview
+            if let selected = preview.selectedAlternative?.normalizedPackage {
+                routeRequest = RoutePlanRequest(
+                    origin: selected.geometry.first ?? routeRequest.origin,
+                    destination: selected.geometry.last ?? routeRequest.destination,
+                    providerID: .gpxImport
+                )
+                simulatedRiderLocation = selected.geometry.first ?? simulatedRiderLocation
+            }
+            applySelectedAlternativeToSession(providerID: .gpxImport, destination: routeRequest.destination)
+            refreshDiagnostics()
+        } catch {
+            preview = RoutePreviewModel(
+                alternatives: [],
+                selectedAlternativeID: nil,
+                routeIdentifier: nil,
+                routeRevision: nil,
+                planningNotice: "GPX import failed: \(error.localizedDescription)"
+            )
+        }
     }
 
     func planRoute() async {
@@ -186,7 +221,7 @@ final class AppModel: ObservableObject {
         activeSession.routeIdentifier = selectedPackage?.routeIdentifier ?? preview.routeIdentifier
         activeSession.routeRevision = selectedPackage?.revision ?? preview.routeRevision
         activeSession.destinationLabel = selectedPackage?.summary.destinationLabel ?? providerID.displayName + " route"
-        activeSession.destinationCoordinate = destination
+        activeSession.destinationCoordinate = selectedPackage?.geometry.last ?? destination
         activeSession.providerID = providerID
     }
 }

@@ -34,7 +34,7 @@ Depends on:
 - [x] Scaffold native iOS and Android companion app shells with presentation/domain/integration boundaries.
 - [x] Build provider adapter interface and adapter lifecycle contract.
 - [ ] Implement provider adapters for HSL, Google ingest, OSM, GPX/FIT/TCX, Garmin API/import.
-  Current status: shared Rust GPX normalization plus emulator GPX import are now implemented; native iOS/Android file pickers still need to feed the shared importer instead of the sample adapter path.
+  Current status: HSL is live-provider-ready, GPX now imports natively in iOS and Android companion apps plus emulator/web, and the remaining providers are still sample-backed until their live adapters land.
 - [x] Implement HSL normalization pipeline from provider payload shape to `RoutePackage`.
 - [x] Implement provider picker UX with source provenance visibility.
 - [ ] Implement reroute orchestration and replacement route publishing.
@@ -45,6 +45,7 @@ Current checkpoint:
 - Native preview screens now let the user choose a specific route alternative before sync instead of silently sending the first alternative.
 - Native ride/device screens now let the user drive reroute publishing from an explicit rider location, so replacement-route generation no longer depends on a hidden origin-only demo path.
 - Native BLE seams now have real CoreBluetooth and Android BLE/GATT clients wired into the same chunked transfer/session model that was originally simulated, while preserving the simulated fallback path when no BLE connection is active.
+- Native GPX import now works through the iOS and Android document pickers, feeding imported routes into the same preview and sync flow used by planned routes.
 - Native device screens now expose live BLE fault-injection controls for retryable interruption, write failure, disconnect-after-chunk, and dropped inbound status so packet-loss and ack-loss recovery can be exercised against the same chunked session model used by real CoreBluetooth and Android BLE clients.
 - All remaining provider slots now have sample-backed companion adapters that produce normalized route packages through the shared preview/send path, while only HSL is live-provider-ready today.
 - Next implementation step is end-to-end device validation against the ESP GATT server on BLE-capable hardware, followed by the ESP32-P4 external-radio path, optional Wi-Fi transport, and live provider integrations beyond HSL.

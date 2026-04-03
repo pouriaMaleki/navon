@@ -1,6 +1,8 @@
 package me.fiksu.esp32map.companion.app
 
 import android.app.Application
+import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -19,6 +21,7 @@ import me.fiksu.esp32map.companion.domain.RoutingProvider
 import me.fiksu.esp32map.companion.domain.SyncSessionState
 import me.fiksu.esp32map.companion.integration.ble.BleRouteSyncService
 import me.fiksu.esp32map.companion.integration.diagnostics.CompanionDiagnosticsStore
+import me.fiksu.esp32map.companion.integration.gpx.GpxRoutingAdapter
 import me.fiksu.esp32map.companion.integration.hsl.HslRoutingAdapter
 import me.fiksu.esp32map.companion.integration.persistence.CompanionPersistence
 import me.fiksu.esp32map.companion.integration.sample.SampleRoutingAdapter
@@ -46,7 +49,7 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
         RouteProviderId.HSL to HslRoutingAdapter(settingsProvider = { settings }),
         RouteProviderId.OSM to SampleRoutingAdapter(RouteProviderId.OSM),
         RouteProviderId.GOOGLE_INGEST to SampleRoutingAdapter(RouteProviderId.GOOGLE_INGEST),
-        RouteProviderId.GPX_IMPORT to SampleRoutingAdapter(RouteProviderId.GPX_IMPORT),
+        RouteProviderId.GPX_IMPORT to GpxRoutingAdapter(),
         RouteProviderId.FIT_IMPORT to SampleRoutingAdapter(RouteProviderId.FIT_IMPORT),
         RouteProviderId.TCX_IMPORT to SampleRoutingAdapter(RouteProviderId.TCX_IMPORT),
         RouteProviderId.GARMIN_API to SampleRoutingAdapter(RouteProviderId.GARMIN_API),
@@ -54,7 +57,7 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
     )
 
     val selectedProviderCanPlan: Boolean
-        get() = providers[selectedProviderId] != null
+        get() = selectedProviderId != RouteProviderId.GPX_IMPORT && providers[selectedProviderId] != null
 
     init {
         settings = persistence.loadSettings()
@@ -68,6 +71,37 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
 
     fun persistSettings() {
         persistence.saveSettings(settings)
+    }
+
+    fun importGpxUri(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            try {
+                val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                    ?: error("Unable to read GPX file")
+                val fileName = uri.lastPathSegment?.substringAfterLast('/') ?: "route.gpx"
+                val adapter = providers[RouteProviderId.GPX_IMPORT] as? GpxRoutingAdapter ?: return@launch
+                preview = adapter.importBytes(fileName = fileName, data = bytes)
+                selectedProviderId = RouteProviderId.GPX_IMPORT
+                preview.selectedAlternative?.normalizedPackage?.let { selected ->
+                    routeRequest = RoutePlanRequest(
+                        origin = selected.geometry.firstOrNull() ?: routeRequest.origin,
+                        destination = selected.geometry.lastOrNull() ?: routeRequest.destination,
+                        providerId = RouteProviderId.GPX_IMPORT,
+                    )
+                    simulatedRiderLocation = selected.geometry.firstOrNull() ?: simulatedRiderLocation
+                }
+                applySelectedAlternativeToSession(RouteProviderId.GPX_IMPORT, routeRequest.destination)
+                refreshDiagnostics()
+            } catch (error: Exception) {
+                preview = RoutePreviewModel(
+                    alternatives = emptyList(),
+                    selectedAlternativeId = null,
+                    routeIdentifier = null,
+                    routeRevision = null,
+                    planningNotice = "GPX import failed: ${error.message ?: error::class.simpleName}"
+                )
+            }
+        }
     }
 
     fun planRoute() {
@@ -194,7 +228,7 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
             routeIdentifier = selectedPackage?.routeIdentifier ?: preview.routeIdentifier,
             routeRevision = selectedPackage?.revision ?: preview.routeRevision,
             destinationLabel = selectedPackage?.summary?.destinationLabel ?: providerId.displayName + " route",
-            destinationCoordinate = destination,
+            destinationCoordinate = selectedPackage?.geometry?.lastOrNull() ?: destination,
             providerId = providerId,
         )
     }

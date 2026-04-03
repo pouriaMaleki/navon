@@ -112,6 +112,13 @@ private fun LaunchScreen(padding: PaddingValues, appState: CompanionAppState) {
 
 @Composable
 private fun RoutePlanningScreen(padding: PaddingValues, appState: CompanionAppState) {
+    val context = LocalContext.current
+    val gpxLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            appState.importGpxUri(context, uri)
+        }
+    }
+
     ScreenColumn(padding) {
         Text("Provider")
         RouteProviderId.entries.forEach { provider ->
@@ -131,37 +138,53 @@ private fun RoutePlanningScreen(padding: PaddingValues, appState: CompanionAppSt
             )
         }
 
-        Text(if (appState.settings.preferLiveHslRouting) "Live HSL enabled" else "Sample HSL routes")
         Text(
-            if (appState.settings.preferLiveHslRouting) {
-                "Routes will use Digitransit when a subscription key is configured."
-            } else {
-                "Routes are currently generated from the built-in sample fixtures."
+            when (appState.selectedProviderId) {
+                RouteProviderId.GPX_IMPORT -> "Native GPX import"
+                else -> if (appState.settings.preferLiveHslRouting) "Live HSL enabled" else "Sample HSL routes"
+            },
+        )
+        Text(
+            when (appState.selectedProviderId) {
+                RouteProviderId.GPX_IMPORT -> "Choose a .gpx file through Android's document picker and normalize it into the same route package used by preview and sync."
+                else -> if (appState.settings.preferLiveHslRouting) {
+                    "Routes will use Digitransit when a subscription key is configured."
+                } else {
+                    "Routes are currently generated from the built-in sample fixtures or sample-backed provider adapters."
+                }
             },
         )
 
-        CoordinateField("Origin latitude", appState.routeRequest.origin.latitude) {
-            appState.routeRequest = appState.routeRequest.copy(origin = appState.routeRequest.origin.copy(latitude = it))
-        }
-        CoordinateField("Origin longitude", appState.routeRequest.origin.longitude) {
-            appState.routeRequest = appState.routeRequest.copy(origin = appState.routeRequest.origin.copy(longitude = it))
-        }
-        CoordinateField("Destination latitude", appState.routeRequest.destination.latitude) {
-            appState.routeRequest = appState.routeRequest.copy(destination = appState.routeRequest.destination.copy(latitude = it))
-        }
-        CoordinateField("Destination longitude", appState.routeRequest.destination.longitude) {
-            appState.routeRequest = appState.routeRequest.copy(destination = appState.routeRequest.destination.copy(longitude = it))
+        if (appState.selectedProviderId == RouteProviderId.GPX_IMPORT) {
+            Button(onClick = { gpxLauncher.launch(arrayOf("application/gpx+xml", "application/xml", "text/xml", "*/*")) }) {
+                Text("Choose GPX file")
+            }
+        } else {
+            CoordinateField("Origin latitude", appState.routeRequest.origin.latitude) {
+                appState.routeRequest = appState.routeRequest.copy(origin = appState.routeRequest.origin.copy(latitude = it))
+            }
+            CoordinateField("Origin longitude", appState.routeRequest.origin.longitude) {
+                appState.routeRequest = appState.routeRequest.copy(origin = appState.routeRequest.origin.copy(longitude = it))
+            }
+            CoordinateField("Destination latitude", appState.routeRequest.destination.latitude) {
+                appState.routeRequest = appState.routeRequest.copy(destination = appState.routeRequest.destination.copy(latitude = it))
+            }
+            CoordinateField("Destination longitude", appState.routeRequest.destination.longitude) {
+                appState.routeRequest = appState.routeRequest.copy(destination = appState.routeRequest.destination.copy(longitude = it))
+            }
         }
 
         appState.preview.planningNotice?.let {
             Text("Last planning notice: $it")
         }
 
-        Button(
-            onClick = appState::planRoute,
-            enabled = appState.selectedProviderCanPlan,
-        ) {
-            Text("Plan ${appState.selectedProviderId.displayName} route")
+        if (appState.selectedProviderId != RouteProviderId.GPX_IMPORT) {
+            Button(
+                onClick = appState::planRoute,
+                enabled = appState.selectedProviderCanPlan,
+            ) {
+                Text("Plan ${appState.selectedProviderId.displayName} route")
+            }
         }
     }
 }
