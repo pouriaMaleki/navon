@@ -113,6 +113,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - Emulator web dependencies must pass repository vulnerability scanning through `emulator/web/package-lock.json`.
 - `emulator/web/package-lock.json` is the canonical JavaScript lockfile for repository security automation; any additional JS lockfiles must not become the sole source of dependency truth.
 - Android companion dependencies must be published into GitHub dependency tracking so repository security advisories and dependency review can cover that subtree.
+- Android companion builds must use the committed Gradle Wrapper and repository-owned dependency verification metadata instead of relying on ad-hoc machine-wide Gradle installs.
 - iOS companion dependency managers must not be introduced without adding repository CVE coverage in CI during the same change.
 
 ## Current Implementation Direction

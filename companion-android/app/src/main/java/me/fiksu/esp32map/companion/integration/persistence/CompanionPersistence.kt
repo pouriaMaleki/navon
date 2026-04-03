@@ -15,7 +15,7 @@ class CompanionPersistence : RouteSessionStore {
     override fun saveRecentDestination(point: CoordinatePoint) {
         recentDestinations.add(0, point)
         while (recentDestinations.size > 10) {
-            recentDestinations.removeLast()
+            recentDestinations.removeAt(recentDestinations.lastIndex)
         }
     }
 
