@@ -34,6 +34,7 @@ Depends on:
 - [x] Scaffold native iOS and Android companion app shells with presentation/domain/integration boundaries.
 - [x] Build provider adapter interface and adapter lifecycle contract.
 - [ ] Implement provider adapters for HSL, Google ingest, OSM, GPX/FIT/TCX, Garmin API/import.
+  Current status: shared Rust GPX normalization plus emulator GPX import are now implemented; native iOS/Android file pickers still need to feed the shared importer instead of the sample adapter path.
 - [x] Implement HSL normalization pipeline from provider payload shape to `RoutePackage`.
 - [x] Implement provider picker UX with source provenance visibility.
 - [ ] Implement reroute orchestration and replacement route publishing.

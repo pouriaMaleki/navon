@@ -3,6 +3,10 @@ import type { RenderProgram } from "../core/types";
 import type {
   RouteAlertVerbosity,
   RuntimeGpsInput,
+  RuntimeRouteManeuverType,
+  RuntimeRoutePackageInput,
+  RuntimeRoutePointInput,
+  RuntimeRouteSyncInput,
   RuntimeTouchInput,
   WasmRuntimeState,
 } from "../types";
@@ -26,68 +30,6 @@ const DEMO_ROUTE_GEOMETRY: RuntimeRoutePointInput[] = [
   { latDeg: 60.17584, lonDeg: 24.94246 },
   { latDeg: 60.1761, lonDeg: 24.94248 },
 ];
-
-type RuntimeRouteSyncInput =
-  | {
-      type: "set";
-      route: RuntimeRoutePackageInput;
-    }
-  | {
-      type: "update";
-      routeId: string;
-      revision: number;
-      route: RuntimeRoutePackageInput;
-    }
-  | {
-      type: "clear";
-      routeId: string | null;
-    };
-
-type RuntimeRoutePackageInput = {
-  version: { major: number; minor: number };
-  routeId: string;
-  revision: number;
-  geometry: RuntimeRoutePointInput[];
-  maneuvers: Array<{
-    id: string;
-    maneuverType: RuntimeRouteManeuverType;
-    location: RuntimeRoutePointInput;
-    distanceFromStartM: number;
-    distanceToNextM: number | null;
-    instructionText: string | null;
-  }>;
-  summary: {
-    totalDistanceM: number;
-    estimatedDurationS: number;
-    startLabel: string | null;
-    destinationLabel: string | null;
-  };
-  provenance: {
-    provider: "hsl_digitransit";
-    sourceRef: string;
-    generatedAtUnixMs: number;
-  };
-};
-
-type RuntimeRoutePointInput = {
-  latDeg: number;
-  lonDeg: number;
-};
-
-type RuntimeRouteManeuverType =
-  | "depart"
-  | "straight"
-  | "slight_left"
-  | "left"
-  | "sharp_left"
-  | "slight_right"
-  | "right"
-  | "sharp_right"
-  | "uturn"
-  | "roundabout"
-  | "merge"
-  | "ramp"
-  | "arrive";
 
 type DemoManeuverDefinition = {
   id: string;
@@ -123,13 +65,22 @@ export async function createWasmProgram(
       state.custom.routeSeeded = false;
       state.custom.rerouteApplied = false;
       state.custom.reroutePendingSinceMs = null;
+      state.custom.queuedRouteSync = null;
     },
     update(state) {
       const steps = consumeTouchFrames(state.custom, Math.max(0, state.time.dtMs));
       const gpsSample = state.custom.gps;
       state.custom.gps = null;
 
-      const routeSync = maybeBuildRouteSync(state, gpsSample);
+      const queuedRouteSync = state.custom.queuedRouteSync;
+      if (queuedRouteSync) {
+        state.custom.queuedRouteSync = null;
+        state.custom.routeSeeded = true;
+        state.custom.rerouteApplied = false;
+        state.custom.reroutePendingSinceMs = null;
+      }
+
+      const routeSync = queuedRouteSync ?? maybeBuildRouteSync(state, gpsSample);
 
       let snapshotJson = "";
       const gpsStepIndex = Math.max(0, steps.length - 1);
@@ -168,8 +119,29 @@ export async function createWasmProgram(
       routeSeeded: false,
       rerouteApplied: false,
       reroutePendingSinceMs: null,
+      queuedRouteSync: null,
     },
     program,
+  };
+}
+
+export async function importGpxRouteSyncFromFile(file: Pick<File, "text" | "name">): Promise<RuntimeRouteSyncInput> {
+  const gpxXml = await file.text();
+  return importGpxRouteSyncFromText(gpxXml, file.name);
+}
+
+export async function importGpxRouteSyncFromText(
+  gpxXml: string,
+  sourceRef?: string | null,
+): Promise<RuntimeRouteSyncInput> {
+  const { default: initWasm, import_gpx_route_package } = await import(
+    "../../wasm-pkg/render_core_wasm.js"
+  );
+  await initWasm();
+  const routeJson = import_gpx_route_package(gpxXml, sourceRef ?? null);
+  return {
+    type: "set",
+    route: JSON.parse(routeJson) as RuntimeRoutePackageInput,
   };
 }
 

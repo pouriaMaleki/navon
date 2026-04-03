@@ -6,6 +6,7 @@ use crate::adapter::AdapterState;
 use crate::input_bridge::InputBridge;
 use crate::output_bridge::OutputBridge;
 use crate::panic_hook;
+use crate::route_bridge;
 
 #[wasm_bindgen]
 pub struct MinimapWasmEmulator {
@@ -73,4 +74,12 @@ impl MinimapWasmEmulator {
     pub fn height(&self) -> u32 {
         self.state.height()
     }
+}
+
+#[wasm_bindgen]
+pub fn import_gpx_route_package(
+    gpx_xml: &str,
+    source_ref: Option<String>,
+) -> Result<String, JsValue> {
+    route_bridge::import_gpx_route_json(gpx_xml, source_ref)
 }

@@ -43,6 +43,8 @@ Steps:
    - `cargo xtask emu`
 5. Open the forwarded URL on your local machine:
    - `http://localhost:5173`
+6. Optional emulator route import checkpoint:
+   - use `Import GPX` in the emulator controls, or the `GPX` button in fullscreen web mode, to load a `.gpx` file through the shared Rust importer
 
 The devcontainer pins `CARGO_TARGET_DIR=/work/target/devcontainer` to isolate container build artifacts from host builds.
 The devcontainer also persists full container home state at `~/.devcontainer-homes/esp32-map` on the host by mounting it to `/home/vscode`.
