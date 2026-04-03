@@ -55,7 +55,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Show Xcode version
         run: xcodebuild -version
@@ -103,7 +103,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Validate signing inputs
         shell: bash
@@ -187,7 +187,7 @@ jobs:
           ls -R build/export >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload signed IPA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: companion-ios-signed-ipa
           path: |
@@ -196,7 +196,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload xcarchive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: companion-ios-xcarchive
           path: companion-ios/build/ESP32MapCompanion.xcarchive
