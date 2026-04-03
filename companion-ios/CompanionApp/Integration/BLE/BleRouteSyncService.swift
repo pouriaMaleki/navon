@@ -408,10 +408,10 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
     private func scheduleAckTimeout() {
         cancelAckTimeout()
         ackTimeoutTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: ackTimeoutNanoseconds)
+            guard let self else { return }
+            try? await Task.sleep(nanoseconds: self.ackTimeoutNanoseconds)
             await MainActor.run {
-                guard let self,
-                      self.sessionState.routeSyncState == .awaitingAck,
+                guard self.sessionState.routeSyncState == .awaitingAck,
                       var transfer = self.pendingTransfer else { return }
                 transfer.retryCount += 1
                 transfer.lastError = "Timed out waiting for ESP32 acknowledgement; replay the route transfer"
