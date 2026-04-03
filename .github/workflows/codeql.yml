@@ -12,7 +12,33 @@ permissions:
   security-events: write
 
 jobs:
+  codeql-availability:
+    name: CodeQL Availability
+    runs-on: ubuntu-latest
+    outputs:
+      run_codeql: ${{ steps.decide.outputs.run_codeql }}
+    steps:
+      - name: Decide whether CodeQL can run
+        id: decide
+        env:
+          REPO_PRIVATE: ${{ github.event.repository.private }}
+          PRIVATE_CODEQL_ENABLED: ${{ vars.PRIVATE_CODEQL_ENABLED }}
+        run: |
+          if [ "${REPO_PRIVATE}" != "true" ]; then
+            echo "run_codeql=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "${PRIVATE_CODEQL_ENABLED}" = "true" ]; then
+            echo "run_codeql=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "run_codeql=false" >> "$GITHUB_OUTPUT"
+
   analyze:
+    needs: codeql-availability
+    if: needs.codeql-availability.outputs.run_codeql == 'true'
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     strategy:
@@ -34,3 +60,14 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+
+  codeql-unavailable:
+    needs: codeql-availability
+    if: needs.codeql-availability.outputs.run_codeql != 'true'
+    name: CodeQL Unavailable
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain skip
+        run: |
+          echo "::notice::Skipping CodeQL because this repository is private and GitHub code scanning is not enabled for it."
+          echo "::notice::If you enable GitHub Code Security later, add repo variable PRIVATE_CODEQL_ENABLED=true to run this workflow again."
