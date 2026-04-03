@@ -1,4 +1,5 @@
 import { observer } from "mobx-react-lite";
+import { useRef } from "react";
 import type { ChangeEvent } from "react";
 import type { AppStore } from "../stores/AppStore";
 import { RouteAlertControls } from "./RouteAlertControls";
@@ -11,6 +12,7 @@ type ControlsProps = {
 
 export const Controls = observer(({ appStore, showGpsControls = true }: ControlsProps) => {
   const { bikeSimStore, emulatorStore, geoStore } = appStore;
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const disabled = !emulatorStore.isReady || emulatorStore.isLoading;
   const requestGpsDisabled = !emulatorStore.isReady || geoStore.isRequestInFlight;
   const perfText =
@@ -39,10 +41,35 @@ export const Controls = observer(({ appStore, showGpsControls = true }: Controls
             {geoStore.requestButtonLabel}
           </button>
         ) : null}
+        <button
+          className={styles["button"]}
+          type="button"
+          onClick={() => {
+            fileInputRef.current?.click();
+          }}
+          disabled={emulatorStore.isImportingRoute}
+        >
+          {emulatorStore.isImportingRoute ? "Importing GPX..." : "Import GPX"}
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".gpx,application/gpx+xml,application/xml,text/xml"
+          hidden
+          onChange={(event: ChangeEvent<HTMLInputElement>) => {
+            const file = event.currentTarget.files?.[0] ?? null;
+            if (!file) {
+              return;
+            }
+            void emulatorStore.importGpxFile(file);
+            event.currentTarget.value = "";
+          }}
+        />
         <span className={styles["status"]} data-tone={geoStore.statusTone}>
           {geoStore.statusText}
         </span>
         <span className={styles["metrics"]}>Frame: {perfText}</span>
+        <span className={styles["metrics"]}>{emulatorStore.routeImportStatus}</span>
       </div>
 
       <RouteAlertControls appStore={appStore} />

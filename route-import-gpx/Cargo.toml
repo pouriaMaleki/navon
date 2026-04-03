@@ -1,0 +1,11 @@
+[package]
+name = "route-import-gpx"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+roxmltree = "0.20"
+runtime-core = { path = "../runtime-core" }

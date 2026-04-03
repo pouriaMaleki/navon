@@ -1,8 +1,8 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { Esp32ScreenEmulator } from "../core/emulator";
 import type { ScreenProfile } from "../core/types";
-import { createWasmProgram } from "../programs/wasmProgram";
-import type { WasmRuntimeState } from "../types";
+import { createWasmProgram, importGpxRouteSyncFromFile } from "../programs/wasmProgram";
+import type { RuntimeRouteSyncInput, WasmRuntimeState } from "../types";
 import type { AppStore } from "./AppStore";
 
 type ScreenProfileFactory = (canvas: HTMLCanvasElement) => ScreenProfile;
@@ -15,7 +15,11 @@ export class EmulatorStore {
   frameDtAvgMs = 0;
   fps = 0;
   frameSamples = 0;
+  importedRouteFileName: string | null = null;
+  routeImportStatus = "Using built-in demo route";
+  isImportingRoute = false;
 
+  private importedRouteSync: RuntimeRouteSyncInput | null = null;
   private emulator: Esp32ScreenEmulator<WasmRuntimeState> | null = null;
   private customState: WasmRuntimeState | null = null;
   private activeProfile: ScreenProfile | null = null;
@@ -97,6 +101,10 @@ export class EmulatorStore {
       });
       this.activeProfile = profile;
       this.customState = this.emulator.customState();
+      if (this.importedRouteSync && this.customState) {
+        this.customState.queuedRouteSync = this.importedRouteSync;
+        this.customState.routeSeeded = true;
+      }
       this.emulator.renderOnce();
       this.emulator.start();
 
@@ -118,6 +126,32 @@ export class EmulatorStore {
         this.isLoading = false;
       });
     }
+  }
+
+  async importGpxFile(file: Pick<File, "text" | "name">): Promise<void> {
+    this.isImportingRoute = true;
+    this.errorMessage = null;
+    try {
+      const routeSync = await importGpxRouteSyncFromFile(file);
+      this.importedRouteSync = routeSync;
+      this.importedRouteFileName = file.name;
+      this.routeImportStatus = `Loaded ${file.name}`;
+      if (this.customState) {
+        this.customState.queuedRouteSync = routeSync;
+        this.customState.routeSeeded = true;
+      }
+    } catch (error) {
+      this.routeImportStatus = error instanceof Error ? error.message : "Failed to import GPX route";
+      this.errorMessage = this.routeImportStatus;
+    } finally {
+      this.isImportingRoute = false;
+    }
+  }
+
+  clearImportedRoute(): void {
+    this.importedRouteSync = null;
+    this.importedRouteFileName = null;
+    this.routeImportStatus = "Using built-in demo route";
   }
 
   reset(): void {

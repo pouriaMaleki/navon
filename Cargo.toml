@@ -4,6 +4,7 @@ members = [
   "parity-fixtures",
   "map-runtime",
   "runtime-core",
+  "route-import-gpx",
   "render-core",
   "render-core-wasm",
   "map-vector-cli",

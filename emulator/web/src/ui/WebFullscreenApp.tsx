@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AppStore } from "../stores/AppStore";
 import { EmulatorPanel } from "./EmulatorPanel";
 import styles from "./FullscreenApp.module.css";
@@ -13,6 +13,7 @@ type WebFullscreenAppProps = {
 export const WebFullscreenApp = observer(({ appStore }: WebFullscreenAppProps) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [alertMenuOpen, setAlertMenuOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const gpsNeedsAttention = appStore.geoStore.needsUserAction;
 
   useEffect(() => {
@@ -46,6 +47,34 @@ export const WebFullscreenApp = observer(({ appStore }: WebFullscreenAppProps) =
           <span className={styles["toggleLabel"]}>GPS</span>
           {gpsNeedsAttention ? <span className={styles["toggleBadge"]}>Fix</span> : null}
         </button>
+
+
+        <button
+          className={styles["toggle"]}
+          type="button"
+          data-placement="bottom"
+          onClick={() => {
+            fileInputRef.current?.click();
+            setDrawerOpen(false);
+            setAlertMenuOpen(false);
+          }}
+        >
+          <span className={styles["toggleLabel"]}>GPX</span>
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".gpx,application/gpx+xml,application/xml,text/xml"
+          hidden
+          onChange={(event) => {
+            const file = event.currentTarget.files?.[0] ?? null;
+            if (!file) {
+              return;
+            }
+            void appStore.emulatorStore.importGpxFile(file);
+            event.currentTarget.value = "";
+          }}
+        />
 
         <div className={styles["menuWrap"]}>
           <button

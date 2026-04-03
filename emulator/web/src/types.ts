@@ -77,6 +77,68 @@ export type RuntimeTouchInput = {
 
 export type RouteAlertVerbosity = "essential" | "standard" | "detailed";
 
+export type RuntimeRoutePointInput = {
+  latDeg: number;
+  lonDeg: number;
+};
+
+export type RuntimeRouteManeuverType =
+  | "depart"
+  | "straight"
+  | "slight_left"
+  | "left"
+  | "sharp_left"
+  | "slight_right"
+  | "right"
+  | "sharp_right"
+  | "uturn"
+  | "roundabout"
+  | "merge"
+  | "ramp"
+  | "arrive";
+
+export type RuntimeRoutePackageInput = {
+  version: { major: number; minor: number };
+  routeId: string;
+  revision: number;
+  geometry: RuntimeRoutePointInput[];
+  maneuvers: Array<{
+    id: string;
+    maneuverType: RuntimeRouteManeuverType;
+    location: RuntimeRoutePointInput;
+    distanceFromStartM: number;
+    distanceToNextM: number | null;
+    instructionText: string | null;
+  }>;
+  summary: {
+    totalDistanceM: number;
+    estimatedDurationS: number;
+    startLabel: string | null;
+    destinationLabel: string | null;
+  };
+  provenance: {
+    provider: string;
+    sourceRef: string | null;
+    generatedAtUnixMs: number;
+  };
+};
+
+export type RuntimeRouteSyncInput =
+  | {
+      type: "set";
+      route: RuntimeRoutePackageInput;
+    }
+  | {
+      type: "update";
+      routeId: string;
+      revision: number;
+      route: RuntimeRoutePackageInput;
+    }
+  | {
+      type: "clear";
+      routeId: string | null;
+    };
+
 export type RuntimeFrameState = {
   frameIndex: number;
   cameraMode: "riding" | "stopped";
@@ -110,4 +172,5 @@ export type WasmRuntimeState = {
   routeSeeded: boolean;
   rerouteApplied: boolean;
   reroutePendingSinceMs: number | null;
+  queuedRouteSync: RuntimeRouteSyncInput | null;
 };
