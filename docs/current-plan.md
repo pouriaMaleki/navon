@@ -181,11 +181,11 @@ Transport contract requirements:
 - Policy values must be runtime-configurable and forward-compatible.
 - Future policy levels must extend the same contract without replacing it.
 
-## Implementation Checkpoint (April 3, 2026, Shared GPX Import Slice)
+## Implementation Checkpoint (April 3, 2026, Native GPX Companion Slice)
 - Added a shared Rust `route-import-gpx` crate that parses GPX route/track XML and normalizes it into the canonical `RoutePackage` contract instead of letting raw GPX leak into runtime follow logic.
-- Exposed the importer through `render-core-wasm` so emulator/web can import `.gpx` files through the same Rust normalization path that future native companion file pickers should call.
-- Added emulator-side GPX import controls in both standard and fullscreen web UIs, with imported routes queued into the existing route-sync path so GPX navigation now exercises the same runtime/render stack as planned provider routes.
-- Left native iOS and Android file-picking as the next step: native OS code should own document picking and pass file contents into the shared importer rather than reimplementing GPX parsing separately.
+- Exposed the importer through `render-core-wasm` so emulator/web can import `.gpx` files through the same Rust normalization path, and kept emulator-side GPX import controls in both standard and fullscreen web UIs.
+- Added native GPX import flows in both companion apps through the platform document pickers so imported `.gpx` files now enter the same preview, selection, and sync lifecycle as provider-backed routes.
+- Preserved the route-package boundary: once imported, GPX routes are treated as canonical normalized packages by companion preview/send flows rather than a special-case runtime path.
 
 ## Implementation Checkpoint (March 31, 2026, Transport Fault-Hardening Slice)
 - Hardened the firmware route-sync platform loop so malformed or corrupted inbound transfers emit explicit `retryable_failure` or `fatal_failure` sync statuses instead of aborting the frame loop.

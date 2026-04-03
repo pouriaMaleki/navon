@@ -4,7 +4,7 @@ enum class RouteProviderId(val displayName: String, val isAvailableInV1: Boolean
     HSL("HSL", true),
     OSM("OSM", false),
     GOOGLE_INGEST("Google Ingest", false),
-    GPX_IMPORT("GPX Import", false),
+    GPX_IMPORT("GPX Import", true),
     FIT_IMPORT("FIT Import", false),
     TCX_IMPORT("TCX Import", false),
     GARMIN_API("Garmin API", false),

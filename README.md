@@ -63,6 +63,7 @@ They define the first app shell, HSL provider seam, BLE sync seam, reroute orche
 
 Current companion checkpoint:
 - in-app HSL planning can run in live Digitransit mode when a subscription key is configured
+- native GPX import now works in both companion apps through the platform document pickers
 - sample fallback remains available when live planning is disabled or unavailable
 - route alternatives can be chosen before sync
 - reroute requests can be driven from an editable rider location in the app shell
