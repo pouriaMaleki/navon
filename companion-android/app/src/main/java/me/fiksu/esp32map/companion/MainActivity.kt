@@ -343,9 +343,7 @@ private fun BluetoothPermissionSection() {
         }
     }
 }
-
-
-
+@Composable
 private fun ScreenColumn(
     padding: PaddingValues,
     content: @Composable ColumnScope.() -> Unit,
