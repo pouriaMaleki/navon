@@ -187,7 +187,7 @@ enum BleRouteSyncCodec {
     }
 
     private static func parseSyncMessage(_ payload: String) throws -> RouteSyncMessage {
-        let fields = Dictionary(uniqueKeysWithValues: payload.split(separator: "\n").compactMap { line in
+        let fields: [String: String] = Dictionary(uniqueKeysWithValues: payload.split(separator: "\n").compactMap { line in
             guard let separator = line.firstIndex(of: "=") else { return nil }
             let key = String(line[..<separator]).trimmingCharacters(in: .whitespaces)
             let value = String(line[line.index(after: separator)...])
@@ -283,7 +283,7 @@ enum BleRouteSyncCodec {
                 tuple = (nil, parts[3], parts[4])
             case 6:
                 tuple = (
-                    nonEmpty(parts[3]).map { try parseDouble($0, field: "maneuver.distanceToNextMeters") },
+                    try nonEmpty(parts[3]).map { try parseDouble($0, field: "maneuver.distanceToNextMeters") },
                     parts[4],
                     parts[5]
                 )
@@ -389,7 +389,7 @@ enum BleRouteSyncCodec {
         guard let headerText = String(data: headerData, encoding: .utf8) else {
             throw BleRouteSyncPacketError.invalidUtf8Header
         }
-        let headers = Dictionary(uniqueKeysWithValues: headerText.split(separator: "\n").compactMap { line in
+        let headers: [String: String] = Dictionary(uniqueKeysWithValues: headerText.split(separator: "\n").compactMap { line in
             guard let separator = line.firstIndex(of: "=") else { return nil }
             let key = String(line[..<separator]).trimmingCharacters(in: .whitespaces)
             let value = String(line[line.index(after: separator)...])
