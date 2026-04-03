@@ -45,7 +45,7 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
         sessionState.connectionState = .scanning
         do {
             sessionState.lastDeviceName = try await bluetoothClient.scanForRouteSyncPeripheral()
-            sessionState.lastSyncResult = "Discovered \(sessionState.lastDeviceName ?? \"ESP32 Bike Minimap\")"
+            sessionState.lastSyncResult = "Discovered \(sessionState.lastDeviceName ?? "ESP32 Bike Minimap")"
         } catch {
             sessionState.connectionState = .disconnected
             sessionState.lastSyncResult = error.localizedDescription
@@ -57,7 +57,7 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
         do {
             sessionState.lastDeviceName = try await bluetoothClient.connectToScannedPeripheral()
             sessionState.connectionState = .connected
-            sessionState.lastSyncResult = "Connected to \(sessionState.lastDeviceName ?? \"ESP32 Bike Minimap\")"
+            sessionState.lastSyncResult = "Connected to \(sessionState.lastDeviceName ?? "ESP32 Bike Minimap")"
         } catch {
             sessionState.connectionState = .disconnected
             sessionState.lastSyncResult = error.localizedDescription
@@ -222,7 +222,7 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
                 routeIdentifier: transfer.routeIdentifier,
                 revision: transfer.routeRevision,
                 status: .applying,
-                detail: "Applying route revision \(transfer.routeRevision.map(String.init) ?? \"0\") on device"
+                detail: "Applying route revision \(transfer.routeRevision.map(String.init) ?? "0") on device"
             )
         )
         await receiveStatus(finalStatus(for: transfer))

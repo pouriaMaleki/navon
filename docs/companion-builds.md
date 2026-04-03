@@ -85,7 +85,8 @@ Run the `Companion iOS` workflow manually in GitHub Actions with:
 - `build_kind`: `signed_device`
 - `ios_bundle_id`: your chosen bundle id
   - default: `me.fiksu.esp32map.companion.ios`
-- `ios_development_team`: your Apple Team ID
+- `ios_development_team`: optional override for your Apple Team ID
+  - if omitted, the workflow uses repository variable `IOS_DEVELOPMENT_TEAM`
 - `export_method`: `development` or `ad-hoc`
 
 The workflow will:
