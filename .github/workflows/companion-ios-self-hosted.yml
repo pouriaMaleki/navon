@@ -27,7 +27,7 @@ on:
         default: me.fiksu.esp32map.companion.ios
         type: string
       ios_development_team:
-        description: 'Apple Development Team ID configured on the self-hosted Mac'
+        description: 'Optional override for the Apple Development Team ID; falls back to repo variable IOS_DEVELOPMENT_TEAM'
         required: false
         type: string
       export_method:
@@ -98,7 +98,7 @@ jobs:
         working-directory: companion-ios
     env:
       IOS_BUNDLE_ID: ${{ github.event.inputs.ios_bundle_id }}
-      IOS_DEVELOPMENT_TEAM: ${{ github.event.inputs.ios_development_team }}
+      IOS_DEVELOPMENT_TEAM: ${{ github.event.inputs.ios_development_team || vars.IOS_DEVELOPMENT_TEAM }}
       IOS_EXPORT_METHOD: ${{ github.event.inputs.export_method }}
 
     steps:
@@ -109,7 +109,7 @@ jobs:
         shell: bash
         run: |
           if [ -z "$IOS_DEVELOPMENT_TEAM" ]; then
-            echo 'ios_development_team workflow input is required for signed builds.' >&2
+            echo 'Signed builds require either the ios_development_team workflow input or the IOS_DEVELOPMENT_TEAM repository variable.' >&2
             exit 1
           fi
 

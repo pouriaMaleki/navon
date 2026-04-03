@@ -24,7 +24,18 @@ jobs:
           set -euo pipefail
 
           unsupported_manifests="$(
-            rg --files -g 'Package.swift' -g 'Package.resolved' -g 'Podfile' -g 'Podfile.lock' -g 'Cartfile' -g 'Cartfile.resolved' -g 'Gemfile' -g 'Gemfile.lock' .
+            find . -type f \
+              \( \
+                -name 'Package.swift' -o \
+                -name 'Package.resolved' -o \
+                -name 'Podfile' -o \
+                -name 'Podfile.lock' -o \
+                -name 'Cartfile' -o \
+                -name 'Cartfile.resolved' -o \
+                -name 'Gemfile' -o \
+                -name 'Gemfile.lock' \
+              \) \
+              -print | sed 's#^\./##' | sort
           )"
 
           if [ -n "$unsupported_manifests" ]; then
@@ -35,7 +46,7 @@ jobs:
           fi
 
           extra_package_locks="$(
-            rg --files -g 'package-lock.json' . | grep -v '^emulator/web/package-lock.json$' || true
+            find . -type f -name 'package-lock.json' -print | sed 's#^\./##' | sort | grep -v '^emulator/web/package-lock.json$' || true
           )"
           if [ -n "$extra_package_locks" ]; then
             echo "Unexpected package-lock.json files detected:" >> "$GITHUB_STEP_SUMMARY"
