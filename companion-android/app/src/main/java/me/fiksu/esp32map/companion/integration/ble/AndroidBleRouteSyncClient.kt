@@ -1,5 +1,6 @@
 package me.fiksu.esp32map.companion.integration.ble
 
+import android.annotation.SuppressLint
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -57,6 +58,7 @@ class AndroidBleRouteSyncClient(
         armedDebugFaultMode = mode
     }
 
+    @SuppressLint("MissingPermission")
     suspend fun scanForRouteSyncPeripheral(timeoutMs: Long = 6_000): String {
         ensurePermissions()
         ensureBluetoothEnabled()
@@ -101,23 +103,20 @@ class AndroidBleRouteSyncClient(
         }
     }
 
+    @SuppressLint("MissingPermission")
     suspend fun connectToScannedPeripheral(): String {
         ensurePermissions()
         ensureBluetoothEnabled()
         val device = scannedDevice ?: error("No scanned ESP32 device is available to connect")
-        onConnectionStateChange?.invoke(DeviceConnectionState.CONNECTING, device.name)
+        onConnectionStateChange?.invoke(DeviceConnectionState.CONNECTING, device.nameOrFallback("ESP32 Bike Minimap"))
         return suspendCancellableCoroutine { continuation ->
             pendingConnectContinuation = continuation
-            @Suppress("MissingPermission")
-            val gatt = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                device.connectGatt(context, false, callback, BluetoothDevice.TRANSPORT_LE)
-            } else {
-                device.connectGatt(context, false, callback)
-            }
+            val gatt = device.connectGatt(context, false, callback, BluetoothDevice.TRANSPORT_LE)
             bluetoothGatt = gatt
         }
     }
 
+    @SuppressLint("MissingPermission")
     suspend fun write(packet: BleRouteSyncPacket) {
         ensurePermissions()
         val gatt = bluetoothGatt ?: error("BLE route-sync GATT connection is not ready")
@@ -142,14 +141,12 @@ class AndroidBleRouteSyncClient(
         if (characteristic.writeType == BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) {
             suspendCancellableCoroutine { continuation ->
                 pendingWriteContinuation = continuation
-                @Suppress("MissingPermission")
                 if (!gatt.writeCharacteristic(characteristic)) {
                     pendingWriteContinuation = null
                     continuation.resumeWithException(IllegalStateException("BluetoothGatt.writeCharacteristic returned false"))
                 }
             }
         } else {
-            @Suppress("MissingPermission")
             if (!gatt.writeCharacteristic(characteristic)) {
                 error("BluetoothGatt.writeCharacteristic returned false")
             }
@@ -157,7 +154,6 @@ class AndroidBleRouteSyncClient(
         }
 
         if (disconnectAfterWrite) {
-            @Suppress("MissingPermission")
             gatt.disconnect()
             throw IllegalStateException("Injected BLE disconnect after chunk write")
         }
@@ -178,24 +174,27 @@ class AndroidBleRouteSyncClient(
     }
 
     private val callback = object : BluetoothGattCallback() {
+        @SuppressLint("MissingPermission")
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             if (newState == android.bluetooth.BluetoothProfile.STATE_CONNECTED) {
-                @Suppress("MissingPermission")
                 gatt.discoverServices()
             } else if (newState == android.bluetooth.BluetoothProfile.STATE_DISCONNECTED) {
                 bluetoothGatt = null
                 chunkWriteCharacteristic = null
                 eventNotifyCharacteristic = null
                 if (pendingConnectContinuation != null) {
-                    pendingConnectContinuation?.resumeWithException(IllegalStateException("Disconnected from ${gatt.device.name ?: "ESP32 device"}"))
+                    pendingConnectContinuation?.resumeWithException(
+                        IllegalStateException("Disconnected from ${gatt.device.nameOrFallback("ESP32 device")}")
+                    )
                     pendingConnectContinuation = null
                 }
                 pendingWriteContinuation?.resumeWithException(IllegalStateException("Disconnected before BLE write completed"))
                 pendingWriteContinuation = null
-                onConnectionStateChange?.invoke(DeviceConnectionState.DISCONNECTED, gatt.device.name)
+                onConnectionStateChange?.invoke(DeviceConnectionState.DISCONNECTED, gatt.device.nameOrFallback("ESP32 device"))
             }
         }
 
+        @SuppressLint("MissingPermission")
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             if (status != BluetoothGatt.GATT_SUCCESS) {
                 pendingConnectContinuation?.resumeWithException(IllegalStateException("Service discovery failed with status $status"))
@@ -216,27 +215,26 @@ class AndroidBleRouteSyncClient(
                 pendingConnectContinuation = null
                 return
             }
-            @Suppress("MissingPermission")
             gatt.setCharacteristicNotification(notifyCharacteristic, true)
             val cccd = notifyCharacteristic.getDescriptor(java.util.UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG_UUID))
             if (cccd != null) {
                 @Suppress("DEPRECATION")
                 cccd.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                @Suppress("MissingPermission")
                 gatt.writeDescriptor(cccd)
             } else {
-                pendingConnectContinuation?.resume(gatt.device.name ?: "ESP32 Bike Minimap")
+                pendingConnectContinuation?.resume(gatt.device.nameOrFallback("ESP32 Bike Minimap"))
                 pendingConnectContinuation = null
-                onConnectionStateChange?.invoke(DeviceConnectionState.CONNECTED, gatt.device.name)
+                onConnectionStateChange?.invoke(DeviceConnectionState.CONNECTED, gatt.device.nameOrFallback("ESP32 Bike Minimap"))
             }
         }
 
+        @SuppressLint("MissingPermission")
         override fun onDescriptorWrite(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int) {
             if (descriptor.characteristic.uuid == java.util.UUID.fromString(BleRouteSyncGattContract.EVENT_NOTIFY_CHARACTERISTIC_UUID)) {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
-                    pendingConnectContinuation?.resume(gatt.device.name ?: "ESP32 Bike Minimap")
+                    pendingConnectContinuation?.resume(gatt.device.nameOrFallback("ESP32 Bike Minimap"))
                     pendingConnectContinuation = null
-                    onConnectionStateChange?.invoke(DeviceConnectionState.CONNECTED, gatt.device.name)
+                    onConnectionStateChange?.invoke(DeviceConnectionState.CONNECTED, gatt.device.nameOrFallback("ESP32 Bike Minimap"))
                 } else {
                     pendingConnectContinuation?.resumeWithException(IllegalStateException("Enabling BLE notifications failed with status $status"))
                     pendingConnectContinuation = null
@@ -289,3 +287,6 @@ class AndroidBleRouteSyncClient(
         }
     }
 }
+
+@SuppressLint("MissingPermission")
+private fun BluetoothDevice.nameOrFallback(fallback: String): String = name ?: fallback

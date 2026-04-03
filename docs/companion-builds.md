@@ -11,7 +11,8 @@ This repo uses a split mobile build path:
 
 ## Workflows
 - `.github/workflows/companion-android.yml`
-  - Builds `companion-android` on `ubuntu-latest`
+  - Validates the committed Gradle Wrapper
+  - Runs Android lint, JVM unit tests, and debug assembly on `ubuntu-latest`
   - Produces a debug APK artifact
 - `.github/workflows/companion-ios-self-hosted.yml`
   - `simulator_validation`: validates the app shell with an unsigned simulator build
@@ -60,10 +61,12 @@ Before the signed workflow can produce an installable IPA, do this once on the M
 ### Android
 On pushes to `main`, pull requests, or manual dispatch:
 ```bash
-sdkmanager platforms;android-35 build-tools;35.0.0
-gradle :app:assembleDebug
+cd companion-android
+./gradlew lintDebug testDebugUnitTest assembleDebug
 ```
 The resulting debug APK is uploaded as a GitHub Actions artifact.
+
+Android dependency tracking also uses the committed Gradle Wrapper so GitHub dependency graph submission resolves the same toolchain and repositories as local development.
 
 ### iOS Simulator Validation
 On pushes to `main`, pull requests, or manual dispatch with `build_kind=simulator_validation`:

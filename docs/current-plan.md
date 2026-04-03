@@ -197,6 +197,12 @@ Transport contract requirements:
 - Declared `emulator/web/package-lock.json` as the canonical JavaScript security lockfile so npm-based audit results stay authoritative even while `bun.lock` remains present for local tooling.
 - Added a dependency-manifest guard so future third-party iOS or other unmanaged dependency ecosystems cannot land without CI security coverage in the same change.
 
+## Implementation Checkpoint (April 3, 2026, Android Hardening + CVE Remediation Slice)
+- Upgraded the Android build path to a committed Gradle Wrapper plus checksum-based dependency verification metadata, and centralized Android plugin/library versions through a version catalog so local development and CI resolve the same toolchain.
+- Hardened the Android app manifest to secure-by-default backup and network settings while keeping the current single-module companion structure intact for easier onboarding and maintenance.
+- Expanded Android CI from debug assembly only into wrapper validation plus lint, unit tests, and debug assembly, and moved workflow execution onto wrapper-driven builds instead of repo-external Gradle installs.
+- Added first Android JVM tests around BLE packet codec behavior and persistence helpers so the companion module now has baseline regression coverage for non-UI logic.
+
 ## Implementation Checkpoint (March 31, 2026, Companion BLE Fault-Injection Slice)
 - Added live companion-side BLE fault injection controls for retryable interruption, write failure, disconnect-after-chunk, and dropped inbound status paths in both iOS and Android app shells so transport recovery can be exercised without changing firmware behavior.
 - Hardened the native BLE sync services so live disconnects and write failures remain resumable pending transfers instead of collapsing into idle state or incorrectly falling through to simulated success.

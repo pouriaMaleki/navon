@@ -397,5 +397,5 @@ private fun CoordinateField(label: String, value: Double, onValueChange: (Double
 
 @Composable
 private fun <T> StateFlow<T>.collectAsStateCompat(): State<T> {
-    return collectAsState(initial = value)
+    return collectAsState()
 }
