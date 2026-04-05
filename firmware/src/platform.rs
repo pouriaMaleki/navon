@@ -65,8 +65,7 @@ pub enum RouteSyncIoError {
 
 pub trait RouteSyncIo {
     fn poll_chunk(&mut self) -> Result<Option<RouteTransferChunk>, RouteSyncIoError>;
-    fn publish_messages(&mut self, messages: &[RouteSyncMessage])
-    -> Result<(), RouteSyncIoError>;
+    fn publish_messages(&mut self, messages: &[RouteSyncMessage]) -> Result<(), RouteSyncIoError>;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -77,10 +76,7 @@ impl RouteSyncIo for NullRouteSyncIo {
         Ok(None)
     }
 
-    fn publish_messages(
-        &mut self,
-        _messages: &[RouteSyncMessage],
-    ) -> Result<(), RouteSyncIoError> {
+    fn publish_messages(&mut self, _messages: &[RouteSyncMessage]) -> Result<(), RouteSyncIoError> {
         Ok(())
     }
 }
@@ -197,11 +193,13 @@ where
             && gps.is_some()
         {
             let gps = gps.expect("checked gps availability");
-            outbound_messages.push(RouteSyncMessage::RerouteRequest(RouteRerouteRequestMessage {
-                route_id: frame.output.route.route_id.clone(),
-                rider_position: GeoPoint::new(gps.lat_deg, gps.lon_deg),
-                reason: "off_route".to_owned(),
-            }));
+            outbound_messages.push(RouteSyncMessage::RerouteRequest(
+                RouteRerouteRequestMessage {
+                    route_id: frame.output.route.route_id.clone(),
+                    rider_position: GeoPoint::new(gps.lat_deg, gps.lon_deg),
+                    reason: "off_route".to_owned(),
+                },
+            ));
         }
         self.last_reroute_requested = frame.output.route.reroute_requested;
 
@@ -482,10 +480,15 @@ mod tests {
             route_sync,
         );
 
-        let frame = platform.run_frame().expect("platform frame should survive checksum mismatch");
+        let frame = platform
+            .run_frame()
+            .expect("platform frame should survive checksum mismatch");
 
         assert_eq!(frame.route_sync_statuses.len(), 1);
-        assert_eq!(frame.route_sync_statuses[0].status, RouteSyncStatusCode::RetryableFailure);
+        assert_eq!(
+            frame.route_sync_statuses[0].status,
+            RouteSyncStatusCode::RetryableFailure
+        );
         assert_eq!(platform.route_sync().published_messages().len(), 1);
         assert!(matches!(
             platform.route_sync().published_messages()[0].first(),
@@ -498,7 +501,8 @@ mod tests {
         let board = crate::board_config::BoardConfig::default();
         let app = App::default();
         let payload = b"kind=set
-route_id=broken-only".to_vec();
+route_id=broken-only"
+            .to_vec();
         let chunk = RouteTransferChunk {
             transfer_id: "broken-transfer".to_owned(),
             chunk_index: 0,
@@ -515,10 +519,15 @@ route_id=broken-only".to_vec();
             route_sync,
         );
 
-        let frame = platform.run_frame().expect("platform frame should survive malformed payload");
+        let frame = platform
+            .run_frame()
+            .expect("platform frame should survive malformed payload");
 
         assert_eq!(frame.route_sync_statuses.len(), 1);
-        assert_eq!(frame.route_sync_statuses[0].status, RouteSyncStatusCode::FatalFailure);
+        assert_eq!(
+            frame.route_sync_statuses[0].status,
+            RouteSyncStatusCode::FatalFailure
+        );
         assert_eq!(platform.route_sync().published_messages().len(), 1);
         assert!(matches!(
             platform.route_sync().published_messages()[0].first(),
