@@ -64,8 +64,13 @@ impl RouteSyncTransportError {
 
     pub fn detail_message(&self) -> String {
         match self {
-            Self::EmptyTransferId => "Rejected route transfer chunk with an empty transfer id".to_owned(),
-            Self::InvalidChunkIndex { chunk_index, total_chunks } => format!(
+            Self::EmptyTransferId => {
+                "Rejected route transfer chunk with an empty transfer id".to_owned()
+            }
+            Self::InvalidChunkIndex {
+                chunk_index,
+                total_chunks,
+            } => format!(
                 "Rejected route transfer chunk index {} for total chunk count {}",
                 chunk_index, total_chunks
             ),
@@ -81,7 +86,9 @@ impl RouteSyncTransportError {
                 expected, actual
             ),
             Self::Utf8Payload => "Route transfer payload was not valid UTF-8".to_owned(),
-            Self::MissingField(field) => format!("Route transfer payload is missing required field {field}"),
+            Self::MissingField(field) => {
+                format!("Route transfer payload is missing required field {field}")
+            }
             Self::InvalidField { field, value } => {
                 format!("Route transfer payload field {field} had invalid value {value}")
             }
@@ -1088,14 +1095,18 @@ mod tests {
         let mut transport = RouteSyncTransport::default();
 
         for chunk in chunks.iter().take(2).cloned() {
-            let statuses = transport.ingest_chunk(chunk).expect("partial chunk ingestion");
+            let statuses = transport
+                .ingest_chunk(chunk)
+                .expect("partial chunk ingestion");
             assert!(statuses.is_empty());
         }
         assert!(transport.take_pending_runtime_message().is_none());
 
         for chunk in chunks.iter().skip(2).cloned() {
             let is_final_chunk = chunk.chunk_index + 1 == chunk.total_chunks;
-            let statuses = transport.ingest_chunk(chunk).expect("resumed chunk ingestion");
+            let statuses = transport
+                .ingest_chunk(chunk)
+                .expect("resumed chunk ingestion");
             if is_final_chunk {
                 assert_eq!(statuses.len(), 2);
                 assert_eq!(statuses[0].status, RouteSyncStatusCode::Accepted);
@@ -1123,7 +1134,9 @@ mod tests {
         let mut final_statuses = Vec::new();
 
         for chunk in chunks {
-            let statuses = transport.ingest_chunk(chunk).expect("out of order chunk ingestion");
+            let statuses = transport
+                .ingest_chunk(chunk)
+                .expect("out of order chunk ingestion");
             if !statuses.is_empty() {
                 final_statuses = statuses;
             }
@@ -1133,7 +1146,10 @@ mod tests {
         assert_eq!(final_statuses[0].status, RouteSyncStatusCode::Accepted);
         assert_eq!(final_statuses[1].status, RouteSyncStatusCode::Applying);
         assert_eq!(
-            transport.complete_applied_message().expect("active status").status,
+            transport
+                .complete_applied_message()
+                .expect("active status")
+                .status,
             RouteSyncStatusCode::Active
         );
     }

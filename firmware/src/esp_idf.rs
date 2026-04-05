@@ -361,7 +361,18 @@ pub fn build_device_platform_with_route_sync_and_settings<T, R, I, D, P, G, S, U
     gps_provider: G,
     speed_unit_store: U,
     route_sync: Q,
-) -> Result<RuntimePlatform<PollingTouchSource<EspIdfGt9271Transport<T, R, I, D>>, G, SystemFrameClock, S, EspIdfDisplayBackend<P>, U, Q>, AppBuildError>
+) -> Result<
+    RuntimePlatform<
+        PollingTouchSource<EspIdfGt9271Transport<T, R, I, D>>,
+        G,
+        SystemFrameClock,
+        S,
+        EspIdfDisplayBackend<P>,
+        U,
+        Q,
+    >,
+    AppBuildError,
+>
 where
     T: EspIdfI2cBus,
     R: EspIdfOutputPin,
@@ -401,7 +412,18 @@ pub fn build_device_platform_with_route_sync<T, R, I, D, P, G, S, Q>(
     display_backend: EspIdfDisplayBackend<P>,
     gps_provider: G,
     route_sync: Q,
-) -> Result<RuntimePlatform<PollingTouchSource<EspIdfGt9271Transport<T, R, I, D>>, G, SystemFrameClock, S, EspIdfDisplayBackend<P>, DefaultSettingsStore, Q>, AppBuildError>
+) -> Result<
+    RuntimePlatform<
+        PollingTouchSource<EspIdfGt9271Transport<T, R, I, D>>,
+        G,
+        SystemFrameClock,
+        S,
+        EspIdfDisplayBackend<P>,
+        DefaultSettingsStore,
+        Q,
+    >,
+    AppBuildError,
+>
 where
     T: EspIdfI2cBus,
     R: EspIdfOutputPin,
@@ -510,7 +532,12 @@ where
     )
 }
 
-#[cfg(all(target_os = "espidf", not(any(esp32s2, esp32p4)), esp_idf_bt_enabled, esp_idf_bt_bluedroid_enabled))]
+#[cfg(all(
+    target_os = "espidf",
+    not(any(esp32s2, esp32p4)),
+    esp_idf_bt_enabled,
+    esp_idf_bt_bluedroid_enabled
+))]
 pub fn run_device_main() -> Result<(), String> {
     use std::thread;
 
@@ -522,7 +549,8 @@ pub fn run_device_main() -> Result<(), String> {
     sys::link_patches();
     EspLogger::initialize_default();
 
-    let peripherals = Peripherals::take().map_err(|error| format!("failed to take ESP-IDF peripherals: {error:?}"))?;
+    let peripherals = Peripherals::take()
+        .map_err(|error| format!("failed to take ESP-IDF peripherals: {error:?}"))?;
     let board = BoardConfig::default();
     let bt_driver = BtDriver::<Ble>::new(peripherals.modem, None)
         .map_err(|error| format!("failed to initialize Bluetooth controller: {error:?}"))?;
@@ -531,7 +559,12 @@ pub fn run_device_main() -> Result<(), String> {
     let mut platform = build_headless_route_sync_platform(board, route_sync)
         .map_err(|error| format!("failed to build headless BLE route-sync platform: {error:?}"))?;
 
-    println!("ESP route-sync BLE service online: {} / {} / {}", crate::esp_idf_ble::gatt_service_summary().0, crate::esp_idf_ble::gatt_service_summary().1, crate::esp_idf_ble::gatt_service_summary().2);
+    println!(
+        "ESP route-sync BLE service online: {} / {} / {}",
+        crate::esp_idf_ble::gatt_service_summary().0,
+        crate::esp_idf_ble::gatt_service_summary().1,
+        crate::esp_idf_ble::gatt_service_summary().2
+    );
 
     loop {
         platform
@@ -541,7 +574,14 @@ pub fn run_device_main() -> Result<(), String> {
     }
 }
 
-#[cfg(all(target_os = "espidf", not(all(not(any(esp32s2, esp32p4)), esp_idf_bt_enabled, esp_idf_bt_bluedroid_enabled))))]
+#[cfg(all(
+    target_os = "espidf",
+    not(all(
+        not(any(esp32s2, esp32p4)),
+        esp_idf_bt_enabled,
+        esp_idf_bt_bluedroid_enabled
+    ))
+))]
 pub fn run_device_main() -> Result<(), String> {
     Err("this ESP-IDF target does not expose the standard Bluedroid BLE APIs required by the route-sync GATT server; on the Waveshare ESP32-P4 board this must be implemented through the external radio path instead of esp-idf-svc::bt".to_owned())
 }
@@ -830,11 +870,11 @@ mod tests {
     #[test]
     fn build_headless_route_sync_platform_runs_without_touch_or_gps_hardware() {
         let board = BoardConfig::default();
-        let mut platform = build_headless_route_sync_platform(board, crate::platform::NullRouteSyncIo)
-            .expect("headless route-sync platform");
+        let mut platform =
+            build_headless_route_sync_platform(board, crate::platform::NullRouteSyncIo)
+                .expect("headless route-sync platform");
 
         let frame = platform.run_frame().expect("headless frame");
         assert_eq!(frame.output.frame_index, 1);
     }
-
 }

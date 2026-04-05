@@ -1,27 +1,46 @@
-#[cfg(all(target_os = "espidf", not(any(esp32s2, esp32p4)), esp_idf_bt_enabled, esp_idf_bt_bluedroid_enabled))]
+#[cfg(all(
+    target_os = "espidf",
+    not(any(esp32s2, esp32p4)),
+    esp_idf_bt_enabled,
+    esp_idf_bt_bluedroid_enabled
+))]
 use std::collections::VecDeque;
-#[cfg(all(target_os = "espidf", not(any(esp32s2, esp32p4)), esp_idf_bt_enabled, esp_idf_bt_bluedroid_enabled))]
+#[cfg(all(
+    target_os = "espidf",
+    not(any(esp32s2, esp32p4)),
+    esp_idf_bt_enabled,
+    esp_idf_bt_bluedroid_enabled
+))]
 use std::sync::{Arc, Mutex};
 
 use runtime_core::api::RouteSyncMessage;
 
 use crate::platform::{RouteSyncIo, RouteSyncIoError};
 use crate::route_sync::RouteTransferChunk;
+#[cfg(all(
+    target_os = "espidf",
+    not(any(esp32s2, esp32p4)),
+    esp_idf_bt_enabled,
+    esp_idf_bt_bluedroid_enabled
+))]
+use crate::route_sync_ble::{BleRouteSyncPacket, decode_ble_packet, encode_ble_packet};
 use crate::route_sync_ble::{
     ROUTE_SYNC_CHUNK_WRITE_UUID, ROUTE_SYNC_EVENT_NOTIFY_UUID, ROUTE_SYNC_SERVICE_UUID,
 };
-#[cfg(all(target_os = "espidf", not(any(esp32s2, esp32p4)), esp_idf_bt_enabled, esp_idf_bt_bluedroid_enabled))]
-use crate::route_sync_ble::{BleRouteSyncPacket, decode_ble_packet, encode_ble_packet};
 
-#[cfg(all(target_os = "espidf", not(any(esp32s2, esp32p4)), esp_idf_bt_enabled, esp_idf_bt_bluedroid_enabled))]
+#[cfg(all(
+    target_os = "espidf",
+    not(any(esp32s2, esp32p4)),
+    esp_idf_bt_enabled,
+    esp_idf_bt_bluedroid_enabled
+))]
 mod imp {
     use super::*;
     use enumset::EnumSet;
     use esp_idf_svc::bt::ble::gap::{AdvConfiguration, AppearanceCategory, EspBleGap};
     use esp_idf_svc::bt::ble::gatt::server::{EspGatts, GattsEvent};
     use esp_idf_svc::bt::ble::gatt::{
-        AutoResponse, GattCharacteristic, GattId, GattServiceId, GattStatus, Permission,
-        Property,
+        AutoResponse, GattCharacteristic, GattId, GattServiceId, GattStatus, Permission, Property,
     };
     use esp_idf_svc::bt::{BleEnabled, BtDriver, BtUuid};
     use esp_idf_svc::sys::EspError;
@@ -99,13 +118,23 @@ mod imp {
         M: BleEnabled,
     {
         fn poll_chunk(&mut self) -> Result<Option<RouteTransferChunk>, RouteSyncIoError> {
-            Ok(self.shared.lock().expect("ble shared state").inbound_chunks.pop_front())
+            Ok(self
+                .shared
+                .lock()
+                .expect("ble shared state")
+                .inbound_chunks
+                .pop_front())
         }
 
-        fn publish_messages(&mut self, messages: &[RouteSyncMessage]) -> Result<(), RouteSyncIoError> {
+        fn publish_messages(
+            &mut self,
+            messages: &[RouteSyncMessage],
+        ) -> Result<(), RouteSyncIoError> {
             let mut shared = self.shared.lock().expect("ble shared state");
             for message in messages {
-                shared.pending_notifications.push_back(encode_ble_packet(&BleRouteSyncPacket::SyncMessage(message.clone())));
+                shared.pending_notifications.push_back(encode_ble_packet(
+                    &BleRouteSyncPacket::SyncMessage(message.clone()),
+                ));
             }
             Ok(())
         }
@@ -133,7 +162,11 @@ mod imp {
                 let _ = gatts.create_service(gatt_if, &service_id, 8);
                 shared.lock().expect("ble shared state").gatt_if = Some(gatt_if);
             }
-            GattsEvent::ServiceCreated { status, service_handle, .. } if status == GattStatus::Ok => {
+            GattsEvent::ServiceCreated {
+                status,
+                service_handle,
+                ..
+            } if status == GattStatus::Ok => {
                 let chunk_characteristic = GattCharacteristic::new(
                     BtUuid::uuid128(CHUNK_UUID128),
                     EnumSet::only(Permission::Write),
@@ -152,7 +185,12 @@ mod imp {
                 let _ = gatts.add_characteristic(service_handle, &event_characteristic, &[]);
                 shared.lock().expect("ble shared state").service_handle = Some(service_handle);
             }
-            GattsEvent::CharacteristicAdded { status, attr_handle, char_uuid, .. } if status == GattStatus::Ok => {
+            GattsEvent::CharacteristicAdded {
+                status,
+                attr_handle,
+                char_uuid,
+                ..
+            } if status == GattStatus::Ok => {
                 let mut shared = shared.lock().expect("ble shared state");
                 if char_uuid == BtUuid::uuid128(CHUNK_UUID128) {
                     shared.chunk_char_handle = Some(attr_handle);
@@ -200,15 +238,27 @@ mod imp {
                     }
                 };
                 if let Some(chunk) = maybe_chunk {
-                    shared.lock().expect("ble shared state").inbound_chunks.push_back(chunk);
+                    shared
+                        .lock()
+                        .expect("ble shared state")
+                        .inbound_chunks
+                        .push_back(chunk);
                 }
                 if need_rsp {
                     let _ = gatts.send_response(gatt_if, conn_id, trans_id, GattStatus::Ok, None);
                 }
             }
-            GattsEvent::Congest { congested: false, .. }
-            | GattsEvent::ResponseComplete { status: GattStatus::Ok, .. }
-            | GattsEvent::ServiceStarted { status: GattStatus::Ok, .. } => {
+            GattsEvent::Congest {
+                congested: false, ..
+            }
+            | GattsEvent::ResponseComplete {
+                status: GattStatus::Ok,
+                ..
+            }
+            | GattsEvent::ServiceStarted {
+                status: GattStatus::Ok,
+                ..
+            } => {
                 drain_notifications(gatts, shared, gatt_if);
             }
             _ => {}
@@ -239,14 +289,29 @@ mod imp {
     }
 }
 
-#[cfg(all(target_os = "espidf", not(any(esp32s2, esp32p4)), esp_idf_bt_enabled, esp_idf_bt_bluedroid_enabled))]
+#[cfg(all(
+    target_os = "espidf",
+    not(any(esp32s2, esp32p4)),
+    esp_idf_bt_enabled,
+    esp_idf_bt_bluedroid_enabled
+))]
 pub use imp::EspIdfBleRouteSyncIo;
 
-#[cfg(not(all(target_os = "espidf", not(any(esp32s2, esp32p4)), esp_idf_bt_enabled, esp_idf_bt_bluedroid_enabled)))]
+#[cfg(not(all(
+    target_os = "espidf",
+    not(any(esp32s2, esp32p4)),
+    esp_idf_bt_enabled,
+    esp_idf_bt_bluedroid_enabled
+)))]
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct EspIdfBleRouteSyncIo;
 
-#[cfg(not(all(target_os = "espidf", not(any(esp32s2, esp32p4)), esp_idf_bt_enabled, esp_idf_bt_bluedroid_enabled)))]
+#[cfg(not(all(
+    target_os = "espidf",
+    not(any(esp32s2, esp32p4)),
+    esp_idf_bt_enabled,
+    esp_idf_bt_bluedroid_enabled
+)))]
 impl RouteSyncIo for EspIdfBleRouteSyncIo {
     fn poll_chunk(&mut self) -> Result<Option<RouteTransferChunk>, RouteSyncIoError> {
         Ok(None)
