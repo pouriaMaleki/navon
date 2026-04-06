@@ -7,7 +7,10 @@ extension AppModel {
 
     var routePlannerPreferences: RoutePlannerPreferences {
         get { persistence.loadRoutePlannerPreferences() }
-        set { persistence.saveRoutePlannerPreferences(newValue) }
+        set {
+            persistence.saveRoutePlannerPreferences(newValue)
+            currentSourceMode = newValue.defaultSourceMode
+        }
     }
 
     func recordPlannedPreview(source: RouteHistorySource, sourceLabel: String) {
@@ -47,37 +50,12 @@ extension AppModel {
     }
 
     func activateRouteHistoryItem(_ item: RouteHistoryItem, startImmediately: Bool = false) {
-        if let package = item.routePackage {
-            let alternative = RouteAlternative(
-                id: UUID(),
-                title: item.title,
-                subtitle: item.subtitle,
-                distanceMeters: Int(package.summary.totalDistanceMeters.rounded()),
-                durationSeconds: package.summary.estimatedDurationSeconds,
-                normalizedPackage: package
-            )
-            preview = RoutePreviewModel(
-                alternatives: [alternative],
-                selectedAlternativeID: alternative.id,
-                routeIdentifier: package.routeIdentifier,
-                routeRevision: package.revision,
-                planningNotice: item.sourceLabel
-            )
-            routeRequest = RoutePlanRequest(
-                origin: simulatedRiderLocation,
-                destination: item.destination ?? package.geometry.last ?? routeRequest.destination,
-                providerID: routePlannerPreferences.providerID
-            )
-        } else if let destination = item.destination {
-            selectedProviderID = routePlannerPreferences.providerID
-            routeRequest = RoutePlanRequest(origin: simulatedRiderLocation, destination: destination, providerID: routePlannerPreferences.providerID)
-            Task {
-                await planRoute()
+        Task {
+            await applyRouteHistoryPreview(item)
+            homePreviewRequestID = UUID()
+            if startImmediately {
+                homeStartRequestID = UUID()
             }
-        }
-        homePreviewRequestID = UUID()
-        if startImmediately {
-            homeStartRequestID = UUID()
         }
     }
 

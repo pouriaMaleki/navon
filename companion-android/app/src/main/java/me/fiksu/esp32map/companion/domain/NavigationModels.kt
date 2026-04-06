@@ -10,8 +10,33 @@ enum class RouteStartBehavior(val displayName: String) {
     AUTOMATIC("Start automatically"),
 }
 
+enum class RouteSourceMode(val displayName: String, val primaryProviderId: RouteProviderId, val providerIds: List<RouteProviderId>) {
+    MIXED("Mixed", RouteProviderId.HSL, listOf(RouteProviderId.HSL, RouteProviderId.OSM)),
+    HSL("HSL", RouteProviderId.HSL, listOf(RouteProviderId.HSL)),
+    OSM("OSM", RouteProviderId.OSM, listOf(RouteProviderId.OSM)),
+}
+
+enum class RouteSuggestionKind(val displayName: String) {
+    FASTEST("Fastest"),
+    QUIETER("Quieter"),
+    SIMPLER("Simpler"),
+}
+
+enum class HomeMode {
+    PLANNING,
+    SENDING_TO_DEVICE,
+    PHONE_GUIDANCE,
+    DEVICE_OVERVIEW,
+}
+
+enum class HomeCompassMode {
+    AUTO_FOLLOW,
+    NORTH_PREVIEW,
+    NORTH_LOCKED,
+}
+
 data class RoutePlannerPreferences(
-    val providerId: RouteProviderId = RouteProviderId.HSL,
+    val defaultSourceMode: RouteSourceMode = RouteSourceMode.MIXED,
     val suggestionMode: RouteSuggestionMode = RouteSuggestionMode.THREE_ROUTES,
     val startBehavior: RouteStartBehavior = RouteStartBehavior.EXPLICIT,
 )

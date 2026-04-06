@@ -5,23 +5,21 @@ struct RoutePlannerSettingsView: View {
 
     var body: some View {
         Form {
-            Section("Provider") {
-                Picker("Provider", selection: Binding(
-                    get: { appModel.routePlannerPreferences.providerID },
+            Section("Defaults") {
+                Picker("Default route source", selection: Binding(
+                    get: { appModel.routePlannerPreferences.defaultSourceMode },
                     set: { newValue in
                         var preferences = appModel.routePlannerPreferences
-                        preferences.providerID = newValue
+                        preferences.defaultSourceMode = newValue
                         appModel.routePlannerPreferences = preferences
-                        appModel.selectedProviderID = newValue
+                        appModel.currentSourceMode = newValue
                     }
                 )) {
-                    ForEach(appModel.providerOptions) { provider in
-                        Text(provider.displayName).tag(provider)
+                    ForEach(appModel.sourceModeOptions) { mode in
+                        Text(mode.displayName).tag(mode)
                     }
                 }
-            }
 
-            Section("Suggestions") {
                 Picker("Suggestions", selection: Binding(
                     get: { appModel.routePlannerPreferences.suggestionMode },
                     set: { newValue in

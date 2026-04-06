@@ -42,6 +42,10 @@ Depends on:
   Current status: root navigation shells were replaced in both native apps, and the remaining work is feature-depth completion plus cleanup of the underlying state architecture.
 - [ ] Implement share-sheet ingestion UX for Google Maps links, shared locations, GPX, and future routing payloads.
 - [ ] Add Google Maps handoff UX that imports destination/route intent and replans it through the companion's own provider stack.
+- [~] Move route-source selection for the active planning session into the Home planning UI as a compact top control with `Mixed` as the default, instead of relying only on Settings.
+  Current status: the redesign implementation is moving source selection into Home in both native apps, with `Mixed`, `HSL`, and `OSM` as the active planning choices.
+- [~] Define the planning-mode versus guidance-mode transition explicitly so `Start` commits to one route and `Stop` returns to refreshed suggestions from the current location.
+  Current status: the redesign now targets an explicit split between planning mode, phone riding mode, and device overview mode, with device-connected `Start` becoming device-first.
 - [~] Add Home-tab long-press destination selection on the map and route-suggestion flow parity with typed search.
   Current status: both native shells now support long-press destination selection and the shared three-route preview flow, while deeper share-import parity still remains.
 - [~] Implement Home search UX with recents by default, live suggestions while typing, and paged loading in both states.
@@ -73,6 +77,7 @@ Current checkpoint:
 - Planned companion redesign target is a single map-first Home surface plus a full-screen Settings hub, not a tabbed app shell.
 - Architecture doc `companion-app-architecture.md` now captures the redesign boundaries and guardrails.
 - Planned Home route flow: destination search in a top map overlay, recents shown by default, live dropdown results while typing, tap-and-hold on the map to drop a destination pin, three suggested routes after destination selection, best route preselected by default, explicit `Start` to begin guidance, and explicit `Stop` to end guidance and re-suggest routes from the rider's new current location.
+- Planned route-option UX: planning mode should default to a `Mixed` source strategy, expose a small inline source control near `Where to?`, label route options by rider-meaningful style first (`Fastest`, `Quieter`, `Simpler`) with source as secondary context, and treat `Start` as the mode shift from comparison into active guidance.
 - Planned Settings `Routes` page role: imported routes, destination history, and recent route intents should live together as a clean action-oriented list with source badges and obvious next actions, while the route detail page acts as the universal fallback/re-entry surface.
 - Planned partner direction: focus on inbound route and destination integrations from Garmin Connect, Strava, Komoot, and similar services, exposed through their own settings subpages, while leaving ride recording/export for later.
 - Google Maps integration should be implemented as an intent-import and destination-handoff flow through share sheet and link parsing, not as the app pretending to mirror Google's exact route semantics; clear imports should jump to Home route preview, while ambiguous imports should open the universal route detail page.

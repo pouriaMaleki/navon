@@ -19,7 +19,7 @@ struct CompanionRootView: View {
         }
         .onChange(of: appModel.homeStartRequestID) { _, _ in
             showingSettings = false
-            homeViewModel.startSelectedRoute()
+            Task { await homeViewModel.startSelectedRoute() }
         }
         .fullScreenCover(isPresented: $showingSettings) {
             SettingsHubView()
