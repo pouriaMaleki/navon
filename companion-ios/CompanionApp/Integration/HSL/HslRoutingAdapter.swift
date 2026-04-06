@@ -78,7 +78,7 @@ struct HslRoutingAdapter: RoutingProvider {
             variables: .init(
                 from: .init(lat: request.origin.latitude, lon: request.origin.longitude),
                 to: .init(lat: request.destination.latitude, lon: request.destination.longitude),
-                numItineraries: 2,
+                numItineraries: 3,
                 transportModes: [.init(mode: "BICYCLE")],
                 optimize: "SAFE"
             )

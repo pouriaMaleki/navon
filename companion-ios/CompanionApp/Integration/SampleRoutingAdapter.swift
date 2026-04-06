@@ -25,7 +25,7 @@ struct SampleRoutingAdapter: RoutingProvider {
     }
 
     private func buildPreview(for request: RoutePlanRequest, revision: Int, planningNotice: String) -> RoutePreviewModel {
-        let alternatives = [0, 1].map { alternativeIndex in
+        let alternatives = [0, 1, 2].map { alternativeIndex in
             buildAlternative(for: request, revision: revision, alternativeIndex: alternativeIndex)
         }
         return RoutePreviewModel(

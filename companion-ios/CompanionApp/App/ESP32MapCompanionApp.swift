@@ -6,7 +6,7 @@ struct ESP32MapCompanionApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootTabView()
+            CompanionRootView(homeViewModel: HomeViewModel(appModel: appModel))
                 .environmentObject(appModel)
         }
     }

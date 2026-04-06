@@ -64,3 +64,10 @@ npm run lint
 npm run typecheck
 npm run build
 ```
+
+## Companion App Checklist
+- Preserve the single-surface Home plus full-screen Settings navigation model.
+- Keep feature modules separate; do not route new work through a monolithic app state object.
+- Keep platform-native UX conventions for map, search, share, and document-picker flows.
+- Reuse canonical route and sync contracts; do not invent platform-specific route semantics.
+- Keep universal Route Detail shared across imports, recents, and partner routes unless a source genuinely needs unique behavior.

@@ -3,43 +3,68 @@ package me.fiksu.esp32map.companion
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.Alignment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.flow.StateFlow
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.Polyline
+import com.google.maps.android.compose.rememberCameraPositionState
 import me.fiksu.esp32map.companion.app.CompanionAppState
+import me.fiksu.esp32map.companion.domain.RouteHistoryItem
 import me.fiksu.esp32map.companion.domain.RouteProviderId
-import me.fiksu.esp32map.companion.integration.ble.AndroidBleRouteSyncClient
+import me.fiksu.esp32map.companion.domain.RouteStartBehavior
+import me.fiksu.esp32map.companion.domain.RouteSuggestionMode
+import me.fiksu.esp32map.companion.feature.home.HomeStateHolder
+import me.fiksu.esp32map.companion.integration.AndroidPlaceSearchService
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,272 +78,366 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class CompanionTab(val label: String) {
-    Launch("Launch"),
-    Plan("Plan"),
-    Preview("Preview"),
-    Device("Device"),
-    Ride("Ride"),
-    Settings("Settings"),
+private enum class SettingsDestination {
+    ROOT,
+    CONNECTIONS,
+    ROUTES,
+    DEVICE,
+    ROUTE_PLANNER,
 }
 
 @Composable
 private fun CompanionApp(appState: CompanionAppState = viewModel()) {
-    var selectedTab by remember { mutableStateOf(CompanionTab.Launch) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val homeState = remember(appState) { HomeStateHolder(appState, AndroidPlaceSearchService(context)) }
+    var showingSettings by rememberSaveable { mutableStateOf(false) }
+    var settingsDestination by rememberSaveable { mutableStateOf(SettingsDestination.ROOT) }
+    var selectedRouteId by rememberSaveable { mutableStateOf<String?>(null) }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        bottomBar = {
-            NavigationBar {
-                CompanionTab.entries.forEach { tab ->
-                    NavigationBarItem(
-                        selected = selectedTab == tab,
-                        onClick = { selectedTab = tab },
-                        icon = { Text(tab.label.take(1)) },
-                        label = { Text(tab.label) },
-                    )
+    Box(Modifier.fillMaxSize()) {
+        if (showingSettings) {
+            BackHandler {
+                if (settingsDestination == SettingsDestination.ROOT) {
+                    showingSettings = false
+                } else {
+                    settingsDestination = SettingsDestination.ROOT
                 }
             }
-        },
-    ) { innerPadding ->
-        when (selectedTab) {
-            CompanionTab.Launch -> LaunchScreen(innerPadding, appState)
-            CompanionTab.Plan -> RoutePlanningScreen(innerPadding, appState)
-            CompanionTab.Preview -> RoutePreviewScreen(innerPadding, appState)
-            CompanionTab.Device -> DeviceScreen(innerPadding, appState)
-            CompanionTab.Ride -> ActiveRideScreen(innerPadding, appState)
-            CompanionTab.Settings -> SettingsScreen(innerPadding, appState)
         }
-    }
-}
-
-@Composable
-private fun LaunchScreen(padding: PaddingValues, appState: CompanionAppState) {
-    ScreenColumn(padding) {
-        BluetoothPermissionSection()
-
-        Text("BLE state: ${appState.syncSession.connectionState}")
-        Text("Last device: ${appState.syncSession.lastDeviceName ?: "None"}")
-        Text("Route: ${appState.activeSession.routeIdentifier ?: "None"}")
-        Text("Planning mode: ${if (appState.settings.preferLiveHslRouting) "Live HSL" else "Sample HSL"}")
-        appState.preview.planningNotice?.let {
-            Text("Planning notice: $it")
+        if (selectedRouteId != null) {
+            BackHandler { selectedRouteId = null }
         }
-        Button(onClick = appState::connectToDevice) {
-            Text("Connect to device")
-        }
-    }
-}
+        CompanionHomeScreen(
+            appState = appState,
+            homeState = homeState,
+            onOpenSettings = { showingSettings = true },
+        )
 
-@Composable
-private fun RoutePlanningScreen(padding: PaddingValues, appState: CompanionAppState) {
-    val context = LocalContext.current
-    val gpxLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            appState.importGpxUri(context, uri)
+        if (showingSettings) {
+            FullScreenOverlay {
+                when (settingsDestination) {
+                    SettingsDestination.ROOT -> SettingsRootScreen(
+                        onDismiss = {
+                            showingSettings = false
+                            settingsDestination = SettingsDestination.ROOT
+                        },
+                        onConnections = { settingsDestination = SettingsDestination.CONNECTIONS },
+                        onRoutes = { settingsDestination = SettingsDestination.ROUTES },
+                        onDevice = { settingsDestination = SettingsDestination.DEVICE },
+                        onRoutePlanner = { settingsDestination = SettingsDestination.ROUTE_PLANNER },
+                    )
+                    SettingsDestination.CONNECTIONS -> ConnectionsSettingsScreen(onBack = { settingsDestination = SettingsDestination.ROOT })
+                    SettingsDestination.ROUTES -> RoutesSettingsScreen(
+                        appState = appState,
+                        onBack = { settingsDestination = SettingsDestination.ROOT },
+                        onOpenRoute = { selectedRouteId = it },
+                    )
+                    SettingsDestination.DEVICE -> DeviceSettingsScreen(appState = appState, onBack = { settingsDestination = SettingsDestination.ROOT })
+                    SettingsDestination.ROUTE_PLANNER -> RoutePlannerSettingsScreen(appState = appState, onBack = { settingsDestination = SettingsDestination.ROOT })
+                }
+            }
         }
-    }
 
-    ScreenColumn(padding) {
-        Text("Provider")
-        RouteProviderId.entries.forEach { provider ->
-            FilterChip(
-                selected = appState.selectedProviderId == provider,
-                onClick = { appState.selectedProviderId = provider },
-                enabled = provider.supportsCompanionPreview,
-                label = {
-                    Text(
-                        when {
-                            provider.isAvailableInV1 -> provider.displayName
-                            provider.supportsCompanionPreview -> "${provider.displayName} (Sample preview)"
-                            else -> "${provider.displayName} (Coming soon)"
+        selectedRouteId?.let { routeId ->
+            val item = appState.routeHistoryItems.firstOrNull { it.id == routeId }
+            if (item != null) {
+                FullScreenOverlay {
+                    RouteDetailScreen(
+                        item = item,
+                        onBack = { selectedRouteId = null },
+                        onOpen = { openRouteItem(appState, item); selectedRouteId = null },
+                        onStart = { openRouteItem(appState, item); homeState.startSelectedRoute(); selectedRouteId = null },
+                        onDismiss = {
+                            appState.dismissRouteHistoryItem(item.id)
+                            selectedRouteId = null
                         },
                     )
-                },
-            )
-        }
-
-        Text(
-            when (appState.selectedProviderId) {
-                RouteProviderId.GPX_IMPORT -> "Native GPX import"
-                else -> if (appState.settings.preferLiveHslRouting) "Live HSL enabled" else "Sample HSL routes"
-            },
-        )
-        Text(
-            when (appState.selectedProviderId) {
-                RouteProviderId.GPX_IMPORT -> "Choose a .gpx file through Android's document picker and normalize it into the same route package used by preview and sync."
-                else -> if (appState.settings.preferLiveHslRouting) {
-                    "Routes will use Digitransit when a subscription key is configured."
-                } else {
-                    "Routes are currently generated from the built-in sample fixtures or sample-backed provider adapters."
                 }
-            },
-        )
-
-        if (appState.selectedProviderId == RouteProviderId.GPX_IMPORT) {
-            Button(onClick = { gpxLauncher.launch(arrayOf("application/gpx+xml", "application/xml", "text/xml", "*/*")) }) {
-                Text("Choose GPX file")
-            }
-        } else {
-            CoordinateField("Origin latitude", appState.routeRequest.origin.latitude) {
-                appState.routeRequest = appState.routeRequest.copy(origin = appState.routeRequest.origin.copy(latitude = it))
-            }
-            CoordinateField("Origin longitude", appState.routeRequest.origin.longitude) {
-                appState.routeRequest = appState.routeRequest.copy(origin = appState.routeRequest.origin.copy(longitude = it))
-            }
-            CoordinateField("Destination latitude", appState.routeRequest.destination.latitude) {
-                appState.routeRequest = appState.routeRequest.copy(destination = appState.routeRequest.destination.copy(latitude = it))
-            }
-            CoordinateField("Destination longitude", appState.routeRequest.destination.longitude) {
-                appState.routeRequest = appState.routeRequest.copy(destination = appState.routeRequest.destination.copy(longitude = it))
-            }
-        }
-
-        appState.preview.planningNotice?.let {
-            Text("Last planning notice: $it")
-        }
-
-        if (appState.selectedProviderId != RouteProviderId.GPX_IMPORT) {
-            Button(
-                onClick = appState::planRoute,
-                enabled = appState.selectedProviderCanPlan,
-            ) {
-                Text("Plan ${appState.selectedProviderId.displayName} route")
             }
         }
     }
 }
 
 @Composable
-private fun RoutePreviewScreen(padding: PaddingValues, appState: CompanionAppState) {
-    ScreenColumn(padding) {
-        Text("Route id: ${appState.preview.routeIdentifier ?: "None"}")
-        Text("Revision: ${appState.preview.routeRevision ?: 0}")
-        appState.preview.planningNotice?.let {
-            Text("Planning notice: $it")
+private fun CompanionHomeScreen(
+    appState: CompanionAppState,
+    homeState: HomeStateHolder,
+    onOpenSettings: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(LatLng(60.1699, 24.9384), 13f)
+    }
+
+    Box(Modifier.fillMaxSize()) {
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            uiSettings = MapUiSettings(compassEnabled = true, myLocationButtonEnabled = false),
+            properties = MapProperties(isMyLocationEnabled = false),
+            onMapLongClick = { latLng ->
+                homeState.setDestinationFromMap(me.fiksu.esp32map.companion.domain.CoordinatePoint(latLng.latitude, latLng.longitude), scope)
+                scope.launch {
+                    cameraPositionState.animate(CameraUpdateFactory.newLatLng(latLng))
+                }
+            },
+        ) {
+            homeState.previewAlternatives.forEach { alternative ->
+                Polyline(
+                    points = alternative.normalizedPackage.geometry.map { LatLng(it.latitude, it.longitude) },
+                    color = if (alternative.id == appState.preview.selectedAlternativeId) Color(0xFF2D6CDF) else Color(0x6626A69A),
+                    width = if (alternative.id == appState.preview.selectedAlternativeId) 10f else 7f,
+                )
+            }
+            homeState.activeRoute?.let { active ->
+                Polyline(
+                    points = active.geometry.map { LatLng(it.latitude, it.longitude) },
+                    color = Color(0xFF2E7D32),
+                    width = 12f,
+                )
+            }
+            homeState.destinationCoordinate?.let {
+                Marker(state = MarkerState(LatLng(it.latitude, it.longitude)), title = "Destination")
+            }
         }
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(appState.preview.alternatives) { alternative ->
-                Column {
-                    Text(alternative.title, style = MaterialTheme.typography.titleMedium)
-                    Text(alternative.subtitle)
-                    Text(alternative.normalizedPackage.summaryLine)
-                    Text("${alternative.normalizedPackage.geometryPointCount} geometry points • ${alternative.normalizedPackage.maneuverCount} maneuvers")
-                    Button(
-                        onClick = { appState.selectAlternative(alternative.id) },
-                        enabled = appState.preview.selectedAlternativeId != alternative.id,
-                    ) {
-                        Text(if (appState.preview.selectedAlternativeId == alternative.id) "Using this route" else "Use this route")
+
+        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextField(
+                    value = homeState.query,
+                    onValueChange = {
+                        homeState.openSearch()
+                        homeState.updateQuery(it, scope)
+                    },
+                    label = { Text("Where to?") },
+                    modifier = Modifier.weight(1f),
+                )
+                Spacer(Modifier.width(12.dp))
+                IconButton(onClick = onOpenSettings) {
+                    Text("Settings")
+                }
+            }
+
+            if (homeState.isSearchOpen) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    tonalElevation = 4.dp,
+                    shape = MaterialTheme.shapes.large,
+                ) {
+                    LazyColumn(modifier = Modifier.height(320.dp), contentPadding = PaddingValues(vertical = 8.dp)) {
+                        if (homeState.query.isBlank()) {
+                            items(homeState.recentItems, key = { it.id }) { item ->
+                                RouteHistoryRow(item = item, onClick = { homeState.selectRecent(item, scope) })
+                                homeState.loadMoreRecentsIfNeeded(item)
+                            }
+                        } else {
+                            items(homeState.visibleSuggestions, key = { it.id }) { suggestion ->
+                                SearchSuggestionRow(
+                                    title = suggestion.title,
+                                    subtitle = suggestion.subtitle,
+                                    onClick = {
+                                        homeState.selectSuggestion(suggestion, scope)
+                                        scope.launch {
+                                            cameraPositionState.animate(CameraUpdateFactory.newLatLng(LatLng(suggestion.coordinate.latitude, suggestion.coordinate.longitude)))
+                                        }
+                                    },
+                                )
+                                homeState.loadMoreSuggestionsIfNeeded(suggestion)
+                            }
+                        }
                     }
                 }
             }
-        }
-        appState.preview.selectedAlternative?.normalizedPackage?.let { selected ->
-            Text("Provenance: ${selected.provenance.providerId.displayName}")
-            Text("Source: ${selected.provenance.sourceReference ?: "None"}")
-        }
-        Button(onClick = appState::sendSelectedRoute, enabled = appState.preview.routeIdentifier != null) {
-            Text("Send to device")
+
+            Spacer(Modifier.weight(1f))
+
+            when {
+                homeState.activeRoute != null -> ActiveGuidanceCard(homeState, scope)
+                homeState.previewAlternatives.isNotEmpty() -> RouteSuggestionsCard(appState, homeState)
+            }
         }
     }
 }
 
 @Composable
-private fun DeviceScreen(padding: PaddingValues, appState: CompanionAppState) {
-    ScreenColumn(padding) {
-        BluetoothPermissionSection()
+private fun SearchSuggestionRow(title: String, subtitle: String, onClick: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(title, fontWeight = FontWeight.SemiBold)
+        if (subtitle.isNotBlank()) {
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
 
+@Composable
+private fun RouteHistoryRow(item: RouteHistoryItem, onClick: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(item.title, fontWeight = FontWeight.SemiBold)
+        Text(item.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(item.sourceLabel, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun RouteSuggestionsCard(appState: CompanionAppState, homeState: HomeStateHolder) {
+    Column(
+        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.94f), shape = MaterialTheme.shapes.extraLarge).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text("Suggested routes", style = MaterialTheme.typography.titleMedium)
+        homeState.previewAlternatives.forEach { alternative ->
+            val selected = alternative.id == appState.preview.selectedAlternativeId
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable { homeState.selectAlternative(alternative.id) }.background(if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent, shape = MaterialTheme.shapes.medium).padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(alternative.title, fontWeight = FontWeight.SemiBold)
+                    Text(alternative.normalizedPackage.summaryLine, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                if (selected) {
+                    Text("Selected", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+                }
+            }
+        }
+        Button(onClick = { homeState.startSelectedRoute() }, modifier = Modifier.fillMaxWidth()) {
+            Text("Start")
+        }
+    }
+}
+
+@Composable
+private fun ActiveGuidanceCard(homeState: HomeStateHolder, scope: CoroutineScope) {
+    val route = homeState.activeRoute ?: return
+    Column(
+        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.94f), shape = MaterialTheme.shapes.extraLarge).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(route.summary.destinationLabel ?: "Guidance active", style = MaterialTheme.typography.titleMedium)
+        Text(route.summaryLine, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Button(onClick = { homeState.stopGuidance(scope) }, modifier = Modifier.fillMaxWidth()) {
+            Text("Stop")
+        }
+    }
+}
+
+@Composable
+private fun SettingsRootScreen(
+    onDismiss: () -> Unit,
+    onConnections: () -> Unit,
+    onRoutes: () -> Unit,
+    onDevice: () -> Unit,
+    onRoutePlanner: () -> Unit,
+) {
+    ScreenColumn(PaddingValues(0.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Settings", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
+            Button(onClick = onDismiss) { Text("Done") }
+        }
+        Button(onClick = onConnections, modifier = Modifier.fillMaxWidth()) { Text("Connections") }
+        Button(onClick = onRoutes, modifier = Modifier.fillMaxWidth()) { Text("Routes") }
+        Button(onClick = onDevice, modifier = Modifier.fillMaxWidth()) { Text("Device") }
+        Button(onClick = onRoutePlanner, modifier = Modifier.fillMaxWidth()) { Text("Route Planner") }
+    }
+}
+
+@Composable
+private fun ConnectionsSettingsScreen(onBack: () -> Unit) {
+    ScreenColumn(PaddingValues(0.dp)) {
+        BackHeader(title = "Connections", onBack = onBack)
+        ConnectionRow("Strava", "Inbound route integration planned")
+        ConnectionRow("Garmin Connect", "Inbound route integration planned")
+        ConnectionRow("Komoot", "Inbound route integration planned")
+    }
+}
+
+@Composable
+private fun ConnectionRow(title: String, subtitle: String) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(title, fontWeight = FontWeight.SemiBold)
+        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun RoutesSettingsScreen(appState: CompanionAppState, onBack: () -> Unit, onOpenRoute: (String) -> Unit) {
+    val context = LocalContext.current
+    val gpxLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) appState.importGpxUri(context, uri)
+    }
+    ScreenColumn(PaddingValues(0.dp)) {
+        BackHeader(title = "Routes", onBack = onBack)
+        Button(onClick = { gpxLauncher.launch(arrayOf("application/gpx+xml", "application/xml", "text/xml", "*/*")) }, modifier = Modifier.fillMaxWidth()) {
+            Text("Import GPX")
+        }
+        if (appState.routeHistoryItems.isEmpty()) {
+            Text("No recent routes or destinations yet.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            appState.routeHistoryItems.forEach { item ->
+                RouteHistoryRow(item = item) { onOpenRoute(item.id) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeviceSettingsScreen(appState: CompanionAppState, onBack: () -> Unit) {
+    ScreenColumn(PaddingValues(0.dp)) {
+        BackHeader(title = "Device", onBack = onBack)
+        BluetoothPermissionSection()
         Text("Connection: ${appState.syncSession.connectionState}")
         Text("Route sync: ${appState.syncSession.routeSyncState}")
         Text("Pending route: ${appState.syncSession.pendingRouteIdentifier ?: "None"}")
-        Text("Pending revision: ${appState.syncSession.pendingRouteRevision ?: 0}")
         Text("Active route: ${appState.syncSession.activeRouteIdentifier ?: "None"}")
-        Text("Active revision: ${appState.syncSession.activeRouteRevision ?: 0}")
-        Text("Active checksum: ${appState.syncSession.activeRouteChecksumHex ?: "None"}")
         Text("Last sync: ${appState.syncSession.lastSyncResult}")
-        Text("Retry fault armed: ${if (appState.syncSession.retryableInterruptionArmed) "Yes" else "No"}")
-        Text("Armed fault: ${appState.syncSession.armedFaultInjectionMode?.displayName ?: "None"}")
-        appState.syncSession.transferProgress?.let { transfer ->
-            Text("Transfer id: ${transfer.transferIdentifier}")
-            Text("Kind: ${transfer.messageKind}")
-            Text("Payload: ${transfer.payloadBytes} B")
-            Text("Chunks: ${transfer.acknowledgedChunks}/${transfer.totalChunks} @ ${transfer.chunkSizeBytes} B")
-            Text("Progress: ${transfer.percentComplete}%")
-            Text("Retries: ${transfer.retryCount}")
-            Text("Checksum: ${transfer.checksumHex}")
-            Text("Resume chunk: ${(transfer.resumeChunkIndex?.plus(1)) ?: "Complete"}")
-            Text("Last transfer error: ${transfer.lastError ?: "None"}")
-        } ?: Text("No active transfer")
-        Text("Outbound: ${appState.syncSession.lastOutboundMessage?.debugSummary ?: "None"}")
-        Text("Inbound: ${appState.syncSession.lastInboundMessage?.debugSummary ?: "None"}")
-        Text("Status code: ${appState.syncSession.lastStatusCode?.name ?: "NONE"}")
-        Button(onClick = appState::connectToDevice) {
-            Text("Reconnect")
-        }
-        Button(onClick = appState::sendSelectedRoute) {
-            Text("Send route message")
-        }
-        Button(onClick = appState::armRetryableInterruptionOnNextTransfer) {
-            Text("Arm retryable interruption")
-        }
-        Button(onClick = appState::armWriteFailureOnNextTransfer) {
-            Text("Arm write failure")
-        }
-        Button(onClick = appState::armDisconnectAfterNextChunkWrite) {
-            Text("Arm disconnect after chunk")
-        }
-        Button(onClick = appState::armDropNextInboundStatus) {
-            Text("Arm drop next inbound status")
-        }
-        Button(onClick = appState::resumePendingTransfer) {
-            Text("Resume pending transfer")
-        }
-        Button(onClick = appState::clearActiveRoute) {
-            Text("Clear active route")
-        }
-        Button(onClick = appState::triggerReroute) {
-            Text("Request reroute from rider location")
-        }
+        Button(onClick = appState::connectToDevice) { Text("Reconnect") }
+        Button(onClick = appState::sendSelectedRoute) { Text("Send selected route") }
+        Button(onClick = appState::resumePendingTransfer) { Text("Resume pending transfer") }
+        Button(onClick = appState::armRetryableInterruptionOnNextTransfer) { Text("Arm retryable interruption") }
+        Button(onClick = appState::armWriteFailureOnNextTransfer) { Text("Arm write failure") }
+        Button(onClick = appState::armDisconnectAfterNextChunkWrite) { Text("Arm disconnect after chunk") }
+        Button(onClick = appState::armDropNextInboundStatus) { Text("Arm drop next inbound status") }
+        Button(onClick = appState::clearActiveRoute) { Text("Clear active route") }
     }
 }
 
 @Composable
-private fun ActiveRideScreen(padding: PaddingValues, appState: CompanionAppState) {
-    ScreenColumn(padding) {
-        Text("Route id: ${appState.activeSession.routeIdentifier ?: "None"}")
-        Text("Revision: ${appState.activeSession.routeRevision ?: 0}")
-        Text("Destination: ${appState.activeSession.destinationLabel}")
-        Text("Provider: ${appState.activeSession.providerId.displayName}")
-        appState.activeSession.destinationCoordinate?.let { destination ->
-            Text("Destination lat/lon: %.5f, %.5f".format(destination.latitude, destination.longitude))
+private fun RoutePlannerSettingsScreen(appState: CompanionAppState, onBack: () -> Unit) {
+    ScreenColumn(PaddingValues(0.dp)) {
+        BackHeader(title = "Route Planner", onBack = onBack)
+        Text("Provider")
+        RouteProviderId.entries.forEach { provider ->
+            FilterChip(
+                selected = appState.routePlannerPreferences.providerId == provider,
+                onClick = {
+                    appState.saveRoutePlannerPreferences(appState.routePlannerPreferences.copy(providerId = provider))
+                    appState.selectedProviderId = provider
+                },
+                label = { Text(provider.displayName) },
+            )
         }
-        CoordinateField("Rider latitude", appState.simulatedRiderLocation.latitude) {
-            appState.simulatedRiderLocation = appState.simulatedRiderLocation.copy(latitude = it)
+        Text("Suggestion mode")
+        RouteSuggestionMode.entries.forEach { mode ->
+            FilterChip(
+                selected = appState.routePlannerPreferences.suggestionMode == mode,
+                onClick = { appState.saveRoutePlannerPreferences(appState.routePlannerPreferences.copy(suggestionMode = mode)) },
+                label = { Text(mode.displayName) },
+            )
         }
-        CoordinateField("Rider longitude", appState.simulatedRiderLocation.longitude) {
-            appState.simulatedRiderLocation = appState.simulatedRiderLocation.copy(longitude = it)
-        }
-        Text("Last reroute: ${appState.activeSession.lastRerouteReason ?: "No reroute yet"}")
-        Text("Reroute time: ${appState.activeSession.lastRerouteTimestamp ?: "Never"}")
-        Button(
-            onClick = appState::triggerReroute,
-            enabled = appState.activeSession.destinationCoordinate != null,
-        ) {
-            Text("Request reroute from current rider location")
-        }
-    }
-}
-
-@Composable
-private fun SettingsScreen(padding: PaddingValues, appState: CompanionAppState) {
-    val diagnostics by appState.diagnosticsStore.state.collectAsStateCompat()
-    ScreenColumn(padding) {
-        Text("HSL routing")
-        Button(onClick = {
-            appState.settings = appState.settings.copy(preferLiveHslRouting = !appState.settings.preferLiveHslRouting)
-            appState.persistSettings()
-        }) {
-            Text(if (appState.settings.preferLiveHslRouting) "Disable live HSL" else "Enable live HSL")
+        Text("Start behavior")
+        RouteStartBehavior.entries.forEach { behavior ->
+            FilterChip(
+                selected = appState.routePlannerPreferences.startBehavior == behavior,
+                onClick = { appState.saveRoutePlannerPreferences(appState.routePlannerPreferences.copy(startBehavior = behavior)) },
+                label = { Text(behavior.displayName) },
+            )
         }
         TextField(
             value = appState.settings.hslSubscriptionKey,
@@ -329,73 +448,90 @@ private fun SettingsScreen(padding: PaddingValues, appState: CompanionAppState) 
             label = { Text("Digitransit subscription key") },
             modifier = Modifier.fillMaxWidth(),
         )
-        Text("Endpoint: ${appState.settings.hslEndpointUrl}")
-
-        Text("Diagnostics")
-        Text("Provider: ${diagnostics.providerName}")
-        Text("Route: ${diagnostics.routeIdentifier}")
-        Text("Revision: ${diagnostics.routeRevision}")
-        Text("BLE: ${diagnostics.bleState}")
-        Text("Sync: ${diagnostics.lastSyncResult}")
-        Text("Reroute: ${diagnostics.lastRerouteOutcome}")
-        Text("Last outbound kind: ${appState.syncSession.lastOutboundMessage?.kindLabel ?: "none"}")
-        Text("Last inbound kind: ${appState.syncSession.lastInboundMessage?.kindLabel ?: "none"}")
-        Text("Pending route: ${appState.syncSession.pendingRouteIdentifier ?: "none"}")
-        Text("Checksum: ${appState.syncSession.activeRouteChecksumHex ?: "none"}")
-        appState.preview.planningNotice?.let {
-            Text("Planning notice: $it")
-        }
     }
 }
 
 @Composable
-private fun BluetoothPermissionSection() {
-    val context = LocalContext.current
-    val missingPermissions = AndroidBleRouteSyncClient.requiredPermissions().filter {
-        ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
-    }
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions(),
-        onResult = { },
-    )
-
-    if (missingPermissions.isNotEmpty()) {
-        Text("Bluetooth permissions are required for route sync over BLE")
-        Button(onClick = { permissionLauncher.launch(missingPermissions.toTypedArray()) }) {
-            Text("Grant Bluetooth Permissions")
-        }
-    }
-}
-@Composable
-private fun ScreenColumn(
-    padding: PaddingValues,
-    content: @Composable ColumnScope.() -> Unit,
+private fun RouteDetailScreen(
+    item: RouteHistoryItem,
+    onBack: () -> Unit,
+    onOpen: () -> Unit,
+    onStart: () -> Unit,
+    onDismiss: () -> Unit,
 ) {
+    ScreenColumn(PaddingValues(0.dp)) {
+        BackHeader(title = item.title, onBack = onBack)
+        Text(item.sourceLabel, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(item.subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(8.dp))
+        Button(onClick = onOpen, modifier = Modifier.fillMaxWidth()) { Text("Open") }
+        Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) { Text("Start") }
+        Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("Dismiss") }
+    }
+}
+
+@Composable
+private fun FullScreenOverlay(content: @Composable () -> Unit) {
+    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Box(Modifier.fillMaxSize()) {
+            content()
+        }
+    }
+}
+
+private fun openRouteItem(appState: CompanionAppState, item: RouteHistoryItem) {
+    item.routePackage?.let { routePackage ->
+        appState.preview = appState.preview.copy(
+            alternatives = listOf(
+                me.fiksu.esp32map.companion.domain.RouteAlternative(
+                    id = item.id,
+                    title = item.title,
+                    subtitle = item.subtitle,
+                    distanceMeters = routePackage.summary.totalDistanceMeters.toInt(),
+                    durationSeconds = routePackage.summary.estimatedDurationSeconds,
+                    normalizedPackage = routePackage,
+                ),
+            ),
+            selectedAlternativeId = item.id,
+            routeIdentifier = routePackage.routeIdentifier,
+            routeRevision = routePackage.revision,
+            planningNotice = item.sourceLabel,
+        )
+    }
+}
+
+@Composable
+private fun ScreenColumn(padding: PaddingValues, content: @Composable ColumnScope.() -> Unit) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .padding(16.dp),
+        modifier = Modifier.fillMaxWidth().padding(padding).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         content = content,
     )
 }
 
 @Composable
-private fun CoordinateField(label: String, value: Double, onValueChange: (Double) -> Unit) {
-    var text by remember(value) { mutableStateOf(value.toString()) }
-    TextField(
-        value = text,
-        onValueChange = {
-            text = it
-            it.toDoubleOrNull()?.let(onValueChange)
-        },
-        label = { Text(label) },
-        modifier = Modifier.fillMaxWidth(),
-    )
+private fun BackHeader(title: String, onBack: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Button(onClick = onBack) { Text("Back") }
+        Spacer(Modifier.width(12.dp))
+        Text(title, style = MaterialTheme.typography.headlineSmall)
+    }
 }
 
 @Composable
-private fun <T> StateFlow<T>.collectAsStateCompat(): State<T> {
-    return collectAsState()
+private fun BluetoothPermissionSection() {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
+    val permissions = listOf(
+        android.Manifest.permission.BLUETOOTH_SCAN,
+        android.Manifest.permission.BLUETOOTH_CONNECT,
+    )
+    val missingPermissions = permissions.filter {
+        ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+    }
+    if (missingPermissions.isNotEmpty()) {
+        Button(onClick = { launcher.launch(missingPermissions.toTypedArray()) }) {
+            Text("Grant Bluetooth permissions")
+        }
+    }
 }

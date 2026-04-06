@@ -159,7 +159,7 @@ class HslRoutingAdapter(
             JSONObject().apply {
                 put("from", JSONObject().put("lat", request.origin.latitude).put("lon", request.origin.longitude))
                 put("to", JSONObject().put("lat", request.destination.latitude).put("lon", request.destination.longitude))
-                put("numItineraries", 2)
+                put("numItineraries", 3)
                 put("transportModes", JSONArray().put(JSONObject().put("mode", "BICYCLE")))
                 put("optimize", "SAFE")
             },

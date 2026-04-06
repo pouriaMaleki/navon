@@ -137,6 +137,16 @@ New functionality should enter through one of these paths:
 - a new map metadata or LOD rule
 - a new render overlay primitive
 
+## Companion App Guardrails
+When editing `companion-ios` or `companion-android`, preserve these rules:
+1. Keep Home as the single primary surface; do not reintroduce tabbed primary navigation.
+2. Keep feature state in feature-scoped view models or state holders, not in one monolithic app object.
+3. Keep views free of provider, import, BLE, and persistence logic.
+4. Keep `RoutePackage` canonical; native UI models may wrap it but must not fork route semantics.
+5. Keep Settings `Routes` lightweight and recent-oriented; do not turn it into a heavy route library.
+6. Keep one universal route detail page for imports, recents, and partner routes unless a source has truly unique capability.
+7. Keep share/import handling on the fast path to Home route preview when parsing is clear, and use Route Detail as the fallback.
+
 ## Anti-Patterns To Reject
 - Adapter-local camera state machines
 - Adapter-local gesture recognition or control hit testing

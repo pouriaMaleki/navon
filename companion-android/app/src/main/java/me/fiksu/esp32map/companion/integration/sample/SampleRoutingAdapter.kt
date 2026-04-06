@@ -44,7 +44,7 @@ class SampleRoutingAdapter(
     }
 
     private fun buildPreview(request: RoutePlanRequest, revision: Int, planningNotice: String): RoutePreviewModel {
-        val alternatives = listOf(0, 1).map { alternativeIndex ->
+        val alternatives = listOf(0, 1, 2).map { alternativeIndex ->
             buildAlternative(request, revision, alternativeIndex)
         }
         return RoutePreviewModel(
