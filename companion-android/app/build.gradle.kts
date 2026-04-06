@@ -21,6 +21,9 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        manifestPlaceholders += mapOf(
+            "googleMapsApiKey" to (System.getenv("GOOGLE_MAPS_API_KEY") ?: ""),
+        )
     }
 
     buildTypes {
@@ -66,6 +69,9 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.google.play.services.maps)
+    implementation(libs.google.maps.compose)
     implementation(libs.google.android.material)
     implementation(libs.kotlinx.coroutines.android)
 

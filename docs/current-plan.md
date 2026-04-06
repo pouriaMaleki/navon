@@ -5,6 +5,7 @@ Runtime architecture reference: [`runtime-ecs-architecture.md`](./runtime-ecs-ar
 Execution guide reference: [`framework-execution-guide.md`](./framework-execution-guide.md)
 Route contract reference: [`route-package-contract.md`](./route-package-contract.md)
 BLE sync contract reference: [`ble-route-sync-contract.md`](./ble-route-sync-contract.md)
+Companion app architecture reference: [`companion-app-architecture.md`](./companion-app-architecture.md)
 
 ## Architecture Vision
 Phone-orchestrated routing with ESP-optimized route following.
@@ -17,6 +18,229 @@ The product is built around a map-first riding UX:
 Performance principle:
 - heavy planning and rerouting stay off-device on companion app infrastructure
 - deterministic low-latency route-follow logic runs in shared Rust on device and emulator
+
+
+## Current implementation checkpoint (April 6, 2026)
+- Durable companion architecture guidance now lives in [`companion-app-architecture.md`](./companion-app-architecture.md).
+- iOS root navigation now uses a map-first Home plus full-screen Settings flow instead of the earlier tab shell.
+- Android root navigation now uses a map-first Home plus full-screen Settings flow instead of the earlier tab shell.
+- Both companion apps now carry lightweight route-history and route-planner-preference models to support the redesign flow.
+- Existing provider adapters, GPX import, BLE sync transport, persistence, and diagnostics seams remain the reused core beneath the new shell.
+
+## Companion Expansion Direction (April 5, 2026)
+The companion app is planned to evolve beyond a device-support utility into a strong standalone navigation product.
+
+Companion product direction:
+- the companion app should become independently useful even when the ESP device is not present
+- the companion app should render the map and route guidance itself, using the same route-follow and direction concepts as the device
+- the companion app should support planning from the rider's current location to a destination selected directly on the device map
+- the companion app should become a share-target on iOS and Android so other apps can hand it locations, GPX files, and future route/location payloads
+- the companion app is expected to receive a substantial future UI and UX redesign, with implementation work planned after the current routing foundations are stable
+
+Architecture implication:
+- this expanded companion scope does not change the shared ownership boundaries: provider/network orchestration stays in the companion, while shared Rust remains the source of truth for follow logic and alert semantics where practical
+
+## Google Maps Handoff UX (April 5, 2026)
+Google Maps integration should be treated as an intent-import and destination-handoff flow, not as the companion app surrendering route ownership to Google.
+
+Product framing:
+- Google Maps is a discovery and handoff source
+- the companion app remains the bike-first navigation product
+- imported Google Maps content should normally become a destination or route intent that the companion app replans through its own provider stack
+
+UX rules:
+- the preferred entry point is the system share sheet from Google Maps into the companion app
+- the companion app should also accept pasted Google Maps links and convert them into destination or route intent
+- if the imported payload is a place or pin, the app should present it as "Imported destination from Google Maps" and immediately offer route planning from current location
+- if the imported payload looks like active Google directions, the app should still frame it as a destination/route intent and communicate that the companion app will compute its own bike-optimized route
+- the app should avoid implying that it is reproducing the exact Google route unless a future compliant integration explicitly supports that
+
+User outcomes:
+- ride on phone using the companion's own guidance UX
+- send the route to the device
+- switch providers after import without losing the imported destination context
+
+Suggested import copy:
+- "Imported from Google Maps" as the source badge
+- "Destination imported" for place/pin handoff
+- "Planning bike route in Companion" when the app is converting the imported Google intent into its own route
+
+## Companion App Redesign Direction (Single-Surface Home)
+The current companion shells proved the architecture and transport seams, but they are not the desired long-term product surface. The next redesign should simplify the app into a single map-first primary surface plus a full-screen settings hub.
+
+Primary app surface:
+- when the app opens, the user should land directly on the map
+- the map is the product, not a step on the way to the product
+- the only persistent primary control is a large touch-friendly `Where to?` input at the top
+- a settings button opens the secondary full-screen settings area
+
+Home surface behavior:
+- tapping the `Where to?` input should show recent routes and destinations by default
+- the initial list should render 10 items and load more when the user scrolls to the end
+- typing into the input should replace recents with live destination suggestions
+- destination suggestions should also render 10 items first, with more loaded as the user scrolls
+- tap-and-hold on the map should drop a destination pin directly without using search
+- after destination selection, whether from search, recents, or tap-and-hold, the app should show three suggested routes in a compact chooser
+- the best route should be preselected by default
+- the user explicitly presses `Start` to begin guidance
+- while guidance is active, the user can press `Stop`, after which the app should immediately offer refreshed route suggestions from the new current location
+
+Route suggestion behavior:
+- destination selection should normally produce three suggested routes
+- the three routes may come from one provider, one from each provider, or a mix that includes a route influenced by rider history and preferences
+- route selection should feel lightweight: compare, accept, start
+- the product should optimize for quick everyday bike use rather than heavy route-library management
+
+Secondary navigation:
+- the app should not use bottom tabs for the main experience
+- instead, a settings button should open a full-screen settings area that contains the structured secondary features
+
+Settings information architecture:
+
+### 1. Connections
+Purpose:
+- manage third-party integrations as their own focused subpages
+
+Contains:
+- one entry per connected ecosystem, such as Strava, Garmin Connect, Komoot, and similar services
+- each provider opens its own page showing connection state and provider-specific capabilities
+- provider pages can expose inbound route access, such as viewing planned routes available from that service
+- selecting a route from a provider page should open the standard route detail page used elsewhere in the app
+
+### 2. Routes
+Purpose:
+- full-screen list/history surface for route and destination items outside the quick Home search flow
+- this is a recovery and re-entry surface, not a heavy route library or route-planner workspace
+
+Contains:
+- recently imported routes and destinations
+- shared Google Maps handoffs, GPX/FIT/TCX imports, and partner-provided routes
+- recent route intents and destination history
+- clear source badges and lightweight actions such as `Open`, `Start`, `Open again`, and `Dismiss`
+
+### 3. Device
+Purpose:
+- all ESP32 device connection, setup, and troubleshooting flows
+
+Contains:
+- pairing and connection state
+- sync status and diagnostics
+- device setup help and troubleshooting
+- future device-specific controls once real hardware flow is finalized
+
+### 4. Route Planner
+Purpose:
+- control the behavior of route generation and suggestion strategy
+
+Contains:
+- provider policy such as HSL, OSM, others, or mixed/all-provider mode
+- route suggestion mode such as best route only versus three-route suggestions
+- whether routing should start immediately by default or require explicit confirmation
+- future heuristics such as history-informed route ranking
+
+Design principles for the redesign:
+- the app should feel like a navigation product first, not a developer tool
+- Home should be the map, not a dashboard that requires another tap to start planning
+- settings pages should organize secondary features without competing with the immediacy of Home
+- route preview, ride-on-phone guidance, and later device handoff should all feel like adjacent actions from the same route state, not separate apps inside one app
+- current Launch / Plan / Preview / Device / Ride / Settings fragmentation should eventually collapse into this simpler single-surface home plus settings-hub model
+
+## Concrete Screen Spec (April 6, 2026)
+
+### Home States
+
+#### State 1: Idle map
+- full map visible
+- top `Where to?` input visible
+- settings button visible
+- no search list open
+- current location visible when available
+
+#### State 2: Search focused with recents
+- tapping `Where to?` focuses input and opens a dropdown panel below it
+- default contents are recent routes and destinations
+- 10 items render initially
+- scrolling near the end loads more items
+- tapping a recent item opens route preview immediately
+
+#### State 3: Search focused with live suggestions
+- as the user types, recents are replaced by live destination suggestions
+- 10 suggestions render initially
+- scrolling near the end loads more suggestions
+- selecting a suggestion closes the keyboard and opens route preview
+
+#### State 4: Long-press destination selection
+- long-pressing on the map drops a destination pin
+- the map recenters if needed to keep origin, route preview, and destination legible
+- the same route preview state is used as with typed search
+
+#### State 5: Route preview
+- map shows the destination and three suggested routes
+- one route is selected by default as the recommended best option
+- the user can switch between the three routes in a lightweight chooser
+- primary action is `Start`
+- secondary action is `Close` or back-to-map, not a heavy planner action
+
+#### State 6: Active guidance
+- map shows the active route and ride guidance
+- primary interrupt action is `Stop`
+- stopping guidance returns the user to refreshed route suggestions from the new current location
+
+### Universal Route Detail Page
+A single route detail page should be reused across:
+- Google Maps handoffs
+- GPX imports
+- partner-provided routes
+- recent route intents and destination history
+
+Contents:
+- route/destination title
+- source badge such as `From Google Maps`, `GPX`, `Garmin`, `Komoot`, `Strava`, or `Recent`
+- map preview snippet or full inline preview depending on platform conventions
+- route summary and provider/source context
+- lightweight actions such as `Open`, `Start`, `Open again`, or `Dismiss`
+
+Rules:
+- the page should keep a consistent structure regardless of source
+- source-specific differences should show up as badges, metadata, and optional secondary rows rather than different page layouts
+- the route detail page is the recovery surface when an import cannot jump directly into Home route preview cleanly
+- the route detail page should not grow into a heavy planner or archival-management screen
+
+### Settings Layout
+Settings should be a full-screen page with simple top-level sections:
+- `Connections`
+- `Routes`
+- `Device`
+- `Route Planner`
+
+Behavior:
+- each section opens its own focused page
+- provider-specific pages under `Connections` should show connection state first, then provider-specific actions
+- `Routes` should be the deeper history/recovery surface, not the default quick-entry surface
+- `Routes` should stay lightweight and recent-oriented rather than turning into a permanent route archive
+- `Device` should contain connection/setup/troubleshooting only, not dominate the main navigation experience
+- `Route Planner` should centralize provider policy and route suggestion behavior preferences
+
+### Share-Sheet Handling Rules
+- if a shared item is clearly understood and can be turned into a route or destination intent immediately, the app should open directly into Home route preview
+- if a shared item needs user choice, parsing recovery, or provider clarification, the app should open the universal route detail page instead
+- every share/import should also become discoverable again through Settings `Routes`, so users are not forced to repeat a share if they leave the app
+- Google Maps place/pin shares should usually resolve to direct Home route preview
+- ambiguous route-like links or partially parsed files should resolve to the route detail page
+
+
+## Partner Route Integration Direction (April 6, 2026)
+For now, the companion app should focus on inbound partner integrations rather than activity recording or outbound fitness sync.
+
+Product direction:
+- the app should ingest route and destination intents from Garmin Connect, Strava, Komoot, and similar services when those integrations are added
+- imported partner routes should flow into the same route-intent pipeline as Google Maps shares and GPX imports
+- recording rides and exporting completed activities are intentionally deferred from the near-term companion scope
+
+UX implication:
+- partner-originated routes should appear in `Routes` with the same clear source-badge model as other incoming items
+- the app should optimize for quick `Open` and `Start` flows, not account-heavy training or activity-management UX
+- future outbound sync or ride-history features can be layered on later without changing the lightweight route-intake model
 
 ## System Architecture
 

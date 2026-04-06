@@ -16,6 +16,9 @@ import me.fiksu.esp32map.companion.domain.CoordinatePoint
 import me.fiksu.esp32map.companion.domain.RoutePlanRequest
 import me.fiksu.esp32map.companion.domain.RoutePreviewModel
 import me.fiksu.esp32map.companion.domain.RouteProviderId
+import me.fiksu.esp32map.companion.domain.RoutePlannerPreferences
+import me.fiksu.esp32map.companion.domain.RouteHistorySource
+import me.fiksu.esp32map.companion.domain.RouteHistoryItem
 import me.fiksu.esp32map.companion.domain.RouteRerouteRequestMessage
 import me.fiksu.esp32map.companion.domain.RoutingProvider
 import me.fiksu.esp32map.companion.domain.SyncSessionState
@@ -29,6 +32,7 @@ import me.fiksu.esp32map.companion.integration.sample.SampleRoutingAdapter
 class CompanionAppState(application: Application) : AndroidViewModel(application) {
     var selectedProviderId by mutableStateOf(RouteProviderId.HSL)
     var settings by mutableStateOf(CompanionSettings())
+    var routePlannerPreferences by mutableStateOf(RoutePlannerPreferences())
     var simulatedRiderLocation by mutableStateOf(CoordinatePoint(60.1699, 24.9384))
     var routeRequest by mutableStateOf(
         RoutePlanRequest(
@@ -59,8 +63,12 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
     val selectedProviderCanPlan: Boolean
         get() = selectedProviderId != RouteProviderId.GPX_IMPORT && providers[selectedProviderId] != null
 
+    val routeHistoryItems: List<RouteHistoryItem>
+        get() = persistence.loadRecentRouteHistory()
+
     init {
         settings = persistence.loadSettings()
+        routePlannerPreferences = persistence.loadRoutePlannerPreferences()
         viewModelScope.launch {
             bleService.state.collectLatest {
                 syncSession = it
@@ -91,6 +99,7 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
                     simulatedRiderLocation = selected.geometry.firstOrNull() ?: simulatedRiderLocation
                 }
                 applySelectedAlternativeToSession(RouteProviderId.GPX_IMPORT, routeRequest.destination)
+                recordPlannedPreview(RouteHistorySource.GPX_IMPORT, "GPX")
                 refreshDiagnostics()
             } catch (error: Exception) {
                 preview = RoutePreviewModel(
@@ -111,7 +120,8 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
             preview = provider.planRoute(routeRequest)
             applySelectedAlternativeToSession(provider.providerId, routeRequest.destination)
             simulatedRiderLocation = routeRequest.origin
-            persistence.saveRecentDestination(routeRequest.destination)
+            recordRecentDestination("Selected destination", routeRequest.destination)
+            recordPlannedPreview(RouteHistorySource.PLANNED_ROUTE, selectedProviderId.displayName)
             refreshDiagnostics()
         }
     }
@@ -220,6 +230,47 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
             session = activeSession.takeIf { it.routeIdentifier != null },
             syncState = syncSession,
         )
+    }
+
+    fun saveRoutePlannerPreferences(preferences: RoutePlannerPreferences) {
+        routePlannerPreferences = preferences
+        persistence.saveRoutePlannerPreferences(preferences)
+    }
+
+    fun dismissRouteHistoryItem(id: String) {
+        persistence.dismissRouteHistoryItem(id)
+    }
+
+    private fun recordPlannedPreview(source: RouteHistorySource, sourceLabel: String) {
+        val selected = preview.selectedAlternative?.normalizedPackage ?: return
+        persistence.saveRouteHistoryItem(
+            RouteHistoryItem(
+                id = selected.routeIdentifier,
+                title = selected.summary.destinationLabel ?: "Route",
+                subtitle = selected.summaryLine,
+                source = source,
+                sourceLabel = sourceLabel,
+                createdAtLabel = "Just now",
+                destination = selected.geometry.lastOrNull(),
+                routePackage = selected,
+            ),
+        )
+    }
+
+    private fun recordRecentDestination(title: String, coordinate: CoordinatePoint) {
+        persistence.saveRouteHistoryItem(
+            RouteHistoryItem(
+                id = "recent-${coordinate.latitude}-${coordinate.longitude}-$title",
+                title = title,
+                subtitle = "Recent destination",
+                source = RouteHistorySource.RECENT_DESTINATION,
+                sourceLabel = "Recent",
+                createdAtLabel = "Just now",
+                destination = coordinate,
+                routePackage = null,
+            ),
+        )
+        persistence.saveRecentDestination(coordinate)
     }
 
     private fun applySelectedAlternativeToSession(providerId: RouteProviderId, destination: CoordinatePoint) {

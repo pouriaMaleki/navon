@@ -38,6 +38,24 @@ Depends on:
 - [x] Implement HSL normalization pipeline from provider payload shape to `RoutePackage`.
 - [x] Implement provider picker UX with source provenance visibility.
 - [ ] Implement reroute orchestration and replacement route publishing.
+- [~] Redesign companion information architecture into the planned single-surface Home plus full-screen Settings model.
+  Current status: root navigation shells were replaced in both native apps, and the remaining work is feature-depth completion plus cleanup of the underlying state architecture.
+- [ ] Implement share-sheet ingestion UX for Google Maps links, shared locations, GPX, and future routing payloads.
+- [ ] Add Google Maps handoff UX that imports destination/route intent and replans it through the companion's own provider stack.
+- [~] Add Home-tab long-press destination selection on the map and route-suggestion flow parity with typed search.
+  Current status: both native shells now support long-press destination selection and the shared three-route preview flow, while deeper share-import parity still remains.
+- [~] Implement Home search UX with recents by default, live suggestions while typing, and paged loading in both states.
+  Current status: both native shells now show recents by default, swap to native search suggestions while typing, and page the visible lists locally, but import fast-path and native toolchain verification still remain.
+- [~] Design full-screen Settings information architecture with `Connections`, `Routes`, `Device`, and `Route Planner` sections.
+  Current status: the full-screen settings hub now exists in both native shells, with the remaining work focused on feature-depth completion and native-toolchain validation.
+- [x] Specify Home screen states: idle map, recents, live suggestions, long-press destination, route preview, and active guidance.
+- [~] Specify one universal route detail page reused across imports, partner routes, and recents.
+  Current status: both native shells now use a universal route-detail surface for route-history items, with partner-specific depth still to be added later.
+- [x] Define share-sheet handling rules for fast-path-to-Home versus fallback-to-route-detail behavior.
+- [~] Build the Settings `Routes` page as a lightweight recovery and re-entry surface for imported routes, destination history, and route-intent recovery, not as a heavy route library.
+  Current status: both native shells now expose a lightweight `Routes` surface with GPX import and recent route-history recovery, while richer partner and share-import sources still remain.
+- [ ] Add inbound partner route integrations for Garmin Connect, Strava, Komoot, and similar services.
+- [ ] Keep outbound ride recording/export out of the near-term companion redesign scope.
 
 Current checkpoint:
 - Native app shells exist in `companion-ios` and `companion-android`.
@@ -46,9 +64,18 @@ Current checkpoint:
 - Native ride/device screens now let the user drive reroute publishing from an explicit rider location, so replacement-route generation no longer depends on a hidden origin-only demo path.
 - Native BLE seams now have real CoreBluetooth and Android BLE/GATT clients wired into the same chunked transfer/session model that was originally simulated, while preserving the simulated fallback path when no BLE connection is active.
 - Native GPX import now works through the iOS and Android document pickers, feeding imported routes into the same preview and sync flow used by planned routes.
+- The native redesign shell is now in place: map-first Home on both platforms, long-press destination selection, three-route suggestion preview, universal route-detail surface, and a full-screen Settings hub with `Connections`, `Routes`, `Device`, and `Route Planner` sections.
 - Native device screens now expose live BLE fault-injection controls for retryable interruption, write failure, disconnect-after-chunk, and dropped inbound status so packet-loss and ack-loss recovery can be exercised against the same chunked session model used by real CoreBluetooth and Android BLE clients.
 - All remaining provider slots now have sample-backed companion adapters that produce normalized route packages through the shared preview/send path, while only HSL is live-provider-ready today.
-- Next implementation step is end-to-end device validation against the ESP GATT server on BLE-capable hardware, followed by the ESP32-P4 external-radio path, optional Wi-Fi transport, and live provider integrations beyond HSL.
+- Hardware validation is deferred until a BLE-capable device is available. Near-term implementation should focus on optional Wi-Fi transport, live provider integrations beyond HSL, and companion-product expansion work.
+- Once hardware is available, the next hardware milestone remains end-to-end device validation against the ESP GATT server on BLE-capable hardware, followed by the ESP32-P4 external-radio path.
+- Planned companion expansion notes: standalone map/routing usability, route planning from current location to a destination selected on the device map, share-sheet ingestion for locations/GPX/related payloads, and a substantial future UI/UX redesign.
+- Planned companion redesign target is a single map-first Home surface plus a full-screen Settings hub, not a tabbed app shell.
+- Architecture doc `companion-app-architecture.md` now captures the redesign boundaries and guardrails.
+- Planned Home route flow: destination search in a top map overlay, recents shown by default, live dropdown results while typing, tap-and-hold on the map to drop a destination pin, three suggested routes after destination selection, best route preselected by default, explicit `Start` to begin guidance, and explicit `Stop` to end guidance and re-suggest routes from the rider's new current location.
+- Planned Settings `Routes` page role: imported routes, destination history, and recent route intents should live together as a clean action-oriented list with source badges and obvious next actions, while the route detail page acts as the universal fallback/re-entry surface.
+- Planned partner direction: focus on inbound route and destination integrations from Garmin Connect, Strava, Komoot, and similar services, exposed through their own settings subpages, while leaving ride recording/export for later.
+- Google Maps integration should be implemented as an intent-import and destination-handoff flow through share sheet and link parsing, not as the app pretending to mirror Google's exact route semantics; clear imports should jump to Home route preview, while ambiguous imports should open the universal route detail page.
 
 ### Definition of Done
 - [ ] Destination-to-`RoutePackage` generation works for each launch provider path.
@@ -67,7 +94,8 @@ Current checkpoint:
 - The BLE wire contract is now fixed in code and docs across firmware plus both native companion apps, including service/characteristic UUIDs, packet envelopes for `chunk` and `sync_message` traffic, and actual GATT adapter implementations on all three sides where the target silicon exposes standard BLE APIs. The ESP32-P4 production board still needs its external-radio path wired separately.
 - Deterministic firmware fault-injection coverage now exists for interrupted transfer resume, out-of-order chunks, checksum mismatch handling, and malformed payload handling.
 - Native companion apps now expose matching live adapter fault-injection controls and acknowledgement-timeout recovery so the phone-side transport loop can be validated against the same failure classes.
-- Next implementation step is field validation against real ESP hardware, then the ESP32-P4 external-radio path and optional Wi-Fi transport.
+- Hardware validation is deferred until a BLE-capable device is available. Until then, transport work should focus on the optional Wi-Fi path while companion-side product work continues.
+- Once hardware is available, the next hardware milestone remains field validation against real ESP hardware, followed by the ESP32-P4 external-radio path.
 
 ### Work Items
 - [x] Define message protocol for `set`, `update`, `clear`, `status`, and `reroute_request`.
