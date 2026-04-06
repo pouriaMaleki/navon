@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RouteDetailView: View {
     @EnvironmentObject private var appModel: AppModel
+    @Environment(\.dismiss) private var dismiss
     let item: RouteHistoryItem
     let onOpen: () -> Void
     let onStart: () -> Void
@@ -28,16 +29,22 @@ struct RouteDetailView: View {
             }
 
             Section("Actions") {
-                Button("Open", action: onOpen)
-                Button("Start", action: onStart)
-                Button("Open again", action: onOpen)
+                Button("Open") {
+                    onOpen()
+                }
+                Button("Start") {
+                    onStart()
+                }
                 Button("Dismiss", role: .destructive) {
-                    appModel.dismissRouteHistoryItem(id: item.id)
                     onDismiss()
+                    dismiss()
                 }
             }
         }
         .navigationTitle("Route")
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: appModel.homePreviewRequestID) { _, _ in
+            dismiss()
+        }
     }
 }

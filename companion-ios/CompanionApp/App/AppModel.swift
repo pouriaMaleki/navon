@@ -22,6 +22,8 @@ final class AppModel: ObservableObject {
         lastRerouteReason: nil,
         lastRerouteTimestamp: nil
     )
+    @Published var homePreviewRequestID = UUID()
+    @Published var homeStartRequestID = UUID()
 
     let diagnosticsStore = CompanionDiagnosticsStore()
     let persistence = CompanionPersistence()
@@ -40,6 +42,7 @@ final class AppModel: ObservableObject {
 
     init() {
         settings = persistence.loadSettings()
+        activeSession = persistence.loadLastSession() ?? activeSession
     }
 
     var providerOptions: [RouteProviderID] {

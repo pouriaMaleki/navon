@@ -55,6 +55,18 @@ final class HomeViewModel: ObservableObject {
         activeRoute?.geometry.last ?? previewRoute?.geometry.last
     }
 
+    var originCoordinate: CoordinatePoint? {
+        activeRoute?.geometry.first ?? previewRoute?.geometry.first
+    }
+
+    var displayedRouteCoordinates: [CoordinatePoint] {
+        activeRoute?.geometry ?? previewRoute?.geometry ?? []
+    }
+
+    var shouldShowSearchPanel: Bool {
+        isSearchOpen && (!query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !recentItems.isEmpty)
+    }
+
     func openSearch() {
         isSearchOpen = true
         visibleRecentCount = 10
@@ -162,6 +174,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     func startSelectedRoute() {
+        closeSearch()
         activeRouteIdentifier = selectedPreview?.normalizedPackage.routeIdentifier
     }
 
@@ -174,5 +187,13 @@ final class HomeViewModel: ObservableObject {
             await appModel.planRoute()
             appModel.recordPlannedPreview(source: .plannedRoute, sourceLabel: plannerPreferences.providerID.displayName)
         }
+    }
+
+    func clearPreview() {
+        activeRouteIdentifier = nil
+        query = ""
+        suggestions = []
+        closeSearch()
+        appModel.clearPreviewSelection()
     }
 }

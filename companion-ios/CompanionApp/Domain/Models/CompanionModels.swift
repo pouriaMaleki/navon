@@ -191,7 +191,7 @@ struct RoutePlanRequest: Equatable {
     var providerID: RouteProviderID
 }
 
-struct CompanionSettings: Equatable {
+struct CompanionSettings: Equatable, Codable {
     var preferLiveHslRouting: Bool
     var hslSubscriptionKey: String
     var hslEndpointURL: String
@@ -224,7 +224,7 @@ struct RoutePreviewModel: Equatable {
     }
 }
 
-struct ActiveRouteSession: Equatable {
+struct ActiveRouteSession: Equatable, Codable {
     var routeIdentifier: String?
     var routeRevision: Int?
     var destinationLabel: String

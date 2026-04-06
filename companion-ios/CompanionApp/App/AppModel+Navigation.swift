@@ -45,4 +45,44 @@ extension AppModel {
     func dismissRouteHistoryItem(id: String) {
         persistence.dismissRouteHistoryItem(id: id)
     }
+
+    func activateRouteHistoryItem(_ item: RouteHistoryItem, startImmediately: Bool = false) {
+        if let package = item.routePackage {
+            let alternative = RouteAlternative(
+                id: UUID(),
+                title: item.title,
+                subtitle: item.subtitle,
+                distanceMeters: Int(package.summary.totalDistanceMeters.rounded()),
+                durationSeconds: package.summary.estimatedDurationSeconds,
+                normalizedPackage: package
+            )
+            preview = RoutePreviewModel(
+                alternatives: [alternative],
+                selectedAlternativeID: alternative.id,
+                routeIdentifier: package.routeIdentifier,
+                routeRevision: package.revision,
+                planningNotice: item.sourceLabel
+            )
+            routeRequest = RoutePlanRequest(
+                origin: simulatedRiderLocation,
+                destination: item.destination ?? package.geometry.last ?? routeRequest.destination,
+                providerID: routePlannerPreferences.providerID
+            )
+        } else if let destination = item.destination {
+            selectedProviderID = routePlannerPreferences.providerID
+            routeRequest = RoutePlanRequest(origin: simulatedRiderLocation, destination: destination, providerID: routePlannerPreferences.providerID)
+            Task {
+                await planRoute()
+            }
+        }
+        homePreviewRequestID = UUID()
+        if startImmediately {
+            homeStartRequestID = UUID()
+        }
+    }
+
+    func clearPreviewSelection() {
+        preview = RoutePreviewModel(alternatives: [], selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil)
+        homePreviewRequestID = UUID()
+    }
 }

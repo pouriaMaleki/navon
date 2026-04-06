@@ -4,6 +4,8 @@ import MapKit
 struct CompanionHomeView: View {
     @EnvironmentObject private var appModel: AppModel
     @ObservedObject var viewModel: HomeViewModel
+    let onOpenSettings: () -> Void
+
     @State private var cameraPosition: MapCameraPosition = .region(
         MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: 60.1699, longitude: 24.9384),
@@ -18,8 +20,9 @@ struct CompanionHomeView: View {
                 overlayChrome
             }
             .ignoresSafeArea(edges: .bottom)
-            .navigationTitle("Companion")
-            .navigationBarTitleDisplayMode(.inline)
+            .onAppear { fitDisplayedRouteIfNeeded() }
+            .onChange(of: appModel.preview.selectedAlternativeID) { _, _ in fitDisplayedRouteIfNeeded() }
+            .onChange(of: viewModel.activeRouteIdentifier) { _, _ in fitDisplayedRouteIfNeeded() }
         }
     }
 
@@ -28,8 +31,14 @@ struct CompanionHomeView: View {
         Map(position: $cameraPosition) {
             UserAnnotation()
 
+            if let start = viewModel.originCoordinate {
+                Marker("Start", coordinate: CLLocationCoordinate2D(latitude: start.latitude, longitude: start.longitude))
+                    .tint(.green)
+            }
+
             if let destination = viewModel.destinationCoordinate {
                 Marker("Destination", coordinate: CLLocationCoordinate2D(latitude: destination.latitude, longitude: destination.longitude))
+                    .tint(.red)
             }
 
             ForEach(viewModel.previewAlternatives, id: \.id) { alternative in
@@ -47,32 +56,27 @@ struct CompanionHomeView: View {
             MapCompass()
             MapUserLocationButton()
         }
-        .overlay {
-            Color.clear
-                .contentShape(Rectangle())
-                .gesture(
-                    LongPressGesture(minimumDuration: 0.6)
-                        .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .local))
-                        .onEnded { value in
-                            switch value {
-                            case .second(true, let drag?):
-                                if let coordinate = proxy.convert(drag.location, from: .local) {
-                                    viewModel.setDestinationFromMap(CoordinatePoint(latitude: coordinate.latitude, longitude: coordinate.longitude))
-                                    centerCamera(on: coordinate)
-                                }
-                            default:
-                                break
-                            }
+        .simultaneousGesture(
+            LongPressGesture(minimumDuration: 0.6)
+                .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .local))
+                .onEnded { value in
+                    switch value {
+                    case .second(true, let drag?):
+                        if let coordinate = proxy.convert(drag.location, from: .local) {
+                            viewModel.setDestinationFromMap(CoordinatePoint(latitude: coordinate.latitude, longitude: coordinate.longitude))
                         }
-                )
-        }
+                    default:
+                        break
+                    }
+                }
+        )
     }
 
     private var overlayChrome: some View {
         VStack(spacing: 12) {
-            VStack(spacing: 0) {
-                searchField
-                if viewModel.isSearchOpen {
+            VStack(spacing: 8) {
+                topBar
+                if viewModel.shouldShowSearchPanel {
                     searchPanel
                 }
             }
@@ -87,36 +91,47 @@ struct CompanionHomeView: View {
                 routeSuggestionsCard
             }
         }
+        .allowsHitTesting(false)
     }
 
-    private var searchField: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-            TextField("Where to?", text: Binding(
-                get: { viewModel.query },
-                set: { newValue in
-                    viewModel.openSearch()
-                    viewModel.updateQuery(newValue)
-                }
-            ))
-            .textInputAutocapitalization(.words)
-            .autocorrectionDisabled()
-            .onTapGesture {
-                viewModel.openSearch()
-            }
+    private var topBar: some View {
+        HStack(spacing: 10) {
+            HStack(spacing: 12) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                TextField("Where to?", text: Binding(
+                    get: { viewModel.query },
+                    set: { newValue in
+                        viewModel.openSearch()
+                        viewModel.updateQuery(newValue)
+                    }
+                ))
+                .textInputAutocapitalization(.words)
+                .autocorrectionDisabled()
+                .onTapGesture { viewModel.openSearch() }
 
-            if !viewModel.query.isEmpty {
-                Button {
-                    viewModel.updateQuery("")
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary)
+                if !viewModel.query.isEmpty || !viewModel.previewAlternatives.isEmpty || viewModel.activeRoute != nil {
+                    Button {
+                        viewModel.clearPreview()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                    .accessibilityLabel("Clear destination")
                 }
             }
+            .padding(14)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+
+            Button(action: onOpenSettings) {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .frame(width: 50, height: 50)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            }
+            .accessibilityLabel("Settings")
         }
-        .padding(14)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .allowsHitTesting(true)
     }
 
     private var searchPanel: some View {
@@ -136,7 +151,6 @@ struct CompanionHomeView: View {
                 } else {
                     ForEach(viewModel.visibleSuggestions) { suggestion in
                         Button {
-                            centerCamera(on: CLLocationCoordinate2D(latitude: suggestion.coordinate.latitude, longitude: suggestion.coordinate.longitude))
                             viewModel.selectSuggestion(suggestion)
                         } label: {
                             suggestionRow(suggestion)
@@ -150,6 +164,7 @@ struct CompanionHomeView: View {
         }
         .frame(maxHeight: 320)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .allowsHitTesting(true)
     }
 
     private func suggestionRow(_ suggestion: DestinationSearchResult) -> some View {
@@ -195,8 +210,13 @@ struct CompanionHomeView: View {
 
     private var routeSuggestionsCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Suggested routes")
-                .font(.headline)
+            HStack {
+                Text("Suggested routes")
+                    .font(.headline)
+                Spacer()
+                Button("Close", action: viewModel.clearPreview)
+                    .font(.subheadline.weight(.semibold))
+            }
             ForEach(viewModel.previewAlternatives, id: \.id) { alternative in
                 Button {
                     viewModel.selectAlternative(alternative.id)
@@ -230,6 +250,7 @@ struct CompanionHomeView: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .padding(.horizontal, 16)
         .padding(.bottom, 16)
+        .allowsHitTesting(true)
     }
 
     private func activeGuidanceCard(_ active: NormalizedRoutePackage) -> some View {
@@ -249,9 +270,32 @@ struct CompanionHomeView: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .padding(.horizontal, 16)
         .padding(.bottom, 16)
+        .allowsHitTesting(true)
     }
 
-    private func centerCamera(on coordinate: CLLocationCoordinate2D) {
-        cameraPosition = .region(MKCoordinateRegion(center: coordinate, span: MKCoordinateSpan(latitudeDelta: 0.025, longitudeDelta: 0.025)))
+    private func fitDisplayedRouteIfNeeded() {
+        let coordinates = viewModel.displayedRouteCoordinates
+        guard !coordinates.isEmpty else { return }
+        fitCamera(to: coordinates)
+    }
+
+    private func fitCamera(to coordinates: [CoordinatePoint]) {
+        guard let first = coordinates.first else { return }
+        var minLat = first.latitude
+        var maxLat = first.latitude
+        var minLon = first.longitude
+        var maxLon = first.longitude
+
+        for point in coordinates.dropFirst() {
+            minLat = min(minLat, point.latitude)
+            maxLat = max(maxLat, point.latitude)
+            minLon = min(minLon, point.longitude)
+            maxLon = max(maxLon, point.longitude)
+        }
+
+        let latDelta = max((maxLat - minLat) * 1.5, 0.01)
+        let lonDelta = max((maxLon - minLon) * 1.5, 0.01)
+        let center = CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2.0, longitude: (minLon + maxLon) / 2.0)
+        cameraPosition = .region(MKCoordinateRegion(center: center, span: MKCoordinateSpan(latitudeDelta: latDelta, longitudeDelta: lonDelta)))
     }
 }
