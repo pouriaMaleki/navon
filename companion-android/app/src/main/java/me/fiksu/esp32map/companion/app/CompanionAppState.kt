@@ -13,13 +13,16 @@ import kotlinx.coroutines.launch
 import me.fiksu.esp32map.companion.domain.ActiveRouteSession
 import me.fiksu.esp32map.companion.domain.CompanionSettings
 import me.fiksu.esp32map.companion.domain.CoordinatePoint
-import me.fiksu.esp32map.companion.domain.RoutePlanRequest
-import me.fiksu.esp32map.companion.domain.RoutePreviewModel
-import me.fiksu.esp32map.companion.domain.RouteProviderId
-import me.fiksu.esp32map.companion.domain.RoutePlannerPreferences
-import me.fiksu.esp32map.companion.domain.RouteHistorySource
+import me.fiksu.esp32map.companion.domain.RouteAlternative
 import me.fiksu.esp32map.companion.domain.RouteHistoryItem
+import me.fiksu.esp32map.companion.domain.RouteHistorySource
+import me.fiksu.esp32map.companion.domain.RoutePlanRequest
+import me.fiksu.esp32map.companion.domain.RoutePlannerPreferences
+import me.fiksu.esp32map.companion.domain.RouteProviderId
 import me.fiksu.esp32map.companion.domain.RouteRerouteRequestMessage
+import me.fiksu.esp32map.companion.domain.RoutePreviewModel
+import me.fiksu.esp32map.companion.domain.RouteSourceMode
+import me.fiksu.esp32map.companion.domain.RouteSuggestionKind
 import me.fiksu.esp32map.companion.domain.RoutingProvider
 import me.fiksu.esp32map.companion.domain.SyncSessionState
 import me.fiksu.esp32map.companion.integration.ble.BleRouteSyncService
@@ -31,6 +34,7 @@ import me.fiksu.esp32map.companion.integration.sample.SampleRoutingAdapter
 
 class CompanionAppState(application: Application) : AndroidViewModel(application) {
     var selectedProviderId by mutableStateOf(RouteProviderId.HSL)
+    var currentSourceMode by mutableStateOf(RouteSourceMode.MIXED)
     var settings by mutableStateOf(CompanionSettings())
     var routePlannerPreferences by mutableStateOf(RoutePlannerPreferences())
     var simulatedRiderLocation by mutableStateOf(CoordinatePoint(60.1699, 24.9384))
@@ -46,8 +50,10 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
     var syncSession by mutableStateOf(SyncSessionState())
 
     val diagnosticsStore = CompanionDiagnosticsStore()
-    val persistence = CompanionPersistence()
+    val persistence = CompanionPersistence(application.applicationContext)
     val bleService = BleRouteSyncService(application.applicationContext)
+
+    private var lastHandledRerouteSignature: String? = null
 
     private val providers: Map<RouteProviderId, RoutingProvider> = mapOf(
         RouteProviderId.HSL to HslRoutingAdapter(settingsProvider = { settings }),
@@ -60,19 +66,34 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
         RouteProviderId.GARMIN_FILE to SampleRoutingAdapter(RouteProviderId.GARMIN_FILE),
     )
 
-    val selectedProviderCanPlan: Boolean
-        get() = selectedProviderId != RouteProviderId.GPX_IMPORT && providers[selectedProviderId] != null
+    val sourceModeOptions: List<RouteSourceMode>
+        get() = RouteSourceMode.entries
 
     val routeHistoryItems: List<RouteHistoryItem>
         get() = persistence.loadRecentRouteHistory()
 
+    val isDeviceConnected: Boolean
+        get() = syncSession.connectionState == me.fiksu.esp32map.companion.domain.DeviceConnectionState.CONNECTED
+
     init {
         settings = persistence.loadSettings()
         routePlannerPreferences = persistence.loadRoutePlannerPreferences()
+        currentSourceMode = routePlannerPreferences.defaultSourceMode
+        persistence.loadLastSession()?.let { activeSession = it }
+        selectedProviderId = activeSession.providerId
         viewModelScope.launch {
             bleService.state.collectLatest {
                 syncSession = it
                 refreshDiagnostics()
+                val inbound = it.lastInboundMessage
+                if (inbound is me.fiksu.esp32map.companion.domain.RouteSyncMessage.RerouteRequest) {
+                    val message = inbound.message
+                    val signature = "${message.routeIdentifier}-${message.riderLocation.latitude}-${message.riderLocation.longitude}-${message.reason}"
+                    if (signature != lastHandledRerouteSignature) {
+                        lastHandledRerouteSignature = signature
+                        rerouteActiveSession(message.riderLocation, message.reason)
+                    }
+                }
             }
         }
     }
@@ -90,6 +111,7 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
                 val adapter = providers[RouteProviderId.GPX_IMPORT] as? GpxRoutingAdapter ?: return@launch
                 preview = adapter.importBytes(fileName = fileName, data = bytes)
                 selectedProviderId = RouteProviderId.GPX_IMPORT
+                currentSourceMode = RouteSourceMode.HSL
                 preview.selectedAlternative?.normalizedPackage?.let { selected ->
                     routeRequest = RoutePlanRequest(
                         origin = selected.geometry.firstOrNull() ?: routeRequest.origin,
@@ -98,8 +120,7 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
                     )
                     simulatedRiderLocation = selected.geometry.firstOrNull() ?: simulatedRiderLocation
                 }
-                applySelectedAlternativeToSession(RouteProviderId.GPX_IMPORT, routeRequest.destination)
-                recordPlannedPreview(RouteHistorySource.GPX_IMPORT, "GPX")
+                applySelectedAlternativeToSession(RouteSourceMode.HSL, routeRequest.destination, fileName.substringBeforeLast('.'))
                 refreshDiagnostics()
             } catch (error: Exception) {
                 preview = RoutePreviewModel(
@@ -113,36 +134,81 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun planRoute() {
-        val provider = providers[selectedProviderId] ?: return
-        routeRequest = routeRequest.copy(providerId = selectedProviderId)
+    fun planRoute(sourceMode: RouteSourceMode = currentSourceMode, preferredTitle: String? = null, revisionOverride: Int? = null, onComplete: () -> Unit = {}) {
+        currentSourceMode = sourceMode
+        routeRequest = routeRequest.copy(providerId = sourceMode.primaryProviderId)
         viewModelScope.launch {
-            preview = provider.planRoute(routeRequest)
-            applySelectedAlternativeToSession(provider.providerId, routeRequest.destination)
-            simulatedRiderLocation = routeRequest.origin
-            recordRecentDestination("Selected destination", routeRequest.destination)
-            recordPlannedPreview(RouteHistorySource.PLANNED_ROUTE, selectedProviderId.displayName)
-            refreshDiagnostics()
+            runCatching {
+                val nextPreview = buildPreview(routeRequest, sourceMode, revisionOverride)
+                preview = nextPreview
+                simulatedRiderLocation = routeRequest.origin
+                persistence.saveRecentDestination(routeRequest.destination)
+                applySelectedAlternativeToSession(sourceMode, routeRequest.destination, preferredTitle)
+                refreshDiagnostics()
+            }.onFailure { error ->
+                preview = RoutePreviewModel(
+                    alternatives = emptyList(),
+                    selectedAlternativeId = null,
+                    routeIdentifier = null,
+                    routeRevision = null,
+                    planningNotice = "Planning failed: ${error.message ?: error::class.simpleName}",
+                )
+                refreshDiagnostics()
+            }
+            onComplete()
         }
     }
 
-    fun sendSelectedRoute() {
-        val provider = providers[selectedProviderId] ?: return
+    fun sendSelectedRoute(onComplete: (Boolean) -> Unit = {}) {
+        val selected = preview.selectedAlternative ?: run {
+            onComplete(false)
+            return
+        }
+        val provider = providers[selected.normalizedPackage.provenance.providerId] ?: run {
+            onComplete(false)
+            return
+        }
         viewModelScope.launch {
-            val normalized = provider.normalizePreview(preview, routeRequest)
-            val shouldUpdate = syncSession.activeRouteIdentifier == normalized.routeIdentifier && syncSession.activeRouteRevision != null
-            if (shouldUpdate) {
-                bleService.publishUpdate(normalized)
-            } else {
-                bleService.publishSet(normalized)
+            runCatching {
+                val normalized = provider.normalizePreview(preview, routeRequest)
+                val shouldUpdate = syncSession.activeRouteIdentifier == normalized.routeIdentifier && syncSession.activeRouteRevision != null
+                if (shouldUpdate) {
+                    bleService.publishUpdate(normalized)
+                } else {
+                    bleService.publishSet(normalized)
+                }
+                activeSession = activeSession.copy(
+                    routeIdentifier = normalized.routeIdentifier,
+                    routeRevision = normalized.revision,
+                    destinationLabel = normalized.summary.destinationLabel ?: activeSession.destinationLabel,
+                    destinationCoordinate = normalized.geometry.lastOrNull() ?: activeSession.destinationCoordinate,
+                    providerId = normalized.provenance.providerId,
+                    sourceMode = currentSourceMode,
+                )
+                persistence.saveSession(activeSession)
+                refreshDiagnostics()
+            }.onSuccess {
+                onComplete(true)
+            }.onFailure {
+                refreshDiagnostics()
+                onComplete(false)
             }
-            activeSession = activeSession.copy(
-                routeIdentifier = normalized.routeIdentifier,
-                routeRevision = normalized.revision,
-                destinationLabel = normalized.summary.destinationLabel ?: activeSession.destinationLabel,
-            )
-            persistence.saveSession(activeSession)
-            refreshDiagnostics()
+        }
+    }
+
+    fun clearActiveRoute(onComplete: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            runCatching {
+                bleService.publishClear(activeSession.routeIdentifier)
+                activeSession = activeSession.copy(routeIdentifier = null, routeRevision = null)
+                persistence.saveSession(activeSession)
+                refreshDiagnostics()
+            }.onSuccess {
+                onComplete(true)
+            }.onFailure {
+                refreshDiagnostics()
+                onComplete(false)
+            }
         }
     }
 
@@ -152,17 +218,15 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
             routeIdentifier = preview.alternatives.firstOrNull { it.id == alternativeId }?.normalizedPackage?.routeIdentifier,
             routeRevision = preview.alternatives.firstOrNull { it.id == alternativeId }?.normalizedPackage?.revision,
         )
-        applySelectedAlternativeToSession(selectedProviderId, routeRequest.destination)
+        preview.selectedAlternative?.normalizedPackage?.provenance?.providerId?.let { selectedProviderId = it }
+        applySelectedAlternativeToSession(currentSourceMode, routeRequest.destination, null)
         refreshDiagnostics()
     }
 
-    fun clearActiveRoute() {
+    fun connectToDevice() {
         viewModelScope.launch {
-            bleService.publishClear(activeSession.routeIdentifier)
-            activeSession = activeSession.copy(
-                routeIdentifier = null,
-                routeRevision = null,
-            )
+            bleService.scanForDevices()
+            bleService.connectToLastKnownDevice()
             refreshDiagnostics()
         }
     }
@@ -194,54 +258,13 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
         refreshDiagnostics()
     }
 
-    fun connectToDevice() {
-        viewModelScope.launch {
-            bleService.scanForDevices()
-            bleService.connectToLastKnownDevice()
-            refreshDiagnostics()
-        }
-    }
-
-    fun triggerReroute() {
-        val provider = providers[selectedProviderId] ?: return
-        viewModelScope.launch {
-            val routeIdentifier = activeSession.routeIdentifier ?: "preview-route"
-            val riderLocation = simulatedRiderLocation
-            bleService.receiveRerouteRequest(
-                RouteRerouteRequestMessage(
-                    routeIdentifier = routeIdentifier,
-                    riderLocation = riderLocation,
-                    reason = "User drifted off route",
-                ),
-            )
-            preview = provider.replanRoute(activeSession, riderLocation)
-            applySelectedAlternativeToSession(provider.providerId, activeSession.destinationCoordinate ?: routeRequest.destination)
-            activeSession = activeSession.copy(
-                routeRevision = preview.selectedAlternative?.normalizedPackage?.revision ?: ((activeSession.routeRevision ?: 0) + 1),
-                lastRerouteReason = "Device requested reroute",
-                lastRerouteTimestamp = "Just now",
-            )
-            sendSelectedRoute()
-        }
-    }
-
-    fun refreshDiagnostics() {
-        diagnosticsStore.update(
-            session = activeSession.takeIf { it.routeIdentifier != null },
-            syncState = syncSession,
-        )
-    }
-
     fun saveRoutePlannerPreferences(preferences: RoutePlannerPreferences) {
         routePlannerPreferences = preferences
+        currentSourceMode = preferences.defaultSourceMode
         persistence.saveRoutePlannerPreferences(preferences)
     }
 
-    fun dismissRouteHistoryItem(id: String) {
-        persistence.dismissRouteHistoryItem(id)
-    }
-
-    private fun recordPlannedPreview(source: RouteHistorySource, sourceLabel: String) {
+    fun recordPlannedPreview(source: RouteHistorySource, sourceLabel: String) {
         val selected = preview.selectedAlternative?.normalizedPackage ?: return
         persistence.saveRouteHistoryItem(
             RouteHistoryItem(
@@ -257,7 +280,7 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
         )
     }
 
-    private fun recordRecentDestination(title: String, coordinate: CoordinatePoint) {
+    fun recordRecentDestination(title: String, coordinate: CoordinatePoint) {
         persistence.saveRouteHistoryItem(
             RouteHistoryItem(
                 id = "recent-${coordinate.latitude}-${coordinate.longitude}-$title",
@@ -273,14 +296,180 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
         persistence.saveRecentDestination(coordinate)
     }
 
-    private fun applySelectedAlternativeToSession(providerId: RouteProviderId, destination: CoordinatePoint) {
+    fun dismissRouteHistoryItem(id: String) {
+        persistence.dismissRouteHistoryItem(id)
+    }
+
+    fun applyRouteHistoryPreview(item: RouteHistoryItem, onComplete: () -> Unit = {}) {
+        viewModelScope.launch {
+            if (item.routePackage != null) {
+                val packageRef = item.routePackage
+                preview = RoutePreviewModel(
+                    alternatives = listOf(
+                        RouteAlternative(
+                            id = item.id,
+                            title = item.title,
+                            subtitle = item.subtitle,
+                            distanceMeters = packageRef.summary.totalDistanceMeters.toInt(),
+                            durationSeconds = packageRef.summary.estimatedDurationSeconds,
+                            normalizedPackage = packageRef,
+                        ),
+                    ),
+                    selectedAlternativeId = item.id,
+                    routeIdentifier = packageRef.routeIdentifier,
+                    routeRevision = packageRef.revision,
+                    planningNotice = item.sourceLabel,
+                )
+                selectedProviderId = packageRef.provenance.providerId
+                currentSourceMode = if (packageRef.provenance.providerId == RouteProviderId.OSM) RouteSourceMode.OSM else RouteSourceMode.HSL
+                routeRequest = RoutePlanRequest(
+                    origin = simulatedRiderLocation,
+                    destination = item.destination ?: packageRef.geometry.lastOrNull() ?: routeRequest.destination,
+                    providerId = packageRef.provenance.providerId,
+                )
+                applySelectedAlternativeToSession(currentSourceMode, routeRequest.destination, item.title)
+                onComplete()
+            } else if (item.destination != null) {
+                routeRequest = RoutePlanRequest(
+                    origin = simulatedRiderLocation,
+                    destination = item.destination,
+                    providerId = currentSourceMode.primaryProviderId,
+                )
+                planRoute(currentSourceMode, item.title, onComplete = onComplete)
+            } else {
+                onComplete()
+            }
+        }
+    }
+
+    fun rerouteActiveSession(riderLocation: CoordinatePoint, reason: String) {
+        val destination = activeSession.destinationCoordinate ?: return
+        viewModelScope.launch {
+            val routeIdentifier = activeSession.routeIdentifier ?: preview.routeIdentifier ?: "preview-route"
+            bleService.receiveRerouteRequest(
+                RouteRerouteRequestMessage(
+                    routeIdentifier = routeIdentifier,
+                    riderLocation = riderLocation,
+                    reason = reason,
+                ),
+            )
+            simulatedRiderLocation = riderLocation
+            routeRequest = RoutePlanRequest(
+                origin = riderLocation,
+                destination = destination,
+                providerId = activeSession.sourceMode.primaryProviderId,
+            )
+            preview = buildPreview(routeRequest, activeSession.sourceMode, (activeSession.routeRevision ?: 0) + 1)
+            applySelectedAlternativeToSession(activeSession.sourceMode, destination, activeSession.destinationLabel)
+            activeSession = activeSession.copy(
+                lastRerouteReason = reason,
+                lastRerouteTimestamp = "Just now",
+            )
+            sendSelectedRoute()
+        }
+    }
+
+    fun refreshDiagnostics() {
+        diagnosticsStore.update(
+            session = activeSession.takeIf { it.routeIdentifier != null },
+            syncState = syncSession,
+        )
+    }
+
+    private suspend fun buildPreview(request: RoutePlanRequest, sourceMode: RouteSourceMode, revisionOverride: Int?): RoutePreviewModel {
+        return when (sourceMode) {
+            RouteSourceMode.MIXED -> buildMixedPreview(request, revisionOverride)
+            RouteSourceMode.HSL, RouteSourceMode.OSM -> {
+                val provider = providers[sourceMode.primaryProviderId] ?: error("Missing provider for ${sourceMode.displayName}")
+                val providerPreview = previewFrom(provider, request, revisionOverride)
+                val alternatives = presentAlternatives(providerPreview.alternatives)
+                providerPreview.copy(
+                    alternatives = alternatives,
+                    selectedAlternativeId = alternatives.firstOrNull()?.id,
+                    routeIdentifier = alternatives.firstOrNull()?.normalizedPackage?.routeIdentifier,
+                    routeRevision = alternatives.firstOrNull()?.normalizedPackage?.revision,
+                )
+            }
+        }
+    }
+
+    private suspend fun previewFrom(provider: RoutingProvider, request: RoutePlanRequest, revisionOverride: Int?): RoutePreviewModel {
+        return if (revisionOverride != null) {
+            provider.replanRoute(
+                activeSession.copy(
+                    routeRevision = revisionOverride - 1,
+                    destinationCoordinate = request.destination,
+                    providerId = provider.providerId,
+                    sourceMode = currentSourceMode,
+                ),
+                request.origin,
+            )
+        } else {
+            provider.planRoute(request)
+        }
+    }
+
+    private suspend fun buildMixedPreview(request: RoutePlanRequest, revisionOverride: Int?): RoutePreviewModel {
+        val hsl = providers[RouteProviderId.HSL] ?: error("Missing HSL provider")
+        val osm = providers[RouteProviderId.OSM] ?: error("Missing OSM provider")
+        val alternatives = buildList {
+            addAll(previewFrom(hsl, request, revisionOverride).alternatives)
+            addAll(previewFrom(osm, request, revisionOverride).alternatives)
+        }
+        val mixedAlternatives = mergeMixedAlternatives(alternatives)
+        return RoutePreviewModel(
+            alternatives = mixedAlternatives,
+            selectedAlternativeId = mixedAlternatives.firstOrNull()?.id,
+            routeIdentifier = mixedAlternatives.firstOrNull()?.normalizedPackage?.routeIdentifier,
+            routeRevision = mixedAlternatives.firstOrNull()?.normalizedPackage?.revision,
+            planningNotice = "Mixed routes from HSL and OSM",
+        )
+    }
+
+    private fun mergeMixedAlternatives(alternatives: List<RouteAlternative>): List<RouteAlternative> {
+        if (alternatives.isEmpty()) return emptyList()
+        val remaining = alternatives.sortedWith(compareBy<RouteAlternative> { it.durationSeconds }.thenBy { it.distanceMeters }).toMutableList()
+        val chosen = mutableListOf<RouteAlternative>()
+
+        remaining.removeFirstOrNull()?.let { fastest ->
+            chosen += fastest
+            remaining.removeAll { it.normalizedPackage.routeIdentifier == fastest.normalizedPackage.routeIdentifier }
+        }
+        (remaining.firstOrNull { it.normalizedPackage.provenance.providerId == RouteProviderId.OSM } ?: remaining.firstOrNull())?.let { quieter ->
+            chosen += quieter
+            remaining.removeAll { it.normalizedPackage.routeIdentifier == quieter.normalizedPackage.routeIdentifier }
+        }
+        remaining.minByOrNull { it.normalizedPackage.maneuverCount }?.let { simpler ->
+            chosen += simpler
+            remaining.removeAll { it.normalizedPackage.routeIdentifier == simpler.normalizedPackage.routeIdentifier }
+        }
+        while (chosen.size < 3 && remaining.isNotEmpty()) {
+            chosen += remaining.removeAt(0)
+        }
+        return presentAlternatives(chosen)
+    }
+
+    private fun presentAlternatives(alternatives: List<RouteAlternative>): List<RouteAlternative> {
+        val labels = listOf(RouteSuggestionKind.FASTEST, RouteSuggestionKind.QUIETER, RouteSuggestionKind.SIMPLER)
+        return alternatives.take(3).mapIndexed { index, alternative ->
+            alternative.copy(
+                title = labels[minOf(index, labels.lastIndex)].displayName,
+                subtitle = "via ${alternative.normalizedPackage.provenance.providerId.displayName}",
+            )
+        }
+    }
+
+    private fun applySelectedAlternativeToSession(sourceMode: RouteSourceMode, destination: CoordinatePoint, preferredTitle: String?) {
         val selectedPackage = preview.selectedAlternative?.normalizedPackage
+        val providerId = selectedPackage?.provenance?.providerId ?: sourceMode.primaryProviderId
+        selectedProviderId = providerId
         activeSession = activeSession.copy(
             routeIdentifier = selectedPackage?.routeIdentifier ?: preview.routeIdentifier,
             routeRevision = selectedPackage?.revision ?: preview.routeRevision,
-            destinationLabel = selectedPackage?.summary?.destinationLabel ?: providerId.displayName + " route",
+            destinationLabel = selectedPackage?.summary?.destinationLabel ?: preferredTitle ?: "${providerId.displayName} route",
             destinationCoordinate = selectedPackage?.geometry?.lastOrNull() ?: destination,
             providerId = providerId,
+            sourceMode = sourceMode,
         )
     }
 }

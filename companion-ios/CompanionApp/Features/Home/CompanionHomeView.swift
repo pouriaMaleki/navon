@@ -23,9 +23,11 @@ struct CompanionHomeView: View {
                     bottomOverlay
                 }
                 .ignoresSafeArea(edges: .bottom)
-                .onAppear { fitDisplayedRouteIfNeeded() }
-                .onChange(of: appModel.preview.selectedAlternativeID) { _, _ in fitDisplayedRouteIfNeeded() }
-                .onChange(of: viewModel.activeRouteIdentifier) { _, _ in fitDisplayedRouteIfNeeded() }
+                .onAppear { refreshCameraForCurrentMode() }
+                .onChange(of: appModel.preview.selectedAlternativeID) { _, _ in refreshCameraForCurrentMode() }
+                .onChange(of: viewModel.activeRouteIdentifier) { _, _ in refreshCameraForCurrentMode() }
+                .onChange(of: viewModel.homeMode) { _, _ in refreshCameraForCurrentMode() }
+                .onChange(of: viewModel.compassMode) { _, _ in refreshCameraForCurrentMode() }
         }
     }
 
@@ -44,15 +46,15 @@ struct CompanionHomeView: View {
                     .tint(.red)
             }
 
-            ForEach(viewModel.previewAlternatives, id: \.id) { alternative in
-                let isSelected = alternative.id == appModel.preview.selectedAlternativeID
-                MapPolyline(coordinates: alternative.normalizedPackage.geometry.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
-                    .stroke(isSelected ? .blue : .teal.opacity(0.45), lineWidth: isSelected ? 6 : 4)
-            }
-
-            if let active = viewModel.activeRoute {
+            if viewModel.homeMode == .planning {
+                ForEach(viewModel.previewAlternatives, id: \.id) { alternative in
+                    let isSelected = alternative.id == appModel.preview.selectedAlternativeID
+                    MapPolyline(coordinates: alternative.normalizedPackage.geometry.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
+                        .stroke(isSelected ? .blue : .teal.opacity(0.45), lineWidth: isSelected ? 6 : 4)
+                }
+            } else if let active = viewModel.guidanceRoute {
                 MapPolyline(coordinates: active.geometry.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
-                    .stroke(.green, lineWidth: 7)
+                    .stroke(viewModel.homeMode == .deviceOverview ? .blue : .green, lineWidth: 7)
             }
         }
         .mapControls {
@@ -63,6 +65,7 @@ struct CompanionHomeView: View {
             LongPressGesture(minimumDuration: 0.6)
                 .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .local))
                 .onEnded { value in
+                    guard viewModel.homeMode == .planning else { return }
                     switch value {
                     case .second(true, let drag?):
                         if let coordinate = proxy.convert(drag.location, from: .local) {
@@ -76,10 +79,14 @@ struct CompanionHomeView: View {
     }
 
     private var topOverlay: some View {
-        VStack(spacing: 8) {
-            topBar
-            if viewModel.shouldShowSearchPanel {
-                searchPanel
+        VStack(spacing: 10) {
+            switch viewModel.homeMode {
+            case .planning:
+                planningTopOverlay
+            case .phoneGuidance:
+                phoneGuidanceTopOverlay
+            case .sendingToDevice, .deviceOverview:
+                deviceOverviewTopOverlay
             }
         }
         .padding(.horizontal, 16)
@@ -88,11 +95,81 @@ struct CompanionHomeView: View {
 
     @ViewBuilder
     private var bottomOverlay: some View {
-        if let active = viewModel.activeRoute {
-            activeGuidanceCard(active)
-        } else if !viewModel.previewAlternatives.isEmpty {
-            routeSuggestionsCard
+        switch viewModel.homeMode {
+        case .planning:
+            if !viewModel.previewAlternatives.isEmpty {
+                routeSuggestionsCard
+            }
+        case .phoneGuidance:
+            if let active = viewModel.guidanceRoute {
+                activeGuidanceCard(active)
+            }
+        case .sendingToDevice, .deviceOverview:
+            if let active = viewModel.guidanceRoute {
+                deviceOverviewCard(active)
+            }
         }
+    }
+
+    private var planningTopOverlay: some View {
+        VStack(spacing: 8) {
+            topBar
+            if viewModel.shouldShowSourceControl {
+                sourceModePicker
+            }
+            if viewModel.shouldShowSearchPanel {
+                searchPanel
+            }
+        }
+    }
+
+    private var phoneGuidanceTopOverlay: some View {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(viewModel.activeNavigationTitle)
+                    .font(.headline)
+                    .lineLimit(1)
+                Text(viewModel.activeNavigationSubtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+            Spacer()
+            Image(systemName: viewModel.compassSymbolName)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(.primary)
+                .frame(width: 48, height: 48)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .onTapGesture(count: 2) { viewModel.handleCompassDoubleTap() }
+                .onTapGesture { viewModel.handleCompassTap() }
+                .accessibilityLabel("North indicator")
+        }
+        .padding(14)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+
+    private var deviceOverviewTopOverlay: some View {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(viewModel.activeNavigationTitle)
+                    .font(.headline)
+                    .lineLimit(1)
+                Text(viewModel.activeNavigationSubtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+            Spacer()
+            Button(action: onOpenSettings) {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .frame(width: 48, height: 48)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+            .accessibilityLabel("Settings")
+        }
+        .padding(14)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     private var topBar: some View {
@@ -111,7 +188,7 @@ struct CompanionHomeView: View {
                 .autocorrectionDisabled()
                 .onTapGesture { viewModel.openSearch() }
 
-                if !viewModel.query.isEmpty || !viewModel.previewAlternatives.isEmpty || viewModel.activeRoute != nil {
+                if !viewModel.query.isEmpty || !viewModel.previewAlternatives.isEmpty || viewModel.isShowingActiveNavigation {
                     Button {
                         viewModel.clearPreview()
                     } label: {
@@ -132,6 +209,29 @@ struct CompanionHomeView: View {
             }
             .accessibilityLabel("Settings")
         }
+    }
+
+    private var sourceModePicker: some View {
+        HStack(spacing: 8) {
+            ForEach(appModel.sourceModeOptions) { mode in
+                Button {
+                    viewModel.setSourceMode(mode)
+                } label: {
+                    Text(mode.displayName)
+                        .font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            viewModel.sourceMode == mode ? Color.blue.opacity(0.16) : Color.clear,
+                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(8)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     private var searchPanel: some View {
@@ -216,6 +316,13 @@ struct CompanionHomeView: View {
                 Button("Close", action: viewModel.clearPreview)
                     .font(.subheadline.weight(.semibold))
             }
+
+            if let notice = appModel.preview.planningNotice {
+                Text(notice)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             ForEach(viewModel.previewAlternatives, id: \.id) { alternative in
                 Button {
                     viewModel.selectAlternative(alternative.id)
@@ -224,6 +331,9 @@ struct CompanionHomeView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(alternative.title)
                                 .font(.subheadline.weight(.semibold))
+                            Text(alternative.subtitle)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                             Text(alternative.normalizedPackage.summaryLine)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -239,11 +349,26 @@ struct CompanionHomeView: View {
                 }
                 .buttonStyle(.plain)
             }
-            Button(action: viewModel.startSelectedRoute) {
-                Text("Start")
-                    .frame(maxWidth: .infinity)
+
+            Button {
+                Task { await viewModel.startSelectedRoute() }
+            } label: {
+                Group {
+                    if viewModel.homeMode == .sendingToDevice {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                                .tint(.white)
+                            Text(viewModel.startButtonTitle)
+                        }
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        Text(viewModel.startButtonTitle)
+                            .frame(maxWidth: .infinity)
+                    }
+                }
             }
             .buttonStyle(.borderedProminent)
+            .disabled(viewModel.homeMode == .sendingToDevice)
         }
         .padding(16)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
@@ -255,10 +380,10 @@ struct CompanionHomeView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(active.summary.destinationLabel ?? "Guidance active")
                 .font(.headline)
-            Text(active.summaryLine)
+            Text(viewModel.nextInstructionLine ?? active.summaryLine)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            Button(role: .destructive, action: viewModel.stopGuidance) {
+            Button(role: .destructive, action: viewModel.stopActiveNavigation) {
                 Text("Stop")
                     .frame(maxWidth: .infinity)
             }
@@ -270,10 +395,57 @@ struct CompanionHomeView: View {
         .padding(.bottom, 16)
     }
 
-    private func fitDisplayedRouteIfNeeded() {
-        let coordinates = viewModel.displayedRouteCoordinates
-        guard !coordinates.isEmpty else { return }
-        fitCamera(to: coordinates)
+    private func deviceOverviewCard(_ active: NormalizedRoutePackage) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(active.summary.destinationLabel ?? "Route active on device")
+                .font(.headline)
+            Text(appModel.bleService.sessionState.lastSyncResult)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            if let transfer = appModel.bleService.sessionState.transferProgress {
+                Text("Sending \(transfer.percentComplete)%")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Button(role: .destructive, action: viewModel.stopActiveNavigation) {
+                Text("Stop")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding(16)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .padding(.horizontal, 16)
+        .padding(.bottom, 16)
+    }
+
+    private func refreshCameraForCurrentMode() {
+        switch viewModel.homeMode {
+        case .planning, .deviceOverview, .sendingToDevice:
+            let coordinates = viewModel.displayedRouteCoordinates
+            guard !coordinates.isEmpty else { return }
+            fitCamera(to: coordinates)
+        case .phoneGuidance:
+            guard let route = viewModel.guidanceRoute else { return }
+            switch viewModel.compassMode {
+            case .autoFollow:
+                orientCameraForTravel(on: route)
+            case .northPreview, .northLocked:
+                fitCamera(to: route.geometry)
+            }
+        }
+    }
+
+    private func orientCameraForTravel(on route: NormalizedRoutePackage) {
+        guard route.geometry.count >= 2 else {
+            fitCamera(to: route.geometry)
+            return
+        }
+        let anchor = route.geometry[0]
+        let next = route.geometry[1]
+        let heading = bearingDegrees(from: anchor, to: next)
+        let center = CLLocationCoordinate2D(latitude: anchor.latitude, longitude: anchor.longitude)
+        cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: 1200, heading: heading, pitch: 0))
     }
 
     private func fitCamera(to coordinates: [CoordinatePoint]) {
@@ -294,5 +466,11 @@ struct CompanionHomeView: View {
         let lonDelta = max((maxLon - minLon) * 1.5, 0.01)
         let center = CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2.0, longitude: (minLon + maxLon) / 2.0)
         cameraPosition = .region(MKCoordinateRegion(center: center, span: MKCoordinateSpan(latitudeDelta: latDelta, longitudeDelta: lonDelta)))
+    }
+
+    private func bearingDegrees(from start: CoordinatePoint, to end: CoordinatePoint) -> CLLocationDirection {
+        let latMeters = (end.latitude - start.latitude) * 111_320.0
+        let lonMeters = (end.longitude - start.longitude) * cos(((start.latitude + end.latitude) / 2.0) * .pi / 180.0) * 111_320.0
+        return atan2(lonMeters, latMeters) * 180.0 / .pi
     }
 }

@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,14 +35,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -51,6 +52,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
@@ -58,9 +60,15 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlin.math.PI
+import kotlin.math.atan2
+import kotlin.math.cos
 import me.fiksu.esp32map.companion.app.CompanionAppState
+import me.fiksu.esp32map.companion.domain.CoordinatePoint
+import me.fiksu.esp32map.companion.domain.HomeCompassMode
+import me.fiksu.esp32map.companion.domain.HomeMode
 import me.fiksu.esp32map.companion.domain.RouteHistoryItem
-import me.fiksu.esp32map.companion.domain.RouteProviderId
+import me.fiksu.esp32map.companion.domain.RouteSourceMode
 import me.fiksu.esp32map.companion.domain.RouteStartBehavior
 import me.fiksu.esp32map.companion.domain.RouteSuggestionMode
 import me.fiksu.esp32map.companion.feature.home.HomeStateHolder
@@ -89,7 +97,6 @@ private enum class SettingsDestination {
 @Composable
 private fun CompanionApp(appState: CompanionAppState = viewModel()) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val homeState = remember(appState) { HomeStateHolder(appState, AndroidPlaceSearchService(context)) }
     var showingSettings by rememberSaveable { mutableStateOf(false) }
     var settingsDestination by rememberSaveable { mutableStateOf(SettingsDestination.ROOT) }
@@ -108,6 +115,7 @@ private fun CompanionApp(appState: CompanionAppState = viewModel()) {
         if (selectedRouteId != null) {
             BackHandler { selectedRouteId = null }
         }
+
         CompanionHomeScreen(
             appState = appState,
             homeState = homeState,
@@ -146,8 +154,13 @@ private fun CompanionApp(appState: CompanionAppState = viewModel()) {
                     RouteDetailScreen(
                         item = item,
                         onBack = { selectedRouteId = null },
-                        onOpen = { openRouteItem(appState, item); selectedRouteId = null },
-                        onStart = { openRouteItem(appState, item); homeState.startSelectedRoute(); selectedRouteId = null },
+                        onOpen = { appState.applyRouteHistoryPreview(item) { selectedRouteId = null } },
+                        onStart = {
+                            appState.applyRouteHistoryPreview(item) {
+                                homeState.startSelectedRoute()
+                                selectedRouteId = null
+                            }
+                        },
                         onDismiss = {
                             appState.dismissRouteHistoryItem(item.id)
                             selectedRouteId = null
@@ -170,6 +183,18 @@ private fun CompanionHomeScreen(
         position = CameraPosition.fromLatLngZoom(LatLng(60.1699, 24.9384), 13f)
     }
 
+    LaunchedEffect(homeState.displayedRouteCoordinates, homeState.homeMode, homeState.compassMode) {
+        val coordinates = homeState.displayedRouteCoordinates
+        if (coordinates.isEmpty()) return@LaunchedEffect
+        when (homeState.homeMode) {
+            HomeMode.PLANNING, HomeMode.DEVICE_OVERVIEW, HomeMode.SENDING_TO_DEVICE -> fitCameraToRoute(cameraPositionState, coordinates)
+            HomeMode.PHONE_GUIDANCE -> when (homeState.compassMode) {
+                HomeCompassMode.AUTO_FOLLOW -> orientCameraForTravel(cameraPositionState, coordinates)
+                HomeCompassMode.NORTH_PREVIEW, HomeCompassMode.NORTH_LOCKED -> fitCameraToRoute(cameraPositionState, coordinates)
+            }
+        }
+    }
+
     Box(Modifier.fillMaxSize()) {
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
@@ -177,25 +202,27 @@ private fun CompanionHomeScreen(
             uiSettings = MapUiSettings(compassEnabled = true, myLocationButtonEnabled = false),
             properties = MapProperties(isMyLocationEnabled = false),
             onMapLongClick = { latLng ->
-                homeState.setDestinationFromMap(me.fiksu.esp32map.companion.domain.CoordinatePoint(latLng.latitude, latLng.longitude), scope)
-                scope.launch {
-                    cameraPositionState.animate(CameraUpdateFactory.newLatLng(latLng))
+                if (homeState.homeMode == HomeMode.PLANNING) {
+                    homeState.setDestinationFromMap(CoordinatePoint(latLng.latitude, latLng.longitude), scope)
                 }
             },
         ) {
-            homeState.previewAlternatives.forEach { alternative ->
-                Polyline(
-                    points = alternative.normalizedPackage.geometry.map { LatLng(it.latitude, it.longitude) },
-                    color = if (alternative.id == appState.preview.selectedAlternativeId) Color(0xFF2D6CDF) else Color(0x6626A69A),
-                    width = if (alternative.id == appState.preview.selectedAlternativeId) 10f else 7f,
-                )
-            }
-            homeState.activeRoute?.let { active ->
-                Polyline(
-                    points = active.geometry.map { LatLng(it.latitude, it.longitude) },
-                    color = Color(0xFF2E7D32),
-                    width = 12f,
-                )
+            if (homeState.homeMode == HomeMode.PLANNING) {
+                homeState.previewAlternatives.forEach { alternative ->
+                    Polyline(
+                        points = alternative.normalizedPackage.geometry.map { LatLng(it.latitude, it.longitude) },
+                        color = if (alternative.id == appState.preview.selectedAlternativeId) Color(0xFF2D6CDF) else Color(0x6626A69A),
+                        width = if (alternative.id == appState.preview.selectedAlternativeId) 10f else 7f,
+                    )
+                }
+            } else {
+                homeState.guidanceRoute?.let { active ->
+                    Polyline(
+                        points = active.geometry.map { LatLng(it.latitude, it.longitude) },
+                        color = if (homeState.homeMode == HomeMode.DEVICE_OVERVIEW) Color(0xFF2D6CDF) else Color(0xFF2E7D32),
+                        width = 12f,
+                    )
+                }
             }
             homeState.destinationCoordinate?.let {
                 Marker(state = MarkerState(LatLng(it.latitude, it.longitude)), title = "Destination")
@@ -203,59 +230,135 @@ private fun CompanionHomeScreen(
         }
 
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                TextField(
-                    value = homeState.query,
-                    onValueChange = {
-                        homeState.openSearch()
-                        homeState.updateQuery(it, scope)
-                    },
-                    label = { Text("Where to?") },
-                    modifier = Modifier.weight(1f),
-                )
-                Spacer(Modifier.width(12.dp))
-                IconButton(onClick = onOpenSettings) {
-                    Text("Settings")
-                }
-            }
-
-            if (homeState.isSearchOpen) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                    tonalElevation = 4.dp,
-                    shape = MaterialTheme.shapes.large,
-                ) {
-                    LazyColumn(modifier = Modifier.height(320.dp), contentPadding = PaddingValues(vertical = 8.dp)) {
-                        if (homeState.query.isBlank()) {
-                            items(homeState.recentItems, key = { it.id }) { item ->
-                                RouteHistoryRow(item = item, onClick = { homeState.selectRecent(item, scope) })
-                                homeState.loadMoreRecentsIfNeeded(item)
-                            }
-                        } else {
-                            items(homeState.visibleSuggestions, key = { it.id }) { suggestion ->
-                                SearchSuggestionRow(
-                                    title = suggestion.title,
-                                    subtitle = suggestion.subtitle,
-                                    onClick = {
-                                        homeState.selectSuggestion(suggestion, scope)
-                                        scope.launch {
-                                            cameraPositionState.animate(CameraUpdateFactory.newLatLng(LatLng(suggestion.coordinate.latitude, suggestion.coordinate.longitude)))
-                                        }
-                                    },
-                                )
-                                homeState.loadMoreSuggestionsIfNeeded(suggestion)
-                            }
-                        }
-                    }
-                }
+            when (homeState.homeMode) {
+                HomeMode.PLANNING -> PlanningTopArea(appState, homeState, scope, onOpenSettings)
+                HomeMode.PHONE_GUIDANCE -> PhoneGuidanceTopArea(homeState, scope)
+                HomeMode.SENDING_TO_DEVICE, HomeMode.DEVICE_OVERVIEW -> DeviceOverviewTopArea(homeState, onOpenSettings)
             }
 
             Spacer(Modifier.weight(1f))
 
-            when {
-                homeState.activeRoute != null -> ActiveGuidanceCard(homeState, scope)
-                homeState.previewAlternatives.isNotEmpty() -> RouteSuggestionsCard(appState, homeState)
+            when (homeState.homeMode) {
+                HomeMode.PLANNING -> if (homeState.previewAlternatives.isNotEmpty()) RouteSuggestionsCard(appState, homeState)
+                HomeMode.PHONE_GUIDANCE -> ActiveGuidanceCard(homeState)
+                HomeMode.SENDING_TO_DEVICE, HomeMode.DEVICE_OVERVIEW -> DeviceOverviewCard(appState, homeState)
             }
+        }
+    }
+}
+
+@Composable
+private fun PlanningTopArea(
+    appState: CompanionAppState,
+    homeState: HomeStateHolder,
+    scope: kotlinx.coroutines.CoroutineScope,
+    onOpenSettings: () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            TextField(
+                value = homeState.query,
+                onValueChange = {
+                    homeState.openSearch()
+                    homeState.updateQuery(it, scope)
+                },
+                label = { Text("Where to?") },
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.width(12.dp))
+            IconButton(onClick = onOpenSettings) {
+                Text("Set")
+            }
+        }
+
+        if (homeState.shouldShowSourceControl) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                appState.sourceModeOptions.forEach { mode ->
+                    FilterChip(
+                        selected = homeState.sourceMode == mode,
+                        onClick = { homeState.setSourceMode(mode) },
+                        label = { Text(mode.displayName) },
+                    )
+                }
+            }
+        }
+
+        if (homeState.shouldShowSearchPanel) {
+            Surface(
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                tonalElevation = 4.dp,
+                shape = MaterialTheme.shapes.large,
+            ) {
+                LazyColumn(modifier = Modifier.height(320.dp), contentPadding = PaddingValues(vertical = 8.dp)) {
+                    if (homeState.query.isBlank()) {
+                        items(homeState.recentItems, key = { it.id }) { item ->
+                            RouteHistoryRow(item = item, onClick = { homeState.selectRecent(item, scope) })
+                            homeState.loadMoreRecentsIfNeeded(item)
+                        }
+                    } else {
+                        items(homeState.visibleSuggestions, key = { it.id }) { suggestion ->
+                            SearchSuggestionRow(
+                                title = suggestion.title,
+                                subtitle = suggestion.subtitle,
+                                onClick = { homeState.selectSuggestion(suggestion, scope) },
+                            )
+                            homeState.loadMoreSuggestionsIfNeeded(suggestion)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PhoneGuidanceTopArea(homeState: HomeStateHolder, scope: kotlinx.coroutines.CoroutineScope) {
+    Surface(shape = MaterialTheme.shapes.large, tonalElevation = 4.dp) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(homeState.activeNavigationTitle, fontWeight = FontWeight.SemiBold)
+                Text(homeState.activeNavigationSubtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, shape = MaterialTheme.shapes.medium)
+                    .combinedClickable(
+                        onClick = { homeState.handleCompassTap(scope) },
+                        onDoubleClick = { homeState.handleCompassDoubleTap() },
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    when (homeState.compassMode) {
+                        HomeCompassMode.AUTO_FOLLOW -> "Auto"
+                        HomeCompassMode.NORTH_PREVIEW -> "N"
+                        HomeCompassMode.NORTH_LOCKED -> "Lock"
+                    },
+                    style = MaterialTheme.typography.labelMedium,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeviceOverviewTopArea(homeState: HomeStateHolder, onOpenSettings: () -> Unit) {
+    Surface(shape = MaterialTheme.shapes.large, tonalElevation = 4.dp) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(homeState.activeNavigationTitle, fontWeight = FontWeight.SemiBold)
+                Text(homeState.activeNavigationSubtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Button(onClick = onOpenSettings) { Text("Settings") }
         }
     }
 }
@@ -291,7 +394,13 @@ private fun RouteSuggestionsCard(appState: CompanionAppState, homeState: HomeSta
         modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.94f), shape = MaterialTheme.shapes.extraLarge).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("Suggested routes", style = MaterialTheme.typography.titleMedium)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Suggested routes", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            Button(onClick = { homeState.clearPreview() }) { Text("Close") }
+        }
+        appState.preview.planningNotice?.takeIf { it.isNotBlank() }?.let {
+            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         homeState.previewAlternatives.forEach { alternative ->
             val selected = alternative.id == appState.preview.selectedAlternativeId
             Row(
@@ -300,6 +409,7 @@ private fun RouteSuggestionsCard(appState: CompanionAppState, homeState: HomeSta
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(alternative.title, fontWeight = FontWeight.SemiBold)
+                    Text(alternative.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(alternative.normalizedPackage.summaryLine, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (selected) {
@@ -307,22 +417,47 @@ private fun RouteSuggestionsCard(appState: CompanionAppState, homeState: HomeSta
                 }
             }
         }
-        Button(onClick = { homeState.startSelectedRoute() }, modifier = Modifier.fillMaxWidth()) {
-            Text("Start")
+        Button(onClick = { homeState.startSelectedRoute() }, modifier = Modifier.fillMaxWidth(), enabled = homeState.homeMode != HomeMode.SENDING_TO_DEVICE) {
+            if (homeState.homeMode == HomeMode.SENDING_TO_DEVICE) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    Text(homeState.startButtonTitle)
+                }
+            } else {
+                Text(homeState.startButtonTitle)
+            }
         }
     }
 }
 
 @Composable
-private fun ActiveGuidanceCard(homeState: HomeStateHolder, scope: CoroutineScope) {
-    val route = homeState.activeRoute ?: return
+private fun ActiveGuidanceCard(homeState: HomeStateHolder) {
+    val route = homeState.guidanceRoute ?: return
     Column(
         modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.94f), shape = MaterialTheme.shapes.extraLarge).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(route.summary.destinationLabel ?: "Guidance active", style = MaterialTheme.typography.titleMedium)
-        Text(route.summaryLine, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Button(onClick = { homeState.stopGuidance(scope) }, modifier = Modifier.fillMaxWidth()) {
+        Text(homeState.nextInstructionLine ?: route.summaryLine, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Button(onClick = { homeState.stopActiveNavigation() }, modifier = Modifier.fillMaxWidth()) {
+            Text("Stop")
+        }
+    }
+}
+
+@Composable
+private fun DeviceOverviewCard(appState: CompanionAppState, homeState: HomeStateHolder) {
+    val route = homeState.guidanceRoute ?: return
+    Column(
+        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.94f), shape = MaterialTheme.shapes.extraLarge).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(route.summary.destinationLabel ?: "Route active on device", style = MaterialTheme.typography.titleMedium)
+        Text(appState.syncSession.lastSyncResult, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        appState.syncSession.transferProgress?.let { progress ->
+            Text("Sending ${progress.percentComplete}%", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Button(onClick = { homeState.stopActiveNavigation() }, modifier = Modifier.fillMaxWidth()) {
             Text("Stop")
         }
     }
@@ -398,13 +533,13 @@ private fun DeviceSettingsScreen(appState: CompanionAppState, onBack: () -> Unit
         Text("Active route: ${appState.syncSession.activeRouteIdentifier ?: "None"}")
         Text("Last sync: ${appState.syncSession.lastSyncResult}")
         Button(onClick = appState::connectToDevice) { Text("Reconnect") }
-        Button(onClick = appState::sendSelectedRoute) { Text("Send selected route") }
+        Button(onClick = { appState.sendSelectedRoute() }) { Text("Send selected route") }
         Button(onClick = appState::resumePendingTransfer) { Text("Resume pending transfer") }
         Button(onClick = appState::armRetryableInterruptionOnNextTransfer) { Text("Arm retryable interruption") }
         Button(onClick = appState::armWriteFailureOnNextTransfer) { Text("Arm write failure") }
         Button(onClick = appState::armDisconnectAfterNextChunkWrite) { Text("Arm disconnect after chunk") }
         Button(onClick = appState::armDropNextInboundStatus) { Text("Arm drop next inbound status") }
-        Button(onClick = appState::clearActiveRoute) { Text("Clear active route") }
+        Button(onClick = { appState.clearActiveRoute() }) { Text("Clear active route") }
     }
 }
 
@@ -412,15 +547,15 @@ private fun DeviceSettingsScreen(appState: CompanionAppState, onBack: () -> Unit
 private fun RoutePlannerSettingsScreen(appState: CompanionAppState, onBack: () -> Unit) {
     ScreenColumn(PaddingValues(0.dp)) {
         BackHeader(title = "Route Planner", onBack = onBack)
-        Text("Provider")
-        RouteProviderId.entries.forEach { provider ->
+        Text("Default route source")
+        RouteSourceMode.entries.forEach { mode ->
             FilterChip(
-                selected = appState.routePlannerPreferences.providerId == provider,
+                selected = appState.routePlannerPreferences.defaultSourceMode == mode,
                 onClick = {
-                    appState.saveRoutePlannerPreferences(appState.routePlannerPreferences.copy(providerId = provider))
-                    appState.selectedProviderId = provider
+                    appState.saveRoutePlannerPreferences(appState.routePlannerPreferences.copy(defaultSourceMode = mode))
+                    appState.currentSourceMode = mode
                 },
-                label = { Text(provider.displayName) },
+                label = { Text(mode.displayName) },
             )
         }
         Text("Suggestion mode")
@@ -479,27 +614,6 @@ private fun FullScreenOverlay(content: @Composable () -> Unit) {
     }
 }
 
-private fun openRouteItem(appState: CompanionAppState, item: RouteHistoryItem) {
-    item.routePackage?.let { routePackage ->
-        appState.preview = appState.preview.copy(
-            alternatives = listOf(
-                me.fiksu.esp32map.companion.domain.RouteAlternative(
-                    id = item.id,
-                    title = item.title,
-                    subtitle = item.subtitle,
-                    distanceMeters = routePackage.summary.totalDistanceMeters.toInt(),
-                    durationSeconds = routePackage.summary.estimatedDurationSeconds,
-                    normalizedPackage = routePackage,
-                ),
-            ),
-            selectedAlternativeId = item.id,
-            routeIdentifier = routePackage.routeIdentifier,
-            routeRevision = routePackage.revision,
-            planningNotice = item.sourceLabel,
-        )
-    }
-}
-
 @Composable
 private fun ScreenColumn(padding: PaddingValues, content: @Composable ColumnScope.() -> Unit) {
     Column(
@@ -534,4 +648,48 @@ private fun BluetoothPermissionSection() {
             Text("Grant Bluetooth permissions")
         }
     }
+}
+
+private suspend fun fitCameraToRoute(
+    cameraPositionState: com.google.maps.android.compose.CameraPositionState,
+    coordinates: List<CoordinatePoint>,
+) {
+    if (coordinates.isEmpty()) return
+    if (coordinates.size == 1) {
+        cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(coordinates.first().toLatLng(), 14f))
+        return
+    }
+    val boundsBuilder = LatLngBounds.builder()
+    coordinates.forEach { boundsBuilder.include(it.toLatLng()) }
+    cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 120))
+}
+
+private suspend fun orientCameraForTravel(
+    cameraPositionState: com.google.maps.android.compose.CameraPositionState,
+    coordinates: List<CoordinatePoint>,
+) {
+    if (coordinates.size < 2) {
+        fitCameraToRoute(cameraPositionState, coordinates)
+        return
+    }
+    val anchor = coordinates.first()
+    val next = coordinates[1]
+    cameraPositionState.animate(
+        CameraUpdateFactory.newCameraPosition(
+            CameraPosition.Builder()
+                .target(anchor.toLatLng())
+                .zoom(16f)
+                .bearing(bearingDegrees(anchor, next).toFloat())
+                .tilt(0f)
+                .build(),
+        ),
+    )
+}
+
+private fun CoordinatePoint.toLatLng(): LatLng = LatLng(latitude, longitude)
+
+private fun bearingDegrees(start: CoordinatePoint, end: CoordinatePoint): Double {
+    val latMeters = (end.latitude - start.latitude) * 111_320.0
+    val lonMeters = (end.longitude - start.longitude) * cos(((start.latitude + end.latitude) / 2.0) * PI / 180.0) * 111_320.0
+    return atan2(lonMeters, latMeters) * 180.0 / PI
 }

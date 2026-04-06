@@ -87,9 +87,12 @@ Home surface behavior:
 
 Route suggestion behavior:
 - destination selection should normally produce three suggested routes
-- the three routes may come from one provider, one from each provider, or a mix that includes a route influenced by rider history and preferences
+- the default route-source mode should be `Mixed`, not a hidden settings-only choice
+- `Mixed` means the app may assemble three good options from one provider, multiple providers, or future ranking strategies, while still presenting them as understandable ride choices rather than backend plumbing
+- the preferred user-facing framing is route style first and source second, for example `Fastest`, `Quieter`, or `Simpler`, with a smaller source label such as `via HSL` or `via OSM`
 - route selection should feel lightweight: compare, accept, start
 - the product should optimize for quick everyday bike use rather than heavy route-library management
+- source strategy should be adjustable directly in planning mode through a small top control near `Where to?`, not only through the Settings `Route Planner` page
 
 Secondary navigation:
 - the app should not use bottom tabs for the main experience
@@ -178,13 +181,32 @@ Design principles for the redesign:
 - map shows the destination and three suggested routes
 - one route is selected by default as the recommended best option
 - the user can switch between the three routes in a lightweight chooser
+- a compact source-strategy control is visible near the top in planning mode, with `Mixed` as the default and direct switching to provider-specific modes when needed
 - primary action is `Start`
 - secondary action is `Close` or back-to-map, not a heavy planner action
+
+#### Planning versus guidance mode
+- before `Start`, the app is in planning mode: it compares route options and lets the rider change route or source strategy freely
+- pressing `Start` commits to one route and transitions into the correct active-navigation mode
+- after `Start`, route-comparison clutter should disappear and the UI should focus on the active route, current guidance, and a clear `Stop` action
+- pressing `Stop` ends guidance and returns the rider to refreshed route suggestions from the current location rather than leaving the app in a half-planning, half-guidance state
 
 #### State 6: Active guidance
 - map shows the active route and ride guidance
 - primary interrupt action is `Stop`
 - stopping guidance returns the user to refreshed route suggestions from the new current location
+
+#### Start behavior by device state
+- if no device is connected, `Start` enters full phone riding mode
+- phone riding mode should use the same guidance principles as the device, including direction-of-movement orientation and north-indicator preview/lock behavior
+- if a device is connected, `Start` becomes device-first, shows loading while sync is in flight, and leaves the phone in route overview / companion mode once the device has the route
+- reroutes during an active session should stay within the selected source / mode until the rider explicitly stops
+
+#### State 7: Device-connected start
+- when a device is connected, pressing `Start` sends the selected route to the device
+- while sending, the start control shows loading state instead of silently changing modes
+- after sync succeeds, the phone stays in route overview / companion mode instead of entering full phone riding mode
+- stopping a device-backed route clears the active route session and returns the app to refreshed planning suggestions from the rider's current location
 
 ### Universal Route Detail Page
 A single route detail page should be reused across:
@@ -205,6 +227,16 @@ Rules:
 - source-specific differences should show up as badges, metadata, and optional secondary rows rather than different page layouts
 - the route detail page is the recovery surface when an import cannot jump directly into Home route preview cleanly
 - the route detail page should not grow into a heavy planner or archival-management screen
+
+### Inline Planning Controls
+Planning mode should expose a small, easy-to-understand route-source control near the top search area instead of hiding source strategy entirely in Settings.
+
+Expected behavior:
+- default mode is `Mixed`
+- switching the source mode reruns route suggestions for the current destination
+- good first options are `Mixed`, `HSL`, `OSM`, and later `Google` when that path becomes real
+- this control should appear only while a destination is selected or route suggestions are visible, not as permanent chrome in idle map mode
+- Settings `Route Planner` still owns long-term defaults, but the current planning session must remain adjustable inline
 
 ### Settings Layout
 Settings should be a full-screen page with simple top-level sections:

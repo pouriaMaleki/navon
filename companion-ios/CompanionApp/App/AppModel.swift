@@ -1,10 +1,12 @@
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
+import Combine
 
 @MainActor
 final class AppModel: ObservableObject {
     @Published var selectedProviderID: RouteProviderID = .hsl
+    @Published var currentSourceMode: RouteSourceMode
     @Published var settings: CompanionSettings
     @Published var simulatedRiderLocation = CoordinatePoint(latitude: 60.1699, longitude: 24.9384)
     @Published var routeRequest = RoutePlanRequest(
@@ -19,6 +21,7 @@ final class AppModel: ObservableObject {
         destinationLabel: "No destination",
         destinationCoordinate: nil,
         providerID: .hsl,
+        sourceMode: .mixed,
         lastRerouteReason: nil,
         lastRerouteTimestamp: nil
     )
@@ -28,6 +31,9 @@ final class AppModel: ObservableObject {
     let diagnosticsStore = CompanionDiagnosticsStore()
     let persistence = CompanionPersistence()
     let bleService = BleRouteSyncService()
+
+    private var cancellables = Set<AnyCancellable>()
+    private var lastHandledRerouteSignature: String?
 
     private lazy var providers: [RouteProviderID: RoutingProvider] = [
         .hsl: HslRoutingAdapter(settingsProvider: { [unowned self] in self.settings }),
@@ -42,19 +48,29 @@ final class AppModel: ObservableObject {
 
     init() {
         settings = persistence.loadSettings()
-        activeSession = persistence.loadLastSession() ?? activeSession
+        let preferences = persistence.loadRoutePlannerPreferences()
+        currentSourceMode = preferences.defaultSourceMode
+        if let storedSession = persistence.loadLastSession() {
+            activeSession = storedSession
+        }
+        selectedProviderID = activeSession.providerID
+        bindBleState()
     }
 
     var providerOptions: [RouteProviderID] {
         RouteProviderID.allCases
     }
 
-    var availableProvider: RoutingProvider? {
-        providers[selectedProviderID]
+    var sourceModeOptions: [RouteSourceMode] {
+        RouteSourceMode.allCases
     }
 
-    var selectedProviderCanPlan: Bool {
-        selectedProviderID != .gpxImport && availableProvider != nil
+    var isDeviceConnected: Bool {
+        bleService.sessionState.connectionState == .connected
+    }
+
+    func provider(for providerID: RouteProviderID) -> RoutingProvider? {
+        providers[providerID]
     }
 
     func refreshDiagnostics() {
@@ -76,7 +92,8 @@ final class AppModel: ObservableObject {
             let data = try Data(contentsOf: url)
             guard let adapter = providers[.gpxImport] as? GpxRoutingAdapter else { return }
             let preview = try adapter.importFile(named: url.lastPathComponent, data: data)
-            self.selectedProviderID = .gpxImport
+            selectedProviderID = .gpxImport
+            currentSourceMode = .hsl
             self.preview = preview
             if let selected = preview.selectedAlternative?.normalizedPackage {
                 routeRequest = RoutePlanRequest(
@@ -86,7 +103,7 @@ final class AppModel: ObservableObject {
                 )
                 simulatedRiderLocation = selected.geometry.first ?? simulatedRiderLocation
             }
-            applySelectedAlternativeToSession(providerID: .gpxImport, destination: routeRequest.destination)
+            applySelectedAlternativeToSession(sourceMode: .hsl, destination: routeRequest.destination, preferredTitle: url.deletingPathExtension().lastPathComponent)
             refreshDiagnostics()
         } catch {
             preview = RoutePreviewModel(
@@ -100,13 +117,17 @@ final class AppModel: ObservableObject {
     }
 
     func planRoute() async {
-        routeRequest.providerID = selectedProviderID
-        guard let provider = availableProvider else { return }
+        await planRoute(using: currentSourceMode)
+    }
+
+    func planRoute(using sourceMode: RouteSourceMode, preferredTitle: String? = nil, revisionOverride: Int? = nil) async {
+        currentSourceMode = sourceMode
+        routeRequest.providerID = sourceMode.primaryProviderID
         do {
-            preview = try await provider.planRoute(routeRequest)
-            applySelectedAlternativeToSession(providerID: provider.providerID, destination: routeRequest.destination)
+            preview = try await buildPreview(for: routeRequest, sourceMode: sourceMode, revisionOverride: revisionOverride)
             simulatedRiderLocation = routeRequest.origin
             persistence.saveRecentDestination(routeRequest.destination)
+            applySelectedAlternativeToSession(sourceMode: sourceMode, destination: routeRequest.destination, preferredTitle: preferredTitle)
             refreshDiagnostics()
         } catch {
             preview = RoutePreviewModel(
@@ -119,8 +140,11 @@ final class AppModel: ObservableObject {
         }
     }
 
-    func sendSelectedRoute() async {
-        guard let provider = availableProvider else { return }
+    @discardableResult
+    func sendSelectedRoute() async -> Bool {
+        guard let selected = preview.selectedAlternative else { return false }
+        let providerID = selected.normalizedPackage.provenance.providerID
+        guard let provider = providers[providerID] else { return false }
         do {
             let normalized = try provider.normalizePreview(preview, request: routeRequest)
             let shouldUpdate = bleService.sessionState.activeRouteIdentifier == normalized.routeIdentifier
@@ -133,10 +157,30 @@ final class AppModel: ObservableObject {
             activeSession.routeIdentifier = normalized.routeIdentifier
             activeSession.routeRevision = normalized.revision
             activeSession.destinationLabel = normalized.summary.destinationLabel ?? activeSession.destinationLabel
+            activeSession.destinationCoordinate = normalized.geometry.last ?? activeSession.destinationCoordinate
+            activeSession.providerID = providerID
+            activeSession.sourceMode = currentSourceMode
             persistence.saveSession(activeSession)
             refreshDiagnostics()
+            return true
         } catch {
             refreshDiagnostics()
+            return false
+        }
+    }
+
+    @discardableResult
+    func clearActiveRoute() async -> Bool {
+        do {
+            try await bleService.publishClear(routeIdentifier: activeSession.routeIdentifier)
+            activeSession.routeIdentifier = nil
+            activeSession.routeRevision = nil
+            persistence.saveSession(activeSession)
+            refreshDiagnostics()
+            return true
+        } catch {
+            refreshDiagnostics()
+            return false
         }
     }
 
@@ -144,19 +188,11 @@ final class AppModel: ObservableObject {
         preview.selectedAlternativeID = alternativeID
         preview.routeIdentifier = preview.selectedAlternative?.normalizedPackage.routeIdentifier
         preview.routeRevision = preview.selectedAlternative?.normalizedPackage.revision
-        applySelectedAlternativeToSession(providerID: selectedProviderID, destination: routeRequest.destination)
-        refreshDiagnostics()
-    }
-
-    func clearActiveRoute() async {
-        do {
-            try await bleService.publishClear(routeIdentifier: activeSession.routeIdentifier)
-            activeSession.routeIdentifier = nil
-            activeSession.routeRevision = nil
-            refreshDiagnostics()
-        } catch {
-            refreshDiagnostics()
+        if let providerID = preview.selectedAlternative?.normalizedPackage.provenance.providerID {
+            selectedProviderID = providerID
         }
+        applySelectedAlternativeToSession(sourceMode: currentSourceMode, destination: routeRequest.destination, preferredTitle: nil)
+        refreshDiagnostics()
     }
 
     func resumePendingTransfer() async {
@@ -194,37 +230,194 @@ final class AppModel: ObservableObject {
         refreshDiagnostics()
     }
 
+    func applyRouteHistoryPreview(_ item: RouteHistoryItem) async {
+        if let package = item.routePackage {
+            let alternative = RouteAlternative(
+                id: UUID(),
+                title: item.title,
+                subtitle: item.subtitle,
+                distanceMeters: Int(package.summary.totalDistanceMeters.rounded()),
+                durationSeconds: package.summary.estimatedDurationSeconds,
+                normalizedPackage: package
+            )
+            preview = RoutePreviewModel(
+                alternatives: [alternative],
+                selectedAlternativeID: alternative.id,
+                routeIdentifier: package.routeIdentifier,
+                routeRevision: package.revision,
+                planningNotice: item.sourceLabel
+            )
+            selectedProviderID = package.provenance.providerID
+            currentSourceMode = package.provenance.providerID == .osm ? .osm : .hsl
+            routeRequest = RoutePlanRequest(
+                origin: simulatedRiderLocation,
+                destination: item.destination ?? package.geometry.last ?? routeRequest.destination,
+                providerID: package.provenance.providerID
+            )
+            applySelectedAlternativeToSession(sourceMode: currentSourceMode, destination: routeRequest.destination, preferredTitle: item.title)
+        } else if let destination = item.destination {
+            routeRequest = RoutePlanRequest(origin: simulatedRiderLocation, destination: destination, providerID: currentSourceMode.primaryProviderID)
+            await planRoute(using: currentSourceMode, preferredTitle: item.title)
+        }
+    }
+
     func handleRerouteRequest() async {
-        guard let provider = availableProvider else { return }
-        let routeIdentifier = activeSession.routeIdentifier ?? "preview-route"
-        let riderLocation = simulatedRiderLocation
+        await rerouteActiveSession(from: simulatedRiderLocation, reason: "Device requested reroute")
+    }
+
+    func rerouteActiveSession(from riderLocation: CoordinatePoint, reason: String) async {
+        guard activeSession.destinationCoordinate != nil else { return }
+        let routeIdentifier = activeSession.routeIdentifier ?? preview.routeIdentifier ?? "preview-route"
         await bleService.receiveRerouteRequest(
             RouteRerouteRequestMessage(
                 routeIdentifier: routeIdentifier,
                 riderLocation: riderLocation,
-                reason: "User drifted off route"
+                reason: reason
             )
         )
-        do {
-            preview = try await provider.replanRoute(using: activeSession, riderLocation: riderLocation)
-            applySelectedAlternativeToSession(providerID: provider.providerID, destination: activeSession.destinationCoordinate ?? routeRequest.destination)
-            activeSession.routeRevision = preview.selectedAlternative?.normalizedPackage.revision ?? ((activeSession.routeRevision ?? 0) + 1)
-            activeSession.lastRerouteReason = "Device requested reroute"
-            activeSession.lastRerouteTimestamp = Date()
-            try await sendSelectedRoute()
-        } catch {
-            activeSession.lastRerouteReason = "Reroute failed"
-            activeSession.lastRerouteTimestamp = Date()
-            refreshDiagnostics()
+
+        simulatedRiderLocation = riderLocation
+        routeRequest = RoutePlanRequest(
+            origin: riderLocation,
+            destination: activeSession.destinationCoordinate ?? routeRequest.destination,
+            providerID: activeSession.sourceMode.primaryProviderID
+        )
+        await planRoute(using: activeSession.sourceMode, preferredTitle: activeSession.destinationLabel, revisionOverride: (activeSession.routeRevision ?? 0) + 1)
+        activeSession.lastRerouteReason = reason
+        activeSession.lastRerouteTimestamp = Date()
+        _ = await sendSelectedRoute()
+    }
+
+    private func bindBleState() {
+        bleService.$sessionState
+            .receive(on: RunLoop.main)
+            .sink { [weak self] state in
+                guard let self else { return }
+                self.refreshDiagnostics()
+                guard case let .rerouteRequest(message)? = state.lastInboundMessage else { return }
+                let signature = "\(message.routeIdentifier)-\(message.riderLocation.latitude)-\(message.riderLocation.longitude)-\(message.reason)"
+                guard self.lastHandledRerouteSignature != signature else { return }
+                self.lastHandledRerouteSignature = signature
+                Task { @MainActor in
+                    await self.rerouteActiveSession(from: message.riderLocation, reason: message.reason)
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    private func buildPreview(
+        for request: RoutePlanRequest,
+        sourceMode: RouteSourceMode,
+        revisionOverride: Int?
+    ) async throws -> RoutePreviewModel {
+        switch sourceMode {
+        case .mixed:
+            return try await buildMixedPreview(for: request, revisionOverride: revisionOverride)
+        case .hsl, .osm:
+            guard let provider = providers[sourceMode.primaryProviderID] else {
+                throw NSError(domain: "AppModel", code: 1, userInfo: [NSLocalizedDescriptionKey: "Missing provider for \(sourceMode.displayName)"])
+            }
+            var preview = try await preview(from: provider, request: request, revisionOverride: revisionOverride)
+            preview.alternatives = presentAlternatives(preview.alternatives, sourceMode: sourceMode)
+            preview.selectedAlternativeID = preview.alternatives.first?.id
+            preview.routeIdentifier = preview.alternatives.first?.normalizedPackage.routeIdentifier
+            preview.routeRevision = preview.alternatives.first?.normalizedPackage.revision
+            return preview
         }
     }
 
-    private func applySelectedAlternativeToSession(providerID: RouteProviderID, destination: CoordinatePoint) {
+    private func preview(from provider: RoutingProvider, request: RoutePlanRequest, revisionOverride: Int?) async throws -> RoutePreviewModel {
+        if let revisionOverride {
+            let session = ActiveRouteSession(
+                routeIdentifier: activeSession.routeIdentifier,
+                routeRevision: revisionOverride - 1,
+                destinationLabel: activeSession.destinationLabel,
+                destinationCoordinate: request.destination,
+                providerID: provider.providerID,
+                sourceMode: currentSourceMode,
+                lastRerouteReason: activeSession.lastRerouteReason,
+                lastRerouteTimestamp: activeSession.lastRerouteTimestamp
+            )
+            return try await provider.replanRoute(using: session, riderLocation: request.origin)
+        }
+        return try await provider.planRoute(request)
+    }
+
+    private func buildMixedPreview(for request: RoutePlanRequest, revisionOverride: Int?) async throws -> RoutePreviewModel {
+        guard let hsl = providers[.hsl], let osm = providers[.osm] else {
+            throw NSError(domain: "AppModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Mixed mode providers are unavailable"])
+        }
+        async let hslPreview = preview(from: hsl, request: request, revisionOverride: revisionOverride)
+        async let osmPreview = preview(from: osm, request: request, revisionOverride: revisionOverride)
+        let previews = try await [hslPreview, osmPreview]
+        let merged = mergeMixedAlternatives(previews.flatMap(\.alternatives))
+        return RoutePreviewModel(
+            alternatives: merged,
+            selectedAlternativeID: merged.first?.id,
+            routeIdentifier: merged.first?.normalizedPackage.routeIdentifier,
+            routeRevision: merged.first?.normalizedPackage.revision,
+            planningNotice: "Mixed routes from HSL and OSM"
+        )
+    }
+
+    private func mergeMixedAlternatives(_ alternatives: [RouteAlternative]) -> [RouteAlternative] {
+        guard !alternatives.isEmpty else { return [] }
+        var remaining = alternatives.sorted {
+            if $0.durationSeconds == $1.durationSeconds {
+                return $0.distanceMeters < $1.distanceMeters
+            }
+            return $0.durationSeconds < $1.durationSeconds
+        }
+
+        var chosen: [RouteAlternative] = []
+        if let fastest = remaining.first {
+            chosen.append(fastest)
+            remaining.removeAll { $0.normalizedPackage.routeIdentifier == fastest.normalizedPackage.routeIdentifier }
+        }
+
+        if let quieter = remaining.first(where: { $0.normalizedPackage.provenance.providerID == .osm }) ?? remaining.first {
+            chosen.append(quieter)
+            remaining.removeAll { $0.normalizedPackage.routeIdentifier == quieter.normalizedPackage.routeIdentifier }
+        }
+
+        if let simpler = remaining.min(by: { $0.normalizedPackage.maneuverCount < $1.normalizedPackage.maneuverCount }) {
+            chosen.append(simpler)
+            remaining.removeAll { $0.normalizedPackage.routeIdentifier == simpler.normalizedPackage.routeIdentifier }
+        }
+
+        while chosen.count < 3, let next = remaining.first {
+            chosen.append(next)
+            remaining.removeFirst()
+        }
+
+        return presentAlternatives(chosen, sourceMode: .mixed)
+    }
+
+    private func presentAlternatives(_ alternatives: [RouteAlternative], sourceMode: RouteSourceMode) -> [RouteAlternative] {
+        let styles = [RouteSuggestionKind.fastest, .quieter, .simpler]
+        return alternatives.prefix(3).enumerated().map { index, alternative in
+            let style = styles[min(index, styles.count - 1)]
+            let providerLabel = alternative.normalizedPackage.provenance.providerID.displayName
+            return RouteAlternative(
+                id: alternative.id,
+                title: style.displayName,
+                subtitle: "via \(providerLabel)",
+                distanceMeters: alternative.distanceMeters,
+                durationSeconds: alternative.durationSeconds,
+                normalizedPackage: alternative.normalizedPackage
+            )
+        }
+    }
+
+    private func applySelectedAlternativeToSession(sourceMode: RouteSourceMode, destination: CoordinatePoint, preferredTitle: String?) {
         let selectedPackage = preview.selectedAlternative?.normalizedPackage
+        let providerID = selectedPackage?.provenance.providerID ?? sourceMode.primaryProviderID
+        selectedProviderID = providerID
         activeSession.routeIdentifier = selectedPackage?.routeIdentifier ?? preview.routeIdentifier
         activeSession.routeRevision = selectedPackage?.revision ?? preview.routeRevision
-        activeSession.destinationLabel = selectedPackage?.summary.destinationLabel ?? providerID.displayName + " route"
+        activeSession.destinationLabel = selectedPackage?.summary.destinationLabel ?? preferredTitle ?? providerID.displayName + " route"
         activeSession.destinationCoordinate = selectedPackage?.geometry.last ?? destination
         activeSession.providerID = providerID
+        activeSession.sourceMode = sourceMode
     }
 }

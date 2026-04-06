@@ -26,13 +26,76 @@ enum RouteStartBehavior: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+enum RouteSourceMode: String, CaseIterable, Identifiable, Codable {
+    case mixed
+    case hsl
+    case osm
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .mixed: return "Mixed"
+        case .hsl: return "HSL"
+        case .osm: return "OSM"
+        }
+    }
+
+    var primaryProviderID: RouteProviderID {
+        switch self {
+        case .mixed, .hsl:
+            return .hsl
+        case .osm:
+            return .osm
+        }
+    }
+
+    var providerIDs: [RouteProviderID] {
+        switch self {
+        case .mixed:
+            return [.hsl, .osm]
+        case .hsl:
+            return [.hsl]
+        case .osm:
+            return [.osm]
+        }
+    }
+}
+
+enum RouteSuggestionKind: String, CaseIterable, Codable {
+    case fastest
+    case quieter
+    case simpler
+
+    var displayName: String {
+        switch self {
+        case .fastest: return "Fastest"
+        case .quieter: return "Quieter"
+        case .simpler: return "Simpler"
+        }
+    }
+}
+
+enum HomeMode: Equatable {
+    case planning
+    case sendingToDevice
+    case phoneGuidance
+    case deviceOverview
+}
+
+enum HomeCompassMode: Equatable {
+    case autoFollow
+    case northPreview
+    case northLocked
+}
+
 struct RoutePlannerPreferences: Equatable, Codable {
-    var providerID: RouteProviderID
+    var defaultSourceMode: RouteSourceMode
     var suggestionMode: RouteSuggestionMode
     var startBehavior: RouteStartBehavior
 
     static let defaults = RoutePlannerPreferences(
-        providerID: .hsl,
+        defaultSourceMode: .mixed,
         suggestionMode: .threeRoutes,
         startBehavior: .explicit
     )

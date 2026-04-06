@@ -10,10 +10,17 @@ import kotlinx.coroutines.launch
 import me.fiksu.esp32map.companion.app.CompanionAppState
 import me.fiksu.esp32map.companion.domain.CoordinatePoint
 import me.fiksu.esp32map.companion.domain.DestinationSearchResult
+import me.fiksu.esp32map.companion.domain.HomeCompassMode
+import me.fiksu.esp32map.companion.domain.HomeMode
 import me.fiksu.esp32map.companion.domain.NormalizedRoutePackage
 import me.fiksu.esp32map.companion.domain.RouteAlternative
 import me.fiksu.esp32map.companion.domain.RouteHistoryItem
+import me.fiksu.esp32map.companion.domain.RouteHistorySource
 import me.fiksu.esp32map.companion.domain.RoutePlanRequest
+import me.fiksu.esp32map.companion.domain.RoutePreviewModel
+import me.fiksu.esp32map.companion.domain.RouteSourceMode
+import me.fiksu.esp32map.companion.domain.RouteStartBehavior
+import me.fiksu.esp32map.companion.domain.RouteManeuverType
 import me.fiksu.esp32map.companion.integration.PlaceSearchService
 
 class HomeStateHolder(
@@ -26,6 +33,11 @@ class HomeStateHolder(
     var visibleSuggestionCount by mutableIntStateOf(10)
     var visibleRecentCount by mutableIntStateOf(10)
     var activeRouteIdentifier by mutableStateOf<String?>(null)
+    var homeMode by mutableStateOf(HomeMode.PLANNING)
+    var compassMode by mutableStateOf(HomeCompassMode.AUTO_FOLLOW)
+
+    val sourceMode: RouteSourceMode
+        get() = appState.currentSourceMode
 
     val recentItems: List<RouteHistoryItem>
         get() = appState.routeHistoryItems.take(visibleRecentCount)
@@ -34,24 +46,65 @@ class HomeStateHolder(
         get() = suggestions.take(visibleSuggestionCount)
 
     val previewAlternatives: List<RouteAlternative>
-        get() = when (appState.routePlannerPreferences.suggestionMode) {
-            me.fiksu.esp32map.companion.domain.RouteSuggestionMode.BEST_ONLY -> appState.preview.alternatives.take(1)
-            me.fiksu.esp32map.companion.domain.RouteSuggestionMode.THREE_ROUTES -> appState.preview.alternatives.take(3)
+        get() {
+            val limit = if (appState.routePlannerPreferences.suggestionMode == me.fiksu.esp32map.companion.domain.RouteSuggestionMode.BEST_ONLY) 1 else 3
+            return appState.preview.alternatives.take(limit)
         }
 
     val selectedPreview: RouteAlternative?
         get() = appState.preview.selectedAlternative
 
-    val activeRoute: NormalizedRoutePackage?
-        get() = if (activeRouteIdentifier != null) selectedPreview?.normalizedPackage else null
+    val guidanceRoute: NormalizedRoutePackage?
+        get() = when (homeMode) {
+            HomeMode.PHONE_GUIDANCE, HomeMode.DEVICE_OVERVIEW, HomeMode.SENDING_TO_DEVICE -> selectedPreview?.normalizedPackage
+            HomeMode.PLANNING -> null
+        }
 
     val previewRoute: NormalizedRoutePackage?
         get() = selectedPreview?.normalizedPackage
 
     val destinationCoordinate: CoordinatePoint?
-        get() = activeRoute?.geometry?.lastOrNull() ?: previewRoute?.geometry?.lastOrNull()
+        get() = guidanceRoute?.geometry?.lastOrNull() ?: previewRoute?.geometry?.lastOrNull()
+
+    val displayedRouteCoordinates: List<CoordinatePoint>
+        get() = guidanceRoute?.geometry ?: previewRoute?.geometry ?: emptyList()
+
+    val shouldShowSearchPanel: Boolean
+        get() = homeMode == HomeMode.PLANNING && isSearchOpen && (query.isNotBlank() || recentItems.isNotEmpty())
+
+    val shouldShowSourceControl: Boolean
+        get() = homeMode == HomeMode.PLANNING && previewAlternatives.isNotEmpty()
+
+    val isShowingActiveNavigation: Boolean
+        get() = homeMode == HomeMode.PHONE_GUIDANCE || homeMode == HomeMode.DEVICE_OVERVIEW || homeMode == HomeMode.SENDING_TO_DEVICE
+
+    val startButtonTitle: String
+        get() = when (homeMode) {
+            HomeMode.SENDING_TO_DEVICE -> "Starting on device..."
+            HomeMode.PLANNING -> if (appState.isDeviceConnected) "Start on device" else "Start"
+            HomeMode.PHONE_GUIDANCE, HomeMode.DEVICE_OVERVIEW -> "Start"
+        }
+
+    val activeNavigationTitle: String
+        get() = guidanceRoute?.summary?.destinationLabel ?: appState.activeSession.destinationLabel
+
+    val activeNavigationSubtitle: String
+        get() = when (homeMode) {
+            HomeMode.PHONE_GUIDANCE -> nextInstructionLine ?: "Riding on phone"
+            HomeMode.DEVICE_OVERVIEW, HomeMode.SENDING_TO_DEVICE -> appState.syncSession.lastSyncResult
+            HomeMode.PLANNING -> selectedPreview?.normalizedPackage?.summaryLine.orEmpty()
+        }
+
+    val nextInstructionLine: String?
+        get() {
+            val route = guidanceRoute ?: return null
+            val nextStep = route.maneuvers.firstOrNull { it.maneuverType != RouteManeuverType.DEPART }
+            val instruction = nextStep?.instructionText ?: "Ride toward destination"
+            return nextStep?.distanceFromStartMeters?.let { "$instruction • ${it.toInt()} m" } ?: instruction
+        }
 
     fun openSearch() {
+        if (homeMode != HomeMode.PLANNING) return
         isSearchOpen = true
         visibleRecentCount = 10
         visibleSuggestionCount = 10
@@ -74,6 +127,7 @@ class HomeStateHolder(
     }
 
     fun updateQuery(newValue: String, scope: CoroutineScope) {
+        if (homeMode != HomeMode.PLANNING) return
         query = newValue
         visibleSuggestionCount = 10
         if (newValue.isBlank()) {
@@ -86,55 +140,37 @@ class HomeStateHolder(
     }
 
     fun selectSuggestion(suggestion: DestinationSearchResult, scope: CoroutineScope) {
-        scope.launch {
-            val providerId = appState.routePlannerPreferences.providerId
-            appState.selectedProviderId = providerId
-            appState.routeRequest = RoutePlanRequest(
-                origin = appState.simulatedRiderLocation,
-                destination = suggestion.coordinate,
-                providerId = providerId,
-            )
-            appState.planRoute()
+        appState.routeRequest = RoutePlanRequest(
+            origin = appState.simulatedRiderLocation,
+            destination = suggestion.coordinate,
+            providerId = sourceMode.primaryProviderId,
+        )
+        appState.recordRecentDestination(suggestion.title, suggestion.coordinate)
+        appState.planRoute(sourceMode = sourceMode, preferredTitle = suggestion.title) {
             query = suggestion.title
+            homeMode = HomeMode.PLANNING
             closeSearch()
-            if (appState.routePlannerPreferences.startBehavior == me.fiksu.esp32map.companion.domain.RouteStartBehavior.AUTOMATIC) {
-                delay(150)
-                startSelectedRoute()
+            appState.recordPlannedPreview(RouteHistorySource.PLANNED_ROUTE, sourceMode.displayName)
+            if (appState.routePlannerPreferences.startBehavior == RouteStartBehavior.AUTOMATIC) {
+                scope.launch {
+                    delay(150)
+                    startSelectedRoute()
+                }
             }
         }
     }
 
     fun selectRecent(item: RouteHistoryItem, scope: CoroutineScope) {
-        scope.launch {
-            if (item.routePackage != null) {
-                val packageRef = item.routePackage
-                appState.preview = appState.preview.copy(
-                    alternatives = listOf(
-                        RouteAlternative(
-                            id = item.id,
-                            title = item.title,
-                            subtitle = item.subtitle,
-                            distanceMeters = packageRef.summary.totalDistanceMeters.toInt(),
-                            durationSeconds = packageRef.summary.estimatedDurationSeconds,
-                            normalizedPackage = packageRef,
-                        ),
-                    ),
-                    selectedAlternativeId = item.id,
-                    routeIdentifier = packageRef.routeIdentifier,
-                    routeRevision = packageRef.revision,
-                    planningNotice = item.sourceLabel,
-                )
-            } else if (item.destination != null) {
-                val providerId = appState.routePlannerPreferences.providerId
-                appState.selectedProviderId = providerId
-                appState.routeRequest = RoutePlanRequest(
-                    origin = appState.simulatedRiderLocation,
-                    destination = item.destination,
-                    providerId = providerId,
-                )
-                appState.planRoute()
-            }
+        appState.applyRouteHistoryPreview(item) {
+            query = item.title
+            homeMode = HomeMode.PLANNING
             closeSearch()
+            if (appState.routePlannerPreferences.startBehavior == RouteStartBehavior.AUTOMATIC) {
+                scope.launch {
+                    delay(150)
+                    startSelectedRoute()
+                }
+            }
         }
     }
 
@@ -150,26 +186,88 @@ class HomeStateHolder(
         )
     }
 
+    fun setSourceMode(mode: RouteSourceMode) {
+        if (mode == sourceMode) return
+        appState.currentSourceMode = mode
+        appState.saveRoutePlannerPreferences(appState.routePlannerPreferences.copy(defaultSourceMode = mode))
+        val destination = destinationCoordinate ?: return
+        appState.routeRequest = RoutePlanRequest(
+            origin = appState.simulatedRiderLocation,
+            destination = destination,
+            providerId = mode.primaryProviderId,
+        )
+        appState.planRoute(mode, preferredTitle = if (query.isBlank()) activeNavigationTitle else query) {
+            appState.recordPlannedPreview(RouteHistorySource.PLANNED_ROUTE, mode.displayName)
+        }
+    }
+
     fun selectAlternative(alternativeId: String) {
         appState.selectAlternative(alternativeId)
     }
 
     fun startSelectedRoute() {
-        activeRouteIdentifier = selectedPreview?.normalizedPackage?.routeIdentifier
+        closeSearch()
+        val routeIdentifier = selectedPreview?.normalizedPackage?.routeIdentifier ?: return
+        activeRouteIdentifier = routeIdentifier
+        if (appState.isDeviceConnected) {
+            homeMode = HomeMode.SENDING_TO_DEVICE
+            appState.sendSelectedRoute { success ->
+                homeMode = if (success) HomeMode.DEVICE_OVERVIEW else HomeMode.PLANNING
+            }
+        } else {
+            compassMode = HomeCompassMode.AUTO_FOLLOW
+            homeMode = HomeMode.PHONE_GUIDANCE
+        }
     }
 
-    fun stopGuidance(scope: CoroutineScope) {
-        activeRouteIdentifier = null
+    fun stopActiveNavigation() {
         val destination = destinationCoordinate ?: return
-        scope.launch {
-            val providerId = appState.routePlannerPreferences.providerId
-            appState.selectedProviderId = providerId
-            appState.routeRequest = RoutePlanRequest(
-                origin = appState.simulatedRiderLocation,
-                destination = destination,
-                providerId = providerId,
-            )
-            appState.planRoute()
+        val sourceToReuse = appState.activeSession.sourceMode
+        compassMode = HomeCompassMode.AUTO_FOLLOW
+        activeRouteIdentifier = null
+        if (homeMode == HomeMode.DEVICE_OVERVIEW || homeMode == HomeMode.SENDING_TO_DEVICE) {
+            appState.clearActiveRoute()
         }
+        homeMode = HomeMode.PLANNING
+        appState.routeRequest = RoutePlanRequest(
+            origin = appState.simulatedRiderLocation,
+            destination = destination,
+            providerId = sourceToReuse.primaryProviderId,
+        )
+        appState.planRoute(sourceToReuse, preferredTitle = if (query.isBlank()) activeNavigationTitle else query) {
+            appState.recordPlannedPreview(RouteHistorySource.PLANNED_ROUTE, sourceToReuse.displayName)
+        }
+    }
+
+    fun clearPreview() {
+        activeRouteIdentifier = null
+        homeMode = HomeMode.PLANNING
+        compassMode = HomeCompassMode.AUTO_FOLLOW
+        query = ""
+        suggestions = emptyList()
+        closeSearch()
+        appState.preview = RoutePreviewModel()
+    }
+
+    fun handleCompassTap(scope: CoroutineScope) {
+        if (homeMode != HomeMode.PHONE_GUIDANCE) return
+        when (compassMode) {
+            HomeCompassMode.AUTO_FOLLOW -> {
+                compassMode = HomeCompassMode.NORTH_PREVIEW
+                scope.launch {
+                    delay(2500)
+                    if (homeMode == HomeMode.PHONE_GUIDANCE && compassMode == HomeCompassMode.NORTH_PREVIEW) {
+                        compassMode = HomeCompassMode.AUTO_FOLLOW
+                    }
+                }
+            }
+            HomeCompassMode.NORTH_PREVIEW -> compassMode = HomeCompassMode.NORTH_LOCKED
+            HomeCompassMode.NORTH_LOCKED -> compassMode = HomeCompassMode.AUTO_FOLLOW
+        }
+    }
+
+    fun handleCompassDoubleTap() {
+        if (homeMode != HomeMode.PHONE_GUIDANCE) return
+        compassMode = HomeCompassMode.NORTH_LOCKED
     }
 }

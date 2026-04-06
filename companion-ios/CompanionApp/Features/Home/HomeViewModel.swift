@@ -8,10 +8,13 @@ final class HomeViewModel: ObservableObject {
     @Published var visibleSuggestionCount = 10
     @Published var visibleRecentCount = 10
     @Published var activeRouteIdentifier: String?
+    @Published var homeMode: HomeMode = .planning
+    @Published var compassMode: HomeCompassMode = .autoFollow
 
     private let appModel: AppModel
     private let placeSearchService: PlaceSearchService
     private var latestSearchTask: Task<Void, Never>?
+    private var northPreviewTask: Task<Void, Never>?
 
     init(appModel: AppModel, placeSearchService: PlaceSearchService = MapKitPlaceSearchService()) {
         self.appModel = appModel
@@ -23,6 +26,18 @@ final class HomeViewModel: ObservableObject {
         set { appModel.routePlannerPreferences = newValue }
     }
 
+    var sourceMode: RouteSourceMode {
+        get { appModel.currentSourceMode }
+        set {
+            appModel.currentSourceMode = newValue
+            plannerPreferences = RoutePlannerPreferences(
+                defaultSourceMode: newValue,
+                suggestionMode: plannerPreferences.suggestionMode,
+                startBehavior: plannerPreferences.startBehavior
+            )
+        }
+    }
+
     var recentItems: [RouteHistoryItem] {
         Array(appModel.routeHistoryItems.prefix(visibleRecentCount))
     }
@@ -32,19 +47,21 @@ final class HomeViewModel: ObservableObject {
     }
 
     var previewAlternatives: [RouteAlternative] {
-        if plannerPreferences.suggestionMode == .bestOnly {
-            return Array(appModel.preview.alternatives.prefix(1))
-        }
-        return Array(appModel.preview.alternatives.prefix(3))
+        let limit = plannerPreferences.suggestionMode == .bestOnly ? 1 : 3
+        return Array(appModel.preview.alternatives.prefix(limit))
     }
 
     var selectedPreview: RouteAlternative? {
         appModel.preview.selectedAlternative
     }
 
-    var activeRoute: NormalizedRoutePackage? {
-        guard activeRouteIdentifier != nil else { return nil }
-        return selectedPreview?.normalizedPackage
+    var guidanceRoute: NormalizedRoutePackage? {
+        switch homeMode {
+        case .phoneGuidance, .deviceOverview, .sendingToDevice:
+            return selectedPreview?.normalizedPackage
+        case .planning:
+            return nil
+        }
     }
 
     var previewRoute: NormalizedRoutePackage? {
@@ -52,22 +69,81 @@ final class HomeViewModel: ObservableObject {
     }
 
     var destinationCoordinate: CoordinatePoint? {
-        activeRoute?.geometry.last ?? previewRoute?.geometry.last
+        guidanceRoute?.geometry.last ?? previewRoute?.geometry.last
     }
 
     var originCoordinate: CoordinatePoint? {
-        activeRoute?.geometry.first ?? previewRoute?.geometry.first
+        guidanceRoute?.geometry.first ?? previewRoute?.geometry.first
     }
 
     var displayedRouteCoordinates: [CoordinatePoint] {
-        activeRoute?.geometry ?? previewRoute?.geometry ?? []
+        guidanceRoute?.geometry ?? previewRoute?.geometry ?? []
     }
 
     var shouldShowSearchPanel: Bool {
-        isSearchOpen && (!query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !recentItems.isEmpty)
+        homeMode == .planning && isSearchOpen && (!query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !recentItems.isEmpty)
+    }
+
+    var shouldShowSourceControl: Bool {
+        homeMode == .planning && !previewAlternatives.isEmpty
+    }
+
+    var isShowingActiveNavigation: Bool {
+        homeMode == .phoneGuidance || homeMode == .deviceOverview || homeMode == .sendingToDevice
+    }
+
+    var startButtonTitle: String {
+        switch homeMode {
+        case .sendingToDevice:
+            return "Starting on device…"
+        case .planning:
+            return appModel.isDeviceConnected ? "Start on device" : "Start"
+        case .phoneGuidance, .deviceOverview:
+            return "Start"
+        }
+    }
+
+    var activeNavigationTitle: String {
+        if let destination = guidanceRoute?.summary.destinationLabel {
+            return destination
+        }
+        return appModel.activeSession.destinationLabel
+    }
+
+    var activeNavigationSubtitle: String {
+        switch homeMode {
+        case .phoneGuidance:
+            return nextInstructionLine ?? "Riding on phone"
+        case .deviceOverview, .sendingToDevice:
+            return appModel.bleService.sessionState.lastSyncResult
+        case .planning:
+            return selectedPreview?.normalizedPackage.summaryLine ?? ""
+        }
+    }
+
+    var nextInstructionLine: String? {
+        guard let route = guidanceRoute else { return nil }
+        let nextStep = route.maneuvers.first(where: { $0.maneuverType != .depart })
+        let instruction = nextStep?.instructionText ?? "Ride toward destination"
+        if let distance = nextStep?.distanceFromStartMeters {
+            return "\(instruction) • \(Int(distance.rounded())) m"
+        }
+        return instruction
+    }
+
+    var compassSymbolName: String {
+        switch compassMode {
+        case .autoFollow:
+            return "location.north.line.fill"
+        case .northPreview:
+            return "location.north.circle.fill"
+        case .northLocked:
+            return "location.north.line.circle.fill"
+        }
     }
 
     func openSearch() {
+        guard homeMode == .planning else { return }
         isSearchOpen = true
         visibleRecentCount = 10
         visibleSuggestionCount = 10
@@ -90,6 +166,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     func updateQuery(_ newValue: String) {
+        guard homeMode == .planning else { return }
         query = newValue
         visibleSuggestionCount = 10
         latestSearchTask?.cancel()
@@ -108,18 +185,18 @@ final class HomeViewModel: ObservableObject {
 
     func selectSuggestion(_ suggestion: DestinationSearchResult) {
         Task {
-            appModel.selectedProviderID = plannerPreferences.providerID
             appModel.routeRequest = RoutePlanRequest(
                 origin: appModel.simulatedRiderLocation,
                 destination: suggestion.coordinate,
-                providerID: plannerPreferences.providerID
+                providerID: sourceMode.primaryProviderID
             )
-            await appModel.planRoute()
+            await appModel.planRoute(using: sourceMode, preferredTitle: suggestion.title)
             appModel.recordRecentDestination(title: suggestion.title, coordinate: suggestion.coordinate)
-            appModel.recordPlannedPreview(source: .plannedRoute, sourceLabel: plannerPreferences.providerID.displayName)
+            appModel.recordPlannedPreview(source: .plannedRoute, sourceLabel: sourceMode.displayName)
             query = suggestion.title
+            homeMode = .planning
             if plannerPreferences.startBehavior == .automatic {
-                startSelectedRoute()
+                await startSelectedRoute()
             }
             closeSearch()
         }
@@ -127,33 +204,11 @@ final class HomeViewModel: ObservableObject {
 
     func selectRecent(_ item: RouteHistoryItem) {
         Task {
-            if let package = item.routePackage {
-                let alternative = RouteAlternative(
-                    id: UUID(),
-                    title: item.title,
-                    subtitle: item.subtitle,
-                    distanceMeters: Int(package.summary.totalDistanceMeters.rounded()),
-                    durationSeconds: package.summary.estimatedDurationSeconds,
-                    normalizedPackage: package
-                )
-                appModel.preview = RoutePreviewModel(
-                    alternatives: [alternative],
-                    selectedAlternativeID: alternative.id,
-                    routeIdentifier: package.routeIdentifier,
-                    routeRevision: package.revision,
-                    planningNotice: item.sourceLabel
-                )
-                if let destination = item.destination {
-                    appModel.routeRequest = RoutePlanRequest(origin: appModel.simulatedRiderLocation, destination: destination, providerID: plannerPreferences.providerID)
-                }
-            } else if let destination = item.destination {
-                appModel.selectedProviderID = plannerPreferences.providerID
-                appModel.routeRequest = RoutePlanRequest(origin: appModel.simulatedRiderLocation, destination: destination, providerID: plannerPreferences.providerID)
-                await appModel.planRoute()
-                appModel.recordPlannedPreview(source: .plannedRoute, sourceLabel: plannerPreferences.providerID.displayName)
-            }
+            await appModel.applyRouteHistoryPreview(item)
+            query = item.title
+            homeMode = .planning
             if plannerPreferences.startBehavior == .automatic {
-                startSelectedRoute()
+                await startSelectedRoute()
             }
             closeSearch()
         }
@@ -169,31 +224,102 @@ final class HomeViewModel: ObservableObject {
         selectSuggestion(manualDrop)
     }
 
+    func setSourceMode(_ mode: RouteSourceMode) {
+        guard sourceMode != mode else { return }
+        sourceMode = mode
+        guard let destination = destinationCoordinate else { return }
+        Task {
+            appModel.routeRequest = RoutePlanRequest(
+                origin: appModel.simulatedRiderLocation,
+                destination: destination,
+                providerID: mode.primaryProviderID
+            )
+            await appModel.planRoute(using: mode, preferredTitle: query.isEmpty ? activeNavigationTitle : query)
+            appModel.recordPlannedPreview(source: .plannedRoute, sourceLabel: mode.displayName)
+        }
+    }
+
     func selectAlternative(_ alternativeID: UUID) {
         appModel.selectAlternative(alternativeID)
     }
 
-    func startSelectedRoute() {
+    func startSelectedRoute() async {
         closeSearch()
-        activeRouteIdentifier = selectedPreview?.normalizedPackage.routeIdentifier
+        guard let selectedPreview else { return }
+        activeRouteIdentifier = selectedPreview.normalizedPackage.routeIdentifier
+        if appModel.isDeviceConnected {
+            homeMode = .sendingToDevice
+            let success = await appModel.sendSelectedRoute()
+            homeMode = success ? .deviceOverview : .planning
+        } else {
+            appModel.activeSession.sourceMode = sourceMode
+            homeMode = .phoneGuidance
+            compassMode = .autoFollow
+        }
     }
 
-    func stopGuidance() {
-        activeRouteIdentifier = nil
-        guard let destination = destinationCoordinate else { return }
+    func stopActiveNavigation() {
         Task {
-            appModel.selectedProviderID = plannerPreferences.providerID
-            appModel.routeRequest = RoutePlanRequest(origin: appModel.simulatedRiderLocation, destination: destination, providerID: plannerPreferences.providerID)
-            await appModel.planRoute()
-            appModel.recordPlannedPreview(source: .plannedRoute, sourceLabel: plannerPreferences.providerID.displayName)
+            let destination = destinationCoordinate
+            let sourceToReuse = appModel.activeSession.sourceMode
+            if homeMode == .deviceOverview || homeMode == .sendingToDevice {
+                _ = await appModel.clearActiveRoute()
+            }
+            northPreviewTask?.cancel()
+            compassMode = .autoFollow
+            activeRouteIdentifier = nil
+            homeMode = .planning
+            guard let destination else { return }
+            appModel.routeRequest = RoutePlanRequest(
+                origin: appModel.simulatedRiderLocation,
+                destination: destination,
+                providerID: sourceToReuse.primaryProviderID
+            )
+            await appModel.planRoute(using: sourceToReuse, preferredTitle: query.isEmpty ? activeNavigationTitle : query)
+            appModel.recordPlannedPreview(source: .plannedRoute, sourceLabel: sourceToReuse.displayName)
         }
     }
 
     func clearPreview() {
+        northPreviewTask?.cancel()
         activeRouteIdentifier = nil
+        homeMode = .planning
+        compassMode = .autoFollow
         query = ""
         suggestions = []
         closeSearch()
         appModel.clearPreviewSelection()
+    }
+
+    func handleCompassTap() {
+        guard homeMode == .phoneGuidance else { return }
+        switch compassMode {
+        case .autoFollow:
+            enterNorthPreview()
+        case .northPreview:
+            enterNorthLocked()
+        case .northLocked:
+            compassMode = .autoFollow
+        }
+    }
+
+    func handleCompassDoubleTap() {
+        guard homeMode == .phoneGuidance else { return }
+        enterNorthLocked()
+    }
+
+    private func enterNorthPreview() {
+        northPreviewTask?.cancel()
+        compassMode = .northPreview
+        northPreviewTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            guard let self, !Task.isCancelled, self.homeMode == .phoneGuidance, self.compassMode == .northPreview else { return }
+            self.compassMode = .autoFollow
+        }
+    }
+
+    private func enterNorthLocked() {
+        northPreviewTask?.cancel()
+        compassMode = .northLocked
     }
 }

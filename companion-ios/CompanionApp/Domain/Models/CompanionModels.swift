@@ -230,6 +230,7 @@ struct ActiveRouteSession: Equatable, Codable {
     var destinationLabel: String
     var destinationCoordinate: CoordinatePoint?
     var providerID: RouteProviderID
+    var sourceMode: RouteSourceMode
     var lastRerouteReason: String?
     var lastRerouteTimestamp: Date?
 }

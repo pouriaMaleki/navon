@@ -186,6 +186,7 @@ data class ActiveRouteSession(
     val destinationLabel: String = "No destination",
     val destinationCoordinate: CoordinatePoint? = null,
     val providerId: RouteProviderId = RouteProviderId.HSL,
+    val sourceMode: RouteSourceMode = RouteSourceMode.MIXED,
     val lastRerouteReason: String? = null,
     val lastRerouteTimestamp: String? = null,
 )
