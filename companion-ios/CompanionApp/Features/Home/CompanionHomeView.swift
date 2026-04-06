@@ -15,14 +15,17 @@ struct CompanionHomeView: View {
 
     var body: some View {
         MapReader { proxy in
-            ZStack(alignment: .top) {
-                mapSurface(proxy: proxy)
-                overlayChrome
-            }
-            .ignoresSafeArea(edges: .bottom)
-            .onAppear { fitDisplayedRouteIfNeeded() }
-            .onChange(of: appModel.preview.selectedAlternativeID) { _, _ in fitDisplayedRouteIfNeeded() }
-            .onChange(of: viewModel.activeRouteIdentifier) { _, _ in fitDisplayedRouteIfNeeded() }
+            mapSurface(proxy: proxy)
+                .overlay(alignment: .top) {
+                    topOverlay
+                }
+                .overlay(alignment: .bottom) {
+                    bottomOverlay
+                }
+                .ignoresSafeArea(edges: .bottom)
+                .onAppear { fitDisplayedRouteIfNeeded() }
+                .onChange(of: appModel.preview.selectedAlternativeID) { _, _ in fitDisplayedRouteIfNeeded() }
+                .onChange(of: viewModel.activeRouteIdentifier) { _, _ in fitDisplayedRouteIfNeeded() }
         }
     }
 
@@ -72,26 +75,24 @@ struct CompanionHomeView: View {
         )
     }
 
-    private var overlayChrome: some View {
-        VStack(spacing: 12) {
-            VStack(spacing: 8) {
-                topBar
-                if viewModel.shouldShowSearchPanel {
-                    searchPanel
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-
-            Spacer()
-
-            if let active = viewModel.activeRoute {
-                activeGuidanceCard(active)
-            } else if !viewModel.previewAlternatives.isEmpty {
-                routeSuggestionsCard
+    private var topOverlay: some View {
+        VStack(spacing: 8) {
+            topBar
+            if viewModel.shouldShowSearchPanel {
+                searchPanel
             }
         }
-        .allowsHitTesting(false)
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+    }
+
+    @ViewBuilder
+    private var bottomOverlay: some View {
+        if let active = viewModel.activeRoute {
+            activeGuidanceCard(active)
+        } else if !viewModel.previewAlternatives.isEmpty {
+            routeSuggestionsCard
+        }
     }
 
     private var topBar: some View {
@@ -131,7 +132,6 @@ struct CompanionHomeView: View {
             }
             .accessibilityLabel("Settings")
         }
-        .allowsHitTesting(true)
     }
 
     private var searchPanel: some View {
@@ -164,7 +164,6 @@ struct CompanionHomeView: View {
         }
         .frame(maxHeight: 320)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .allowsHitTesting(true)
     }
 
     private func suggestionRow(_ suggestion: DestinationSearchResult) -> some View {
@@ -250,7 +249,6 @@ struct CompanionHomeView: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .padding(.horizontal, 16)
         .padding(.bottom, 16)
-        .allowsHitTesting(true)
     }
 
     private func activeGuidanceCard(_ active: NormalizedRoutePackage) -> some View {
@@ -270,7 +268,6 @@ struct CompanionHomeView: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .padding(.horizontal, 16)
         .padding(.bottom, 16)
-        .allowsHitTesting(true)
     }
 
     private func fitDisplayedRouteIfNeeded() {
