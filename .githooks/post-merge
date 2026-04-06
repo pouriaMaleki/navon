@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Regenerate the iOS Xcode project after a merge so the
+# .xcodeproj (which is gitignored) stays in sync with the source tree.
+
+if command -v xcodegen >/dev/null 2>&1 && [ -f companion-ios/project.yml ]; then
+  echo "post-merge: regenerating companion-ios Xcode project..."
+  xcodegen generate --spec companion-ios/project.yml --project companion-ios
+fi
