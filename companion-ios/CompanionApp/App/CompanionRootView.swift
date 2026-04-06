@@ -10,18 +10,16 @@ struct CompanionRootView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            CompanionHomeView(viewModel: homeViewModel)
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showingSettings = true
-                        } label: {
-                            Image(systemName: "gearshape.fill")
-                        }
-                        .accessibilityLabel("Settings")
-                    }
-                }
+        CompanionHomeView(
+            viewModel: homeViewModel,
+            onOpenSettings: { showingSettings = true }
+        )
+        .onChange(of: appModel.homePreviewRequestID) { _, _ in
+            showingSettings = false
+        }
+        .onChange(of: appModel.homeStartRequestID) { _, _ in
+            showingSettings = false
+            homeViewModel.startSelectedRoute()
         }
         .fullScreenCover(isPresented: $showingSettings) {
             SettingsHubView()

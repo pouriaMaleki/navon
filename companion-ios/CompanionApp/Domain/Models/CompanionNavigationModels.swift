@@ -1,6 +1,6 @@
 import Foundation
 
-enum RouteSuggestionMode: String, CaseIterable, Identifiable {
+enum RouteSuggestionMode: String, CaseIterable, Identifiable, Codable {
     case bestOnly
     case threeRoutes
 
@@ -13,7 +13,7 @@ enum RouteSuggestionMode: String, CaseIterable, Identifiable {
     }
 }
 
-enum RouteStartBehavior: String, CaseIterable, Identifiable {
+enum RouteStartBehavior: String, CaseIterable, Identifiable, Codable {
     case explicit
     case automatic
 
@@ -26,7 +26,7 @@ enum RouteStartBehavior: String, CaseIterable, Identifiable {
     }
 }
 
-struct RoutePlannerPreferences: Equatable {
+struct RoutePlannerPreferences: Equatable, Codable {
     var providerID: RouteProviderID
     var suggestionMode: RouteSuggestionMode
     var startBehavior: RouteStartBehavior
@@ -45,7 +45,7 @@ struct DestinationSearchResult: Identifiable, Equatable {
     var coordinate: CoordinatePoint
 }
 
-enum RouteHistorySource: String, Equatable {
+enum RouteHistorySource: String, Equatable, Codable {
     case recentDestination
     case plannedRoute
     case gpxImport
@@ -53,7 +53,7 @@ enum RouteHistorySource: String, Equatable {
     case partner
 }
 
-struct RouteHistoryItem: Identifiable, Equatable {
+struct RouteHistoryItem: Identifiable, Equatable, Codable {
     var id: String
     var title: String
     var subtitle: String

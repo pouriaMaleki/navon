@@ -4,7 +4,6 @@ import UniformTypeIdentifiers
 struct RoutesSettingsView: View {
     @EnvironmentObject private var appModel: AppModel
     @State private var showingImporter = false
-    @State private var selectedItem: RouteHistoryItem?
 
     var body: some View {
         List {
@@ -40,9 +39,9 @@ struct RoutesSettingsView: View {
             if let item = appModel.routeHistoryItems.first(where: { $0.id == itemID }) {
                 RouteDetailView(
                     item: item,
-                    onOpen: { open(item) },
-                    onStart: { open(item); },
-                    onDismiss: { selectedItem = nil }
+                    onOpen: { appModel.activateRouteHistoryItem(item, startImmediately: false) },
+                    onStart: { appModel.activateRouteHistoryItem(item, startImmediately: true) },
+                    onDismiss: { appModel.dismissRouteHistoryItem(id: item.id) }
                 )
             }
         }
@@ -55,27 +54,8 @@ struct RoutesSettingsView: View {
             Task {
                 await appModel.importGpxFile(from: url)
                 appModel.recordPlannedPreview(source: .gpxImport, sourceLabel: "GPX")
+                appModel.homePreviewRequestID = UUID()
             }
-        }
-    }
-
-    private func open(_ item: RouteHistoryItem) {
-        if let package = item.routePackage {
-            let alternative = RouteAlternative(
-                id: UUID(),
-                title: item.title,
-                subtitle: item.subtitle,
-                distanceMeters: Int(package.summary.totalDistanceMeters.rounded()),
-                durationSeconds: package.summary.estimatedDurationSeconds,
-                normalizedPackage: package
-            )
-            appModel.preview = RoutePreviewModel(
-                alternatives: [alternative],
-                selectedAlternativeID: alternative.id,
-                routeIdentifier: package.routeIdentifier,
-                routeRevision: package.revision,
-                planningNotice: item.sourceLabel
-            )
         }
     }
 }
