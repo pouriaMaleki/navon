@@ -354,14 +354,38 @@ final class AppModel: ObservableObject {
         async let hslPreview = preview(from: hsl, request: request, revisionOverride: revisionOverride)
         async let osmPreview = preview(from: osm, request: request, revisionOverride: revisionOverride)
         let previews = try await [hslPreview, osmPreview]
-        let merged = mergeMixedAlternatives(previews.flatMap(\.alternatives))
+        let effectivePreviews = preferredMixedPreviews(from: previews)
+        let merged = mergeMixedAlternatives(effectivePreviews.flatMap(\.alternatives))
         return RoutePreviewModel(
             alternatives: merged,
             selectedAlternativeID: merged.first?.id,
             routeIdentifier: merged.first?.normalizedPackage.routeIdentifier,
             routeRevision: merged.first?.normalizedPackage.revision,
-            planningNotice: "Mixed routes from HSL and OSM"
+            planningNotice: mixedPlanningNotice(from: previews, effectivePreviews: effectivePreviews)
         )
+    }
+
+    private func preferredMixedPreviews(from previews: [RoutePreviewModel]) -> [RoutePreviewModel] {
+        let livePreviews = previews.filter { !isSamplePreview($0) && !$0.alternatives.isEmpty }
+        if !livePreviews.isEmpty {
+            return livePreviews
+        }
+        return previews.filter { !$0.alternatives.isEmpty }
+    }
+
+    private func isSamplePreview(_ preview: RoutePreviewModel) -> Bool {
+        guard let notice = preview.planningNotice?.lowercased() else { return false }
+        return notice.contains("sample")
+    }
+
+    private func mixedPlanningNotice(from previews: [RoutePreviewModel], effectivePreviews: [RoutePreviewModel]) -> String {
+        if effectivePreviews.count == 1, let notice = effectivePreviews.first?.planningNotice, !notice.isEmpty {
+            return notice
+        }
+        if effectivePreviews.count < previews.count {
+            return "Showing live routes while sample fallback providers are hidden."
+        }
+        return "Mixed routes from HSL and OSM"
     }
 
     private func mergeMixedAlternatives(_ alternatives: [RouteAlternative]) -> [RouteAlternative] {

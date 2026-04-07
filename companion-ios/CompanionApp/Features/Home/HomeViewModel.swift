@@ -279,6 +279,7 @@ final class HomeViewModel: ObservableObject {
         Task {
             let destination = destinationCoordinate
             let sourceToReuse = appModel.activeSession.sourceMode
+            let shouldPreserveCurrentPreview = isPreviewLockedToImportedRoute
             if homeMode == .deviceOverview || homeMode == .sendingToDevice {
                 _ = await appModel.clearActiveRoute()
             }
@@ -286,6 +287,7 @@ final class HomeViewModel: ObservableObject {
             compassMode = .autoFollow
             activeRouteIdentifier = nil
             homeMode = .planning
+            guard !shouldPreserveCurrentPreview else { return }
             guard let destination else { return }
             appModel.routeRequest = RoutePlanRequest(
                 origin: appModel.simulatedRiderLocation,

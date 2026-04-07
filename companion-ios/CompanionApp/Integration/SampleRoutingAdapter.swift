@@ -5,7 +5,10 @@ struct SampleRoutingAdapter: RoutingProvider {
     let isAvailableInV1: Bool = false
 
     func planRoute(_ request: RoutePlanRequest) async throws -> RoutePreviewModel {
-        buildPreview(for: request, revision: 1, planningNotice: planningNotice(for: providerID))
+        if providerID == .osm {
+            return try await buildLiveOsmPreview(for: request, revision: 1)
+        }
+        return buildPreview(for: request, revision: 1, planningNotice: planningNotice(for: providerID))
     }
 
     func replanRoute(using session: ActiveRouteSession, riderLocation: CoordinatePoint) async throws -> RoutePreviewModel {
@@ -14,7 +17,15 @@ struct SampleRoutingAdapter: RoutingProvider {
             destination: session.destinationCoordinate ?? riderLocation,
             providerID: providerID
         )
-        return buildPreview(for: request, revision: (session.routeRevision ?? 0) + 1, planningNotice: "Rerouted with \(providerID.displayName) sample adapter")
+        let revision = (session.routeRevision ?? 0) + 1
+        if providerID == .osm {
+            return try await buildLiveOsmPreview(for: request, revision: revision)
+        }
+        return buildPreview(
+            for: request,
+            revision: revision,
+            planningNotice: "Rerouted with \(providerID.displayName) sample adapter"
+        )
     }
 
     func normalizePreview(_ preview: RoutePreviewModel, request: RoutePlanRequest) throws -> NormalizedRoutePackage {
@@ -22,6 +33,240 @@ struct SampleRoutingAdapter: RoutingProvider {
             throw SampleRoutingAdapterError.noAlternativesAvailable
         }
         return selected.normalizedPackage
+    }
+
+    private func buildLiveOsmPreview(for request: RoutePlanRequest, revision: Int) async throws -> RoutePreviewModel {
+        do {
+            return try await fetchLiveOsmPreview(for: request, revision: revision)
+        } catch {
+            return buildPreview(
+                for: request,
+                revision: revision,
+                planningNotice: "Live OSM failed: \(displayMessage(for: error)). Showing sample route instead."
+            )
+        }
+    }
+
+    private func fetchLiveOsmPreview(for request: RoutePlanRequest, revision: Int) async throws -> RoutePreviewModel {
+        let coordinates = String(
+            format: "%.6f,%.6f;%.6f,%.6f",
+            request.origin.longitude,
+            request.origin.latitude,
+            request.destination.longitude,
+            request.destination.latitude
+        )
+        guard let url = URL(string: "https://router.project-osrm.org/route/v1/bike/\(coordinates)?alternatives=3&overview=full&steps=true&geometries=polyline") else {
+            throw SampleRoutingAdapterError.invalidLiveRouteURL
+        }
+
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let http = response as? HTTPURLResponse else {
+            throw SampleRoutingAdapterError.networkFailure("Missing HTTP response")
+        }
+        guard (200 ..< 300).contains(http.statusCode) else {
+            let bodyMessage = String(data: data, encoding: .utf8) ?? "No response body"
+            throw SampleRoutingAdapterError.networkFailure("HTTP \(http.statusCode): \(bodyMessage)")
+        }
+
+        let decoded = try JSONDecoder().decode(OSRMRouteResponse.self, from: data)
+        guard decoded.code == "Ok" else {
+            throw SampleRoutingAdapterError.networkFailure(decoded.message ?? "OSRM returned \(decoded.code)")
+        }
+        guard !decoded.routes.isEmpty else {
+            throw SampleRoutingAdapterError.noAlternativesAvailable
+        }
+
+        let alternatives = decoded.routes.prefix(3).enumerated().compactMap { index, route in
+            mapLiveAlternative(route: route, request: request, revision: revision, alternativeIndex: index)
+        }
+        guard !alternatives.isEmpty else {
+            throw SampleRoutingAdapterError.noAlternativesAvailable
+        }
+
+        return RoutePreviewModel(
+            alternatives: alternatives,
+            selectedAlternativeID: alternatives.first?.id,
+            routeIdentifier: alternatives.first?.normalizedPackage.routeIdentifier,
+            routeRevision: alternatives.first?.normalizedPackage.revision,
+            planningNotice: "Live OSM bike routing via OSRM demo server"
+        )
+    }
+
+    private func mapLiveAlternative(
+        route: OSRMRoute,
+        request: RoutePlanRequest,
+        revision: Int,
+        alternativeIndex: Int
+    ) -> RouteAlternative? {
+        let geometry = decodePolyline(route.geometry)
+        guard geometry.count >= 2 else { return nil }
+        let maneuvers = buildLiveManeuvers(from: route, geometry: geometry)
+        let summary = RouteSummary(
+            totalDistanceMeters: route.distance,
+            estimatedDurationSeconds: max(Int(route.duration.rounded()), 60),
+            startLabel: "Current location",
+            destinationLabel: "Selected destination"
+        )
+        let routeID = buildLiveRouteIdentifier(request: request, alternativeIndex: alternativeIndex)
+        let package = NormalizedRoutePackage(
+            version: .current,
+            routeIdentifier: routeID,
+            revision: revision,
+            geometry: geometry,
+            maneuvers: maneuvers,
+            summary: summary,
+            provenance: RouteProvenance(
+                providerID: .osm,
+                sourceReference: "OSRM bike route",
+                generatedAtUnixMs: UInt64(Date().timeIntervalSince1970 * 1000)
+            )
+        )
+        return RouteAlternative(
+            id: UUID(),
+            title: alternativeIndex == 0 ? "OSRM primary route" : "OSRM alternative route",
+            subtitle: route.legs.first?.summary?.isEmpty == false ? route.legs.first?.summary ?? "OSRM bike route" : "OSRM bike route",
+            distanceMeters: Int(route.distance.rounded()),
+            durationSeconds: summary.estimatedDurationSeconds,
+            normalizedPackage: package
+        )
+    }
+
+    private func buildLiveManeuvers(from route: OSRMRoute, geometry: [CoordinatePoint]) -> [RouteManeuver] {
+        var maneuvers: [RouteManeuver] = [
+            RouteManeuver(
+                id: "depart",
+                maneuverType: .depart,
+                location: geometry.first ?? CoordinatePoint(latitude: 0, longitude: 0),
+                distanceFromStartMeters: 0,
+                distanceToNextMeters: firstLiveStepDistance(in: route.legs),
+                instructionText: "Start riding"
+            )
+        ]
+
+        var distanceFromStart = 0.0
+        for leg in route.legs {
+            for step in leg.steps {
+                defer { distanceFromStart += step.distance }
+                let instruction = instructionText(for: step)
+                let type = step.maneuver.type.lowercased()
+                switch type {
+                case "depart", "notification", "new name", "continue", "arrive":
+                    continue
+                default:
+                    break
+                }
+                guard step.maneuver.location.count >= 2 else { continue }
+                maneuvers.append(
+                    RouteManeuver(
+                        id: step.name.isEmpty ? "step-\(maneuvers.count)" : "step-\(maneuvers.count)-\(step.name)",
+                        maneuverType: maneuverType(for: step),
+                        location: CoordinatePoint(latitude: step.maneuver.location[1], longitude: step.maneuver.location[0]),
+                        distanceFromStartMeters: distanceFromStart,
+                        distanceToNextMeters: step.distance,
+                        instructionText: instruction
+                    )
+                )
+            }
+        }
+
+        maneuvers.append(
+            RouteManeuver(
+                id: "arrive",
+                maneuverType: .arrive,
+                location: geometry.last ?? CoordinatePoint(latitude: 0, longitude: 0),
+                distanceFromStartMeters: route.distance,
+                distanceToNextMeters: nil,
+                instructionText: "Arrive at destination"
+            )
+        )
+        return maneuvers
+    }
+
+    private func firstLiveStepDistance(in legs: [OSRMLeg]) -> Double? {
+        for leg in legs {
+            for step in leg.steps where step.maneuver.type.lowercased() != "depart" {
+                return step.distance
+            }
+        }
+        return nil
+    }
+
+    private func maneuverType(for step: OSRMStep) -> RouteManeuverType {
+        let type = step.maneuver.type.lowercased()
+        let modifier = step.maneuver.modifier?.lowercased() ?? ""
+        switch type {
+        case "roundabout", "rotary":
+            return .roundabout
+        case "merge", "fork", "on ramp", "off ramp":
+            return .merge
+        case "end of road", "turn", "continue", "use lane", "notification", "new name":
+            break
+        case "arrive":
+            return .arrive
+        default:
+            break
+        }
+
+        switch modifier {
+        case "uturn":
+            return .uturn
+        case "sharp right":
+            return .sharpRight
+        case "right":
+            return .right
+        case "slight right":
+            return .slightRight
+        case "sharp left":
+            return .sharpLeft
+        case "left":
+            return .left
+        case "slight left":
+            return .slightLeft
+        default:
+            return .straight
+        }
+    }
+
+    private func instructionText(for step: OSRMStep) -> String {
+        let type = step.maneuver.type.lowercased()
+        let modifier = step.maneuver.modifier?.lowercased() ?? ""
+        switch type {
+        case "roundabout", "rotary":
+            return "Enter roundabout"
+        case "arrive":
+            return "Arrive at destination"
+        case "merge":
+            return "Merge"
+        case "fork":
+            return modifier.contains("left") ? "Keep left" : modifier.contains("right") ? "Keep right" : "Keep to the fork"
+        default:
+            break
+        }
+
+        switch modifier {
+        case "uturn":
+            return "Make a U-turn"
+        case "sharp right":
+            return "Turn sharply right"
+        case "right":
+            return "Turn right"
+        case "slight right":
+            return "Bear right"
+        case "sharp left":
+            return "Turn sharply left"
+        case "left":
+            return "Turn left"
+        case "slight left":
+            return "Bear left"
+        default:
+            return step.name.isEmpty ? "Continue" : "Continue on \(step.name)"
+        }
+    }
+
+    private func buildLiveRouteIdentifier(request: RoutePlanRequest, alternativeIndex: Int) -> String {
+        let origin = String(format: "%.5f,%.5f", request.origin.latitude, request.origin.longitude)
+        let destination = String(format: "%.5f,%.5f", request.destination.latitude, request.destination.longitude)
+        return "osm-live:\(origin)->\(destination):alt-\(alternativeIndex)"
     }
 
     private func buildPreview(for request: RoutePlanRequest, revision: Int, planningNotice: String) -> RoutePreviewModel {
@@ -206,10 +451,46 @@ struct SampleRoutingAdapter: RoutingProvider {
         return output
     }
 
+    private func decodePolyline(_ encoded: String) -> [CoordinatePoint] {
+        guard !encoded.isEmpty else { return [] }
+        var points: [CoordinatePoint] = []
+        var index = encoded.startIndex
+        var latitude = 0
+        var longitude = 0
+
+        func nextValue() -> Int? {
+            var result = 0
+            var shift = 0
+            while index < encoded.endIndex {
+                let value = Int(encoded[index].unicodeScalars.first!.value) - 63
+                index = encoded.index(after: index)
+                result |= (value & 0x1f) << shift
+                shift += 5
+                if value < 0x20 {
+                    return (result & 1) == 0 ? (result >> 1) : ~(result >> 1)
+                }
+            }
+            return nil
+        }
+
+        while let latDelta = nextValue(), let lonDelta = nextValue() {
+            latitude += latDelta
+            longitude += lonDelta
+            points.append(
+                CoordinatePoint(
+                    latitude: Double(latitude) / 100_000.0,
+                    longitude: Double(longitude) / 100_000.0
+                )
+            )
+        }
+
+        return points
+    }
+
     private func planningNotice(for provider: RouteProviderID) -> String {
         switch provider {
         case .osm:
-            return "Using sample OSM fallback routes. Live OSM routing is not wired yet."
+            return "Using sample OSM fallback routes. Live OSRM bike routing is unavailable."
         case .googleIngest:
             return "Using sample Google ingest routes. Compliance and live ingestion are still pending."
         case .gpxImport:
@@ -273,15 +554,62 @@ struct SampleRoutingAdapter: RoutingProvider {
             return 5.3
         }
     }
+
+    private func displayMessage(for error: Error) -> String {
+        if let localized = error as? LocalizedError, let message = localized.errorDescription {
+            return message
+        }
+        return error.localizedDescription
+    }
 }
 
 enum SampleRoutingAdapterError: LocalizedError {
     case noAlternativesAvailable
+    case invalidLiveRouteURL
+    case networkFailure(String)
 
     var errorDescription: String? {
         switch self {
         case .noAlternativesAvailable:
             return "No sample route alternatives are available"
+        case .invalidLiveRouteURL:
+            return "The live OSM route URL is invalid"
+        case .networkFailure(let message):
+            return message
         }
+    }
+}
+
+private extension SampleRoutingAdapter {
+    struct OSRMRouteResponse: Decodable {
+        var code: String
+        var message: String?
+        var routes: [OSRMRoute]
+    }
+
+    struct OSRMRoute: Decodable {
+        var distance: Double
+        var duration: Double
+        var geometry: String
+        var legs: [OSRMLeg]
+    }
+
+    struct OSRMLeg: Decodable {
+        var summary: String?
+        var steps: [OSRMStep]
+    }
+
+    struct OSRMStep: Decodable {
+        var distance: Double
+        var duration: Double
+        var geometry: String?
+        var name: String
+        var maneuver: OSRMManeuver
+    }
+
+    struct OSRMManeuver: Decodable {
+        var type: String
+        var modifier: String?
+        var location: [Double]
     }
 }

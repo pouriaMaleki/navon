@@ -1,5 +1,8 @@
 package me.fiksu.esp32map.companion.integration.sample
 
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.Locale
 import java.util.UUID
 import kotlin.math.PI
 import kotlin.math.abs
@@ -7,6 +10,8 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sqrt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import me.fiksu.esp32map.companion.domain.ActiveRouteSession
 import me.fiksu.esp32map.companion.domain.CoordinatePoint
 import me.fiksu.esp32map.companion.domain.NormalizedRoutePackage
@@ -20,6 +25,8 @@ import me.fiksu.esp32map.companion.domain.RouteProvenance
 import me.fiksu.esp32map.companion.domain.RouteProviderId
 import me.fiksu.esp32map.companion.domain.RouteSummary
 import me.fiksu.esp32map.companion.domain.RoutingProvider
+import org.json.JSONArray
+import org.json.JSONObject
 
 class SampleRoutingAdapter(
     override val providerId: RouteProviderId,
@@ -27,7 +34,11 @@ class SampleRoutingAdapter(
     override val isAvailableInV1: Boolean = false
 
     override suspend fun planRoute(request: RoutePlanRequest): RoutePreviewModel {
-        return buildPreview(request, revision = 1, planningNotice = planningNotice(providerId))
+        return if (providerId == RouteProviderId.OSM) {
+            buildLiveOsmPreview(request, revision = 1)
+        } else {
+            buildPreview(request, revision = 1, planningNotice = planningNotice(providerId))
+        }
     }
 
     override suspend fun replanRoute(session: ActiveRouteSession, riderLocation: CoordinatePoint): RoutePreviewModel {
@@ -36,11 +47,247 @@ class SampleRoutingAdapter(
             destination = session.destinationCoordinate ?: riderLocation,
             providerId = providerId,
         )
-        return buildPreview(request, revision = (session.routeRevision ?: 0) + 1, planningNotice = "Rerouted with ${providerId.displayName} sample adapter")
+        val revision = (session.routeRevision ?: 0) + 1
+        return if (providerId == RouteProviderId.OSM) {
+            buildLiveOsmPreview(request, revision)
+        } else {
+            buildPreview(request, revision, planningNotice = "Rerouted with ${providerId.displayName} sample adapter")
+        }
     }
 
     override fun normalizePreview(preview: RoutePreviewModel, request: RoutePlanRequest): NormalizedRoutePackage {
         return preview.selectedAlternative?.normalizedPackage ?: error("No sample route alternatives are available")
+    }
+
+    private suspend fun buildLiveOsmPreview(request: RoutePlanRequest, revision: Int): RoutePreviewModel {
+        return try {
+            fetchLiveOsmPreview(request, revision)
+        } catch (error: Exception) {
+            buildPreview(
+                request,
+                revision,
+                planningNotice = "Live OSM failed: ${error.message ?: error::class.simpleName}. Showing sample route instead.",
+            )
+        }
+    }
+
+    private suspend fun fetchLiveOsmPreview(request: RoutePlanRequest, revision: Int): RoutePreviewModel = withContext(Dispatchers.IO) {
+        val coordinates = String.format(
+            Locale.US,
+            "%.6f,%.6f;%.6f,%.6f",
+            request.origin.longitude,
+            request.origin.latitude,
+            request.destination.longitude,
+            request.destination.latitude,
+        )
+        val url = URL("https://router.project-osrm.org/route/v1/bike/$coordinates?alternatives=3&overview=full&steps=true&geometries=polyline")
+        val connection = (url.openConnection() as HttpURLConnection).apply {
+            requestMethod = "GET"
+            connectTimeout = 10_000
+            readTimeout = 10_000
+        }
+
+        val statusCode = connection.responseCode
+        val body = runCatching {
+            val stream = if (statusCode in 200..299) connection.inputStream else connection.errorStream
+            stream?.bufferedReader()?.use { it.readText() }.orEmpty()
+        }.getOrDefault("")
+        if (statusCode !in 200..299) {
+            throw IllegalStateException("HTTP $statusCode: $body")
+        }
+
+        val root = JSONObject(body)
+        val code = root.optString("code")
+        if (code != "Ok") {
+            throw IllegalStateException(root.optString("message", "OSRM returned $code"))
+        }
+        val routesJson = root.optJSONArray("routes") ?: JSONArray()
+        if (routesJson.length() == 0) {
+            throw IllegalStateException("No live OSM alternatives were returned")
+        }
+
+        val alternatives = buildList {
+            for (index in 0 until minOf(routesJson.length(), 3)) {
+                mapLiveAlternative(routesJson.getJSONObject(index), request, revision, index)?.let(::add)
+            }
+        }
+        if (alternatives.isEmpty()) {
+            throw IllegalStateException("No usable live OSM alternatives were returned")
+        }
+
+        RoutePreviewModel(
+            alternatives = alternatives,
+            selectedAlternativeId = alternatives.firstOrNull()?.id,
+            routeIdentifier = alternatives.firstOrNull()?.normalizedPackage?.routeIdentifier,
+            routeRevision = alternatives.firstOrNull()?.normalizedPackage?.revision,
+            planningNotice = "Live OSM bike routing via OSRM demo server",
+        )
+    }
+
+    private fun mapLiveAlternative(
+        routeJson: JSONObject,
+        request: RoutePlanRequest,
+        revision: Int,
+        alternativeIndex: Int,
+    ): RouteAlternative? {
+        val geometry = decodePolyline(routeJson.optString("geometry"))
+        if (geometry.size < 2) return null
+        val distance = routeJson.optDouble("distance", 0.0)
+        val duration = routeJson.optDouble("duration", 0.0)
+        val summary = RouteSummary(
+            totalDistanceMeters = distance,
+            estimatedDurationSeconds = max(duration.toInt(), 60),
+            startLabel = "Current location",
+            destinationLabel = "Selected destination",
+        )
+        val routePackage = NormalizedRoutePackage(
+            version = RoutePackageVersion.CURRENT,
+            routeIdentifier = buildLiveRouteIdentifier(request, alternativeIndex),
+            revision = revision,
+            geometry = geometry,
+            maneuvers = buildLiveManeuvers(routeJson, geometry),
+            summary = summary,
+            provenance = RouteProvenance(
+                providerId = RouteProviderId.OSM,
+                sourceReference = "OSRM bike route",
+                generatedAtUnixMs = System.currentTimeMillis(),
+            ),
+        )
+        val subtitle = routeJson.optJSONArray("legs")
+            ?.optJSONObject(0)
+            ?.optString("summary")
+            ?.takeIf { it.isNotBlank() }
+            ?: "OSRM bike route"
+        return RouteAlternative(
+            id = UUID.randomUUID().toString(),
+            title = if (alternativeIndex == 0) "OSRM primary route" else "OSRM alternative route",
+            subtitle = subtitle,
+            distanceMeters = distance.toInt(),
+            durationSeconds = summary.estimatedDurationSeconds,
+            normalizedPackage = routePackage,
+        )
+    }
+
+    private fun buildLiveManeuvers(routeJson: JSONObject, geometry: List<CoordinatePoint>): List<RouteManeuver> {
+        val legsJson = routeJson.optJSONArray("legs") ?: JSONArray()
+        val firstNextDistance = firstLiveStepDistance(legsJson)
+        val maneuvers = mutableListOf<RouteManeuver>()
+        maneuvers += RouteManeuver(
+            id = "depart",
+            maneuverType = RouteManeuverType.DEPART,
+            location = geometry.firstOrNull() ?: CoordinatePoint(0.0, 0.0),
+            distanceFromStartMeters = 0.0,
+            distanceToNextMeters = firstNextDistance,
+            instructionText = "Start riding",
+        )
+
+        var distanceFromStart = 0.0
+        for (legIndex in 0 until legsJson.length()) {
+            val stepsJson = legsJson.optJSONObject(legIndex)?.optJSONArray("steps") ?: continue
+            for (stepIndex in 0 until stepsJson.length()) {
+                val stepJson = stepsJson.getJSONObject(stepIndex)
+                val distance = stepJson.optDouble("distance", 0.0)
+                val maneuverJson = stepJson.optJSONObject("maneuver")
+                if (maneuverJson == null) {
+                    distanceFromStart += distance
+                    continue
+                }
+                val type = maneuverJson.optString("type").lowercase(Locale.ROOT)
+                if (type == "depart" || type == "arrive" || type == "notification" || type == "new name" || type == "continue") {
+                    distanceFromStart += distance
+                    continue
+                }
+                val locationJson = maneuverJson.optJSONArray("location")
+                if (locationJson == null || locationJson.length() < 2) {
+                    distanceFromStart += distance
+                    continue
+                }
+                val maneuverLocation = CoordinatePoint(
+                    latitude = locationJson.optDouble(1),
+                    longitude = locationJson.optDouble(0),
+                )
+                val name = stepJson.optString("name")
+                maneuvers += RouteManeuver(
+                    id = if (name.isBlank()) "step-${maneuvers.size}" else "step-${maneuvers.size}-$name",
+                    maneuverType = maneuverType(type, maneuverJson.optString("modifier")),
+                    location = maneuverLocation,
+                    distanceFromStartMeters = distanceFromStart,
+                    distanceToNextMeters = distance.takeIf { it > 0.0 },
+                    instructionText = instructionText(type, maneuverJson.optString("modifier"), name),
+                )
+                distanceFromStart += distance
+            }
+        }
+
+        maneuvers += RouteManeuver(
+            id = "arrive",
+            maneuverType = RouteManeuverType.ARRIVE,
+            location = geometry.lastOrNull() ?: CoordinatePoint(0.0, 0.0),
+            distanceFromStartMeters = routeJson.optDouble("distance", distanceFromStart),
+            distanceToNextMeters = null,
+            instructionText = "Arrive at destination",
+        )
+        return maneuvers
+    }
+
+    private fun firstLiveStepDistance(legsJson: JSONArray): Double? {
+        for (legIndex in 0 until legsJson.length()) {
+            val stepsJson = legsJson.optJSONObject(legIndex)?.optJSONArray("steps") ?: continue
+            for (stepIndex in 0 until stepsJson.length()) {
+                val stepJson = stepsJson.getJSONObject(stepIndex)
+                val maneuverType = stepJson.optJSONObject("maneuver")?.optString("type")?.lowercase(Locale.ROOT) ?: continue
+                if (maneuverType != "depart") {
+                    return stepJson.optDouble("distance").takeIf { it > 0.0 }
+                }
+            }
+        }
+        return null
+    }
+
+    private fun maneuverType(type: String, modifier: String?): RouteManeuverType {
+        return when (type) {
+            "roundabout", "rotary" -> RouteManeuverType.ROUNDABOUT
+            "merge", "fork", "on ramp", "off ramp" -> RouteManeuverType.MERGE
+            "arrive" -> RouteManeuverType.ARRIVE
+            else -> when (modifier?.lowercase(Locale.ROOT)) {
+                "uturn" -> RouteManeuverType.UTURN
+                "sharp right" -> RouteManeuverType.SHARP_RIGHT
+                "right" -> RouteManeuverType.RIGHT
+                "slight right" -> RouteManeuverType.SLIGHT_RIGHT
+                "sharp left" -> RouteManeuverType.SHARP_LEFT
+                "left" -> RouteManeuverType.LEFT
+                "slight left" -> RouteManeuverType.SLIGHT_LEFT
+                else -> RouteManeuverType.STRAIGHT
+            }
+        }
+    }
+
+    private fun instructionText(type: String, modifier: String?, name: String): String {
+        return when (type) {
+            "roundabout", "rotary" -> "Enter roundabout"
+            "merge" -> "Merge"
+            "fork" -> when {
+                modifier?.contains("left", ignoreCase = true) == true -> "Keep left"
+                modifier?.contains("right", ignoreCase = true) == true -> "Keep right"
+                else -> "Keep to the fork"
+            }
+            else -> when (modifier?.lowercase(Locale.ROOT)) {
+                "uturn" -> "Make a U-turn"
+                "sharp right" -> "Turn sharply right"
+                "right" -> "Turn right"
+                "slight right" -> "Bear right"
+                "sharp left" -> "Turn sharply left"
+                "left" -> "Turn left"
+                "slight left" -> "Bear left"
+                else -> if (name.isBlank()) "Continue" else "Continue on $name"
+            }
+        }
+    }
+
+    private fun buildLiveRouteIdentifier(request: RoutePlanRequest, alternativeIndex: Int): String {
+        val origin = String.format(Locale.US, "%.5f,%.5f", request.origin.latitude, request.origin.longitude)
+        val destination = String.format(Locale.US, "%.5f,%.5f", request.destination.latitude, request.destination.longitude)
+        return "osm-live:$origin->$destination:alt-$alternativeIndex"
     }
 
     private fun buildPreview(request: RoutePlanRequest, revision: Int, planningNotice: String): RoutePreviewModel {
@@ -217,9 +464,40 @@ class SampleRoutingAdapter(
         return output
     }
 
+    private fun decodePolyline(encoded: String): List<CoordinatePoint> {
+        if (encoded.isEmpty()) return emptyList()
+        val coordinates = mutableListOf<CoordinatePoint>()
+        var index = 0
+        var latitude = 0
+        var longitude = 0
+        while (index < encoded.length) {
+            var shift = 0
+            var result = 0
+            var value: Int
+            do {
+                value = encoded[index++].code - 63
+                result = result or ((value and 0x1f) shl shift)
+                shift += 5
+            } while (value >= 0x20 && index < encoded.length)
+            latitude += if ((result and 1) == 0) result shr 1 else (result shr 1).inv()
+
+            shift = 0
+            result = 0
+            do {
+                value = encoded[index++].code - 63
+                result = result or ((value and 0x1f) shl shift)
+                shift += 5
+            } while (value >= 0x20 && index < encoded.length)
+            longitude += if ((result and 1) == 0) result shr 1 else (result shr 1).inv()
+
+            coordinates += CoordinatePoint(latitude / 100_000.0, longitude / 100_000.0)
+        }
+        return coordinates
+    }
+
     private fun planningNotice(provider: RouteProviderId): String {
         return when (provider) {
-            RouteProviderId.OSM -> "Using sample OSM fallback routes. Live OSM routing is not wired yet."
+            RouteProviderId.OSM -> "Using sample OSM fallback routes. Live OSRM bike routing is unavailable."
             RouteProviderId.GOOGLE_INGEST -> "Using sample Google ingest routes. Compliance and live ingestion are still pending."
             RouteProviderId.GPX_IMPORT -> "Using sample GPX import routes. File selection is not wired yet."
             RouteProviderId.FIT_IMPORT -> "Using sample FIT import routes. File selection is not wired yet."
