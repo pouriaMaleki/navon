@@ -241,14 +241,18 @@ class HomeStateHolder(
     }
 
     fun stopActiveNavigation() {
-        val destination = destinationCoordinate ?: return
+        val destination = destinationCoordinate
         val sourceToReuse = appState.activeSession.sourceMode
+        val shouldPreserveCurrentPreview = isPreviewLockedToImportedRoute
         compassMode = HomeCompassMode.AUTO_FOLLOW
         activeRouteIdentifier = null
         if (homeMode == HomeMode.DEVICE_OVERVIEW || homeMode == HomeMode.SENDING_TO_DEVICE) {
             appState.clearActiveRoute()
         }
         homeMode = HomeMode.PLANNING
+        if (shouldPreserveCurrentPreview || destination == null) {
+            return
+        }
         appState.routeRequest = RoutePlanRequest(
             origin = appState.simulatedRiderLocation,
             destination = destination,

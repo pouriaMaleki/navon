@@ -416,18 +416,38 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
     private suspend fun buildMixedPreview(request: RoutePlanRequest, revisionOverride: Int?): RoutePreviewModel {
         val hsl = providers[RouteProviderId.HSL] ?: error("Missing HSL provider")
         val osm = providers[RouteProviderId.OSM] ?: error("Missing OSM provider")
-        val alternatives = buildList {
-            addAll(previewFrom(hsl, request, revisionOverride).alternatives)
-            addAll(previewFrom(osm, request, revisionOverride).alternatives)
-        }
-        val mixedAlternatives = mergeMixedAlternatives(alternatives)
+        val previews = listOf(
+            previewFrom(hsl, request, revisionOverride),
+            previewFrom(osm, request, revisionOverride),
+        )
+        val effectivePreviews = preferredMixedPreviews(previews)
+        val mixedAlternatives = mergeMixedAlternatives(effectivePreviews.flatMap { it.alternatives })
         return RoutePreviewModel(
             alternatives = mixedAlternatives,
             selectedAlternativeId = mixedAlternatives.firstOrNull()?.id,
             routeIdentifier = mixedAlternatives.firstOrNull()?.normalizedPackage?.routeIdentifier,
             routeRevision = mixedAlternatives.firstOrNull()?.normalizedPackage?.revision,
-            planningNotice = "Mixed routes from HSL and OSM",
+            planningNotice = mixedPlanningNotice(previews, effectivePreviews),
         )
+    }
+
+    private fun preferredMixedPreviews(previews: List<RoutePreviewModel>): List<RoutePreviewModel> {
+        val livePreviews = previews.filter { !isSamplePreview(it) && it.alternatives.isNotEmpty() }
+        return if (livePreviews.isNotEmpty()) livePreviews else previews.filter { it.alternatives.isNotEmpty() }
+    }
+
+    private fun isSamplePreview(preview: RoutePreviewModel): Boolean {
+        return preview.planningNotice?.contains("sample", ignoreCase = true) == true
+    }
+
+    private fun mixedPlanningNotice(previews: List<RoutePreviewModel>, effectivePreviews: List<RoutePreviewModel>): String {
+        if (effectivePreviews.size == 1) {
+            effectivePreviews.first().planningNotice?.takeIf { it.isNotBlank() }?.let { return it }
+        }
+        if (effectivePreviews.size < previews.size) {
+            return "Showing live routes while sample fallback providers are hidden."
+        }
+        return "Mixed routes from HSL and OSM"
     }
 
     private fun mergeMixedAlternatives(alternatives: List<RouteAlternative>): List<RouteAlternative> {
