@@ -111,7 +111,6 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
                 val adapter = providers[RouteProviderId.GPX_IMPORT] as? GpxRoutingAdapter ?: return@launch
                 preview = adapter.importBytes(fileName = fileName, data = bytes)
                 selectedProviderId = RouteProviderId.GPX_IMPORT
-                currentSourceMode = RouteSourceMode.HSL
                 preview.selectedAlternative?.normalizedPackage?.let { selected ->
                     routeRequest = RoutePlanRequest(
                         origin = selected.geometry.firstOrNull() ?: routeRequest.origin,
@@ -120,7 +119,7 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
                     )
                     simulatedRiderLocation = selected.geometry.firstOrNull() ?: simulatedRiderLocation
                 }
-                applySelectedAlternativeToSession(RouteSourceMode.HSL, routeRequest.destination, fileName.substringBeforeLast('.'))
+                applySelectedAlternativeToSession(currentSourceMode, routeRequest.destination, fileName.substringBeforeLast('.'))
                 refreshDiagnostics()
             } catch (error: Exception) {
                 preview = RoutePreviewModel(
@@ -321,13 +320,18 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
                     planningNotice = item.sourceLabel,
                 )
                 selectedProviderId = packageRef.provenance.providerId
-                currentSourceMode = if (packageRef.provenance.providerId == RouteProviderId.OSM) RouteSourceMode.OSM else RouteSourceMode.HSL
+                if (packageRef.provenance.providerId == RouteProviderId.OSM) {
+                    currentSourceMode = RouteSourceMode.OSM
+                } else if (packageRef.provenance.providerId == RouteProviderId.HSL) {
+                    currentSourceMode = RouteSourceMode.HSL
+                }
                 routeRequest = RoutePlanRequest(
                     origin = simulatedRiderLocation,
                     destination = item.destination ?: packageRef.geometry.lastOrNull() ?: routeRequest.destination,
                     providerId = packageRef.provenance.providerId,
                 )
-                applySelectedAlternativeToSession(currentSourceMode, routeRequest.destination, item.title)
+                val sessionSourceMode = if (packageRef.provenance.providerId == RouteProviderId.OSM) RouteSourceMode.OSM else currentSourceMode
+                applySelectedAlternativeToSession(sessionSourceMode, routeRequest.destination, item.title)
                 onComplete()
             } else if (item.destination != null) {
                 routeRequest = RoutePlanRequest(

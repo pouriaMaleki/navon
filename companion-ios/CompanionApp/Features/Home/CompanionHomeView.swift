@@ -12,6 +12,7 @@ struct CompanionHomeView: View {
             span: MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
         )
     )
+    @FocusState private var isSearchFieldFocused: Bool
 
     var body: some View {
         MapReader { proxy in
@@ -26,8 +27,18 @@ struct CompanionHomeView: View {
                 .onAppear { refreshCameraForCurrentMode() }
                 .onChange(of: appModel.preview.selectedAlternativeID) { _, _ in refreshCameraForCurrentMode() }
                 .onChange(of: viewModel.activeRouteIdentifier) { _, _ in refreshCameraForCurrentMode() }
-                .onChange(of: viewModel.homeMode) { _, _ in refreshCameraForCurrentMode() }
+                .onChange(of: viewModel.homeMode) { _, newValue in
+                    refreshCameraForCurrentMode()
+                    if newValue != .planning {
+                        isSearchFieldFocused = false
+                    }
+                }
                 .onChange(of: viewModel.compassMode) { _, _ in refreshCameraForCurrentMode() }
+                .onChange(of: viewModel.isSearchOpen) { _, isOpen in
+                    if !isOpen {
+                        isSearchFieldFocused = false
+                    }
+                }
         }
     }
 
@@ -114,9 +125,6 @@ struct CompanionHomeView: View {
     private var planningTopOverlay: some View {
         VStack(spacing: 8) {
             topBar
-            if viewModel.shouldShowSourceControl {
-                sourceModePicker
-            }
             if viewModel.shouldShowSearchPanel {
                 searchPanel
             }
@@ -186,10 +194,16 @@ struct CompanionHomeView: View {
                 ))
                 .textInputAutocapitalization(.words)
                 .autocorrectionDisabled()
-                .onTapGesture { viewModel.openSearch() }
+                .submitLabel(.done)
+                .focused($isSearchFieldFocused)
+                .onTapGesture {
+                    viewModel.openSearch()
+                    isSearchFieldFocused = true
+                }
 
                 if !viewModel.query.isEmpty || !viewModel.previewAlternatives.isEmpty || viewModel.isShowingActiveNavigation {
                     Button {
+                        isSearchFieldFocused = false
                         viewModel.clearPreview()
                     } label: {
                         Image(systemName: "xmark.circle.fill")
@@ -231,7 +245,7 @@ struct CompanionHomeView: View {
             }
         }
         .padding(8)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     private var searchPanel: some View {
@@ -240,6 +254,7 @@ struct CompanionHomeView: View {
                 if viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     ForEach(viewModel.recentItems) { item in
                         Button {
+                            isSearchFieldFocused = false
                             viewModel.selectRecent(item)
                         } label: {
                             routeHistoryRow(item)
@@ -251,6 +266,7 @@ struct CompanionHomeView: View {
                 } else {
                     ForEach(viewModel.visibleSuggestions) { suggestion in
                         Button {
+                            isSearchFieldFocused = false
                             viewModel.selectSuggestion(suggestion)
                         } label: {
                             suggestionRow(suggestion)
@@ -310,17 +326,24 @@ struct CompanionHomeView: View {
     private var routeSuggestionsCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Suggested routes")
+                Text(viewModel.routeSuggestionsTitle)
                     .font(.headline)
                 Spacer()
-                Button("Close", action: viewModel.clearPreview)
-                    .font(.subheadline.weight(.semibold))
+                Button("Close") {
+                    isSearchFieldFocused = false
+                    viewModel.clearPreview()
+                }
+                .font(.subheadline.weight(.semibold))
             }
 
             if let notice = appModel.preview.planningNotice {
                 Text(notice)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+
+            if viewModel.shouldShowSourceControl {
+                sourceModePicker
             }
 
             ForEach(viewModel.previewAlternatives, id: \.id) { alternative in
@@ -351,6 +374,7 @@ struct CompanionHomeView: View {
             }
 
             Button {
+                isSearchFieldFocused = false
                 Task { await viewModel.startSelectedRoute() }
             } label: {
                 Group {

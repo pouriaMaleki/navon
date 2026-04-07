@@ -16,11 +16,13 @@ import me.fiksu.esp32map.companion.domain.NormalizedRoutePackage
 import me.fiksu.esp32map.companion.domain.RouteAlternative
 import me.fiksu.esp32map.companion.domain.RouteHistoryItem
 import me.fiksu.esp32map.companion.domain.RouteHistorySource
+import me.fiksu.esp32map.companion.domain.RouteManeuverType
 import me.fiksu.esp32map.companion.domain.RoutePlanRequest
 import me.fiksu.esp32map.companion.domain.RoutePreviewModel
+import me.fiksu.esp32map.companion.domain.RouteProviderId
 import me.fiksu.esp32map.companion.domain.RouteSourceMode
 import me.fiksu.esp32map.companion.domain.RouteStartBehavior
-import me.fiksu.esp32map.companion.domain.RouteManeuverType
+import me.fiksu.esp32map.companion.domain.RouteSuggestionMode
 import me.fiksu.esp32map.companion.integration.PlaceSearchService
 
 class HomeStateHolder(
@@ -36,6 +38,8 @@ class HomeStateHolder(
     var homeMode by mutableStateOf(HomeMode.PLANNING)
     var compassMode by mutableStateOf(HomeCompassMode.AUTO_FOLLOW)
 
+    private val switchablePlanningProviders = setOf(RouteProviderId.HSL, RouteProviderId.OSM)
+
     val sourceMode: RouteSourceMode
         get() = appState.currentSourceMode
 
@@ -47,7 +51,7 @@ class HomeStateHolder(
 
     val previewAlternatives: List<RouteAlternative>
         get() {
-            val limit = if (appState.routePlannerPreferences.suggestionMode == me.fiksu.esp32map.companion.domain.RouteSuggestionMode.BEST_ONLY) 1 else 3
+            val limit = if (appState.routePlannerPreferences.suggestionMode == RouteSuggestionMode.BEST_ONLY) 1 else 3
             return appState.preview.alternatives.take(limit)
         }
 
@@ -69,11 +73,27 @@ class HomeStateHolder(
     val displayedRouteCoordinates: List<CoordinatePoint>
         get() = guidanceRoute?.geometry ?: previewRoute?.geometry ?: emptyList()
 
+    val isPreviewLockedToImportedRoute: Boolean
+        get() {
+            val provider = previewRoute?.provenance?.providerId ?: return false
+            return provider !in switchablePlanningProviders
+        }
+
     val shouldShowSearchPanel: Boolean
-        get() = homeMode == HomeMode.PLANNING && isSearchOpen && (query.isNotBlank() || recentItems.isNotEmpty())
+        get() {
+            if (homeMode != HomeMode.PLANNING || !isSearchOpen) return false
+            return if (query.isBlank()) {
+                recentItems.isNotEmpty()
+            } else {
+                visibleSuggestions.isNotEmpty()
+            }
+        }
 
     val shouldShowSourceControl: Boolean
-        get() = homeMode == HomeMode.PLANNING && previewAlternatives.isNotEmpty()
+        get() = homeMode == HomeMode.PLANNING && previewAlternatives.isNotEmpty() && !isPreviewLockedToImportedRoute
+
+    val routeSuggestionsTitle: String
+        get() = if (isPreviewLockedToImportedRoute) "Imported route" else "Suggested routes"
 
     val isShowingActiveNavigation: Boolean
         get() = homeMode == HomeMode.PHONE_GUIDANCE || homeMode == HomeMode.DEVICE_OVERVIEW || homeMode == HomeMode.SENDING_TO_DEVICE
@@ -140,6 +160,7 @@ class HomeStateHolder(
     }
 
     fun selectSuggestion(suggestion: DestinationSearchResult, scope: CoroutineScope) {
+        closeSearch()
         appState.routeRequest = RoutePlanRequest(
             origin = appState.simulatedRiderLocation,
             destination = suggestion.coordinate,
@@ -149,7 +170,6 @@ class HomeStateHolder(
         appState.planRoute(sourceMode = sourceMode, preferredTitle = suggestion.title) {
             query = suggestion.title
             homeMode = HomeMode.PLANNING
-            closeSearch()
             appState.recordPlannedPreview(RouteHistorySource.PLANNED_ROUTE, sourceMode.displayName)
             if (appState.routePlannerPreferences.startBehavior == RouteStartBehavior.AUTOMATIC) {
                 scope.launch {
@@ -161,10 +181,10 @@ class HomeStateHolder(
     }
 
     fun selectRecent(item: RouteHistoryItem, scope: CoroutineScope) {
+        closeSearch()
         appState.applyRouteHistoryPreview(item) {
             query = item.title
             homeMode = HomeMode.PLANNING
-            closeSearch()
             if (appState.routePlannerPreferences.startBehavior == RouteStartBehavior.AUTOMATIC) {
                 scope.launch {
                     delay(150)
@@ -187,7 +207,7 @@ class HomeStateHolder(
     }
 
     fun setSourceMode(mode: RouteSourceMode) {
-        if (mode == sourceMode) return
+        if (!shouldShowSourceControl || mode == sourceMode) return
         appState.currentSourceMode = mode
         appState.saveRoutePlannerPreferences(appState.routePlannerPreferences.copy(defaultSourceMode = mode))
         val destination = destinationCoordinate ?: return

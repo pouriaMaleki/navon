@@ -91,12 +91,15 @@ class SampleRoutingAdapter(
 
     private fun sampleGeometry(origin: CoordinatePoint, destination: CoordinatePoint, alternativeIndex: Int): List<CoordinatePoint> {
         if (origin == destination) {
-            return listOf(
-                origin,
-                CoordinatePoint(origin.latitude + 0.002, origin.longitude + 0.0015),
-                CoordinatePoint(origin.latitude + 0.003, origin.longitude - 0.001),
-                CoordinatePoint(origin.latitude + 0.001, origin.longitude - 0.002),
-                origin,
+            return deduplicated(
+                listOf(
+                    origin,
+                    CoordinatePoint(origin.latitude + 0.0016, origin.longitude + 0.0008),
+                    CoordinatePoint(origin.latitude + 0.0025, origin.longitude + 0.0017),
+                    CoordinatePoint(origin.latitude + 0.0021, origin.longitude - 0.0006),
+                    CoordinatePoint(origin.latitude + 0.0009, origin.longitude - 0.0018),
+                    origin,
+                ),
             )
         }
 
@@ -105,22 +108,26 @@ class SampleRoutingAdapter(
         val length = max(sqrt(latDelta * latDelta + lonDelta * lonDelta), 0.0001)
         val perpendicularLat = -lonDelta / length
         val perpendicularLon = latDelta / length
-        val baseOffset = providerOffset(providerId) * if (alternativeIndex == 0) 1.0 else -1.0
+        val baseOffset = providerOffset(providerId) * (0.55 + alternativeIndex * 0.18)
+        val fractions = listOf(0.12, 0.24, 0.39, 0.56, 0.73, 0.88)
+        val patterns = listOf(
+            listOf(0.30, 0.58, 0.18, -0.08, 0.26, 0.05),
+            listOf(-0.22, -0.46, -0.12, -0.34, -0.08, 0.03),
+            listOf(0.18, 0.06, 0.42, 0.20, 0.34, 0.09),
+        )
+        val pattern = patterns[minOf(alternativeIndex, patterns.lastIndex)]
 
-        val first = CoordinatePoint(
-            latitude = origin.latitude + latDelta * 0.28 + perpendicularLat * baseOffset,
-            longitude = origin.longitude + lonDelta * 0.28 + perpendicularLon * baseOffset,
-        )
-        val second = CoordinatePoint(
-            latitude = origin.latitude + latDelta * 0.56 - perpendicularLat * baseOffset * 0.8,
-            longitude = origin.longitude + lonDelta * 0.56 - perpendicularLon * baseOffset * 0.8,
-        )
-        val third = CoordinatePoint(
-            latitude = origin.latitude + latDelta * 0.82 + perpendicularLat * baseOffset * 0.35,
-            longitude = origin.longitude + lonDelta * 0.82 + perpendicularLon * baseOffset * 0.35,
-        )
-
-        return deduplicated(listOf(origin, first, second, third, destination))
+        val geometry = mutableListOf(origin)
+        fractions.forEachIndexed { index, fraction ->
+            val lateral = baseOffset * pattern[index]
+            val forwardBias = baseOffset * 0.12 * (index - 2.5)
+            geometry += CoordinatePoint(
+                latitude = origin.latitude + latDelta * fraction + perpendicularLat * lateral + latDelta * forwardBias,
+                longitude = origin.longitude + lonDelta * fraction + perpendicularLon * lateral + lonDelta * forwardBias,
+            )
+        }
+        geometry += destination
+        return deduplicated(geometry)
     }
 
     private fun buildManeuvers(geometry: List<CoordinatePoint>): List<RouteManeuver> {

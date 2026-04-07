@@ -408,42 +408,22 @@ struct HslRoutingAdapter: RoutingProvider {
     func sampleDigitransitResponse(for request: RoutePlanRequest, liveDescriptor: String) -> DigitransitResponse {
         let origin = request.origin
         let destination = request.destination
-        let midpointA = CoordinatePoint(
-            latitude: (origin.latitude + destination.latitude) / 2 + 0.0020,
-            longitude: (origin.longitude + destination.longitude) / 2 - 0.0012
-        )
-        let midpointB = CoordinatePoint(
-            latitude: (origin.latitude + destination.latitude) / 2 - 0.0010,
-            longitude: (origin.longitude + destination.longitude) / 2 + 0.0015
-        )
-        let midpointC = CoordinatePoint(
-            latitude: origin.latitude + (destination.latitude - origin.latitude) * 0.75 + 0.0008,
-            longitude: origin.longitude + (destination.longitude - origin.longitude) * 0.72 - 0.0010
-        )
-
-        let fastestGeometry = [origin, midpointA, midpointC, destination]
-        let quieterGeometry = [origin, midpointB, midpointC, destination]
+        let itineraries = [
+            ("fastest", sampleGeometry(from: origin, to: destination, alternativeIndex: 0, offsetScale: 0.0013)),
+            ("quieter", sampleGeometry(from: origin, to: destination, alternativeIndex: 1, offsetScale: 0.0016)),
+            ("simpler", sampleGeometry(from: origin, to: destination, alternativeIndex: 2, offsetScale: 0.0010)),
+        ].map { descriptor, geometry in
+            makeItinerary(
+                systemNotice: "\(liveDescriptor) / \(descriptor)",
+                geometry: geometry,
+                startLabel: "Current location",
+                destinationLabel: "Selected destination"
+            )
+        }
 
         return DigitransitResponse(
             data: DataContainer(
-                plan: DigitransitPlan(
-                    itineraries: [
-                        makeItinerary(
-                            systemNotice: "\(liveDescriptor) / fastest",
-                            geometry: fastestGeometry,
-                            turnInstructions: ["RIGHT", "LEFT"],
-                            startLabel: "Current location",
-                            destinationLabel: "Selected destination"
-                        ),
-                        makeItinerary(
-                            systemNotice: "\(liveDescriptor) / quieter",
-                            geometry: quieterGeometry,
-                            turnInstructions: ["LEFT", "RIGHT"],
-                            startLabel: "Current location",
-                            destinationLabel: "Selected destination"
-                        )
-                    ]
-                )
+                plan: DigitransitPlan(itineraries: itineraries)
             )
         )
     }
@@ -451,7 +431,6 @@ struct HslRoutingAdapter: RoutingProvider {
     private func makeItinerary(
         systemNotice: String,
         geometry: [CoordinatePoint],
-        turnInstructions: [String],
         startLabel: String,
         destinationLabel: String
     ) -> DigitransitItinerary {
@@ -459,28 +438,55 @@ struct HslRoutingAdapter: RoutingProvider {
             approximateDistanceMeters(from: start, to: end)
         }
         let totalDistance = segmentDistances.reduce(0, +)
-        var distanceFromStart = segmentDistances.first ?? 0.0
-        let turnLocations = Array(geometry.dropFirst().dropLast())
-        let steps = zip(turnLocations.indices, turnLocations).map { index, point in
-            let distanceToNext = index < segmentDistances.count - 1 ? segmentDistances[index + 1] : nil
-            defer { distanceFromStart += segmentDistances.dropFirst(index + 1).first ?? 0.0 }
-            return DigitransitStep(
-                relativeDirection: turnInstructions[index],
-                location: point,
-                distanceFromStartMeters: distanceFromStart,
-                distanceToNextMeters: distanceToNext,
-                instruction: turnInstructions[index] == "LEFT" ? "Turn left" : "Turn right"
-            )
-        }
 
         return DigitransitItinerary(
             durationSeconds: Int((totalDistance / 4.2).rounded()),
             systemNotice: systemNotice,
             legs: [DigitransitLeg(mode: "BICYCLE", distanceMeters: totalDistance, geometry: geometry)],
-            steps: steps,
+            steps: [],
             startLabel: startLabel,
             destinationLabel: destinationLabel
         )
+    }
+
+    private func sampleGeometry(from origin: CoordinatePoint, to destination: CoordinatePoint, alternativeIndex: Int, offsetScale: Double) -> [CoordinatePoint] {
+        if origin == destination {
+            return [
+                origin,
+                CoordinatePoint(latitude: origin.latitude + 0.0015, longitude: origin.longitude + 0.0009),
+                CoordinatePoint(latitude: origin.latitude + 0.0024, longitude: origin.longitude + 0.0016),
+                CoordinatePoint(latitude: origin.latitude + 0.0019, longitude: origin.longitude - 0.0004),
+                CoordinatePoint(latitude: origin.latitude + 0.0008, longitude: origin.longitude - 0.0016),
+                origin,
+            ]
+        }
+
+        let latDelta = destination.latitude - origin.latitude
+        let lonDelta = destination.longitude - origin.longitude
+        let length = max((latDelta * latDelta + lonDelta * lonDelta).squareRoot(), 0.0001)
+        let perpendicularLat = -lonDelta / length
+        let perpendicularLon = latDelta / length
+        let fractions: [Double] = [0.10, 0.22, 0.38, 0.54, 0.72, 0.88]
+        let patterns: [[Double]] = [
+            [0.26, 0.52, 0.22, 0.00, 0.16, 0.04],
+            [-0.20, -0.42, -0.18, -0.28, -0.10, 0.02],
+            [0.12, 0.06, 0.28, 0.14, 0.24, 0.08],
+        ]
+        let pattern = patterns[min(alternativeIndex, patterns.count - 1)]
+
+        var geometry: [CoordinatePoint] = [origin]
+        for (index, fraction) in fractions.enumerated() {
+            let lateral = offsetScale * pattern[index]
+            let forwardBias = offsetScale * 0.10 * (Double(index) - 2.5)
+            geometry.append(
+                CoordinatePoint(
+                    latitude: origin.latitude + latDelta * fraction + perpendicularLat * lateral + latDelta * forwardBias,
+                    longitude: origin.longitude + lonDelta * fraction + perpendicularLon * lateral + lonDelta * forwardBias
+                )
+            )
+        }
+        geometry.append(destination)
+        return geometry
     }
 
     private func approximateDistanceMeters(from start: CoordinatePoint, to end: CoordinatePoint) -> Double {
