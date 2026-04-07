@@ -43,6 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.LocalFocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -254,6 +255,7 @@ private fun PlanningTopArea(
     scope: kotlinx.coroutines.CoroutineScope,
     onOpenSettings: () -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             TextField(
@@ -271,18 +273,6 @@ private fun PlanningTopArea(
             }
         }
 
-        if (homeState.shouldShowSourceControl) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                appState.sourceModeOptions.forEach { mode ->
-                    FilterChip(
-                        selected = homeState.sourceMode == mode,
-                        onClick = { homeState.setSourceMode(mode) },
-                        label = { Text(mode.displayName) },
-                    )
-                }
-            }
-        }
-
         if (homeState.shouldShowSearchPanel) {
             Surface(
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
@@ -292,7 +282,10 @@ private fun PlanningTopArea(
                 LazyColumn(modifier = Modifier.height(320.dp), contentPadding = PaddingValues(vertical = 8.dp)) {
                     if (homeState.query.isBlank()) {
                         items(homeState.recentItems, key = { it.id }) { item ->
-                            RouteHistoryRow(item = item, onClick = { homeState.selectRecent(item, scope) })
+                            RouteHistoryRow(item = item, onClick = {
+                                focusManager.clearFocus(force = true)
+                                homeState.selectRecent(item, scope)
+                            })
                             homeState.loadMoreRecentsIfNeeded(item)
                         }
                     } else {
@@ -300,7 +293,10 @@ private fun PlanningTopArea(
                             SearchSuggestionRow(
                                 title = suggestion.title,
                                 subtitle = suggestion.subtitle,
-                                onClick = { homeState.selectSuggestion(suggestion, scope) },
+                                onClick = {
+                                    focusManager.clearFocus(force = true)
+                                    homeState.selectSuggestion(suggestion, scope)
+                                },
                             )
                             homeState.loadMoreSuggestionsIfNeeded(suggestion)
                         }
@@ -395,11 +391,22 @@ private fun RouteSuggestionsCard(appState: CompanionAppState, homeState: HomeSta
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Suggested routes", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+            Text(homeState.routeSuggestionsTitle, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             Button(onClick = { homeState.clearPreview() }) { Text("Close") }
         }
         appState.preview.planningNotice?.takeIf { it.isNotBlank() }?.let {
             Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        if (homeState.shouldShowSourceControl) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                appState.sourceModeOptions.forEach { mode ->
+                    FilterChip(
+                        selected = homeState.sourceMode == mode,
+                        onClick = { homeState.setSourceMode(mode) },
+                        label = { Text(mode.displayName) },
+                    )
+                }
+            }
         }
         homeState.previewAlternatives.forEach { alternative ->
             val selected = alternative.id == appState.preview.selectedAlternativeId

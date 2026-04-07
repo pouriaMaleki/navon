@@ -93,7 +93,6 @@ final class AppModel: ObservableObject {
             guard let adapter = providers[.gpxImport] as? GpxRoutingAdapter else { return }
             let preview = try adapter.importFile(named: url.lastPathComponent, data: data)
             selectedProviderID = .gpxImport
-            currentSourceMode = .hsl
             self.preview = preview
             if let selected = preview.selectedAlternative?.normalizedPackage {
                 routeRequest = RoutePlanRequest(
@@ -103,7 +102,7 @@ final class AppModel: ObservableObject {
                 )
                 simulatedRiderLocation = selected.geometry.first ?? simulatedRiderLocation
             }
-            applySelectedAlternativeToSession(sourceMode: .hsl, destination: routeRequest.destination, preferredTitle: url.deletingPathExtension().lastPathComponent)
+            applySelectedAlternativeToSession(sourceMode: currentSourceMode, destination: routeRequest.destination, preferredTitle: url.deletingPathExtension().lastPathComponent)
             refreshDiagnostics()
         } catch {
             preview = RoutePreviewModel(
@@ -248,13 +247,18 @@ final class AppModel: ObservableObject {
                 planningNotice: item.sourceLabel
             )
             selectedProviderID = package.provenance.providerID
-            currentSourceMode = package.provenance.providerID == .osm ? .osm : .hsl
+            if package.provenance.providerID == .osm {
+                currentSourceMode = .osm
+            } else if package.provenance.providerID == .hsl {
+                currentSourceMode = .hsl
+            }
             routeRequest = RoutePlanRequest(
                 origin: simulatedRiderLocation,
                 destination: item.destination ?? package.geometry.last ?? routeRequest.destination,
                 providerID: package.provenance.providerID
             )
-            applySelectedAlternativeToSession(sourceMode: currentSourceMode, destination: routeRequest.destination, preferredTitle: item.title)
+            let sessionSourceMode = package.provenance.providerID == .osm ? RouteSourceMode.osm : currentSourceMode
+            applySelectedAlternativeToSession(sourceMode: sessionSourceMode, destination: routeRequest.destination, preferredTitle: item.title)
         } else if let destination = item.destination {
             routeRequest = RoutePlanRequest(origin: simulatedRiderLocation, destination: destination, providerID: currentSourceMode.primaryProviderID)
             await planRoute(using: currentSourceMode, preferredTitle: item.title)

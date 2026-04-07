@@ -72,36 +72,43 @@ struct SampleRoutingAdapter: RoutingProvider {
     }
 
     private func sampleGeometry(from origin: CoordinatePoint, to destination: CoordinatePoint, alternativeIndex: Int) -> [CoordinatePoint] {
+        if origin == destination {
+            return deduplicated([
+                origin,
+                CoordinatePoint(latitude: origin.latitude + 0.0016, longitude: origin.longitude + 0.0008),
+                CoordinatePoint(latitude: origin.latitude + 0.0025, longitude: origin.longitude + 0.0017),
+                CoordinatePoint(latitude: origin.latitude + 0.0021, longitude: origin.longitude - 0.0006),
+                CoordinatePoint(latitude: origin.latitude + 0.0009, longitude: origin.longitude - 0.0018),
+                origin,
+            ])
+        }
+
         let latDelta = destination.latitude - origin.latitude
         let lonDelta = destination.longitude - origin.longitude
         let length = max(sqrt(latDelta * latDelta + lonDelta * lonDelta), 0.0001)
         let perpendicularLat = -lonDelta / length
         let perpendicularLon = latDelta / length
-        let baseOffset = providerOffset(providerID) * Double(alternativeIndex == 0 ? 1 : -1)
+        let baseOffset = providerOffset(providerID) * (0.55 + Double(alternativeIndex) * 0.18)
+        let fractions: [Double] = [0.12, 0.24, 0.39, 0.56, 0.73, 0.88]
+        let patterns: [[Double]] = [
+            [0.30, 0.58, 0.18, -0.08, 0.26, 0.05],
+            [-0.22, -0.46, -0.12, -0.34, -0.08, 0.03],
+            [0.18, 0.06, 0.42, 0.20, 0.34, 0.09],
+        ]
+        let pattern = patterns[min(alternativeIndex, patterns.count - 1)]
 
-        let first = CoordinatePoint(
-            latitude: origin.latitude + latDelta * 0.28 + perpendicularLat * baseOffset,
-            longitude: origin.longitude + lonDelta * 0.28 + perpendicularLon * baseOffset
-        )
-        let second = CoordinatePoint(
-            latitude: origin.latitude + latDelta * 0.56 - perpendicularLat * baseOffset * 0.8,
-            longitude: origin.longitude + lonDelta * 0.56 - perpendicularLon * baseOffset * 0.8
-        )
-        let third = CoordinatePoint(
-            latitude: origin.latitude + latDelta * 0.82 + perpendicularLat * baseOffset * 0.35,
-            longitude: origin.longitude + lonDelta * 0.82 + perpendicularLon * baseOffset * 0.35
-        )
-
-        var geometry = [origin, first, second, third, destination]
-        if origin == destination {
-            geometry = [
-                origin,
-                CoordinatePoint(latitude: origin.latitude + 0.002, longitude: origin.longitude + 0.0015),
-                CoordinatePoint(latitude: origin.latitude + 0.003, longitude: origin.longitude - 0.001),
-                CoordinatePoint(latitude: origin.latitude + 0.001, longitude: origin.longitude - 0.002),
-                origin,
-            ]
+        var geometry: [CoordinatePoint] = [origin]
+        for (index, fraction) in fractions.enumerated() {
+            let lateral = baseOffset * pattern[index]
+            let forwardBias = baseOffset * 0.12 * (Double(index) - 2.5)
+            geometry.append(
+                CoordinatePoint(
+                    latitude: origin.latitude + latDelta * fraction + perpendicularLat * lateral + latDelta * forwardBias,
+                    longitude: origin.longitude + lonDelta * fraction + perpendicularLon * lateral + lonDelta * forwardBias
+                )
+            )
         }
+        geometry.append(destination)
         return deduplicated(geometry)
     }
 

@@ -91,7 +91,7 @@ class HslRoutingAdapter(
             variables = DigitransitGraphQlRequestBody.Variables(
                 from = DigitransitGraphQlRequestBody.CoordinateVariable(request.origin.latitude, request.origin.longitude),
                 to = DigitransitGraphQlRequestBody.CoordinateVariable(request.destination.latitude, request.destination.longitude),
-                numItineraries = 2,
+                numItineraries = 3,
                 transportModes = listOf(DigitransitGraphQlRequestBody.TransportMode("BICYCLE")),
                 optimize = "SAFE",
             ),
@@ -417,28 +417,16 @@ class HslRoutingAdapter(
     fun sampleDigitransitResponse(request: RoutePlanRequest, descriptor: String): DigitransitResponse {
         val origin = request.origin
         val destination = request.destination
-        val midpointA = CoordinatePoint(
-            latitude = (origin.latitude + destination.latitude) / 2 + 0.0020,
-            longitude = (origin.longitude + destination.longitude) / 2 - 0.0012,
-        )
-        val midpointB = CoordinatePoint(
-            latitude = (origin.latitude + destination.latitude) / 2 - 0.0010,
-            longitude = (origin.longitude + destination.longitude) / 2 + 0.0015,
-        )
-        val midpointC = CoordinatePoint(
-            latitude = origin.latitude + (destination.latitude - origin.latitude) * 0.75 + 0.0008,
-            longitude = origin.longitude + (destination.longitude - origin.longitude) * 0.72 - 0.0010,
-        )
-        val fastestGeometry = listOf(origin, midpointA, midpointC, destination)
-        val quieterGeometry = listOf(origin, midpointB, midpointC, destination)
+        val itineraries = listOf(
+            "fastest" to sampleGeometry(origin, destination, 0, 0.0013),
+            "quieter" to sampleGeometry(origin, destination, 1, 0.0016),
+            "simpler" to sampleGeometry(origin, destination, 2, 0.0010),
+        ).map { (label, geometry) ->
+            makeItinerary("$descriptor / $label", geometry, "Current location", "Selected destination")
+        }
         return DigitransitResponse(
             data = DigitransitData(
-                plan = DigitransitPlan(
-                    itineraries = listOf(
-                        makeItinerary("$descriptor / fastest", fastestGeometry, listOf("RIGHT", "LEFT"), "Current location", "Selected destination"),
-                        makeItinerary("$descriptor / quieter", quieterGeometry, listOf("LEFT", "RIGHT"), "Current location", "Selected destination"),
-                    ),
-                ),
+                plan = DigitransitPlan(itineraries = itineraries),
             ),
         )
     }
@@ -446,7 +434,6 @@ class HslRoutingAdapter(
     private fun makeItinerary(
         systemNotice: String,
         geometry: List<CoordinatePoint>,
-        turnInstructions: List<String>,
         startLabel: String,
         destinationLabel: String,
     ): DigitransitItinerary {
@@ -454,28 +441,52 @@ class HslRoutingAdapter(
             approximateDistanceMeters(start, end)
         }
         val totalDistance = segmentDistances.sum()
-        var distanceFromStart = segmentDistances.firstOrNull() ?: 0.0
-        val turnLocations = geometry.drop(1).dropLast(1)
-        val steps = turnLocations.mapIndexed { index, point ->
-            val distanceToNext = segmentDistances.getOrNull(index + 1)
-            val step = DigitransitStep(
-                relativeDirection = turnInstructions[index],
-                location = point,
-                distanceFromStartMeters = distanceFromStart,
-                distanceToNextMeters = distanceToNext,
-                instruction = if (turnInstructions[index] == "LEFT") "Turn left" else "Turn right",
-            )
-            distanceFromStart += segmentDistances.getOrNull(index + 1) ?: 0.0
-            step
-        }
         return DigitransitItinerary(
             durationSeconds = (totalDistance / 4.2).toInt(),
             systemNotice = systemNotice,
             legs = listOf(DigitransitLeg(mode = "BICYCLE", distanceMeters = totalDistance, geometry = geometry)),
-            steps = steps,
+            steps = emptyList(),
             startLabel = startLabel,
             destinationLabel = destinationLabel,
         )
+    }
+
+    private fun sampleGeometry(origin: CoordinatePoint, destination: CoordinatePoint, alternativeIndex: Int, offsetScale: Double): List<CoordinatePoint> {
+        if (origin == destination) {
+            return listOf(
+                origin,
+                CoordinatePoint(origin.latitude + 0.0015, origin.longitude + 0.0009),
+                CoordinatePoint(origin.latitude + 0.0024, origin.longitude + 0.0016),
+                CoordinatePoint(origin.latitude + 0.0019, origin.longitude - 0.0004),
+                CoordinatePoint(origin.latitude + 0.0008, origin.longitude - 0.0016),
+                origin,
+            )
+        }
+
+        val latDelta = destination.latitude - origin.latitude
+        val lonDelta = destination.longitude - origin.longitude
+        val length = max(sqrt(latDelta * latDelta + lonDelta * lonDelta), 0.0001)
+        val perpendicularLat = -lonDelta / length
+        val perpendicularLon = latDelta / length
+        val fractions = listOf(0.10, 0.22, 0.38, 0.54, 0.72, 0.88)
+        val patterns = listOf(
+            listOf(0.26, 0.52, 0.22, 0.00, 0.16, 0.04),
+            listOf(-0.20, -0.42, -0.18, -0.28, -0.10, 0.02),
+            listOf(0.12, 0.06, 0.28, 0.14, 0.24, 0.08),
+        )
+        val pattern = patterns[minOf(alternativeIndex, patterns.lastIndex)]
+
+        val geometry = mutableListOf(origin)
+        fractions.forEachIndexed { index, fraction ->
+            val lateral = offsetScale * pattern[index]
+            val forwardBias = offsetScale * 0.10 * (index - 2.5)
+            geometry += CoordinatePoint(
+                latitude = origin.latitude + latDelta * fraction + perpendicularLat * lateral + latDelta * forwardBias,
+                longitude = origin.longitude + lonDelta * fraction + perpendicularLon * lateral + lonDelta * forwardBias,
+            )
+        }
+        geometry += destination
+        return geometry
     }
 
     private fun approximateDistanceMeters(start: CoordinatePoint, end: CoordinatePoint): Double {

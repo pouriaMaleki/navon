@@ -15,6 +15,7 @@ final class HomeViewModel: ObservableObject {
     private let placeSearchService: PlaceSearchService
     private var latestSearchTask: Task<Void, Never>?
     private var northPreviewTask: Task<Void, Never>?
+    private let switchablePlanningProviders: Set<RouteProviderID> = [.hsl, .osm]
 
     init(appModel: AppModel, placeSearchService: PlaceSearchService = MapKitPlaceSearchService()) {
         self.appModel = appModel
@@ -80,12 +81,26 @@ final class HomeViewModel: ObservableObject {
         guidanceRoute?.geometry ?? previewRoute?.geometry ?? []
     }
 
+    var isPreviewLockedToImportedRoute: Bool {
+        guard let providerID = previewRoute?.provenance.providerID else { return false }
+        return !switchablePlanningProviders.contains(providerID)
+    }
+
     var shouldShowSearchPanel: Bool {
-        homeMode == .planning && isSearchOpen && (!query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !recentItems.isEmpty)
+        guard homeMode == .planning, isSearchOpen else { return false }
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedQuery.isEmpty {
+            return !recentItems.isEmpty
+        }
+        return !visibleSuggestions.isEmpty
     }
 
     var shouldShowSourceControl: Bool {
-        homeMode == .planning && !previewAlternatives.isEmpty
+        homeMode == .planning && !previewAlternatives.isEmpty && !isPreviewLockedToImportedRoute
+    }
+
+    var routeSuggestionsTitle: String {
+        isPreviewLockedToImportedRoute ? "Imported route" : "Suggested routes"
     }
 
     var isShowingActiveNavigation: Bool {
@@ -184,6 +199,8 @@ final class HomeViewModel: ObservableObject {
     }
 
     func selectSuggestion(_ suggestion: DestinationSearchResult) {
+        latestSearchTask?.cancel()
+        closeSearch()
         Task {
             appModel.routeRequest = RoutePlanRequest(
                 origin: appModel.simulatedRiderLocation,
@@ -198,11 +215,12 @@ final class HomeViewModel: ObservableObject {
             if plannerPreferences.startBehavior == .automatic {
                 await startSelectedRoute()
             }
-            closeSearch()
         }
     }
 
     func selectRecent(_ item: RouteHistoryItem) {
+        latestSearchTask?.cancel()
+        closeSearch()
         Task {
             await appModel.applyRouteHistoryPreview(item)
             query = item.title
@@ -210,7 +228,6 @@ final class HomeViewModel: ObservableObject {
             if plannerPreferences.startBehavior == .automatic {
                 await startSelectedRoute()
             }
-            closeSearch()
         }
     }
 
@@ -225,7 +242,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     func setSourceMode(_ mode: RouteSourceMode) {
-        guard sourceMode != mode else { return }
+        guard shouldShowSourceControl, sourceMode != mode else { return }
         sourceMode = mode
         guard let destination = destinationCoordinate else { return }
         Task {
@@ -281,6 +298,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     func clearPreview() {
+        latestSearchTask?.cancel()
         northPreviewTask?.cancel()
         activeRouteIdentifier = nil
         homeMode = .planning
