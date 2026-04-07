@@ -443,9 +443,40 @@ final class AppModel: ObservableObject {
         selectedProviderID = providerID
         activeSession.routeIdentifier = selectedPackage?.routeIdentifier ?? preview.routeIdentifier
         activeSession.routeRevision = selectedPackage?.revision ?? preview.routeRevision
-        activeSession.destinationLabel = selectedPackage?.summary.destinationLabel ?? preferredTitle ?? providerID.displayName + " route"
+        activeSession.destinationLabel = displayDestinationTitle(
+            selectedPackage: selectedPackage,
+            preferredTitle: preferredTitle,
+            fallback: providerID.displayName + " route"
+        )
         activeSession.destinationCoordinate = selectedPackage?.geometry.last ?? destination
         activeSession.providerID = providerID
         activeSession.sourceMode = sourceMode
+    }
+
+    private func displayDestinationTitle(selectedPackage: NormalizedRoutePackage?, preferredTitle: String?, fallback: String) -> String {
+        if let preferredTitle {
+            let trimmed = preferredTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                return trimmed
+            }
+        }
+        if let packageTitle = selectedPackage?.summary.destinationLabel,
+           !isGenericDestinationTitle(packageTitle, providerID: selectedPackage?.provenance.providerID) {
+            return packageTitle
+        }
+        return fallback
+    }
+
+    private func isGenericDestinationTitle(_ title: String, providerID: RouteProviderID?) -> Bool {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return true }
+        let lowercased = trimmed.lowercased()
+        if lowercased == "selected destination" || lowercased == "route" || lowercased == "recent destination" || lowercased == "dropped pin" {
+            return true
+        }
+        if let providerID, lowercased == "\(providerID.displayName.lowercased()) sample destination" {
+            return true
+        }
+        return false
     }
 }

@@ -3,10 +3,14 @@ package me.fiksu.esp32map.companion.integration.persistence
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sqrt
 import me.fiksu.esp32map.companion.domain.ActiveRouteSession
 import me.fiksu.esp32map.companion.domain.CompanionSettings
 import me.fiksu.esp32map.companion.domain.CoordinatePoint
 import me.fiksu.esp32map.companion.domain.RouteHistoryItem
+import me.fiksu.esp32map.companion.domain.RouteHistorySource
 import me.fiksu.esp32map.companion.domain.RoutePlannerPreferences
 import me.fiksu.esp32map.companion.domain.RouteSessionStore
 
@@ -22,6 +26,7 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
 
     private val defaults = context?.getSharedPreferences(Key.STORE, Context.MODE_PRIVATE)
     private val gson = Gson()
+    private val nearbyDestinationMergeThresholdMeters = 80.0
 
     private val recentDestinations = mutableListOf<CoordinatePoint>()
     private val routeHistory = mutableListOf<RouteHistoryItem>()
@@ -40,7 +45,7 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
 
     override fun saveRecentDestination(point: CoordinatePoint) {
         val items = loadRecentDestinations().toMutableList()
-        items.remove(point)
+        items.removeAll { areNearby(it, point) }
         items.add(0, point)
         while (items.size > 30) items.removeAt(items.lastIndex)
         if (defaults != null) {
@@ -62,26 +67,41 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
 
     fun saveRouteHistoryItem(item: RouteHistoryItem) {
         val items = loadRecentRouteHistory().toMutableList()
+
+        if (item.source == RouteHistorySource.RECENT_DESTINATION && item.destination != null) {
+            val existingIndex = items.indexOfFirst { candidate ->
+                candidate.source == RouteHistorySource.RECENT_DESTINATION &&
+                    candidate.destination?.let { areNearby(it, item.destination) } == true
+            }
+            if (existingIndex >= 0) {
+                val existing = items.removeAt(existingIndex)
+                val merged = RouteHistoryItem(
+                    id = existing.id,
+                    title = preferredDestinationTitle(item.title, existing.title),
+                    subtitle = item.subtitle,
+                    source = RouteHistorySource.RECENT_DESTINATION,
+                    sourceLabel = item.sourceLabel,
+                    createdAtLabel = item.createdAtLabel,
+                    destination = item.destination ?: existing.destination,
+                    routePackage = null,
+                    occurrenceCount = (existing.occurrenceCount ?: 1) + maxOf(item.occurrenceCount ?: 1, 1),
+                )
+                items.add(0, merged)
+                persistRouteHistory(items)
+                return
+            }
+        }
+
         items.removeAll { it.id == item.id }
         items.add(0, item)
         while (items.size > 50) items.removeAt(items.lastIndex)
-        if (defaults != null) {
-            defaults.edit().putString(Key.ROUTE_HISTORY, gson.toJson(items)).apply()
-        } else {
-            routeHistory.clear()
-            routeHistory.addAll(items)
-        }
+        persistRouteHistory(items)
     }
 
     fun dismissRouteHistoryItem(id: String) {
         val items = loadRecentRouteHistory().toMutableList()
         items.removeAll { it.id == id }
-        if (defaults != null) {
-            defaults.edit().putString(Key.ROUTE_HISTORY, gson.toJson(items)).apply()
-        } else {
-            routeHistory.clear()
-            routeHistory.addAll(items)
-        }
+        persistRouteHistory(items)
     }
 
     override fun loadLastSession(): ActiveRouteSession? {
@@ -130,5 +150,33 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
         } else {
             plannerPreferences = preferences
         }
+    }
+
+    private fun persistRouteHistory(items: List<RouteHistoryItem>) {
+        if (defaults != null) {
+            defaults.edit().putString(Key.ROUTE_HISTORY, gson.toJson(items)).apply()
+        } else {
+            routeHistory.clear()
+            routeHistory.addAll(items)
+        }
+    }
+
+    private fun preferredDestinationTitle(newTitle: String, existingTitle: String): String {
+        return if (isGenericDestinationTitle(existingTitle) && !isGenericDestinationTitle(newTitle)) newTitle else existingTitle
+    }
+
+    private fun isGenericDestinationTitle(title: String): Boolean {
+        val normalized = title.trim().lowercase()
+        return normalized.isEmpty() || normalized == "dropped pin" || normalized == "recent destination" || normalized == "selected destination" || normalized == "route"
+    }
+
+    private fun areNearby(lhs: CoordinatePoint, rhs: CoordinatePoint): Boolean {
+        return approximateDistanceMeters(lhs, rhs) <= nearbyDestinationMergeThresholdMeters
+    }
+
+    private fun approximateDistanceMeters(start: CoordinatePoint, end: CoordinatePoint): Double {
+        val latMeters = (end.latitude - start.latitude) * 111_320.0
+        val lonMeters = (end.longitude - start.longitude) * cos(((start.latitude + end.latitude) / 2.0) * PI / 180.0) * 111_320.0
+        return sqrt(latMeters * latMeters + lonMeters * lonMeters)
     }
 }

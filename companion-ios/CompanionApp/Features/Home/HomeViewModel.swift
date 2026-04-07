@@ -232,13 +232,16 @@ final class HomeViewModel: ObservableObject {
     }
 
     func setDestinationFromMap(_ coordinate: CoordinatePoint) {
-        let manualDrop = DestinationSearchResult(
-            id: "long-press-\(coordinate.latitude)-\(coordinate.longitude)",
-            title: "Dropped pin",
-            subtitle: "Map destination",
-            coordinate: coordinate
-        )
-        selectSuggestion(manualDrop)
+        Task {
+            let resolved = await placeSearchService.resolveDestination(at: coordinate, fallbackTitle: "Dropped pin")
+            let manualDrop = resolved ?? DestinationSearchResult(
+                id: "long-press-\(coordinate.latitude)-\(coordinate.longitude)",
+                title: "Dropped pin",
+                subtitle: "Map destination",
+                coordinate: coordinate
+            )
+            selectSuggestion(manualDrop)
+        }
     }
 
     func setSourceMode(_ mode: RouteSourceMode) {

@@ -268,13 +268,14 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
         persistence.saveRouteHistoryItem(
             RouteHistoryItem(
                 id = selected.routeIdentifier,
-                title = selected.summary.destinationLabel ?: "Route",
+                title = activeSession.destinationLabel,
                 subtitle = selected.summaryLine,
                 source = source,
                 sourceLabel = sourceLabel,
                 createdAtLabel = "Just now",
                 destination = selected.geometry.lastOrNull(),
                 routePackage = selected,
+                occurrenceCount = null,
             ),
         )
     }
@@ -290,6 +291,7 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
                 createdAtLabel = "Just now",
                 destination = coordinate,
                 routePackage = null,
+                occurrenceCount = 1,
             ),
         )
         persistence.saveRecentDestination(coordinate)
@@ -490,10 +492,34 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
         activeSession = activeSession.copy(
             routeIdentifier = selectedPackage?.routeIdentifier ?: preview.routeIdentifier,
             routeRevision = selectedPackage?.revision ?: preview.routeRevision,
-            destinationLabel = selectedPackage?.summary?.destinationLabel ?: preferredTitle ?: "${providerId.displayName} route",
+            destinationLabel = displayDestinationTitle(selectedPackage, preferredTitle, "${providerId.displayName} route"),
             destinationCoordinate = selectedPackage?.geometry?.lastOrNull() ?: destination,
             providerId = providerId,
             sourceMode = sourceMode,
         )
+    }
+
+    private fun displayDestinationTitle(selectedPackage: NormalizedRoutePackage?, preferredTitle: String?, fallback: String): String {
+        val preferred = preferredTitle?.trim().orEmpty()
+        if (preferred.isNotEmpty()) {
+            return preferred
+        }
+        val packageTitle = selectedPackage?.summary?.destinationLabel?.trim().orEmpty()
+        if (packageTitle.isNotEmpty() && !isGenericDestinationTitle(packageTitle, selectedPackage?.provenance?.providerId)) {
+            return packageTitle
+        }
+        return fallback
+    }
+
+    private fun isGenericDestinationTitle(title: String, providerId: RouteProviderId?): Boolean {
+        val normalized = title.trim().lowercase()
+        if (normalized.isEmpty()) return true
+        if (normalized == "selected destination" || normalized == "route" || normalized == "recent destination" || normalized == "dropped pin") {
+            return true
+        }
+        if (providerId != null && normalized == "${providerId.displayName.lowercase()} sample destination") {
+            return true
+        }
+        return false
     }
 }

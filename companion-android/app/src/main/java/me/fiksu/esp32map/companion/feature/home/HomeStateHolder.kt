@@ -195,15 +195,18 @@ class HomeStateHolder(
     }
 
     fun setDestinationFromMap(coordinate: CoordinatePoint, scope: CoroutineScope) {
-        selectSuggestion(
-            DestinationSearchResult(
-                id = "dropped-pin-${coordinate.latitude}-${coordinate.longitude}",
-                title = "Dropped pin",
-                subtitle = "Map destination",
-                coordinate = coordinate,
-            ),
-            scope,
-        )
+        scope.launch {
+            val resolved = placeSearchService.resolveDestination(coordinate, "Dropped pin")
+            selectSuggestion(
+                resolved ?: DestinationSearchResult(
+                    id = "dropped-pin-${coordinate.latitude}-${coordinate.longitude}",
+                    title = "Dropped pin",
+                    subtitle = "Map destination",
+                    coordinate = coordinate,
+                ),
+                scope,
+            )
+        }
     }
 
     fun setSourceMode(mode: RouteSourceMode) {
