@@ -1,8 +1,10 @@
 import Foundation
 import MapKit
+import CoreLocation
 
 protocol PlaceSearchService {
     func searchDestinations(matching query: String, limit: Int) async -> [DestinationSearchResult]
+    func resolveDestination(at coordinate: CoordinatePoint, fallbackTitle: String) async -> DestinationSearchResult?
 }
 
 struct MapKitPlaceSearchService: PlaceSearchService {
@@ -29,5 +31,42 @@ struct MapKitPlaceSearchService: PlaceSearchService {
         } catch {
             return []
         }
+    }
+
+    func resolveDestination(at coordinate: CoordinatePoint, fallbackTitle: String = "Dropped pin") async -> DestinationSearchResult? {
+        let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        do {
+            let placemarks = try await CLGeocoder().reverseGeocodeLocation(location)
+            guard let placemark = placemarks.first else { return nil }
+            let title = simpleTitle(for: placemark, fallbackTitle: fallbackTitle)
+            let subtitle = [placemark.locality, placemark.administrativeArea, placemark.country].compactMap { $0 }.joined(separator: " • ")
+            return DestinationSearchResult(
+                id: "reverse-\(coordinate.latitude)-\(coordinate.longitude)",
+                title: title,
+                subtitle: subtitle,
+                coordinate: coordinate
+            )
+        } catch {
+            return nil
+        }
+    }
+
+    private func simpleTitle(for placemark: CLPlacemark, fallbackTitle: String) -> String {
+        if let thoroughfare = placemark.thoroughfare, !thoroughfare.isEmpty {
+            let components = [thoroughfare, placemark.subThoroughfare].compactMap { value -> String? in
+                guard let value, !value.isEmpty else { return nil }
+                return value
+            }
+            if !components.isEmpty {
+                return components.joined(separator: " ")
+            }
+        }
+        if let name = placemark.name, !name.isEmpty {
+            return name
+        }
+        if let locality = placemark.locality, !locality.isEmpty {
+            return locality
+        }
+        return fallbackTitle
     }
 }

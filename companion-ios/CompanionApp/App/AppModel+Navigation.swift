@@ -18,13 +18,14 @@ extension AppModel {
         persistence.saveRouteHistoryItem(
             RouteHistoryItem(
                 id: selected.routeIdentifier,
-                title: selected.summary.destinationLabel ?? "Route",
+                title: activeSession.destinationLabel,
                 subtitle: selected.summaryLine,
                 source: source,
                 sourceLabel: sourceLabel,
                 createdAt: Date(),
                 destination: selected.geometry.last,
-                routePackage: selected
+                routePackage: selected,
+                occurrenceCount: nil
             )
         )
     }
@@ -39,7 +40,8 @@ extension AppModel {
                 sourceLabel: "Recent",
                 createdAt: Date(),
                 destination: coordinate,
-                routePackage: nil
+                routePackage: nil,
+                occurrenceCount: 1
             )
         )
         persistence.saveRecentDestination(coordinate)

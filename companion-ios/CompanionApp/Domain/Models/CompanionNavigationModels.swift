@@ -125,4 +125,5 @@ struct RouteHistoryItem: Identifiable, Equatable, Codable {
     var createdAt: Date
     var destination: CoordinatePoint?
     var routePackage: NormalizedRoutePackage?
+    var occurrenceCount: Int?
 }

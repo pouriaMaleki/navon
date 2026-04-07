@@ -10,6 +10,7 @@ import me.fiksu.esp32map.companion.domain.DestinationSearchResult
 
 interface PlaceSearchService {
     suspend fun searchDestinations(query: String, limit: Int): List<DestinationSearchResult>
+    suspend fun resolveDestination(coordinate: CoordinatePoint, fallbackTitle: String = "Dropped pin"): DestinationSearchResult?
 }
 
 class AndroidPlaceSearchService(context: Context) : PlaceSearchService {
@@ -28,5 +29,31 @@ class AndroidPlaceSearchService(context: Context) : PlaceSearchService {
                 )
             }
         }.getOrDefault(emptyList())
+    }
+
+    override suspend fun resolveDestination(coordinate: CoordinatePoint, fallbackTitle: String): DestinationSearchResult? = withContext(Dispatchers.IO) {
+        runCatching {
+            geocoder.getFromLocation(coordinate.latitude, coordinate.longitude, 1).orEmpty().firstOrNull()?.let { address ->
+                DestinationSearchResult(
+                    id = "reverse-${coordinate.latitude}-${coordinate.longitude}",
+                    title = simpleTitle(address, fallbackTitle),
+                    subtitle = listOfNotNull(address.locality, address.adminArea, address.countryName).joinToString(" • "),
+                    coordinate = coordinate,
+                )
+            }
+        }.getOrNull()
+    }
+
+    private fun simpleTitle(address: android.location.Address, fallbackTitle: String): String {
+        val thoroughfare = address.thoroughfare?.takeIf { it.isNotBlank() }
+        if (thoroughfare != null) {
+            val parts = listOfNotNull(thoroughfare, address.subThoroughfare?.takeIf { it.isNotBlank() })
+            if (parts.isNotEmpty()) {
+                return parts.joinToString(" ")
+            }
+        }
+        return address.featureName?.takeIf { it.isNotBlank() }
+            ?: address.locality?.takeIf { it.isNotBlank() }
+            ?: fallbackTitle
     }
 }

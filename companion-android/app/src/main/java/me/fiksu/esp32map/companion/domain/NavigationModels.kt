@@ -65,4 +65,5 @@ data class RouteHistoryItem(
     val createdAtLabel: String,
     val destination: CoordinatePoint?,
     val routePackage: NormalizedRoutePackage?,
+    val occurrenceCount: Int? = null,
 )

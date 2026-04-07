@@ -12,6 +12,7 @@ final class CompanionPersistence: RouteSessionStore {
     private let defaults: UserDefaults
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
+    private let nearbyDestinationMergeThresholdMeters = 80.0
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -23,7 +24,7 @@ final class CompanionPersistence: RouteSessionStore {
 
     func saveRecentDestination(_ point: CoordinatePoint) {
         var destinations = loadRecentDestinations()
-        destinations.removeAll { $0 == point }
+        destinations.removeAll { areNearby($0, point) }
         destinations.insert(point, at: 0)
         save(Array(destinations.prefix(30)), forKey: Key.destinations)
     }
@@ -34,6 +35,29 @@ final class CompanionPersistence: RouteSessionStore {
 
     func saveRouteHistoryItem(_ item: RouteHistoryItem) {
         var routeHistory = loadRecentRouteHistory()
+
+        if item.source == .recentDestination,
+           let destination = item.destination,
+           let existingIndex = routeHistory.firstIndex(where: { candidate in
+               candidate.source == .recentDestination && candidate.destination.map { areNearby($0, destination) } == true
+           }) {
+            let existing = routeHistory.remove(at: existingIndex)
+            let merged = RouteHistoryItem(
+                id: existing.id,
+                title: preferredDestinationTitle(newTitle: item.title, existingTitle: existing.title),
+                subtitle: item.subtitle,
+                source: .recentDestination,
+                sourceLabel: item.sourceLabel,
+                createdAt: item.createdAt,
+                destination: item.destination ?? existing.destination,
+                routePackage: nil,
+                occurrenceCount: (existing.occurrenceCount ?? 1) + max(item.occurrenceCount ?? 1, 1)
+            )
+            routeHistory.insert(merged, at: 0)
+            save(Array(routeHistory.prefix(50)), forKey: Key.routeHistory)
+            return
+        }
+
         routeHistory.removeAll { $0.id == item.id }
         routeHistory.insert(item, at: 0)
         save(Array(routeHistory.prefix(50)), forKey: Key.routeHistory)
@@ -67,6 +91,28 @@ final class CompanionPersistence: RouteSessionStore {
 
     func saveRoutePlannerPreferences(_ preferences: RoutePlannerPreferences) {
         save(preferences, forKey: Key.plannerPreferences)
+    }
+
+    private func preferredDestinationTitle(newTitle: String, existingTitle: String) -> String {
+        if isGenericDestinationTitle(existingTitle), !isGenericDestinationTitle(newTitle) {
+            return newTitle
+        }
+        return existingTitle
+    }
+
+    private func isGenericDestinationTitle(_ title: String) -> Bool {
+        let normalized = title.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        return normalized.isEmpty || normalized == "dropped pin" || normalized == "recent destination" || normalized == "selected destination" || normalized == "route"
+    }
+
+    private func areNearby(_ lhs: CoordinatePoint, _ rhs: CoordinatePoint) -> Bool {
+        approximateDistanceMeters(from: lhs, to: rhs) <= nearbyDestinationMergeThresholdMeters
+    }
+
+    private func approximateDistanceMeters(from start: CoordinatePoint, to end: CoordinatePoint) -> Double {
+        let latMeters = (end.latitude - start.latitude) * 111_320.0
+        let lonMeters = (end.longitude - start.longitude) * cos(((start.latitude + end.latitude) / 2.0) * .pi / 180.0) * 111_320.0
+        return sqrt(latMeters * latMeters + lonMeters * lonMeters)
     }
 
     private func load<T: Decodable>(_ type: T.Type, forKey key: String) -> T? {
