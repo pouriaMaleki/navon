@@ -24,7 +24,8 @@
   },
   "forwardPorts": [
     5173,
-    3024
+    3024,
+    8449
   ],
   "portsAttributes": {
     "5173": {
@@ -33,6 +34,10 @@
     },
     "3024": {
       "label": "Lex Code Viewer",
+      "onAutoForward": "notify"
+    },
+    "8449": {
+      "label": "Code Server",
       "onAutoForward": "notify"
     }
   },

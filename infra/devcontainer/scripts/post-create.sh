@@ -86,3 +86,11 @@ if [ -f /opt/lex/server.ts ] && command -v bun >/dev/null 2>&1; then
     echo "Lex code viewer started on port 3024"
   fi
 fi
+
+# Start code-server for browser-based VS Code access (only when password is configured).
+if [ -n "${CODE_SERVER_PASSWORD:-}" ] && command -v code-server >/dev/null 2>&1 && command -v tmux >/dev/null 2>&1; then
+  tmux new-session -d -s code-server \
+    "PASSWORD='${CODE_SERVER_PASSWORD}' code-server --bind-addr 0.0.0.0:8449 --auth password /work" \
+    2>/dev/null || true
+  echo "Code Server started on port 8449"
+fi
