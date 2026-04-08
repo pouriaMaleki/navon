@@ -23,7 +23,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install bun (used by Lex code viewer when mounted)
 RUN curl -fsSL https://bun.sh/install | bash \
-    && ln -s /root/.bun/bin/bun /usr/local/bin/bun
+    && cp /root/.bun/bin/bun /usr/local/bin/bun \
+    && chmod 755 /usr/local/bin/bun
 
 # Install code-server
 RUN curl -fsSL https://code-server.dev/install.sh | sh
