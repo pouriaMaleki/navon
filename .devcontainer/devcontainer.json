@@ -13,7 +13,8 @@
   ],
   "mounts": [
     "source=${localEnv:HOME}/.devcontainer-homes/esp32-map,target=/home/vscode,type=bind,consistency=cached",
-    "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
+    "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+    "source=${localEnv:LEX_PATH:-/opt/lex-disabled},target=/opt/lex,type=bind,consistency=cached"
   ],
   "remoteUser": "vscode",
   "containerEnv": {
@@ -22,11 +23,16 @@
     "TZ": "Europe/Helsinki"
   },
   "forwardPorts": [
-    5173
+    5173,
+    3024
   ],
   "portsAttributes": {
     "5173": {
       "label": "Emulator (Vite)",
+      "onAutoForward": "notify"
+    },
+    "3024": {
+      "label": "Lex Code Viewer",
       "onAutoForward": "notify"
     }
   },
