@@ -66,6 +66,14 @@ mkdir -p "${HOME}/.ssh"
 chmod 700 "${HOME}/.ssh"
 find "${HOME}/.ssh" -type f -name "id_*" -exec chmod 600 {} \;
 
+# Load shared env from persistent home (used by Lex and code-server).
+LEX_ENV="${HOME}/.config/lex/.env"
+if [ -f "${LEX_ENV}" ]; then
+  set -a
+  source "${LEX_ENV}"
+  set +a
+fi
+
 # Lex code viewer: initialize and start if mounted at /opt/lex.
 if [ -f /opt/lex/server.ts ] && command -v bun >/dev/null 2>&1; then
   # Install dependencies if missing
@@ -75,9 +83,6 @@ if [ -f /opt/lex/server.ts ] && command -v bun >/dev/null 2>&1; then
 
   # Fix node-pty spawn-helper permissions if needed
   find /opt/lex/node_modules/node-pty/prebuilds -name "spawn-helper" -exec chmod +x {} \; 2>/dev/null || true
-
-  # Load env from persistent home if available
-  LEX_ENV="${HOME}/.config/lex/.env"
 
   if command -v tmux >/dev/null 2>&1; then
     tmux new-session -d -s lex \
