@@ -18,7 +18,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get update \
     && apt-get install -y --no-install-recommends nodejs \
     && corepack enable \
-    && npm install -g @anthropic-ai/claude-code @openai/codex \
+    && ln -sf /usr/bin/python3 /usr/bin/python \
+    && npm install -g node-gyp @anthropic-ai/claude-code @openai/codex \
     && rm -rf /var/lib/apt/lists/*
 
 # Install bun (used by Lex code viewer when mounted)
