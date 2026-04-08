@@ -25,6 +25,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="/root/.bun/bin:${PATH}"
 
+# Install code-server
+RUN curl -fsSL https://code-server.dev/install.sh | sh
+
 USER vscode
 
 RUN rustup component add rustfmt clippy \
