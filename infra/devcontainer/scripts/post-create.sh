@@ -81,6 +81,11 @@ if [ -f /opt/lex/server.ts ] && command -v bun >/dev/null 2>&1; then
     (cd /opt/lex && bun install)
   fi
 
+  # Ensure node-pty has native bindings for this platform
+  if [ ! -f /opt/lex/node_modules/node-pty/build/Release/pty.node ]; then
+    (cd /opt/lex && npm rebuild node-pty 2>/dev/null || true)
+  fi
+
   # Fix node-pty spawn-helper permissions if needed
   find /opt/lex/node_modules/node-pty/prebuilds -name "spawn-helper" -exec chmod +x {} \; 2>/dev/null || true
 
