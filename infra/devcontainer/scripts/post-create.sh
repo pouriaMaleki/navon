@@ -65,3 +65,24 @@ fi
 mkdir -p "${HOME}/.ssh"
 chmod 700 "${HOME}/.ssh"
 find "${HOME}/.ssh" -type f -name "id_*" -exec chmod 600 {} \;
+
+# Lex code viewer: initialize and start if mounted at /opt/lex.
+if [ -f /opt/lex/server.ts ] && command -v bun >/dev/null 2>&1; then
+  # Install dependencies if missing
+  if [ ! -d /opt/lex/node_modules ]; then
+    (cd /opt/lex && bun install)
+  fi
+
+  # Fix node-pty spawn-helper permissions if needed
+  find /opt/lex/node_modules/node-pty/prebuilds -name "spawn-helper" -exec chmod +x {} \; 2>/dev/null || true
+
+  # Load env from persistent home if available
+  LEX_ENV="${HOME}/.config/lex/.env"
+
+  if command -v tmux >/dev/null 2>&1; then
+    tmux new-session -d -s lex \
+      "cd /opt/lex && set -a && [ -f '${LEX_ENV}' ] && source '${LEX_ENV}'; set +a && bun run server.ts --port 3024 --root /work" \
+      2>/dev/null || true
+    echo "Lex code viewer started on port 3024"
+  fi
+fi
