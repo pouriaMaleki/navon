@@ -9,7 +9,10 @@
   "workspaceMount": "source=${localWorkspaceFolder},target=/work,type=bind",
   "runArgs": [
     "--dns=1.1.1.1",
-    "--dns=8.8.8.8"
+    "--dns=8.8.8.8",
+    "--publish=3024:3024",
+    "--publish=8449:8449",
+    "--publish=5173:5173"
   ],
   "mounts": [
     "source=${localEnv:HOME}/.devcontainer-homes/esp32-map,target=/home/vscode,type=bind,consistency=cached",
