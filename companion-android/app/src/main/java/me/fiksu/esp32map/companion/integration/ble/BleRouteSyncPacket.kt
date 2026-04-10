@@ -279,13 +279,10 @@ object BleRouteSyncCodec {
     private fun parseProvider(value: String): RouteProviderId {
         return when (value.trim()) {
             "hsl", "hsl_digitransit" -> RouteProviderId.HSL
-            "google_ingest", "googleIngest" -> RouteProviderId.GOOGLE_INGEST
             "osm" -> RouteProviderId.OSM
             "gpx" -> RouteProviderId.GPX_IMPORT
             "fit" -> RouteProviderId.FIT_IMPORT
             "tcx" -> RouteProviderId.TCX_IMPORT
-            "garmin_api", "garminApi" -> RouteProviderId.GARMIN_API
-            "garmin_file", "garminFile" -> RouteProviderId.GARMIN_FILE
             else -> RouteProviderId.OSM
         }
     }

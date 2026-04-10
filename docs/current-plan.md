@@ -100,28 +100,18 @@ Secondary navigation:
 
 Settings information architecture:
 
-### 1. Connections
-Purpose:
-- manage third-party integrations as their own focused subpages
-
-Contains:
-- one entry per connected ecosystem, such as Strava, Garmin Connect, Komoot, and similar services
-- each provider opens its own page showing connection state and provider-specific capabilities
-- provider pages can expose inbound route access, such as viewing planned routes available from that service
-- selecting a route from a provider page should open the standard route detail page used elsewhere in the app
-
-### 2. Routes
+### 1. Routes
 Purpose:
 - full-screen list/history surface for route and destination items outside the quick Home search flow
 - this is a recovery and re-entry surface, not a heavy route library or route-planner workspace
 
 Contains:
 - recently imported routes and destinations
-- shared Google Maps handoffs, GPX/FIT/TCX imports, and partner-provided routes
+- shared Google Maps handoffs, GPX/FIT/TCX imports, and recent share-based destination intents
 - recent route intents and destination history
 - clear source badges and lightweight actions such as `Open`, `Start`, `Open again`, and `Dismiss`
 
-### 3. Device
+### 2. Device
 Purpose:
 - all ESP32 device connection, setup, and troubleshooting flows
 
@@ -131,7 +121,7 @@ Contains:
 - device setup help and troubleshooting
 - future device-specific controls once real hardware flow is finalized
 
-### 4. Route Planner
+### 3. Route Planner
 Purpose:
 - control the behavior of route generation and suggestion strategy
 
@@ -140,6 +130,15 @@ Contains:
 - route suggestion mode such as best route only versus three-route suggestions
 - whether routing should start immediately by default or require explicit confirmation
 - future heuristics such as history-informed route ranking
+
+### 4. Import Diagnostics
+Purpose:
+- capture unsupported or ambiguous share payloads without blocking the lightweight import path
+
+Contains:
+- unsupported links, files, and mixed-share payloads
+- exportable debug packages for manual inspection
+- retry and dismiss actions for failed imports
 
 Design principles for the redesign:
 - the app should feel like a navigation product first, not a developer tool
@@ -212,12 +211,12 @@ Design principles for the redesign:
 A single route detail page should be reused across:
 - Google Maps handoffs
 - GPX imports
-- partner-provided routes
+- share-import route/destination recoveries that resolve into normal history entries
 - recent route intents and destination history
 
 Contents:
 - route/destination title
-- source badge such as `From Google Maps`, `GPX`, `Garmin`, `Komoot`, `Strava`, or `Recent`
+- source badge such as `From Google Maps`, `GPX`, `Shared`, or `Recent`
 - map preview snippet or full inline preview depending on platform conventions
 - route summary and provider/source context
 - lightweight actions such as `Open`, `Start`, `Open again`, or `Dismiss`
@@ -240,18 +239,18 @@ Expected behavior:
 
 ### Settings Layout
 Settings should be a full-screen page with simple top-level sections:
-- `Connections`
 - `Routes`
 - `Device`
 - `Route Planner`
+- `Import Diagnostics`
 
 Behavior:
 - each section opens its own focused page
-- provider-specific pages under `Connections` should show connection state first, then provider-specific actions
 - `Routes` should be the deeper history/recovery surface, not the default quick-entry surface
 - `Routes` should stay lightweight and recent-oriented rather than turning into a permanent route archive
 - `Device` should contain connection/setup/troubleshooting only, not dominate the main navigation experience
 - `Route Planner` should centralize provider policy and route suggestion behavior preferences
+- `Import Diagnostics` should retain unsupported share payloads with exportable debug info and easy retry/dismiss controls
 
 ### Share-Sheet Handling Rules
 - if a shared item is clearly understood and can be turned into a route or destination intent immediately, the app should open directly into Home route preview
@@ -261,16 +260,16 @@ Behavior:
 - ambiguous route-like links or partially parsed files should resolve to the route detail page
 
 
-## Partner Route Integration Direction (April 6, 2026)
-For now, the companion app should focus on inbound partner integrations rather than activity recording or outbound fitness sync.
+## Share Import Direction (April 6, 2026)
+For now, the companion app should focus on inbound share-sheet and link/file ingestion rather than activity recording or outbound fitness sync.
 
 Product direction:
-- the app should ingest route and destination intents from Garmin Connect, Strava, Komoot, and similar services when those integrations are added
-- imported partner routes should flow into the same route-intent pipeline as Google Maps shares and GPX imports
+- the app should ingest route and destination intents from Google Maps shares, generic location links, GPX-first file import, and future shareable payloads
+- imported share payloads should flow into the same route-intent pipeline as typed search, recents, and direct map destination selection
 - recording rides and exporting completed activities are intentionally deferred from the near-term companion scope
 
 UX implication:
-- partner-originated routes should appear in `Routes` with the same clear source-badge model as other incoming items
+- imported routes and destinations should appear in `Routes` with the same clear source-badge model as other incoming items
 - the app should optimize for quick `Open` and `Start` flows, not account-heavy training or activity-management UX
 - future outbound sync or ride-history features can be layered on later without changing the lightweight route-intake model
 
@@ -286,23 +285,15 @@ UX implication:
 ### Routing Sources and Strategy
 Provider picker supports:
 - HSL Digitransit
-- Google ingest path
 - OSM-based routing
 - GPX import
 - FIT import
 - TCX import
-- Garmin direct API integration
-- Garmin file import path
 
 Source strategy rules:
 - all provider outputs must normalize into one source-agnostic `RoutePackage` contract
 - provider-specific fields stay in provenance metadata, not in shared runtime behavior logic
 - if source capability differs, normalize at companion layer, never in firmware adapter logic
-
-Google governance rule:
-- Google ingest is intentionally included as a product decision
-- compliance and legal risk is explicitly accepted and tracked as a parallel governance stream
-- release gating must include compliance sign-off for any Google-backed on-device rendering path
 
 ## Ownership Guards
 
@@ -465,7 +456,7 @@ Transport contract requirements:
 - Added acknowledgement timeout recovery that rewinds completed chunk uploads into a replayable failed transfer when the final device status never arrives, aligning companion behavior with the same deterministic retry posture already enforced in firmware.
 
 ## Implementation Checkpoint (March 31, 2026, Companion Provider Matrix Slice)
-- Added sample-backed companion adapters for OSM, Google ingest, GPX import, FIT import, TCX import, Garmin API, and Garmin file flows in both native apps so every planned provider slot now produces a normalized `RoutePackage` through the same preview/send path, even where live integration is still pending.
+- Added sample-backed companion adapters for OSM, GPX import, FIT import, and TCX import in both native apps so every planned provider slot now produces a normalized `RoutePackage` through the same preview/send path, even where live integration is still pending.
 - Updated the native planning UIs so non-HSL providers are selectable as sample previews rather than dead "coming soon" states, while preserving the distinction that only HSL is live-provider-ready today.
 - Kept provider provenance explicit in each normalized package and planning notice so the route-follow/runtime stack continues to receive source-agnostic payloads while companion UX stays honest about which integrations are sample-backed.
 
@@ -531,7 +522,7 @@ Transport contract requirements:
 
 ## Implementation Checkpoint (March 29, 2026)
 - Delivered versioned route package and sync contracts in shared `runtime-core` API.
-- Added provider fixture contract coverage (HSL, Google ingest, OSM, GPX, FIT, TCX, Garmin API/file).
+- Added provider fixture contract coverage (HSL, OSM, GPX, FIT, TCX).
 - Extended `RuntimeInputFrame` with route sync ingress and `RuntimeFrameOutput` with active route render state baseline.
 - Added runtime route state application for `set`/`update`/`clear` flows and deterministic tests for set/clear behavior.
 - Implemented snapped route progress projection in `runtime-core`, including monotonic progress behavior under backward GPS jitter.
@@ -586,7 +577,7 @@ Stage 1 exit criteria:
 ### Stage 2: Contracts and Multi-Provider Scaffold
 - Generalize provider adapter interface from HSL-first implementation
 - Harden route package versioning and compatibility policy
-- Add provider fixture corpus for OSM, Google ingest, GPX/FIT/TCX, Garmin API/import
+- Add provider fixture corpus for OSM and GPX/FIT/TCX imports
 
 Exit criteria:
 - provider interface is stable and source-agnostic
@@ -620,14 +611,12 @@ Exit criteria:
 - provider fallback behavior is deterministic
 - field scenarios pass for target riding conditions and reroute loops
 
-### Stage 6: Productionization, Observability, Compliance Closure
+### Stage 6: Productionization, Observability, and Rollout Closure
 - add telemetry and diagnostics for planning, sync, follow, and reroute lifecycle
-- complete compliance sign-off workstream, including Google path governance
 - finalize rollout and support playbook
 
 Exit criteria:
 - operational dashboards and incident procedures are defined
-- compliance gate sign-off is recorded
 - launch checklist is complete
 
 ## Quality and Validation Strategy
@@ -635,7 +624,7 @@ Exit criteria:
 - Sync reliability tests under packet loss and interrupted sessions.
 - Runtime determinism tests for route progress and off-route stability.
 - Rendering snapshot and readability tests across motion/orientation states.
-- End-to-end tests for HSL, OSM fallback, Google ingest, GPX import, Garmin API/import, and live reroute loop.
+- End-to-end tests for HSL, OSM fallback, Google Maps handoff import, GPX import, and live reroute loop.
 
 ## Explicit Program Assumptions
 - Implementation effort is unconstrained; UX and performance are top priorities.

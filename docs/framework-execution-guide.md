@@ -144,7 +144,7 @@ When editing `companion-ios` or `companion-android`, preserve these rules:
 3. Keep views free of provider, import, BLE, and persistence logic.
 4. Keep `RoutePackage` canonical; native UI models may wrap it but must not fork route semantics.
 5. Keep Settings `Routes` lightweight and recent-oriented; do not turn it into a heavy route library.
-6. Keep one universal route detail page for imports, recents, and partner routes unless a source has truly unique capability.
+6. Keep one universal route detail page for imports and recents unless a source genuinely requires a different recovery surface.
 7. Keep share/import handling on the fast path to Home route preview when parsing is clear, and use Route Detail as the fallback.
 
 ## Anti-Patterns To Reject

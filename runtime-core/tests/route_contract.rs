@@ -6,7 +6,8 @@ use runtime_core::api::{
 };
 
 fn canonical_fixture(provider: RouteProvider, index: usize) -> RoutePackage {
-    let route_id = format!("route-{}-001", provider_slug(&provider));
+    let provider_slug = provider_slug(&provider);
+    let route_id = format!("route-{provider_slug}-001");
     let base_lat = 60.1699 + index as f64 * 0.001;
     let base_lon = 24.9384 + index as f64 * 0.001;
 
@@ -45,7 +46,7 @@ fn canonical_fixture(provider: RouteProvider, index: usize) -> RoutePackage {
         },
         provenance: RouteProvenance {
             provider,
-            source_ref: Some(format!("{}:fixture", provider_slug_from_index(index))),
+            source_ref: Some(format!("{provider_slug}:fixture")),
             generated_at_unix_ms: 1_764_113_200_000 + index as u64,
         },
     }
@@ -54,41 +55,21 @@ fn canonical_fixture(provider: RouteProvider, index: usize) -> RoutePackage {
 fn provider_slug(provider: &RouteProvider) -> &'static str {
     match provider {
         RouteProvider::HslDigitransit => "hsl",
-        RouteProvider::GoogleIngest => "google",
         RouteProvider::Osm => "osm",
         RouteProvider::Gpx => "gpx",
         RouteProvider::Fit => "fit",
         RouteProvider::Tcx => "tcx",
-        RouteProvider::GarminApi => "garmin-api",
-        RouteProvider::GarminFile => "garmin-file",
         RouteProvider::Unknown(_) => "unknown",
-    }
-}
-
-fn provider_slug_from_index(index: usize) -> &'static str {
-    match index {
-        0 => "hsl",
-        1 => "google",
-        2 => "osm",
-        3 => "gpx",
-        4 => "fit",
-        5 => "tcx",
-        6 => "garmin-api",
-        7 => "garmin-file",
-        _ => "unknown",
     }
 }
 
 fn providers() -> Vec<RouteProvider> {
     vec![
         RouteProvider::HslDigitransit,
-        RouteProvider::GoogleIngest,
         RouteProvider::Osm,
         RouteProvider::Gpx,
         RouteProvider::Fit,
         RouteProvider::Tcx,
-        RouteProvider::GarminApi,
-        RouteProvider::GarminFile,
     ]
 }
 

@@ -74,13 +74,10 @@ pub struct RouteSummary {
 #[derive(Debug, Clone, PartialEq)]
 pub enum RouteProvider {
     HslDigitransit,
-    GoogleIngest,
     Osm,
     Gpx,
     Fit,
     Tcx,
-    GarminApi,
-    GarminFile,
     Unknown(String),
 }
 

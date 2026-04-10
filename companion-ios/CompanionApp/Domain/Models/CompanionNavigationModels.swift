@@ -113,7 +113,31 @@ enum RouteHistorySource: String, Equatable, Codable {
     case plannedRoute
     case gpxImport
     case googleMaps
-    case partner
+    case shareImport
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        switch rawValue {
+        case Self.recentDestination.rawValue:
+            self = .recentDestination
+        case Self.plannedRoute.rawValue:
+            self = .plannedRoute
+        case Self.gpxImport.rawValue:
+            self = .gpxImport
+        case Self.googleMaps.rawValue:
+            self = .googleMaps
+        case Self.shareImport.rawValue, "partner":
+            self = .shareImport
+        default:
+            self = .plannedRoute
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 struct RouteHistoryItem: Identifiable, Equatable, Codable {

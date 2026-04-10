@@ -498,12 +498,9 @@ class SampleRoutingAdapter(
     private fun planningNotice(provider: RouteProviderId): String {
         return when (provider) {
             RouteProviderId.OSM -> "Using sample OSM fallback routes. Live OSRM bike routing is unavailable."
-            RouteProviderId.GOOGLE_INGEST -> "Using sample Google ingest routes. Compliance and live ingestion are still pending."
             RouteProviderId.GPX_IMPORT -> "Using sample GPX import routes. File selection is not wired yet."
             RouteProviderId.FIT_IMPORT -> "Using sample FIT import routes. File selection is not wired yet."
             RouteProviderId.TCX_IMPORT -> "Using sample TCX import routes. File selection is not wired yet."
-            RouteProviderId.GARMIN_API -> "Using sample Garmin API routes. Live Garmin integration is not wired yet."
-            RouteProviderId.GARMIN_FILE -> "Using sample Garmin file routes. File selection is not wired yet."
             RouteProviderId.HSL -> "Using sample HSL route"
         }
     }
@@ -516,12 +513,9 @@ class SampleRoutingAdapter(
     private fun providerOffset(provider: RouteProviderId): Double {
         return when (provider) {
             RouteProviderId.OSM -> 0.0020
-            RouteProviderId.GOOGLE_INGEST -> 0.0018
             RouteProviderId.GPX_IMPORT -> 0.0014
             RouteProviderId.FIT_IMPORT -> 0.0016
             RouteProviderId.TCX_IMPORT -> 0.0012
-            RouteProviderId.GARMIN_API -> 0.0017
-            RouteProviderId.GARMIN_FILE -> 0.0015
             RouteProviderId.HSL -> 0.0018
         }
     }
@@ -529,12 +523,9 @@ class SampleRoutingAdapter(
     private fun providerAverageMetersPerSecond(provider: RouteProviderId): Double {
         return when (provider) {
             RouteProviderId.OSM -> 5.2
-            RouteProviderId.GOOGLE_INGEST -> 5.6
             RouteProviderId.GPX_IMPORT -> 4.8
             RouteProviderId.FIT_IMPORT -> 5.0
             RouteProviderId.TCX_IMPORT -> 4.7
-            RouteProviderId.GARMIN_API -> 5.4
-            RouteProviderId.GARMIN_FILE -> 4.9
             RouteProviderId.HSL -> 5.3
         }
     }

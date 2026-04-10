@@ -2,8 +2,10 @@ package me.fiksu.esp32map.companion.app
 
 import android.app.Application
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
@@ -13,6 +15,10 @@ import kotlinx.coroutines.launch
 import me.fiksu.esp32map.companion.domain.ActiveRouteSession
 import me.fiksu.esp32map.companion.domain.CompanionSettings
 import me.fiksu.esp32map.companion.domain.CoordinatePoint
+import me.fiksu.esp32map.companion.domain.ImportDiagnosticsEntry
+import me.fiksu.esp32map.companion.domain.SharedImportClassification
+import me.fiksu.esp32map.companion.domain.SharedImportDisposition
+import me.fiksu.esp32map.companion.domain.SharedImportEnvelope
 import me.fiksu.esp32map.companion.domain.RouteAlternative
 import me.fiksu.esp32map.companion.domain.RouteHistoryItem
 import me.fiksu.esp32map.companion.domain.RouteHistorySource
@@ -31,6 +37,7 @@ import me.fiksu.esp32map.companion.integration.gpx.GpxRoutingAdapter
 import me.fiksu.esp32map.companion.integration.hsl.HslRoutingAdapter
 import me.fiksu.esp32map.companion.integration.persistence.CompanionPersistence
 import me.fiksu.esp32map.companion.integration.sample.SampleRoutingAdapter
+import me.fiksu.esp32map.companion.integration.share.AndroidShareImportParser
 
 class CompanionAppState(application: Application) : AndroidViewModel(application) {
     var selectedProviderId by mutableStateOf(RouteProviderId.HSL)
@@ -48,6 +55,8 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
     var preview by mutableStateOf(RoutePreviewModel())
     var activeSession by mutableStateOf(ActiveRouteSession())
     var syncSession by mutableStateOf(SyncSessionState())
+    var shareImportEventId by mutableStateOf(0L)
+    private var persistenceRevision by mutableIntStateOf(0)
 
     val diagnosticsStore = CompanionDiagnosticsStore()
     val persistence = CompanionPersistence(application.applicationContext)
@@ -58,19 +67,25 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
     private val providers: Map<RouteProviderId, RoutingProvider> = mapOf(
         RouteProviderId.HSL to HslRoutingAdapter(settingsProvider = { settings }),
         RouteProviderId.OSM to SampleRoutingAdapter(RouteProviderId.OSM),
-        RouteProviderId.GOOGLE_INGEST to SampleRoutingAdapter(RouteProviderId.GOOGLE_INGEST),
         RouteProviderId.GPX_IMPORT to GpxRoutingAdapter(),
         RouteProviderId.FIT_IMPORT to SampleRoutingAdapter(RouteProviderId.FIT_IMPORT),
         RouteProviderId.TCX_IMPORT to SampleRoutingAdapter(RouteProviderId.TCX_IMPORT),
-        RouteProviderId.GARMIN_API to SampleRoutingAdapter(RouteProviderId.GARMIN_API),
-        RouteProviderId.GARMIN_FILE to SampleRoutingAdapter(RouteProviderId.GARMIN_FILE),
     )
 
     val sourceModeOptions: List<RouteSourceMode>
         get() = RouteSourceMode.entries
 
     val routeHistoryItems: List<RouteHistoryItem>
-        get() = persistence.loadRecentRouteHistory()
+        get() {
+            persistenceRevision
+            return persistence.loadRecentRouteHistory()
+        }
+
+    val importDiagnosticsEntries: List<ImportDiagnosticsEntry>
+        get() {
+            persistenceRevision
+            return persistence.loadImportDiagnostics()
+        }
 
     val isDeviceConnected: Boolean
         get() = syncSession.connectionState == me.fiksu.esp32map.companion.domain.DeviceConnectionState.CONNECTED
@@ -278,6 +293,7 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
                 occurrenceCount = null,
             ),
         )
+        notePersistenceChanged()
     }
 
     fun recordRecentDestination(title: String, coordinate: CoordinatePoint) {
@@ -295,11 +311,31 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
             ),
         )
         persistence.saveRecentDestination(coordinate)
+        notePersistenceChanged()
     }
 
     fun dismissRouteHistoryItem(id: String) {
         persistence.dismissRouteHistoryItem(id)
+        notePersistenceChanged()
     }
+
+    fun dismissImportDiagnosticsEntry(id: String) {
+        persistence.dismissImportDiagnosticsEntry(id)
+        notePersistenceChanged()
+    }
+
+    fun handleSharedIntent(intent: Intent?, sourceApplication: String? = null): Boolean {
+        return shareImportHandleIntent(this, intent, sourceApplication)
+    }
+
+    fun retrySharedImport(entry: ImportDiagnosticsEntry) {
+        shareImportRetry(this, entry)
+    }
+
+    fun notePersistenceChanged() {
+        persistenceRevision += 1
+    }
+
 
     fun applyRouteHistoryPreview(item: RouteHistoryItem, onComplete: () -> Unit = {}) {
         viewModelScope.launch {

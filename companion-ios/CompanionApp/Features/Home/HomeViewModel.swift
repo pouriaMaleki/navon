@@ -2,6 +2,14 @@ import Foundation
 
 @MainActor
 final class HomeViewModel: ObservableObject {
+    func syncQueryFromCurrentPreview() {
+        if let destination = appModel.preview.selectedAlternative?.normalizedPackage.summary.destinationLabel, !destination.isEmpty {
+            query = destination
+        } else if let route = appModel.preview.selectedAlternative {
+            query = route.title
+        }
+    }
+
     @Published var query = ""
     @Published var isSearchOpen = false
     @Published var suggestions: [DestinationSearchResult] = []

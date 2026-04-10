@@ -115,6 +115,14 @@ class HomeStateHolder(
             HomeMode.PLANNING -> selectedPreview?.normalizedPackage?.summaryLine.orEmpty()
         }
 
+        fun syncQueryFromPreview() {
+        previewRoute?.summary?.destinationLabel?.takeIf { it.isNotBlank() }?.let {
+            query = it
+            return
+        }
+        selectedPreview?.title?.let { query = it }
+    }
+
     val nextInstructionLine: String?
         get() {
             val route = guidanceRoute ?: return null

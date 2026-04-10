@@ -334,13 +334,10 @@ fn route_maneuver_type_from_str(raw: &str) -> Result<RouteManeuverType, String> 
 fn route_provider_from_str(raw: &str) -> RouteProvider {
     match raw {
         "hsl_digitransit" => RouteProvider::HslDigitransit,
-        "google_ingest" => RouteProvider::GoogleIngest,
         "osm" => RouteProvider::Osm,
         "gpx" => RouteProvider::Gpx,
         "fit" => RouteProvider::Fit,
         "tcx" => RouteProvider::Tcx,
-        "garmin_api" => RouteProvider::GarminApi,
-        "garmin_file" => RouteProvider::GarminFile,
         _ => RouteProvider::Unknown(raw.to_owned()),
     }
 }
