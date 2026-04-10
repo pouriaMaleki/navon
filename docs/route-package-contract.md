@@ -5,7 +5,7 @@ This document defines the normalized routing contract shared by companion, adapt
 ## Goals
 - Keep provider-specific parsing outside shared runtime logic.
 - Guarantee deterministic validation and compatibility handling on device/emulator.
-- Support HSL, Google ingest, OSM, GPX/FIT/TCX, and Garmin sources through one normalized shape.
+- Support HSL, OSM, and file-based GPX/FIT/TCX sources through one normalized shape.
 
 ## Schema
 The canonical contract is represented by `runtime_core::api::RoutePackage` and related types:
@@ -57,10 +57,7 @@ Canonical provider fixtures are validated in:
 
 Fixture set includes normalized examples for:
 - HSL Digitransit
-- Google ingest
 - OSM
 - GPX
 - FIT
 - TCX
-- Garmin API
-- Garmin file import

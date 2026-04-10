@@ -9,8 +9,8 @@ Build both companion apps as native, map-first navigation products with the same
 ## Product Shape
 - Home is the primary surface.
 - Home is a full-screen map with a top `Where to?` input and a secondary settings entry.
-- Settings is a full-screen hub that contains `Connections`, `Routes`, `Device`, and `Route Planner`.
-- Route detail is universal across imported, recent, and partner-originated route intents.
+- Settings is a full-screen hub that contains `Routes`, `Device`, `Route Planner`, and `Import Diagnostics`.
+- Route detail is universal across imported and recent route intents, while unsupported share payloads fall back to `Import Diagnostics`.
 - Home has three clear user modes:
   - planning mode: compare route options, adjust route-source strategy, and choose one route
   - phone guidance mode: follow one committed route on-phone with guidance-focused UI
@@ -32,11 +32,11 @@ Build both companion apps as native, map-first navigation products with the same
   - `Home`
   - `RouteDetail`
   - `Settings`
-  - `Connections`
   - `Routes`
   - `Device`
   - `RoutePlanner`
   - `ShareImport`
+  - `ImportDiagnostics`
 - Each feature owns only its own screen state and feature actions.
 - Features read repositories and use cases through interfaces; views never talk to integrations directly.
 
@@ -58,7 +58,7 @@ Build both companion apps as native, map-first navigation products with the same
   - BLE sync transport
   - persistence
   - diagnostics
-  - partner integrations
+  - share import ingestion and classification
   - native place search
 - Integrations return domain models and results, never screen state.
 - Integrations do not navigate and do not mutate feature state directly.
@@ -103,7 +103,7 @@ Refactor these aggressively:
 - If a device is connected, `Start` becomes device-first, shows sync progress, and then leaves Home in device overview mode rather than duplicating on-phone guidance.
 
 ### Route Detail
-- One route detail page is used across Google Maps imports, GPX imports, partner routes, and recents.
+- One route detail page is used across Google Maps imports, GPX imports, and recents.
 - Source-specific metadata appears as badges and secondary rows, not new screen types.
 
 ### Settings

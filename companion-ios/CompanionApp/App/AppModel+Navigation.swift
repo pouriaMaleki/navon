@@ -28,6 +28,7 @@ extension AppModel {
                 occurrenceCount: nil
             )
         )
+        notePersistenceChanged()
     }
 
     func recordRecentDestination(title: String, coordinate: CoordinatePoint) {
@@ -45,10 +46,12 @@ extension AppModel {
             )
         )
         persistence.saveRecentDestination(coordinate)
+        notePersistenceChanged()
     }
 
     func dismissRouteHistoryItem(id: String) {
         persistence.dismissRouteHistoryItem(id: id)
+        notePersistenceChanged()
     }
 
     func activateRouteHistoryItem(_ item: RouteHistoryItem, startImmediately: Bool = false) {

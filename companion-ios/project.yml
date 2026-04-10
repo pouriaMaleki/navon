@@ -11,6 +11,10 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - CompanionApp
+      - CompanionSharedImport
+    dependencies:
+      - target: ESP32MapCompanionShare
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: me.fiksu.esp32map.companion.ios
@@ -19,5 +23,22 @@ targets:
         SWIFT_VERSION: 5.10
         CODE_SIGN_STYLE: Automatic
         TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_ENTITLEMENTS: CompanionApp/CompanionApp.entitlements
     scheme:
       testTargets: []
+  ESP32MapCompanionShare:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - CompanionShareExtension
+      - CompanionSharedImport
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: me.fiksu.esp32map.companion.ios.share
+        PRODUCT_NAME: ESP32MapCompanionShare
+        INFOPLIST_FILE: CompanionShareExtension/Info.plist
+        SWIFT_VERSION: 5.10
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_ENTITLEMENTS: CompanionShareExtension/CompanionShareExtension.entitlements
+        APPLICATION_EXTENSION_API_ONLY: YES

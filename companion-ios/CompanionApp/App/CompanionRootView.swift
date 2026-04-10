@@ -16,6 +16,7 @@ struct CompanionRootView: View {
         )
         .onChange(of: appModel.homePreviewRequestID) { _, _ in
             showingSettings = false
+            homeViewModel.syncQueryFromCurrentPreview()
         }
         .onChange(of: appModel.homeStartRequestID) { _, _ in
             showingSettings = false

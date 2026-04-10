@@ -17,7 +17,7 @@ Depends on:
 - [x] Define a versioned source-agnostic `RoutePackage` schema.
 - [x] Define maneuver model, route summary model, and provenance metadata model.
 - [x] Define compatibility policy for schema evolution.
-- [x] Create canonical fixture set for HSL, Google ingest, OSM, GPX, FIT, TCX, and Garmin inputs.
+- [x] Create canonical fixture set for HSL, OSM, GPX, FIT, and TCX inputs.
 - [x] Document contract invariants and normalization guarantees.
 
 ### Definition of Done
@@ -33,8 +33,8 @@ Depends on:
 ### Work Items
 - [x] Scaffold native iOS and Android companion app shells with presentation/domain/integration boundaries.
 - [x] Build provider adapter interface and adapter lifecycle contract.
-- [ ] Implement provider adapters for HSL, Google ingest, OSM, GPX/FIT/TCX, Garmin API/import.
-  Current status: HSL is live-provider-ready, GPX now imports natively in iOS and Android companion apps plus emulator/web, and the remaining providers are still sample-backed until their live adapters land.
+- [ ] Implement provider adapters for HSL, OSM, and GPX/FIT/TCX imports.
+  Current status: HSL is live-provider-ready, GPX now imports natively in iOS and Android companion apps plus emulator/web, and the remaining file/import flows are still sample-backed until their live adapters land.
 - [x] Implement HSL normalization pipeline from provider payload shape to `RoutePackage`.
 - [x] Implement provider picker UX with source provenance visibility.
 - [ ] Implement reroute orchestration and replacement route publishing.
@@ -50,15 +50,15 @@ Depends on:
   Current status: both native shells now support long-press destination selection and the shared three-route preview flow, while deeper share-import parity still remains.
 - [~] Implement Home search UX with recents by default, live suggestions while typing, and paged loading in both states.
   Current status: both native shells now show recents by default, swap to native search suggestions while typing, and page the visible lists locally, but import fast-path and native toolchain verification still remain.
-- [~] Design full-screen Settings information architecture with `Connections`, `Routes`, `Device`, and `Route Planner` sections.
-  Current status: the full-screen settings hub now exists in both native shells, with the remaining work focused on feature-depth completion and native-toolchain validation.
+- [~] Design full-screen Settings information architecture with `Routes`, `Device`, `Route Planner`, and `Import Diagnostics` sections.
+  Current status: the full-screen settings hub now exists in both native shells, with `Import Diagnostics` added and the remaining work focused on feature-depth completion plus native-toolchain validation.
 - [x] Specify Home screen states: idle map, recents, live suggestions, long-press destination, route preview, and active guidance.
-- [~] Specify one universal route detail page reused across imports, partner routes, and recents.
-  Current status: both native shells now use a universal route-detail surface for route-history items, with partner-specific depth still to be added later.
+- [~] Specify one universal route detail page reused across imports and recents.
+  Current status: both native shells now use a universal route-detail surface for route-history items, while unsupported share payloads fall back to `Import Diagnostics`.
 - [x] Define share-sheet handling rules for fast-path-to-Home versus fallback-to-route-detail behavior.
 - [~] Build the Settings `Routes` page as a lightweight recovery and re-entry surface for imported routes, destination history, and route-intent recovery, not as a heavy route library.
-  Current status: both native shells now expose a lightweight `Routes` surface with GPX import and recent route-history recovery, while richer partner and share-import sources still remain.
-- [ ] Add inbound partner route integrations for Garmin Connect, Strava, Komoot, and similar services.
+  Current status: both native shells now expose a lightweight `Routes` surface with GPX import, shared destination recovery, and recent route-history recovery, while deeper share-import polish still remains.
+- [ ] Finish share-sheet import fast paths, diagnostics export, and retry flows across both native apps.
 - [ ] Keep outbound ride recording/export out of the near-term companion redesign scope.
 
 Current checkpoint:
@@ -68,7 +68,7 @@ Current checkpoint:
 - Native ride/device screens now let the user drive reroute publishing from an explicit rider location, so replacement-route generation no longer depends on a hidden origin-only demo path.
 - Native BLE seams now have real CoreBluetooth and Android BLE/GATT clients wired into the same chunked transfer/session model that was originally simulated, while preserving the simulated fallback path when no BLE connection is active.
 - Native GPX import now works through the iOS and Android document pickers, feeding imported routes into the same preview and sync flow used by planned routes.
-- The native redesign shell is now in place: map-first Home on both platforms, long-press destination selection, three-route suggestion preview, universal route-detail surface, and a full-screen Settings hub with `Connections`, `Routes`, `Device`, and `Route Planner` sections.
+- The native redesign shell is now in place: map-first Home on both platforms, long-press destination selection, three-route suggestion preview, universal route-detail surface, and a full-screen Settings hub with `Routes`, `Device`, `Route Planner`, and `Import Diagnostics` sections.
 - Native device screens now expose live BLE fault-injection controls for retryable interruption, write failure, disconnect-after-chunk, and dropped inbound status so packet-loss and ack-loss recovery can be exercised against the same chunked session model used by real CoreBluetooth and Android BLE clients.
 - All remaining provider slots now have sample-backed companion adapters that produce normalized route packages through the shared preview/send path, while only HSL is live-provider-ready today.
 - Hardware validation is deferred until a BLE-capable device is available. Near-term implementation should focus on optional Wi-Fi transport, live provider integrations beyond HSL, and companion-product expansion work.
@@ -79,7 +79,7 @@ Current checkpoint:
 - Planned Home route flow: destination search in a top map overlay, recents shown by default, live dropdown results while typing, tap-and-hold on the map to drop a destination pin, three suggested routes after destination selection, best route preselected by default, explicit `Start` to begin guidance, and explicit `Stop` to end guidance and re-suggest routes from the rider's new current location.
 - Planned route-option UX: planning mode should default to a `Mixed` source strategy, expose a small inline source control near `Where to?`, label route options by rider-meaningful style first (`Fastest`, `Quieter`, `Simpler`) with source as secondary context, and treat `Start` as the mode shift from comparison into active guidance.
 - Planned Settings `Routes` page role: imported routes, destination history, and recent route intents should live together as a clean action-oriented list with source badges and obvious next actions, while the route detail page acts as the universal fallback/re-entry surface.
-- Planned partner direction: focus on inbound route and destination integrations from Garmin Connect, Strava, Komoot, and similar services, exposed through their own settings subpages, while leaving ride recording/export for later.
+- Planned share-import direction: focus on inbound share-sheet and link/file ingestion for Google Maps handoffs, shared locations, and GPX-first import flows, while leaving ride recording/export for later.
 - Google Maps integration should be implemented as an intent-import and destination-handoff flow through share sheet and link parsing, not as the app pretending to mirror Google's exact route semantics; clear imports should jump to Home route preview, while ambiguous imports should open the universal route detail page.
 
 ### Definition of Done
@@ -168,8 +168,7 @@ Depends on:
 - [x] Add runtime scenario tests for route progress, off-route, and reroute replacement.
 - [x] Add rendering snapshot/readability tests for route and alerts.
 - [ ] Execute Helsinki field validation rides with HSL-first scenarios.
-- [ ] Execute cross-source validation for OSM fallback, Google ingest, GPX, and Garmin flows.
-- [ ] Add compliance validation checks and release gates for Google ingest path.
+- [ ] Execute cross-source validation for OSM fallback, Google Maps handoff imports, GPX import, and share-diagnostics recovery flows.
 
 ### Definition of Done
 - [ ] All provider adapters pass conformance test suite.
@@ -182,5 +181,5 @@ Depends on:
 - [ ] Companion app remains sole authority for planning and rerouting decisions.
 - [ ] ESP route following works offline after successful route sync.
 - [ ] Runtime and render ownership boundaries are preserved with no adapter-owned routing logic.
-- [ ] End-to-end route loop works across HSL, OSM fallback, Google ingest, GPX import, Garmin API/import.
+- [ ] End-to-end route loop works across HSL, OSM fallback, Google Maps handoff import, and GPX import.
 - [ ] Observability and operational diagnostics are available for sync, follow, off-route, and reroute lifecycle.

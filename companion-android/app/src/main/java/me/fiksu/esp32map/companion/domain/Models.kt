@@ -1,14 +1,15 @@
 package me.fiksu.esp32map.companion.domain
 
+import com.google.gson.annotations.SerializedName
+
 enum class RouteProviderId(val displayName: String, val isAvailableInV1: Boolean) {
     HSL("HSL", true),
+    @SerializedName(value = "OSM", alternate = ["GOOGLE_INGEST", "GARMIN_API"])
     OSM("OSM", false),
-    GOOGLE_INGEST("Google Ingest", false),
+    @SerializedName(value = "GPX_IMPORT", alternate = ["GARMIN_FILE"])
     GPX_IMPORT("GPX Import", true),
     FIT_IMPORT("FIT Import", false),
     TCX_IMPORT("TCX Import", false),
-    GARMIN_API("Garmin API", false),
-    GARMIN_FILE("Garmin File", false),
     ;
 
     val supportsCompanionPreview: Boolean

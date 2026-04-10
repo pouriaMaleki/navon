@@ -27,6 +27,7 @@ final class AppModel: ObservableObject {
     )
     @Published var homePreviewRequestID = UUID()
     @Published var homeStartRequestID = UUID()
+    @Published private(set) var persistenceRevision = 0
 
     let diagnosticsStore = CompanionDiagnosticsStore()
     let persistence = CompanionPersistence()
@@ -38,12 +39,9 @@ final class AppModel: ObservableObject {
     private lazy var providers: [RouteProviderID: RoutingProvider] = [
         .hsl: HslRoutingAdapter(settingsProvider: { [unowned self] in self.settings }),
         .osm: SampleRoutingAdapter(providerID: .osm),
-        .googleIngest: SampleRoutingAdapter(providerID: .googleIngest),
         .gpxImport: GpxRoutingAdapter(),
         .fitImport: SampleRoutingAdapter(providerID: .fitImport),
         .tcxImport: SampleRoutingAdapter(providerID: .tcxImport),
-        .garminApi: SampleRoutingAdapter(providerID: .garminApi),
-        .garminFile: SampleRoutingAdapter(providerID: .garminFile)
     ]
 
     init() {
@@ -75,6 +73,10 @@ final class AppModel: ObservableObject {
 
     func refreshDiagnostics() {
         diagnosticsStore.update(from: activeSession.routeIdentifier == nil ? nil : activeSession, syncState: bleService.sessionState)
+    }
+
+    func notePersistenceChanged() {
+        persistenceRevision &+= 1
     }
 
     func persistSettings() {
@@ -126,6 +128,7 @@ final class AppModel: ObservableObject {
             preview = try await buildPreview(for: routeRequest, sourceMode: sourceMode, revisionOverride: revisionOverride)
             simulatedRiderLocation = routeRequest.origin
             persistence.saveRecentDestination(routeRequest.destination)
+            notePersistenceChanged()
             applySelectedAlternativeToSession(sourceMode: sourceMode, destination: routeRequest.destination, preferredTitle: preferredTitle)
             refreshDiagnostics()
         } catch {

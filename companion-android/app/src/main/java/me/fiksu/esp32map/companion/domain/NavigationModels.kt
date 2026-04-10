@@ -1,5 +1,7 @@
 package me.fiksu.esp32map.companion.domain
 
+import com.google.gson.annotations.SerializedName
+
 enum class RouteSuggestionMode(val displayName: String) {
     BEST_ONLY("Best route"),
     THREE_ROUTES("3 suggestions"),
@@ -53,7 +55,8 @@ enum class RouteHistorySource {
     PLANNED_ROUTE,
     GPX_IMPORT,
     GOOGLE_MAPS,
-    PARTNER,
+    @SerializedName(value = "SHARE_IMPORT", alternate = ["PARTNER"])
+    SHARE_IMPORT,
 }
 
 data class RouteHistoryItem(

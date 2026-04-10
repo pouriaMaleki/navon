@@ -4,6 +4,7 @@ final class CompanionPersistence: RouteSessionStore {
     private enum Key {
         static let destinations = "companion.recentDestinations"
         static let routeHistory = "companion.routeHistory"
+        static let importDiagnostics = "companion.importDiagnostics"
         static let lastSession = "companion.lastSession"
         static let settings = "companion.settings"
         static let plannerPreferences = "companion.routePlannerPreferences"
@@ -67,6 +68,23 @@ final class CompanionPersistence: RouteSessionStore {
         var routeHistory = loadRecentRouteHistory()
         routeHistory.removeAll { $0.id == id }
         save(routeHistory, forKey: Key.routeHistory)
+    }
+
+    func loadImportDiagnostics() -> [ImportDiagnosticsEntry] {
+        load([ImportDiagnosticsEntry].self, forKey: Key.importDiagnostics) ?? []
+    }
+
+    func saveImportDiagnosticsEntry(_ entry: ImportDiagnosticsEntry) {
+        var entries = loadImportDiagnostics()
+        entries.removeAll { $0.id == entry.id }
+        entries.insert(entry, at: 0)
+        save(Array(entries.prefix(50)), forKey: Key.importDiagnostics)
+    }
+
+    func dismissImportDiagnosticsEntry(id: String) {
+        var entries = loadImportDiagnostics()
+        entries.removeAll { $0.id == id }
+        save(entries, forKey: Key.importDiagnostics)
     }
 
     func loadLastSession() -> ActiveRouteSession? {

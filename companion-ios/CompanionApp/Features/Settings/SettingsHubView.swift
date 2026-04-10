@@ -7,9 +7,6 @@ struct SettingsHubView: View {
     var body: some View {
         NavigationStack {
             List {
-                NavigationLink("Connections") {
-                    ConnectionsSettingsView()
-                }
                 NavigationLink("Routes") {
                     RoutesSettingsView()
                 }
@@ -18,6 +15,9 @@ struct SettingsHubView: View {
                 }
                 NavigationLink("Route Planner") {
                     RoutePlannerSettingsView()
+                }
+                NavigationLink("Import Diagnostics") {
+                    ImportDiagnosticsView()
                 }
             }
             .navigationTitle("Settings")

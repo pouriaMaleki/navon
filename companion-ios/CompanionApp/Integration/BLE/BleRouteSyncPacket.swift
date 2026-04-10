@@ -327,13 +327,10 @@ enum BleRouteSyncCodec {
     private static func parseProvider(_ value: String) -> RouteProviderID {
         switch value.trimmingCharacters(in: .whitespacesAndNewlines) {
         case "hsl", "hsl_digitransit": return .hsl
-        case "google_ingest", "googleIngest": return .googleIngest
         case "osm": return .osm
         case "gpx": return .gpxImport
         case "fit": return .fitImport
         case "tcx": return .tcxImport
-        case "garmin_api", "garminApi": return .garminApi
-        case "garmin_file", "garminFile": return .garminFile
         default: return .osm
         }
     }

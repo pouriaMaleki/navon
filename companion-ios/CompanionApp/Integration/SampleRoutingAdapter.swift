@@ -491,18 +491,12 @@ struct SampleRoutingAdapter: RoutingProvider {
         switch provider {
         case .osm:
             return "Using sample OSM fallback routes. Live OSRM bike routing is unavailable."
-        case .googleIngest:
-            return "Using sample Google ingest routes. Compliance and live ingestion are still pending."
         case .gpxImport:
             return "Using sample GPX import routes. File selection is not wired yet."
         case .fitImport:
             return "Using sample FIT import routes. File selection is not wired yet."
         case .tcxImport:
             return "Using sample TCX import routes. File selection is not wired yet."
-        case .garminApi:
-            return "Using sample Garmin API routes. Live Garmin integration is not wired yet."
-        case .garminFile:
-            return "Using sample Garmin file routes. File selection is not wired yet."
         case .hsl:
             return "Using sample HSL route"
         }
@@ -517,18 +511,12 @@ struct SampleRoutingAdapter: RoutingProvider {
         switch provider {
         case .osm:
             return 0.0020
-        case .googleIngest:
-            return 0.0018
         case .gpxImport:
             return 0.0014
         case .fitImport:
             return 0.0016
         case .tcxImport:
             return 0.0012
-        case .garminApi:
-            return 0.0017
-        case .garminFile:
-            return 0.0015
         case .hsl:
             return 0.0018
         }
@@ -538,18 +526,12 @@ struct SampleRoutingAdapter: RoutingProvider {
         switch provider {
         case .osm:
             return 5.2
-        case .googleIngest:
-            return 5.6
         case .gpxImport:
             return 4.8
         case .fitImport:
             return 5.0
         case .tcxImport:
             return 4.7
-        case .garminApi:
-            return 5.4
-        case .garminFile:
-            return 4.9
         case .hsl:
             return 5.3
         }

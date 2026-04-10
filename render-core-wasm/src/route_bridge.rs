@@ -155,13 +155,10 @@ fn maneuver_type_to_str(value: RouteManeuverType) -> &'static str {
 fn provider_to_str(value: &RouteProvider) -> &'static str {
     match value {
         RouteProvider::HslDigitransit => "hsl_digitransit",
-        RouteProvider::GoogleIngest => "google_ingest",
         RouteProvider::Osm => "osm",
         RouteProvider::Gpx => "gpx",
         RouteProvider::Fit => "fit",
         RouteProvider::Tcx => "tcx",
-        RouteProvider::GarminApi => "garmin_api",
-        RouteProvider::GarminFile => "garmin_file",
         RouteProvider::Unknown(_) => "unknown",
     }
 }

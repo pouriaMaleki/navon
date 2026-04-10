@@ -1,5 +1,6 @@
 package me.fiksu.esp32map.companion
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -49,7 +50,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.activity.viewModels
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -65,6 +66,7 @@ import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
 import me.fiksu.esp32map.companion.app.CompanionAppState
+import me.fiksu.esp32map.companion.app.markSharedIntentConsumed
 import me.fiksu.esp32map.companion.domain.CoordinatePoint
 import me.fiksu.esp32map.companion.domain.HomeCompassMode
 import me.fiksu.esp32map.companion.domain.HomeMode
@@ -76,32 +78,64 @@ import me.fiksu.esp32map.companion.feature.home.HomeStateHolder
 import me.fiksu.esp32map.companion.integration.AndroidPlaceSearchService
 
 class MainActivity : ComponentActivity() {
+    private val appState: CompanionAppState by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             MaterialTheme {
-                CompanionApp()
+                CompanionApp(appState = appState)
             }
+        }
+        processSharedIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        processSharedIntent(intent)
+    }
+
+    private fun resolveSourceApplication(intent: Intent): String? {
+        return intent.getStringExtra(Intent.EXTRA_REFERRER_NAME)
+            ?: referrer?.host
+            ?: referrer?.toString()
+    }
+
+    private fun processSharedIntent(intent: Intent?) {
+        intent ?: return
+        if (appState.handleSharedIntent(intent, resolveSourceApplication(intent))) {
+            markSharedIntentConsumed(intent)
+            setIntent(intent)
         }
     }
 }
 
 private enum class SettingsDestination {
     ROOT,
-    CONNECTIONS,
     ROUTES,
     DEVICE,
     ROUTE_PLANNER,
+    IMPORT_DIAGNOSTICS,
 }
 
 @Composable
-private fun CompanionApp(appState: CompanionAppState = viewModel()) {
+private fun CompanionApp(appState: CompanionAppState) {
     val context = LocalContext.current
     val homeState = remember(appState) { HomeStateHolder(appState, AndroidPlaceSearchService(context)) }
     var showingSettings by rememberSaveable { mutableStateOf(false) }
     var settingsDestination by rememberSaveable { mutableStateOf(SettingsDestination.ROOT) }
     var selectedRouteId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(appState.shareImportEventId) {
+        if (appState.shareImportEventId != 0L) {
+            showingSettings = false
+            settingsDestination = SettingsDestination.ROOT
+            selectedRouteId = null
+            homeState.syncQueryFromPreview()
+        }
+    }
 
     Box(Modifier.fillMaxSize()) {
         if (showingSettings) {
@@ -131,12 +165,11 @@ private fun CompanionApp(appState: CompanionAppState = viewModel()) {
                             showingSettings = false
                             settingsDestination = SettingsDestination.ROOT
                         },
-                        onConnections = { settingsDestination = SettingsDestination.CONNECTIONS },
                         onRoutes = { settingsDestination = SettingsDestination.ROUTES },
                         onDevice = { settingsDestination = SettingsDestination.DEVICE },
                         onRoutePlanner = { settingsDestination = SettingsDestination.ROUTE_PLANNER },
+                        onImportDiagnostics = { settingsDestination = SettingsDestination.IMPORT_DIAGNOSTICS },
                     )
-                    SettingsDestination.CONNECTIONS -> ConnectionsSettingsScreen(onBack = { settingsDestination = SettingsDestination.ROOT })
                     SettingsDestination.ROUTES -> RoutesSettingsScreen(
                         appState = appState,
                         onBack = { settingsDestination = SettingsDestination.ROOT },
@@ -144,6 +177,7 @@ private fun CompanionApp(appState: CompanionAppState = viewModel()) {
                     )
                     SettingsDestination.DEVICE -> DeviceSettingsScreen(appState = appState, onBack = { settingsDestination = SettingsDestination.ROOT })
                     SettingsDestination.ROUTE_PLANNER -> RoutePlannerSettingsScreen(appState = appState, onBack = { settingsDestination = SettingsDestination.ROOT })
+                    SettingsDestination.IMPORT_DIAGNOSTICS -> ImportDiagnosticsScreen(appState = appState, onBack = { settingsDestination = SettingsDestination.ROOT })
                 }
             }
         }
@@ -473,41 +507,58 @@ private fun DeviceOverviewCard(appState: CompanionAppState, homeState: HomeState
 @Composable
 private fun SettingsRootScreen(
     onDismiss: () -> Unit,
-    onConnections: () -> Unit,
     onRoutes: () -> Unit,
     onDevice: () -> Unit,
     onRoutePlanner: () -> Unit,
+    onImportDiagnostics: () -> Unit,
 ) {
     ScreenColumn(PaddingValues(0.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Settings", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
             Button(onClick = onDismiss) { Text("Done") }
         }
-        Button(onClick = onConnections, modifier = Modifier.fillMaxWidth()) { Text("Connections") }
         Button(onClick = onRoutes, modifier = Modifier.fillMaxWidth()) { Text("Routes") }
         Button(onClick = onDevice, modifier = Modifier.fillMaxWidth()) { Text("Device") }
         Button(onClick = onRoutePlanner, modifier = Modifier.fillMaxWidth()) { Text("Route Planner") }
+        Button(onClick = onImportDiagnostics, modifier = Modifier.fillMaxWidth()) { Text("Import Diagnostics") }
     }
 }
 
 @Composable
-private fun ConnectionsSettingsScreen(onBack: () -> Unit) {
+private fun ImportDiagnosticsScreen(appState: CompanionAppState, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val clipboard = context.getSystemService(android.content.ClipboardManager::class.java)
     ScreenColumn(PaddingValues(0.dp)) {
-        BackHeader(title = "Connections", onBack = onBack)
-        ConnectionRow("Strava", "Inbound route integration planned")
-        ConnectionRow("Garmin Connect", "Inbound route integration planned")
-        ConnectionRow("Komoot", "Inbound route integration planned")
+        BackHeader(title = "Import Diagnostics", onBack = onBack)
+        if (appState.importDiagnosticsEntries.isEmpty()) {
+            Text("No unsupported shared items yet.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            appState.importDiagnosticsEntries.forEach { entry ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant, shape = MaterialTheme.shapes.large)
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(entry.title, fontWeight = FontWeight.SemiBold)
+                    Text(entry.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(entry.envelope.classification.name, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = {
+                            clipboard?.setPrimaryClip(android.content.ClipData.newPlainText("import-diagnostics", entry.envelope.toString()))
+                        }) { Text("Copy debug info") }
+                        Button(onClick = { shareDebugPackage(context, entry.envelope.toString()) }) { Text("Share debug package") }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = { appState.retrySharedImport(entry) }) { Text("Retry import") }
+                        Button(onClick = { appState.dismissImportDiagnosticsEntry(entry.id) }) { Text("Dismiss") }
+                    }
+                }
+            }
+        }
     }
 }
-
-@Composable
-private fun ConnectionRow(title: String, subtitle: String) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(title, fontWeight = FontWeight.SemiBold)
-        Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
 @Composable
 private fun RoutesSettingsScreen(appState: CompanionAppState, onBack: () -> Unit, onOpenRoute: (String) -> Unit) {
     val context = LocalContext.current
@@ -699,4 +750,11 @@ private fun bearingDegrees(start: CoordinatePoint, end: CoordinatePoint): Double
     val latMeters = (end.latitude - start.latitude) * 111_320.0
     val lonMeters = (end.longitude - start.longitude) * cos(((start.latitude + end.latitude) / 2.0) * PI / 180.0) * 111_320.0
     return atan2(lonMeters, latMeters) * 180.0 / PI
+}
+
+private fun shareDebugPackage(context: android.content.Context, text: String) {
+    val intent = Intent(Intent.ACTION_SEND)
+        .setType("text/plain")
+        .putExtra(Intent.EXTRA_TEXT, text)
+    context.startActivity(Intent.createChooser(intent, "Share import diagnostics"))
 }

@@ -715,13 +715,10 @@ fn parse_geo_point(value: &str) -> Result<GeoPoint, RouteSyncTransportError> {
 fn parse_provider(value: &str) -> RouteProvider {
     match value.trim() {
         "hsl" | "hsl_digitransit" => RouteProvider::HslDigitransit,
-        "google_ingest" | "googleIngest" => RouteProvider::GoogleIngest,
         "osm" => RouteProvider::Osm,
         "gpx" | "gpx_import" | "gpxImport" => RouteProvider::Gpx,
         "fit" | "fit_import" | "fitImport" => RouteProvider::Fit,
         "tcx" | "tcx_import" | "tcxImport" => RouteProvider::Tcx,
-        "garmin_api" | "garminApi" => RouteProvider::GarminApi,
-        "garmin_file" | "garminFile" => RouteProvider::GarminFile,
         other => RouteProvider::Unknown(other.to_owned()),
     }
 }
@@ -729,13 +726,10 @@ fn parse_provider(value: &str) -> RouteProvider {
 fn encode_provider(provider: &RouteProvider) -> &'static str {
     match provider {
         RouteProvider::HslDigitransit => "hsl",
-        RouteProvider::GoogleIngest => "google_ingest",
         RouteProvider::Osm => "osm",
         RouteProvider::Gpx => "gpx",
         RouteProvider::Fit => "fit",
         RouteProvider::Tcx => "tcx",
-        RouteProvider::GarminApi => "garmin_api",
-        RouteProvider::GarminFile => "garmin_file",
         RouteProvider::Unknown(_) => "unknown",
     }
 }

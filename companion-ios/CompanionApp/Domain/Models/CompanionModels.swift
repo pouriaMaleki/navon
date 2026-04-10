@@ -3,12 +3,9 @@ import Foundation
 enum RouteProviderID: String, CaseIterable, Identifiable, Codable {
     case hsl
     case osm
-    case googleIngest
     case gpxImport
     case fitImport
     case tcxImport
-    case garminApi
-    case garminFile
 
     var id: String { rawValue }
 
@@ -18,18 +15,12 @@ enum RouteProviderID: String, CaseIterable, Identifiable, Codable {
             return "HSL"
         case .osm:
             return "OSM"
-        case .googleIngest:
-            return "Google Ingest"
         case .gpxImport:
             return "GPX Import"
         case .fitImport:
             return "FIT Import"
         case .tcxImport:
             return "TCX Import"
-        case .garminApi:
-            return "Garmin API"
-        case .garminFile:
-            return "Garmin File"
         }
     }
 
@@ -39,6 +30,30 @@ enum RouteProviderID: String, CaseIterable, Identifiable, Codable {
 
     var supportsCompanionPreview: Bool {
         true
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        switch rawValue {
+        case Self.hsl.rawValue:
+            self = .hsl
+        case Self.osm.rawValue, "googleIngest", "garminApi":
+            self = .osm
+        case Self.gpxImport.rawValue, "garminFile":
+            self = .gpxImport
+        case Self.fitImport.rawValue:
+            self = .fitImport
+        case Self.tcxImport.rawValue:
+            self = .tcxImport
+        default:
+            self = .osm
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
     }
 }
 
@@ -273,7 +288,7 @@ enum RouteSyncFaultInjectionMode: String, Equatable, Codable, CaseIterable, Iden
     }
 }
 
-struct RouteTransferProgress: Equatable {
+struct RouteTransferProgress: Equatable, Codable {
     var transferIdentifier: String
     var messageKind: String
     var routeIdentifier: String?
@@ -289,7 +304,7 @@ struct RouteTransferProgress: Equatable {
 
     var percentComplete: Int {
         guard totalChunks > 0 else { return 0 }
-        return Int((Double(acknowledgedChunks) / Double(totalChunks) * 100.0).rounded())
+        return Int((Double(acknowledgedChunks) / Double(totalChunks)) * 100.0)
     }
 }
 
@@ -309,6 +324,24 @@ struct SyncSessionState: Equatable {
     var lastOutboundMessage: RouteSyncMessage?
     var lastInboundMessage: RouteSyncMessage?
     var lastStatusCode: RouteSyncStatusCode?
+
+    static let empty = SyncSessionState(
+        connectionState: .disconnected,
+        routeSyncState: .idle,
+        lastSyncResult: "Not sent yet",
+        lastDeviceName: nil,
+        pendingRouteIdentifier: nil,
+        pendingRouteRevision: nil,
+        activeRouteIdentifier: nil,
+        activeRouteRevision: nil,
+        activeRouteChecksumHex: nil,
+        transferProgress: nil,
+        retryableInterruptionArmed: false,
+        armedFaultInjectionMode: nil,
+        lastOutboundMessage: nil,
+        lastInboundMessage: nil,
+        lastStatusCode: nil
+    )
 }
 
 struct CompanionDiagnostics: Equatable {

@@ -9,6 +9,7 @@ import kotlin.math.sqrt
 import me.fiksu.esp32map.companion.domain.ActiveRouteSession
 import me.fiksu.esp32map.companion.domain.CompanionSettings
 import me.fiksu.esp32map.companion.domain.CoordinatePoint
+import me.fiksu.esp32map.companion.domain.ImportDiagnosticsEntry
 import me.fiksu.esp32map.companion.domain.RouteHistoryItem
 import me.fiksu.esp32map.companion.domain.RouteHistorySource
 import me.fiksu.esp32map.companion.domain.RoutePlannerPreferences
@@ -19,6 +20,7 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
         const val STORE = "companion.persistence"
         const val RECENT_DESTINATIONS = "recent_destinations"
         const val ROUTE_HISTORY = "route_history"
+        const val IMPORT_DIAGNOSTICS = "import_diagnostics"
         const val LAST_SESSION = "last_session"
         const val SETTINGS = "settings"
         const val PLANNER_PREFERENCES = "planner_preferences"
@@ -30,6 +32,7 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
 
     private val recentDestinations = mutableListOf<CoordinatePoint>()
     private val routeHistory = mutableListOf<RouteHistoryItem>()
+    private val importDiagnostics = mutableListOf<ImportDiagnosticsEntry>()
     private var lastSession: ActiveRouteSession? = null
     private var settings: CompanionSettings = CompanionSettings()
     private var plannerPreferences: RoutePlannerPreferences = RoutePlannerPreferences()
@@ -104,6 +107,29 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
         persistRouteHistory(items)
     }
 
+    fun loadImportDiagnostics(): List<ImportDiagnosticsEntry> {
+        defaults?.let {
+            val stored = it.getString(Key.IMPORT_DIAGNOSTICS, null) ?: return importDiagnostics.toList()
+            val type = object : TypeToken<List<ImportDiagnosticsEntry>>() {}.type
+            return gson.fromJson(stored, type)
+        }
+        return importDiagnostics.toList()
+    }
+
+    fun saveImportDiagnosticsEntry(entry: ImportDiagnosticsEntry) {
+        val items = loadImportDiagnostics().toMutableList()
+        items.removeAll { it.id == entry.id }
+        items.add(0, entry)
+        while (items.size > 50) items.removeAt(items.lastIndex)
+        persistImportDiagnostics(items)
+    }
+
+    fun dismissImportDiagnosticsEntry(id: String) {
+        val items = loadImportDiagnostics().toMutableList()
+        items.removeAll { it.id == id }
+        persistImportDiagnostics(items)
+    }
+
     override fun loadLastSession(): ActiveRouteSession? {
         defaults?.let {
             val stored = it.getString(Key.LAST_SESSION, null) ?: return lastSession
@@ -158,6 +184,15 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
         } else {
             routeHistory.clear()
             routeHistory.addAll(items)
+        }
+    }
+
+    private fun persistImportDiagnostics(items: List<ImportDiagnosticsEntry>) {
+        if (defaults != null) {
+            defaults.edit().putString(Key.IMPORT_DIAGNOSTICS, gson.toJson(items)).apply()
+        } else {
+            importDiagnostics.clear()
+            importDiagnostics.addAll(items)
         }
     }
 
