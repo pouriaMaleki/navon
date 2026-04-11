@@ -30,3 +30,6 @@ GitHub Actions automation and MacBook self-hosted runner setup are documented in
 
 ## Signed Device Builds
 Use the `Companion iOS` GitHub Actions workflow with `build_kind=signed_device` to create an installable signed IPA on your self-hosted MacBook runner. The full setup and iPhone install steps are documented in [`../docs/companion-builds.md`](../docs/companion-builds.md).
+
+## TestFlight Builds
+Use the `Companion iOS TestFlight` workflow to archive a Release IPA on a GitHub-hosted macOS runner and upload it to TestFlight. The required GitHub secrets, provisioning profiles, and App Store Connect API-key setup are documented in [`../docs/companion-builds.md`](../docs/companion-builds.md).

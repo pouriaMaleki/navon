@@ -3,6 +3,7 @@
 This repo uses a split mobile build path:
 - Android builds on GitHub-hosted Ubuntu runners.
 - iOS builds on a self-hosted macOS runner, which can be your MacBook Pro.
+- iOS TestFlight uploads build on GitHub-hosted macOS runners with App Store Connect signing material stored in GitHub secrets.
 
 ## Why This Setup
 - Android can build cleanly on Linux CI.
@@ -17,6 +18,9 @@ This repo uses a split mobile build path:
 - `.github/workflows/companion-ios-self-hosted.yml`
   - `simulator_validation`: validates the app shell with an unsigned simulator build
   - `signed_device`: archives and exports a signed iPhone IPA on your self-hosted MacBook runner
+- `.github/workflows/companion-ios-testflight.yml`
+  - manually archives a signed Release IPA on a GitHub-hosted macOS runner
+  - uploads the IPA to TestFlight using an App Store Connect API key
 
 ## MacBook Pro Self-Hosted Runner Setup
 1. Install Xcode from the App Store.
@@ -35,6 +39,31 @@ This repo uses a split mobile build path:
 7. Choose macOS and follow the setup commands on the MacBook.
 8. Start the runner as a service so it survives logout/reboot.
 9. Keep the Mac awake and on power when you want iOS workflows to run.
+
+## GitHub-Hosted TestFlight Prerequisites
+The hosted TestFlight workflow does not need your MacBook runner, but it does need App Store Connect signing material in GitHub.
+
+Repository variables:
+- `IOS_DEVELOPMENT_TEAM`
+- `APPSTORE_API_KEY_ID`
+- `APPSTORE_ISSUER_ID`
+
+Repository secrets:
+- `APPSTORE_CERTIFICATES_FILE_BASE64`
+  - base64-encoded exported `.p12` containing your Apple Distribution certificate and private key
+- `APPSTORE_CERTIFICATES_PASSWORD`
+  - password used when exporting the `.p12`
+- `APPSTORE_API_PRIVATE_KEY`
+  - contents of the App Store Connect API key `.p8`
+- `IOS_APP_STORE_PROFILE_BASE64`
+  - base64-encoded App Store provisioning profile for `me.fiksu.esp32map.companion.ios`
+- `IOS_SHARE_EXTENSION_PROFILE_BASE64`
+  - base64-encoded App Store provisioning profile for `me.fiksu.esp32map.companion.ios.share`
+
+Signing requirements:
+- both the app target and the share extension need App Store provisioning profiles
+- the share extension profile must include the same app-group capability used by the app target
+- the certificate and both profiles must belong to the same Apple team
 
 ## iPhone Signing Prerequisites On The Mac
 Before the signed workflow can produce an installable IPA, do this once on the MacBook:
@@ -121,15 +150,33 @@ Check these first:
 5. The chosen bundle identifier is unique for your Apple team.
 
 ## Release Build Path Later
-The current automation is meant for installable signed device builds, not App Store release yet.
+Current automation now supports:
+- self-hosted signed iPhone IPA export for direct device install
+- GitHub-hosted TestFlight upload
 
-Later steps can add:
-- TestFlight upload
-- App Store archive/export
+Later steps can still add:
 - Android release `aab` generation
-- beta distribution flows
+- richer beta release notes / versioning flows
+- App Store submission automation
 
 ## Operational Notes
 - If the MacBook runner is offline, only the iOS workflow will wait/fail; Android and the rest of CI remain unaffected.
+- The TestFlight workflow is independent of the self-hosted Mac and can run as long as the GitHub signing secrets remain valid.
 - The Linux home server remains the main place for shared Rust, emulator, and documentation work.
 - iOS UI development is still easiest from Xcode on the Mac, but signed device builds can now be triggered remotely from GitHub Actions.
+
+## How To Upload A TestFlight Build
+Run the `Companion iOS TestFlight` workflow manually in GitHub Actions.
+
+The workflow will:
+1. Generate the Xcode project on a GitHub-hosted macOS runner.
+2. Import the Apple Distribution certificate from GitHub secrets.
+3. Install the app and share-extension provisioning profiles.
+4. Archive and export a Release IPA.
+5. Upload the IPA to TestFlight.
+6. Save the exported IPA and `.xcarchive` as workflow artifacts.
+
+Use this path when:
+- you want a clean remote beta-distribution flow
+- the tester can install through TestFlight
+- you do not need a directly sideloaded IPA onto one specific phone
