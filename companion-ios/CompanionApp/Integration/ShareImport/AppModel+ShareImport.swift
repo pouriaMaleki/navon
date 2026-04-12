@@ -203,7 +203,8 @@ extension AppModel {
         parsedURL: URL,
         using searchService: PlaceSearchService
     ) async -> SharedImportEnvelope? {
-        let expandedURL = await expandedSharedURL(for: parsedURL) ?? parsedURL
+        let canonicalURL = canonicalSharedURL(parsedURL)
+        let expandedURL = await expandedSharedURL(for: canonicalURL) ?? canonicalURL
 
         var resolved = envelope
         resolved.originalURL = expandedURL.absoluteString
@@ -363,6 +364,24 @@ extension AppModel {
             || extractCoordinate(from: url) != nil
     }
 
+    private func canonicalSharedURL(_ url: URL) -> URL {
+        guard let host = url.host?.lowercased() else { return url }
+        if host == "consent.google.com",
+           let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+           let continueValue = components.queryItems?.first(where: { $0.name == "continue" })?.value,
+           let decoded = continueValue.removingPercentEncoding,
+           let continueURL = URL(string: decoded) {
+            return continueURL
+        }
+        if host == "connect.garmin.com",
+           url.path.hasPrefix("/app/course/"),
+           var components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+            components.path = url.path.replacingOccurrences(of: "/app/course/", with: "/modern/course/")
+            return components.url ?? url
+        }
+        return url
+    }
+
     private func expandedSharedURL(for url: URL) async -> URL? {
         guard shouldExpandURL(url) else { return nil }
         var request = URLRequest(url: url)
@@ -379,7 +398,7 @@ extension AppModel {
 
     private func shouldExpandURL(_ url: URL) -> Bool {
         guard let host = url.host?.lowercased() else { return false }
-        return host == "maps.app.goo.gl" || host == "goo.gl"
+        return host == "maps.app.goo.gl" || host == "goo.gl" || host == "consent.google.com"
     }
 
     private func remotePageSummary(for url: URL) async -> RemotePageSummary? {
@@ -455,11 +474,9 @@ extension AppModel {
     }
 
     private func extractCoordinate(from url: URL) -> CoordinatePoint? {
-        if let coordinate = extractCoordinate(from: url.absoluteString.removingPercentEncoding ?? url.absoluteString) {
-            return coordinate
-        }
-
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+        let host = url.host?.lowercased() ?? ""
+
         if let coordinate = extractCoordinate(from: components.queryItems) {
             return coordinate
         }
@@ -471,7 +488,28 @@ extension AppModel {
                 return coordinate
             }
         }
+        if host.contains("google."),
+           let coordinate = extractCoordinate(fromGooglePath: url.path) {
+            return coordinate
+        }
+        if !host.contains("google.") && host != "consent.google.com" {
+            if let coordinate = extractCoordinate(from: url.absoluteString.removingPercentEncoding ?? url.absoluteString) {
+                return coordinate
+            }
+        }
         return nil
+    }
+
+    private func extractCoordinate(fromGooglePath path: String) -> CoordinatePoint? {
+        guard let groups = firstMatchGroups(in: path, pattern: "@(-?\\d{1,3}\\.\\d+),(-?\\d{1,3}\\.\\d+)"),
+              groups.count == 2,
+              let latitude = Double(groups[0]),
+              let longitude = Double(groups[1]),
+              (-90.0 ... 90.0).contains(latitude),
+              (-180.0 ... 180.0).contains(longitude) else {
+            return nil
+        }
+        return CoordinatePoint(latitude: latitude, longitude: longitude)
     }
 
     private func extractCoordinate(from queryItems: [URLQueryItem]?) -> CoordinatePoint? {
@@ -515,7 +553,11 @@ extension AppModel {
     }
 
     private func extractCoordinate(fromHTML html: String) -> CoordinatePoint? {
-        if let named = extractNamedCoordinatePair(from: html, latitudeNames: ["latitude", "lat"], longitudeNames: ["longitude", "lng", "lon"]) {
+        if let named = extractNamedCoordinatePair(
+            from: html,
+            latitudeNames: ["latitude", "lat", "startLatitude", "endLatitude", "centerLatitude"],
+            longitudeNames: ["longitude", "lng", "lon", "startLongitude", "endLongitude", "centerLongitude"]
+        ) {
             return named
         }
         return extractCoordinate(from: html)
