@@ -74,8 +74,18 @@ final class ShareViewController: UIViewController {
     }
 
     private func envelope(from provider: NSItemProvider, extraNote: String?) async -> SharedImportEnvelope? {
+        if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier),
+           let sharedFile = await loadSharedFile(from: provider) {
+            return envelope(for: sharedFile, extraNote: extraNote)
+        }
+
         if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier),
            let url = await loadURL(from: provider) {
+            if url.isFileURL,
+               let sharedFile = copySharedFile(from: url, uniformTypeIdentifier: UTType.fileURL.identifier) {
+                return envelope(for: sharedFile, extraNote: extraNote)
+            }
+            let classification = classification(forURL: url)
             return SharedImportEnvelope(
                 id: UUID().uuidString,
                 sourceApplication: nil,
@@ -88,8 +98,8 @@ final class ShareViewController: UIViewController {
                 originalText: nil,
                 originalURL: url.absoluteString,
                 storedFilePath: nil,
-                classification: isGoogleMapsHost(url.host) ? .googleMapsLocationLink : .genericLocationLink,
-                disposition: .directHomePreview,
+                classification: classification,
+                disposition: classification == .unsupportedUnknown ? .diagnosticsOnly : .directHomePreview,
                 note: extraNote
             )
         }
@@ -115,23 +125,7 @@ final class ShareViewController: UIViewController {
         }
 
         if let sharedFile = await loadSharedFile(from: provider) {
-            let classification = classification(forFileName: sharedFile.fileName)
-            return SharedImportEnvelope(
-                id: UUID().uuidString,
-                sourceApplication: nil,
-                receivedAt: Date(),
-                rawKind: .file,
-                mimeType: nil,
-                uniformTypeIdentifier: sharedFile.uniformTypeIdentifier,
-                fileName: sharedFile.fileName,
-                fileSizeBytes: sharedFile.fileSizeBytes,
-                originalText: nil,
-                originalURL: sharedFile.originalURL,
-                storedFilePath: sharedFile.storedFilePath,
-                classification: classification,
-                disposition: classification == .gpxFile ? .directHomePreview : .diagnosticsOnly,
-                note: extraNote
-            )
+            return envelope(for: sharedFile, extraNote: extraNote)
         }
 
         return SharedImportEnvelope(
@@ -172,6 +166,33 @@ final class ShareViewController: UIViewController {
                 }
             }
         }
+    }
+
+    private func envelope(for sharedFile: LoadedSharedFile, extraNote: String?) -> SharedImportEnvelope {
+        let classification = classification(forFileName: sharedFile.fileName)
+        let disposition: SharedImportDisposition
+        switch classification {
+        case .gpxFile, .fitFile, .tcxFile:
+            disposition = .directHomePreview
+        case .genericXMLFile, .googleMapsLocationLink, .genericLocationLink, .plainCoordinates, .unsupportedUnknown:
+            disposition = .diagnosticsOnly
+        }
+        return SharedImportEnvelope(
+            id: UUID().uuidString,
+            sourceApplication: nil,
+            receivedAt: Date(),
+            rawKind: .file,
+            mimeType: nil,
+            uniformTypeIdentifier: sharedFile.uniformTypeIdentifier,
+            fileName: sharedFile.fileName,
+            fileSizeBytes: sharedFile.fileSizeBytes,
+            originalText: nil,
+            originalURL: sharedFile.originalURL,
+            storedFilePath: sharedFile.storedFilePath,
+            classification: classification,
+            disposition: disposition,
+            note: extraNote
+        )
     }
 
     private func loadSharedFile(from provider: NSItemProvider) async -> LoadedSharedFile? {
@@ -221,6 +242,22 @@ final class ShareViewController: UIViewController {
         }
     }
 
+    private func copySharedFile(from url: URL, uniformTypeIdentifier: String?) -> LoadedSharedFile? {
+        guard let storedPath = try? sharedStore.copyFileIntoSharedContainer(
+            sourceURL: url,
+            suggestedName: url.lastPathComponent
+        ) else {
+            return nil
+        }
+        return LoadedSharedFile(
+            storedFilePath: storedPath,
+            fileName: url.lastPathComponent,
+            fileSizeBytes: try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize,
+            originalURL: url.absoluteString,
+            uniformTypeIdentifier: uniformTypeIdentifier
+        )
+    }
+
     private func extractURL(from text: String) -> String? {
         text
             .components(separatedBy: .newlines)
@@ -229,8 +266,8 @@ final class ShareViewController: UIViewController {
     }
 
     private func classification(forText text: String) -> SharedImportClassification {
-        if let url = extractURL(from: text), let parsed = URL(string: url), isGoogleMapsHost(parsed.host) {
-            return .googleMapsLocationLink
+        if let url = extractURL(from: text), let parsed = URL(string: url) {
+            return classification(forURL: parsed)
         }
         if extractCoordinate(from: text) != nil {
             return text.contains("http://") || text.contains("https://") ? .genericLocationLink : .plainCoordinates
@@ -240,6 +277,16 @@ final class ShareViewController: UIViewController {
 
     private func disposition(forText text: String) -> SharedImportDisposition {
         classification(forText: text) == .unsupportedUnknown ? .diagnosticsOnly : .directHomePreview
+    }
+
+    private func classification(forURL url: URL) -> SharedImportClassification {
+        if isGoogleMapsHost(url.host) {
+            return .googleMapsLocationLink
+        }
+        if isKnownMapHost(url.host) || extractCoordinate(from: url.absoluteString) != nil {
+            return .genericLocationLink
+        }
+        return .unsupportedUnknown
     }
 
     private func classification(forFileName fileName: String) -> SharedImportClassification {
@@ -254,6 +301,14 @@ final class ShareViewController: UIViewController {
     private func isGoogleMapsHost(_ host: String?) -> Bool {
         guard let host = host?.lowercased() else { return false }
         return host.contains("google.") || host == "maps.app.goo.gl" || host == "goo.gl"
+    }
+
+    private func isKnownMapHost(_ host: String?) -> Bool {
+        guard let host = host?.lowercased() else { return false }
+        return host.contains("openstreetmap.org")
+            || host.contains("garmin.com")
+            || host.contains("strava.com")
+            || host.contains("komoot.")
     }
 
     private func extractCoordinate(from value: String) -> (Double, Double)? {

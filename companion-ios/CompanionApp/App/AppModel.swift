@@ -117,6 +117,39 @@ final class AppModel: ObservableObject {
         }
     }
 
+    func importSampleFile(from url: URL, providerID: RouteProviderID, preferredTitle: String? = nil) async throws {
+        let accessGranted = url.startAccessingSecurityScopedResource()
+        defer {
+            if accessGranted {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        let data = try Data(contentsOf: url)
+        guard let adapter = providers[providerID] as? SampleRoutingAdapter else { return }
+        let preview = try adapter.importFile(
+            named: url.lastPathComponent,
+            data: data,
+            origin: simulatedRiderLocation
+        )
+        selectedProviderID = providerID
+        self.preview = preview
+        if let selected = preview.selectedAlternative?.normalizedPackage {
+            routeRequest = RoutePlanRequest(
+                origin: selected.geometry.first ?? routeRequest.origin,
+                destination: selected.geometry.last ?? routeRequest.destination,
+                providerID: providerID
+            )
+            simulatedRiderLocation = selected.geometry.first ?? simulatedRiderLocation
+        }
+        applySelectedAlternativeToSession(
+            sourceMode: currentSourceMode,
+            destination: routeRequest.destination,
+            preferredTitle: preferredTitle ?? url.deletingPathExtension().lastPathComponent
+        )
+        refreshDiagnostics()
+    }
+
     func planRoute() async {
         await planRoute(using: currentSourceMode)
     }

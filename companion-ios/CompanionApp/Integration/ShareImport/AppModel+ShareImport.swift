@@ -1,6 +1,12 @@
 import Foundation
 
 extension AppModel {
+    private struct RemotePageSummary {
+        let finalURL: URL
+        let pageTitle: String?
+        let coordinate: CoordinatePoint?
+    }
+
     var importDiagnosticsEntries: [ImportDiagnosticsEntry] {
         persistence.loadImportDiagnostics()
     }
@@ -36,7 +42,19 @@ extension AppModel {
         case .directHomePreview:
             if resolved.classification == .gpxFile, let filePath = resolved.storedFilePath {
                 await importSharedGpxFile(atPath: filePath, sourceLabel: resolved.sourceApplication ?? "Shared GPX")
-            } else if let destination = resolvedDestination(from: resolved) {
+            } else if let providerID = sharedFileProviderID(for: resolved), let filePath = resolved.storedFilePath {
+                if let errorMessage = await importSharedSampleFile(
+                    atPath: filePath,
+                    providerID: providerID,
+                    preferredTitle: sharedImportTitle(for: resolved),
+                    sourceLabel: sharedImportSourceLabel(for: resolved)
+                ) {
+                    var diagnostic = resolved
+                    diagnostic.disposition = .diagnosticsOnly
+                    diagnostic.note = "\(providerID.displayName) import failed: \(errorMessage)"
+                    saveImportDiagnostic(for: diagnostic)
+                }
+            } else if let destination = await resolvedDestination(from: resolved, using: searchService) {
                 await planSharedDestinationImport(destination, from: resolved)
             } else {
                 saveImportDiagnostic(for: resolved)
@@ -50,6 +68,26 @@ extension AppModel {
         await importGpxFile(from: URL(fileURLWithPath: path))
         recordPlannedPreview(source: .gpxImport, sourceLabel: sourceLabel)
         homePreviewRequestID = UUID()
+    }
+
+    private func importSharedSampleFile(
+        atPath path: String,
+        providerID: RouteProviderID,
+        preferredTitle: String,
+        sourceLabel: String
+    ) async -> String? {
+        do {
+            try await importSampleFile(
+                from: URL(fileURLWithPath: path),
+                providerID: providerID,
+                preferredTitle: preferredTitle
+            )
+            recordImportedPreview(title: preferredTitle, source: .shareImport, sourceLabel: sourceLabel)
+            homePreviewRequestID = UUID()
+            return nil
+        } catch {
+            return displayShareImportError(error)
+        }
     }
 
     private func planSharedDestinationImport(_ destination: DestinationSearchResult, from envelope: SharedImportEnvelope) async {
@@ -95,47 +133,29 @@ extension AppModel {
         notePersistenceChanged()
     }
 
-    private func resolvedDestination(from envelope: SharedImportEnvelope) -> DestinationSearchResult? {
-        guard let coordinate = extractCoordinate(from: envelope.originalURL ?? envelope.originalText ?? "") else { return nil }
-        let title = extractedTitle(from: envelope) ?? (envelope.classification == .googleMapsLocationLink ? "Imported from Google Maps" : "Shared location")
-        let subtitle = envelope.originalURL ?? envelope.originalText ?? ""
-        return DestinationSearchResult(id: envelope.id, title: title, subtitle: subtitle, coordinate: coordinate)
+    private func resolvedDestination(from envelope: SharedImportEnvelope, using searchService: PlaceSearchService) async -> DestinationSearchResult? {
+        let payload = envelope.originalURL ?? envelope.originalText ?? ""
+        guard let coordinate = extractCoordinate(from: payload) else { return nil }
+        let fallbackTitle = sharedImportTitle(for: envelope)
+        let resolvedDestination = await searchService.resolveDestination(at: coordinate, fallbackTitle: fallbackTitle)
+        return resolvedDestination ?? DestinationSearchResult(
+            id: envelope.id,
+            title: fallbackTitle,
+            subtitle: envelope.originalURL ?? envelope.originalText ?? "",
+            coordinate: coordinate
+        )
     }
 
     private func classifySharedImport(_ envelope: SharedImportEnvelope, using searchService: PlaceSearchService) async -> SharedImportEnvelope {
-        if let path = envelope.storedFilePath ?? envelope.originalURL, envelope.classification == .gpxFile || path.lowercased().hasSuffix(".gpx") {
-            var resolved = envelope
-            resolved.classification = .gpxFile
-            resolved.disposition = .directHomePreview
-            return resolved
+        if let resolvedFileEnvelope = classifySharedFileEnvelope(envelope) {
+            return resolvedFileEnvelope
         }
 
         let payload = envelope.originalURL ?? envelope.originalText ?? ""
-        if let url = extractURL(from: payload), isGoogleMapsURL(url) {
-            var resolved = envelope
-            resolved.originalURL = url
-            resolved.classification = .googleMapsLocationLink
-            if extractCoordinate(from: url) != nil {
-                resolved.disposition = .directHomePreview
-                return resolved
+        if let urlString = extractURL(from: payload), let parsedURL = URL(string: urlString) {
+            if let resolvedURLImport = await resolveURLImport(envelope: envelope, parsedURL: parsedURL, using: searchService) {
+                return resolvedURLImport
             }
-            if let resolvedDestination = await resolveTextDestination(from: envelope, using: searchService) {
-                var destinationEnvelope = resolved
-                destinationEnvelope.originalText = "\(resolvedDestination.title)\n\(resolvedDestination.coordinate.latitude),\(resolvedDestination.coordinate.longitude)"
-                destinationEnvelope.disposition = .directHomePreview
-                return destinationEnvelope
-            }
-            resolved.disposition = .diagnosticsOnly
-            resolved.note = "Google Maps link could not be resolved confidently yet."
-            return resolved
-        }
-
-        if let url = extractURL(from: payload), extractCoordinate(from: url) != nil {
-            var resolved = envelope
-            resolved.originalURL = url
-            resolved.classification = .genericLocationLink
-            resolved.disposition = .directHomePreview
-            return resolved
         }
 
         if extractCoordinate(from: payload) != nil {
@@ -154,9 +174,152 @@ extension AppModel {
         return resolved
     }
 
-    private func resolveTextDestination(from envelope: SharedImportEnvelope, using searchService: PlaceSearchService) async -> DestinationSearchResult? {
-        guard let text = extractedTitle(from: envelope), !text.isEmpty else { return nil }
-        return await searchService.searchDestinations(matching: text, limit: 1).first
+    private func classifySharedFileEnvelope(_ envelope: SharedImportEnvelope) -> SharedImportEnvelope? {
+        guard let path = envelope.storedFilePath ?? envelope.originalURL else { return nil }
+        let lowerPath = path.lowercased()
+        var resolved = envelope
+        if envelope.classification == .gpxFile || lowerPath.hasSuffix(".gpx") {
+            resolved.classification = .gpxFile
+            resolved.disposition = .directHomePreview
+            return resolved
+        }
+        if envelope.classification == .fitFile || lowerPath.hasSuffix(".fit") {
+            resolved.classification = .fitFile
+            resolved.disposition = .directHomePreview
+            resolved.note = "Using sample FIT import preview until live file parsing is added."
+            return resolved
+        }
+        if envelope.classification == .tcxFile || lowerPath.hasSuffix(".tcx") {
+            resolved.classification = .tcxFile
+            resolved.disposition = .directHomePreview
+            resolved.note = "Using sample TCX import preview until live file parsing is added."
+            return resolved
+        }
+        return nil
+    }
+
+    private func resolveURLImport(
+        envelope: SharedImportEnvelope,
+        parsedURL: URL,
+        using searchService: PlaceSearchService
+    ) async -> SharedImportEnvelope? {
+        let expandedURL = await expandedSharedURL(for: parsedURL) ?? parsedURL
+
+        var resolved = envelope
+        resolved.originalURL = expandedURL.absoluteString
+        if isGoogleMapsURL(resolved.originalURL ?? "") {
+            resolved.classification = .googleMapsLocationLink
+        } else if isSupportedSharedURL(expandedURL) {
+            resolved.classification = .genericLocationLink
+        } else {
+            return nil
+        }
+
+        if let coordinate = extractCoordinate(from: expandedURL) {
+            return await resolvedEnvelopeForCoordinate(
+                resolved,
+                coordinate: coordinate,
+                using: searchService,
+                fallbackTitle: nil
+            )
+        }
+
+        if let title = extractedTitle(from: resolved) {
+            let matches = await searchService.searchDestinations(matching: title, limit: 1)
+            if let destination = matches.first {
+                return envelopeByResolving(resolved, with: destination)
+            }
+        }
+
+        let remotePage = await remotePageSummary(for: expandedURL)
+        if let remotePage {
+            resolved.originalURL = remotePage.finalURL.absoluteString
+        }
+
+        if let remoteTitle = remotePage?.pageTitle {
+            let matches = await searchService.searchDestinations(matching: remoteTitle, limit: 1)
+            if let destination = matches.first {
+                return envelopeByResolving(resolved, with: destination)
+            }
+        }
+
+        if let remoteCoordinate = remotePage?.coordinate {
+            return await resolvedEnvelopeForCoordinate(
+                resolved,
+                coordinate: remoteCoordinate,
+                using: searchService,
+                fallbackTitle: remotePage?.pageTitle
+            )
+        }
+
+        resolved.disposition = .diagnosticsOnly
+        resolved.note = resolved.classification == .googleMapsLocationLink
+            ? "Google Maps link could not be resolved confidently yet."
+            : "Shared location link did not expose a usable destination yet."
+        return resolved
+    }
+
+    private func envelopeByResolving(_ envelope: SharedImportEnvelope, with destination: DestinationSearchResult) -> SharedImportEnvelope {
+        var resolved = envelope
+        resolved.originalText = "\(destination.title)\n\(destination.coordinate.latitude),\(destination.coordinate.longitude)"
+        resolved.disposition = .directHomePreview
+        return resolved
+    }
+
+    private func resolvedEnvelopeForCoordinate(
+        _ envelope: SharedImportEnvelope,
+        coordinate: CoordinatePoint,
+        using searchService: PlaceSearchService,
+        fallbackTitle: String?
+    ) async -> SharedImportEnvelope {
+        let fallback = fallbackTitle ?? sharedImportTitle(for: envelope)
+        let resolvedDestination = await searchService.resolveDestination(at: coordinate, fallbackTitle: fallback)
+        let destination = resolvedDestination ?? DestinationSearchResult(
+            id: envelope.id,
+            title: fallback,
+            subtitle: envelope.originalURL ?? envelope.originalText ?? "",
+            coordinate: coordinate
+        )
+        return envelopeByResolving(envelope, with: destination)
+    }
+
+    private func sharedFileProviderID(for envelope: SharedImportEnvelope) -> RouteProviderID? {
+        switch envelope.classification {
+        case .fitFile:
+            return .fitImport
+        case .tcxFile:
+            return .tcxImport
+        case .googleMapsLocationLink, .genericLocationLink, .gpxFile, .genericXMLFile, .plainCoordinates, .unsupportedUnknown:
+            return nil
+        }
+    }
+
+    private func sharedImportTitle(for envelope: SharedImportEnvelope) -> String {
+        if let fileName = envelope.fileName?.trimmingCharacters(in: .whitespacesAndNewlines), !fileName.isEmpty {
+            return URL(fileURLWithPath: fileName).deletingPathExtension().lastPathComponent
+        }
+        return extractedTitle(from: envelope)
+            ?? (envelope.classification == .googleMapsLocationLink ? "Imported from Google Maps" : "Shared location")
+    }
+
+    private func sharedImportSourceLabel(for envelope: SharedImportEnvelope) -> String {
+        switch envelope.classification {
+        case .fitFile:
+            return "FIT Import"
+        case .tcxFile:
+            return "TCX Import"
+        case .googleMapsLocationLink:
+            return "Google Maps"
+        case .genericLocationLink, .gpxFile, .genericXMLFile, .plainCoordinates, .unsupportedUnknown:
+            return "Shared"
+        }
+    }
+
+    private func displayShareImportError(_ error: Error) -> String {
+        if let localized = error as? LocalizedError, let message = localized.errorDescription {
+            return message
+        }
+        return error.localizedDescription
     }
 
     private func extractedTitle(from envelope: SharedImportEnvelope) -> String? {
@@ -170,7 +333,7 @@ extension AppModel {
         }
         if let url = envelope.originalURL,
            let queryItems = URLComponents(string: url)?.queryItems,
-           let name = queryItems.first(where: { ["q", "query", "destination"].contains($0.name.lowercased()) })?.value,
+           let name = queryItems.first(where: { ["q", "query", "destination", "daddr", "near", "name"].contains($0.name.lowercased()) })?.value,
            !name.isEmpty,
            extractCoordinate(from: name) == nil {
             return name.replacingOccurrences(of: "+", with: " ")
@@ -190,17 +353,227 @@ extension AppModel {
         return host.contains("google.") || host == "maps.app.goo.gl" || host == "goo.gl"
     }
 
+    private func isSupportedSharedURL(_ url: URL) -> Bool {
+        guard let host = url.host?.lowercased() else {
+            return extractCoordinate(from: url) != nil
+        }
+        return isGoogleMapsURL(url.absoluteString)
+            || host.contains("openstreetmap.org")
+            || host.contains("garmin.com")
+            || extractCoordinate(from: url) != nil
+    }
+
+    private func expandedSharedURL(for url: URL) async -> URL? {
+        guard shouldExpandURL(url) else { return nil }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 8
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", forHTTPHeaderField: "Accept")
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            return response.url
+        } catch {
+            return nil
+        }
+    }
+
+    private func shouldExpandURL(_ url: URL) -> Bool {
+        guard let host = url.host?.lowercased() else { return false }
+        return host == "maps.app.goo.gl" || host == "goo.gl"
+    }
+
+    private func remotePageSummary(for url: URL) async -> RemotePageSummary? {
+        guard shouldInspectRemotePage(url) else { return nil }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 8
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", forHTTPHeaderField: "Accept")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            let finalURL = response.url ?? url
+            let html = decodeHTMLSnippet(data)
+            let pageTitle = sanitizedPageTitle(extractPageTitle(fromHTML: html))
+            let coordinate = extractCoordinate(from: finalURL) ?? extractCoordinate(fromHTML: html)
+            guard pageTitle != nil || coordinate != nil || finalURL.absoluteString != url.absoluteString else {
+                return nil
+            }
+            return RemotePageSummary(finalURL: finalURL, pageTitle: pageTitle, coordinate: coordinate)
+        } catch {
+            return nil
+        }
+    }
+
+    private func shouldInspectRemotePage(_ url: URL) -> Bool {
+        guard let host = url.host?.lowercased() else { return false }
+        return host.contains("garmin.com")
+            || host.contains("openstreetmap.org")
+            || host.contains("google.")
+    }
+
+    private func decodeHTMLSnippet(_ data: Data) -> String {
+        let snippet = Data(data.prefix(256_000))
+        if let html = String(data: snippet, encoding: .utf8) {
+            return html
+        }
+        if let html = String(data: snippet, encoding: .isoLatin1) {
+            return html
+        }
+        return ""
+    }
+
+    private func extractPageTitle(fromHTML html: String) -> String? {
+        if let ogTitle = firstMatch(in: html, pattern: "<meta[^>]+property=[\"']og:title[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>") {
+            return ogTitle
+        }
+        return firstMatch(in: html, pattern: "<title[^>]*>(.*?)</title>")
+    }
+
+    private func sanitizedPageTitle(_ rawTitle: String?) -> String? {
+        guard let rawTitle else { return nil }
+        var title = rawTitle
+            .replacingOccurrences(of: "&amp;", with: "&")
+            .replacingOccurrences(of: "&quot;", with: "\"")
+            .replacingOccurrences(of: "&#39;", with: "'")
+            .replacingOccurrences(of: "\n", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        for suffix in [" - Google Maps", " | Google Maps", " - OpenStreetMap", " | OpenStreetMap", " - Garmin Connect", " | Garmin Connect"] {
+            if title.hasSuffix(suffix) {
+                title.removeLast(suffix.count)
+            }
+        }
+
+        if title.isEmpty || extractCoordinate(from: title) != nil {
+            return nil
+        }
+        let lower = title.lowercased()
+        if lower == "google maps" || lower == "openstreetmap" || lower == "garmin connect" {
+            return nil
+        }
+        return title
+    }
+
+    private func extractCoordinate(from url: URL) -> CoordinatePoint? {
+        if let coordinate = extractCoordinate(from: url.absoluteString.removingPercentEncoding ?? url.absoluteString) {
+            return coordinate
+        }
+
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+        if let coordinate = extractCoordinate(from: components.queryItems) {
+            return coordinate
+        }
+        if let fragment = components.fragment {
+            if let coordinate = extractCoordinate(fromMapFragment: fragment) {
+                return coordinate
+            }
+            if let coordinate = extractCoordinate(from: fragment) {
+                return coordinate
+            }
+        }
+        return nil
+    }
+
+    private func extractCoordinate(from queryItems: [URLQueryItem]?) -> CoordinatePoint? {
+        guard let queryItems else { return nil }
+
+        var namedValues: [String: String] = [:]
+        for item in queryItems where namedValues[item.name.lowercased()] == nil {
+            namedValues[item.name.lowercased()] = item.value ?? ""
+        }
+        let latitudeKeys = ["lat", "latitude", "mlat"]
+        let longitudeKeys = ["lon", "lng", "longitude", "mlon"]
+        if let latitudeString = latitudeKeys.compactMap({ namedValues[$0] }).first(where: { !$0.isEmpty }),
+           let longitudeString = longitudeKeys.compactMap({ namedValues[$0] }).first(where: { !$0.isEmpty }),
+           let latitude = Double(latitudeString),
+           let longitude = Double(longitudeString),
+           (-90.0 ... 90.0).contains(latitude),
+           (-180.0 ... 180.0).contains(longitude) {
+            return CoordinatePoint(latitude: latitude, longitude: longitude)
+        }
+
+        for name in ["ll", "sll", "center", "destination", "daddr", "near", "q", "query"] {
+            if let value = namedValues[name]?.replacingOccurrences(of: "loc:", with: ""),
+               let coordinate = extractCoordinate(from: value) {
+                return coordinate
+            }
+        }
+
+        return nil
+    }
+
+    private func extractCoordinate(fromMapFragment fragment: String) -> CoordinatePoint? {
+        guard let zoomlessMatch = firstMatchGroups(in: fragment, pattern: "map=\\d+(?:\\.\\d+)?/(-?\\d{1,3}\\.\\d+)/(-?\\d{1,3}\\.\\d+)"),
+              zoomlessMatch.count == 2,
+              let latitude = Double(zoomlessMatch[0]),
+              let longitude = Double(zoomlessMatch[1]),
+              (-90.0 ... 90.0).contains(latitude),
+              (-180.0 ... 180.0).contains(longitude) else {
+            return nil
+        }
+        return CoordinatePoint(latitude: latitude, longitude: longitude)
+    }
+
+    private func extractCoordinate(fromHTML html: String) -> CoordinatePoint? {
+        if let named = extractNamedCoordinatePair(from: html, latitudeNames: ["latitude", "lat"], longitudeNames: ["longitude", "lng", "lon"]) {
+            return named
+        }
+        return extractCoordinate(from: html)
+    }
+
+    private func extractNamedCoordinatePair(
+        from value: String,
+        latitudeNames: [String],
+        longitudeNames: [String]
+    ) -> CoordinatePoint? {
+        for latitudeName in latitudeNames {
+            for longitudeName in longitudeNames {
+                let pattern = "\(latitudeName)[\"'=:\\s>]+(-?\\d{1,3}\\.\\d+).*?\(longitudeName)[\"'=:\\s>]+(-?\\d{1,3}\\.\\d+)"
+                if let groups = firstMatchGroups(in: value, pattern: pattern),
+                   groups.count == 2,
+                   let latitude = Double(groups[0]),
+                   let longitude = Double(groups[1]),
+                   (-90.0 ... 90.0).contains(latitude),
+                   (-180.0 ... 180.0).contains(longitude) {
+                    return CoordinatePoint(latitude: latitude, longitude: longitude)
+                }
+            }
+        }
+        return nil
+    }
+
     private func extractCoordinate(from value: String) -> CoordinatePoint? {
-        let pattern = try? NSRegularExpression(pattern: "(-?\\d{1,3}\\.\\d+)[,\\s]+(-?\\d{1,3}\\.\\d+)")
+        let pattern = try? NSRegularExpression(pattern: "(-?\\d{1,3}\\.\\d+)[,\\s/]+(-?\\d{1,3}\\.\\d+)")
         guard let match = pattern?.firstMatch(in: value, range: NSRange(location: 0, length: value.utf16.count)),
               let latitudeRange = Range(match.range(at: 1), in: value),
               let longitudeRange = Range(match.range(at: 2), in: value),
               let latitude = Double(value[latitudeRange]),
               let longitude = Double(value[longitudeRange]),
-              (-90.0...90.0).contains(latitude),
-              (-180.0...180.0).contains(longitude) else {
+              (-90.0 ... 90.0).contains(latitude),
+              (-180.0 ... 180.0).contains(longitude) else {
             return nil
         }
         return CoordinatePoint(latitude: latitude, longitude: longitude)
+    }
+
+    private func firstMatch(in value: String, pattern: String) -> String? {
+        guard let groups = firstMatchGroups(in: value, pattern: pattern), let first = groups.first else {
+            return nil
+        }
+        return first
+    }
+
+    private func firstMatchGroups(in value: String, pattern: String) -> [String]? {
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) else {
+            return nil
+        }
+        let fullRange = NSRange(location: 0, length: value.utf16.count)
+        guard let match = regex.firstMatch(in: value, range: fullRange), match.numberOfRanges > 1 else {
+            return nil
+        }
+        return (1 ..< match.numberOfRanges).compactMap { index in
+            guard let range = Range(match.range(at: index), in: value) else { return nil }
+            return String(value[range]).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
     }
 }

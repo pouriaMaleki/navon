@@ -4,6 +4,23 @@ struct SampleRoutingAdapter: RoutingProvider {
     let providerID: RouteProviderID
     let isAvailableInV1: Bool = false
 
+    func importFile(named fileName: String, data: Data, origin: CoordinatePoint, revision: Int = 1) throws -> RoutePreviewModel {
+        guard !data.isEmpty else {
+            throw SampleRoutingAdapterError.emptyImportFile
+        }
+
+        let request = RoutePlanRequest(
+            origin: origin,
+            destination: importedFileDestination(from: origin),
+            providerID: providerID
+        )
+        return buildPreview(
+            for: request,
+            revision: revision,
+            planningNotice: "Using sample \(providerID.displayName) preview for shared file \(fileName). Live file parsing is not wired yet."
+        )
+    }
+
     func planRoute(_ request: RoutePlanRequest) async throws -> RoutePreviewModel {
         if providerID == .osm {
             return try await buildLiveOsmPreview(for: request, revision: 1)
@@ -537,6 +554,14 @@ struct SampleRoutingAdapter: RoutingProvider {
         }
     }
 
+    private func importedFileDestination(from origin: CoordinatePoint) -> CoordinatePoint {
+        let offset = providerOffset(providerID) * 2.0
+        return CoordinatePoint(
+            latitude: origin.latitude + offset,
+            longitude: origin.longitude + offset * 0.7
+        )
+    }
+
     private func displayMessage(for error: Error) -> String {
         if let localized = error as? LocalizedError, let message = localized.errorDescription {
             return message
@@ -549,6 +574,7 @@ enum SampleRoutingAdapterError: LocalizedError {
     case noAlternativesAvailable
     case invalidLiveRouteURL
     case networkFailure(String)
+    case emptyImportFile
 
     var errorDescription: String? {
         switch self {
@@ -558,6 +584,8 @@ enum SampleRoutingAdapterError: LocalizedError {
             return "The live OSM route URL is invalid"
         case .networkFailure(let message):
             return message
+        case .emptyImportFile:
+            return "The shared file was empty"
         }
     }
 }
