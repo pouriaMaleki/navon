@@ -106,6 +106,10 @@ final class ShareViewController: UIViewController {
 
         if provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier),
            let text = await loadText(from: provider) {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else {
+                return nil
+            }
             return SharedImportEnvelope(
                 id: UUID().uuidString,
                 sourceApplication: nil,
@@ -114,12 +118,12 @@ final class ShareViewController: UIViewController {
                 mimeType: "text/plain",
                 uniformTypeIdentifier: UTType.plainText.identifier,
                 fileName: nil,
-                fileSizeBytes: text.lengthOfBytes(using: .utf8),
-                originalText: text,
-                originalURL: extractURL(from: text),
+                fileSizeBytes: trimmed.lengthOfBytes(using: .utf8),
+                originalText: trimmed,
+                originalURL: extractURL(from: trimmed),
                 storedFilePath: nil,
-                classification: classification(forText: text),
-                disposition: disposition(forText: text),
+                classification: classification(forText: trimmed),
+                disposition: disposition(forText: trimmed),
                 note: extraNote
             )
         }
