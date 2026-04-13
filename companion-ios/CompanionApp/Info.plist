@@ -18,6 +18,17 @@
     <string>0.1.0</string>
     <key>CFBundleVersion</key>
     <string>1</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>me.fiksu.esp32map.companion.ios</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>esp32mapcompanion</string>
+            </array>
+        </dict>
+    </array>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>NSBluetoothAlwaysUsageDescription</key>
