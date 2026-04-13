@@ -24,6 +24,7 @@ Performance principle:
 - Durable companion architecture guidance now lives in [`companion-app-architecture.md`](./companion-app-architecture.md).
 - iOS root navigation now uses a map-first Home plus full-screen Settings flow instead of the earlier tab shell.
 - Android root navigation now uses a map-first Home plus full-screen Settings flow instead of the earlier tab shell.
+- Companion iOS signing now expects a one-time local `companion-ios/Config/Signing.local.xcconfig` with `DEVELOPMENT_TEAM`, so generated Xcode projects survive pulls without manual team re-selection.
 - Both companion apps now carry lightweight route-history and route-planner-preference models to support the redesign flow.
 - Existing provider adapters, GPX import, BLE sync transport, persistence, and diagnostics seams remain the reused core beneath the new shell.
 - iOS share import now normalizes file-URL shares before generic URL handling, expands Google short links, parses OpenStreetMap coordinate fragments, and feeds FIT/TCX file shares into the existing sample-backed import path instead of dropping them straight into diagnostics.
@@ -32,6 +33,7 @@ Performance principle:
 - iOS Home now treats `homePreviewRequestID` as an explicit return-to-planning signal so shared destinations reopen the first page with the imported preview and mixed/HSL/OSM route suggestions visible instead of remaining hidden behind prior guidance state.
 - iOS successful share imports now persist a pending Home presentation keyed to the created route-history item, and Home consumes that persisted handoff on launch so cold starts can still reopen directly into the imported route preview.
 - iOS share extension handoff now uses an app-group queue file plus app URL-scheme reopen so Google Maps shares can bring Companion forward and trigger import consumption immediately instead of relying on a race-prone UserDefaults-only handoff.
+- iOS Google Maps imports now preserve the resolved destination through the second-stage import path by preferring the resolved text payload over the raw URL when extracting coordinates for Home preview planning.
 
 ## Companion Expansion Direction (April 5, 2026)
 The companion app is planned to evolve beyond a device-support utility into a strong standalone navigation product.
