@@ -151,3 +151,12 @@ struct RouteHistoryItem: Identifiable, Equatable, Codable {
     var routePackage: NormalizedRoutePackage?
     var occurrenceCount: Int?
 }
+
+struct PendingHomeImportPresentation: Equatable, Codable {
+    var routeHistoryItemID: String
+    var title: String
+    var sourceLabel: String
+    var destination: CoordinatePoint?
+    var createdAt: Date
+    var debugTrail: [String]
+}

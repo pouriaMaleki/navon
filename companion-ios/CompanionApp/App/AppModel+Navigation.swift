@@ -5,6 +5,10 @@ extension AppModel {
         persistence.loadRecentRouteHistory()
     }
 
+    var pendingHomeImportPresentation: PendingHomeImportPresentation? {
+        persistence.loadPendingHomeImportPresentation()
+    }
+
     var routePlannerPreferences: RoutePlannerPreferences {
         get { persistence.loadRoutePlannerPreferences() }
         set {
@@ -13,22 +17,23 @@ extension AppModel {
         }
     }
 
-    func recordPlannedPreview(source: RouteHistorySource, sourceLabel: String) {
+    @discardableResult
+    func recordPlannedPreview(source: RouteHistorySource, sourceLabel: String) -> RouteHistoryItem? {
         guard let selected = preview.selectedAlternative?.normalizedPackage else { return }
-        persistence.saveRouteHistoryItem(
-            RouteHistoryItem(
-                id: selected.routeIdentifier,
-                title: activeSession.destinationLabel,
-                subtitle: selected.summaryLine,
-                source: source,
-                sourceLabel: sourceLabel,
-                createdAt: Date(),
-                destination: selected.geometry.last,
-                routePackage: selected,
-                occurrenceCount: nil
-            )
+        let item = RouteHistoryItem(
+            id: selected.routeIdentifier,
+            title: activeSession.destinationLabel,
+            subtitle: selected.summaryLine,
+            source: source,
+            sourceLabel: sourceLabel,
+            createdAt: Date(),
+            destination: selected.geometry.last,
+            routePackage: selected,
+            occurrenceCount: nil
         )
+        persistence.saveRouteHistoryItem(item)
         notePersistenceChanged()
+        return item
     }
 
     func recordRecentDestination(title: String, coordinate: CoordinatePoint) {
@@ -67,5 +72,24 @@ extension AppModel {
     func clearPreviewSelection() {
         preview = RoutePreviewModel(alternatives: [], selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil)
         homePreviewRequestID = UUID()
+    }
+
+    func savePendingHomeImportPresentation(item: RouteHistoryItem, debugTrail: [String]) {
+        persistence.savePendingHomeImportPresentation(
+            PendingHomeImportPresentation(
+                routeHistoryItemID: item.id,
+                title: item.title,
+                sourceLabel: item.sourceLabel,
+                destination: item.destination,
+                createdAt: Date(),
+                debugTrail: debugTrail
+            )
+        )
+        notePersistenceChanged()
+    }
+
+    func clearPendingHomeImportPresentation() {
+        persistence.clearPendingHomeImportPresentation()
+        notePersistenceChanged()
     }
 }

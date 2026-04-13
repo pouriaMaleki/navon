@@ -16,7 +16,7 @@ struct CompanionRootView: View {
         )
         .task(id: appModel.homePreviewRequestID) {
             showingSettings = false
-            homeViewModel.revealImportedPreview()
+            await homeViewModel.revealImportedPreview()
         }
         .task(id: appModel.homeStartRequestID) {
             showingSettings = false

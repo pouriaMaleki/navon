@@ -66,7 +66,9 @@ extension AppModel {
 
     private func importSharedGpxFile(atPath path: String, sourceLabel: String) async {
         await importGpxFile(from: URL(fileURLWithPath: path))
-        recordPlannedPreview(source: .gpxImport, sourceLabel: sourceLabel)
+        if let item = recordPlannedPreview(source: .gpxImport, sourceLabel: sourceLabel) {
+            savePendingHomeImportPresentation(item: item, debugTrail: ["source=shared-gpx"])
+        }
         homePreviewRequestID = UUID()
     }
 
@@ -82,7 +84,9 @@ extension AppModel {
                 providerID: providerID,
                 preferredTitle: preferredTitle
             )
-            recordImportedPreview(title: preferredTitle, source: .shareImport, sourceLabel: sourceLabel)
+            if let item = recordImportedPreview(title: preferredTitle, source: .shareImport, sourceLabel: sourceLabel) {
+                savePendingHomeImportPresentation(item: item, debugTrail: ["source=shared-\(providerID.rawValue)"])
+            }
             homePreviewRequestID = UUID()
             return nil
         } catch {
@@ -100,26 +104,29 @@ extension AppModel {
         recordRecentDestination(title: destination.title, coordinate: destination.coordinate)
         let historySource: RouteHistorySource = envelope.classification == .googleMapsLocationLink ? .googleMaps : .shareImport
         let sourceLabel = envelope.classification == .googleMapsLocationLink ? "Google Maps" : "Shared"
-        recordImportedPreview(title: destination.title, source: historySource, sourceLabel: sourceLabel)
+        if let item = recordImportedPreview(title: destination.title, source: historySource, sourceLabel: sourceLabel) {
+            savePendingHomeImportPresentation(item: item, debugTrail: envelope.debugTrail ?? [])
+        }
         homePreviewRequestID = UUID()
     }
 
-    private func recordImportedPreview(title: String, source: RouteHistorySource, sourceLabel: String) {
+    @discardableResult
+    private func recordImportedPreview(title: String, source: RouteHistorySource, sourceLabel: String) -> RouteHistoryItem? {
         guard let selected = preview.selectedAlternative?.normalizedPackage else { return }
-        persistence.saveRouteHistoryItem(
-            RouteHistoryItem(
-                id: selected.routeIdentifier,
-                title: title,
-                subtitle: selected.summaryLine,
-                source: source,
-                sourceLabel: sourceLabel,
-                createdAt: Date(),
-                destination: selected.geometry.last,
-                routePackage: selected,
-                occurrenceCount: nil
-            )
+        let item = RouteHistoryItem(
+            id: selected.routeIdentifier,
+            title: title,
+            subtitle: selected.summaryLine,
+            source: source,
+            sourceLabel: sourceLabel,
+            createdAt: Date(),
+            destination: selected.geometry.last,
+            routePackage: selected,
+            occurrenceCount: nil
         )
+        persistence.saveRouteHistoryItem(item)
         notePersistenceChanged()
+        return item
     }
 
     private func saveImportDiagnostic(for envelope: SharedImportEnvelope) {
