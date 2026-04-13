@@ -19,7 +19,7 @@ extension AppModel {
 
     @discardableResult
     func recordPlannedPreview(source: RouteHistorySource, sourceLabel: String) -> RouteHistoryItem? {
-        guard let selected = preview.selectedAlternative?.normalizedPackage else { return }
+        guard let selected = preview.selectedAlternative?.normalizedPackage else { return nil }
         let item = RouteHistoryItem(
             id: selected.routeIdentifier,
             title: activeSession.destinationLabel,
