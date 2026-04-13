@@ -40,6 +40,7 @@ struct SharedImportEnvelope: Identifiable, Codable, Equatable {
     var classification: SharedImportClassification
     var disposition: SharedImportDisposition
     var note: String?
+    var debugTrail: [String]?
 }
 
 struct ImportDiagnosticsEntry: Identifiable, Codable, Equatable {

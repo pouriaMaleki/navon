@@ -61,7 +61,8 @@ final class ShareViewController: UIViewController {
             }
         }
 
-        if let selected = preferredEnvelope(from: candidates) {
+        if var selected = preferredEnvelope(from: candidates) {
+            selected.debugTrail = buildSelectionDebugTrail(from: candidates, selectedID: selected.id)
             sharedStore.enqueue(selected)
             finish(with: "Saved. Open Companion to continue.")
             return
@@ -105,7 +106,8 @@ final class ShareViewController: UIViewController {
                 storedFilePath: nil,
                 classification: classification,
                 disposition: classification == .unsupportedUnknown ? .diagnosticsOnly : .directHomePreview,
-                note: extraNote
+                note: extraNote,
+                debugTrail: nil
             )
         }
 
@@ -129,7 +131,8 @@ final class ShareViewController: UIViewController {
                 storedFilePath: nil,
                 classification: classification(forText: trimmed),
                 disposition: disposition(forText: trimmed),
-                note: extraNote
+                note: extraNote,
+                debugTrail: nil
             )
         }
 
@@ -151,7 +154,8 @@ final class ShareViewController: UIViewController {
             storedFilePath: nil,
             classification: .unsupportedUnknown,
             disposition: .diagnosticsOnly,
-            note: extraNote ?? "Unsupported shared item type."
+            note: extraNote ?? "Unsupported shared item type.",
+            debugTrail: nil
         )
     }
 
@@ -200,7 +204,8 @@ final class ShareViewController: UIViewController {
             storedFilePath: sharedFile.storedFilePath,
             classification: classification,
             disposition: disposition,
-            note: extraNote
+            note: extraNote,
+            debugTrail: nil
         )
     }
 
@@ -303,6 +308,28 @@ final class ShareViewController: UIViewController {
         default:
             return 10
         }
+    }
+
+    private func buildSelectionDebugTrail(from envelopes: [SharedImportEnvelope], selectedID: String) -> [String] {
+        var lines: [String] = [
+            "share-extension candidates=\(envelopes.count)",
+            "selected-id=\(selectedID)"
+        ]
+        let ranked = envelopes.sorted { lhs, rhs in
+            let lhsKey = sortKey(for: lhs)
+            let rhsKey = sortKey(for: rhs)
+            if lhsKey == rhsKey {
+                return lhs.id < rhs.id
+            }
+            return lhsKey > rhsKey
+        }
+        for (index, envelope) in ranked.enumerated() {
+            let payload = envelope.originalURL ?? envelope.originalText ?? envelope.fileName ?? "none"
+            lines.append(
+                "candidate[\(index)] score=\(sortKey(for: envelope)) id=\(envelope.id) raw=\(envelope.rawKind.rawValue) class=\(envelope.classification.rawValue) disp=\(envelope.disposition.rawValue) payload=\(String(payload.prefix(160)))"
+            )
+        }
+        return lines
     }
 
     private func classification(forText text: String) -> SharedImportClassification {
