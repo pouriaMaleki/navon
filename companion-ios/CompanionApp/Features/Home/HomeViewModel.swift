@@ -3,11 +3,25 @@ import Foundation
 @MainActor
 final class HomeViewModel: ObservableObject {
     func syncQueryFromCurrentPreview() {
-        if let destination = appModel.preview.selectedAlternative?.normalizedPackage.summary.destinationLabel, !destination.isEmpty {
+        let sessionTitle = appModel.activeSession.destinationLabel.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !sessionTitle.isEmpty, sessionTitle != "No destination" {
+            query = sessionTitle
+        } else if let destination = appModel.preview.selectedAlternative?.normalizedPackage.summary.destinationLabel, !destination.isEmpty {
             query = destination
         } else if let route = appModel.preview.selectedAlternative {
             query = route.title
         }
+    }
+
+    func revealImportedPreview() {
+        latestSearchTask?.cancel()
+        northPreviewTask?.cancel()
+        activeRouteIdentifier = nil
+        homeMode = .planning
+        compassMode = .autoFollow
+        suggestions = []
+        closeSearch()
+        syncQueryFromCurrentPreview()
     }
 
     @Published var query = ""
