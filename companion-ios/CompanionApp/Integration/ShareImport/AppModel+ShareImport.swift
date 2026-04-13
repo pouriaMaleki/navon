@@ -112,7 +112,7 @@ extension AppModel {
 
     @discardableResult
     private func recordImportedPreview(title: String, source: RouteHistorySource, sourceLabel: String) -> RouteHistoryItem? {
-        guard let selected = preview.selectedAlternative?.normalizedPackage else { return }
+        guard let selected = preview.selectedAlternative?.normalizedPackage else { return nil }
         let item = RouteHistoryItem(
             id: selected.routeIdentifier,
             title: title,
