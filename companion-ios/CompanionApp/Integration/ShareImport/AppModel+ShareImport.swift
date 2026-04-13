@@ -141,8 +141,11 @@ extension AppModel {
     }
 
     private func resolvedDestination(from envelope: SharedImportEnvelope, using searchService: PlaceSearchService) async -> DestinationSearchResult? {
-        let payload = envelope.originalURL ?? envelope.originalText ?? ""
-        guard let coordinate = extractCoordinate(from: payload) else { return nil }
+        let coordinate = [envelope.originalText, envelope.originalURL]
+            .compactMap { $0 }
+            .compactMap { extractCoordinate(from: $0) }
+            .first
+        guard let coordinate else { return nil }
         let fallbackTitle = sharedImportTitle(for: envelope)
         let resolvedDestination = await searchService.resolveDestination(at: coordinate, fallbackTitle: fallbackTitle)
         return resolvedDestination ?? DestinationSearchResult(
