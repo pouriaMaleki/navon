@@ -205,17 +205,19 @@ extension AppModel {
     ) async -> SharedImportEnvelope? {
         let canonicalURL = canonicalSharedURL(parsedURL)
         let expandedURL = await expandedSharedURL(for: canonicalURL) ?? canonicalURL
+        let resolvedURL = canonicalSharedURL(expandedURL)
 
         var resolved = envelope
         resolved.debugTrail = (resolved.debugTrail ?? []) + [
             "raw-url=\(parsedURL.absoluteString)",
             "canonical-url=\(canonicalURL.absoluteString)",
-            "expanded-url=\(expandedURL.absoluteString)"
+            "expanded-url=\(expandedURL.absoluteString)",
+            "resolved-url=\(resolvedURL.absoluteString)"
         ]
-        resolved.originalURL = expandedURL.absoluteString
+        resolved.originalURL = resolvedURL.absoluteString
         if isGoogleMapsURL(resolved.originalURL ?? "") {
             resolved.classification = .googleMapsLocationLink
-        } else if isSupportedSharedURL(expandedURL) {
+        } else if isSupportedSharedURL(resolvedURL) {
             resolved.classification = .genericLocationLink
             resolved.debugTrail?.append("url-classification=genericLocationLink")
         } else {
@@ -225,10 +227,10 @@ extension AppModel {
 
         if resolved.classification == .googleMapsLocationLink {
             resolved.debugTrail?.append("url-classification=googleMapsLocationLink")
-            return await resolveGoogleMapsImport(resolved, url: expandedURL, using: searchService)
+            return await resolveGoogleMapsImport(resolved, url: resolvedURL, using: searchService)
         }
 
-        if let coordinate = extractCoordinate(from: expandedURL) {
+        if let coordinate = extractCoordinate(from: resolvedURL) {
             resolved.debugTrail?.append("generic-coordinate=\(coordinate.latitude),\(coordinate.longitude)")
             return await resolvedEnvelopeForCoordinate(
                 resolved,
@@ -247,7 +249,7 @@ extension AppModel {
             resolved.debugTrail?.append("generic-title-search=no-match")
         }
 
-        let remotePage = await remotePageSummary(for: expandedURL)
+        let remotePage = await remotePageSummary(for: resolvedURL)
         if let remotePage {
             resolved.originalURL = remotePage.finalURL.absoluteString
             resolved.debugTrail?.append("remote-page-url=\(remotePage.finalURL.absoluteString)")
