@@ -207,16 +207,29 @@ extension AppModel {
         let expandedURL = await expandedSharedURL(for: canonicalURL) ?? canonicalURL
 
         var resolved = envelope
+        resolved.debugTrail = (resolved.debugTrail ?? []) + [
+            "raw-url=\(parsedURL.absoluteString)",
+            "canonical-url=\(canonicalURL.absoluteString)",
+            "expanded-url=\(expandedURL.absoluteString)"
+        ]
         resolved.originalURL = expandedURL.absoluteString
         if isGoogleMapsURL(resolved.originalURL ?? "") {
             resolved.classification = .googleMapsLocationLink
         } else if isSupportedSharedURL(expandedURL) {
             resolved.classification = .genericLocationLink
+            resolved.debugTrail?.append("url-classification=genericLocationLink")
         } else {
+            resolved.debugTrail?.append("url-classification=unsupported")
             return nil
         }
 
+        if resolved.classification == .googleMapsLocationLink {
+            resolved.debugTrail?.append("url-classification=googleMapsLocationLink")
+            return await resolveGoogleMapsImport(resolved, url: expandedURL, using: searchService)
+        }
+
         if let coordinate = extractCoordinate(from: expandedURL) {
+            resolved.debugTrail?.append("generic-coordinate=\(coordinate.latitude),\(coordinate.longitude)")
             return await resolvedEnvelopeForCoordinate(
                 resolved,
                 coordinate: coordinate,
@@ -226,25 +239,31 @@ extension AppModel {
         }
 
         if let title = extractedTitle(from: resolved) {
+            resolved.debugTrail?.append("generic-title=\(title)")
             let matches = await searchService.searchDestinations(matching: title, limit: 1)
             if let destination = matches.first {
                 return envelopeByResolving(resolved, with: destination)
             }
+            resolved.debugTrail?.append("generic-title-search=no-match")
         }
 
         let remotePage = await remotePageSummary(for: expandedURL)
         if let remotePage {
             resolved.originalURL = remotePage.finalURL.absoluteString
+            resolved.debugTrail?.append("remote-page-url=\(remotePage.finalURL.absoluteString)")
         }
 
         if let remoteTitle = remotePage?.pageTitle {
+            resolved.debugTrail?.append("remote-page-title=\(remoteTitle)")
             let matches = await searchService.searchDestinations(matching: remoteTitle, limit: 1)
             if let destination = matches.first {
                 return envelopeByResolving(resolved, with: destination)
             }
+            resolved.debugTrail?.append("remote-page-title-search=no-match")
         }
 
         if let remoteCoordinate = remotePage?.coordinate {
+            resolved.debugTrail?.append("remote-page-coordinate=\(remoteCoordinate.latitude),\(remoteCoordinate.longitude)")
             return await resolvedEnvelopeForCoordinate(
                 resolved,
                 coordinate: remoteCoordinate,
@@ -260,10 +279,50 @@ extension AppModel {
         return resolved
     }
 
+    private func resolveGoogleMapsImport(
+        _ envelope: SharedImportEnvelope,
+        url: URL,
+        using searchService: PlaceSearchService
+    ) async -> SharedImportEnvelope {
+        var resolved = envelope
+
+        if let coordinate = extractCoordinate(from: url) {
+            resolved.debugTrail?.append("google-coordinate=\(coordinate.latitude),\(coordinate.longitude)")
+            return await resolvedEnvelopeForCoordinate(
+                resolved,
+                coordinate: coordinate,
+                using: searchService,
+                fallbackTitle: googleMapsQueryTitle(from: url) ?? extractedTitle(from: resolved)
+            )
+        }
+
+        let queryTitle = googleMapsQueryTitle(from: url)
+        let fallbackTitle = extractedTitle(from: resolved)
+        let title = queryTitle ?? fallbackTitle
+        if let title, !title.isEmpty {
+            resolved.debugTrail?.append("google-title=\(title)")
+            let matches = await searchService.searchDestinations(matching: title, limit: 1)
+            if let destination = matches.first {
+                return envelopeByResolving(resolved, with: destination)
+            }
+            resolved.debugTrail?.append("google-title-search=no-match")
+        } else {
+            resolved.debugTrail?.append("google-title=none")
+        }
+
+        resolved.disposition = .diagnosticsOnly
+        resolved.note = "Google Maps link could not be resolved confidently yet."
+        return resolved
+    }
+
     private func envelopeByResolving(_ envelope: SharedImportEnvelope, with destination: DestinationSearchResult) -> SharedImportEnvelope {
         var resolved = envelope
         resolved.originalText = "\(destination.title)\n\(destination.coordinate.latitude),\(destination.coordinate.longitude)"
         resolved.disposition = .directHomePreview
+        resolved.debugTrail = (resolved.debugTrail ?? []) + [
+            "resolved-destination-title=\(destination.title)",
+            "resolved-destination-coordinate=\(destination.coordinate.latitude),\(destination.coordinate.longitude)"
+        ]
         return resolved
     }
 
@@ -338,6 +397,20 @@ extension AppModel {
            !name.isEmpty,
            extractCoordinate(from: name) == nil {
             return name.replacingOccurrences(of: "+", with: " ")
+        }
+        return nil
+    }
+
+    private func googleMapsQueryTitle(from url: URL) -> String? {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+        let names = ["q", "query", "destination", "daddr"]
+        for name in names {
+            if let value = components.queryItems?.first(where: { $0.name.lowercased() == name })?.value {
+                let normalized = value.replacingOccurrences(of: "+", with: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+                if !normalized.isEmpty, extractCoordinate(from: normalized) == nil {
+                    return normalized
+                }
+            }
         }
         return nil
     }
@@ -427,7 +500,6 @@ extension AppModel {
         guard let host = url.host?.lowercased() else { return false }
         return host.contains("garmin.com")
             || host.contains("openstreetmap.org")
-            || host.contains("google.")
     }
 
     private func decodeHTMLSnippet(_ data: Data) -> String {
