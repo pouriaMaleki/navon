@@ -14,13 +14,13 @@ struct CompanionRootView: View {
             viewModel: homeViewModel,
             onOpenSettings: { showingSettings = true }
         )
-        .onChange(of: appModel.homePreviewRequestID) { _, _ in
+        .task(id: appModel.homePreviewRequestID) {
             showingSettings = false
             homeViewModel.revealImportedPreview()
         }
-        .onChange(of: appModel.homeStartRequestID) { _, _ in
+        .task(id: appModel.homeStartRequestID) {
             showingSettings = false
-            Task { await homeViewModel.startSelectedRoute() }
+            await homeViewModel.startSelectedRoute()
         }
         .fullScreenCover(isPresented: $showingSettings) {
             SettingsHubView()
