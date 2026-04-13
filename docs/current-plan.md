@@ -30,6 +30,7 @@ Performance principle:
 - iOS share extension now collapses multi-item share payloads down to one preferred import candidate so Google Maps URL shares are not overridden by lower-signal secondary text attachments.
 - iOS shared-import debug packages now retain extension candidate ranking plus URL-resolution steps so broken share payloads can be diagnosed from one exported JSON instead of by inference.
 - iOS Home now treats `homePreviewRequestID` as an explicit return-to-planning signal so shared destinations reopen the first page with the imported preview and mixed/HSL/OSM route suggestions visible instead of remaining hidden behind prior guidance state.
+- iOS successful share imports now persist a pending Home presentation keyed to the created route-history item, and Home consumes that persisted handoff on launch so cold starts can still reopen directly into the imported route preview.
 
 ## Companion Expansion Direction (April 5, 2026)
 The companion app is planned to evolve beyond a device-support utility into a strong standalone navigation product.

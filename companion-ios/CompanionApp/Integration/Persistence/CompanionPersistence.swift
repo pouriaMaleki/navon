@@ -5,6 +5,7 @@ final class CompanionPersistence: RouteSessionStore {
         static let destinations = "companion.recentDestinations"
         static let routeHistory = "companion.routeHistory"
         static let importDiagnostics = "companion.importDiagnostics"
+        static let pendingHomeImportPresentation = "companion.pendingHomeImportPresentation"
         static let lastSession = "companion.lastSession"
         static let settings = "companion.settings"
         static let plannerPreferences = "companion.routePlannerPreferences"
@@ -85,6 +86,18 @@ final class CompanionPersistence: RouteSessionStore {
         var entries = loadImportDiagnostics()
         entries.removeAll { $0.id == id }
         save(entries, forKey: Key.importDiagnostics)
+    }
+
+    func loadPendingHomeImportPresentation() -> PendingHomeImportPresentation? {
+        load(PendingHomeImportPresentation.self, forKey: Key.pendingHomeImportPresentation)
+    }
+
+    func savePendingHomeImportPresentation(_ presentation: PendingHomeImportPresentation) {
+        save(presentation, forKey: Key.pendingHomeImportPresentation)
+    }
+
+    func clearPendingHomeImportPresentation() {
+        defaults.removeObject(forKey: Key.pendingHomeImportPresentation)
     }
 
     func loadLastSession() -> ActiveRouteSession? {

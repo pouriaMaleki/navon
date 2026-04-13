@@ -13,7 +13,7 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
-    func revealImportedPreview() {
+    func revealImportedPreview() async {
         latestSearchTask?.cancel()
         northPreviewTask?.cancel()
         activeRouteIdentifier = nil
@@ -21,6 +21,23 @@ final class HomeViewModel: ObservableObject {
         compassMode = .autoFollow
         suggestions = []
         closeSearch()
+
+        if let pending = appModel.pendingHomeImportPresentation {
+            if let item = appModel.routeHistoryItems.first(where: { $0.id == pending.routeHistoryItemID }) {
+                await appModel.applyRouteHistoryPreview(item)
+            } else if let destination = pending.destination {
+                appModel.routeRequest = RoutePlanRequest(
+                    origin: appModel.simulatedRiderLocation,
+                    destination: destination,
+                    providerID: sourceMode.primaryProviderID
+                )
+                await appModel.planRoute(using: sourceMode, preferredTitle: pending.title)
+            }
+            query = pending.title
+            appModel.clearPendingHomeImportPresentation()
+            return
+        }
+
         syncQueryFromCurrentPreview()
     }
 
