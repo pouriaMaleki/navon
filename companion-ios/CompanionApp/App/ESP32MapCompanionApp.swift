@@ -12,6 +12,11 @@ struct ESP32MapCompanionApp: App {
                 .task {
                     await appModel.consumePendingSharedImports()
                 }
+                .onOpenURL { _ in
+                    Task {
+                        await appModel.consumePendingSharedImports()
+                    }
+                }
                 .onChange(of: scenePhase) { _, newValue in
                     guard newValue == .active else { return }
                     Task {

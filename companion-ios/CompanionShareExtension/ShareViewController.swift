@@ -2,6 +2,7 @@ import UIKit
 import UniformTypeIdentifiers
 
 final class ShareViewController: UIViewController {
+    private static let companionURL = URL(string: "esp32mapcompanion://import")!
     private struct LoadedSharedFile {
         let storedFilePath: String
         let fileName: String
@@ -64,7 +65,7 @@ final class ShareViewController: UIViewController {
         if var selected = preferredEnvelope(from: candidates) {
             selected.debugTrail = buildSelectionDebugTrail(from: candidates, selectedID: selected.id)
             sharedStore.enqueue(selected)
-            finish(with: "Saved. Open Companion to continue.")
+            finishAfterSaving()
             return
         }
 
@@ -76,6 +77,19 @@ final class ShareViewController: UIViewController {
             self.activityIndicator.stopAnimating()
             self.statusLabel.text = message
             self.extensionContext?.completeRequest(returningItems: nil)
+        }
+    }
+
+    private func finishAfterSaving() {
+        DispatchQueue.main.async {
+            self.activityIndicator.stopAnimating()
+            self.statusLabel.text = "Saved. Opening Companion..."
+            self.extensionContext?.open(Self.companionURL) { success in
+                DispatchQueue.main.async {
+                    self.statusLabel.text = success ? "Opening Companion..." : "Saved. Open Companion to continue."
+                    self.extensionContext?.completeRequest(returningItems: nil)
+                }
+            }
         }
     }
 

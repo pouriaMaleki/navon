@@ -3,6 +3,7 @@ import Foundation
 enum SharedImportStoreConfig {
     static let appGroupIdentifier = "group.me.fiksu.esp32map.companion"
     static let queueKey = "share-import.queue"
+    static let queueFileName = "share-import-queue.json"
 
     static var defaults: UserDefaults? {
         UserDefaults(suiteName: appGroupIdentifier)
@@ -51,12 +52,25 @@ final class SharedImportStore {
     }
 
     private func loadQueue() -> [SharedImportEnvelope] {
+        if let fileURL = queueFileURL(),
+           let data = try? Data(contentsOf: fileURL),
+           let queue = try? decoder.decode([SharedImportEnvelope].self, from: data) {
+            return queue
+        }
         guard let data = defaults?.data(forKey: SharedImportStoreConfig.queueKey) else { return [] }
         return (try? decoder.decode([SharedImportEnvelope].self, from: data)) ?? []
     }
 
     private func save(_ queue: [SharedImportEnvelope]) {
         guard let data = try? encoder.encode(queue) else { return }
+        if let fileURL = queueFileURL() {
+            try? data.write(to: fileURL, options: .atomic)
+        }
         defaults?.set(data, forKey: SharedImportStoreConfig.queueKey)
+        defaults?.synchronize()
+    }
+
+    private func queueFileURL() -> URL? {
+        SharedImportStoreConfig.containerURL()?.appendingPathComponent(SharedImportStoreConfig.queueFileName)
     }
 }
