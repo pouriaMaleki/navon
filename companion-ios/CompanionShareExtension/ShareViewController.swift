@@ -54,15 +54,20 @@ final class ShareViewController: UIViewController {
             return
         }
 
-        var savedAny = false
-        for (index, provider) in providers.enumerated() {
-            if let envelope = await envelope(from: provider, extraNote: index > 0 ? "Additional shared item ignored in v1." : nil) {
-                sharedStore.enqueue(envelope)
-                savedAny = true
+        var candidates: [SharedImportEnvelope] = []
+        for provider in providers {
+            if let envelope = await envelope(from: provider, extraNote: nil) {
+                candidates.append(envelope)
             }
         }
 
-        finish(with: savedAny ? "Saved. Open Companion to continue." : "Could not read this shared item yet.")
+        if let selected = preferredEnvelope(from: candidates) {
+            sharedStore.enqueue(selected)
+            finish(with: "Saved. Open Companion to continue.")
+            return
+        }
+
+        finish(with: "Could not read this shared item yet.")
     }
 
     private func finish(with message: String) {
@@ -267,6 +272,37 @@ final class ShareViewController: UIViewController {
             .components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .first(where: { $0.starts(with: "http://") || $0.starts(with: "https://") })
+    }
+
+    private func preferredEnvelope(from envelopes: [SharedImportEnvelope]) -> SharedImportEnvelope? {
+        envelopes.max { lhs, rhs in
+            sortKey(for: lhs) < sortKey(for: rhs)
+        }
+    }
+
+    private func sortKey(for envelope: SharedImportEnvelope) -> Int {
+        switch (envelope.classification, envelope.rawKind) {
+        case (.gpxFile, .file):
+            return 100
+        case (.googleMapsLocationLink, .url):
+            return 95
+        case (.genericLocationLink, .url):
+            return 90
+        case (.fitFile, .file), (.tcxFile, .file):
+            return 80
+        case (.plainCoordinates, .plainText):
+            return 70
+        case (.googleMapsLocationLink, .plainText):
+            return 60
+        case (.genericLocationLink, .plainText):
+            return 55
+        case (_, _) where envelope.disposition == .directHomePreview:
+            return 40
+        case (.unsupportedUnknown, _):
+            return 0
+        default:
+            return 10
+        }
     }
 
     private func classification(forText text: String) -> SharedImportClassification {

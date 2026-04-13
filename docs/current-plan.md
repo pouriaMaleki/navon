@@ -27,6 +27,7 @@ Performance principle:
 - Both companion apps now carry lightweight route-history and route-planner-preference models to support the redesign flow.
 - Existing provider adapters, GPX import, BLE sync transport, persistence, and diagnostics seams remain the reused core beneath the new shell.
 - iOS share import now normalizes file-URL shares before generic URL handling, expands Google short links, parses OpenStreetMap coordinate fragments, and feeds FIT/TCX file shares into the existing sample-backed import path instead of dropping them straight into diagnostics.
+- iOS share extension now collapses multi-item share payloads down to one preferred import candidate so Google Maps URL shares are not overridden by lower-signal secondary text attachments.
 
 ## Companion Expansion Direction (April 5, 2026)
 The companion app is planned to evolve beyond a device-support utility into a strong standalone navigation product.
