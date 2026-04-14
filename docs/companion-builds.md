@@ -79,6 +79,21 @@ Before the signed workflow can produce an installable IPA, do this once on the M
 7. Note your Apple Team ID.
    - You can find it in the Apple Developer portal or from Xcode signing settings on another app.
 8. If you plan to use `ad-hoc` export, ensure your phone is registered in the provisioning profile for that team.
+9. Persist the team for local Xcode builds:
+   ```bash
+   cd companion-ios
+   cp Config/Signing.local.example.xcconfig Config/Signing.local.xcconfig
+   ```
+10. Edit `companion-ios/Config/Signing.local.xcconfig` and set:
+    ```xcconfig
+    DEVELOPMENT_TEAM = YOUR_TEAM_ID
+    ```
+11. Regenerate the project after pulls when needed:
+    ```bash
+    xcodegen generate
+    ```
+
+`Signing.local.xcconfig` is ignored by git, so your local team selection survives repository updates and Xcode project regeneration.
 
 ## Recommended MacBook Settings
 - Disable automatic sleep while on power.

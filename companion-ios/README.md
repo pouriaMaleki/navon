@@ -14,9 +14,13 @@ This scaffold uses XcodeGen so the repo can keep the project definition in text.
 ```bash
 brew install xcodegen
 cd companion-ios
+cp Config/Signing.local.example.xcconfig Config/Signing.local.xcconfig
+# Edit Config/Signing.local.xcconfig and set your Apple Development Team ID.
 xcodegen generate
 open ESP32MapCompanion.xcodeproj
 ```
+
+`Config/Signing.local.xcconfig` is ignored by git. After you set it once, `git pull` and `xcodegen generate` should no longer clear the local signing team in Xcode.
 
 ## Current State
 - Full app shell is scaffolded.

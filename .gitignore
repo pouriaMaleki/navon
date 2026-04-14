@@ -42,6 +42,7 @@
 /companion-ios/ESP32MapCompanion.xcodeproj/
 /companion-ios/build/
 /companion-ios/DerivedData/
+/companion-ios/Config/Signing.local.xcconfig
 /companion-android/.gradle/
 /companion-android/build/
 /companion-android/app/build/

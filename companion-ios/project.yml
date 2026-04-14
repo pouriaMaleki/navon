@@ -9,6 +9,9 @@ targets:
     type: application
     platform: iOS
     deploymentTarget: "17.0"
+    configFiles:
+      Debug: Config/Signing.xcconfig
+      Release: Config/Signing.xcconfig
     sources:
       - CompanionApp
       - CompanionSharedImport
@@ -30,6 +33,9 @@ targets:
     type: app-extension
     platform: iOS
     deploymentTarget: "17.0"
+    configFiles:
+      Debug: Config/Signing.xcconfig
+      Release: Config/Signing.xcconfig
     sources:
       - CompanionShareExtension
       - CompanionSharedImport
