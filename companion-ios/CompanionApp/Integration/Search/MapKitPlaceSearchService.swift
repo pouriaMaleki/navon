@@ -4,7 +4,7 @@ import CoreLocation
 
 protocol PlaceSearchService {
     func searchDestinations(matching query: String, limit: Int) async -> [DestinationSearchResult]
-    func resolveDestination(at coordinate: CoordinatePoint, fallbackTitle: String) async -> DestinationSearchResult?
+    func resolveDestination(at coordinate: CoordinatePoint, fallbackTitle: String, preserveFallbackTitle: Bool) async -> DestinationSearchResult?
 }
 
 struct MapKitPlaceSearchService: PlaceSearchService {
@@ -13,7 +13,7 @@ struct MapKitPlaceSearchService: PlaceSearchService {
         guard !trimmed.isEmpty else { return [] }
         let request = MKLocalSearch.Request()
         request.naturalLanguageQuery = trimmed
-        request.resultTypes = .pointOfInterest
+        request.resultTypes = [.pointOfInterest, .address]
 
         do {
             let response = try await MKLocalSearch(request: request).start()
@@ -33,12 +33,16 @@ struct MapKitPlaceSearchService: PlaceSearchService {
         }
     }
 
-    func resolveDestination(at coordinate: CoordinatePoint, fallbackTitle: String = "Dropped pin") async -> DestinationSearchResult? {
+    func resolveDestination(
+        at coordinate: CoordinatePoint,
+        fallbackTitle: String = "Dropped pin",
+        preserveFallbackTitle: Bool = false
+    ) async -> DestinationSearchResult? {
         let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
         do {
             let placemarks = try await CLGeocoder().reverseGeocodeLocation(location)
             guard let placemark = placemarks.first else { return nil }
-            let title = simpleTitle(for: placemark, fallbackTitle: fallbackTitle)
+            let title = preserveFallbackTitle ? fallbackTitle : simpleTitle(for: placemark, fallbackTitle: fallbackTitle)
             let subtitle = [placemark.locality, placemark.administrativeArea, placemark.country].compactMap { $0 }.joined(separator: " • ")
             return DestinationSearchResult(
                 id: "reverse-\(coordinate.latitude)-\(coordinate.longitude)",

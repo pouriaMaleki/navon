@@ -345,7 +345,11 @@ extension AppModel {
         fallbackTitle: String?
     ) async -> SharedImportEnvelope {
         let fallback = fallbackTitle ?? sharedImportTitle(for: envelope)
-        let resolvedDestination = await searchService.resolveDestination(at: coordinate, fallbackTitle: fallback)
+        let resolvedDestination = await searchService.resolveDestination(
+            at: coordinate,
+            fallbackTitle: fallback,
+            preserveFallbackTitle: shouldPreserveResolvedTitle(for: envelope, fallbackTitle: fallback)
+        )
         let destination = resolvedDestination ?? DestinationSearchResult(
             id: envelope.id,
             title: fallback,
@@ -353,6 +357,21 @@ extension AppModel {
             coordinate: coordinate
         )
         return envelopeByResolving(envelope, with: destination)
+    }
+
+    private func shouldPreserveResolvedTitle(for envelope: SharedImportEnvelope, fallbackTitle: String) -> Bool {
+        switch envelope.classification {
+        case .googleMapsLocationLink:
+            return isSpecificAddressLikeTitle(fallbackTitle)
+        case .genericLocationLink, .gpxFile, .genericXMLFile, .fitFile, .tcxFile, .plainCoordinates, .unsupportedUnknown:
+            return false
+        }
+    }
+
+    private func isSpecificAddressLikeTitle(_ value: String) -> Bool {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        return trimmed.rangeOfCharacter(from: .decimalDigits) != nil
     }
 
     private func sharedFileProviderID(for envelope: SharedImportEnvelope) -> RouteProviderID? {
