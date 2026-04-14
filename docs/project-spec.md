@@ -115,6 +115,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - Android companion dependencies must be published into GitHub dependency tracking so repository security advisories and dependency review can cover that subtree.
 - Android companion builds must use the committed Gradle Wrapper and repository-owned dependency verification metadata instead of relying on ad-hoc machine-wide Gradle installs.
 - iOS companion dependency managers must not be introduced without adding repository CVE coverage in CI during the same change.
+- iOS companion local signing must come from an ignored local config file rather than from generated Xcode project state so `git pull` and `xcodegen generate` do not wipe the selected Apple team.
 
 ## Current Implementation Direction
 - Shared Rust already owns:

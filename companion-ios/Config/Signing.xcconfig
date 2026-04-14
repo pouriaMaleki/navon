@@ -1,0 +1,4 @@
+// Shared signing settings for local Xcode builds.
+// CI injects DEVELOPMENT_TEAM at xcodebuild time, but Xcode needs a persisted
+// local value so regenerated projects do not lose the selected team.
+#include? "Signing.local.xcconfig"
