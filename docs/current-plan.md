@@ -34,6 +34,7 @@ Performance principle:
 - iOS successful share imports now persist a pending Home presentation keyed to the created route-history item, and Home consumes that persisted handoff on launch so cold starts can still reopen directly into the imported route preview.
 - iOS share extension handoff now uses an app-group queue file plus app URL-scheme reopen so Google Maps shares can bring Companion forward and trigger import consumption immediately instead of relying on a race-prone UserDefaults-only handoff.
 - iOS Google Maps imports now preserve the resolved destination through the second-stage import path by preferring the resolved text payload over the raw URL when extracting coordinates for Home preview planning.
+- iOS Google Maps coordinate imports now keep the shared address/title authoritative when it looks like a specific street address, instead of letting reverse geocoding rename nearby entrances or house numbers; address searches also use address results instead of POI-only matching.
 
 ## Companion Expansion Direction (April 5, 2026)
 The companion app is planned to evolve beyond a device-support utility into a strong standalone navigation product.
