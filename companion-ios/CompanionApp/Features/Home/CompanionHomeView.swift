@@ -108,7 +108,9 @@ struct CompanionHomeView: View {
     private var bottomOverlay: some View {
         switch viewModel.homeMode {
         case .planning:
-            if !viewModel.previewAlternatives.isEmpty {
+            if viewModel.planningStatus != nil || appModel.importActivityStatus != nil {
+                planningProgressCard
+            } else if !viewModel.previewAlternatives.isEmpty {
                 routeSuggestionsCard
             }
         case .phoneGuidance:
@@ -321,6 +323,27 @@ struct CompanionHomeView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
+    }
+
+    private var planningProgressCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                ProgressView()
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Working on route")
+                        .font(.headline)
+                    Text(viewModel.planningStatus ?? appModel.importActivityStatus ?? "Planning route…")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+                Spacer()
+            }
+        }
+        .padding(16)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .padding(.horizontal, 16)
+        .padding(.bottom, 16)
     }
 
     private var routeSuggestionsCard: some View {
