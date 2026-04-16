@@ -38,6 +38,8 @@ extension AppModel {
     }
 
     private func handleSharedImport(_ envelope: SharedImportEnvelope, using searchService: PlaceSearchService) async {
+        importActivityStatus = "Importing shared item…"
+        defer { importActivityStatus = nil }
         var resolved = markDebugPhase(envelope, phase: "app.handle", outcome: "started")
         resolved = await classifySharedImport(resolved, using: searchService)
         resolved = markDebugPhase(
@@ -48,8 +50,10 @@ extension AppModel {
         switch resolved.disposition {
         case .directHomePreview:
             if resolved.classification == .gpxFile, let filePath = resolved.storedFilePath {
+                importActivityStatus = "Importing shared route…"
                 await importSharedGpxFile(atPath: filePath, sourceLabel: resolved.sourceApplication ?? "Shared GPX", envelope: resolved)
             } else if let providerID = sharedFileProviderID(for: resolved), let filePath = resolved.storedFilePath {
+                importActivityStatus = "Importing \(providerID.displayName)…"
                 if let errorMessage = await importSharedSampleFile(
                     atPath: filePath,
                     providerID: providerID,
@@ -64,6 +68,7 @@ extension AppModel {
                     saveImportDiagnostic(for: diagnostic)
                 }
             } else if let destination = await resolvedDestination(from: resolved, using: searchService) {
+                importActivityStatus = "Planning route to \(destination.title)…"
                 await planSharedDestinationImport(destination, from: resolved)
             } else {
                 let failed = markDebugPhase(resolved, phase: "app.resolve-destination", outcome: "no-coordinate")

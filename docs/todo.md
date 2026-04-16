@@ -81,6 +81,7 @@ Current checkpoint:
 - Planned Settings `Routes` page role: imported routes, destination history, and recent route intents should live together as a clean action-oriented list with source badges and obvious next actions, while the route detail page acts as the universal fallback/re-entry surface.
 - Planned share-import direction: focus on inbound share-sheet and link/file ingestion for Google Maps handoffs, shared locations, and GPX-first import flows, while leaving ride recording/export for later.
 - Google Maps integration should be implemented as an intent-import and destination-handoff flow through share sheet and link parsing, not as the app pretending to mirror Google's exact route semantics; clear imports should jump to Home route preview, while ambiguous imports should open the universal route detail page.
+- Garmin course links should stay explicitly unsupported in the anonymous share-import path until Garmin exposes usable route data without auth or the product adds a real authenticated Garmin export/import flow; diagnostics should tell users to share/export GPX instead.
 
 ### Definition of Done
 - [ ] Destination-to-`RoutePackage` generation works for each launch provider path.

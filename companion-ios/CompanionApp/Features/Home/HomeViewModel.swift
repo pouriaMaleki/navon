@@ -23,6 +23,8 @@ final class HomeViewModel: ObservableObject {
         closeSearch()
 
         if let pending = appModel.pendingHomeImportPresentation {
+            planningStatus = "Opening imported destination…"
+            defer { planningStatus = nil }
             if let item = appModel.routeHistoryItems.first(where: { $0.id == pending.routeHistoryItemID }) {
                 await appModel.applyRouteHistoryPreview(item)
             } else if let destination = pending.destination {
@@ -49,6 +51,7 @@ final class HomeViewModel: ObservableObject {
     @Published var activeRouteIdentifier: String?
     @Published var homeMode: HomeMode = .planning
     @Published var compassMode: HomeCompassMode = .autoFollow
+    @Published private(set) var planningStatus: String?
 
     private let appModel: AppModel
     private let placeSearchService: PlaceSearchService
@@ -241,6 +244,8 @@ final class HomeViewModel: ObservableObject {
         latestSearchTask?.cancel()
         closeSearch()
         Task {
+            planningStatus = "Planning route to \(suggestion.title)…"
+            defer { planningStatus = nil }
             appModel.routeRequest = RoutePlanRequest(
                 origin: appModel.simulatedRiderLocation,
                 destination: suggestion.coordinate,
@@ -261,6 +266,8 @@ final class HomeViewModel: ObservableObject {
         latestSearchTask?.cancel()
         closeSearch()
         Task {
+            planningStatus = "Opening \(item.title)…"
+            defer { planningStatus = nil }
             await appModel.applyRouteHistoryPreview(item)
             query = item.title
             homeMode = .planning
@@ -271,7 +278,13 @@ final class HomeViewModel: ObservableObject {
     }
 
     func setDestinationFromMap(_ coordinate: CoordinatePoint) {
+        planningStatus = "Resolving dropped pin…"
         Task {
+            defer {
+                if planningStatus == "Resolving dropped pin…" {
+                    planningStatus = nil
+                }
+            }
             let resolved = await placeSearchService.resolveDestination(
                 at: coordinate,
                 fallbackTitle: "Dropped pin",
@@ -292,6 +305,8 @@ final class HomeViewModel: ObservableObject {
         sourceMode = mode
         guard let destination = destinationCoordinate else { return }
         Task {
+            planningStatus = "Refreshing route options…"
+            defer { planningStatus = nil }
             appModel.routeRequest = RoutePlanRequest(
                 origin: appModel.simulatedRiderLocation,
                 destination: destination,
@@ -323,6 +338,7 @@ final class HomeViewModel: ObservableObject {
 
     func stopActiveNavigation() {
         Task {
+            var shouldClearPlanningStatus = false
             let destination = destinationCoordinate
             let sourceToReuse = appModel.activeSession.sourceMode
             let shouldPreserveCurrentPreview = isPreviewLockedToImportedRoute
@@ -335,6 +351,13 @@ final class HomeViewModel: ObservableObject {
             homeMode = .planning
             guard !shouldPreserveCurrentPreview else { return }
             guard let destination else { return }
+            planningStatus = "Refreshing route options…"
+            shouldClearPlanningStatus = true
+            defer {
+                if shouldClearPlanningStatus {
+                    planningStatus = nil
+                }
+            }
             appModel.routeRequest = RoutePlanRequest(
                 origin: appModel.simulatedRiderLocation,
                 destination: destination,
@@ -351,6 +374,7 @@ final class HomeViewModel: ObservableObject {
         activeRouteIdentifier = nil
         homeMode = .planning
         compassMode = .autoFollow
+        planningStatus = nil
         query = ""
         suggestions = []
         closeSearch()

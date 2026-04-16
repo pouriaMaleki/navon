@@ -25,6 +25,7 @@ final class AppModel: ObservableObject {
         lastRerouteReason: nil,
         lastRerouteTimestamp: nil
     )
+    @Published var importActivityStatus: String?
     @Published var homePreviewRequestID = UUID()
     @Published var homeStartRequestID = UUID()
     @Published private(set) var persistenceRevision = 0
