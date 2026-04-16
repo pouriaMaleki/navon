@@ -528,6 +528,32 @@ extension AppModel {
             }
         }
 
+        if let jsonURL = URL(string: "https://connect.garmin.com/proxy/course-service-1.0/json/course/\(courseID)") {
+            debugTrail.append("garmin-course-try=\(jsonURL.absoluteString)")
+            var request = URLRequest(url: jsonURL)
+            request.timeoutInterval = 12
+            request.cachePolicy = .reloadIgnoringLocalCacheData
+            request.setValue("application/json,text/plain;q=0.9,*/*;q=0.8", forHTTPHeaderField: "Accept")
+            request.setValue("en-US,en;q=0.9", forHTTPHeaderField: "Accept-Language")
+            request.setValue(safariUserAgent, forHTTPHeaderField: "User-Agent")
+
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                guard let http = response as? HTTPURLResponse else {
+                    debugTrail.append("garmin-course-json-response=non-http")
+                    return (nil, debugTrail)
+                }
+                debugTrail.append("garmin-course-json-status=\(http.statusCode)")
+                if (200 ..< 300).contains(http.statusCode),
+                   let resolved = garminCourseEnvelopeFromJSON(data: data, courseID: courseID, envelope: envelope, debugTrail: debugTrail) {
+                    return (resolved, debugTrail)
+                }
+                debugTrail.append("garmin-course-json-body=unusable")
+            } catch {
+                debugTrail.append("garmin-course-json-error=\(error.localizedDescription)")
+            }
+        }
+
         return (nil, debugTrail)
     }
 
@@ -561,6 +587,120 @@ extension AppModel {
         let destination = directory.appendingPathComponent("\(UUID().uuidString)-\(fileName)")
         try data.write(to: destination, options: .atomic)
         return destination.path
+    }
+
+    private func garminCourseEnvelopeFromJSON(
+        data: Data,
+        courseID: String,
+        envelope: SharedImportEnvelope,
+        debugTrail: [String]
+    ) -> SharedImportEnvelope? {
+        let json = decodeHTMLSnippet(data)
+        let title = garminCourseSummary(fromHTML: json)?.title ?? "garmin-course-\(courseID)"
+        let coordinates = extractCoordinateSequence(fromGarminJSON: json)
+        guard coordinates.count >= 2 else { return nil }
+
+        let gpx = buildGPXDocument(name: title, coordinates: coordinates)
+        guard let gpxData = gpx.data(using: .utf8),
+              let storedPath = try? persistSharedImportData(gpxData, fileName: "\(sanitizeImportFileName(title)).gpx") else {
+            return nil
+        }
+
+        var resolved = envelope
+        resolved.classification = .gpxFile
+        resolved.disposition = .directHomePreview
+        resolved.fileName = "\(sanitizeImportFileName(title)).gpx"
+        resolved.storedFilePath = storedPath
+        resolved.note = "Imported Garmin course link via JSON fallback."
+        resolved.debugTrail = (resolved.debugTrail ?? []) + debugTrail + [
+            "garmin-course-json-points=\(coordinates.count)",
+            "garmin-course-json-file=\(resolved.fileName ?? "")"
+        ]
+        return resolved
+    }
+
+    private func extractCoordinateSequence(fromGarminJSON value: String) -> [CoordinatePoint] {
+        var coordinates: [CoordinatePoint] = []
+        let patterns = [
+            "\"latitude\"\\s*:\\s*(-?\\d{1,3}\\.\\d+).*?\"longitude\"\\s*:\\s*(-?\\d{1,3}\\.\\d+)",
+            "\"lat\"\\s*:\\s*(-?\\d{1,3}\\.\\d+).*?\"(?:lng|lon|longitude)\"\\s*:\\s*(-?\\d{1,3}\\.\\d+)",
+            "\"coordinates\"\\s*:\\s*\\[\\s*(-?\\d{1,3}\\.\\d+)\\s*,\\s*(-?\\d{1,3}\\.\\d+)\\s*\\]"
+        ]
+
+        for pattern in patterns {
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) else {
+                continue
+            }
+            let fullRange = NSRange(location: 0, length: value.utf16.count)
+            let matches = regex.matches(in: value, range: fullRange)
+            if matches.isEmpty {
+                continue
+            }
+            for match in matches {
+                guard match.numberOfRanges > 2,
+                      let firstRange = Range(match.range(at: 1), in: value),
+                      let secondRange = Range(match.range(at: 2), in: value),
+                      let first = Double(value[firstRange]),
+                      let second = Double(value[secondRange]) else {
+                    continue
+                }
+
+                let coordinate: CoordinatePoint
+                if pattern.contains("\"coordinates\"") {
+                    coordinate = CoordinatePoint(latitude: second, longitude: first)
+                } else {
+                    coordinate = CoordinatePoint(latitude: first, longitude: second)
+                }
+
+                guard (-90.0 ... 90.0).contains(coordinate.latitude),
+                      (-180.0 ... 180.0).contains(coordinate.longitude) else {
+                    continue
+                }
+                if coordinates.last != coordinate {
+                    coordinates.append(coordinate)
+                }
+            }
+            if coordinates.count >= 2 {
+                return coordinates
+            }
+            coordinates.removeAll(keepingCapacity: true)
+        }
+
+        return []
+    }
+
+    private func buildGPXDocument(name: String, coordinates: [CoordinatePoint]) -> String {
+        let points = coordinates.map { point in
+            String(format: "<trkpt lat=\"%.6f\" lon=\"%.6f\"></trkpt>", point.latitude, point.longitude)
+        }.joined(separator: "\n")
+        return """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <gpx version="1.1" creator="ESP32MapCompanion" xmlns="http://www.topografix.com/GPX/1/1">
+          <trk>
+            <name>\(escapeXML(name))</name>
+            <trkseg>
+              \(points)
+            </trkseg>
+          </trk>
+        </gpx>
+        """
+    }
+
+    private func sanitizeImportFileName(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: "/", with: "-")
+            .replacingOccurrences(of: ":", with: "-")
+            .replacingOccurrences(of: "\n", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func escapeXML(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
+            .replacingOccurrences(of: "'", with: "&apos;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
     }
 
     private func googleMapsQueryTitle(from url: URL) -> String? {
