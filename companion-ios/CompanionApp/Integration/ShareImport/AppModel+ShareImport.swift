@@ -147,7 +147,11 @@ extension AppModel {
             .first
         guard let coordinate else { return nil }
         let fallbackTitle = sharedImportTitle(for: envelope)
-        let resolvedDestination = await searchService.resolveDestination(at: coordinate, fallbackTitle: fallbackTitle)
+        let resolvedDestination = await searchService.resolveDestination(
+            at: coordinate,
+            fallbackTitle: fallbackTitle,
+            preserveFallbackTitle: false
+        )
         return resolvedDestination ?? DestinationSearchResult(
             id: envelope.id,
             title: fallbackTitle,
