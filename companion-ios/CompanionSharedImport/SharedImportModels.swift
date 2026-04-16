@@ -25,6 +25,20 @@ enum SharedImportDisposition: String, Codable, Equatable {
     case diagnosticsOnly
 }
 
+struct SharedImportDebugContext: Codable, Equatable {
+    var producerTarget: String?
+    var producerBundleID: String?
+    var producerVersion: String?
+    var producerBuild: String?
+    var latestHandlerTarget: String?
+    var latestHandlerBundleID: String?
+    var latestHandlerVersion: String?
+    var latestHandlerBuild: String?
+    var latestPhase: String?
+    var latestOutcome: String?
+    var lastUpdatedAt: Date?
+}
+
 struct SharedImportEnvelope: Identifiable, Codable, Equatable {
     var id: String
     var sourceApplication: String?
@@ -40,6 +54,7 @@ struct SharedImportEnvelope: Identifiable, Codable, Equatable {
     var classification: SharedImportClassification
     var disposition: SharedImportDisposition
     var note: String?
+    var debugContext: SharedImportDebugContext?
     var debugTrail: [String]?
 }
 
@@ -75,9 +90,15 @@ struct ImportDiagnosticsEntry: Identifiable, Codable, Equatable {
     }
 
     var debugPackageText: String {
+        struct DebugPackage: Codable {
+            var formatVersion: Int
+            var exportedAt: Date
+            var entry: ImportDiagnosticsEntry
+        }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        let json = (try? encoder.encode(envelope)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
+        let package = DebugPackage(formatVersion: 2, exportedAt: Date(), entry: self)
+        let json = (try? encoder.encode(package)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
         return json
     }
 }

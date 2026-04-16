@@ -19,6 +19,7 @@ extension AppModel {
     func retrySharedImport(_ entry: ImportDiagnosticsEntry, using searchService: PlaceSearchService = MapKitPlaceSearchService()) async {
         var retriedEnvelope = entry.envelope
         retriedEnvelope.id = UUID().uuidString
+        retriedEnvelope = markDebugPhase(retriedEnvelope, phase: "app.retry", outcome: "started")
         await handleSharedImport(retriedEnvelope, using: searchService)
         persistence.dismissImportDiagnosticsEntry(id: entry.id)
         notePersistenceChanged()
@@ -37,37 +38,47 @@ extension AppModel {
     }
 
     private func handleSharedImport(_ envelope: SharedImportEnvelope, using searchService: PlaceSearchService) async {
-        let resolved = await classifySharedImport(envelope, using: searchService)
+        var resolved = markDebugPhase(envelope, phase: "app.handle", outcome: "started")
+        resolved = await classifySharedImport(resolved, using: searchService)
+        resolved = markDebugPhase(
+            resolved,
+            phase: "app.classify",
+            outcome: "\(resolved.classification.rawValue):\(resolved.disposition.rawValue)"
+        )
         switch resolved.disposition {
         case .directHomePreview:
             if resolved.classification == .gpxFile, let filePath = resolved.storedFilePath {
-                await importSharedGpxFile(atPath: filePath, sourceLabel: resolved.sourceApplication ?? "Shared GPX")
+                await importSharedGpxFile(atPath: filePath, sourceLabel: resolved.sourceApplication ?? "Shared GPX", envelope: resolved)
             } else if let providerID = sharedFileProviderID(for: resolved), let filePath = resolved.storedFilePath {
                 if let errorMessage = await importSharedSampleFile(
                     atPath: filePath,
                     providerID: providerID,
                     preferredTitle: sharedImportTitle(for: resolved),
-                    sourceLabel: sharedImportSourceLabel(for: resolved)
+                    sourceLabel: sharedImportSourceLabel(for: resolved),
+                    envelope: resolved
                 ) {
                     var diagnostic = resolved
                     diagnostic.disposition = .diagnosticsOnly
                     diagnostic.note = "\(providerID.displayName) import failed: \(errorMessage)"
+                    diagnostic = markDebugPhase(diagnostic, phase: "app.sample-import", outcome: "failed:\(errorMessage)")
                     saveImportDiagnostic(for: diagnostic)
                 }
             } else if let destination = await resolvedDestination(from: resolved, using: searchService) {
                 await planSharedDestinationImport(destination, from: resolved)
             } else {
-                saveImportDiagnostic(for: resolved)
+                let failed = markDebugPhase(resolved, phase: "app.resolve-destination", outcome: "no-coordinate")
+                saveImportDiagnostic(for: failed)
             }
         case .routeDetailReview, .diagnosticsOnly:
             saveImportDiagnostic(for: resolved)
         }
     }
 
-    private func importSharedGpxFile(atPath path: String, sourceLabel: String) async {
+    private func importSharedGpxFile(atPath path: String, sourceLabel: String, envelope: SharedImportEnvelope) async {
         await importGpxFile(from: URL(fileURLWithPath: path))
         if let item = recordPlannedPreview(source: .gpxImport, sourceLabel: sourceLabel) {
-            savePendingHomeImportPresentation(item: item, debugTrail: ["source=shared-gpx"])
+            let debugTrail = (markDebugPhase(envelope, phase: "app.gpx-import", outcome: "preview-ready").debugTrail ?? []) + ["source=shared-gpx"]
+            savePendingHomeImportPresentation(item: item, debugTrail: debugTrail)
         }
         homePreviewRequestID = UUID()
     }
@@ -76,7 +87,8 @@ extension AppModel {
         atPath path: String,
         providerID: RouteProviderID,
         preferredTitle: String,
-        sourceLabel: String
+        sourceLabel: String,
+        envelope: SharedImportEnvelope
     ) async -> String? {
         do {
             try await importSampleFile(
@@ -85,7 +97,8 @@ extension AppModel {
                 preferredTitle: preferredTitle
             )
             if let item = recordImportedPreview(title: preferredTitle, source: .shareImport, sourceLabel: sourceLabel) {
-                savePendingHomeImportPresentation(item: item, debugTrail: ["source=shared-\(providerID.rawValue)"])
+                let debugTrail = (markDebugPhase(envelope, phase: "app.sample-import", outcome: "preview-ready").debugTrail ?? []) + ["source=shared-\(providerID.rawValue)"]
+                savePendingHomeImportPresentation(item: item, debugTrail: debugTrail)
             }
             homePreviewRequestID = UUID()
             return nil
@@ -105,7 +118,12 @@ extension AppModel {
         let historySource: RouteHistorySource = envelope.classification == .googleMapsLocationLink ? .googleMaps : .shareImport
         let sourceLabel = envelope.classification == .googleMapsLocationLink ? "Google Maps" : "Shared"
         if let item = recordImportedPreview(title: destination.title, source: historySource, sourceLabel: sourceLabel) {
-            savePendingHomeImportPresentation(item: item, debugTrail: envelope.debugTrail ?? [])
+            let debugTrail = markDebugPhase(
+                envelope,
+                phase: "app.destination-import",
+                outcome: "preview-ready:\(preview.alternatives.count)-alternatives"
+            ).debugTrail ?? []
+            savePendingHomeImportPresentation(item: item, debugTrail: debugTrail)
         }
         homePreviewRequestID = UUID()
     }
@@ -130,14 +148,31 @@ extension AppModel {
     }
 
     private func saveImportDiagnostic(for envelope: SharedImportEnvelope) {
+        let diagnosticEnvelope = markDebugPhase(envelope, phase: "app.diagnostics", outcome: "saved")
         persistence.saveImportDiagnosticsEntry(
             ImportDiagnosticsEntry(
-                id: envelope.id,
-                envelope: envelope,
+                id: diagnosticEnvelope.id,
+                envelope: diagnosticEnvelope,
                 createdAt: Date()
             )
         )
         notePersistenceChanged()
+    }
+
+    private func markDebugPhase(_ envelope: SharedImportEnvelope, phase: String, outcome: String) -> SharedImportEnvelope {
+        var updated = envelope
+        updated.debugTrail = (updated.debugTrail ?? []) + ["\(phase)=\(outcome)"]
+        var context = updated.debugContext ?? SharedImportDebugContext()
+        let bundle = Bundle.main
+        context.latestHandlerTarget = "companion-app"
+        context.latestHandlerBundleID = bundle.bundleIdentifier
+        context.latestHandlerVersion = bundle.infoDictionary?["CFBundleShortVersionString"] as? String
+        context.latestHandlerBuild = bundle.infoDictionary?["CFBundleVersion"] as? String
+        context.latestPhase = phase
+        context.latestOutcome = outcome
+        context.lastUpdatedAt = Date()
+        updated.debugContext = context
+        return updated
     }
 
     private func resolvedDestination(from envelope: SharedImportEnvelope, using searchService: PlaceSearchService) async -> DestinationSearchResult? {
