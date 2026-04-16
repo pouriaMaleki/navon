@@ -496,6 +496,8 @@ extension AppModel {
         request.timeoutInterval = 8
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", forHTTPHeaderField: "Accept")
+        request.setValue("en-US,en;q=0.9", forHTTPHeaderField: "Accept-Language")
+        request.setValue(safariUserAgent, forHTTPHeaderField: "User-Agent")
         do {
             let (_, response) = try await URLSession.shared.data(for: request)
             return response.url
@@ -515,13 +517,16 @@ extension AppModel {
         request.timeoutInterval = 8
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", forHTTPHeaderField: "Accept")
+        request.setValue("en-US,en;q=0.9", forHTTPHeaderField: "Accept-Language")
+        request.setValue(safariUserAgent, forHTTPHeaderField: "User-Agent")
 
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             let finalURL = response.url ?? url
             let html = decodeHTMLSnippet(data)
-            let pageTitle = sanitizedPageTitle(extractPageTitle(fromHTML: html))
-            let coordinate = extractCoordinate(from: finalURL) ?? extractCoordinate(fromHTML: html)
+            let garminFallback = garminCourseSummary(fromHTML: html)
+            let pageTitle = sanitizedPageTitle(extractPageTitle(fromHTML: html) ?? garminFallback?.title)
+            let coordinate = extractCoordinate(from: finalURL) ?? extractCoordinate(fromHTML: html) ?? garminFallback?.coordinate
             guard pageTitle != nil || coordinate != nil || finalURL.absoluteString != url.absoluteString else {
                 return nil
             }
@@ -552,7 +557,44 @@ extension AppModel {
         if let ogTitle = firstMatch(in: html, pattern: "<meta[^>]+property=[\"']og:title[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>") {
             return ogTitle
         }
+        if let twitterTitle = firstMatch(in: html, pattern: "<meta[^>]+name=[\"']twitter:title[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>") {
+            return twitterTitle
+        }
+        if let metaTitle = firstMatch(in: html, pattern: "<meta[^>]+name=[\"']title[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>") {
+            return metaTitle
+        }
+        if let jsonLdTitle = firstMatch(in: html, pattern: "\"name\"\\s*:\\s*\"([^\"]+)\"") {
+            return jsonLdTitle
+        }
         return firstMatch(in: html, pattern: "<title[^>]*>(.*?)</title>")
+    }
+
+    private var safariUserAgent: String {
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+    }
+
+    private func garminCourseSummary(fromHTML html: String) -> (title: String?, coordinate: CoordinatePoint?)? {
+        let title =
+            firstMatch(in: html, pattern: "\"courseName\"\\s*:\\s*\"([^\"]+)\"")
+            ?? firstMatch(in: html, pattern: "\"displayName\"\\s*:\\s*\"([^\"]+)\"")
+            ?? firstMatch(in: html, pattern: "\"name\"\\s*:\\s*\"([^\"]+)\"")
+
+        let coordinate =
+            extractNamedCoordinatePair(
+                from: html,
+                latitudeNames: [
+                    "startLatitude", "startLat", "start_location_lat", "courseLatitude",
+                    "beginLatitude", "locationLatitude"
+                ],
+                longitudeNames: [
+                    "startLongitude", "startLng", "startLon", "start_location_lng",
+                    "courseLongitude", "beginLongitude", "locationLongitude"
+                ]
+            )
+            ?? extractCoordinateFromCoordinateArray(in: html)
+
+        guard title != nil || coordinate != nil else { return nil }
+        return (title: title, coordinate: coordinate)
     }
 
     private func sanitizedPageTitle(_ rawTitle: String?) -> String? {
@@ -668,6 +710,21 @@ extension AppModel {
             return named
         }
         return extractCoordinate(from: html)
+    }
+
+    private func extractCoordinateFromCoordinateArray(in value: String) -> CoordinatePoint? {
+        guard let groups = firstMatchGroups(
+            in: value,
+            pattern: "\"coordinates\"\\s*:\\s*\\[\\s*(-?\\d{1,3}\\.\\d+)\\s*,\\s*(-?\\d{1,3}\\.\\d+)\\s*\\]"
+        ),
+        groups.count == 2,
+        let longitude = Double(groups[0]),
+        let latitude = Double(groups[1]),
+        (-90.0 ... 90.0).contains(latitude),
+        (-180.0 ... 180.0).contains(longitude) else {
+            return nil
+        }
+        return CoordinatePoint(latitude: latitude, longitude: longitude)
     }
 
     private func extractNamedCoordinatePair(
