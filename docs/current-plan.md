@@ -35,6 +35,7 @@ Performance principle:
 - iOS share extension handoff now uses an app-group queue file plus app URL-scheme reopen so Google Maps shares can bring Companion forward and trigger import consumption immediately instead of relying on a race-prone UserDefaults-only handoff.
 - iOS Google Maps imports now preserve the resolved destination through the second-stage import path by preferring the resolved text payload over the raw URL when extracting coordinates for Home preview planning.
 - iOS Google Maps coordinate imports now keep the shared address/title authoritative when it looks like a specific street address, instead of letting reverse geocoding rename nearby entrances or house numbers; address searches also use address results instead of POI-only matching.
+- iOS Garmin course-link imports now fetch remote pages with a browser-like request profile and look for course titles/start coordinates in additional meta and embedded JSON fields before falling back to diagnostics.
 
 ## Companion Expansion Direction (April 5, 2026)
 The companion app is planned to evolve beyond a device-support utility into a strong standalone navigation product.
