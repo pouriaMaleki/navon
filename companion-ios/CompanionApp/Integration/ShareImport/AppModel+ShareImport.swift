@@ -49,6 +49,7 @@ extension AppModel {
         )
         switch resolved.disposition {
         case .directHomePreview:
+            await resetCurrentRouteForSharedImport()
             if resolved.classification == .gpxFile, let filePath = resolved.storedFilePath {
                 importActivityStatus = "Importing shared route…"
                 await importSharedGpxFile(atPath: filePath, sourceLabel: resolved.sourceApplication ?? "Shared GPX", envelope: resolved)
@@ -77,6 +78,21 @@ extension AppModel {
         case .routeDetailReview, .diagnosticsOnly:
             saveImportDiagnostic(for: resolved)
         }
+    }
+
+    private func resetCurrentRouteForSharedImport() async {
+        preview = RoutePreviewModel(alternatives: [], selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil)
+        if isDeviceConnected, activeSession.routeIdentifier != nil {
+            _ = await clearActiveRoute()
+        }
+        activeSession.routeIdentifier = nil
+        activeSession.routeRevision = nil
+        activeSession.destinationLabel = "No destination"
+        activeSession.destinationCoordinate = nil
+        activeSession.lastRerouteReason = nil
+        activeSession.lastRerouteTimestamp = nil
+        persistence.saveSession(activeSession)
+        refreshDiagnostics()
     }
 
     private func importSharedGpxFile(atPath path: String, sourceLabel: String, envelope: SharedImportEnvelope) async {
