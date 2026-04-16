@@ -544,9 +544,17 @@ extension AppModel {
                     return (nil, debugTrail)
                 }
                 debugTrail.append("garmin-course-json-status=\(http.statusCode)")
-                if (200 ..< 300).contains(http.statusCode),
-                   let resolved = garminCourseEnvelopeFromJSON(data: data, courseID: courseID, envelope: envelope, debugTrail: debugTrail) {
-                    return (resolved, debugTrail)
+                if (200 ..< 300).contains(http.statusCode) {
+                    let jsonAttempt = garminCourseEnvelopeFromJSON(
+                        data: data,
+                        courseID: courseID,
+                        envelope: envelope,
+                        debugTrail: debugTrail
+                    )
+                    debugTrail += jsonAttempt.debugTrail
+                    if let resolved = jsonAttempt.envelope {
+                        return (resolved, debugTrail)
+                    }
                 }
                 debugTrail.append("garmin-course-json-body=unusable")
             } catch {
@@ -594,16 +602,35 @@ extension AppModel {
         courseID: String,
         envelope: SharedImportEnvelope,
         debugTrail: [String]
-    ) -> SharedImportEnvelope? {
+    ) -> (envelope: SharedImportEnvelope?, debugTrail: [String]) {
         let json = decodeHTMLSnippet(data)
-        let title = garminCourseSummary(fromHTML: json)?.title ?? "garmin-course-\(courseID)"
-        let coordinates = extractCoordinateSequence(fromGarminJSON: json)
-        guard coordinates.count >= 2 else { return nil }
+        var extraDebug: [String] = [
+            "garmin-course-json-bytes=\(data.count)"
+        ]
+
+        guard let object = try? JSONSerialization.jsonObject(with: data) else {
+            extraDebug.append("garmin-course-json-parse=failed")
+            extraDebug.append("garmin-course-json-preview=\(debugSnippet(for: json))")
+            return (nil, extraDebug)
+        }
+
+        extraDebug.append("garmin-course-json-top=\(jsonShapeSummary(for: object))")
+
+        let title = garminTitle(fromJSONObject: object)
+            ?? garminCourseSummary(fromHTML: json)?.title
+            ?? "garmin-course-\(courseID)"
+        let coordinates = extractCoordinateSequence(fromGarminJSONObject: object)
+        extraDebug.append("garmin-course-json-points=\(coordinates.count)")
+        if coordinates.count < 2 {
+            extraDebug.append("garmin-course-json-preview=\(debugSnippet(for: json))")
+            return (nil, extraDebug)
+        }
 
         let gpx = buildGPXDocument(name: title, coordinates: coordinates)
         guard let gpxData = gpx.data(using: .utf8),
               let storedPath = try? persistSharedImportData(gpxData, fileName: "\(sanitizeImportFileName(title)).gpx") else {
-            return nil
+            extraDebug.append("garmin-course-json-gpx=persist-failed")
+            return (nil, extraDebug)
         }
 
         var resolved = envelope
@@ -612,61 +639,195 @@ extension AppModel {
         resolved.fileName = "\(sanitizeImportFileName(title)).gpx"
         resolved.storedFilePath = storedPath
         resolved.note = "Imported Garmin course link via JSON fallback."
-        resolved.debugTrail = (resolved.debugTrail ?? []) + debugTrail + [
-            "garmin-course-json-points=\(coordinates.count)",
+        resolved.debugTrail = (resolved.debugTrail ?? []) + debugTrail + extraDebug + [
             "garmin-course-json-file=\(resolved.fileName ?? "")"
         ]
-        return resolved
+        return (resolved, extraDebug)
     }
 
-    private func extractCoordinateSequence(fromGarminJSON value: String) -> [CoordinatePoint] {
+    private func extractCoordinateSequence(fromGarminJSONObject object: Any) -> [CoordinatePoint] {
         var coordinates: [CoordinatePoint] = []
-        let patterns = [
-            "\"latitude\"\\s*:\\s*(-?\\d{1,3}\\.\\d+).*?\"longitude\"\\s*:\\s*(-?\\d{1,3}\\.\\d+)",
-            "\"lat\"\\s*:\\s*(-?\\d{1,3}\\.\\d+).*?\"(?:lng|lon|longitude)\"\\s*:\\s*(-?\\d{1,3}\\.\\d+)",
-            "\"coordinates\"\\s*:\\s*\\[\\s*(-?\\d{1,3}\\.\\d+)\\s*,\\s*(-?\\d{1,3}\\.\\d+)\\s*\\]"
-        ]
+        collectCoordinateSequence(from: object, parentKey: nil, into: &coordinates)
+        return coordinates
+    }
 
-        for pattern in patterns {
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) else {
-                continue
+    private func collectCoordinateSequence(from value: Any, parentKey: String?, into coordinates: inout [CoordinatePoint]) {
+        if let dictionary = value as? [String: Any] {
+            if let point = coordinate(fromJSONObjectDictionary: dictionary) {
+                appendCoordinate(point, into: &coordinates)
             }
-            let fullRange = NSRange(location: 0, length: value.utf16.count)
-            let matches = regex.matches(in: value, range: fullRange)
-            if matches.isEmpty {
-                continue
-            }
-            for match in matches {
-                guard match.numberOfRanges > 2,
-                      let firstRange = Range(match.range(at: 1), in: value),
-                      let secondRange = Range(match.range(at: 2), in: value),
-                      let first = Double(value[firstRange]),
-                      let second = Double(value[secondRange]) else {
+
+            for (key, nestedValue) in dictionary {
+                if let string = nestedValue as? String,
+                   let polylinePoints = decodedPolylineCoordinates(from: string, key: key),
+                   polylinePoints.count >= 2 {
+                    for point in polylinePoints {
+                        appendCoordinate(point, into: &coordinates)
+                    }
                     continue
                 }
-
-                let coordinate: CoordinatePoint
-                if pattern.contains("\"coordinates\"") {
-                    coordinate = CoordinatePoint(latitude: second, longitude: first)
-                } else {
-                    coordinate = CoordinatePoint(latitude: first, longitude: second)
-                }
-
-                guard (-90.0 ... 90.0).contains(coordinate.latitude),
-                      (-180.0 ... 180.0).contains(coordinate.longitude) else {
-                    continue
-                }
-                if coordinates.last != coordinate {
-                    coordinates.append(coordinate)
-                }
+                collectCoordinateSequence(from: nestedValue, parentKey: key, into: &coordinates)
             }
-            if coordinates.count >= 2 {
-                return coordinates
-            }
-            coordinates.removeAll(keepingCapacity: true)
+            return
         }
 
-        return []
+        if let array = value as? [Any] {
+            if let point = coordinate(fromJSONArray: array, parentKey: parentKey) {
+                appendCoordinate(point, into: &coordinates)
+                return
+            }
+            for nestedValue in array {
+                collectCoordinateSequence(from: nestedValue, parentKey: parentKey, into: &coordinates)
+            }
+        }
+    }
+
+    private func coordinate(fromJSONObjectDictionary dictionary: [String: Any]) -> CoordinatePoint? {
+        let latitudeKeys = ["latitude", "lat", "startlatitude", "startlat", "locationlatitude", "courselatitude"]
+        let longitudeKeys = ["longitude", "lon", "lng", "startlongitude", "startlon", "startlng", "locationlongitude", "courselongitude"]
+
+        let normalized = Dictionary(uniqueKeysWithValues: dictionary.map { ($0.key.lowercased(), $0.value) })
+        guard let latitude = latitudeKeys.compactMap({ doubleValue(from: normalized[$0]) }).first,
+              let longitude = longitudeKeys.compactMap({ doubleValue(from: normalized[$0]) }).first,
+              (-90.0 ... 90.0).contains(latitude),
+              (-180.0 ... 180.0).contains(longitude) else {
+            return nil
+        }
+        return CoordinatePoint(latitude: latitude, longitude: longitude)
+    }
+
+    private func coordinate(fromJSONArray array: [Any], parentKey: String?) -> CoordinatePoint? {
+        guard array.count >= 2,
+              let first = doubleValue(from: array[0]),
+              let second = doubleValue(from: array[1]) else {
+            return nil
+        }
+
+        let key = parentKey?.lowercased() ?? ""
+        let preferGeoJSON = key.contains("coord") || key.contains("point") || key.contains("track") || key.contains("path")
+
+        let lonLat = CoordinatePoint(latitude: second, longitude: first)
+        if preferGeoJSON,
+           (-90.0 ... 90.0).contains(lonLat.latitude),
+           (-180.0 ... 180.0).contains(lonLat.longitude) {
+            return lonLat
+        }
+
+        let latLon = CoordinatePoint(latitude: first, longitude: second)
+        if (-90.0 ... 90.0).contains(latLon.latitude),
+           (-180.0 ... 180.0).contains(latLon.longitude) {
+            return latLon
+        }
+
+        if (-90.0 ... 90.0).contains(lonLat.latitude),
+           (-180.0 ... 180.0).contains(lonLat.longitude) {
+            return lonLat
+        }
+
+        return nil
+    }
+
+    private func decodedPolylineCoordinates(from value: String, key: String) -> [CoordinatePoint]? {
+        let normalizedKey = key.lowercased()
+        guard normalizedKey.contains("polyline") || normalizedKey.contains("encoded") || normalizedKey.contains("shape") else {
+            return nil
+        }
+        let decoded = decodePolyline(value)
+        return decoded.count >= 2 ? decoded : nil
+    }
+
+    private func decodePolyline(_ encoded: String) -> [CoordinatePoint] {
+        guard !encoded.isEmpty else { return [] }
+        var points: [CoordinatePoint] = []
+        var index = encoded.startIndex
+        var latitude = 0
+        var longitude = 0
+
+        func nextValue() -> Int? {
+            var result = 0
+            var shift = 0
+            while index < encoded.endIndex {
+                let value = Int(encoded[index].unicodeScalars.first!.value) - 63
+                index = encoded.index(after: index)
+                result |= (value & 0x1f) << shift
+                shift += 5
+                if value < 0x20 {
+                    return (result & 1) == 0 ? (result >> 1) : ~(result >> 1)
+                }
+            }
+            return nil
+        }
+
+        while let latDelta = nextValue(), let lonDelta = nextValue() {
+            latitude += latDelta
+            longitude += lonDelta
+            points.append(
+                CoordinatePoint(
+                    latitude: Double(latitude) / 100_000.0,
+                    longitude: Double(longitude) / 100_000.0
+                )
+            )
+        }
+
+        return points
+    }
+
+    private func appendCoordinate(_ point: CoordinatePoint, into coordinates: inout [CoordinatePoint]) {
+        if coordinates.last != point {
+            coordinates.append(point)
+        }
+    }
+
+    private func doubleValue(from any: Any?) -> Double? {
+        switch any {
+        case let value as Double:
+            return value
+        case let value as NSNumber:
+            return value.doubleValue
+        case let value as String:
+            return Double(value)
+        default:
+            return nil
+        }
+    }
+
+    private func garminTitle(fromJSONObject object: Any) -> String? {
+        if let dictionary = object as? [String: Any] {
+            let preferredKeys = ["courseName", "displayName", "title", "name"]
+            for key in preferredKeys {
+                if let value = dictionary[key] as? String, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    return value
+                }
+            }
+            for value in dictionary.values {
+                if let title = garminTitle(fromJSONObject: value) {
+                    return title
+                }
+            }
+        } else if let array = object as? [Any] {
+            for value in array {
+                if let title = garminTitle(fromJSONObject: value) {
+                    return title
+                }
+            }
+        }
+        return nil
+    }
+
+    private func jsonShapeSummary(for object: Any) -> String {
+        if let dictionary = object as? [String: Any] {
+            let keys = dictionary.keys.sorted().prefix(8).joined(separator: ",")
+            return "dict[\(keys)]"
+        }
+        if let array = object as? [Any] {
+            return "array[count=\(array.count)]"
+        }
+        return String(describing: type(of: object))
+    }
+
+    private func debugSnippet(for value: String) -> String {
+        let collapsed = value.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+        return String(collapsed.prefix(240))
     }
 
     private func buildGPXDocument(name: String, coordinates: [CoordinatePoint]) -> String {
