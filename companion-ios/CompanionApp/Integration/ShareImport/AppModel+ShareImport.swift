@@ -244,6 +244,10 @@ extension AppModel {
             return await resolveGoogleMapsImport(resolved, url: resolvedURL, using: searchService)
         }
 
+        if let garminCourseEnvelope = await garminCourseFileEnvelope(from: resolvedURL, envelope: resolved) {
+            return garminCourseEnvelope
+        }
+
         if let coordinate = extractCoordinate(from: resolvedURL) {
             resolved.debugTrail?.append("generic-coordinate=\(coordinate.latitude),\(coordinate.longitude)")
             return await resolvedEnvelopeForCoordinate(
@@ -434,6 +438,79 @@ extension AppModel {
             return name.replacingOccurrences(of: "+", with: " ")
         }
         return nil
+    }
+
+    private func garminCourseFileEnvelope(from url: URL, envelope: SharedImportEnvelope) async -> SharedImportEnvelope? {
+        guard let courseID = garminCourseID(from: url) else { return nil }
+        guard let proxyURL = URL(string: "https://connect.garmin.com/proxy/activity-service-1.1/gpx/course/\(courseID)?full=true") else {
+            return nil
+        }
+
+        var request = URLRequest(url: proxyURL)
+        request.timeoutInterval = 12
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/gpx+xml,application/xml,text/xml;q=0.9,*/*;q=0.8", forHTTPHeaderField: "Accept")
+        request.setValue("en-US,en;q=0.9", forHTTPHeaderField: "Accept-Language")
+        request.setValue(safariUserAgent, forHTTPHeaderField: "User-Agent")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse, (200 ..< 300).contains(http.statusCode) else {
+                return nil
+            }
+            let xmlSnippet = decodeHTMLSnippet(data)
+            guard xmlSnippet.localizedCaseInsensitiveContains("<gpx") else {
+                return nil
+            }
+            let fileName = garminCourseFileName(courseID: courseID, xml: xmlSnippet)
+            let storedPath = try persistSharedImportData(data, fileName: fileName)
+            var resolved = envelope
+            resolved.classification = .gpxFile
+            resolved.disposition = .directHomePreview
+            resolved.fileName = fileName
+            resolved.storedFilePath = storedPath
+            resolved.note = "Imported Garmin course link as GPX."
+            resolved.debugTrail = (resolved.debugTrail ?? []) + [
+                "garmin-course-id=\(courseID)",
+                "garmin-course-gpx-url=\(proxyURL.absoluteString)",
+                "garmin-course-gpx-file=\(fileName)"
+            ]
+            return resolved
+        } catch {
+            return nil
+        }
+    }
+
+    private func garminCourseID(from url: URL) -> String? {
+        guard let host = url.host?.lowercased(), host.contains("garmin.com") else { return nil }
+        let components = url.pathComponents.filter { $0 != "/" }
+        guard let courseIndex = components.firstIndex(of: "course"), courseIndex + 1 < components.count else {
+            return nil
+        }
+        let candidate = components[courseIndex + 1]
+        guard candidate.allSatisfy(\.isNumber) else { return nil }
+        return candidate
+    }
+
+    private func garminCourseFileName(courseID: String, xml: String) -> String {
+        if let title = firstMatch(in: xml, pattern: "<name[^>]*>(.*?)</name>")?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           !title.isEmpty {
+            let sanitized = title
+                .replacingOccurrences(of: "/", with: "-")
+                .replacingOccurrences(of: ":", with: "-")
+                .replacingOccurrences(of: "\n", with: " ")
+            return "\(sanitized).gpx"
+        }
+        return "garmin-course-\(courseID).gpx"
+    }
+
+    private func persistSharedImportData(_ data: Data, fileName: String) throws -> String {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("SharedImports", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let destination = directory.appendingPathComponent("\(UUID().uuidString)-\(fileName)")
+        try data.write(to: destination, options: .atomic)
+        return destination.path
     }
 
     private func googleMapsQueryTitle(from url: URL) -> String? {
