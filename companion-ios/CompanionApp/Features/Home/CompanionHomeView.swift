@@ -68,8 +68,9 @@ struct CompanionHomeView: View {
                     .stroke(viewModel.homeMode == .deviceOverview ? .blue : .green, lineWidth: 7)
             }
         }
-        .overlay(alignment: .bottomTrailing) {
-            planningMapActionButton
+        .mapControlVisibility(.hidden)
+        .overlay(alignment: .topTrailing) {
+            planningMapAccessoryControls
         }
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.6)
@@ -304,17 +305,14 @@ struct CompanionHomeView: View {
     }
 
     @ViewBuilder
-    private var planningMapActionButton: some View {
+    private var planningMapAccessoryControls: some View {
         if viewModel.homeMode == .planning {
-            Button(action: refreshCameraForCurrentMode) {
-                Image(systemName: "location.fill")
-                    .font(.system(size: 18, weight: .semibold))
-                    .frame(width: 50, height: 50)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            VStack(spacing: 10) {
+                MapCompass()
+                MapUserLocationButton()
             }
-            .accessibilityLabel("Recenter map")
             .padding(.trailing, 16)
-            .padding(.bottom, 120)
+            .padding(.top, 72)
         }
     }
 
