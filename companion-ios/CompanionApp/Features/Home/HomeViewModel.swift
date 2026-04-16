@@ -272,7 +272,11 @@ final class HomeViewModel: ObservableObject {
 
     func setDestinationFromMap(_ coordinate: CoordinatePoint) {
         Task {
-            let resolved = await placeSearchService.resolveDestination(at: coordinate, fallbackTitle: "Dropped pin")
+            let resolved = await placeSearchService.resolveDestination(
+                at: coordinate,
+                fallbackTitle: "Dropped pin",
+                preserveFallbackTitle: false
+            )
             let manualDrop = resolved ?? DestinationSearchResult(
                 id: "long-press-\(coordinate.latitude)-\(coordinate.longitude)",
                 title: "Dropped pin",
