@@ -19,16 +19,31 @@ struct RoutesSettingsView: View {
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(appModel.routeHistoryItems) { item in
-                        NavigationLink(value: item.id) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(item.title)
-                                Text(item.subtitle)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                Text(item.sourceLabel)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                        HStack(spacing: 12) {
+                            Button {
+                                appModel.activateRouteHistoryItem(item, startImmediately: false)
+                            } label: {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(item.title)
+                                    Text(item.subtitle)
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                    Text(item.sourceLabel)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
                             }
+                            .buttonStyle(.plain)
+
+                            NavigationLink(value: item.id) {
+                                Image(systemName: "info.circle")
+                                    .foregroundStyle(.secondary)
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .frame(width: 28, height: 28)
+                            }
+                            .accessibilityLabel("Route details")
                         }
                     }
                 }
