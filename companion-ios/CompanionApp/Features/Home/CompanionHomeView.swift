@@ -68,9 +68,8 @@ struct CompanionHomeView: View {
                     .stroke(viewModel.homeMode == .deviceOverview ? .blue : .green, lineWidth: 7)
             }
         }
-        .mapControls {
-            MapCompass()
-            MapUserLocationButton()
+        .overlay(alignment: .bottomTrailing) {
+            planningMapActionButton
         }
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.6)
@@ -302,6 +301,21 @@ struct CompanionHomeView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
+    }
+
+    @ViewBuilder
+    private var planningMapActionButton: some View {
+        if viewModel.homeMode == .planning {
+            Button(action: refreshCameraForCurrentMode) {
+                Image(systemName: "location.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .frame(width: 50, height: 50)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            }
+            .accessibilityLabel("Recenter map")
+            .padding(.trailing, 16)
+            .padding(.bottom, 120)
+        }
     }
 
     private func routeHistoryRow(_ item: RouteHistoryItem) -> some View {
