@@ -71,7 +71,6 @@ extension AppModel {
 
     func clearPreviewSelection() {
         preview = RoutePreviewModel(alternatives: [], selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil)
-        homePreviewRequestID = UUID()
     }
 
     func savePendingHomeImportPresentation(item: RouteHistoryItem, debugTrail: [String]) {
