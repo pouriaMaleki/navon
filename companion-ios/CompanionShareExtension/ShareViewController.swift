@@ -64,6 +64,7 @@ final class ShareViewController: UIViewController {
 
         if var selected = preferredEnvelope(from: candidates) {
             selected.debugTrail = buildSelectionDebugTrail(from: candidates, selectedID: selected.id)
+            selected.debugContext = makeDebugContext(target: "share-extension")
             sharedStore.enqueue(selected)
             finishAfterSaving()
             return
@@ -121,6 +122,7 @@ final class ShareViewController: UIViewController {
                 classification: classification,
                 disposition: classification == .unsupportedUnknown ? .diagnosticsOnly : .directHomePreview,
                 note: extraNote,
+                debugContext: nil,
                 debugTrail: nil
             )
         }
@@ -146,6 +148,7 @@ final class ShareViewController: UIViewController {
                 classification: classification(forText: trimmed),
                 disposition: disposition(forText: trimmed),
                 note: extraNote,
+                debugContext: nil,
                 debugTrail: nil
             )
         }
@@ -169,6 +172,7 @@ final class ShareViewController: UIViewController {
             classification: .unsupportedUnknown,
             disposition: .diagnosticsOnly,
             note: extraNote ?? "Unsupported shared item type.",
+            debugContext: nil,
             debugTrail: nil
         )
     }
@@ -219,7 +223,25 @@ final class ShareViewController: UIViewController {
             classification: classification,
             disposition: disposition,
             note: extraNote,
+            debugContext: nil,
             debugTrail: nil
+        )
+    }
+
+    private func makeDebugContext(target: String) -> SharedImportDebugContext {
+        let bundle = Bundle.main
+        return SharedImportDebugContext(
+            producerTarget: target,
+            producerBundleID: bundle.bundleIdentifier,
+            producerVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as? String,
+            producerBuild: bundle.infoDictionary?["CFBundleVersion"] as? String,
+            latestHandlerTarget: target,
+            latestHandlerBundleID: bundle.bundleIdentifier,
+            latestHandlerVersion: bundle.infoDictionary?["CFBundleShortVersionString"] as? String,
+            latestHandlerBuild: bundle.infoDictionary?["CFBundleVersion"] as? String,
+            latestPhase: "share-extension.enqueue",
+            latestOutcome: "selected",
+            lastUpdatedAt: Date()
         )
     }
 

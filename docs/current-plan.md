@@ -36,6 +36,7 @@ Performance principle:
 - iOS Google Maps imports now preserve the resolved destination through the second-stage import path by preferring the resolved text payload over the raw URL when extracting coordinates for Home preview planning.
 - iOS Google Maps coordinate imports now keep the shared address/title authoritative when it looks like a specific street address, instead of letting reverse geocoding rename nearby entrances or house numbers; address searches also use address results instead of POI-only matching.
 - iOS Garmin course-link imports now fetch remote pages with a browser-like request profile and look for course titles/start coordinates in additional meta and embedded JSON fields before falling back to diagnostics.
+- iOS import diagnostics packages now export a versioned wrapper with producer/handler bundle metadata plus explicit app-side phase/outcome stamps, so one shared JSON captures which target handled the import and where it failed.
 
 ## Companion Expansion Direction (April 5, 2026)
 The companion app is planned to evolve beyond a device-support utility into a strong standalone navigation product.
