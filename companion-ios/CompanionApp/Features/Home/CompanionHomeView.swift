@@ -307,10 +307,13 @@ struct CompanionHomeView: View {
     @ViewBuilder
     private var planningMapAccessoryControls: some View {
         if viewModel.homeMode == .planning {
-            VStack(spacing: 10) {
-                MapCompass()
-                MapUserLocationButton()
+            Button(action: refreshCameraForCurrentMode) {
+                Image(systemName: "location.north.line.fill")
+                    .font(.system(size: 18, weight: .semibold))
+                    .frame(width: 50, height: 50)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             }
+            .accessibilityLabel("Recenter map")
             .padding(.trailing, 16)
             .padding(.top, 72)
         }
