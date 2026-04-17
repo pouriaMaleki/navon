@@ -61,6 +61,7 @@ extension AppModel {
 
     func activateRouteHistoryItem(_ item: RouteHistoryItem, startImmediately: Bool = false) {
         Task {
+            await resetCurrentRouteForHistoryActivation()
             await applyRouteHistoryPreview(item)
             homePreviewRequestID = UUID()
             if startImmediately {
@@ -90,5 +91,20 @@ extension AppModel {
     func clearPendingHomeImportPresentation() {
         persistence.clearPendingHomeImportPresentation()
         notePersistenceChanged()
+    }
+
+    private func resetCurrentRouteForHistoryActivation() async {
+        preview = RoutePreviewModel(alternatives: [], selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil)
+        if isDeviceConnected, activeSession.routeIdentifier != nil {
+            _ = await clearActiveRoute()
+        }
+        activeSession.routeIdentifier = nil
+        activeSession.routeRevision = nil
+        activeSession.destinationLabel = "No destination"
+        activeSession.destinationCoordinate = nil
+        activeSession.lastRerouteReason = nil
+        activeSession.lastRerouteTimestamp = nil
+        persistence.saveSession(activeSession)
+        refreshDiagnostics()
     }
 }

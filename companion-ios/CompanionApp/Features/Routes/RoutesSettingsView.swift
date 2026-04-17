@@ -36,6 +36,8 @@ struct RoutesSettingsView: View {
                                 .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
 
                             NavigationLink(value: item.id) {
                                 Image(systemName: "info.circle")
