@@ -273,6 +273,8 @@ struct CompanionHomeView: View {
                             routeHistoryRow(item)
                         }
                         .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
                         .onAppear { viewModel.loadMoreRecentsIfNeeded(for: item) }
                         Divider()
                     }
@@ -285,6 +287,8 @@ struct CompanionHomeView: View {
                             suggestionRow(suggestion)
                         }
                         .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
                         .onAppear { viewModel.loadMoreSuggestionsIfNeeded(for: suggestion) }
                         Divider()
                     }
@@ -313,6 +317,7 @@ struct CompanionHomeView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
+        .contentShape(Rectangle())
     }
 
     @ViewBuilder
@@ -349,6 +354,7 @@ struct CompanionHomeView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
+        .contentShape(Rectangle())
     }
 
     private var planningProgressCard: some View {
