@@ -191,11 +191,11 @@ final class HomeViewModel: ObservableObject {
     var compassSymbolName: String {
         switch compassMode {
         case .autoFollow:
-            return "location.north.line.fill"
+            return "location.fill"
         case .northPreview:
-            return "location.north.circle.fill"
+            return "location.north.line.fill"
         case .northLocked:
-            return "location.north.line.circle.fill"
+            return "location.north.line.fill"
         }
     }
 
@@ -385,10 +385,11 @@ final class HomeViewModel: ObservableObject {
         guard homeMode == .phoneGuidance else { return }
         switch compassMode {
         case .autoFollow:
-            enterNorthPreview()
+            enterNorthLocked()
         case .northPreview:
             enterNorthLocked()
         case .northLocked:
+            northPreviewTask?.cancel()
             compassMode = .autoFollow
         }
     }
@@ -396,16 +397,6 @@ final class HomeViewModel: ObservableObject {
     func handleCompassDoubleTap() {
         guard homeMode == .phoneGuidance else { return }
         enterNorthLocked()
-    }
-
-    private func enterNorthPreview() {
-        northPreviewTask?.cancel()
-        compassMode = .northPreview
-        northPreviewTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 2_500_000_000)
-            guard let self, !Task.isCancelled, self.homeMode == .phoneGuidance, self.compassMode == .northPreview else { return }
-            self.compassMode = .autoFollow
-        }
     }
 
     private func enterNorthLocked() {

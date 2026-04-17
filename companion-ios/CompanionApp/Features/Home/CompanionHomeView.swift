@@ -2,6 +2,12 @@ import SwiftUI
 import MapKit
 
 struct CompanionHomeView: View {
+    private struct PlanningCameraReference {
+        let center: CLLocationCoordinate2D
+        let span: MKCoordinateSpan
+        let heading: CLLocationDirection
+    }
+
     @EnvironmentObject private var appModel: AppModel
     @ObservedObject var viewModel: HomeViewModel
     let onOpenSettings: () -> Void
@@ -12,6 +18,8 @@ struct CompanionHomeView: View {
             span: MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
         )
     )
+    @State private var planningCameraReference: PlanningCameraReference?
+    @State private var planningCameraNeedsReset = false
     @FocusState private var isSearchFieldFocused: Bool
 
     var body: some View {
@@ -38,6 +46,9 @@ struct CompanionHomeView: View {
                     if !isOpen {
                         isSearchFieldFocused = false
                     }
+                }
+                .onMapCameraChange(frequency: .continuous) { context in
+                    updatePlanningCameraResetState(for: context.region, heading: context.camera.heading)
                 }
         }
     }
@@ -306,7 +317,7 @@ struct CompanionHomeView: View {
 
     @ViewBuilder
     private var planningMapAccessoryControls: some View {
-        if viewModel.homeMode == .planning {
+        if viewModel.homeMode == .planning && planningCameraNeedsReset {
             Button(action: refreshCameraForCurrentMode) {
                 Image(systemName: "location.north.line.fill")
                     .font(.system(size: 18, weight: .semibold))
@@ -485,7 +496,9 @@ struct CompanionHomeView: View {
 
     private func refreshCameraForCurrentMode() {
         switch viewModel.homeMode {
-        case .planning, .deviceOverview, .sendingToDevice:
+        case .planning:
+            resetPlanningCamera()
+        case .deviceOverview, .sendingToDevice:
             let coordinates = viewModel.displayedRouteCoordinates
             guard !coordinates.isEmpty else { return }
             fitCamera(to: coordinates)
@@ -497,6 +510,23 @@ struct CompanionHomeView: View {
             case .northPreview, .northLocked:
                 fitCamera(to: route.geometry)
             }
+        }
+    }
+
+    private func resetPlanningCamera() {
+        let coordinates = viewModel.displayedRouteCoordinates
+        if !coordinates.isEmpty {
+            fitCamera(to: coordinates, recordPlanningReference: true)
+        } else {
+            let rider = appModel.simulatedRiderLocation
+            setCamera(
+                region: MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: rider.latitude, longitude: rider.longitude),
+                    span: MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
+                ),
+                heading: 0,
+                recordPlanningReference: true
+            )
         }
     }
 
@@ -512,7 +542,7 @@ struct CompanionHomeView: View {
         cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: 1200, heading: heading, pitch: 0))
     }
 
-    private func fitCamera(to coordinates: [CoordinatePoint]) {
+    private func fitCamera(to coordinates: [CoordinatePoint], recordPlanningReference: Bool = false) {
         guard let first = coordinates.first else { return }
         var minLat = first.latitude
         var maxLat = first.latitude
@@ -529,7 +559,39 @@ struct CompanionHomeView: View {
         let latDelta = max((maxLat - minLat) * 1.5, 0.01)
         let lonDelta = max((maxLon - minLon) * 1.5, 0.01)
         let center = CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2.0, longitude: (minLon + maxLon) / 2.0)
-        cameraPosition = .region(MKCoordinateRegion(center: center, span: MKCoordinateSpan(latitudeDelta: latDelta, longitudeDelta: lonDelta)))
+        setCamera(
+            region: MKCoordinateRegion(center: center, span: MKCoordinateSpan(latitudeDelta: latDelta, longitudeDelta: lonDelta)),
+            heading: 0,
+            recordPlanningReference: recordPlanningReference
+        )
+    }
+
+    private func setCamera(region: MKCoordinateRegion, heading: CLLocationDirection, recordPlanningReference: Bool) {
+        cameraPosition = .region(region)
+        if recordPlanningReference {
+            planningCameraReference = PlanningCameraReference(center: region.center, span: region.span, heading: heading)
+            planningCameraNeedsReset = false
+        }
+    }
+
+    private func updatePlanningCameraResetState(for region: MKCoordinateRegion, heading: CLLocationDirection) {
+        guard viewModel.homeMode == .planning, let reference = planningCameraReference else {
+            planningCameraNeedsReset = false
+            return
+        }
+
+        let centerLatDelta = abs(region.center.latitude - reference.center.latitude)
+        let centerLonDelta = abs(region.center.longitude - reference.center.longitude)
+        let spanLatDelta = abs(region.span.latitudeDelta - reference.span.latitudeDelta)
+        let spanLonDelta = abs(region.span.longitudeDelta - reference.span.longitudeDelta)
+        let normalizedHeading = abs(heading.truncatingRemainder(dividingBy: 360))
+
+        planningCameraNeedsReset =
+            centerLatDelta > 0.0003 ||
+            centerLonDelta > 0.0003 ||
+            spanLatDelta > 0.002 ||
+            spanLonDelta > 0.002 ||
+            normalizedHeading > 4
     }
 
     private func bearingDegrees(from start: CoordinatePoint, to end: CoordinatePoint) -> CLLocationDirection {
