@@ -40,16 +40,17 @@ Depends on:
 - [ ] Implement reroute orchestration and replacement route publishing.
 - [~] Redesign companion information architecture into the planned single-surface Home plus full-screen Settings model.
   Current status: root navigation shells were replaced in both native apps, and the remaining work is feature-depth completion plus cleanup of the underlying state architecture.
-- [ ] Implement share-sheet ingestion UX for Google Maps links, shared locations, GPX, and future routing payloads.
-- [ ] Add Google Maps handoff UX that imports destination/route intent and replans it through the companion's own provider stack.
-- [~] Move route-source selection for the active planning session into the Home planning UI as a compact top control with `Mixed` as the default, instead of relying only on Settings.
-  Current status: the redesign implementation is moving source selection into Home in both native apps, with `Mixed`, `HSL`, and `OSM` as the active planning choices.
+- [~] Implement share-sheet ingestion UX for Google Maps links, shared locations, GPX, and future routing payloads.
+  Current status: native iOS/Android share extensions exist; in-app URL paste in the "Where to?" field now also runs through the shared classifier on all three apps, including Google Maps short-link expansion on web via a CORS proxy and native redirect following on iOS/Android.
+- [x] Add Google Maps handoff UX that imports destination/route intent and replans it through the companion's own provider stack.
+- [x] Move route-source selection for the active planning session into the Home planning UI as a compact top control with `Mixed` as the default, instead of relying only on Settings.
+  Current status: source-mode picker lives in the Home suggestions card on all three platforms; it auto-collapses to OSM when HSL is unavailable (no key or endpoints outside Uusimaa).
 - [~] Define the planning-mode versus guidance-mode transition explicitly so `Start` commits to one route and `Stop` returns to refreshed suggestions from the current location.
   Current status: the redesign now targets an explicit split between planning mode, phone riding mode, and device overview mode, with device-connected `Start` becoming device-first.
 - [~] Add Home-tab long-press destination selection on the map and route-suggestion flow parity with typed search.
   Current status: both native shells now support long-press destination selection and the shared three-route preview flow, while deeper share-import parity still remains.
 - [~] Implement Home search UX with recents by default, live suggestions while typing, and paged loading in both states.
-  Current status: both native shells now show recents by default, swap to native search suggestions while typing, and page the visible lists locally, but import fast-path and native toolchain verification still remain.
+  Current status: all three apps (iOS, Android, web) show recents by default, swap to live suggestions while typing, page the visible lists locally, and accept pasted http(s) URLs with loading/error rows. Outside-tap / Escape / back-button dismisses the dropdown. Native toolchain verification still remains for Android.
 - [~] Design full-screen Settings information architecture with `Routes`, `Device`, `Route Planner`, and `Import Diagnostics` sections.
   Current status: the full-screen settings hub now exists in both native shells, with `Import Diagnostics` added and the remaining work focused on feature-depth completion plus native-toolchain validation.
 - [x] Specify Home screen states: idle map, recents, live suggestions, long-press destination, route preview, and active guidance.
@@ -62,6 +63,10 @@ Depends on:
 - [ ] Keep outbound ride recording/export out of the near-term companion redesign scope.
 
 Current checkpoint:
+- Companion apps now ship on three platforms: `companion-ios`, `companion-android`, and `companion-web`. All three share the same planner surface, persistence keys, and RoutePackage contracts. Web is phone-guidance only (no BLE).
+- Rider position is real device GPS on all three apps via a shared `LocationService` seam (`CoreLocationService` on iOS, `AndroidLocationService` on Android with `FusedLocationProvider`, `BrowserLocationService` + `LocationStore` on web). The locate/recenter control shows a spinner until the first fix arrives, with a persisted last-known fallback when permission is denied.
+- HSL is only offered when it can actually plan a trip: the Digitransit subscription key is configured AND both endpoints fall inside the Uusimaa bounding box (59.8–60.8°N, 23.3–26.7°E). Otherwise the source picker collapses to OSM on all three platforms and Route Planner settings documents how to obtain a Digitransit key.
+- Production deployment is a single nginx container that hosts the web companion at `/` and the device emulator at `/emulator/`; edge routing, service name, and port are unchanged.
 - Native app shells exist in `companion-ios` and `companion-android`.
 - HSL now supports live Digitransit planning with in-app subscription-key configuration plus explicit fallback to sample routes when live routing is unavailable.
 - Native preview screens now let the user choose a specific route alternative before sync instead of silently sending the first alternative.
