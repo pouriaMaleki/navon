@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.google.play.services.maps)
+    implementation(libs.google.play.services.location)
     implementation(libs.google.maps.compose)
     implementation(libs.google.android.material)
     implementation(libs.google.gson)

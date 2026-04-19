@@ -54,7 +54,7 @@ private fun handleSharedImportEnvelope(appState: CompanionAppState, envelope: Sh
             val title = extractSharedTitle(envelope)
                 ?: if (envelope.classification == SharedImportClassification.GOOGLE_MAPS_LOCATION_LINK) "Imported from Google Maps" else "Shared location"
             appState.routeRequest = RoutePlanRequest(
-                origin = appState.simulatedRiderLocation,
+                origin = appState.riderLocation,
                 destination = coordinate,
                 providerId = appState.currentSourceMode.primaryProviderId,
             )

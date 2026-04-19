@@ -5,8 +5,11 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import me.fiksu.esp32map.companion.integration.share.UrlDestinationResolution
+import me.fiksu.esp32map.companion.integration.share.resolveDestinationFromUrl
 import me.fiksu.esp32map.companion.app.CompanionAppState
 import me.fiksu.esp32map.companion.domain.CoordinatePoint
 import me.fiksu.esp32map.companion.domain.DestinationSearchResult
@@ -37,6 +40,14 @@ class HomeStateHolder(
     var activeRouteIdentifier by mutableStateOf<String?>(null)
     var homeMode by mutableStateOf(HomeMode.PLANNING)
     var compassMode by mutableStateOf(HomeCompassMode.AUTO_FOLLOW)
+    /** True while a pasted URL (e.g. maps.app.goo.gl) is being followed to a destination. */
+    var isResolvingUrl by mutableStateOf(false)
+        private set
+    /** Last URL-resolve failure for the search panel. */
+    var urlResolveError by mutableStateOf<String?>(null)
+        private set
+
+    private var urlResolveJob: Job? = null
 
     private val switchablePlanningProviders = setOf(RouteProviderId.HSL, RouteProviderId.OSM)
 
@@ -82,15 +93,15 @@ class HomeStateHolder(
     val shouldShowSearchPanel: Boolean
         get() {
             if (homeMode != HomeMode.PLANNING || !isSearchOpen) return false
-            return if (query.isBlank()) {
-                recentItems.isNotEmpty()
-            } else {
-                visibleSuggestions.isNotEmpty()
-            }
+            if (isResolvingUrl || urlResolveError != null) return true
+            return if (query.isBlank()) recentItems.isNotEmpty() else visibleSuggestions.isNotEmpty()
         }
 
     val shouldShowSourceControl: Boolean
-        get() = homeMode == HomeMode.PLANNING && previewAlternatives.isNotEmpty() && !isPreviewLockedToImportedRoute
+        get() = homeMode == HomeMode.PLANNING
+            && previewAlternatives.isNotEmpty()
+            && !isPreviewLockedToImportedRoute
+            && appState.sourceModeOptions.size > 1
 
     val routeSuggestionsTitle: String
         get() = if (isPreviewLockedToImportedRoute) "Imported route" else "Suggested routes"
@@ -140,6 +151,10 @@ class HomeStateHolder(
 
     fun closeSearch() {
         isSearchOpen = false
+        urlResolveJob?.cancel()
+        urlResolveJob = null
+        isResolvingUrl = false
+        urlResolveError = null
     }
 
     fun loadMoreRecentsIfNeeded(item: RouteHistoryItem) {
@@ -158,19 +173,64 @@ class HomeStateHolder(
         if (homeMode != HomeMode.PLANNING) return
         query = newValue
         visibleSuggestionCount = 10
-        if (newValue.isBlank()) {
+        val trimmed = newValue.trim()
+        if (trimmed.isEmpty()) {
             suggestions = emptyList()
+            urlResolveError = null
+            urlResolveJob?.cancel()
+            urlResolveJob = null
+            isResolvingUrl = false
             return
         }
+        if (trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)) {
+            suggestions = emptyList()
+            startUrlResolve(trimmed, scope)
+            return
+        }
+        urlResolveError = null
+        urlResolveJob?.cancel()
+        urlResolveJob = null
+        isResolvingUrl = false
         scope.launch {
             suggestions = placeSearchService.searchDestinations(newValue, 30)
+        }
+    }
+
+    private fun startUrlResolve(url: String, scope: CoroutineScope) {
+        urlResolveJob?.cancel()
+        isResolvingUrl = true
+        urlResolveError = null
+        urlResolveJob = scope.launch {
+            val resolution = resolveDestinationFromUrl(url)
+            isResolvingUrl = false
+            when (resolution) {
+                is UrlDestinationResolution.Coordinate -> {
+                    val title = resolution.suggestedTitle ?: "Imported destination"
+                    appState.routeRequest = RoutePlanRequest(
+                        origin = appState.riderLocation,
+                        destination = resolution.point,
+                        providerId = sourceMode.primaryProviderId,
+                    )
+                    closeSearch()
+                    appState.planRoute(sourceMode = sourceMode, preferredTitle = title)
+                    appState.recordRecentDestination(title, resolution.point)
+                    appState.recordPlannedPreview(RouteHistorySource.PLANNED_ROUTE, sourceMode.displayName)
+                    query = title
+                }
+                UrlDestinationResolution.NoDestinationFound -> {
+                    urlResolveError = "Couldn't find a destination in that URL."
+                }
+                is UrlDestinationResolution.NetworkError -> {
+                    urlResolveError = "URL expansion failed: ${resolution.message}"
+                }
+            }
         }
     }
 
     fun selectSuggestion(suggestion: DestinationSearchResult, scope: CoroutineScope) {
         closeSearch()
         appState.routeRequest = RoutePlanRequest(
-            origin = appState.simulatedRiderLocation,
+            origin = appState.riderLocation,
             destination = suggestion.coordinate,
             providerId = sourceMode.primaryProviderId,
         )
@@ -223,7 +283,7 @@ class HomeStateHolder(
         appState.saveRoutePlannerPreferences(appState.routePlannerPreferences.copy(defaultSourceMode = mode))
         val destination = destinationCoordinate ?: return
         appState.routeRequest = RoutePlanRequest(
-            origin = appState.simulatedRiderLocation,
+            origin = appState.riderLocation,
             destination = destination,
             providerId = mode.primaryProviderId,
         )
@@ -265,7 +325,7 @@ class HomeStateHolder(
             return
         }
         appState.routeRequest = RoutePlanRequest(
-            origin = appState.simulatedRiderLocation,
+            origin = appState.riderLocation,
             destination = destination,
             providerId = sourceToReuse.primaryProviderId,
         )

@@ -29,7 +29,7 @@ final class HomeViewModel: ObservableObject {
                 await appModel.applyRouteHistoryPreview(item)
             } else if let destination = pending.destination {
                 appModel.routeRequest = RoutePlanRequest(
-                    origin: appModel.simulatedRiderLocation,
+                    origin: appModel.riderLocation,
                     destination: destination,
                     providerID: sourceMode.primaryProviderID
                 )
@@ -52,6 +52,11 @@ final class HomeViewModel: ObservableObject {
     @Published var homeMode: HomeMode = .planning
     @Published var compassMode: HomeCompassMode = .autoFollow
     @Published private(set) var planningStatus: String?
+    /// True while a pasted URL (e.g. maps.app.goo.gl) is being followed to a destination.
+    @Published private(set) var isResolvingUrl: Bool = false
+    /// Last URL-resolve failure message for the search panel.
+    @Published private(set) var urlResolveError: String?
+    private var latestUrlResolveTask: Task<Void, Never>?
 
     private let appModel: AppModel
     private let placeSearchService: PlaceSearchService
@@ -130,6 +135,7 @@ final class HomeViewModel: ObservableObject {
 
     var shouldShowSearchPanel: Bool {
         guard homeMode == .planning, isSearchOpen else { return false }
+        if isResolvingUrl || urlResolveError != nil { return true }
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmedQuery.isEmpty {
             return !recentItems.isEmpty
@@ -138,7 +144,10 @@ final class HomeViewModel: ObservableObject {
     }
 
     var shouldShowSourceControl: Bool {
-        homeMode == .planning && !previewAlternatives.isEmpty && !isPreviewLockedToImportedRoute
+        homeMode == .planning
+            && !previewAlternatives.isEmpty
+            && !isPreviewLockedToImportedRoute
+            && appModel.sourceModeOptions.count > 1
     }
 
     var routeSuggestionsTitle: String {
@@ -208,6 +217,8 @@ final class HomeViewModel: ObservableObject {
 
     func closeSearch() {
         isSearchOpen = false
+        cancelUrlResolve()
+        urlResolveError = nil
     }
 
     func loadMoreRecentsIfNeeded(for item: RouteHistoryItem) {
@@ -227,15 +238,63 @@ final class HomeViewModel: ObservableObject {
         query = newValue
         visibleSuggestionCount = 10
         latestSearchTask?.cancel()
-        guard !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
             suggestions = []
+            urlResolveError = nil
+            cancelUrlResolve()
             return
         }
+        if trimmed.lowercased().hasPrefix("http://") || trimmed.lowercased().hasPrefix("https://") {
+            suggestions = []
+            startUrlResolve(trimmed)
+            return
+        }
+        urlResolveError = nil
+        cancelUrlResolve()
         latestSearchTask = Task { [weak self] in
             guard let self else { return }
             let results = await placeSearchService.searchDestinations(matching: newValue, limit: 30)
             if !Task.isCancelled {
                 suggestions = results
+            }
+        }
+    }
+
+    private func cancelUrlResolve() {
+        latestUrlResolveTask?.cancel()
+        latestUrlResolveTask = nil
+        isResolvingUrl = false
+    }
+
+    private func startUrlResolve(_ urlString: String) {
+        latestUrlResolveTask?.cancel()
+        isResolvingUrl = true
+        urlResolveError = nil
+        latestUrlResolveTask = Task { [weak self] in
+            guard let self else { return }
+            let resolution = await appModel.resolveDestinationFromUrl(urlString, using: placeSearchService)
+            if Task.isCancelled { return }
+            isResolvingUrl = false
+            switch resolution {
+            case .coordinate(let point, let suggestedTitle):
+                let title = suggestedTitle ?? "Imported destination"
+                appModel.routeRequest = RoutePlanRequest(
+                    origin: appModel.riderLocation,
+                    destination: point,
+                    providerID: sourceMode.primaryProviderID
+                )
+                closeSearch()
+                planningStatus = "Planning route to \(title)…"
+                defer { planningStatus = nil }
+                await appModel.planRoute(using: sourceMode, preferredTitle: title)
+                appModel.recordRecentDestination(title: title, coordinate: point)
+                appModel.recordPlannedPreview(source: .plannedRoute, sourceLabel: sourceMode.displayName)
+                query = title
+            case .noDestinationFound:
+                urlResolveError = "Couldn't find a destination in that URL."
+            case .networkError(let message):
+                urlResolveError = "URL expansion failed: \(message)"
             }
         }
     }
@@ -247,7 +306,7 @@ final class HomeViewModel: ObservableObject {
             planningStatus = "Planning route to \(suggestion.title)…"
             defer { planningStatus = nil }
             appModel.routeRequest = RoutePlanRequest(
-                origin: appModel.simulatedRiderLocation,
+                origin: appModel.riderLocation,
                 destination: suggestion.coordinate,
                 providerID: sourceMode.primaryProviderID
             )
@@ -308,7 +367,7 @@ final class HomeViewModel: ObservableObject {
             planningStatus = "Refreshing route options…"
             defer { planningStatus = nil }
             appModel.routeRequest = RoutePlanRequest(
-                origin: appModel.simulatedRiderLocation,
+                origin: appModel.riderLocation,
                 destination: destination,
                 providerID: mode.primaryProviderID
             )
@@ -359,7 +418,7 @@ final class HomeViewModel: ObservableObject {
                 }
             }
             appModel.routeRequest = RoutePlanRequest(
-                origin: appModel.simulatedRiderLocation,
+                origin: appModel.riderLocation,
                 destination: destination,
                 providerID: sourceToReuse.primaryProviderID
             )

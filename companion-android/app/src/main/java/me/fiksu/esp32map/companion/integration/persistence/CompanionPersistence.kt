@@ -24,6 +24,7 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
         const val LAST_SESSION = "last_session"
         const val SETTINGS = "settings"
         const val PLANNER_PREFERENCES = "planner_preferences"
+        const val LAST_KNOWN_RIDER = "last_known_rider"
     }
 
     private val defaults = context?.getSharedPreferences(Key.STORE, Context.MODE_PRIVATE)
@@ -193,6 +194,24 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
         } else {
             importDiagnostics.clear()
             importDiagnostics.addAll(items)
+        }
+    }
+
+    private var lastKnownRider: CoordinatePoint? = null
+
+    fun loadLastKnownRider(): CoordinatePoint? {
+        defaults?.let {
+            val stored = it.getString(Key.LAST_KNOWN_RIDER, null) ?: return lastKnownRider
+            return runCatching { gson.fromJson(stored, CoordinatePoint::class.java) }.getOrNull()
+        }
+        return lastKnownRider
+    }
+
+    fun saveLastKnownRider(point: CoordinatePoint) {
+        if (defaults != null) {
+            defaults.edit().putString(Key.LAST_KNOWN_RIDER, gson.toJson(point)).apply()
+        } else {
+            lastKnownRider = point
         }
     }
 

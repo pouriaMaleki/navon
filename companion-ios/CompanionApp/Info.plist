@@ -35,6 +35,8 @@
     <string>The companion app uses Bluetooth to send routes to your ESP32 device and receive reroute events.</string>
     <key>NSBluetoothPeripheralUsageDescription</key>
     <string>The companion app uses Bluetooth to sync routes with your ESP32 device.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>ESP32 Bike Companion uses your location to plan and follow routes from where you are.</string>
     <key>UIApplicationSceneManifest</key>
     <dict>
         <key>UIApplicationSupportsMultipleScenes</key>
