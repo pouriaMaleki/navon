@@ -27,3 +27,20 @@ interface RouteSessionStore {
     fun loadLastSession(): ActiveRouteSession?
     fun saveSession(session: ActiveRouteSession)
 }
+
+enum class LocationErrorKind { DENIED, UNAVAILABLE, TIMEOUT, UNSUPPORTED }
+
+data class LocationState(
+    val currentLocation: CoordinatePoint? = null,
+    val lastKnownLocation: CoordinatePoint? = null,
+    val isLocating: Boolean = false,
+    val lastError: LocationErrorKind? = null,
+)
+
+interface LocationService {
+    val state: kotlinx.coroutines.flow.StateFlow<LocationState>
+    /** Begin watching the device's foreground location. Idempotent. */
+    fun start()
+    /** Pause watching. Idempotent. */
+    fun stop()
+}

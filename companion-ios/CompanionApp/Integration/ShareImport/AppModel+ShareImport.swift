@@ -1,10 +1,48 @@
 import Foundation
 
+/// Result of asking the share-import classifier to follow a URL to a destination.
+enum UrlDestinationResolution {
+    case coordinate(CoordinatePoint, suggestedTitle: String?)
+    case noDestinationFound
+    case networkError(String)
+}
+
 extension AppModel {
     private struct RemotePageSummary {
         let finalURL: URL
         let pageTitle: String?
         let coordinate: CoordinatePoint?
+    }
+
+    /// Public entry point used by the in-app "Where to?" paste flow. Re-uses the same
+    /// canonicalisation, redirect-following, and coordinate extraction the share extension
+    /// already does, then surfaces a simple result type.
+    func resolveDestinationFromUrl(
+        _ urlString: String,
+        using searchService: PlaceSearchService = MapKitPlaceSearchService()
+    ) async -> UrlDestinationResolution {
+        let trimmed = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let parsed = URL(string: trimmed) else { return .noDestinationFound }
+
+        let canonical = canonicalSharedURL(parsed)
+        let expanded = await expandedSharedURL(for: canonical) ?? canonical
+        let resolved = canonicalSharedURL(expanded)
+
+        if let inline = extractCoordinate(from: resolved) {
+            return .coordinate(inline, suggestedTitle: nil)
+        }
+
+        let remote = await remotePageSummary(for: resolved)
+        if let coordinate = remote?.coordinate {
+            return .coordinate(coordinate, suggestedTitle: remote?.pageTitle)
+        }
+        if let title = remote?.pageTitle, !title.isEmpty {
+            let matches = await searchService.searchDestinations(matching: title, limit: 1)
+            if let first = matches.first {
+                return .coordinate(first.coordinate, suggestedTitle: first.title)
+            }
+        }
+        return .noDestinationFound
     }
 
     var importDiagnosticsEntries: [ImportDiagnosticsEntry] {
@@ -130,7 +168,7 @@ extension AppModel {
 
     private func planSharedDestinationImport(_ destination: DestinationSearchResult, from envelope: SharedImportEnvelope) async {
         routeRequest = RoutePlanRequest(
-            origin: simulatedRiderLocation,
+            origin: riderLocation,
             destination: destination.coordinate,
             providerID: currentSourceMode.primaryProviderID
         )

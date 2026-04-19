@@ -9,6 +9,7 @@ final class CompanionPersistence: RouteSessionStore {
         static let lastSession = "companion.lastSession"
         static let settings = "companion.settings"
         static let plannerPreferences = "companion.routePlannerPreferences"
+        static let lastKnownRider = "companion.lastKnownRider"
     }
 
     private let defaults: UserDefaults
@@ -122,6 +123,14 @@ final class CompanionPersistence: RouteSessionStore {
 
     func saveRoutePlannerPreferences(_ preferences: RoutePlannerPreferences) {
         save(preferences, forKey: Key.plannerPreferences)
+    }
+
+    func loadLastKnownRider() -> CoordinatePoint? {
+        load(CoordinatePoint.self, forKey: Key.lastKnownRider)
+    }
+
+    func saveLastKnownRider(_ point: CoordinatePoint) {
+        save(point, forKey: Key.lastKnownRider)
     }
 
     private func preferredDestinationTitle(newTitle: String, existingTitle: String) -> String {

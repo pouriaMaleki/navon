@@ -12,8 +12,13 @@ extension AppModel {
     var routePlannerPreferences: RoutePlannerPreferences {
         get { persistence.loadRoutePlannerPreferences() }
         set {
-            persistence.saveRoutePlannerPreferences(newValue)
-            currentSourceMode = newValue.defaultSourceMode
+            // Reject mixed/hsl as a default when no Digitransit key is configured.
+            var sanitized = newValue
+            if !isHslLiveConfigured && sanitized.defaultSourceMode != .osm {
+                sanitized.defaultSourceMode = .osm
+            }
+            persistence.saveRoutePlannerPreferences(sanitized)
+            currentSourceMode = sanitized.defaultSourceMode
         }
     }
 

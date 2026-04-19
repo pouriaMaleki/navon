@@ -5,15 +5,25 @@ import Combine
 
 @MainActor
 final class AppModel: ObservableObject {
+    static let defaultRiderFallback = CoordinatePoint(latitude: 60.1699, longitude: 24.9384)
+
     @Published var selectedProviderID: RouteProviderID = .hsl
     @Published var currentSourceMode: RouteSourceMode
     @Published var settings: CompanionSettings
-    @Published var simulatedRiderLocation = CoordinatePoint(latitude: 60.1699, longitude: 24.9384)
     @Published var routeRequest = RoutePlanRequest(
         origin: CoordinatePoint(latitude: 60.1699, longitude: 24.9384),
         destination: CoordinatePoint(latitude: 60.1921, longitude: 24.9458),
         providerID: .hsl
     )
+
+    /// Best estimate of the rider's current position. Sourced from CoreLocation; falls back
+    /// to the last persisted fix and finally to a static default so the planner stays usable
+    /// when permission is denied.
+    var riderLocation: CoordinatePoint {
+        locationService.currentLocation
+            ?? locationService.lastKnownLocation
+            ?? Self.defaultRiderFallback
+    }
     @Published var preview = RoutePreviewModel(alternatives: [], selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil)
     @Published var activeSession = ActiveRouteSession(
         routeIdentifier: nil,
@@ -33,6 +43,7 @@ final class AppModel: ObservableObject {
     let diagnosticsStore = CompanionDiagnosticsStore()
     let persistence = CompanionPersistence()
     let bleService = BleRouteSyncService()
+    let locationService: CoreLocationService
 
     private var cancellables = Set<AnyCancellable>()
     private var lastHandledRerouteSignature: String?
@@ -46,6 +57,11 @@ final class AppModel: ObservableObject {
     ]
 
     init() {
+        // All stored properties must be initialized before any self-method call.
+        let persistence = self.persistence
+        let locationService = CoreLocationService(persistence: persistence)
+        self.locationService = locationService
+
         settings = persistence.loadSettings()
         let preferences = persistence.loadRoutePlannerPreferences()
         currentSourceMode = preferences.defaultSourceMode
@@ -53,15 +69,45 @@ final class AppModel: ObservableObject {
             activeSession = storedSession
         }
         selectedProviderID = activeSession.providerID
+        if let initial = locationService.currentLocation ?? locationService.lastKnownLocation {
+            routeRequest.origin = initial
+        }
         bindBleState()
+        bindLocationService()
+        locationService.start()
     }
 
     var providerOptions: [RouteProviderID] {
         RouteProviderID.allCases
     }
 
+    /// True only when the user has enabled live HSL routing AND configured a Digitransit key.
+    /// Mirrors `companion-web` `SettingsStore.isHslLiveConfigured`.
+    var isHslLiveConfigured: Bool {
+        settings.preferLiveHslRouting
+            && !settings.hslSubscriptionKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    /// True when both endpoints of the current request fall inside the Uusimaa region of
+    /// Finland (HSL Digitransit's coverage area).
+    var isHslApplicableForRequest: Bool {
+        AppModel.isInUusimaa(routeRequest.origin) && AppModel.isInUusimaa(routeRequest.destination)
+    }
+
+    /// True when HSL is both configured AND geographically usable for the current request.
+    var isHslAvailable: Bool { isHslLiveConfigured && isHslApplicableForRequest }
+
+    /// Source-mode tabs visible in the UI. With no Digitransit key, or when either endpoint
+    /// is outside Uusimaa, mixed/HSL collapse to OSM (the picker hides itself when there is
+    /// only one option).
     var sourceModeOptions: [RouteSourceMode] {
-        RouteSourceMode.allCases
+        isHslAvailable ? RouteSourceMode.allCases : [.osm]
+    }
+
+    /// Approximate bounding box for the Uusimaa region of Finland (Helsinki, Espoo,
+    /// Vantaa, Porvoo, Hanko, Loviisa, etc.).
+    static func isInUusimaa(_ point: CoordinatePoint) -> Bool {
+        (59.8...60.8).contains(point.latitude) && (23.3...26.7).contains(point.longitude)
     }
 
     var isDeviceConnected: Bool {
@@ -82,6 +128,26 @@ final class AppModel: ObservableObject {
 
     func persistSettings() {
         persistence.saveSettings(settings)
+        normalizeSourceModeForHslAvailability()
+    }
+
+    /// When HSL becomes unusable (no key OR endpoints outside Uusimaa), fall back any
+    /// HSL-only or Mixed active selections to OSM. Persisted defaults are also normalised
+    /// when the underlying *configuration* (the key) is gone, so a relaunch is consistent.
+    func normalizeSourceModeForHslAvailability() {
+        if !isHslAvailable && currentSourceMode != .osm {
+            currentSourceMode = .osm
+        }
+        guard !isHslLiveConfigured else { return }
+        var preferences = persistence.loadRoutePlannerPreferences()
+        if preferences.defaultSourceMode != .osm {
+            preferences = RoutePlannerPreferences(
+                defaultSourceMode: .osm,
+                suggestionMode: preferences.suggestionMode,
+                startBehavior: preferences.startBehavior
+            )
+            persistence.saveRoutePlannerPreferences(preferences)
+        }
     }
 
     func importGpxFile(from url: URL) async {
@@ -103,7 +169,6 @@ final class AppModel: ObservableObject {
                     destination: selected.geometry.last ?? routeRequest.destination,
                     providerID: .gpxImport
                 )
-                simulatedRiderLocation = selected.geometry.first ?? simulatedRiderLocation
             }
             applySelectedAlternativeToSession(sourceMode: currentSourceMode, destination: routeRequest.destination, preferredTitle: url.deletingPathExtension().lastPathComponent)
             refreshDiagnostics()
@@ -131,7 +196,7 @@ final class AppModel: ObservableObject {
         let preview = try adapter.importFile(
             named: url.lastPathComponent,
             data: data,
-            origin: simulatedRiderLocation
+            origin: riderLocation
         )
         selectedProviderID = providerID
         self.preview = preview
@@ -141,7 +206,6 @@ final class AppModel: ObservableObject {
                 destination: selected.geometry.last ?? routeRequest.destination,
                 providerID: providerID
             )
-            simulatedRiderLocation = selected.geometry.first ?? simulatedRiderLocation
         }
         applySelectedAlternativeToSession(
             sourceMode: currentSourceMode,
@@ -156,14 +220,16 @@ final class AppModel: ObservableObject {
     }
 
     func planRoute(using sourceMode: RouteSourceMode, preferredTitle: String? = nil, revisionOverride: Int? = nil) async {
-        currentSourceMode = sourceMode
-        routeRequest.providerID = sourceMode.primaryProviderID
+        // If HSL isn't available for this trip (no key OR endpoints outside Uusimaa),
+        // collapse mixed/HSL down to OSM before planning so we don't race a useless provider.
+        let effectiveMode: RouteSourceMode = (!isHslAvailable && sourceMode != .osm) ? .osm : sourceMode
+        currentSourceMode = effectiveMode
+        routeRequest.providerID = effectiveMode.primaryProviderID
         do {
-            preview = try await buildPreview(for: routeRequest, sourceMode: sourceMode, revisionOverride: revisionOverride)
-            simulatedRiderLocation = routeRequest.origin
+            preview = try await buildPreview(for: routeRequest, sourceMode: effectiveMode, revisionOverride: revisionOverride)
             persistence.saveRecentDestination(routeRequest.destination)
             notePersistenceChanged()
-            applySelectedAlternativeToSession(sourceMode: sourceMode, destination: routeRequest.destination, preferredTitle: preferredTitle)
+            applySelectedAlternativeToSession(sourceMode: effectiveMode, destination: routeRequest.destination, preferredTitle: preferredTitle)
             refreshDiagnostics()
         } catch {
             preview = RoutePreviewModel(
@@ -290,20 +356,20 @@ final class AppModel: ObservableObject {
                 currentSourceMode = .hsl
             }
             routeRequest = RoutePlanRequest(
-                origin: simulatedRiderLocation,
+                origin: riderLocation,
                 destination: item.destination ?? package.geometry.last ?? routeRequest.destination,
                 providerID: package.provenance.providerID
             )
             let sessionSourceMode = package.provenance.providerID == .osm ? RouteSourceMode.osm : currentSourceMode
             applySelectedAlternativeToSession(sourceMode: sessionSourceMode, destination: routeRequest.destination, preferredTitle: item.title)
         } else if let destination = item.destination {
-            routeRequest = RoutePlanRequest(origin: simulatedRiderLocation, destination: destination, providerID: currentSourceMode.primaryProviderID)
+            routeRequest = RoutePlanRequest(origin: riderLocation, destination: destination, providerID: currentSourceMode.primaryProviderID)
             await planRoute(using: currentSourceMode, preferredTitle: item.title)
         }
     }
 
     func handleRerouteRequest() async {
-        await rerouteActiveSession(from: simulatedRiderLocation, reason: "Device requested reroute")
+        await rerouteActiveSession(from: riderLocation, reason: "Device requested reroute")
     }
 
     func rerouteActiveSession(from riderLocation: CoordinatePoint, reason: String) async {
@@ -317,7 +383,6 @@ final class AppModel: ObservableObject {
             )
         )
 
-        simulatedRiderLocation = riderLocation
         routeRequest = RoutePlanRequest(
             origin: riderLocation,
             destination: activeSession.destinationCoordinate ?? routeRequest.destination,
@@ -327,6 +392,27 @@ final class AppModel: ObservableObject {
         activeSession.lastRerouteReason = reason
         activeSession.lastRerouteTimestamp = Date()
         _ = await sendSelectedRoute()
+    }
+
+    private func bindLocationService() {
+        // Forward location updates to AppModel so SwiftUI views observing AppModel re-render
+        // when riderLocation changes, and refresh the planning origin if the user has not
+        // typed a destination yet.
+        locationService.objectWillChange
+            .receive(on: RunLoop.main)
+            .sink { [weak self] in
+                guard let self else { return }
+                self.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
+        locationService.$currentLocation
+            .receive(on: RunLoop.main)
+            .sink { [weak self] point in
+                guard let self, let point else { return }
+                self.routeRequest.origin = point
+            }
+            .store(in: &cancellables)
     }
 
     private func bindBleState() {
@@ -385,12 +471,19 @@ final class AppModel: ObservableObject {
     }
 
     private func buildMixedPreview(for request: RoutePlanRequest, revisionOverride: Int?) async throws -> RoutePreviewModel {
-        guard let hsl = providers[.hsl], let osm = providers[.osm] else {
+        guard let osm = providers[.osm] else {
             throw NSError(domain: "AppModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Mixed mode providers are unavailable"])
         }
-        async let hslPreview = preview(from: hsl, request: request, revisionOverride: revisionOverride)
+        // Skip the HSL race when HSL is unavailable (no key OR endpoints outside Uusimaa).
+        let includeHsl = isHslAvailable
         async let osmPreview = preview(from: osm, request: request, revisionOverride: revisionOverride)
-        let previews = try await [hslPreview, osmPreview]
+        let previews: [RoutePreviewModel]
+        if includeHsl, let hsl = providers[.hsl] {
+            async let hslPreview = preview(from: hsl, request: request, revisionOverride: revisionOverride)
+            previews = try await [hslPreview, osmPreview]
+        } else {
+            previews = try await [osmPreview]
+        }
         let effectivePreviews = preferredMixedPreviews(from: previews)
         let merged = mergeMixedAlternatives(effectivePreviews.flatMap(\.alternatives))
         return RoutePreviewModel(

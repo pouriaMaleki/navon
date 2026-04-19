@@ -27,3 +27,21 @@ protocol RouteSessionStore {
     func loadLastSession() -> ActiveRouteSession?
     func saveSession(_ session: ActiveRouteSession)
 }
+
+enum LocationErrorKind: String, Equatable {
+    case denied
+    case unavailable
+    case timeout
+    case unsupported
+}
+
+protocol LocationService: AnyObject {
+    var currentLocation: CoordinatePoint? { get }
+    var lastKnownLocation: CoordinatePoint? { get }
+    var isLocating: Bool { get }
+    var lastError: LocationErrorKind? { get }
+    /// Begin watching the device's foreground location. Idempotent.
+    func start()
+    /// Pause watching. Idempotent.
+    func stop()
+}

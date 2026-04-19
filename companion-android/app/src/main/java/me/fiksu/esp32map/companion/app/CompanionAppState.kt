@@ -31,6 +31,7 @@ import me.fiksu.esp32map.companion.domain.RouteSourceMode
 import me.fiksu.esp32map.companion.domain.RouteSuggestionKind
 import me.fiksu.esp32map.companion.domain.RoutingProvider
 import me.fiksu.esp32map.companion.domain.SyncSessionState
+import me.fiksu.esp32map.companion.integration.AndroidLocationService
 import me.fiksu.esp32map.companion.integration.ble.BleRouteSyncService
 import me.fiksu.esp32map.companion.integration.diagnostics.CompanionDiagnosticsStore
 import me.fiksu.esp32map.companion.integration.gpx.GpxRoutingAdapter
@@ -40,11 +41,14 @@ import me.fiksu.esp32map.companion.integration.sample.SampleRoutingAdapter
 import me.fiksu.esp32map.companion.integration.share.AndroidShareImportParser
 
 class CompanionAppState(application: Application) : AndroidViewModel(application) {
+    companion object {
+        private val DEFAULT_RIDER_FALLBACK = CoordinatePoint(60.1699, 24.9384)
+    }
+
     var selectedProviderId by mutableStateOf(RouteProviderId.HSL)
     var currentSourceMode by mutableStateOf(RouteSourceMode.MIXED)
     var settings by mutableStateOf(CompanionSettings())
     var routePlannerPreferences by mutableStateOf(RoutePlannerPreferences())
-    var simulatedRiderLocation by mutableStateOf(CoordinatePoint(60.1699, 24.9384))
     var routeRequest by mutableStateOf(
         RoutePlanRequest(
             origin = CoordinatePoint(60.1699, 24.9384),
@@ -61,6 +65,20 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
     val diagnosticsStore = CompanionDiagnosticsStore()
     val persistence = CompanionPersistence(application.applicationContext)
     val bleService = BleRouteSyncService(application.applicationContext)
+    val locationService = AndroidLocationService(application.applicationContext, persistence)
+    var locationState by mutableStateOf(locationService.state.value)
+
+    /** Best estimate of where the rider currently is. Falls back to last-known then default. */
+    val riderLocation: CoordinatePoint
+        get() = locationState.currentLocation
+            ?: locationState.lastKnownLocation
+            ?: DEFAULT_RIDER_FALLBACK
+
+    /** True when we have launched a watcher but no usable fix has arrived yet. */
+    val isWaitingForFirstLocationFix: Boolean
+        get() = locationState.isLocating
+            && locationState.currentLocation == null
+            && locationState.lastKnownLocation == null
 
     private var lastHandledRerouteSignature: String? = null
 
@@ -72,8 +90,39 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
         RouteProviderId.TCX_IMPORT to SampleRoutingAdapter(RouteProviderId.TCX_IMPORT),
     )
 
+    /**
+     * True only when live HSL routing is actually usable: toggle on AND key non-empty.
+     * Mirrors `companion-web` `SettingsStore.isHslLiveConfigured`.
+     */
+    val isHslLiveConfigured: Boolean
+        get() = settings.preferLiveHslRouting && settings.hslSubscriptionKey.trim().isNotEmpty()
+
+    /**
+     * True when both endpoints of the current request fall inside the Uusimaa region
+     * of Finland (HSL Digitransit's coverage area).
+     */
+    val isHslApplicableForRequest: Boolean
+        get() = isInUusimaa(routeRequest.origin) && isInUusimaa(routeRequest.destination)
+
+    /** True when HSL is both configured AND geographically usable for the current request. */
+    val isHslAvailable: Boolean
+        get() = isHslLiveConfigured && isHslApplicableForRequest
+
+    /**
+     * Source-mode tabs visible in the UI. With no Digitransit key, or when either endpoint
+     * is outside Uusimaa, mixed/HSL collapse to OSM (the picker hides itself when there is
+     * only one option).
+     */
     val sourceModeOptions: List<RouteSourceMode>
-        get() = RouteSourceMode.entries
+        get() = if (isHslAvailable) RouteSourceMode.entries else listOf(RouteSourceMode.OSM)
+
+    /**
+     * Approximate bounding box for the Uusimaa region of Finland (Helsinki, Espoo,
+     * Vantaa, Porvoo, Hanko, Loviisa, etc.).
+     */
+    private fun isInUusimaa(point: CoordinatePoint): Boolean {
+        return point.latitude in 59.8..60.8 && point.longitude in 23.3..26.7
+    }
 
     val routeHistoryItems: List<RouteHistoryItem>
         get() {
@@ -96,6 +145,16 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
         currentSourceMode = routePlannerPreferences.defaultSourceMode
         persistence.loadLastSession()?.let { activeSession = it }
         selectedProviderId = activeSession.providerId
+        // Seed the route request origin from the last persisted fix if we have one.
+        locationState.lastKnownLocation?.let { routeRequest = routeRequest.copy(origin = it) }
+        viewModelScope.launch {
+            locationService.state.collectLatest { state ->
+                locationState = state
+                state.currentLocation?.let { fix ->
+                    if (routeRequest.origin != fix) routeRequest = routeRequest.copy(origin = fix)
+                }
+            }
+        }
         viewModelScope.launch {
             bleService.state.collectLatest {
                 syncSession = it
@@ -113,8 +172,42 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
         }
     }
 
+    /** Begin watching the device location. Call from MainActivity once permission is granted. */
+    fun startLocationUpdates() {
+        locationService.start()
+    }
+
+    /** Stop watching the device location (called on background or stop). */
+    fun stopLocationUpdates() {
+        locationService.stop()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        locationService.stop()
+    }
+
     fun persistSettings() {
         persistence.saveSettings(settings)
+        normalizeSourceModeForHslAvailability()
+    }
+
+    /**
+     * When HSL becomes unusable (no key OR endpoints outside Uusimaa), fall back any
+     * HSL-only or Mixed active selections to OSM. Persisted defaults are also normalised
+     * when the underlying *configuration* (the key) is gone, so a relaunch is consistent.
+     */
+    fun normalizeSourceModeForHslAvailability() {
+        if (!isHslAvailable && currentSourceMode != RouteSourceMode.OSM) {
+            currentSourceMode = RouteSourceMode.OSM
+        }
+        if (isHslLiveConfigured) return
+        val current = persistence.loadRoutePlannerPreferences()
+        if (current.defaultSourceMode != RouteSourceMode.OSM) {
+            val sanitized = current.copy(defaultSourceMode = RouteSourceMode.OSM)
+            persistence.saveRoutePlannerPreferences(sanitized)
+            routePlannerPreferences = sanitized
+        }
     }
 
     fun importGpxUri(context: Context, uri: Uri) {
@@ -132,7 +225,6 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
                         destination = selected.geometry.lastOrNull() ?: routeRequest.destination,
                         providerId = RouteProviderId.GPX_IMPORT,
                     )
-                    simulatedRiderLocation = selected.geometry.firstOrNull() ?: simulatedRiderLocation
                 }
                 applySelectedAlternativeToSession(currentSourceMode, routeRequest.destination, fileName.substringBeforeLast('.'))
                 refreshDiagnostics()
@@ -149,15 +241,17 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
     }
 
     fun planRoute(sourceMode: RouteSourceMode = currentSourceMode, preferredTitle: String? = null, revisionOverride: Int? = null, onComplete: () -> Unit = {}) {
-        currentSourceMode = sourceMode
-        routeRequest = routeRequest.copy(providerId = sourceMode.primaryProviderId)
+        // Collapse mixed/HSL down to OSM when HSL isn't available for this trip
+        // (no key OR endpoints outside Uusimaa).
+        val effectiveMode = if (!isHslAvailable && sourceMode != RouteSourceMode.OSM) RouteSourceMode.OSM else sourceMode
+        currentSourceMode = effectiveMode
+        routeRequest = routeRequest.copy(providerId = effectiveMode.primaryProviderId)
         viewModelScope.launch {
             runCatching {
-                val nextPreview = buildPreview(routeRequest, sourceMode, revisionOverride)
+                val nextPreview = buildPreview(routeRequest, effectiveMode, revisionOverride)
                 preview = nextPreview
-                simulatedRiderLocation = routeRequest.origin
                 persistence.saveRecentDestination(routeRequest.destination)
-                applySelectedAlternativeToSession(sourceMode, routeRequest.destination, preferredTitle)
+                applySelectedAlternativeToSession(effectiveMode, routeRequest.destination, preferredTitle)
                 refreshDiagnostics()
             }.onFailure { error ->
                 preview = RoutePreviewModel(
@@ -273,9 +367,15 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
     }
 
     fun saveRoutePlannerPreferences(preferences: RoutePlannerPreferences) {
-        routePlannerPreferences = preferences
-        currentSourceMode = preferences.defaultSourceMode
-        persistence.saveRoutePlannerPreferences(preferences)
+        // Reject mixed/hsl as a default when no Digitransit key is configured.
+        val sanitized = if (!isHslLiveConfigured && preferences.defaultSourceMode != RouteSourceMode.OSM) {
+            preferences.copy(defaultSourceMode = RouteSourceMode.OSM)
+        } else {
+            preferences
+        }
+        routePlannerPreferences = sanitized
+        currentSourceMode = sanitized.defaultSourceMode
+        persistence.saveRoutePlannerPreferences(sanitized)
     }
 
     fun recordPlannedPreview(source: RouteHistorySource, sourceLabel: String) {
@@ -364,7 +464,7 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
                     currentSourceMode = RouteSourceMode.HSL
                 }
                 routeRequest = RoutePlanRequest(
-                    origin = simulatedRiderLocation,
+                    origin = riderLocation,
                     destination = item.destination ?: packageRef.geometry.lastOrNull() ?: routeRequest.destination,
                     providerId = packageRef.provenance.providerId,
                 )
@@ -373,7 +473,7 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
                 onComplete()
             } else if (item.destination != null) {
                 routeRequest = RoutePlanRequest(
-                    origin = simulatedRiderLocation,
+                    origin = riderLocation,
                     destination = item.destination,
                     providerId = currentSourceMode.primaryProviderId,
                 )
@@ -395,7 +495,6 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
                     reason = reason,
                 ),
             )
-            simulatedRiderLocation = riderLocation
             routeRequest = RoutePlanRequest(
                 origin = riderLocation,
                 destination = destination,

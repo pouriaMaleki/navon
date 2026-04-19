@@ -47,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.LocalFocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -89,6 +90,14 @@ class MainActivity : ComponentActivity() {
             }
         }
         processSharedIntent(intent)
+        if (appState.locationService.hasLocationPermission()) {
+            appState.startLocationUpdates()
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        appState.stopLocationUpdates()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -234,12 +243,20 @@ private fun CompanionHomeScreen(
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
-            uiSettings = MapUiSettings(compassEnabled = true, myLocationButtonEnabled = false),
-            properties = MapProperties(isMyLocationEnabled = false),
+            uiSettings = MapUiSettings(
+                compassEnabled = true,
+                myLocationButtonEnabled = appState.locationService.hasLocationPermission(),
+            ),
+            properties = MapProperties(isMyLocationEnabled = appState.locationService.hasLocationPermission()),
             onMapLongClick = { latLng ->
                 if (homeState.homeMode == HomeMode.PLANNING) {
                     homeState.setDestinationFromMap(CoordinatePoint(latLng.latitude, latLng.longitude), scope)
                 }
+            },
+            onMapClick = {
+                // A regular tap on the map (anywhere outside the search overlay) collapses
+                // the dropdown and drops keyboard focus. Mirrors the web outside-click dismiss.
+                if (homeState.shouldShowSearchPanel) homeState.closeSearch()
             },
         ) {
             if (homeState.homeMode == HomeMode.PLANNING) {
@@ -267,7 +284,7 @@ private fun CompanionHomeScreen(
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
             when (homeState.homeMode) {
                 HomeMode.PLANNING -> PlanningTopArea(appState, homeState, scope, onOpenSettings)
-                HomeMode.PHONE_GUIDANCE -> PhoneGuidanceTopArea(homeState, scope)
+                HomeMode.PHONE_GUIDANCE -> PhoneGuidanceTopArea(appState, homeState, scope)
                 HomeMode.SENDING_TO_DEVICE, HomeMode.DEVICE_OVERVIEW -> DeviceOverviewTopArea(homeState, onOpenSettings)
             }
 
@@ -290,7 +307,12 @@ private fun PlanningTopArea(
     onOpenSettings: () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
+    BackHandler(enabled = homeState.shouldShowSearchPanel) {
+        focusManager.clearFocus(force = true)
+        homeState.closeSearch()
+    }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LocationPermissionSection(appState)
         Row(verticalAlignment = Alignment.CenterVertically) {
             TextField(
                 value = homeState.query,
@@ -299,6 +321,16 @@ private fun PlanningTopArea(
                     homeState.updateQuery(it, scope)
                 },
                 label = { Text("Where to?") },
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    imeAction = androidx.compose.ui.text.input.ImeAction.Done,
+                ),
+                keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus(force = true)
+                        homeState.closeSearch()
+                    },
+                ),
                 modifier = Modifier.weight(1f),
             )
             Spacer(Modifier.width(12.dp))
@@ -313,26 +345,56 @@ private fun PlanningTopArea(
                 tonalElevation = 4.dp,
                 shape = MaterialTheme.shapes.large,
             ) {
-                LazyColumn(modifier = Modifier.height(320.dp), contentPadding = PaddingValues(vertical = 8.dp)) {
-                    if (homeState.query.isBlank()) {
-                        items(homeState.recentItems, key = { it.id }) { item ->
-                            RouteHistoryRow(item = item, onClick = {
-                                focusManager.clearFocus(force = true)
-                                homeState.selectRecent(item, scope)
-                            })
-                            homeState.loadMoreRecentsIfNeeded(item)
-                        }
-                    } else {
-                        items(homeState.visibleSuggestions, key = { it.id }) { suggestion ->
-                            SearchSuggestionRow(
-                                title = suggestion.title,
-                                subtitle = suggestion.subtitle,
-                                onClick = {
-                                    focusManager.clearFocus(force = true)
-                                    homeState.selectSuggestion(suggestion, scope)
-                                },
+                if (homeState.isResolvingUrl) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        Column(Modifier.weight(1f)) {
+                            Text("Resolving link…", fontWeight = FontWeight.SemiBold)
+                            Text(
+                                "Following the URL to a destination. This can take a couple of seconds.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
-                            homeState.loadMoreSuggestionsIfNeeded(suggestion)
+                        }
+                    }
+                } else if (homeState.urlResolveError != null) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text("Couldn't open that link", fontWeight = FontWeight.SemiBold)
+                        Text(
+                            homeState.urlResolveError ?: "",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                } else {
+                    LazyColumn(modifier = Modifier.height(320.dp), contentPadding = PaddingValues(vertical = 8.dp)) {
+                        if (homeState.query.isBlank()) {
+                            items(homeState.recentItems, key = { it.id }) { item ->
+                                RouteHistoryRow(item = item, onClick = {
+                                    focusManager.clearFocus(force = true)
+                                    homeState.selectRecent(item, scope)
+                                })
+                                homeState.loadMoreRecentsIfNeeded(item)
+                            }
+                        } else {
+                            items(homeState.visibleSuggestions, key = { it.id }) { suggestion ->
+                                SearchSuggestionRow(
+                                    title = suggestion.title,
+                                    subtitle = suggestion.subtitle,
+                                    onClick = {
+                                        focusManager.clearFocus(force = true)
+                                        homeState.selectSuggestion(suggestion, scope)
+                                    },
+                                )
+                                homeState.loadMoreSuggestionsIfNeeded(suggestion)
+                            }
                         }
                     }
                 }
@@ -342,7 +404,11 @@ private fun PlanningTopArea(
 }
 
 @Composable
-private fun PhoneGuidanceTopArea(homeState: HomeStateHolder, scope: kotlinx.coroutines.CoroutineScope) {
+private fun PhoneGuidanceTopArea(
+    appState: CompanionAppState,
+    homeState: HomeStateHolder,
+    scope: kotlinx.coroutines.CoroutineScope,
+) {
     Surface(shape = MaterialTheme.shapes.large, tonalElevation = 4.dp) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(14.dp),
@@ -363,14 +429,18 @@ private fun PhoneGuidanceTopArea(homeState: HomeStateHolder, scope: kotlinx.coro
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    when (homeState.compassMode) {
-                        HomeCompassMode.AUTO_FOLLOW -> "Auto"
-                        HomeCompassMode.NORTH_PREVIEW -> "N"
-                        HomeCompassMode.NORTH_LOCKED -> "Lock"
-                    },
-                    style = MaterialTheme.typography.labelMedium,
-                )
+                if (appState.isWaitingForFirstLocationFix) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                } else {
+                    Text(
+                        when (homeState.compassMode) {
+                            HomeCompassMode.AUTO_FOLLOW -> "Auto"
+                            HomeCompassMode.NORTH_PREVIEW -> "N"
+                            HomeCompassMode.NORTH_LOCKED -> "Lock"
+                        },
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                }
             }
         }
     }
@@ -585,6 +655,7 @@ private fun DeviceSettingsScreen(appState: CompanionAppState, onBack: () -> Unit
     ScreenColumn(PaddingValues(0.dp)) {
         BackHeader(title = "Device", onBack = onBack)
         BluetoothPermissionSection()
+        LocationPermissionSection(appState)
         Text("Connection: ${appState.syncSession.connectionState}")
         Text("Route sync: ${appState.syncSession.routeSyncState}")
         Text("Pending route: ${appState.syncSession.pendingRouteIdentifier ?: "None"}")
@@ -605,16 +676,18 @@ private fun DeviceSettingsScreen(appState: CompanionAppState, onBack: () -> Unit
 private fun RoutePlannerSettingsScreen(appState: CompanionAppState, onBack: () -> Unit) {
     ScreenColumn(PaddingValues(0.dp)) {
         BackHeader(title = "Route Planner", onBack = onBack)
-        Text("Default route source")
-        RouteSourceMode.entries.forEach { mode ->
-            FilterChip(
-                selected = appState.routePlannerPreferences.defaultSourceMode == mode,
-                onClick = {
-                    appState.saveRoutePlannerPreferences(appState.routePlannerPreferences.copy(defaultSourceMode = mode))
-                    appState.currentSourceMode = mode
-                },
-                label = { Text(mode.displayName) },
-            )
+        if (appState.sourceModeOptions.size > 1) {
+            Text("Default route source")
+            appState.sourceModeOptions.forEach { mode ->
+                FilterChip(
+                    selected = appState.routePlannerPreferences.defaultSourceMode == mode,
+                    onClick = {
+                        appState.saveRoutePlannerPreferences(appState.routePlannerPreferences.copy(defaultSourceMode = mode))
+                        appState.currentSourceMode = mode
+                    },
+                    label = { Text(mode.displayName) },
+                )
+            }
         }
         Text("Suggestion mode")
         RouteSuggestionMode.entries.forEach { mode ->
@@ -632,6 +705,21 @@ private fun RoutePlannerSettingsScreen(appState: CompanionAppState, onBack: () -
                 label = { Text(behavior.displayName) },
             )
         }
+        Spacer(Modifier.height(16.dp))
+        Text("HSL Digitransit", fontWeight = FontWeight.SemiBold)
+        Text(
+            "HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across the Helsinki metro area. The key is free — sign in at the portal, register an app, and copy the subscription key into the field below. Outside the Helsinki area, leave HSL off and the planner uses OSM routing globally.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        val uriHandler = LocalUriHandler.current
+        Text(
+            "Open the Digitransit portal",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.clickable { uriHandler.openUri("https://portal-api.digitransit.fi/") },
+        )
+        Spacer(Modifier.height(8.dp))
         TextField(
             value = appState.settings.hslSubscriptionKey,
             onValueChange = {
@@ -704,6 +792,26 @@ private fun BluetoothPermissionSection() {
     if (missingPermissions.isNotEmpty()) {
         Button(onClick = { launcher.launch(missingPermissions.toTypedArray()) }) {
             Text("Grant Bluetooth permissions")
+        }
+    }
+}
+
+@Composable
+private fun LocationPermissionSection(appState: CompanionAppState) {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
+        if (results.values.any { it }) appState.startLocationUpdates()
+    }
+    val permissions = listOf(
+        android.Manifest.permission.ACCESS_FINE_LOCATION,
+        android.Manifest.permission.ACCESS_COARSE_LOCATION,
+    )
+    val granted = permissions.any {
+        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+    }
+    if (!granted) {
+        Button(onClick = { launcher.launch(permissions.toTypedArray()) }) {
+            Text("Allow location for route planning")
         }
     }
 }

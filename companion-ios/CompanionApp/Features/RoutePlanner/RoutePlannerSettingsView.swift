@@ -47,11 +47,20 @@ struct RoutePlannerSettingsView: View {
                 }
             }
 
-            Section("HSL") {
+            Section {
                 Toggle("Prefer live HSL routing", isOn: $appModel.settings.preferLiveHslRouting)
                 SecureField("Digitransit subscription key", text: $appModel.settings.hslSubscriptionKey)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+            } header: {
+                Text("HSL Digitransit")
+            } footer: {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across the Helsinki metro area. The key is free — sign in at the portal, register an app, and copy the subscription key into the field above. Outside the Helsinki area, leave HSL off and the planner uses OSM routing globally.")
+                    Link("Open the Digitransit portal", destination: URL(string: "https://portal-api.digitransit.fi/")!)
+                }
+                .font(.footnote)
+                .padding(.top, 4)
             }
         }
         .navigationTitle("Route Planner")

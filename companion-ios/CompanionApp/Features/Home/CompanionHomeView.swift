@@ -98,6 +98,15 @@ struct CompanionHomeView: View {
                     }
                 }
         )
+        .simultaneousGesture(
+            // Tap on the map (outside the search overlay) collapses the dropdown
+            // and drops keyboard focus. Mirrors the web outside-click dismiss.
+            TapGesture().onEnded {
+                guard viewModel.homeMode == .planning, viewModel.isSearchOpen else { return }
+                isSearchFieldFocused = false
+                viewModel.closeSearch()
+            }
+        )
     }
 
     private var topOverlay: some View {
@@ -264,7 +273,31 @@ struct CompanionHomeView: View {
     private var searchPanel: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
-                if viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                if viewModel.isResolvingUrl {
+                    HStack(alignment: .center, spacing: 12) {
+                        ProgressView()
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Resolving link…")
+                                .font(.headline)
+                            Text("Following the URL to a destination. This can take a couple of seconds.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                    }
+                    .padding(14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                } else if let urlError = viewModel.urlResolveError {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Couldn't open that link")
+                            .font(.headline)
+                        Text(urlError)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                } else if viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     ForEach(viewModel.recentItems) { item in
                         Button {
                             isSearchFieldFocused = false
@@ -322,17 +355,42 @@ struct CompanionHomeView: View {
 
     @ViewBuilder
     private var planningMapAccessoryControls: some View {
-        if viewModel.homeMode == .planning && planningCameraNeedsReset {
-            Button(action: refreshCameraForCurrentMode) {
-                Image(systemName: "location.north.line.fill")
+        if viewModel.homeMode == .planning {
+            if isWaitingForFirstLocationFix {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .controlSize(.small)
+                    .frame(width: 50, height: 50)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .accessibilityLabel("Locating you")
+                    .padding(.trailing, 16)
+                    .padding(.top, 72)
+            } else if appModel.locationService.lastError == .denied {
+                Image(systemName: "location.slash.fill")
                     .font(.system(size: 18, weight: .semibold))
                     .frame(width: 50, height: 50)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .accessibilityLabel("Location is blocked")
+                    .padding(.trailing, 16)
+                    .padding(.top, 72)
+            } else if planningCameraNeedsReset {
+                Button(action: refreshCameraForCurrentMode) {
+                    Image(systemName: "location.north.line.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .frame(width: 50, height: 50)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                }
+                .accessibilityLabel("Recenter map")
+                .padding(.trailing, 16)
+                .padding(.top, 72)
             }
-            .accessibilityLabel("Recenter map")
-            .padding(.trailing, 16)
-            .padding(.top, 72)
         }
+    }
+
+    private var isWaitingForFirstLocationFix: Bool {
+        appModel.locationService.isLocating
+            && appModel.locationService.currentLocation == nil
+            && appModel.locationService.lastKnownLocation == nil
     }
 
     private func routeHistoryRow(_ item: RouteHistoryItem) -> some View {
@@ -524,7 +582,7 @@ struct CompanionHomeView: View {
         if !coordinates.isEmpty {
             fitCamera(to: coordinates, recordPlanningReference: true)
         } else {
-            let rider = appModel.simulatedRiderLocation
+            let rider = appModel.riderLocation
             setCamera(
                 region: MKCoordinateRegion(
                     center: CLLocationCoordinate2D(latitude: rider.latitude, longitude: rider.longitude),
