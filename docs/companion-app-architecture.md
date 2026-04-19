@@ -4,7 +4,7 @@ Spec reference: [`project-spec.md`](./project-spec.md)
 Plan reference: [`current-plan.md`](./current-plan.md)
 
 ## Goal
-Build both companion apps as native, map-first navigation products with the same logical architecture on iOS and Android while preserving platform conventions and reusing existing route, import, and sync seams.
+Build the companion apps as map-first navigation products with the same logical architecture across three platforms (iOS, Android, web) while preserving platform conventions and reusing existing route, import, and sync seams. The native apps ship the full product; the web companion ships the same planner surface minus device/BLE pieces and uses OSM tiles via MapLibre.
 
 ## Product Shape
 - Home is the primary surface.
@@ -55,11 +55,12 @@ Build both companion apps as native, map-first navigation products with the same
 - Integrations own:
   - provider access and normalization
   - GPX import
-  - BLE sync transport
+  - BLE sync transport (native only; web skips it)
   - persistence
   - diagnostics
-  - share import ingestion and classification
-  - native place search
+  - share import ingestion and classification, shared with in-app URL paste through a `UrlDestinationResolver` seam
+  - native place search (MapKit on iOS, Android Places on Android, Photon + Nominatim on web)
+  - device GPS via a `LocationService` abstraction that each platform implements with its native APIs (`CoreLocation`, `FusedLocationProvider`, browser Geolocation)
 - Integrations return domain models and results, never screen state.
 - Integrations do not navigate and do not mutate feature state directly.
 
@@ -77,6 +78,14 @@ Build both companion apps as native, map-first navigation products with the same
 - Google Maps for the Home map surface
 - platform-native place search for destination suggestions
 - native share intents and SAF document picker flows
+
+### Web
+- Vite + React 19 with `mobx-react-lite` observers and a single `RootStore` composed of small sub-stores (Settings, Planning, Guidance, History, MapCamera, Diagnostics, Location)
+- MapLibre GL JS with an OpenStreetMap raster style for the Home map surface
+- browser Geolocation for rider location, with persisted last-known fallback
+- Photon (typeahead) + Nominatim (reverse geocode) for destination search
+- drag-and-drop + paste handling for GPX files and shared URLs; no native share-extension equivalent
+- localStorage for persistence under the same `companion.*` key prefix as the native apps
 
 ## Reuse Rules
 Reuse these seams unless there is a strong architecture reason not to:
@@ -126,6 +135,9 @@ Refactor these aggressively:
 - `Stop` exits phone guidance or device overview mode and returns the user to refreshed planning suggestions from the current location
 - The selected route and selected source remain locked for the active session; reroutes stay within that source until the rider stops
 - planning-mode UI and guidance-mode UI should feel distinct; route comparison chrome should not remain on screen after guidance begins
+- HSL routing is only offered when it is actually usable: both the Digitransit subscription key is configured AND both trip endpoints fall inside the Uusimaa region. Otherwise the source picker collapses to OSM and the Mixed / HSL tabs are hidden. Route Planner settings explains what HSL is and links to the Digitransit portal for key registration.
+- "Where to?" accepts http(s) URLs directly: pasted Google Maps / OSM links are followed to a destination (inline coords first; then redirect-following through the share-import classifier), with explicit loading and error rows in the search panel.
+- Rider position always comes from real device GPS through the `LocationService` seam. The locate/recenter control shows a spinner until the first fix arrives, then swaps to the normal control. When permission is denied or unavailable, planning falls back to the last persisted fix then to a static default so the planner still works.
 
 ## Required Tests
 - feature-state tests for Home, Route Detail, Settings, and Device

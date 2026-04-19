@@ -128,6 +128,12 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
   - auto-recenter
 - Emulator web forwards raw GPS and normalized touch contacts only.
 - Firmware follows the same runtime/query/render pipeline, with real hardware integration still being completed behind the adapter boundary.
+- Companion apps ship on three platforms:
+  - `companion-ios/` — native SwiftUI, MapKit, CoreLocation, CoreBluetooth.
+  - `companion-android/` — Jetpack Compose, Google Maps, FusedLocationProvider, Android BLE/GATT.
+  - `companion-web/` — React + MobX + MapLibre on OSM tiles, browser Geolocation, no BLE (phone-guidance only).
+  All three share the same product surface, the same `companion.*` persistence keys, and the same RoutePackage contracts; see [`companion-app-architecture.md`](./companion-app-architecture.md) for the detailed architecture.
+- Production deployment co-hosts `companion-web` and `emulator/web` in a single nginx container (companion at `/`, emulator at `/emulator/`) so edge routing remains a single service.
 
 ## Supporting References
 - Camera orientation UX: [`/work/docs/camera-rotation-design.md`](/work/docs/camera-rotation-design.md)
