@@ -3,7 +3,9 @@
 Rust-based bike minimap platform with shared runtime behavior for firmware and emulator.
 
 ## Production (home lab)
-The production stack is a single `docker compose` service from [compose.yaml](/host/esp32-map/compose.yaml).
+The production stack is a single `docker compose` service from [compose.yaml](/host/esp32-map/compose.yaml). One nginx container serves both web apps:
+- `/` — the companion web app (`companion-web/`, OSM-tiled planner).
+- `/emulator/` — the device emulator (`emulator/web/`, Vite + `render-core-wasm`).
 
 Start or update deployment:
 ```bash
@@ -23,7 +25,7 @@ docker compose up -d
 ```
 
 Notes:
-- Public port mapping is `0.0.0.0:${EMULATOR_PORT:-4173}:4173` for edge routing (for example `map.fiksu.me` upstream).
+- Public port mapping is `0.0.0.0:${EMULATOR_PORT:-4173}:4173` for edge routing (for example `map.fiksu.me` upstream). The service name is still `emulator-web` so existing upstream routing keeps working even though it now hosts both apps.
 - Migration from old stacks:
   - Stop legacy stacks if they are still running:
     - `docker compose -f docker-compose.yml down`
