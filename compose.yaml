@@ -1,4 +1,9 @@
 services:
+  # One container, one port, two apps:
+  #   /            -> companion-web (Vite build, OSM-tiled planner)
+  #   /emulator/   -> emulator-web (Vite + render-core WASM)
+  # Service name stays `emulator-web` so existing edge routing (e.g. map.fiksu.me)
+  # keeps working without any upstream changes.
   emulator-web:
     build:
       context: .
@@ -7,11 +12,11 @@ services:
       - "0.0.0.0:${EMULATOR_PORT:-4173}:4173"
     restart: unless-stopped
     healthcheck:
+      # nginx:alpine ships busybox wget; probe both roots so a broken base-path
+      # build is visible to the orchestrator.
       test:
-        - CMD
-        - node
-        - -e
-        - fetch('http://127.0.0.1:4173').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
+        - CMD-SHELL
+        - wget -q -O /dev/null http://127.0.0.1:4173/ && wget -q -O /dev/null http://127.0.0.1:4173/emulator/
       interval: 30s
       timeout: 5s
       retries: 5
