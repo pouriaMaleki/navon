@@ -1,0 +1,83 @@
+import { observer } from "mobx-react-lite";
+import type { RootStore } from "../../app/RootStore.js";
+import {
+  ROUTE_SOURCE_MODE_DISPLAY_NAME,
+  selectedAlternative,
+  summaryLine,
+} from "../../domain/models.js";
+
+type Props = { store: RootStore };
+
+export const RouteSuggestionsCard = observer(({ store }: Props) => {
+  const planning = store.planningStore;
+  const limit = store.settingsStore.plannerPreferences.suggestionMode === "bestOnly" ? 1 : 3;
+  const alternatives = planning.preview.alternatives.slice(0, limit);
+  const selectedId = selectedAlternative(planning.preview)?.id;
+  const showSourceControl =
+    !planning.isPreviewLockedToImportedRoute() && planning.availableSourceModes.length > 1;
+  const sourceMode = planning.currentSourceMode;
+
+  return (
+    <div className="card suggestions-card">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div className="list-row__title">Route options</div>
+        <button
+          type="button"
+          onClick={() => planning.clearPreview()}
+          style={{ color: "var(--fg-soft)", fontWeight: 600 }}
+        >
+          Close
+        </button>
+      </div>
+      {planning.preview.planningNotice ? (
+        <div className="notice">{planning.preview.planningNotice}</div>
+      ) : null}
+      {showSourceControl ? (
+        <div className="source-picker" role="tablist">
+          {planning.availableSourceModes.map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              role="tab"
+              aria-selected={sourceMode === mode}
+              className={sourceMode === mode ? "active" : ""}
+              onClick={() => {
+                planning.setSourceMode(mode);
+                store.settingsStore.updatePlannerPreferences({ defaultSourceMode: mode });
+                void planning.planRoute();
+              }}
+            >
+              {ROUTE_SOURCE_MODE_DISPLAY_NAME[mode]}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {alternatives.map((alt) => {
+        const isSelected = alt.id === selectedId;
+        return (
+          <button
+            key={alt.id}
+            type="button"
+            className={`alternative${isSelected ? " alternative--selected" : ""}`}
+            onClick={() => planning.selectAlternative(alt.id)}
+          >
+            <div style={{ textAlign: "left" }}>
+              <div className="list-row__title">{alt.title}</div>
+              <div className="list-row__subtitle">{alt.subtitle}</div>
+              <div className="list-row__subtitle">{summaryLine(alt.normalizedPackage)}</div>
+            </div>
+            {isSelected ? <span aria-hidden>✓</span> : null}
+          </button>
+        );
+      })}
+      <button
+        type="button"
+        className="primary-button"
+        onClick={() => store.guidanceStore.startSelectedRoute()}
+        disabled={alternatives.length === 0}
+      >
+        Start
+      </button>
+    </div>
+  );
+});

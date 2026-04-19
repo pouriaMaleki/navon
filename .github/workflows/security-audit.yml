@@ -46,7 +46,9 @@ jobs:
           fi
 
           extra_package_locks="$(
-            find . -type f -name 'package-lock.json' -print | sed 's#^\./##' | sort | grep -v '^emulator/web/package-lock.json$' || true
+            find . -type f -name 'package-lock.json' -print \
+              | sed 's#^\./##' | sort \
+              | grep -Ev '^(emulator/web|companion-web)/package-lock.json$' || true
           )"
           if [ -n "$extra_package_locks" ]; then
             echo "Unexpected package-lock.json files detected:" >> "$GITHUB_STEP_SUMMARY"
@@ -105,13 +107,19 @@ jobs:
           fi
 
   npm-audit:
-    name: NPM Audit
+    name: NPM Audit (${{ matrix.package }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - emulator/web
+          - companion-web
     env:
       SECURITY_ENFORCE: ${{ vars.SECURITY_ENFORCE || 'true' }}
     defaults:
       run:
-        working-directory: emulator/web
+        working-directory: ${{ matrix.package }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -121,7 +129,7 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: emulator/web/package-lock.json
+          cache-dependency-path: ${{ matrix.package }}/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -136,11 +144,11 @@ jobs:
           echo "status=$status" >> "$GITHUB_OUTPUT"
 
           if [ "$status" -ne 0 ]; then
-            echo "npm audit found high/critical vulnerabilities." >> "$GITHUB_STEP_SUMMARY"
+            echo "npm audit found high/critical vulnerabilities in ${{ matrix.package }}." >> "$GITHUB_STEP_SUMMARY"
             if [ "$SECURITY_ENFORCE" = "true" ]; then
               exit "$status"
             fi
             echo "SECURITY_ENFORCE=false, not failing build (baseline mode)." >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "npm audit passed at high threshold." >> "$GITHUB_STEP_SUMMARY"
+            echo "npm audit passed at high threshold for ${{ matrix.package }}." >> "$GITHUB_STEP_SUMMARY"
           fi
