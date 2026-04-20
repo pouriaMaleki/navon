@@ -11,6 +11,8 @@ export type PermissionPromptState = "granted" | "prompt" | "denied" | "unknown";
 export class LocationStore {
   /** Last good fix from the device, or null if we have never received one in this session. */
   currentLocation: CoordinatePoint | null = null;
+  /** GPS heading in degrees from true north (0-360), or null if unavailable/stationary. */
+  currentHeadingDegrees: number | null = null;
   /** Last good fix loaded from persistence — used as a fallback the first time the app boots. */
   lastKnownLocation: CoordinatePoint | null = null;
   /** True from start() until the first fix or a terminal error arrives. */
@@ -48,6 +50,7 @@ export class LocationStore {
       if (update.kind === "fix") {
         runInAction(() => {
           this.currentLocation = update.point;
+          this.currentHeadingDegrees = update.headingDegrees ?? null;
           this.lastKnownLocation = update.point;
           this.isLocating = false;
           this.lastError = null;

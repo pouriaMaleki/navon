@@ -96,6 +96,117 @@ export function totalDistanceMeters(geometry: CoordinatePoint[]): number {
   return total;
 }
 
+// ── Route projection utilities (ported from runtime-core/src/route/mod.rs) ──
+
+export type RouteProjection = {
+  progressDistanceM: number;
+  distanceToRouteM: number;
+};
+
+/**
+ * Project a rider position onto a polyline, returning:
+ * - progressDistanceM: distance along the polyline to the closest point
+ * - distanceToRouteM: perpendicular distance from the rider to the closest point on the polyline
+ */
+export function projectOntoPolyline(
+  geometry: CoordinatePoint[],
+  rider: CoordinatePoint,
+): RouteProjection {
+  if (geometry.length === 0) return { progressDistanceM: 0, distanceToRouteM: 0 };
+  if (geometry.length === 1)
+    return {
+      progressDistanceM: 0,
+      distanceToRouteM: approximateDistanceMeters(geometry[0], rider),
+    };
+
+  let bestDistanceSq = Infinity;
+  let bestProgressM = 0;
+  let traversedM = 0;
+
+  for (let i = 0; i < geometry.length - 1; i++) {
+    const start = geometry[i];
+    const end = geometry[i + 1];
+    const segmentLengthM = approximateDistanceMeters(start, end);
+    if (segmentLengthM <= 1e-9) continue;
+
+    // Convert to local meter coordinates relative to segment start
+    const meanLat = ((start.latitude + rider.latitude) / 2) * (Math.PI / 180);
+    const cosLat = Math.cos(meanLat);
+    const endX = (end.longitude - start.longitude) * cosLat * METERS_PER_DEGREE_LAT;
+    const endY = (end.latitude - start.latitude) * METERS_PER_DEGREE_LAT;
+    const riderX = (rider.longitude - start.longitude) * cosLat * METERS_PER_DEGREE_LAT;
+    const riderY = (rider.latitude - start.latitude) * METERS_PER_DEGREE_LAT;
+
+    // Project rider onto segment
+    const segLenSq = endX * endX + endY * endY;
+    let t = segLenSq > 1e-9 ? (riderX * endX + riderY * endY) / segLenSq : 0;
+    t = Math.max(0, Math.min(1, t));
+    const projX = t * endX;
+    const projY = t * endY;
+    const dx = riderX - projX;
+    const dy = riderY - projY;
+    const distSq = dx * dx + dy * dy;
+
+    if (distSq < bestDistanceSq) {
+      bestDistanceSq = distSq;
+      bestProgressM = traversedM + segmentLengthM * t;
+    }
+    traversedM += segmentLengthM;
+  }
+
+  return {
+    progressDistanceM: bestProgressM,
+    distanceToRouteM: Math.sqrt(bestDistanceSq),
+  };
+}
+
+/**
+ * Split a polyline at a given distance, returning completed and remaining segments.
+ * The split point is linearly interpolated on the current segment.
+ */
+export function splitPolylineAtDistance(
+  geometry: CoordinatePoint[],
+  progressDistanceM: number,
+): { completed: CoordinatePoint[]; remaining: CoordinatePoint[] } {
+  if (geometry.length === 0) return { completed: [], remaining: [] };
+  if (geometry.length === 1) return { completed: [geometry[0]], remaining: [geometry[0]] };
+  if (progressDistanceM <= 0) return { completed: [geometry[0]], remaining: [...geometry] };
+
+  const total = totalDistanceMeters(geometry);
+  if (progressDistanceM >= total)
+    return { completed: [...geometry], remaining: [geometry[geometry.length - 1]] };
+
+  const completed: CoordinatePoint[] = [geometry[0]];
+  let traversedM = 0;
+
+  for (let i = 0; i < geometry.length - 1; i++) {
+    const start = geometry[i];
+    const end = geometry[i + 1];
+    const segLen = approximateDistanceMeters(start, end);
+    if (segLen <= 1e-9) continue;
+
+    const nextM = traversedM + segLen;
+    if (progressDistanceM >= nextM) {
+      completed.push(end);
+      traversedM = nextM;
+      continue;
+    }
+
+    const localT = Math.max(0, Math.min(1, (progressDistanceM - traversedM) / segLen));
+    const splitPoint: CoordinatePoint = {
+      latitude: start.latitude + (end.latitude - start.latitude) * localT,
+      longitude: start.longitude + (end.longitude - start.longitude) * localT,
+    };
+    completed.push(splitPoint);
+    const remaining: CoordinatePoint[] = [splitPoint];
+    if (localT < 1) remaining.push(end);
+    for (let j = i + 2; j < geometry.length; j++) remaining.push(geometry[j]);
+    return { completed, remaining };
+  }
+
+  return { completed: [...geometry], remaining: [geometry[geometry.length - 1]] };
+}
+
 /** Decode a Google-style encoded polyline (precision 5). */
 export function decodePolyline(encoded: string): CoordinatePoint[] {
   if (!encoded) return [];

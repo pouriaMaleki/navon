@@ -1,4 +1,4 @@
-import { autorun, makeAutoObservable, runInAction } from "mobx";
+import { autorun, makeAutoObservable, reaction, runInAction } from "mobx";
 import {
   type CoordinatePoint,
   type ImportClassification,
@@ -47,6 +47,7 @@ export class RootStore {
   route: AppRoute = "home";
   /** Whether the user has dismissed or actioned the one-time location-permission banner. */
   locationBannerDismissed = false;
+  private rerouteAbort?: AbortController;
 
   constructor() {
     const hsl = new HslRoutingAdapter(() => this.settingsStore.snapshotForAdapter());
@@ -88,6 +89,22 @@ export class RootStore {
         this.planningStore.setSourceMode("osm");
       }
     });
+    // Advance route progress on every GPS fix during guidance.
+    reaction(
+      () => this.locationStore.currentLocation,
+      (location) => {
+        if (!location) return;
+        if (this.guidanceStore.homeMode !== "phoneGuidance") return;
+        this.guidanceStore.advanceProgress(location, Date.now());
+      },
+    );
+    // Trigger rerouting when sustained off-route is detected.
+    reaction(
+      () => this.guidanceStore.rerouteRequested,
+      (requested) => {
+        if (requested) void this.performReroute();
+      },
+    );
     // Auto-start the watcher only if the user has previously granted permission.
     // For the first-time prompt-or-denied case we let the banner ask explicitly.
     void this.maybeAutoStartLocation();
@@ -109,7 +126,50 @@ export class RootStore {
     this.persistence.saveLocationPromptShown(true);
   }
 
+  /** Reroute from the rider's current location to the active destination. */
+  private async performReroute(): Promise<void> {
+    const session = this.guidanceStore.activeSession;
+    if (!session.destinationCoordinate || !session.routeIdentifier) return;
+    const riderLocation = this.locationStore.currentLocation;
+    if (!riderLocation) return;
+
+    this.rerouteAbort?.abort();
+    const controller = new AbortController();
+    this.rerouteAbort = controller;
+
+    try {
+      const provider = this.providers[session.providerID];
+      const preview = await provider.replanRoute(session, riderLocation, controller.signal);
+      if (controller.signal.aborted) return;
+      const selected = preview.alternatives[0];
+      if (!selected) return;
+      runInAction(() => {
+        this.planningStore.setPreview({
+          ...preview,
+          selectedAlternativeID: selected.id,
+          routeIdentifier: selected.normalizedPackage.routeIdentifier,
+          routeRevision: selected.normalizedPackage.revision,
+        });
+        this.guidanceStore.activeSession = {
+          ...session,
+          routeIdentifier: selected.normalizedPackage.routeIdentifier,
+          routeRevision: selected.normalizedPackage.revision,
+          lastRerouteReason: "off-route",
+          lastRerouteTimestampMs: Date.now(),
+        };
+        this.guidanceStore.resetProgress(selected.normalizedPackage);
+        this.diagnosticsStore.updateFromSession(this.guidanceStore.activeSession);
+      });
+    } catch (err) {
+      if ((err as Error)?.name === "AbortError") return;
+      // Reroute failed — rider stays on current route with off-route state visible
+    } finally {
+      if (this.rerouteAbort === controller) this.rerouteAbort = undefined;
+    }
+  }
+
   dispose(): void {
+    this.rerouteAbort?.abort();
     this.locationStore.stop();
   }
 
