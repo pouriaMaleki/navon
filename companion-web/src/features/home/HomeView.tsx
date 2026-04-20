@@ -221,7 +221,6 @@ const BottomOverlay = observer(({ store }: { store: RootStore }) => {
 
 const RecenterButton = observer(({ store }: { store: RootStore }) => {
   const loc = store.locationStore;
-  if (store.guidanceStore.homeMode !== "planning") return null;
 
   // While we are waiting for the first GPS fix, show a spinner in the slot
   // instead of the recenter glyph — even if the camera has not been moved yet.
@@ -266,10 +265,25 @@ const RecenterButton = observer(({ store }: { store: RootStore }) => {
 });
 
 function refreshCameraForCurrentMode(store: RootStore): void {
+  const guidance = store.guidanceStore;
+
+  // During active guidance with auto-follow: center on rider with heading-up
+  if (guidance.homeMode === "phoneGuidance" && guidance.compassMode === "autoFollow") {
+    const heading = store.locationStore.currentHeadingDegrees;
+    const bearing = heading != null ? heading : 0;
+    store.mapCameraStore.setCenter(guidance.riderLocation, 16, bearing);
+    return;
+  }
+  // During guidance with north-preview or north-locked: center on rider, north-up
+  if (guidance.homeMode === "phoneGuidance") {
+    store.mapCameraStore.setCenter(guidance.riderLocation, 16, 0);
+    return;
+  }
+  // Planning mode: fit to route or center on rider
   const selected = selectedAlternative(store.planningStore.preview);
   if (selected && selected.normalizedPackage.geometry.length > 0) {
     store.mapCameraStore.fitBounds(selected.normalizedPackage.geometry);
     return;
   }
-  store.mapCameraStore.setCenter(store.guidanceStore.riderLocation, 12, 0);
+  store.mapCameraStore.setCenter(guidance.riderLocation, 12, 0);
 }

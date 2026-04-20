@@ -34,6 +34,7 @@ const OSM_STYLE: maplibregl.StyleSpecification = {
 const ROUTE_SOURCE_ID = "companion-routes";
 const SELECTED_ROUTE_LAYER_ID = "companion-route-selected";
 const ALTERNATE_ROUTE_LAYER_ID = "companion-route-alternates";
+const COMPLETED_ROUTE_LAYER_ID = "companion-route-completed";
 const MARKERS_SOURCE_ID = "companion-markers";
 const MARKERS_LAYER_ID = "companion-markers-layer";
 const RIDER_SOURCE_ID = "companion-rider";
@@ -113,6 +114,19 @@ export const MapSurface = observer(({ store }: Props) => {
     );
   }, [store]);
 
+  // Route progress reaction — update completed/remaining split during guidance.
+  useEffect(() => {
+    return reaction(
+      () => store.guidanceStore.progressDistanceM,
+      () => {
+        if (store.guidanceStore.homeMode !== "phoneGuidance") return;
+        const map = mapRef.current;
+        if (!map || !map.isStyleLoaded()) return;
+        pushRouteData(map, store);
+      },
+    );
+  }, [store]);
+
   // Long-press → drop pin (planning only)
   useEffect(() => {
     const map = mapRef.current;
@@ -172,6 +186,14 @@ function addCompanionLayers(map: MaplibreMap): void {
     filter: ["==", ["get", "selected"], true],
     layout: { "line-cap": "round", "line-join": "round" },
     paint: { "line-color": "#D7FF3F", "line-width": 6 },
+  });
+  map.addLayer({
+    id: COMPLETED_ROUTE_LAYER_ID,
+    type: "line",
+    source: ROUTE_SOURCE_ID,
+    filter: ["==", ["get", "completed"], true],
+    layout: { "line-cap": "round", "line-join": "round" },
+    paint: { "line-color": "#12A3A3", "line-width": 5, "line-opacity": 0.4 },
   });
 
   map.addSource(MARKERS_SOURCE_ID, {
@@ -292,6 +314,37 @@ function buildRouteFeatures(store: RootStore): GeoJSON.Feature[] {
   const homeMode = store.guidanceStore.homeMode;
   const selectedId = preview.selectedAlternativeID ?? preview.alternatives[0]?.id;
   const showAlternates = homeMode === "planning";
+
+  // During guidance, show completed/remaining split for the selected route
+  if (homeMode === "phoneGuidance") {
+    const split = store.guidanceStore.routeSplit;
+    if (split) {
+      // Remaining route (bright)
+      if (split.remaining.length >= 2) {
+        features.push({
+          type: "Feature",
+          properties: { selected: true, completed: false },
+          geometry: {
+            type: "LineString",
+            coordinates: split.remaining.map((p) => [p.longitude, p.latitude]),
+          },
+        });
+      }
+      // Completed route (dimmed)
+      if (split.completed.length >= 2) {
+        features.push({
+          type: "Feature",
+          properties: { selected: false, completed: true },
+          geometry: {
+            type: "LineString",
+            coordinates: split.completed.map((p) => [p.longitude, p.latitude]),
+          },
+        });
+      }
+      return features;
+    }
+  }
+
   for (const alt of preview.alternatives) {
     const isSelected = alt.id === selectedId;
     if (!showAlternates && !isSelected) continue;
