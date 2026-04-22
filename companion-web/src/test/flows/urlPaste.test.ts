@@ -3,11 +3,7 @@ import { LocalStoragePersistence } from "../../integrations/persistence/LocalSto
 import { LocationStore } from "../../stores/LocationStore.js";
 import { PlanningStore, type ProvidersMap } from "../../stores/PlanningStore.js";
 import { SettingsStore } from "../../stores/SettingsStore.js";
-import {
-  FakeLocationService,
-  FakePlaceSearch,
-  FakeRoutingAdapter,
-} from "../fakes/index.js";
+import { FakeLocationService, FakePlaceSearch, FakeRoutingAdapter } from "../fakes/index.js";
 
 const HELSINKI = { latitude: 60.1699, longitude: 24.9384 };
 const HELSINKI_DEST = { latitude: 60.1921, longitude: 24.9458 };
@@ -26,7 +22,11 @@ function buildHarness() {
     tcxImport: new FakeRoutingAdapter("tcxImport"),
   } as ProvidersMap;
   const planning = new PlanningStore(providers, search, location, settings);
-  planning.routeRequest = { ...planning.routeRequest, origin: HELSINKI, destination: HELSINKI_DEST };
+  planning.routeRequest = {
+    ...planning.routeRequest,
+    origin: HELSINKI,
+    destination: HELSINKI_DEST,
+  };
   return { planning, search };
 }
 
@@ -55,9 +55,7 @@ describe("URL paste (plan flows #29-31)", () => {
       subtitle: "",
       coordinate: { latitude: 60.16, longitude: 24.95 },
     };
-    await planning.resolveUrlDestination(
-      "https://www.google.com/maps/@60.16,24.95,15z",
-    );
+    await planning.resolveUrlDestination("https://www.google.com/maps/@60.16,24.95,15z");
     expect(planning.isResolvingUrl).toBe(false);
     expect(planning.urlResolveError).toBeUndefined();
     expect(planning.routeRequest.destination).toEqual({ latitude: 60.16, longitude: 24.95 });
@@ -68,9 +66,7 @@ describe("URL paste (plan flows #29-31)", () => {
     search.nextResolve = null;
     let observedWhileInFlight: boolean | undefined;
     // Call resolveUrlDestination without awaiting; inspect before microtask flush.
-    const pending = planning.resolveUrlDestination(
-      "https://www.google.com/maps/@60.16,24.95,15z",
-    );
+    const pending = planning.resolveUrlDestination("https://www.google.com/maps/@60.16,24.95,15z");
     observedWhileInFlight = planning.isResolvingUrl;
     await pending;
     expect(

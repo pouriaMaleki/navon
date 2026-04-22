@@ -1,4 +1,4 @@
-import maplibregl, { type LngLatBoundsLike, type Map as MaplibreMap } from "maplibre-gl";
+import maplibregl, { type Map as MaplibreMap } from "maplibre-gl";
 import { reaction } from "mobx";
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef } from "react";
@@ -8,6 +8,8 @@ import {
   type RouteAlternative,
   selectedAlternative,
 } from "../../domain/models.js";
+import { dispatchCameraTarget } from "./cameraDispatcher.js";
+import { MapInteractionGate } from "./MapInteractionGate.js";
 
 const OSM_STYLE: maplibregl.StyleSpecification = {
   version: 8,
@@ -45,9 +47,14 @@ type Props = { store: RootStore };
 export const MapSurface = observer(({ store }: Props) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MaplibreMap | null>(null);
+  const mapReadyRef = useRef(false);
   const lastRouteSignatureRef = useRef<string>("");
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressStartRef = useRef<{ x: number; y: number } | null>(null);
+  // 600 ms quiet window matches the easeTo duration (350 ms) + fitBounds
+  // duration (400 ms) with headroom, but is short enough that a genuine
+  // user gesture a moment later is still recognised.
+  const interactionGateRef = useRef<MapInteractionGate>(new MapInteractionGate(600));
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -61,13 +68,29 @@ export const MapSurface = observer(({ store }: Props) => {
     mapRef.current = map;
     map.on("load", () => {
       addCompanionLayers(map);
-      pushCameraTarget(map, store);
+      mapReadyRef.current = true;
+      pushCameraTarget(map, store, interactionGateRef.current);
       pushRouteData(map, store);
       pushMarkers(map, store);
       pushRider(map, store);
     });
-    map.on("dragstart", () => store.mapCameraStore.markUserMovedAway());
-    map.on("zoomstart", () => store.mapCameraStore.markUserMovedAway());
+    // Track user map interactions so the routing camera can auto-recenter
+    // after the pinned inactivity timeout (spec line 104). GuidanceStore
+    // no-ops this when not in phoneGuidance, so planning mode is unaffected.
+    //
+    // MapLibre fires drag/zoom/rotate/pitchstart for OUR OWN easeTo and
+    // fitBounds calls. Use `interactionGateRef` to suppress those echoes —
+    // without it, compass-lock would snap the camera to follow-rider ~1.3 s
+    // after every programmatic animation (the '🧭 reverts after 1.3s' bug).
+    const noteInteraction = (): void => {
+      if (!interactionGateRef.current.isLikelyUserEvent(Date.now())) return;
+      store.mapCameraStore.markUserMovedAway();
+      store.guidanceStore.noteUserMapInteraction();
+    };
+    map.on("dragstart", noteInteraction);
+    map.on("zoomstart", noteInteraction);
+    map.on("rotatestart", noteInteraction);
+    map.on("pitchstart", noteInteraction);
 
     return () => {
       map.remove();
@@ -81,8 +104,8 @@ export const MapSurface = observer(({ store }: Props) => {
       () => store.mapCameraStore.revision,
       () => {
         const map = mapRef.current;
-        if (!map || !map.isStyleLoaded()) return;
-        pushCameraTarget(map, store);
+        if (!map || !mapReadyRef.current) return;
+        pushCameraTarget(map, store, interactionGateRef.current);
       },
     );
   }, [store]);
@@ -95,7 +118,7 @@ export const MapSurface = observer(({ store }: Props) => {
         if (signature === lastRouteSignatureRef.current) return;
         lastRouteSignatureRef.current = signature;
         const map = mapRef.current;
-        if (!map || !map.isStyleLoaded()) return;
+        if (!map || !mapReadyRef.current) return;
         pushRouteData(map, store);
         pushMarkers(map, store);
       },
@@ -108,7 +131,7 @@ export const MapSurface = observer(({ store }: Props) => {
       () => store.locationStore.currentLocation,
       () => {
         const map = mapRef.current;
-        if (!map || !map.isStyleLoaded()) return;
+        if (!map || !mapReadyRef.current) return;
         pushRider(map, store);
       },
     );
@@ -121,7 +144,7 @@ export const MapSurface = observer(({ store }: Props) => {
       () => {
         if (store.guidanceStore.homeMode !== "phoneGuidance") return;
         const map = mapRef.current;
-        if (!map || !map.isStyleLoaded()) return;
+        if (!map || !mapReadyRef.current) return;
         pushRouteData(map, store);
       },
     );
@@ -237,33 +260,12 @@ function addCompanionLayers(map: MaplibreMap): void {
   });
 }
 
-function pushCameraTarget(map: MaplibreMap, store: RootStore): void {
-  const target = store.mapCameraStore.target;
-  if (target.kind === "center") {
-    map.easeTo({
-      center: [target.center.longitude, target.center.latitude],
-      zoom: target.zoom,
-      bearing: target.bearing,
-      duration: 350,
-    });
-  } else {
-    if (target.coordinates.length === 0) return;
-    let minLat = target.coordinates[0].latitude;
-    let maxLat = minLat;
-    let minLon = target.coordinates[0].longitude;
-    let maxLon = minLon;
-    for (const c of target.coordinates) {
-      if (c.latitude < minLat) minLat = c.latitude;
-      if (c.latitude > maxLat) maxLat = c.latitude;
-      if (c.longitude < minLon) minLon = c.longitude;
-      if (c.longitude > maxLon) maxLon = c.longitude;
-    }
-    const bounds: LngLatBoundsLike = [
-      [minLon, minLat],
-      [maxLon, maxLat],
-    ];
-    map.fitBounds(bounds, { padding: target.padding ?? 80, duration: 400, maxZoom: 16 });
-  }
+function pushCameraTarget(map: MaplibreMap, store: RootStore, gate?: MapInteractionGate): void {
+  // The `mapReady` flag is now the single source of truth for "is the map
+  // safe to talk to yet" — see `cameraDispatcher.ts` for why we no longer
+  // gate on `map.isStyleLoaded()`.
+  gate?.recordProgrammaticMove(Date.now());
+  dispatchCameraTarget(map, store, true);
 }
 
 function routeSignature(store: RootStore): string {

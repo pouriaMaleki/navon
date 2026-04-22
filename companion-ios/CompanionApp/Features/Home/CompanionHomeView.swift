@@ -20,6 +20,13 @@ struct CompanionHomeView: View {
     )
     @State private var planningCameraReference: PlanningCameraReference?
     @State private var planningCameraNeedsReset = false
+    /// Timestamp of the last programmatic `cameraPosition = ...` set. MapKit's
+    /// `onMapCameraChange(.continuous)` fires for both user gestures and our
+    /// own animations, so we use a short quiet-window to distinguish: camera
+    /// changes within `programmaticCameraQuietWindow` of a programmatic set
+    /// are assumed to be MapKit animating to our target, not a user gesture.
+    @State private var lastProgrammaticCameraSetAt: Date = .distantPast
+    private let programmaticCameraQuietWindow: TimeInterval = 0.6
     @FocusState private var isSearchFieldFocused: Bool
 
     var body: some View {
@@ -49,6 +56,28 @@ struct CompanionHomeView: View {
                 }
                 .onMapCameraChange(frequency: .continuous) { context in
                     updatePlanningCameraResetState(for: context.region, heading: context.camera.heading)
+                    // Spec line 104: user pans/pinches/rotates during routing
+                    // should schedule an auto-recenter. But `onMapCameraChange`
+                    // fires on BOTH user gestures and our own programmatic
+                    // animations, so treat anything inside the quiet-window
+                    // after a programmatic set as "not a user gesture".
+                    let sinceProgrammatic = Date().timeIntervalSince(lastProgrammaticCameraSetAt)
+                    let isLikelyUser = sinceProgrammatic > programmaticCameraQuietWindow
+                    if viewModel.homeMode == .phoneGuidance && isLikelyUser {
+                        viewModel.noteUserMapInteraction()
+                    }
+                }
+                .onChange(of: viewModel.mapRecenterRequestID) { _, _ in
+                    refreshCameraForCurrentMode()
+                }
+                .onChange(of: viewModel.mapFollowRiderTick) { _, _ in
+                    refreshCameraForCurrentMode()
+                }
+                .onChange(of: appModel.riderLocation) { _, _ in
+                    // Spec line 84: during routing, follow the rider on
+                    // every GPS update. HomeViewModel filters for phone
+                    // guidance; this is just the publish side.
+                    viewModel.notifyRiderLocationUpdated()
                 }
         }
     }
@@ -599,11 +628,15 @@ struct CompanionHomeView: View {
             fitCamera(to: route.geometry)
             return
         }
-        let anchor = route.geometry[0]
-        let next = route.geometry[1]
-        let heading = bearingDegrees(from: anchor, to: next)
-        let center = CLLocationCoordinate2D(latitude: anchor.latitude, longitude: anchor.longitude)
+        // Spec line 110 wins over 101 when the rider is moving: rotate to
+        // the GPS-trail heading. `cameraHeadingDegrees` returns trail-first
+        // and falls back to the route-segment bearing when stationary.
+        let rider = appModel.riderLocation
+        let heading = viewModel.cameraHeadingDegrees(rider: rider)
+            ?? bearingDegrees(from: route.geometry[0], to: route.geometry[1])
+        let center = CLLocationCoordinate2D(latitude: rider.latitude, longitude: rider.longitude)
         cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: 1200, heading: heading, pitch: 0))
+        lastProgrammaticCameraSetAt = Date()
     }
 
     private func fitCamera(to coordinates: [CoordinatePoint], recordPlanningReference: Bool = false) {
@@ -632,6 +665,7 @@ struct CompanionHomeView: View {
 
     private func setCamera(region: MKCoordinateRegion, heading: CLLocationDirection, recordPlanningReference: Bool) {
         cameraPosition = .region(region)
+        lastProgrammaticCameraSetAt = Date()
         if recordPlanningReference {
             planningCameraReference = PlanningCameraReference(center: region.center, span: region.span, heading: heading)
             planningCameraNeedsReset = false

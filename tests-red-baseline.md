@@ -17,13 +17,13 @@ the reason.
 deleted or renamed.
 
 ## runtime-core + parity-fixtures (Rust)
-- passed: 26
-- failed: 5
+- passed: 31
+- failed: 0
 - ignored: 0
 
 ## companion-web (vitest)
-- passed: 63
-- failed: 7
+- passed: 87
+- failed: 0
 - todo: 0
 
 ## companion-ios (XCTest)

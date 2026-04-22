@@ -6,6 +6,7 @@ import XCTest
 /// Spec flows #38, #39, #41 (see `/work/docs/ux-specs.md`). These exercise the
 /// pure logic on `AppModel.isInUusimaa(_:)` and the derived computed properties
 /// that drive the source-mode picker. No CoreLocation, no network.
+@MainActor
 final class HslGatingTests: XCTestCase {
 
     func test_isInUusimaa_insideBoundsReturnsTrue() {

@@ -127,6 +127,7 @@ fn esp_overlay_has_no_companion_only_fields() {
         speed_panel_visible: _,
         speed_display_value: _,
         speed_unit: _,
+        map_tiles_loading: _,
     } = output.overlay;
 }
 

@@ -227,15 +227,39 @@ private fun CompanionHomeScreen(
         position = CameraPosition.fromLatLngZoom(LatLng(60.1699, 24.9384), 13f)
     }
 
-    LaunchedEffect(homeState.displayedRouteCoordinates, homeState.homeMode, homeState.compassMode) {
+    LaunchedEffect(
+        homeState.displayedRouteCoordinates,
+        homeState.homeMode,
+        homeState.compassMode,
+        homeState.mapRecenterRequestTick,
+        homeState.mapFollowRiderTick,
+    ) {
         val coordinates = homeState.displayedRouteCoordinates
         if (coordinates.isEmpty()) return@LaunchedEffect
         when (homeState.homeMode) {
             HomeMode.PLANNING, HomeMode.DEVICE_OVERVIEW, HomeMode.SENDING_TO_DEVICE -> fitCameraToRoute(cameraPositionState, coordinates)
             HomeMode.PHONE_GUIDANCE -> when (homeState.compassMode) {
-                HomeCompassMode.AUTO_FOLLOW -> orientCameraForTravel(cameraPositionState, coordinates)
+                HomeCompassMode.AUTO_FOLLOW -> orientCameraForTravel(
+                    cameraPositionState,
+                    coordinates,
+                    rider = appState.riderLocation,
+                    bearingDegrees = homeState.cameraHeadingDegrees(appState.riderLocation),
+                )
                 HomeCompassMode.NORTH_PREVIEW, HomeCompassMode.NORTH_LOCKED -> fitCameraToRoute(cameraPositionState, coordinates)
             }
+        }
+    }
+
+    // Spec line 84: follow the rider on every GPS update during routing.
+    LaunchedEffect(appState.locationState.currentLocation) {
+        homeState.notifyRiderLocationUpdated()
+    }
+
+    // Spec line 104: any non-programmatic camera change during routing
+    // schedules an auto-recenter after the pinned inactivity timeout.
+    LaunchedEffect(cameraPositionState.isMoving) {
+        if (cameraPositionState.isMoving && homeState.homeMode == HomeMode.PHONE_GUIDANCE) {
+            homeState.noteUserMapInteraction(scope)
         }
     }
 
@@ -833,19 +857,24 @@ private suspend fun fitCameraToRoute(
 private suspend fun orientCameraForTravel(
     cameraPositionState: com.google.maps.android.compose.CameraPositionState,
     coordinates: List<CoordinatePoint>,
+    rider: CoordinatePoint? = null,
+    bearingDegrees: Double? = null,
 ) {
     if (coordinates.size < 2) {
         fitCameraToRoute(cameraPositionState, coordinates)
         return
     }
-    val anchor = coordinates.first()
-    val next = coordinates[1]
+    // Spec line 101: anchor on the rider's current position and rotate
+    // toward the segment they're riding towards.
+    val anchor = rider ?: coordinates.first()
+    val bearing = bearingDegrees
+        ?: bearingDegrees(coordinates.first(), coordinates[1])
     cameraPositionState.animate(
         CameraUpdateFactory.newCameraPosition(
             CameraPosition.Builder()
                 .target(anchor.toLatLng())
                 .zoom(16f)
-                .bearing(bearingDegrees(anchor, next).toFloat())
+                .bearing(bearing.toFloat())
                 .tilt(0f)
                 .build(),
         ),

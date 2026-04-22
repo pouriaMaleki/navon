@@ -168,8 +168,13 @@ impl Default for RuntimeConfig {
             stopped_rider_anchor: NormalizedScreenPoint::CENTER,
             north_indicator_center: NormalizedScreenPoint::new(0.5, 0.12),
             zoom_bounds: ZoomBounds::default(),
-            riding_speed_threshold_mps: 0.9,
-            stopped_speed_threshold_mps: 0.6,
+            // Motion thresholds follow the pinned values in
+            // `parity-fixtures/data/ux-constants.toml` (enter 0.5 kph, exit
+            // 0.3 kph) which `docs/ux-specs.md` line 52 mandates. If this
+            // drifts the parity-fixtures tests (`motion.rs` default-config
+            // cases) will fail.
+            riding_speed_threshold_mps: 0.139,
+            stopped_speed_threshold_mps: 0.083,
             gps_loss_stop_timeout: Duration::from_millis(1_000),
             tap_max_duration: Duration::from_millis(260),
             tap_max_travel_px: 10.0,

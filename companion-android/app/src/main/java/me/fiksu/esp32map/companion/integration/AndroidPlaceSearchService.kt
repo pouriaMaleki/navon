@@ -9,26 +9,55 @@ import me.fiksu.esp32map.companion.domain.CoordinatePoint
 import me.fiksu.esp32map.companion.domain.DestinationSearchResult
 
 interface PlaceSearchService {
-    suspend fun searchDestinations(query: String, limit: Int): List<DestinationSearchResult>
+    /**
+     * Search for destinations matching [query], optionally biased toward
+     * [riderBias] so nearby results rank first. Mirrors the web + iOS contracts
+     * — see `docs/ux-specs.md` line 75.
+     */
+    suspend fun searchDestinations(
+        query: String,
+        limit: Int,
+        riderBias: CoordinatePoint? = null,
+    ): List<DestinationSearchResult>
     suspend fun resolveDestination(coordinate: CoordinatePoint, fallbackTitle: String = "Dropped pin"): DestinationSearchResult?
 }
 
 class AndroidPlaceSearchService(context: Context) : PlaceSearchService {
     private val geocoder = Geocoder(context, Locale.getDefault())
 
-    override suspend fun searchDestinations(query: String, limit: Int): List<DestinationSearchResult> = withContext(Dispatchers.IO) {
+    override suspend fun searchDestinations(
+        query: String,
+        limit: Int,
+        riderBias: CoordinatePoint?,
+    ): List<DestinationSearchResult> = withContext(Dispatchers.IO) {
         val trimmed = query.trim()
         if (trimmed.isEmpty()) return@withContext emptyList()
-        runCatching {
-            geocoder.getFromLocationName(trimmed, limit).orEmpty().mapIndexed { index, address ->
-                DestinationSearchResult(
-                    id = "search-$index-${address.latitude}-${address.longitude}",
-                    title = address.featureName ?: address.thoroughfare ?: trimmed,
-                    subtitle = listOfNotNull(address.locality, address.adminArea, address.countryName).joinToString(" • "),
-                    coordinate = CoordinatePoint(address.latitude, address.longitude),
+        // Android's Geocoder has a (minLat, minLon, maxLat, maxLon) overload
+        // for bounded search. Use a ~25 km box centred on the rider to match
+        // "same city / area" per spec.
+        val result = runCatching {
+            if (riderBias != null) {
+                val half = 0.125
+                geocoder.getFromLocationName(
+                    trimmed,
+                    limit,
+                    riderBias.latitude - half,
+                    riderBias.longitude - half,
+                    riderBias.latitude + half,
+                    riderBias.longitude + half,
                 )
+            } else {
+                geocoder.getFromLocationName(trimmed, limit)
             }
-        }.getOrDefault(emptyList())
+        }.getOrNull().orEmpty()
+        result.mapIndexed { index, address ->
+            DestinationSearchResult(
+                id = "search-$index-${address.latitude}-${address.longitude}",
+                title = address.featureName ?: address.thoroughfare ?: trimmed,
+                subtitle = listOfNotNull(address.locality, address.adminArea, address.countryName).joinToString(" • "),
+                coordinate = CoordinatePoint(address.latitude, address.longitude),
+            )
+        }
     }
 
     override suspend fun resolveDestination(coordinate: CoordinatePoint, fallbackTitle: String): DestinationSearchResult? = withContext(Dispatchers.IO) {

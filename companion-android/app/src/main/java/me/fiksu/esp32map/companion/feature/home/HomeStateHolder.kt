@@ -27,6 +27,7 @@ import me.fiksu.esp32map.companion.domain.RouteSourceMode
 import me.fiksu.esp32map.companion.domain.RouteStartBehavior
 import me.fiksu.esp32map.companion.domain.RouteSuggestionMode
 import me.fiksu.esp32map.companion.integration.PlaceSearchService
+import me.fiksu.esp32map.companion.integration.location.HeadingTrail
 
 class HomeStateHolder(
     private val appState: CompanionAppState,
@@ -46,8 +47,39 @@ class HomeStateHolder(
     /** Last URL-resolve failure for the search panel. */
     var urlResolveError by mutableStateOf<String?>(null)
         private set
+    /**
+     * Monotonic counter observed by the Compose map. Bumped on every
+     * compass-tap (spec line 39) AND after the inactivity timeout following
+     * a user map interaction during routing (spec line 104).
+     */
+    var mapRecenterRequestTick by mutableIntStateOf(0)
+        private set
+    /**
+     * Monotonic counter observed by the Compose map. Bumped on every
+     * rider-location update during routing so the camera follows the rider
+     * (spec line 84).
+     */
+    var mapFollowRiderTick by mutableIntStateOf(0)
+        private set
 
     private var urlResolveJob: Job? = null
+    private var mapInteractionRecenterJob: Job? = null
+    /**
+     * Spec line 110 (authoritative): smoothed travel heading from the last
+     * few GPS fixes. When available, overrides the route-segment bearing
+     * so the camera rotates to the rider's actual direction of travel.
+     * Parameters match runtime-core / companion-web / companion-ios.
+     */
+    private val headingTrail = HeadingTrail(
+        maxAgeMs = 5_000L, maxFixes = 10,
+        minDisplacementM = 3.0, smoothingAlpha = 0.25,
+    )
+    /**
+     * Pinned auto-recenter delay for user map interactions during routing.
+     * Mirrors `recenter_inactivity_ms` in parity-fixtures/data/ux-constants.toml
+     * (spec line 104).
+     */
+    private val mapInteractionRecenterDelayMs = 1300L
 
     private val switchablePlanningProviders = setOf(RouteProviderId.HSL, RouteProviderId.OSM)
 
@@ -192,7 +224,10 @@ class HomeStateHolder(
         urlResolveJob = null
         isResolvingUrl = false
         scope.launch {
-            suggestions = placeSearchService.searchDestinations(newValue, 30)
+            // Spec line 75: bias typeahead toward the rider's area.
+            val bias = appState.locationState.currentLocation
+                ?: appState.locationState.lastKnownLocation
+            suggestions = placeSearchService.searchDestinations(newValue, 30, bias)
         }
     }
 
@@ -346,6 +381,8 @@ class HomeStateHolder(
 
     fun handleCompassTap(scope: CoroutineScope) {
         if (homeMode != HomeMode.PHONE_GUIDANCE) return
+        // Spec line 39: companion compass tap also recenters the camera.
+        mapRecenterRequestTick += 1
         when (compassMode) {
             HomeCompassMode.AUTO_FOLLOW -> {
                 compassMode = HomeCompassMode.NORTH_PREVIEW
@@ -364,5 +401,122 @@ class HomeStateHolder(
     fun handleCompassDoubleTap() {
         if (homeMode != HomeMode.PHONE_GUIDANCE) return
         compassMode = HomeCompassMode.NORTH_LOCKED
+    }
+
+    /**
+     * Bearing (clockwise from true north, degrees) of the route segment
+     * that `rider` is currently projected onto. Spec line 101: camera rotates
+     * so the immediate route direction is toward the top of the screen,
+     * "riding towards, even when stationary yet". Falls back to the first
+     * leg when `rider` is at the start.
+     */
+    fun routingBearingDegrees(rider: CoordinatePoint): Double {
+        val geometry = guidanceRoute?.geometry ?: previewRoute?.geometry ?: emptyList()
+        if (geometry.size < 2) return 0.0
+        val metersPerDegreeLat = 111_320.0
+        fun segLen(a: CoordinatePoint, b: CoordinatePoint): Double {
+            val latMeters = (b.latitude - a.latitude) * metersPerDegreeLat
+            val meanLat = ((a.latitude + b.latitude) / 2.0) * Math.PI / 180.0
+            val lonMeters = (b.longitude - a.longitude) * kotlin.math.cos(meanLat) * metersPerDegreeLat
+            return kotlin.math.sqrt(latMeters * latMeters + lonMeters * lonMeters)
+        }
+        fun segBearing(a: CoordinatePoint, b: CoordinatePoint): Double {
+            val latMeters = (b.latitude - a.latitude) * metersPerDegreeLat
+            val meanLat = ((a.latitude + b.latitude) / 2.0) * Math.PI / 180.0
+            val lonMeters = (b.longitude - a.longitude) * kotlin.math.cos(meanLat) * metersPerDegreeLat
+            return kotlin.math.atan2(lonMeters, latMeters) * 180.0 / Math.PI
+        }
+        // Project rider onto polyline to find progress distance.
+        var bestDistSq = Double.POSITIVE_INFINITY
+        var bestProgress = 0.0
+        var walked = 0.0
+        for (i in 0 until geometry.size - 1) {
+            val a = geometry[i]
+            val b = geometry[i + 1]
+            val meanLat = ((a.latitude + rider.latitude) / 2.0) * Math.PI / 180.0
+            val cosLat = kotlin.math.cos(meanLat)
+            val endX = (b.longitude - a.longitude) * cosLat * metersPerDegreeLat
+            val endY = (b.latitude - a.latitude) * metersPerDegreeLat
+            val riderX = (rider.longitude - a.longitude) * cosLat * metersPerDegreeLat
+            val riderY = (rider.latitude - a.latitude) * metersPerDegreeLat
+            val lenSq = endX * endX + endY * endY
+            if (lenSq < 1e-12) continue
+            val t = ((riderX * endX + riderY * endY) / lenSq).coerceIn(0.0, 1.0)
+            val dx = riderX - t * endX
+            val dy = riderY - t * endY
+            val distSq = dx * dx + dy * dy
+            val len = kotlin.math.sqrt(lenSq)
+            if (distSq < bestDistSq) {
+                bestDistSq = distSq
+                bestProgress = walked + len * t
+            }
+            walked += len
+        }
+        // Find the segment containing `bestProgress` with strict `<` so a
+        // rider at a vertex snaps to the NEXT segment (riding towards).
+        var traversed = 0.0
+        for (i in 0 until geometry.size - 1) {
+            val len = segLen(geometry[i], geometry[i + 1])
+            if (len < 1e-6) continue
+            if (bestProgress < traversed + len) {
+                return segBearing(geometry[i], geometry[i + 1])
+            }
+            traversed += len
+        }
+        return segBearing(geometry[geometry.size - 2], geometry[geometry.size - 1])
+    }
+
+    /**
+     * Called on every new rider-location update. During phone guidance this
+     * bumps `mapFollowRiderTick` so the Compose map re-anchors on the rider
+     * (spec line 84). Outside phoneGuidance it's a no-op.
+     */
+    fun notifyRiderLocationUpdated() {
+        if (homeMode != HomeMode.PHONE_GUIDANCE) return
+        mapFollowRiderTick += 1
+    }
+
+    /**
+     * Feed a GPS fix into the heading-trail buffer and follow-rider tick.
+     * Drives spec line 110 (GPS-derived camera rotation). Callable from
+     * the location listener AND from tests.
+     */
+    fun ingestRiderLocationFix(point: CoordinatePoint, timestampMs: Long) {
+        headingTrail.recordFix(point, timestampMs)
+    }
+
+    /**
+     * Smoothed travel heading from the last few GPS fixes, `null` while
+     * stationary. Spec line 110: this overrides the route-segment bearing
+     * when the rider is moving.
+     */
+    val travelHeadingDegrees: Double?
+        get() = headingTrail.travelHeadingDegrees
+
+    /**
+     * Unified camera heading merging spec lines 110 (GPS trail, wins when
+     * moving) and 101 (route segment, fallback when stationary). Used by
+     * the Compose map's `orientCameraForTravel` path.
+     */
+    fun cameraHeadingDegrees(rider: CoordinatePoint?): Double {
+        headingTrail.travelHeadingDegrees?.let { return it }
+        return rider?.let(::routingBearingDegrees) ?: 0.0
+    }
+
+    /**
+     * Called by the Compose map on every user pan/zoom/rotate during
+     * routing. Schedules a recenter to the routing default after the pinned
+     * inactivity timeout (spec line 104). Outside phoneGuidance it's a
+     * no-op. Successive interactions reset the timer.
+     */
+    fun noteUserMapInteraction(scope: CoroutineScope) {
+        if (homeMode != HomeMode.PHONE_GUIDANCE) return
+        mapInteractionRecenterJob?.cancel()
+        mapInteractionRecenterJob = scope.launch {
+            delay(mapInteractionRecenterDelayMs)
+            if (homeMode == HomeMode.PHONE_GUIDANCE) {
+                mapRecenterRequestTick += 1
+            }
+        }
     }
 }

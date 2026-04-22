@@ -73,6 +73,9 @@ pub struct OverlayState {
     pub speed_panel_visible: bool,
     pub speed_display_value: u16,
     pub speed_unit: SpeedUnit,
+    /// True when the map source has nothing to render yet (tiles loading,
+    /// first query in flight). Drives the "loading" affordance in spec line 18.
+    pub map_tiles_loading: bool,
 }
 
 impl Default for OverlayState {
@@ -86,6 +89,7 @@ impl Default for OverlayState {
             speed_panel_visible: false,
             speed_display_value: 0,
             speed_unit: SpeedUnit::Kph,
+            map_tiles_loading: false,
         }
     }
 }

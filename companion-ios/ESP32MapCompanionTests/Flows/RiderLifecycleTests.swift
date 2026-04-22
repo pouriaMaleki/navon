@@ -29,7 +29,7 @@ final class RiderLifecycleTests: XCTestCase {
             service.emitFix(latitude: sample.latitude, longitude: sample.longitude)
         }
         guard let last = samples.last else { return XCTFail("fixture empty") }
-        XCTAssertEqual(service.currentLocation?.latitude, last.latitude, accuracy: 1e-9)
-        XCTAssertEqual(service.currentLocation?.longitude, last.longitude, accuracy: 1e-9)
+        XCTAssertEqual(service.currentLocation?.latitude ?? 0, last.latitude, accuracy: 1e-9)
+        XCTAssertEqual(service.currentLocation?.longitude ?? 0, last.longitude, accuracy: 1e-9)
     }
 }

@@ -1,7 +1,4 @@
-import type {
-  CoordinatePoint,
-  DestinationSearchResult,
-} from "../../domain/models.js";
+import type { CoordinatePoint, DestinationSearchResult } from "../../domain/models.js";
 import type { PlaceSearchService } from "../../domain/providers.js";
 
 /**
@@ -29,13 +26,10 @@ export class FakePlaceSearch implements PlaceSearchService {
   async searchDestinations(
     query: string,
     limit: number,
-    // When the interface grows a bias/options argument, capture it here via
-    // `(this as { acceptBias?: (...) })` — until then any extra arg will be
-    // ignored by TS and the observable field stays undefined, which is the
-    // whole point of the RED baseline for flow #27.
-    ..._rest: unknown[]
+    riderBias?: CoordinatePoint,
   ): Promise<DestinationSearchResult[]> {
-    this.searchCalls.push({ query, limit });
+    this.searchCalls.push({ query, limit, bias: riderBias });
+    this.lastQueryBias = riderBias;
     if (this.searchDelayMs > 0) {
       await new Promise((resolve) => setTimeout(resolve, this.searchDelayMs));
     }

@@ -20,9 +20,15 @@ export interface RoutingProvider {
 }
 
 export interface PlaceSearchService {
+  /**
+   * Search for destinations matching `query`, optionally biased toward
+   * `riderBias` so nearby results rank first. See `docs/ux-specs.md` line 75:
+   * "it suggests locations in the drop down from the same city or area".
+   */
   searchDestinations(
     query: string,
     limit: number,
+    riderBias?: CoordinatePoint,
     signal?: AbortSignal,
   ): Promise<DestinationSearchResult[]>;
   resolveDestination(

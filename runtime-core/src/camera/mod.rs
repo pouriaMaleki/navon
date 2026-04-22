@@ -292,9 +292,11 @@ impl CameraState {
             self.zoom += gesture.pinch_scale.log2();
         }
 
-        if gesture.rotate_delta_rad != 0.0
-            && matches!(self.orientation_mode, CameraOrientationMode::TravelUpAuto)
-        {
+        // Spec line 47: "user can pinch to zoom or with two fingers rotate
+        // (zoom and rotation work at the same time too)". Apply the rotation
+        // delta in every orientation mode, not just TravelUpAuto — otherwise
+        // two-finger rotate is silently dropped while stationary.
+        if gesture.rotate_delta_rad != 0.0 {
             self.heading_offset_rad =
                 normalize_signed_angle(self.heading_offset_rad + gesture.rotate_delta_rad);
         }
@@ -390,8 +392,14 @@ impl CameraState {
     ) -> f32 {
         match orientation_mode {
             CameraOrientationMode::StoppedNorthUp => {
+                // Spec line 47 (ESP) + 94 (companion): the user can rotate
+                // the map with two fingers even while stationary. That
+                // rotation is held in `heading_offset_rad` and the inactivity
+                // recenter animation clears it (see `advance_recenter`). So
+                // we add the offset to the target orientation in this mode
+                // too, not only in TravelUpAuto.
                 let hold_heading = self.stopped_heading_reference_rad;
-                if motion.stopped_duration < config.stopped_north_up_delay {
+                let base = if motion.stopped_duration < config.stopped_north_up_delay {
                     normalize_bearing_rad(hold_heading)
                 } else {
                     let settle_elapsed = motion
@@ -405,7 +413,8 @@ impl CameraState {
                     let t = (settle_elapsed / settle_duration).clamp(0.0, 1.0);
                     let min_step = (dt.as_secs_f32() / settle_duration).clamp(0.0, 1.0);
                     interpolate_bearing(hold_heading, 0.0, t.max(min_step).clamp(0.0, 1.0))
-                }
+                };
+                normalize_bearing_rad(base + self.heading_offset_rad)
             }
             CameraOrientationMode::HeadingAcquisition => self
                 .heading_acquisition_reference_rad
