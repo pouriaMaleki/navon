@@ -1,9 +1,13 @@
 # Project Specification
 
+Most important doc file is docs/ux-specs.md
+
 ## Product
+
 ESP32 bike minimap with a round, game-like map presentation for riding. The product follows GPS position, renders vector map data, and keeps firmware and emulator behavior aligned through shared Rust runtime code.
 
 ## User-Facing Behavior
+
 - The camera has two top-level motion modes:
   - `Riding`
   - `Stopped`
@@ -38,6 +42,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - The canonical orientation UX lives in [`/work/docs/camera-rotation-design.md`](/work/docs/camera-rotation-design.md).
 
 ## Visual Palette
+
 - Shared map and overlay rendering use this palette:
   - `#050B12`
   - `#051E24`
@@ -51,6 +56,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - Emulator and device should render from the same shared-Rust palette choices whenever possible.
 
 ## Architecture Boundaries
+
 - `/work` owns runtime camera, motion, input, query, and render behavior.
 - `/work/map-vector-cli` owns host-side map conversion and `.svm` format generation only.
 - `runtime-core` owns stateful runtime policy:
@@ -71,6 +77,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
   - they must not own product camera policy
 
 ## Map Presentation Direction
+
 - The map system should evolve from a flat road-layer model into a zoom-aware presentation system with richer feature classes and declarative profiles.
 - The preferred direction is one generated regional map package with multiple internal feature classes and LOD slices, rather than many unrelated zoom-specific files.
 - Shared Rust runtime should choose the active presentation band from zoom and camera state.
@@ -79,6 +86,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - The canonical design lives in [`/work/docs/map-presentation-system-design.md`](/work/docs/map-presentation-system-design.md).
 
 ## POI Layer Direction
+
 - The current shared POI slice supports:
   - bicycle parking
   - bicycle repair / pump stations
@@ -91,6 +99,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - The canonical POI UX and ownership design lives in [`/work/docs/poi-layer-design.md`](/work/docs/poi-layer-design.md).
 
 ## Shared Runtime Contracts
+
 - `RuntimeInputFrame`: ordered per-frame input envelope containing `dt`, optional GPS, and optional normalized touch contacts.
 - `TouchContact` and `TouchContactFrame`: stable normalized touch input shared by firmware and wasm.
 - `RuntimeFrameOutput`: runtime snapshot containing camera state, overlay state, `MapQuerySpec`, and optional diagnostics.
@@ -99,6 +108,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - Shared public contracts must stay small, adapter-safe, and free of platform handles or ECS internals.
 
 ## Determinism And Validation
+
 - The same ordered input frames must produce the same runtime behavior on firmware and wasm.
 - Camera policy must prefer trusted movement-derived heading over raw GPS course whenever possible.
 - `MapQuerySpec` must be a pure function of runtime state, viewport, and LOD policy.
@@ -109,6 +119,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
   - parity fixtures for firmware and wasm paths
 
 ## Security And Dependency Tracking
+
 - Rust workspace dependencies must pass repository vulnerability scanning through the root workspace lockfile.
 - Emulator web dependencies must pass repository vulnerability scanning through `emulator/web/package-lock.json`.
 - Companion web dependencies must pass repository vulnerability scanning through `companion-web/package-lock.json`.
@@ -119,6 +130,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - iOS companion local signing must come from an ignored local config file rather than from generated Xcode project state so `git pull` and `xcodegen generate` do not wipe the selected Apple team.
 
 ## Current Implementation Direction
+
 - Shared Rust already owns:
   - riding/stopped camera policy
   - heading-confidence handling
@@ -132,10 +144,11 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
   - `companion-ios/` — native SwiftUI, MapKit, CoreLocation, CoreBluetooth.
   - `companion-android/` — Jetpack Compose, Google Maps, FusedLocationProvider, Android BLE/GATT.
   - `companion-web/` — React + MobX + MapLibre on OSM tiles, browser Geolocation, no BLE (phone-guidance only).
-  All three share the same product surface, the same `companion.*` persistence keys, and the same RoutePackage contracts; see [`companion-app-architecture.md`](./companion-app-architecture.md) for the detailed architecture.
+    All three share the same product surface, the same `companion.*` persistence keys, and the same RoutePackage contracts; see [`companion-app-architecture.md`](./companion-app-architecture.md) for the detailed architecture.
 - Production deployment co-hosts `companion-web` and `emulator/web` in a single nginx container (companion at `/`, emulator at `/emulator/`) so edge routing remains a single service.
 
 ## Supporting References
+
 - Camera orientation UX: [`/work/docs/camera-rotation-design.md`](/work/docs/camera-rotation-design.md)
 - Map presentation system: [`/work/docs/map-presentation-system-design.md`](/work/docs/map-presentation-system-design.md)
 - POI layer design: [`/work/docs/poi-layer-design.md`](/work/docs/poi-layer-design.md)

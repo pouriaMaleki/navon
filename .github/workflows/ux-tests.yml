@@ -1,0 +1,165 @@
+name: UX flow tests
+
+# PR fast lane and slow lane separation — see plan:
+#   /Users/Pouria.Abdolmaleki/.claude/plans/check-ios-app-and-dynamic-hummingbird.md
+# Fast lane (every PR): rust-unit, web-unit, ios-unit, android-jvm. < 5 min target.
+# Slow lane (main + nightly): parity (heavy), web-e2e, ios-ui, android-instrumented.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Nightly slow-lane run — 03:15 UTC.
+    - cron: "15 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  # ─── Fast lane ──────────────────────────────────────────────────────────
+  rust-unit:
+    name: Rust unit + fixture loader (fast)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Generate map-data placeholder
+        run: |
+          mkdir -p map-data
+          python3 - <<'PY'
+          import struct
+          out = (b'SVM1' + struct.pack('<i', 12) + struct.pack('<iiii', 0,0,0,0)
+                 + struct.pack('<H', 0) + struct.pack('<I', 0))
+          open('map-data/city.svm', 'wb').write(out)
+          PY
+      - name: Regenerate GPS fixtures
+        run: cargo run -p xtask --bin gen-gps-fixtures
+      - name: Run parity-fixtures tests (including flow tests)
+        run: cargo test -p parity-fixtures
+
+  web-unit:
+    name: companion-web vitest (fast)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: companion-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: companion-web/package-lock.json
+      - name: Regenerate GPS fixtures
+        working-directory: .
+        run: |
+          mkdir -p map-data && python3 -c "import struct; open('map-data/city.svm','wb').write(b'SVM1'+struct.pack('<i',12)+struct.pack('<iiii',0,0,0,0)+struct.pack('<H',0)+struct.pack('<I',0))"
+          cargo run -p xtask --bin gen-gps-fixtures
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test
+
+  ios-unit:
+    name: companion-ios XCTest (fast)
+    runs-on: macos-14
+    if: github.repository_owner == github.repository_owner  # always, but leaves a seam
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install xcodegen
+        run: brew install xcodegen
+      - name: Regenerate Xcode project
+        working-directory: companion-ios
+        run: xcodegen generate
+      - name: Run tests (JVM-style, no device)
+        working-directory: companion-ios
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild test \
+            -project ESP32MapCompanion.xcodeproj \
+            -scheme ESP32MapCompanion \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            CODE_SIGNING_ALLOWED=NO
+
+  android-jvm:
+    name: companion-android JVM tests (fast)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: companion-android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('companion-android/**/*.gradle*', 'companion-android/gradle/libs.versions.toml') }}
+      - name: Run JVM tests
+        run: ./gradlew :app:testDebugUnitTest --no-daemon
+
+  # ─── Slow lane (main + nightly) ─────────────────────────────────────────
+  web-e2e:
+    name: companion-web Playwright (slow)
+    if: github.event_name == 'schedule' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: companion-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: companion-web/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+
+  android-instrumented:
+    name: companion-android Espresso (slow — NOT WIRED)
+    # Explicitly disabled until the emulator runner is wired up (plan flow #46,
+    # #32, #33, #34). Do not flip `if:` to true before adding
+    # reactivecircus/android-emulator-runner@v2 to the steps below, otherwise
+    # the placeholder step fails hard instead of passing silently.
+    if: false
+    runs-on: ubuntu-latest
+    # Fail hard on purpose if this job is ever enabled without real coverage.
+    continue-on-error: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Not wired — fails on purpose if run
+        run: |
+          echo "android-instrumented is NOT WIRED. Add reactivecircus/android-emulator-runner@v2 here before flipping \`if:\` to true."
+          exit 1
+
+  baseline:
+    name: Regenerate tests-red-baseline.md
+    needs: [rust-unit, web-unit, android-jvm]
+    if: github.event_name == 'schedule' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: companion-web/package-lock.json
+      - name: Install companion-web deps (baseline needs to run vitest)
+        working-directory: companion-web
+        run: npm ci
+      - name: Generate map-data placeholder + GPS fixtures
+        run: |
+          mkdir -p map-data && python3 -c "import struct; open('map-data/city.svm','wb').write(b'SVM1'+struct.pack('<i',12)+struct.pack('<iiii',0,0,0,0)+struct.pack('<H',0)+struct.pack('<I',0))"
+          cargo run -p xtask --bin gen-gps-fixtures
+      - name: Check baseline has not drifted
+        env:
+          CI: "true"
+        run: cargo run -p xtask --bin baseline -- --check

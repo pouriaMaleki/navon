@@ -13,5 +13,8 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     css: false,
+    // Playwright specs in e2e/ use @playwright/test; vitest must not try to
+    // load them. Keep them on a clearly separate path.
+    exclude: ["**/node_modules/**", "e2e/**"],
   },
 });
