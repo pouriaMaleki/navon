@@ -28,7 +28,36 @@ targets:
         TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGN_ENTITLEMENTS: CompanionApp/CompanionApp.entitlements
     scheme:
-      testTargets: []
+      testTargets:
+        - ESP32MapCompanionTests
+        - ESP32MapCompanionUITests
+  ESP32MapCompanionTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - ESP32MapCompanionTests
+    dependencies:
+      - target: ESP32MapCompanion
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: me.fiksu.esp32map.companion.ios.tests
+        SWIFT_VERSION: 5.10
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/ESP32MapCompanion.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ESP32MapCompanion"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+  ESP32MapCompanionUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - ESP32MapCompanionUITests
+    dependencies:
+      - target: ESP32MapCompanion
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: me.fiksu.esp32map.companion.ios.uitests
+        SWIFT_VERSION: 5.10
+        TEST_TARGET_NAME: ESP32MapCompanion
   ESP32MapCompanionShare:
     type: app-extension
     platform: iOS

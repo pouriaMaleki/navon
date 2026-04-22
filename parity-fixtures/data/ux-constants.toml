@@ -1,0 +1,33 @@
+# Shared UX constants referenced by every platform's test suite.
+#
+# Spec lines that don't fully specify a value (hysteresis, timeouts) are pinned
+# here so all tests import from one place. Changing a value = one edit, all
+# platforms recompute against the new value.
+#
+# Units are explicit in each key name. Do not change a value without updating
+# docs/ux-specs.md.
+
+# Motion / stationary hysteresis (spec line 52)
+enter_moving_kph = 0.5
+exit_moving_kph = 0.3
+moving_dwell_ms = 2000
+
+# Camera inactivity recenter (spec line 49)
+recenter_inactivity_ms = 1300
+
+# North-indicator timeouts (spec lines 38, 94, 103)
+north_override_timeout_ms = 5000
+double_tap_window_ms = 300
+
+# Off-route detection + reroute (web GuidanceStore reference)
+off_route_distance_m = 30.0
+off_route_dwell_ms = 10000
+
+# Typeahead debounce (spec line 75)
+typeahead_debounce_ms = 250
+
+# Stationary view radius (spec line 54 — ~500 m each direction)
+stationary_view_radius_m = 500.0
+
+# Recents pagination (spec lines 72-73)
+recents_page_size = 20

@@ -31,6 +31,7 @@ import me.fiksu.esp32map.companion.domain.RouteSourceMode
 import me.fiksu.esp32map.companion.domain.RouteSuggestionKind
 import me.fiksu.esp32map.companion.domain.RoutingProvider
 import me.fiksu.esp32map.companion.domain.SyncSessionState
+import me.fiksu.esp32map.companion.domain.geo.UusimaaBounds
 import me.fiksu.esp32map.companion.integration.AndroidLocationService
 import me.fiksu.esp32map.companion.integration.ble.BleRouteSyncService
 import me.fiksu.esp32map.companion.integration.diagnostics.CompanionDiagnosticsStore
@@ -116,13 +117,7 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
     val sourceModeOptions: List<RouteSourceMode>
         get() = if (isHslAvailable) RouteSourceMode.entries else listOf(RouteSourceMode.OSM)
 
-    /**
-     * Approximate bounding box for the Uusimaa region of Finland (Helsinki, Espoo,
-     * Vantaa, Porvoo, Hanko, Loviisa, etc.).
-     */
-    private fun isInUusimaa(point: CoordinatePoint): Boolean {
-        return point.latitude in 59.8..60.8 && point.longitude in 23.3..26.7
-    }
+    private fun isInUusimaa(point: CoordinatePoint): Boolean = UusimaaBounds.contains(point)
 
     val routeHistoryItems: List<RouteHistoryItem>
         get() {

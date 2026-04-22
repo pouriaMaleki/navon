@@ -38,6 +38,12 @@
 # Generated runtime map bridge module
 /render-core-wasm/src/generated_map.rs
 
+# Web companion build + test artifacts
+/companion-web/.vitest/
+/companion-web/test-results/
+/companion-web/playwright-report/
+/companion-web/e2e-results.json
+
 # Native companion app artifacts
 /companion-ios/ESP32MapCompanion.xcodeproj/
 /companion-ios/build/

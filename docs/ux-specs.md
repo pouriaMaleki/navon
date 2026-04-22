@@ -1,0 +1,106 @@
+This is the most important part of this project and its spec, pay a lot of attention to details of specs here.
+
+You should also check md files and see if some of these are not documented properly in there, then do that. details of these UX cases matters a lot, that's all this project provides.
+
+here are important things to know:
+
+- esp code has slighly different UX compared to companion apps.
+- companion-web, companion-ios and companion-android should have same ux (related to map at least)
+- esp interactions and icons:
+  - map and POIs
+  - pan
+  - pinch
+  - north indicator
+  - user location indicator
+  - route
+  - routing related things like next turn
+  - speed
+  - loading (a route or maps or getting location)
+- companion interactions and icons:
+  - map, POIs and their interactions are native (mouse and touch, pan, pinch works out of the box)
+  - north indicator
+  - user location indicator
+  - route
+  - routing
+    - where to input
+    - recents drop down
+    - suggested route(s)
+    - start/stop button
+    - next turn
+  - speed
+  - target user location icon (move camera back to user location)
+  - settings icon
+  - long press to pick a location
+  - loading (a route, route suggestions or maps or getting location)
+- north indicator has different states and does different things:
+  - shows north so it rotates to show where north is when map is rotated
+  - pinned to north up
+  - temporarily north up with an effect showing that there is a timeout to go back to previous state
+  - on companion apps it also resets and recenters the camera (user location)
+- two modes of camera
+  - stationary: user location in the center of the map and north is up
+  - moving (or routing): user location is in the quarter bottom of the screen, up is the direction of move
+
+Tests should cover these ux cases as end to end tests (or if they suite for integration or unit let me know in the plan):
+
+- user intractions on esp specific code:
+  - user can pinch to zoom or with two fingers rotate (zoom and rotation work at the same time too)
+  - by panning, user can explore other areas
+  - Specific to esp, if user leaves in other location, after a timeout of inactivity camera resets and recenters smoothly. It should recenter on the user location (if stationary) or go back to rigin mode where user location is rendered on the bottom of the screen (when moving)
+- when in stationary mode:
+  - speed is less than 0.5 kph considered stationary, to curb small movements as result of GPS inaacuracy is
+  - user location indicator is shown in the center of the screen
+  - user sees about 500m around them in each direction
+  - map is north up and north indicator is showing north up
+  - user can rotate, zoom using two fingers (at the same time works) and pan to see other places
+  - if user pan or rotate or zoom manually:
+    - on ESP: it resets automatically on a timeout
+    - on companion apps:
+      - it stays where user moved to until target user location icon is pressed then it resets and recenters camera
+      - target user location icon is not shown unless user pans, rotate or zoom manually
+  - speed is not shown
+  - turns are not shown
+  - only on companion apps:
+    - where to input is rendered on top of the screen
+    - settings icon next to it
+    - map north indicator is rendered under settings icon (always present)
+    - if target user location icon is present, it's under map north indicator
+    - where to:
+      - when focued, recents drop down shows
+        - drop down shows recents of locations or routes:
+          - doesn't have duplicates
+          - only shows a few until user scroll to the bottom of it then it loads more, give user indicators when things are loading
+      - user can type locations to it
+      - user can paste links like google maps link and it resolves that to location address. give user indicators when things are loading
+      - when user types in, it suggests locations in the drop down from the same city or area (important to be in the same area)
+      - when user taps on an item (anywhere on item should be tapable) then it loads suggested routes on the bottom of the screen
+      - if there are multiple sources, like HSL and OSM then it shows tabs for them. if not, only OSM will be used, no tabs in the routes suggestion
+      - alternative routes are marked with:
+        - if HSL route suggestion, that should be the first option, and it marks as HSL Route 1, HSL Route 2, etc.
+        - OSM routes are named: Route 1, Route 2, etc.
+      - when user taps on one suggested route it will be selected
+      - when user press start, selected route is shown for routing
+      - routing ux is the same on esp and on all companion apps (not the camera position)
+      - when routing is going, there is an stop button
+      - pressing stop button will take user back to suggested routes (same routes from before start)
+      - there is a clear button on the right side of where to when it has a value
+      - if user clears where to, using that or by manually cleaning the input, no routes are shown
+    - when in routing:
+      - camera moves so that user location is on the bottom quarter of the screen
+      - camera rotates so that immidiate route direction is towards top of the screen (riding towards, even when stationary yet)
+      - next turn direction and distance in meters is shown
+      - speed is shown (is zero, stationary now)
+      - user can move the camera by pan or pinch to zoom or rotate, when doing so in this state, after a timeout camera goes back to default (when in routing) smoothly
+      - if user press north indicator map rotates to show the north up, after a timeout it goes back to default (when in routing) smoothly. north indicator animates the timeout, giving user a feedback something will be done
+      - if user double taps on north indicator quick, it will lock the north up
+      - when north up is locked, tapping again on north indicator will make camera goes back to default (when in routing) smoothly
+- when moving (with or without a route):
+  - camera moves so that user location is on the bottom quarter of the screen
+  - camera rotates so that riding direction is towards top of the screen (it needs to determine the direction by last few GPS locations it receives)
+  - next turn direction and distance in meters is shown
+  - speed is shown
+  - user can move the camera by pan or pinch to zoom or rotate, when doing so in this state, after a timeout camera goes back to default (when in routing) smoothly
+  - if user press north indicator map rotates to show the north up, after a timeout it goes back to default (when in routing) smoothly. north indicator animates the timeout, giving user a feedback something will be done
+  - if user double taps on north indicator quick, it will lock the north up
+  - when north up is locked, tapping again on north indicator will make camera goes back to default (when in routing) smoothly
+  - items above on companion apps also happen when in routing mode

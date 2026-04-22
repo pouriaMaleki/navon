@@ -7,6 +7,10 @@ use runtime_core::api::{
 };
 use runtime_core::map::MapSource;
 
+pub mod loader;
+
+pub use loader::{load_gps_stream, load_ux_constants, RideSample, RideScenario, UxConstants};
+
 pub const FIXTURE_VIEWPORT: ViewportSize = ViewportSize::new(800, 800);
 const FLOAT_EPSILON: f32 = 0.000_1;
 

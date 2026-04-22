@@ -16,7 +16,10 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:baseline": "vitest run --reporter=json --reporter=default --outputFile=.vitest/summary.json",
+    "test:e2e": "playwright test",
+    "test:all": "npm run test && npm run test:e2e"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.6",
