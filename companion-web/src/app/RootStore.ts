@@ -66,6 +66,7 @@ export class RootStore {
       this.placeSearch,
       this.locationStore,
       this.settingsStore,
+      this.historyStore,
     );
     this.planningStore.setSourceMode(this.settingsStore.plannerPreferences.defaultSourceMode);
     this.guidanceStore = new GuidanceStore(
@@ -105,6 +106,52 @@ export class RootStore {
         if (requested) void this.performReroute();
       },
     );
+    // Follow-rider intent: center on rider, zoom into routing view, rotate
+    // to the current route-segment bearing. Fires on startSelectedRoute, on
+    // every GPS tick during guidance, after map-interaction inactivity
+    // timeout, and when compass returns to autoFollow from northLocked.
+    const ROUTING_FOLLOW_ZOOM = 16;
+    this.guidanceStore.onRecenterRequested(() => {
+      const rider =
+        this.locationStore.currentLocation ??
+        this.locationStore.lastKnownLocation ??
+        this.planningStore.routeRequest.origin;
+      if (!rider) return;
+      const inRouting = this.guidanceStore.homeMode === "phoneGuidance";
+      // Routing uses a fixed "navigation zoom" (16) so Start always snaps
+      // the camera in — regardless of what planning-mode overview zoom was.
+      // Outside routing, preserve whatever the user was looking at.
+      const zoom = inRouting
+        ? ROUTING_FOLLOW_ZOOM
+        : this.mapCameraStore.target.kind === "center"
+          ? this.mapCameraStore.target.zoom
+          : 14;
+      // Spec line 110 (MOST IMPORTANT): when the rider is moving, the
+      // camera rotates to the GPS-derived travel heading — overrides the
+      // route-segment bearing. Spec line 101 is the fallback when the
+      // rider is stationary ("even when stationary yet").
+      const trailHeading = this.locationStore.travelHeadingDegrees;
+      const routeBearing = inRouting ? (this.guidanceStore.routingBearingDegrees ?? 0) : 0;
+      const bearing = inRouting ? (trailHeading ?? routeBearing) : (trailHeading ?? 0);
+      this.mapCameraStore.setCenter(rider, zoom, bearing);
+    });
+    // Route-overview intent: fit the active route geometry, north-up. Fires
+    // on compass single-tap (northPreview) and double-tap (northLocked).
+    this.guidanceStore.onFitRouteRequested(() => {
+      const selected =
+        this.planningStore.preview.alternatives.find(
+          (a) => a.id === this.planningStore.preview.selectedAlternativeID,
+        ) ?? this.planningStore.preview.alternatives[0];
+      const geometry = selected?.normalizedPackage.geometry;
+      if (!geometry || geometry.length === 0) return;
+      this.mapCameraStore.fitBounds(geometry, 120);
+    });
+    // Spec lines 40, 84: stationary camera anchors the rider in the middle;
+    // routing anchors the rider in the bottom quarter.
+    autorun(() => {
+      const anchor = this.guidanceStore.homeMode === "phoneGuidance" ? 0.72 : 0.5;
+      this.mapCameraStore.setRiderAnchorNormalizedY(anchor);
+    });
     // Auto-start the watcher only if the user has previously granted permission.
     // For the first-time prompt-or-denied case we let the banner ask explicitly.
     void this.maybeAutoStartLocation();

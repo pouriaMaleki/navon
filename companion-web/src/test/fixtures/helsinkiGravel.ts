@@ -49,9 +49,5 @@ export function loadHelsinkiGravelRoute(): CoordinatePoint[] {
 
 function fixturePath(name: string): string {
   const thisFile = fileURLToPath(import.meta.url);
-  return resolve(
-    dirname(thisFile),
-    "../../../../parity-fixtures/data/helsinki-gravel",
-    name,
-  );
+  return resolve(dirname(thisFile), "../../../../parity-fixtures/data/helsinki-gravel", name);
 }

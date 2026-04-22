@@ -2,10 +2,10 @@ import { reaction } from "mobx";
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef } from "react";
 import type { RootStore } from "../../app/RootStore.js";
-import { selectedAlternative } from "../../domain/models.js";
 import { ActiveGuidanceCard } from "./ActiveGuidanceCard.js";
 import { MapSurface } from "./MapSurface.js";
 import { RouteSuggestionsCard } from "./RouteSuggestionsCard.js";
+import { refreshCameraForCurrentMode } from "./refreshCamera.js";
 import { SearchPanel } from "./SearchPanel.js";
 
 type Props = { store: RootStore };
@@ -14,8 +14,10 @@ export const HomeView = observer(({ store }: Props) => {
   const lastPreviewTickRef = useRef(0);
   const lastStartTickRef = useRef(0);
 
-  // Camera follow: re-frame whenever the visible route changes, mode changes,
-  // or we get our first GPS fix (so the empty map snaps to the rider).
+  // Camera follow for PLANNING transitions only (picking a different
+  // alternative / first GPS fix). During phoneGuidance the GuidanceStore's
+  // emit path owns the camera (spec line 101 requires the route-segment
+  // bearing, which this reaction used to overwrite with GPS heading).
   useEffect(() => {
     return reaction(
       () => ({
@@ -24,7 +26,10 @@ export const HomeView = observer(({ store }: Props) => {
         revision: store.planningStore.preview.routeRevision,
         location: store.locationStore.currentLocation,
       }),
-      () => refreshCameraForCurrentMode(store),
+      () => {
+        if (store.guidanceStore.homeMode === "phoneGuidance") return;
+        refreshCameraForCurrentMode(store);
+      },
       { fireImmediately: true },
     );
   }, [store]);
@@ -263,27 +268,3 @@ const RecenterButton = observer(({ store }: { store: RootStore }) => {
     </button>
   );
 });
-
-function refreshCameraForCurrentMode(store: RootStore): void {
-  const guidance = store.guidanceStore;
-
-  // During active guidance with auto-follow: center on rider with heading-up
-  if (guidance.homeMode === "phoneGuidance" && guidance.compassMode === "autoFollow") {
-    const heading = store.locationStore.currentHeadingDegrees;
-    const bearing = heading != null ? heading : 0;
-    store.mapCameraStore.setCenter(guidance.riderLocation, 16, bearing);
-    return;
-  }
-  // During guidance with north-preview or north-locked: center on rider, north-up
-  if (guidance.homeMode === "phoneGuidance") {
-    store.mapCameraStore.setCenter(guidance.riderLocation, 16, 0);
-    return;
-  }
-  // Planning mode: fit to route or center on rider
-  const selected = selectedAlternative(store.planningStore.preview);
-  if (selected && selected.normalizedPackage.geometry.length > 0) {
-    store.mapCameraStore.fitBounds(selected.normalizedPackage.geometry);
-    return;
-  }
-  store.mapCameraStore.setCenter(guidance.riderLocation, 12, 0);
-}

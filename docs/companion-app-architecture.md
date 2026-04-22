@@ -138,6 +138,10 @@ Refactor these aggressively:
 - HSL routing is only offered when it is actually usable: both the Digitransit subscription key is configured AND both trip endpoints fall inside the Uusimaa region. Otherwise the source picker collapses to OSM and the Mixed / HSL tabs are hidden. Route Planner settings explains what HSL is and links to the Digitransit portal for key registration.
 - "Where to?" accepts http(s) URLs directly: pasted Google Maps / OSM links are followed to a destination (inline coords first; then redirect-following through the share-import classifier), with explicit loading and error rows in the search panel.
 - Rider position always comes from real device GPS through the `LocationService` seam. The locate/recenter control shows a spinner until the first fix arrives, then swaps to the normal control. When permission is denied or unavailable, planning falls back to the last persisted fix then to a static default so the planner still works.
+- Typeahead search debounces (250 ms) and passes the rider's current location to `PlaceSearchService.searchDestinations` as a bias so same-city results rank first (`docs/ux-specs.md` line 75). The store exposes `isTypeaheadSearching` (web) so the UI can render a spinner during the in-flight request.
+- Recents pagination is gated on reaching the last visible item. `loadMoreRecentsIfNeeded(lastId)` grows the visible slice only when `lastId` matches the current end of the list.
+- Compass-tap on companion apps also recenters the camera (`docs/ux-specs.md` line 39). The guidance store fires a recenter signal (`onRecenterRequested` callback on web, `mapRecenterRequestID` publisher on iOS, `mapRecenterRequestTick` state on Android) that the map surface observes.
+- Camera anchors the rider in the bottom quarter during routing and at screen center when stationary (`docs/ux-specs.md` lines 40, 84). On web this is driven by `MapCameraStore.riderAnchorNormalizedY` (0.5 stationary, 0.72 routing) that MapSurface applies as MapLibre viewport padding; on iOS/Android the equivalent lives in the SwiftUI / Compose layout.
 
 ## Required Tests
 - feature-state tests for Home, Route Detail, Settings, and Device

@@ -44,11 +44,18 @@ export class PhotonNominatimSearchService implements PlaceSearchService {
   async searchDestinations(
     query: string,
     limit: number,
+    riderBias?: CoordinatePoint,
     signal?: AbortSignal,
   ): Promise<DestinationSearchResult[]> {
     const trimmed = query.trim();
     if (trimmed.length === 0) return [];
-    const url = `${PHOTON_BASE}?q=${encodeURIComponent(trimmed)}&limit=${Math.max(1, Math.min(20, limit))}`;
+    // Photon accepts `lat` + `lon` as a bias hint for ranking; when supplied,
+    // same-city results rank first (spec line 75).
+    const biasParams =
+      riderBias && Number.isFinite(riderBias.latitude) && Number.isFinite(riderBias.longitude)
+        ? `&lat=${riderBias.latitude}&lon=${riderBias.longitude}`
+        : "";
+    const url = `${PHOTON_BASE}?q=${encodeURIComponent(trimmed)}&limit=${Math.max(1, Math.min(20, limit))}${biasParams}`;
     try {
       const response = await fetch(url, { signal });
       if (!response.ok) return [];

@@ -37,20 +37,14 @@ export class FakeRoutingAdapter implements RoutingProvider {
     rider: CoordinatePoint,
   ): Promise<RoutePreviewModel> {
     this.replanCalls.push({ session, rider });
-    return buildSimplePreview(
-      this.providerID,
-      {
-        origin: rider,
-        destination: session.destinationCoordinate ?? rider,
-        providerID: this.providerID,
-      },
-    );
+    return buildSimplePreview(this.providerID, {
+      origin: rider,
+      destination: session.destinationCoordinate ?? rider,
+      providerID: this.providerID,
+    });
   }
 
-  normalizePreview(
-    preview: RoutePreviewModel,
-    _request: RoutePlanRequest,
-  ): NormalizedRoutePackage {
+  normalizePreview(preview: RoutePreviewModel, _request: RoutePlanRequest): NormalizedRoutePackage {
     return (
       preview.alternatives[0]?.normalizedPackage ??
       buildSimplePreview(this.providerID, _request).alternatives[0]!.normalizedPackage

@@ -56,6 +56,12 @@ fn test_config() -> RuntimeConfig {
         pan_recenter_timeout: ux.recenter_inactivity,
         compass_double_tap_window: ux.double_tap_window,
         north_preview_timeout: ux.north_override_timeout,
+        // Shortened so the double-tap test can reach `heading_acquired = true`
+        // in a handful of frames. `apply_tap` in runtime-core/src/camera/mod.rs
+        // only begins the north-preview after heading acquisition — with the
+        // default 800 ms delay, a tap within the first few frames would be
+        // acknowledged but ignored for preview.
+        heading_acquisition_delay: Duration::from_millis(120),
         ..RuntimeConfig::default()
     }
 }
@@ -146,51 +152,47 @@ fn inactivity_auto_recenter_while_moving() {
 fn north_indicator_double_tap_within_window_locks() {
     let ux = load_ux_constants();
     let mut runtime = RuntimeCore::new(test_config());
-    let fix = moving_fix(24.941_3, 2.0);
-    // Prime motion.
-    for _ in 0..5 {
-        runtime.step(frame_gps(16, fix));
+    // Prime motion with actually-moving GPS fixes so the motion classifier
+    // accumulates displacement and `heading_acquired` flips true. Stationary
+    // fixes at the same lat/lon wouldn't satisfy `min_heading_displacement_m`,
+    // so `apply_tap` would early-return (runtime-core/src/camera/mod.rs:244).
+    // Continuous motion — each frame advances the rider by a few metres so
+    // the heading classifier keeps `heading_confident` true throughout the
+    // tap sequence. Holding lon constant once the taps begin would trip the
+    // `filtered_motion is None + no continuing_motion` path in
+    // runtime-core/src/motion/mod.rs:99 and revert to HeadingAcquisition.
+    let mut step = 0_f64;
+    let mut fix_at = |step: f64| moving_fix(24.941_3 + step * 0.00005, 5.0);
+    for _ in 0..20 {
+        runtime.step(frame_gps(32, fix_at(step)));
+        step += 1.0;
     }
     // Tap the north indicator area twice inside the double-tap window.
     let tap_pos = ScreenPoint::new(400.0, 96.0);
-    let tap_once = vec![TouchContact {
-        id: 1,
-        phase: TouchPhase::Started,
-        position: tap_pos,
-        pressure: Some(0.5),
-    }];
-    let release = vec![TouchContact {
-        id: 1,
-        phase: TouchPhase::Ended,
-        position: tap_pos,
-        pressure: Some(0.5),
-    }];
-    runtime.step(frame_touch(16, fix, 20, tap_once.clone()));
-    runtime.step(frame_touch(16, fix, 21, release.clone()));
-    // Second tap within the double-tap window.
-    let dt_between = (ux.double_tap_window.as_millis() / 2) as u64;
-    runtime.step(frame_touch(
-        dt_between,
-        fix,
-        22,
+    let tap_started = |id: u64| {
         vec![TouchContact {
-            id: 2,
+            id,
             phase: TouchPhase::Started,
             position: tap_pos,
             pressure: Some(0.5),
-        }],
-    ));
-    let output = runtime.step(frame_touch(
-        16,
-        fix,
-        23,
+        }]
+    };
+    let tap_ended = |id: u64| {
         vec![TouchContact {
-            id: 2,
+            id,
             phase: TouchPhase::Ended,
             position: tap_pos,
             pressure: Some(0.5),
-        }],
-    ));
+        }]
+    };
+    runtime.step(frame_touch(16, fix_at(step), 20, tap_started(1)));
+    step += 1.0;
+    runtime.step(frame_touch(16, fix_at(step), 21, tap_ended(1)));
+    step += 1.0;
+    let dt_between = (ux.double_tap_window.as_millis() / 2) as u64;
+    runtime.step(frame_touch(dt_between, fix_at(step), 22, tap_started(2)));
+    step += 1.0;
+    let output = runtime.step(frame_touch(16, fix_at(step), 23, tap_ended(2)));
     assert!(
         matches!(
             output.camera.orientation_mode,

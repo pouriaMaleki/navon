@@ -16,6 +16,13 @@ export class MapCameraStore {
   };
   /** True when the user has panned/zoomed away from the last programmatic target. */
   needsRecenter = false;
+  /**
+   * Normalized Y coordinate (0 = top, 1 = bottom) where the rider should be
+   * anchored on screen. Default 0.5 keeps rider centered when stationary
+   * (spec lines 40, 50). Guidance switches to 0.72 to satisfy spec line 84:
+   * "user location is on the bottom quarter of the screen" during routing.
+   */
+  riderAnchorNormalizedY = 0.5;
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
@@ -36,5 +43,12 @@ export class MapCameraStore {
 
   markUserMovedAway(): void {
     if (!this.needsRecenter) this.needsRecenter = true;
+  }
+
+  setRiderAnchorNormalizedY(y: number): void {
+    const clamped = Math.max(0, Math.min(1, y));
+    if (Math.abs(clamped - this.riderAnchorNormalizedY) < 1e-6) return;
+    this.riderAnchorNormalizedY = clamped;
+    this.revision += 1;
   }
 }

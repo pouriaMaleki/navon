@@ -1,3 +1,4 @@
+import CoreLocation
 import Foundation
 
 @MainActor
@@ -56,7 +57,28 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var isResolvingUrl: Bool = false
     /// Last URL-resolve failure message for the search panel.
     @Published private(set) var urlResolveError: String?
+    /// Monotonic counter the map view observes to recenter on the rider.
+    /// Spec line 39: companion-only side-effect of a compass tap. Also
+    /// bumped by `noteUserMapInteraction` after the inactivity timeout
+    /// (spec line 104).
+    @Published private(set) var mapRecenterRequestID: Int = 0
+    /// Monotonic counter the map view observes to follow the rider on
+    /// every GPS update during routing (spec line 84).
+    @Published private(set) var mapFollowRiderTick: Int = 0
     private var latestUrlResolveTask: Task<Void, Never>?
+    private var mapInteractionRecenterTask: Task<Void, Never>?
+    /// Spec line 110 (authoritative): smoothed travel heading from the last
+    /// few GPS fixes. When available, overrides the route-segment bearing
+    /// so the camera rotates to the rider's actual direction of travel.
+    /// Parameters match runtime-core / companion-web (3m floor, α=0.25).
+    private let headingTrail = HeadingTrail(
+        maxAgeMs: 5_000, maxFixes: 10,
+        minDisplacementM: 3.0, smoothingAlpha: 0.25
+    )
+    /// Pinned auto-recenter delay for user map interactions during routing.
+    /// Mirrors `recenter_inactivity_ms` in parity-fixtures/data/ux-constants.toml
+    /// (spec line 104).
+    private let mapInteractionRecenterDelay: TimeInterval = 1.3
 
     private let appModel: AppModel
     private let placeSearchService: PlaceSearchService
@@ -254,7 +276,15 @@ final class HomeViewModel: ObservableObject {
         cancelUrlResolve()
         latestSearchTask = Task { [weak self] in
             guard let self else { return }
-            let results = await placeSearchService.searchDestinations(matching: newValue, limit: 30)
+            // Spec line 75: bias typeahead toward the rider's area so
+            // same-city results rank first.
+            let bias = appModel.locationService.currentLocation
+                ?? appModel.locationService.lastKnownLocation
+            let results = await placeSearchService.searchDestinations(
+                matching: newValue,
+                limit: 30,
+                riderBias: bias
+            )
             if !Task.isCancelled {
                 suggestions = results
             }
@@ -442,6 +472,9 @@ final class HomeViewModel: ObservableObject {
 
     func handleCompassTap() {
         guard homeMode == .phoneGuidance else { return }
+        // Spec line 39: on companion apps a compass tap also recenters the
+        // camera. Bump the request id so the map view observes the change.
+        mapRecenterRequestID &+= 1
         switch compassMode {
         case .autoFollow:
             enterNorthLocked()
@@ -461,5 +494,130 @@ final class HomeViewModel: ObservableObject {
     private func enterNorthLocked() {
         northPreviewTask?.cancel()
         compassMode = .northLocked
+    }
+
+    /// Compass-heading bearing (degrees clockwise from north) of the route
+    /// segment the rider is currently progressed onto. Spec line 101: the
+    /// camera rotates so "immediate route direction is towards top of the
+    /// screen (riding towards, even when stationary yet)". Returns nil if
+    /// there's no active route geometry.
+    func routingBearingDegrees(rider: CoordinatePoint?) -> CLLocationDirection? {
+        guard let geometry = guidanceRoute?.geometry, geometry.count >= 2 else {
+            return nil
+        }
+        let metersPerDegreeLat = 111_320.0
+        func lengthMeters(_ a: CoordinatePoint, _ b: CoordinatePoint) -> Double {
+            let latMeters = (b.latitude - a.latitude) * metersPerDegreeLat
+            let meanLat = ((a.latitude + b.latitude) / 2.0) * .pi / 180.0
+            let lonMeters = (b.longitude - a.longitude) * cos(meanLat) * metersPerDegreeLat
+            return sqrt(latMeters * latMeters + lonMeters * lonMeters)
+        }
+        func bearing(_ a: CoordinatePoint, _ b: CoordinatePoint) -> CLLocationDirection {
+            let latMeters = (b.latitude - a.latitude) * metersPerDegreeLat
+            let meanLat = ((a.latitude + b.latitude) / 2.0) * .pi / 180.0
+            let lonMeters = (b.longitude - a.longitude) * cos(meanLat) * metersPerDegreeLat
+            return atan2(lonMeters, latMeters) * 180.0 / .pi
+        }
+        // Project rider onto polyline to find the current progress distance.
+        // Fall back to start-of-route if no rider is provided.
+        let progressM = rider.map { projectProgress(onto: geometry, rider: $0) } ?? 0.0
+        var traversed = 0.0
+        for i in 0..<(geometry.count - 1) {
+            let segLen = lengthMeters(geometry[i], geometry[i + 1])
+            if segLen < 1e-6 { continue }
+            // Strict `<` so the rider exactly at a vertex snaps to the NEXT
+            // segment (spec: riding TOWARDS).
+            if progressM < traversed + segLen {
+                return bearing(geometry[i], geometry[i + 1])
+            }
+            traversed += segLen
+        }
+        // Past the end — use the last segment.
+        return bearing(geometry[geometry.count - 2], geometry[geometry.count - 1])
+    }
+
+    /// Project `rider` onto `polyline` and return the distance along the
+    /// polyline to the closest projected point. Small local copy of the
+    /// web `projectOntoPolyline` helper.
+    private func projectProgress(onto polyline: [CoordinatePoint], rider: CoordinatePoint) -> Double {
+        guard polyline.count >= 2 else { return 0.0 }
+        let metersPerDegreeLat = 111_320.0
+        var bestDistSq = Double.infinity
+        var bestProgress = 0.0
+        var traversed = 0.0
+        for i in 0..<(polyline.count - 1) {
+            let a = polyline[i]
+            let b = polyline[i + 1]
+            let meanLat = ((a.latitude + rider.latitude) / 2.0) * .pi / 180.0
+            let cosLat = cos(meanLat)
+            let endX = (b.longitude - a.longitude) * cosLat * metersPerDegreeLat
+            let endY = (b.latitude - a.latitude) * metersPerDegreeLat
+            let riderX = (rider.longitude - a.longitude) * cosLat * metersPerDegreeLat
+            let riderY = (rider.latitude - a.latitude) * metersPerDegreeLat
+            let segLenSq = endX * endX + endY * endY
+            guard segLenSq > 1e-12 else { continue }
+            let t = max(0.0, min(1.0, (riderX * endX + riderY * endY) / segLenSq))
+            let projX = t * endX
+            let projY = t * endY
+            let dx = riderX - projX
+            let dy = riderY - projY
+            let distSq = dx * dx + dy * dy
+            if distSq < bestDistSq {
+                bestDistSq = distSq
+                let segLen = sqrt(segLenSq)
+                bestProgress = traversed + segLen * t
+            }
+            traversed += sqrt(segLenSq)
+        }
+        return bestProgress
+    }
+
+    /// Called on every new rider-location update. During phone guidance this
+    /// bumps `mapFollowRiderTick` so the map view re-anchors on the rider
+    /// (spec line 84). Outside phoneGuidance it's a no-op.
+    func notifyRiderLocationUpdated() {
+        guard homeMode == .phoneGuidance else { return }
+        mapFollowRiderTick &+= 1
+    }
+
+    /// Feed a GPS fix into the trail buffer and location notifications.
+    /// Used by the location-service callback and the test harness. Drives
+    /// spec line 110 (GPS-derived camera rotation).
+    func ingestRiderLocationFix(_ point: CoordinatePoint, timestampMs: Int64) {
+        headingTrail.recordFix(point, timestampMs: timestampMs)
+    }
+
+    /// Smoothed travel heading from the last few GPS fixes, `nil` while
+    /// stationary. Spec line 110: this overrides the route-segment bearing
+    /// when the rider is moving.
+    var travelHeadingDegrees: Double? {
+        headingTrail.travelHeadingDegrees
+    }
+
+    /// The bearing the in-routing camera should rotate to, merging spec
+    /// lines 110 (GPS trail — wins when moving) and 101 (route segment —
+    /// fallback when stationary). Returns `nil` only when there is neither
+    /// an active route nor a usable trail.
+    func cameraHeadingDegrees(rider: CoordinatePoint?) -> Double? {
+        if let trail = headingTrail.travelHeadingDegrees {
+            return trail
+        }
+        return routingBearingDegrees(rider: rider)
+    }
+
+    /// Called by the map view on every user pan/zoom/rotate during routing.
+    /// Schedules a recenter to the routing default after the pinned
+    /// inactivity timeout (spec line 104). Outside phoneGuidance it's a
+    /// no-op. Successive interactions reset the timer.
+    func noteUserMapInteraction() {
+        guard homeMode == .phoneGuidance else { return }
+        mapInteractionRecenterTask?.cancel()
+        let delay = mapInteractionRecenterDelay
+        mapInteractionRecenterTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            guard let self, !Task.isCancelled else { return }
+            guard self.homeMode == .phoneGuidance else { return }
+            self.mapRecenterRequestID &+= 1
+        }
     }
 }

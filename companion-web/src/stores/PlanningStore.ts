@@ -19,6 +19,7 @@ import {
   extractCoordinateFromText,
   looksLikeUrl,
 } from "../integrations/shareImport/UrlExpander.js";
+import type { HistoryStore } from "./HistoryStore.js";
 import type { LocationStore } from "./LocationStore.js";
 import type { SettingsStore } from "./SettingsStore.js";
 
@@ -47,16 +48,30 @@ export class PlanningStore {
     providerID: "hsl",
   };
   currentSourceMode: RouteSourceMode = "mixed";
+  /**
+   * True from the moment a keystroke starts a typeahead search until the
+   * adapter responds. Spec line 34 requires a loading indicator for search.
+   */
+  isTypeaheadSearching = false;
+  /**
+   * True while `loadMoreRecentsIfNeeded` has in-flight async work. Today
+   * recents grow synchronously so this stays `false` until pagination goes
+   * async; kept as an observable so the UI can subscribe consistently.
+   */
+  isLoadingMoreRecents = false;
 
   private currentSearchAbort?: AbortController;
   private currentPlanAbort?: AbortController;
   private currentUrlAbort?: AbortController;
+  private typeaheadDebounceTimer?: ReturnType<typeof setTimeout>;
+  private readonly typeaheadDebounceMs = 250;
 
   constructor(
     private readonly providers: ProvidersMap,
     private readonly placeSearch: PlaceSearchService,
     private readonly location: LocationStore,
     private readonly settings: SettingsStore,
+    private readonly history?: HistoryStore,
   ) {
     const initialOrigin = this.location.bestKnownLocation();
     if (initialOrigin) this.routeRequest = { ...this.routeRequest, origin: initialOrigin };
@@ -122,36 +137,73 @@ export class PlanningStore {
     }
   }
 
-  loadMoreRecentsIfNeeded(_lastId: string): void {
-    this.visibleRecentCount += 10;
+  /**
+   * Grow the visible recents slice, but only when the user has scrolled to
+   * the last visible item. Spec lines 72-73: "only shows a few until user
+   * scroll to the bottom of it then it loads more".
+   */
+  loadMoreRecentsIfNeeded(lastId: string): void {
+    const items = this.history?.routeHistoryItems ?? [];
+    if (items.length === 0) return;
+    const lastVisibleId = items[Math.min(this.visibleRecentCount, items.length) - 1]?.id;
+    if (lastVisibleId !== lastId) return;
+    if (this.visibleRecentCount >= items.length) return;
+    this.visibleRecentCount = Math.min(this.visibleRecentCount + 10, items.length);
   }
 
   async updateQuery(text: string): Promise<void> {
     this.query = text;
     const trimmed = text.trim();
+
+    // Cancel any pending debounce + in-flight request on every keystroke.
+    if (this.typeaheadDebounceTimer !== undefined) {
+      clearTimeout(this.typeaheadDebounceTimer);
+      this.typeaheadDebounceTimer = undefined;
+    }
+    this.currentSearchAbort?.abort();
+
     if (trimmed.length === 0) {
       this.suggestions = [];
       this.urlResolveError = undefined;
+      this.isTypeaheadSearching = false;
       return;
     }
     if (looksLikeUrl(trimmed)) {
       this.suggestions = [];
+      this.isTypeaheadSearching = false;
       void this.resolveUrlDestination(trimmed);
       return;
     }
-    this.currentSearchAbort?.abort();
+
+    // Flip the loading flag synchronously so the UI can render a spinner
+    // the moment the user types. Spec line 34.
+    this.isTypeaheadSearching = true;
+    this.typeaheadDebounceTimer = setTimeout(() => {
+      this.typeaheadDebounceTimer = undefined;
+      void this.runTypeaheadSearch(text);
+    }, this.typeaheadDebounceMs);
+  }
+
+  private async runTypeaheadSearch(text: string): Promise<void> {
     const controller = new AbortController();
     this.currentSearchAbort = controller;
+    const bias = this.location.bestKnownLocation() ?? undefined;
     try {
-      const results = await this.placeSearch.searchDestinations(text, 30, controller.signal);
+      const results = await this.placeSearch.searchDestinations(text, 30, bias, controller.signal);
       runInAction(() => {
         if (this.currentSearchAbort === controller) {
           this.suggestions = results;
           this.visibleSuggestionCount = 10;
+          this.isTypeaheadSearching = false;
         }
       });
     } catch (err) {
       if ((err as Error)?.name === "AbortError") return;
+      runInAction(() => {
+        if (this.currentSearchAbort === controller) {
+          this.isTypeaheadSearching = false;
+        }
+      });
     }
   }
 

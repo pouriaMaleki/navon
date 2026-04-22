@@ -9,7 +9,7 @@ final class PlanningSessionTests: XCTestCase {
         let origin = CoordinatePoint(latitude: 60.1699, longitude: 24.9384)
         let destination = CoordinatePoint(latitude: 60.1921, longitude: 24.9458)
         return NormalizedRoutePackage(
-            version: CURRENT_ROUTE_PACKAGE_VERSION,
+            version: RoutePackageVersion.current,
             routeIdentifier: "osm-straight",
             revision: 1,
             geometry: [origin, destination],
@@ -91,7 +91,9 @@ final class PlanningSessionTests: XCTestCase {
             planningNotice: nil
         )
         await vm.startSelectedRoute()
-        vm.stopGuidance()
+        vm.stopActiveNavigation()
+        // stopActiveNavigation schedules the state change in a detached Task.
+        try? await Task.sleep(nanoseconds: 200_000_000)
         XCTAssertEqual(vm.homeMode, .planning)
     }
 }

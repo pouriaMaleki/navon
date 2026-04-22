@@ -47,6 +47,17 @@ Tests should cover these ux cases as end to end tests (or if they suite for inte
   - user can pinch to zoom or with two fingers rotate (zoom and rotation work at the same time too)
   - by panning, user can explore other areas
   - Specific to esp, if user leaves in other location, after a timeout of inactivity camera resets and recenters smoothly. It should recenter on the user location (if stationary) or go back to rigin mode where user location is rendered on the bottom of the screen (when moving)
+    Pinned numeric values (canonical copy lives in `parity-fixtures/data/ux-constants.toml`; `runtime-core/src/api/config.rs` reads the same defaults):
+
+- enter moving threshold: 0.5 kph ≈ 0.139 mps
+- exit moving threshold: 0.3 kph ≈ 0.083 mps
+- inactivity recenter timeout: 1300 ms
+- north-override timeout: 5000 ms
+- double-tap window: 300 ms
+- off-route enter distance: 30 m; exit: 22 m; reroute delay: 2000 ms
+- typeahead debounce: 250 ms
+- stationary viewport radius target: 500 m each direction
+
 - when in stationary mode:
   - speed is less than 0.5 kph considered stationary, to curb small movements as result of GPS inaacuracy is
   - user location indicator is shown in the center of the screen
@@ -96,7 +107,7 @@ Tests should cover these ux cases as end to end tests (or if they suite for inte
       - when north up is locked, tapping again on north indicator will make camera goes back to default (when in routing) smoothly
 - when moving (with or without a route):
   - camera moves so that user location is on the bottom quarter of the screen
-  - camera rotates so that riding direction is towards top of the screen (it needs to determine the direction by last few GPS locations it receives)
+  - camera rotates so that riding direction is towards top of the screen this overrides the camera of routing. Most important camera behaviour is this. (it needs to determine the direction by last few GPS locations it receives)
   - next turn direction and distance in meters is shown
   - speed is shown
   - user can move the camera by pan or pinch to zoom or rotate, when doing so in this state, after a timeout camera goes back to default (when in routing) smoothly

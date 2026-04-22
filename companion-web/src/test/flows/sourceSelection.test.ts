@@ -1,14 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { LocalStoragePersistence } from "../../integrations/persistence/LocalStoragePersistence.js";
 import { LocationStore } from "../../stores/LocationStore.js";
+import type { ProvidersMap } from "../../stores/PlanningStore.js";
 import { PlanningStore } from "../../stores/PlanningStore.js";
 import { SettingsStore } from "../../stores/SettingsStore.js";
-import {
-  FakeLocationService,
-  FakePlaceSearch,
-  FakeRoutingAdapter,
-} from "../fakes/index.js";
-import type { ProvidersMap } from "../../stores/PlanningStore.js";
+import { FakeLocationService, FakePlaceSearch, FakeRoutingAdapter } from "../fakes/index.js";
 
 // Helsinki (inside Uusimaa) and Tampere (outside Uusimaa) anchors used below.
 const HELSINKI = { latitude: 60.1699, longitude: 24.9384 };

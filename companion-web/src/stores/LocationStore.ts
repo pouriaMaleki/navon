@@ -4,6 +4,7 @@ import type {
   LocationErrorKind,
   LocationService,
 } from "../integrations/location/BrowserLocationService.js";
+import { HeadingTrail } from "../integrations/location/HeadingTrail.js";
 import type { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
 
 export type PermissionPromptState = "granted" | "prompt" | "denied" | "unknown";
@@ -13,6 +14,19 @@ export class LocationStore {
   currentLocation: CoordinatePoint | null = null;
   /** GPS heading in degrees from true north (0-360), or null if unavailable/stationary. */
   currentHeadingDegrees: number | null = null;
+  /**
+   * Smoothed travel heading derived from the last few GPS fixes. Spec line
+   * 110 (authoritative): this is what the routing camera should rotate to
+   * when the rider is moving — overrides the route-segment bearing.
+   * `undefined` while stationary / no usable trail. Parameters match
+   * runtime-core's motion filter (min displacement 3 m, alpha 0.25).
+   */
+  private readonly headingTrail = new HeadingTrail({
+    maxAgeMs: 5_000,
+    maxFixes: 10,
+    minDisplacementM: 3.0,
+    smoothingAlpha: 0.25,
+  });
   /** Last good fix loaded from persistence — used as a fallback the first time the app boots. */
   lastKnownLocation: CoordinatePoint | null = null;
   /** True from start() until the first fix or a terminal error arrives. */
@@ -51,6 +65,7 @@ export class LocationStore {
         runInAction(() => {
           this.currentLocation = update.point;
           this.currentHeadingDegrees = update.headingDegrees ?? null;
+          this.headingTrail.recordFix(update.point, Date.now());
           this.lastKnownLocation = update.point;
           this.isLocating = false;
           this.lastError = null;
@@ -78,6 +93,27 @@ export class LocationStore {
   /** Best-known location: fresh fix > last persisted fix > undefined (caller falls back). */
   bestKnownLocation(): CoordinatePoint | null {
     return this.currentLocation ?? this.lastKnownLocation;
+  }
+
+  /**
+   * Smoothed travel heading (0-360, clockwise from north) from the last few
+   * GPS fixes, or `undefined` when stationary / buffer not primed. Spec 110.
+   */
+  get travelHeadingDegrees(): number | undefined {
+    return this.headingTrail.travelHeadingDegrees;
+  }
+
+  /**
+   * Test-only hook: inject a fix into the trail without going through the
+   * live `service.start(listener)` path. Also updates the same observable
+   * fields the listener would so observers see a coherent snapshot.
+   */
+  recordFix(point: CoordinatePoint, timestampMs: number): void {
+    runInAction(() => {
+      this.currentLocation = point;
+      this.lastKnownLocation = point;
+      this.headingTrail.recordFix(point, timestampMs);
+    });
   }
 
   /** True the first time we are waiting for any usable fix (current or persisted). */

@@ -3,11 +3,7 @@ import { LocalStoragePersistence } from "../../integrations/persistence/LocalSto
 import { LocationStore } from "../../stores/LocationStore.js";
 import { PlanningStore, type ProvidersMap } from "../../stores/PlanningStore.js";
 import { SettingsStore } from "../../stores/SettingsStore.js";
-import {
-  FakeLocationService,
-  FakePlaceSearch,
-  FakeRoutingAdapter,
-} from "../fakes/index.js";
+import { FakeLocationService, FakePlaceSearch, FakeRoutingAdapter } from "../fakes/index.js";
 import { loadUxConstants } from "../fixtures/uxConstants.js";
 
 const HELSINKI = { latitude: 60.1699, longitude: 24.9384 };
@@ -27,7 +23,11 @@ function buildHarness() {
     tcxImport: new FakeRoutingAdapter("tcxImport"),
   } as ProvidersMap;
   const planning = new PlanningStore(providers, search, location, settings);
-  planning.routeRequest = { ...planning.routeRequest, origin: HELSINKI, destination: HELSINKI_DEST };
+  planning.routeRequest = {
+    ...planning.routeRequest,
+    origin: HELSINKI,
+    destination: HELSINKI_DEST,
+  };
   return { planning, settings, search, location };
 }
 
@@ -47,6 +47,9 @@ describe("where-to dropdown (plan flows #20, #25-27, #35-37)", () => {
       },
     ];
     await planning.updateQuery("cathedral");
+    // Typeahead is now debounced (spec line 34). Wait out the debounce + let
+    // the async search settle.
+    await new Promise((resolve) => setTimeout(resolve, 300));
     expect(search.searchCalls.length).toBe(1);
     expect(planning.suggestions.length).toBe(1);
     expect(planning.suggestions[0].title).toBe("Helsinki Cathedral");
@@ -63,6 +66,7 @@ describe("where-to dropdown (plan flows #20, #25-27, #35-37)", () => {
       },
     ];
     await planning.updateQuery("helsinki");
+    await new Promise((resolve) => setTimeout(resolve, 300));
     expect(planning.suggestions.length).toBe(1);
     await planning.updateQuery("");
     expect(planning.suggestions.length).toBe(0);
@@ -148,22 +152,19 @@ describe("typeahead debounce + loading + area bias (plan flows #25, #26, #27)", 
 
   it("typeahead_area_bias (flow #27): search adapter receives rider location context", async () => {
     // Spec line 75: suggestions should favour same-city / near-rider results.
-    // The current `PlaceSearchService.searchDestinations` signature takes
-    // only (query, limit, signal) with no bias argument — so area bias can't
-    // be enforced today. Expected RED until the interface grows a bias
-    // parameter AND the store passes the rider location down.
-    //
-    // We drive the query and then observe the FakePlaceSearch AFTER the
-    // call. If `lastQueryBias` is still undefined, either (a) the interface
-    // hasn't been updated or (b) the store forgot to pass it. Either way,
-    // the spec's area-bias guarantee is unsatisfied.
-    await planning.updateQuery("station");
-    vi.advanceTimersByTime(500);
-    await Promise.resolve();
+    // `PlanningStore.runTypeaheadSearch` pulls the rider location from the
+    // LocationStore and passes it as `riderBias` to `searchDestinations`.
+    // Seed a fix on the location and verify the bias propagates.
+    vi.useRealTimers();
+    const harness = buildHarness();
+    const fakeLoc = harness.location as unknown as { currentLocation: typeof HELSINKI };
+    fakeLoc.currentLocation = HELSINKI;
+    await harness.planning.updateQuery("station");
+    await new Promise((resolve) => setTimeout(resolve, 300));
     expect(
-      search.lastQueryBias,
-      "searchDestinations should be called with rider-location bias (FakePlaceSearch.lastQueryBias should be populated)",
-    ).toBeDefined();
+      harness.search.lastQueryBias,
+      "searchDestinations should be called with rider-location bias",
+    ).toEqual(HELSINKI);
   });
 });
 

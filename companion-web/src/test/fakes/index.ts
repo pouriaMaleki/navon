@@ -1,3 +1,3 @@
 export { FakeLocationService } from "./FakeLocationService.js";
-export { FakeRoutingAdapter, buildSimplePreview } from "./FakeRoutingAdapter.js";
 export { FakePlaceSearch } from "./FakePlaceSearch.js";
+export { buildSimplePreview, FakeRoutingAdapter } from "./FakeRoutingAdapter.js";
