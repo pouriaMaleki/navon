@@ -32,7 +32,10 @@ RUN curl -fsSL https://code-server.dev/install.sh | sh
 
 USER vscode
 
-RUN rustup update stable \
+RUN rustup self update || true \
+    && rustup toolchain install stable \
+    && rustup default stable \
+    && rustc --version \
     && rustup component add rustfmt clippy \
     && cargo install espup --locked
 
