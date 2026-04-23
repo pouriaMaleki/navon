@@ -32,7 +32,8 @@ RUN curl -fsSL https://code-server.dev/install.sh | sh
 
 USER vscode
 
-RUN rustup component add rustfmt clippy \
+RUN rustup update stable \
+    && rustup component add rustfmt clippy \
     && cargo install espup --locked
 
 COPY infra/devcontainer/motd.txt /etc/motd
