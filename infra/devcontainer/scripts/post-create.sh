@@ -38,8 +38,13 @@ if ! [ -w "${HOME}/.cargo" ]; then
 fi
 
 # Emulator toolchain dependency for `cargo xtask emu`.
+# wasm-pack 0.14 pulls in cargo-platform 0.3.x which requires rustc >= 1.91,
+# but /work/rust-toolchain.toml pins the workspace to 1.88.0. Install with an
+# explicit +stable override so the workspace pin is ignored for this tool.
 if ! command -v wasm-pack >/dev/null 2>&1; then
-  CARGO_HOME="${CARGO_HOME:-/usr/local/cargo}" cargo install wasm-pack
+  rustup self update || true
+  rustup toolchain install stable
+  CARGO_HOME="${CARGO_HOME:-/usr/local/cargo}" cargo +stable install wasm-pack
 fi
 
 # Install emulator web dependencies for the first `cargo xtask emu` run.
