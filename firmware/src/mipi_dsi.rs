@@ -173,9 +173,6 @@ impl EspIdfPanel for MipiDsiPanel {
             return Ok(());
         }
 
-        // Build the DPI (pixel stream) panel for this viewport. On Phase 3
-        // the viewport_size already matches the panel's native resolution
-        // via `board_config::PanelTiming`; we cross-check here.
         let timing = self.config.timing;
         if config.viewport_size.width_px != timing.h_active
             || config.viewport_size.height_px != timing.v_active
@@ -188,6 +185,17 @@ impl EspIdfPanel for MipiDsiPanel {
                 config.viewport_size.height_px,
             )));
         }
+
+        // Send vendor DCS commands over the DBI (command) channel BEFORE
+        // bringing the DPI (video stream) channel up. Two reasons:
+        //   - Some DSI stacks switch the link into high-speed video mode
+        //     when DPI inits, which disables the low-power command path
+        //     we need for SLPOUT / DISPON.
+        //   - `esp_lcd_panel_reset` is not implemented for DPI-only panel
+        //     handles (returns ESP_ERR_NOT_SUPPORTED = 262); the physical
+        //     reset pulse is handled externally via `pulse_reset` before
+        //     we got here.
+        self.send_init_sequence()?;
 
         unsafe {
             let video_timing = esp_lcd_video_timing_t {
@@ -215,11 +223,11 @@ impl EspIdfPanel for MipiDsiPanel {
             check(sys::esp_lcd_new_panel_dpi(self.bus, &dpi_config, &mut panel))?;
             self.dpi_panel = panel;
 
-            check(esp_lcd_panel_reset(self.dpi_panel))?;
+            // DPI init starts the video-mode stream. No reset call — it's
+            // not implemented for DPI panels and the physical reset was
+            // pulsed before we got here.
             check(esp_lcd_panel_init(self.dpi_panel))?;
         }
-
-        self.send_init_sequence()?;
 
         self.initialized = true;
         Ok(())
