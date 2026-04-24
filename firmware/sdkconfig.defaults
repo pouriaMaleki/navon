@@ -18,13 +18,14 @@ CONFIG_LOG_MAXIMUM_LEVEL_INFO=y
 # we revisit flash XIP rather than PSRAM XIP to keep orphan handling sane.
 CONFIG_SPIRAM=y
 CONFIG_SPIRAM_MODE_HEX=y
+# CONFIG_SPIRAM_SPEED_200M is gated behind CONFIG_IDF_EXPERIMENTAL_FEATURES
+# in ESP-IDF v5.4's Kconfig for esp32p4 — without that flag, kconfig
+# silently selects SPIRAM_SPEED_20M. That default costs ~10x of the
+# framebuffer bandwidth, which dominates the 800x800 render budget.
+CONFIG_IDF_EXPERIMENTAL_FEATURES=y
 CONFIG_SPIRAM_SPEED_200M=y
 CONFIG_SPIRAM_USE_MALLOC=y
-# The esp_psram driver silently falls back to 20 MHz when the MSPI timing
-# tuning cannot land on 200 MHz with the default flash clock ratio. On P4
-# that requires running MSPI at 80 MHz and enabling DQS-based timing tuning.
 CONFIG_ESPTOOLPY_FLASHFREQ_80M=y
-CONFIG_SPIRAM_TIMING_TUNING_POINT_VIA_TEMPERATURE_SENSOR=y
 # Keep the SPIRAM malloc threshold at the default 16 KiB; small allocations
 # stay on internal SRAM so touch / frame tick structs don't pay PSRAM latency.
 
