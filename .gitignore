@@ -2,8 +2,11 @@
 /firmware/target/
 /target/
 
-# Cargo local config
-/firmware/.cargo/
+# Cargo local config. `config.toml` is checked in because it holds the
+# shared P4 rustflags / ldproxy / ESP_IDF_VERSION wiring that every
+# contributor needs; only truly local/generated state stays ignored.
+/firmware/.cargo/.local/
+/firmware/.cargo/credentials.toml
 
 # Tool/editor temp files
 *.swp

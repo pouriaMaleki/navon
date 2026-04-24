@@ -1,0 +1,31 @@
+[build]
+target = "riscv32imafc-esp-espidf"
+
+[target.riscv32imafc-esp-espidf]
+linker = "ldproxy"
+runner = "espflash flash --monitor"
+rustflags = [
+    "--cfg", "espidf_time64",
+    # opt-level=3 (not s) because the 800x800 software rasterizer + RGBA→RGB565
+    # conversion walks ~6.4 MB/frame of PSRAM; small inner loops are the bulk
+    # of the frame budget and benefit massively from vectorization / unrolling.
+    # Binary size cost is ~10-20% which fits easily in the 4 MB factory part.
+    "-C", "opt-level=3",
+    "-C", "codegen-units=1",
+    "-C", "panic=abort",
+    "-C", "debuginfo=0",
+    "-C", "strip=symbols",
+]
+
+[unstable]
+build-std = ["std", "panic_abort"]
+
+[env]
+MCU = "esp32p4"
+ESP_IDF_VERSION = "v5.4.2"
+ESP_IDF_SDKCONFIG_DEFAULTS = { value = "sdkconfig.defaults", relative = true }
+# esp-idf-sys 0.37 needs libclang for bindgen. espup installs clang headers
+# at `esp-clang/16.0.1-fe4f10a809` when esp-idf < v5.4 is configured; reuse
+# that shared library explicitly because IDF 5.4's esp-clang-18 package does
+# not ship libclang.so.
+LIBCLANG_PATH = "/work/target/.embuild/espressif/tools/esp-clang/16.0.1-fe4f10a809/esp-clang/lib"

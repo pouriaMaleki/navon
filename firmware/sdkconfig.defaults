@@ -20,9 +20,19 @@ CONFIG_SPIRAM=y
 CONFIG_SPIRAM_MODE_HEX=y
 CONFIG_SPIRAM_SPEED_200M=y
 CONFIG_SPIRAM_USE_MALLOC=y
+# The esp_psram driver silently falls back to 20 MHz when the MSPI timing
+# tuning cannot land on 200 MHz with the default flash clock ratio. On P4
+# that requires running MSPI at 80 MHz and enabling DQS-based timing tuning.
+CONFIG_ESPTOOLPY_FLASHFREQ_80M=y
+CONFIG_SPIRAM_TIMING_TUNING_POINT_VIA_TEMPERATURE_SENSOR=y
+# Keep the SPIRAM malloc threshold at the default 16 KiB; small allocations
+# stay on internal SRAM so touch / frame tick structs don't pay PSRAM latency.
 
-# Size-optimize the IDF side too; the Rust side is already -Os with LTO.
-CONFIG_COMPILER_OPTIMIZATION_SIZE=y
+# Speed-optimize IDF so the 2.56 MB framebuffer clear / blit path is not
+# hobbled by -Os. The Rust side is still opt-level=s for binary size, but
+# the hot render path is mostly in the Rust rasterizer (render-core), which
+# is also set to opt-level=3 below via firmware/.cargo/config.toml.
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
 
 # Disable C++ exceptions and RTTI so libstdc++'s eh_globals / type_info
 # objects are not dragged into the link. The Rust binary does not need them.

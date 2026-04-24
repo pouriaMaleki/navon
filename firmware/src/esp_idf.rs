@@ -617,18 +617,34 @@ pub fn run_device_main() -> Result<(), String> {
     );
 
     let mut last_log = std::time::Instant::now();
+    let mut frames_since_last_log: u32 = 0;
+    let mut frame_work_total = std::time::Duration::ZERO;
     loop {
+        let frame_start = std::time::Instant::now();
         let frame = platform
             .run_frame()
             .map_err(|error| format!("device frame failed: {error:?}"))?;
-        if last_log.elapsed() >= std::time::Duration::from_secs(1) {
+        frame_work_total += frame_start.elapsed();
+        frames_since_last_log += 1;
+
+        let elapsed = last_log.elapsed();
+        if elapsed >= std::time::Duration::from_secs(1) {
+            let fps = frames_since_last_log as f32 / elapsed.as_secs_f32();
+            let avg_work_ms = if frames_since_last_log > 0 {
+                frame_work_total.as_millis() / u128::from(frames_since_last_log)
+            } else {
+                0
+            };
             log::info!(
-                "frame={} lit_pixels={} geometry={}",
+                "frame={} fps={:.1} avg_work_ms={} geometry={}",
                 frame.output.frame_index,
-                frame.lit_pixel_count,
+                fps,
+                avg_work_ms,
                 frame.geometry_count
             );
             last_log = std::time::Instant::now();
+            frames_since_last_log = 0;
+            frame_work_total = std::time::Duration::ZERO;
         }
         thread::sleep(board.frame_interval);
     }
