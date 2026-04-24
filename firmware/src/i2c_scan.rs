@@ -1,22 +1,19 @@
 //! One-shot I²C bus scan for diagnostic use during device bring-up.
 //!
-//! The Waveshare ESP32-P4 boards typically route the LCD panel reset,
-//! touch controller, and backlight-enable lines through an I²C I/O
-//! expander (most commonly a CH422G at 0x20-0x27, sometimes a TCA/PCA
-//! 95xx at 0x38-0x3F). Without knowing which addresses exist on the
-//! bus we cannot drive those lines from software. This scan probes
-//! every valid 7-bit address, logs the responders, and hands the list
-//! back to the caller so it can react (enable an expander, print a
-//! warning, etc.).
+//! Uses ESP-IDF's **legacy** I²C driver (`driver/i2c.h`) because
+//! `esp_idf_hal` links the legacy implementation and ESP-IDF aborts with
+//! `CONFLICT! driver_ng is not allowed to be used with this old driver`
+//! the moment a second caller touches the new-generation
+//! `driver/i2c_master.h` API. Once firmware migrates to the new driver
+//! top-to-bottom we can drop this in favor of `i2c_master_probe`.
 
 #![cfg(target_os = "espidf")]
 
 use esp_idf_svc::sys::{
-    self, esp_err_t, i2c_clock_source_t, i2c_device_config_t, i2c_master_bus_config_t,
-    i2c_master_bus_config_t__bindgen_ty_1, i2c_master_bus_config_t__bindgen_ty_2,
-    i2c_master_bus_handle_t, i2c_master_dev_handle_t, i2c_master_probe,
-    i2c_master_transmit, i2c_new_master_bus, i2c_port_t_I2C_NUM_0,
-    soc_periph_i2c_clk_src_t_I2C_CLK_SRC_DEFAULT,
+    self, esp_err_t, i2c_cmd_handle_t, i2c_cmd_link_create, i2c_cmd_link_delete, i2c_config_t,
+    i2c_config_t__bindgen_ty_1, i2c_config_t__bindgen_ty_1__bindgen_ty_1, i2c_driver_install,
+    i2c_master_cmd_begin, i2c_master_start, i2c_master_stop, i2c_master_write_byte,
+    i2c_mode_t_I2C_MODE_MASTER, i2c_param_config, i2c_port_t_I2C_NUM_0,
 };
 
 use crate::esp_idf::EspIdfError;
@@ -29,14 +26,12 @@ pub const DEFAULT_SCL_GPIO: i32 = 8;
 
 /// One-shot probe of every valid 7-bit address on the I²C bus at
 /// `(sda_gpio, scl_gpio)`. Returns addresses that ACK'd within 50 ms.
-/// Also logs each responder via `log::info!` so the serial monitor shows
-/// them in boot order.
+/// Also logs each responder via `log::info!`.
 pub fn scan_bus(sda_gpio: i32, scl_gpio: i32) -> Result<Vec<u8>, EspIdfError> {
-    let bus = open_master_bus(sda_gpio, scl_gpio)?;
+    install_legacy_master(sda_gpio, scl_gpio)?;
     let mut found: Vec<u8> = Vec::new();
     for addr in 0x08u8..=0x77u8 {
-        let status = unsafe { i2c_master_probe(bus, u16::from(addr), 50) };
-        if status == sys::ESP_OK as esp_err_t {
+        if probe_addr(addr) {
             log::info!("i2c: device ACK at 0x{:02x}", addr);
             found.push(addr);
         }
@@ -48,99 +43,105 @@ pub fn scan_bus(sda_gpio: i32, scl_gpio: i32) -> Result<Vec<u8>, EspIdfError> {
             scl_gpio,
         );
     } else {
-        log::info!(
-            "i2c: scan complete — {} device(s) responded",
-            found.len()
-        );
+        log::info!("i2c: scan complete — {} device(s) responded", found.len());
     }
-    // Leave the bus handle alive by design — the driver holds it and a
-    // later caller may reuse it. For a one-shot scan we simply leak it.
-    // Production code should keep the handle and pass it to device
-    // constructors; this diagnostic helper is intentionally single-shot.
     Ok(found)
 }
 
-/// Writes a single byte to `addr` on `bus`. Used for bring-up pokes at
-/// suspected I/O expanders (e.g. turning on backlight via CH422G).
-pub fn write_byte(
-    sda_gpio: i32,
-    scl_gpio: i32,
-    addr: u8,
-    byte: u8,
-) -> Result<(), EspIdfError> {
-    let bus = open_master_bus(sda_gpio, scl_gpio)?;
-    let dev_cfg = i2c_device_config_t {
-        dev_addr_length: 0, // I2C_ADDR_BIT_LEN_7
-        device_address: u16::from(addr),
-        scl_speed_hz: 100_000,
-        scl_wait_us: 0,
-        flags: Default::default(),
-    };
-    let mut dev_handle: i2c_master_dev_handle_t = core::ptr::null_mut();
-    let status = unsafe { sys::i2c_master_bus_add_device(bus, &dev_cfg, &mut dev_handle) };
-    if status != sys::ESP_OK as esp_err_t {
-        return Err(EspIdfError::Io(format!(
-            "i2c_master_bus_add_device(0x{:02x}) failed: {}",
-            addr, status
-        )));
-    }
-    let buf = [byte];
-    let status = unsafe { i2c_master_transmit(dev_handle, buf.as_ptr(), buf.len(), 100) };
-    if status != sys::ESP_OK as esp_err_t {
-        return Err(EspIdfError::Io(format!(
-            "i2c_master_transmit(0x{:02x}, 0x{:02x}) failed: {}",
-            addr, byte, status
-        )));
+/// Writes a single byte to `addr` on the already-installed bus. Used for
+/// bring-up pokes at suspected I/O expanders (e.g. "turn on backlight"
+/// via CH422G).
+pub fn write_byte(addr: u8, byte: u8) -> Result<(), EspIdfError> {
+    unsafe {
+        let cmd = i2c_cmd_link_create();
+        check(i2c_master_start(cmd), "i2c_master_start")?;
+        check(
+            i2c_master_write_byte(cmd, (addr << 1) | 0, true),
+            "i2c_master_write_byte(addr)",
+        )?;
+        check(
+            i2c_master_write_byte(cmd, byte, true),
+            "i2c_master_write_byte(payload)",
+        )?;
+        check(i2c_master_stop(cmd), "i2c_master_stop")?;
+        let result = i2c_master_cmd_begin(i2c_port_t_I2C_NUM_0, cmd, pd_ms_to_ticks(100));
+        i2c_cmd_link_delete(cmd);
+        check(result, "i2c_master_cmd_begin")?;
     }
     log::info!("i2c: wrote 0x{:02x} → device 0x{:02x}", byte, addr);
     Ok(())
 }
 
-fn open_master_bus(
-    sda_gpio: i32,
-    scl_gpio: i32,
-) -> Result<i2c_master_bus_handle_t, EspIdfError> {
-    // We only ever open one master bus during bring-up; if this is
-    // called twice, i2c_new_master_bus returns ESP_ERR_INVALID_STATE.
-    // Tolerate it by treating "already installed" as "reuse": we can't
-    // actually recover the prior handle via the new-driver API, so the
-    // caller must funnel all probes through one invocation. For the
-    // one-shot scan use case we're in, that holds.
-    let bus_cfg = i2c_master_bus_config_t {
-        i2c_port: i2c_port_t_I2C_NUM_0 as i32,
+fn install_legacy_master(sda_gpio: i32, scl_gpio: i32) -> Result<(), EspIdfError> {
+    let config = i2c_config_t {
+        mode: i2c_mode_t_I2C_MODE_MASTER,
         sda_io_num: sda_gpio,
         scl_io_num: scl_gpio,
-        __bindgen_anon_1: i2c_master_bus_config_t__bindgen_ty_1 {
-            clk_source: soc_periph_i2c_clk_src_t_I2C_CLK_SRC_DEFAULT as i2c_clock_source_t,
+        sda_pullup_en: true,
+        scl_pullup_en: true,
+        __bindgen_anon_1: i2c_config_t__bindgen_ty_1 {
+            master: i2c_config_t__bindgen_ty_1__bindgen_ty_1 { clk_speed: 100_000 },
         },
-        glitch_ignore_cnt: 7,
-        intr_priority: 0,
-        trans_queue_depth: 0,
-        flags: i2c_master_bus_config_t__bindgen_ty_2 {
-            _bitfield_align_1: [],
-            _bitfield_1: {
-                let mut bitfield = Default::default();
-                {
-                    let mut flags = i2c_master_bus_config_t__bindgen_ty_2 {
-                        _bitfield_align_1: [],
-                        _bitfield_1: Default::default(),
-                        __bindgen_padding_0: [0; 3],
-                    };
-                    flags.set_enable_internal_pullup(1);
-                    bitfield = flags._bitfield_1;
-                }
-                bitfield
-            },
-            __bindgen_padding_0: [0; 3],
-        },
+        clk_flags: 0,
     };
-    let mut bus_handle: i2c_master_bus_handle_t = core::ptr::null_mut();
-    let status = unsafe { i2c_new_master_bus(&bus_cfg, &mut bus_handle) };
+    let port = i2c_port_t_I2C_NUM_0;
+    let status = unsafe { i2c_param_config(port, &config) };
     if status != sys::ESP_OK as esp_err_t {
         return Err(EspIdfError::Io(format!(
-            "i2c_new_master_bus(sda={}, scl={}) failed: {}",
+            "i2c_param_config(sda={}, scl={}) failed: {}",
             sda_gpio, scl_gpio, status
         )));
     }
-    Ok(bus_handle)
+    // `i2c_driver_install(port, mode, 0, 0, 0)` — master needs no rx/tx
+    // buffer allocations (slave only), zero intr_alloc_flags is fine.
+    let status = unsafe { i2c_driver_install(port, i2c_mode_t_I2C_MODE_MASTER, 0, 0, 0) };
+    if status == sys::ESP_ERR_INVALID_STATE as esp_err_t {
+        // Driver already installed by someone else — reuse it.
+        return Ok(());
+    }
+    if status != sys::ESP_OK as esp_err_t {
+        return Err(EspIdfError::Io(format!(
+            "i2c_driver_install failed: {}",
+            status
+        )));
+    }
+    Ok(())
+}
+
+fn probe_addr(addr: u8) -> bool {
+    unsafe {
+        let cmd: i2c_cmd_handle_t = i2c_cmd_link_create();
+        if i2c_master_start(cmd) != sys::ESP_OK as esp_err_t {
+            i2c_cmd_link_delete(cmd);
+            return false;
+        }
+        // (addr << 1) | 0 == 7-bit address + WRITE bit. If the slave ACKs
+        // we stop immediately — we only care about presence, not data.
+        if i2c_master_write_byte(cmd, (addr << 1) | 0, true) != sys::ESP_OK as esp_err_t {
+            i2c_cmd_link_delete(cmd);
+            return false;
+        }
+        if i2c_master_stop(cmd) != sys::ESP_OK as esp_err_t {
+            i2c_cmd_link_delete(cmd);
+            return false;
+        }
+        let result = i2c_master_cmd_begin(i2c_port_t_I2C_NUM_0, cmd, pd_ms_to_ticks(50));
+        i2c_cmd_link_delete(cmd);
+        result == sys::ESP_OK as esp_err_t
+    }
+}
+
+fn pd_ms_to_ticks(ms: u32) -> u32 {
+    // FreeRTOS tick rate on ESP-IDF defaults to 100 Hz (10 ms / tick).
+    // portTICK_PERIOD_MS macro expands to (1000 / configTICK_RATE_HZ).
+    // 10 ms per tick here; round up so callers never get a zero timeout.
+    (ms + 9) / 10
+}
+
+fn check(status: esp_err_t, op: &str) -> Result<(), EspIdfError> {
+    if status == sys::ESP_OK as esp_err_t {
+        Ok(())
+    } else {
+        Err(EspIdfError::Io(format!("{} failed: {}", op, status)))
+    }
 }
