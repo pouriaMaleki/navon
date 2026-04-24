@@ -219,6 +219,67 @@ describe("recents pagination (plan flows #22, #23, #24)", () => {
     ).toBeDefined();
   });
 
+  it("selectSuggestion immediately closes the dropdown (regression: list stays open after pick on real devices)", async () => {
+    // Spec lines 25-27 + user-reported bug: tapping a suggestion should
+    // collapse the dropdown so the route preview underneath is visible
+    // before the user picks an alternative. The existing whereTo tests
+    // never asserted post-selection close — only typeahead population.
+    const { planning, search } = buildHarness();
+    search.nextResults = [
+      {
+        id: "r1",
+        title: "Helsinki Cathedral",
+        subtitle: "Senaatintori",
+        coordinate: { latitude: 60.1699, longitude: 24.9522 },
+      },
+    ];
+    await planning.updateQuery("cathedral");
+    await new Promise((r) => setTimeout(r, 300));
+    expect(planning.suggestions.length).toBe(1);
+    planning.openSearch();
+    expect(planning.isSearchOpen).toBe(true);
+    planning.selectSuggestion(planning.suggestions[0]);
+    // Synchronous: store-level close.
+    expect(planning.isSearchOpen, "selectSuggestion must close the dropdown synchronously").toBe(
+      false,
+    );
+    // Even after planRoute has fully resolved (which would otherwise rebuild
+    // the preview and could trigger UI re-focus), the dropdown stays closed.
+    await new Promise((r) => setTimeout(r, 100));
+    expect(
+      planning.isSearchOpen,
+      "post-selection async planRoute must not re-open the search panel",
+    ).toBe(false);
+  });
+
+  it("openSearch is a no-op for a short window after selectSuggestion (defensive against view-layer re-focus)", async () => {
+    // The real-device bug is the input retains focus after the touch and a
+    // subsequent React re-render replays `onFocus={() => openSearch()}`.
+    // PlanningStore must absorb that follow-up open() call within a short
+    // post-selection window, otherwise the dropdown re-opens visually even
+    // though the store had set it false. Expected RED until the latch lands.
+    const { planning, search } = buildHarness();
+    search.nextResults = [
+      {
+        id: "r1",
+        title: "Kallio",
+        subtitle: "",
+        coordinate: { latitude: 60.184, longitude: 24.952 },
+      },
+    ];
+    await planning.updateQuery("kallio");
+    await new Promise((r) => setTimeout(r, 300));
+    planning.openSearch();
+    planning.selectSuggestion(planning.suggestions[0]);
+    expect(planning.isSearchOpen).toBe(false);
+    // Simulate the view-layer re-focus replay.
+    planning.openSearch();
+    expect(
+      planning.isSearchOpen,
+      "openSearch within the post-selection latch window must be a no-op (anti-re-focus)",
+    ).toBe(false);
+  });
+
   it("recents_dedupe (flow #22): duplicate entries collapse at the persistence layer", () => {
     // Spec line 71: "doesn't have duplicates". Persistence dedupes within
     // 80 m (see LocalStoragePersistence.saveRecentDestination); this test

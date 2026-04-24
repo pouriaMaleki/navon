@@ -105,4 +105,55 @@ final class HomeViewModelWhereToTests: XCTestCase {
             "initial recents slice must be bounded so large histories don't render everything up-front"
         )
     }
+
+    // MARK: - Search-panel dismissal on suggestion select (regression for
+    // "dropdown stays open after pick on real device")
+
+    func test_selectSuggestion_closesDropdownImmediately() async {
+        let app = AppModel()
+        let search = FakePlaceSearch()
+        let vm = HomeViewModel(appModel: app, placeSearchService: search)
+        search.searchResults = [
+            DestinationSearchResult(
+                id: "r1",
+                title: "Cathedral",
+                subtitle: "",
+                coordinate: CoordinatePoint(latitude: 60.17, longitude: 24.95)
+            )
+        ]
+        vm.openSearch()
+        XCTAssertTrue(vm.isSearchOpen)
+        vm.selectSuggestion(search.searchResults[0])
+        XCTAssertFalse(
+            vm.isSearchOpen,
+            "selectSuggestion must close the dropdown synchronously"
+        )
+    }
+
+    func test_openSearch_isLatchedAfterSelection() {
+        // The real-device bug is the SwiftUI TextField re-fires its focus
+        // tracker after selection, replaying openSearch(). The latch must
+        // absorb that follow-up open while still allowing later opens
+        // (after the latch window) to work normally.
+        let app = AppModel()
+        let search = FakePlaceSearch()
+        let vm = HomeViewModel(appModel: app, placeSearchService: search)
+        search.searchResults = [
+            DestinationSearchResult(
+                id: "r1",
+                title: "Kallio",
+                subtitle: "",
+                coordinate: CoordinatePoint(latitude: 60.184, longitude: 24.952)
+            )
+        ]
+        vm.openSearch()
+        vm.selectSuggestion(search.searchResults[0])
+        XCTAssertFalse(vm.isSearchOpen)
+        // Simulate the SwiftUI re-focus replay.
+        vm.openSearch()
+        XCTAssertFalse(
+            vm.isSearchOpen,
+            "openSearch within the post-selection latch window must be a no-op (anti-re-focus)"
+        )
+    }
 }

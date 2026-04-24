@@ -115,7 +115,19 @@ export class PlanningStore {
     this.routeRequest = { ...this.routeRequest, providerID: primaryProviderID(effective) };
   }
 
+  /**
+   * Short window after `selectSuggestion` during which `openSearch()` is
+   * absorbed. The user-reported bug is the dropdown re-opens visually after
+   * a pick because the input still holds focus and React re-fires its
+   * `onFocus` handler. This latch swallows that follow-up open while the
+   * legitimate "user explicitly tapped the input again" intent fires after
+   * the window closes.
+   */
+  private readonly postSelectionLatchMs = 350;
+  private postSelectionLatchUntilMs = 0;
+
   openSearch(): void {
+    if (Date.now() < this.postSelectionLatchUntilMs) return;
     this.isSearchOpen = true;
   }
 
@@ -274,6 +286,7 @@ export class PlanningStore {
       providerID: primaryProviderID(this.currentSourceMode),
     };
     this.isSearchOpen = false;
+    this.postSelectionLatchUntilMs = Date.now() + this.postSelectionLatchMs;
     void this.planRoute(suggestion.title);
   }
 
