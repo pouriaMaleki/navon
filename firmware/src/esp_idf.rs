@@ -595,6 +595,20 @@ pub fn run_device_main() -> Result<(), String> {
         build_headless_route_sync_platform(board, crate::platform::NullRouteSyncIo)
             .map_err(|error| format!("failed to build headless P4 platform: {error:?}"))?;
 
+    // Report PSRAM / internal heap on boot so the operator can confirm the
+    // SPI RAM initialized and is usable for the framebuffer. Large (>16KB)
+    // allocations route to PSRAM via CONFIG_SPIRAM_USE_MALLOC + ALWAYSINTERNAL
+    // thresholds; this log lets us verify at runtime.
+    unsafe {
+        let psram = sys::heap_caps_get_free_size(sys::MALLOC_CAP_SPIRAM);
+        let internal = sys::heap_caps_get_free_size(sys::MALLOC_CAP_INTERNAL);
+        log::info!(
+            "esp32p4 heap: internal_free={} KB, psram_free={} KB",
+            internal / 1024,
+            psram / 1024,
+        );
+    }
+
     log::info!(
         "esp32p4 bring-up: viewport={}x{}, frame_interval_ms={}",
         board.viewport_size.width_px,

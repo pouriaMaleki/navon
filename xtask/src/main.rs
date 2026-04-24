@@ -17,8 +17,9 @@ fn run(args: Vec<String>) -> Result<(), String> {
         Cli::Emu { release } => run_emu(&workspace, release),
         Cli::BundleDevice { release } => run_bundle_device(&workspace, release),
         Cli::DeployDevice { port, release } => run_deploy_device(&workspace, &port, release),
+        Cli::CheckEspHalP4 => run_check_esp_hal_p4(),
         Cli::Stub { command } => Err(format!(
-            "{command} is not implemented yet; available commands: prepare-map, emu, bundle-device, deploy-device"
+            "{command} is not implemented yet; available commands: prepare-map, emu, bundle-device, deploy-device, check-esp-hal-p4"
         )),
         Cli::Help => {
             print_help();
@@ -59,6 +60,59 @@ fn run_deploy_device(workspace: &Workspace, port: &str, release: bool) -> Result
 
     run_command(CommandSpec::cargo_build_firmware(workspace, release))?;
     run_command(CommandSpec::espflash_flash(workspace, port, release))
+}
+
+/// Pre-flight check for migrating the firmware to `esp-hal` + `embassy`.
+/// Prints whether each of the crates we depend on in the esp-rs ecosystem
+/// has published an `esp32p4` feature. All must report YES before it is
+/// worth revisiting the migration (see the plan doc for rationale).
+fn run_check_esp_hal_p4() -> Result<(), String> {
+    const CRATES: &[&str] = &[
+        "esp-hal",
+        "esp-hal-embassy",
+        "esp-println",
+        "esp-backtrace",
+        "esp-bootloader-esp-idf",
+    ];
+    let mut all_present = true;
+    println!("Checking esp-rs ecosystem for published ESP32-P4 support:\n");
+    for krate in CRATES {
+        let spec = CommandSpec {
+            program: OsString::from("cargo"),
+            args: vec![OsString::from("info"), OsString::from(*krate)],
+            cwd: PathBuf::from("/"),
+            env: BTreeMap::new(),
+        };
+        let output = Command::new(&spec.program)
+            .args(&spec.args)
+            .output()
+            .map_err(|error| format!("failed to run `{}`: {error}", spec.display()))?;
+        if !output.status.success() {
+            println!(" ✗ {:<24} cargo info failed", krate);
+            all_present = false;
+            continue;
+        }
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let has_p4_feature = stdout
+            .lines()
+            .any(|line| line.trim_start().starts_with("esp32p4"));
+        if has_p4_feature {
+            println!(" ✓ {:<24} esp32p4 feature PRESENT", krate);
+        } else {
+            println!(" ✗ {:<24} esp32p4 feature MISSING", krate);
+            all_present = false;
+        }
+    }
+    println!();
+    if all_present {
+        println!("All crates advertise esp32p4 — migration to esp-hal may be viable.");
+        println!("Verify with a scratch `cargo fetch` before committing any plan.");
+        Ok(())
+    } else {
+        Err("esp-rs ecosystem does not yet have complete ESP32-P4 support; \
+             stay on esp-idf-svc and re-run this check periodically."
+            .to_owned())
+    }
 }
 
 fn ensure_tool(tool: &str) -> Result<(), String> {
@@ -115,7 +169,8 @@ xtask commands:
   cargo xtask emu [--release]
   cargo xtask prepare-map
   cargo xtask bundle-device [--debug]
-  cargo xtask deploy-device --port <PORT> [--debug]"
+  cargo xtask deploy-device --port <PORT> [--debug]
+  cargo xtask check-esp-hal-p4     # checks whether esp-hal ecosystem has P4 support yet"
     );
 }
 
@@ -124,6 +179,7 @@ enum Cli {
     Emu { release: bool },
     BundleDevice { release: bool },
     DeployDevice { port: String, release: bool },
+    CheckEspHalP4,
     Stub { command: String },
     Help,
 }
@@ -137,6 +193,7 @@ fn parse_cli(args: &[String]) -> Result<Cli, String> {
         "emu" => parse_emu_args(&args[1..]),
         "bundle-device" => parse_bundle_device_args(&args[1..]),
         "deploy-device" => parse_deploy_device_args(&args[1..]),
+        "check-esp-hal-p4" => Ok(Cli::CheckEspHalP4),
         "prepare-map" => Ok(Cli::Stub {
             command: command.clone(),
         }),
