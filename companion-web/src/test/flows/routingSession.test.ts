@@ -172,7 +172,10 @@ describe("routing session (plan flows #43, #44, #61, #62)", () => {
     const start = { latitude: 60.17, longitude: 24.94 };
     const mid = { latitude: 60.17 + 400 / NORTH_M_PER_DEG, longitude: 24.94 };
     const cosLat = Math.cos((60.17 * Math.PI) / 180);
-    const end = { latitude: mid.latitude, longitude: mid.longitude + 400 / (NORTH_M_PER_DEG * cosLat) };
+    const end = {
+      latitude: mid.latitude,
+      longitude: mid.longitude + 400 / (NORTH_M_PER_DEG * cosLat),
+    };
     const lShape = {
       version: CURRENT_ROUTE_PACKAGE_VERSION,
       routeIdentifier: "lshape",
@@ -219,11 +222,15 @@ describe("routing session (plan flows #43, #44, #61, #62)", () => {
     guidance.startSelectedRoute();
     // At start, the next maneuver should be the right turn at the corner.
     let line = guidance.nextInstructionLine ?? "";
-    expect(line.toLowerCase(), "before any progress, next instruction is the right turn at the corner").toContain(
-      "right",
-    );
+    expect(
+      line.toLowerCase(),
+      "before any progress, next instruction is the right turn at the corner",
+    ).toContain("right");
     // Move rider past the corner (slightly past mid, projecting beyond 400m).
-    const pastCorner = { latitude: mid.latitude, longitude: mid.longitude + 50 / (NORTH_M_PER_DEG * cosLat) };
+    const pastCorner = {
+      latitude: mid.latitude,
+      longitude: mid.longitude + 50 / (NORTH_M_PER_DEG * cosLat),
+    };
     guidance.advanceProgress(pastCorner, 0);
     guidance.advanceProgress(pastCorner, 500);
     line = guidance.nextInstructionLine ?? "";
