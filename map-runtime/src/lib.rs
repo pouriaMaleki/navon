@@ -166,6 +166,40 @@ impl Default for EmbeddedMapSource {
 }
 
 impl EmbeddedMapSource {
+    /// Number of road/path segments parsed from the embedded SVM.
+    pub fn segment_count(&self) -> usize {
+        self.segments.len()
+    }
+
+    /// Map bounds in runtime world-meters coordinates. Empty maps return
+    /// a degenerate bbox centered at (0, 0). Useful for seeding a default
+    /// camera position when there's no real GPS fix yet (device bring-up).
+    pub fn bounds_world(&self) -> (f64, f64, f64, f64) {
+        let min_x_m = source_x_to_meters(self.grid.bounds.min_x, self.meters_per_world_unit);
+        let max_x_m = source_x_to_meters(self.grid.bounds.max_x, self.meters_per_world_unit);
+        let min_y_m = source_y_to_meters(self.grid.bounds.min_y, self.meters_per_world_unit);
+        let max_y_m = source_y_to_meters(self.grid.bounds.max_y, self.meters_per_world_unit);
+        (min_x_m, max_x_m, min_y_m, max_y_m)
+    }
+
+    /// Lat/lon (WGS84) at the geographic center of the embedded map.
+    /// Returns `None` for empty maps. Used by `FixedGpsProvider` during
+    /// headless device bring-up to park the camera on the real data
+    /// region rather than world (0, 0).
+    pub fn center_lat_lon(&self) -> Option<(f64, f64)> {
+        if self.segments.is_empty() {
+            return None;
+        }
+        let (min_x_m, max_x_m, min_y_m, max_y_m) = self.bounds_world();
+        let cx_m = (min_x_m + max_x_m) * 0.5;
+        let cy_m = (min_y_m + max_y_m) * 0.5;
+        // Inverse of the forward web-mercator projection used in world_to_geo.
+        let lon_deg = (cx_m / EARTH_RADIUS_M).to_degrees();
+        let lat_rad = (cy_m / EARTH_RADIUS_M).sinh().atan();
+        let lat_deg = lat_rad.to_degrees();
+        Some((lat_deg, lon_deg))
+    }
+
     /// Constructs an empty map source with no geometry. `query` returns an
     /// empty result. Used by device firmware before the real map is loaded
     /// from a flash partition.

@@ -586,14 +586,18 @@ pub fn run_device_main() -> Result<(), String> {
 
     use esp_idf_svc::log::EspLogger;
     use esp_idf_svc::sys;
+    use map_runtime::EmbeddedMapSource;
+    use runtime_core::api::RuntimeConfig;
+
+    use crate::app::App;
+    use crate::display::MemoryDisplayBackend;
+    use crate::gps::{FixedGpsProvider, GpsInput};
+    use crate::map_source::MapSourceBridge;
+    use crate::platform::{NullRouteSyncIo, NullTouchSource, RuntimePlatform, SystemFrameClock};
+    use crate::settings::default_settings_store;
 
     sys::link_patches();
     EspLogger::initialize_default();
-
-    let board = BoardConfig::default();
-    let mut platform =
-        build_headless_route_sync_platform(board, crate::platform::NullRouteSyncIo)
-            .map_err(|error| format!("failed to build headless P4 platform: {error:?}"))?;
 
     // Report PSRAM / internal heap on boot so the operator can confirm the
     // SPI RAM initialized and is usable for the framebuffer. Large (>16KB)
@@ -608,6 +612,63 @@ pub fn run_device_main() -> Result<(), String> {
             psram / 1024,
         );
     }
+
+    let board = BoardConfig::default();
+
+    // Load the map first so we can log its bounds and derive an initial
+    // camera position from its centroid. Without a real GPS fix the camera
+    // would otherwise sit at world (0, 0), which is outside the embedded
+    // map's coverage, and `MapSource::query` would return zero geometry —
+    // the exact symptom we saw on the first flash.
+    let map = EmbeddedMapSource::default();
+    let (map_min_x, map_max_x, map_min_y, map_max_y) = map.bounds_world();
+    let center_lat_lon = map.center_lat_lon();
+    log::info!(
+        "map: {} segments, bounds_m=({:.0}..{:.0}, {:.0}..{:.0}), center={:?}",
+        map.segment_count(),
+        map_min_x,
+        map_max_x,
+        map_min_y,
+        map_max_y,
+        center_lat_lon,
+    );
+
+    // Build the same headless RuntimePlatform the original helper produces,
+    // but swap the GPS provider for a fixed fix at the map center so the
+    // render pipeline actually has geometry to draw until real GPS / touch
+    // hardware is wired.
+    let runtime_config = RuntimeConfig {
+        viewport_size: board.viewport_size,
+        ..RuntimeConfig::default()
+    };
+    let map_source = MapSourceBridge::new(map);
+    let app = App::with_parts_and_settings(
+        board,
+        runtime_config,
+        map_source,
+        MemoryDisplayBackend::default(),
+        default_settings_store()
+            .map_err(|error| format!("failed to open settings store: {error:?}"))?,
+    )
+    .map_err(|error| format!("failed to build headless P4 app: {error:?}"))?;
+
+    let (seed_lat, seed_lon) = center_lat_lon.unwrap_or((60.1699, 24.9384)); // Helsinki fallback
+    let gps = FixedGpsProvider::new(GpsInput {
+        lat_deg: seed_lat,
+        lon_deg: seed_lon,
+        speed_mps: 0.0,
+        course_rad: None,
+        horizontal_accuracy_m: Some(5.0),
+    });
+    log::info!("seeded fixed GPS fix at lat={:.4} lon={:.4}", seed_lat, seed_lon);
+
+    let mut platform = RuntimePlatform::with_route_sync(
+        app,
+        NullTouchSource,
+        gps,
+        SystemFrameClock::new(board.frame_interval),
+        NullRouteSyncIo,
+    );
 
     log::info!(
         "esp32p4 bring-up: viewport={}x{}, frame_interval_ms={}",

@@ -41,6 +41,27 @@ impl GpsProvider for NullGpsProvider {
     }
 }
 
+/// Returns the same fix on every `poll`, forever. Used during device
+/// bring-up to park the camera on the embedded map's region while no
+/// real GPS hardware is wired, so the runtime actually has geometry to
+/// render instead of looking at the Gulf of Guinea at (0, 0).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct FixedGpsProvider {
+    fix: GpsInput,
+}
+
+impl FixedGpsProvider {
+    pub const fn new(fix: GpsInput) -> Self {
+        Self { fix }
+    }
+}
+
+impl GpsProvider for FixedGpsProvider {
+    fn poll(&mut self) -> Result<Option<GpsInput>, GpsError> {
+        Ok(Some(self.fix))
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct SequenceGpsProvider {
     samples: VecDeque<Option<GpsInput>>,
