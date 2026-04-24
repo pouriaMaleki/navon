@@ -233,8 +233,23 @@ private fun CompanionHomeScreen(
         homeState.compassMode,
         homeState.mapRecenterRequestTick,
         homeState.mapFollowRiderTick,
+        homeState.travelHeadingDegrees,
     ) {
         val coordinates = homeState.displayedRouteCoordinates
+        // Spec lines 108-118 ("when moving with or without a route"): if
+        // the rider is moving, enter riding-mode camera regardless of
+        // whether a route is loaded — bottom-quarter anchor + GPS-trail
+        // heading. Falls through to fit/no-op when stationary.
+        val trailHeading = homeState.travelHeadingDegrees
+        if (homeState.homeMode == HomeMode.PLANNING && trailHeading != null) {
+            orientCameraForTravel(
+                cameraPositionState,
+                coordinates,
+                rider = appState.riderLocation,
+                bearingDegrees = trailHeading,
+            )
+            return@LaunchedEffect
+        }
         if (coordinates.isEmpty()) return@LaunchedEffect
         when (homeState.homeMode) {
             HomeMode.PLANNING, HomeMode.DEVICE_OVERVIEW, HomeMode.SENDING_TO_DEVICE -> fitCameraToRoute(cameraPositionState, coordinates)
@@ -250,8 +265,13 @@ private fun CompanionHomeScreen(
         }
     }
 
-    // Spec line 84: follow the rider on every GPS update during routing.
+    // Spec lines 84 + 110: every GPS fix feeds the heading trail (so the
+    // camera can rotate to riding direction in any mode) AND notifies the
+    // viewmodel which bumps the follow-rider tick when in routing or moving.
     LaunchedEffect(appState.locationState.currentLocation) {
+        appState.locationState.currentLocation?.let { fix ->
+            homeState.ingestRiderLocationFix(fix, System.currentTimeMillis())
+        }
         homeState.notifyRiderLocationUpdated()
     }
 

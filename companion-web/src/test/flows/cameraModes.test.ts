@@ -641,13 +641,14 @@ describe("GPS-trail-heading overrides routing bearing (spec line 110 — most im
     ).toBeCloseTo(0, 0);
   });
 
-  it("while moving without a route, camera bearing still tracks the GPS trail (spec 110 applies)", () => {
-    const { guidance, mapCamera, location } = buildHeadingHarness();
-    // NO startSelectedRoute — planning mode, no preview set.
-    // But the rider is moving east. The camera should rotate accordingly on
-    // an explicit request. (In companion-web, that request comes from the
-    // recenter button or planning-mode camera reaction. We drive it here by
-    // poking onRecenterRequested via a public API the test harness can call.)
+  it("while moving without a route, refreshCameraForCurrentMode rotates to the trail heading and zooms in (spec 110 + 84)", async () => {
+    // Spec lines 108-118: "when moving (with or without a route)" the rider
+    // sits in the bottom quarter and the camera rotates to riding direction.
+    // The previous test only asserted `travelHeadingDegrees` was populated;
+    // the real bug is that the planning-mode camera path doesn't consume
+    // it. This test drives `refreshCameraForCurrentMode` and asserts on
+    // the actual MapCameraStore target.
+    const { mapCamera, location } = buildHeadingHarness();
     const origin = { latitude: 60.17, longitude: 24.94 };
     const locAny = location as unknown as {
       recordFix?: (p: CoordinatePoint, ts: number) => void;
@@ -657,24 +658,75 @@ describe("GPS-trail-heading overrides routing bearing (spec line 110 — most im
       locAny.recordFix?.(offsetByMeters(origin, i * 2.5, 0), i * 200);
     }
     expect(locAny.travelHeadingDegrees).toBeDefined();
-    // Force a recenter as planning-mode (no routing, so route-bearing branch
-    // is out). The harness's listener reads trailHeading and falls back to 0.
-    const guidanceAny = guidance as unknown as { requestRecenter?: () => void };
-    // Pre-condition: homeMode is "planning" — guidance.requestRecenter is a
-    // no-op in that case. We test via advanceProgress during planning?
-    // advanceProgress is also gated on homeMode. Instead, we just trigger a
-    // setCenter via a direct emit — use the store's public onRecenterRequested
-    // listener chain by calling a public "refresh" method. If there isn't one
-    // yet, the test drives the camera directly.
-    // The spec says rotating to GPS heading applies in BOTH modes when moving.
-    // We assert that a recentre in planning-with-no-route uses the trail heading.
-    if (guidanceAny.requestRecenter) guidanceAny.requestRecenter();
-    // In planning mode, guidance.requestRecenter is a no-op today, so we
-    // assert on the FACT that the trail heading is available to any future
-    // planning-mode camera user. The harness callback's `trailHeading ?? 0`
-    // branch covers the "moving without route" case when invoked from the
-    // non-routing recenter path.
-    expect(locAny.travelHeadingDegrees as number).toBeCloseTo(90, 0);
+    const { refreshCameraForCurrentMode } = await import("../../features/home/refreshCamera.js");
+    const fakeStore = {
+      guidanceStore: { homeMode: "planning", riderLocation: origin, requestRecenter: () => {} },
+      mapCameraStore: mapCamera,
+      locationStore: location,
+      planningStore: { preview: { alternatives: [], selectedAlternativeID: undefined } },
+    } as unknown as import("../../app/RootStore.js").RootStore;
+    refreshCameraForCurrentMode(fakeStore);
+    expect(mapCamera.target.kind).toBe("center");
+    if (mapCamera.target.kind === "center") {
+      expect(
+        mapCamera.target.bearing,
+        "moving in planning mode: camera bearing must follow trail heading (≈90° east)",
+      ).toBeCloseTo(90, 0);
+      expect(
+        mapCamera.target.zoom,
+        "moving in planning mode: zoom must snap to ROUTING_FOLLOW_ZOOM (16) so the rider is visible at riding scale",
+      ).toBe(16);
+    }
+  });
+
+  it("while moving without a route, the rider anchor flips to the bottom-quarter (spec 84 applies in planning too)", async () => {
+    // Spec line 84 is part of the moving block (108-118), not gated on
+    // routing. The RootStore autorun should flip
+    // `riderAnchorNormalizedY` whenever the rider is moving, regardless
+    // of whether a route is active.
+    const { location, mapCamera } = buildHeadingHarness();
+    const origin = { latitude: 60.17, longitude: 24.94 };
+    const locAny = location as unknown as {
+      recordFix?: (p: CoordinatePoint, ts: number) => void;
+      travelHeadingDegrees?: number;
+    };
+    // Stationary first.
+    locAny.recordFix?.(origin, 0);
+    locAny.recordFix?.(origin, 100);
+    // Anchor we expect to be observed by a wired RootStore autorun. We model
+    // the same logic: anchor 0.72 when EITHER routing OR moving (trail).
+    function anchorFor(homeMode: string, hasTrail: boolean): number {
+      return homeMode === "phoneGuidance" || hasTrail ? 0.72 : 0.5;
+    }
+    expect(anchorFor("planning", locAny.travelHeadingDegrees !== undefined)).toBe(0.5);
+    // Now move east — trail populates.
+    for (let i = 0; i < 8; i++) {
+      locAny.recordFix?.(offsetByMeters(origin, i * 2.5, 0), i * 200);
+    }
+    expect(locAny.travelHeadingDegrees).toBeDefined();
+    expect(
+      anchorFor("planning", locAny.travelHeadingDegrees !== undefined),
+      "moving in planning mode must give bottom-quarter anchor (0.72)",
+    ).toBe(0.72);
+    // Confirm RootStore autorun's gate would actually update the store. The
+    // current autorun only checks homeMode — this assertion fails until it
+    // is widened to OR with `travelHeadingDegrees !== undefined`.
+    const { RootStore } = await import("../../app/RootStore.js");
+    const root = new RootStore();
+    // Replace the live LocationStore with our trail-primed one is heavy;
+    // instead we read the autorun's actual computed anchor on a freshly
+    // constructed store with no movement, then again after we feed fixes
+    // through its LocationStore.
+    expect(root.mapCameraStore.riderAnchorNormalizedY).toBe(0.5);
+    for (let i = 0; i < 8; i++) {
+      root.locationStore.recordFix(offsetByMeters(origin, i * 2.5, 0), i * 200);
+    }
+    expect(
+      root.mapCameraStore.riderAnchorNormalizedY,
+      "after feeding moving fixes, the RootStore autorun must flip the anchor to 0.72 even outside phoneGuidance",
+    ).toBe(0.72);
+    // Touch the unused mapCamera arg so the fixture stays meaningful.
+    void mapCamera;
   });
 
   it("small GPS jitter produces a smoothed bearing (no camera swings)", () => {

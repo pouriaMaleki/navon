@@ -146,10 +146,15 @@ export class RootStore {
       if (!geometry || geometry.length === 0) return;
       this.mapCameraStore.fitBounds(geometry, 120);
     });
-    // Spec lines 40, 84: stationary camera anchors the rider in the middle;
-    // routing anchors the rider in the bottom quarter.
+    // Spec lines 40, 84, 108-118: the bottom-quarter rider anchor applies
+    // when the rider is moving (with or without a route) — not just during
+    // routing. The "rider is moving" signal is the heading-trail's
+    // `travelHeadingDegrees` (defined ↔ ≥ 3 m displacement within the
+    // window). Stationary planning falls back to the centered 0.5 anchor.
     autorun(() => {
-      const anchor = this.guidanceStore.homeMode === "phoneGuidance" ? 0.72 : 0.5;
+      const inRouting = this.guidanceStore.homeMode === "phoneGuidance";
+      const moving = this.locationStore.travelHeadingDegrees !== undefined;
+      const anchor = inRouting || moving ? 0.72 : 0.5;
       this.mapCameraStore.setRiderAnchorNormalizedY(anchor);
     });
     // Auto-start the watcher only if the user has previously granted permission.

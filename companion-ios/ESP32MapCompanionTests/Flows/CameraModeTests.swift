@@ -406,6 +406,26 @@ final class CameraModeTests: XCTestCase {
             "moving east without a route — camera must still rotate to travel direction (spec 110)")
     }
 
+    func test_movingInPlanning_cameraHeadingFromTrail_evenWithoutRoute() {
+        // Spec lines 108-118: "when moving (with or without a route)" the
+        // camera enters riding mode. The previous test only verified the
+        // trail was populated; this one asserts the public
+        // `cameraHeadingDegrees` returns the trail value when there is no
+        // active route at all (homeMode == .planning, no preview).
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        let start = CoordinatePoint(latitude: 60.17, longitude: 24.94)
+        for i in 0..<8 {
+            vm.ingestRiderLocationFix(offset(start, eastM: Double(i) * 2.5, northM: 0.0),
+                                      timestampMs: Int64(i) * 200)
+        }
+        XCTAssertEqual(vm.homeMode, .planning, "no startSelectedRoute called")
+        let heading = vm.cameraHeadingDegrees(rider: offset(start, eastM: 17.5, northM: 0.0))
+        XCTAssertNotNil(heading)
+        XCTAssertLessThan(abs((heading ?? 0.0) - 90.0), 8.0,
+            "moving in planning mode (no route) — camera must rotate to GPS trail (~90° east)")
+    }
+
     func test_stationaryOnRoute_cameraBearingFallsBackToRouteSegment() async {
         // Stationary rider on a north-pointing route. Camera heading must use
         // the route bearing (north ≈ 0°), per spec 101 "even when stationary yet".

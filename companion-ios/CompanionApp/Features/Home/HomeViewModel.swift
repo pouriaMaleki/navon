@@ -583,11 +583,16 @@ final class HomeViewModel: ObservableObject {
         return bestProgress
     }
 
-    /// Called on every new rider-location update. During phone guidance this
-    /// bumps `mapFollowRiderTick` so the map view re-anchors on the rider
-    /// (spec line 84). Outside phoneGuidance it's a no-op.
+    /// Called on every new rider-location update. Spec line 84 (during
+    /// routing) AND spec lines 108-118 ("when moving with or without a
+    /// route"): bump the follow-rider tick whenever the rider is in a
+    /// state that wants riding-mode camera. The Map view's onChange
+    /// then runs `refreshCameraForCurrentMode` which respects mode +
+    /// trail heading.
     func notifyRiderLocationUpdated() {
-        guard homeMode == .phoneGuidance else { return }
+        let inRouting = homeMode == .phoneGuidance
+        let moving = travelHeadingDegrees != nil
+        guard inRouting || moving else { return }
         mapFollowRiderTick &+= 1
     }
 

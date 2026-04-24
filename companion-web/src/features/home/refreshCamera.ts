@@ -24,7 +24,16 @@ export function refreshCameraForCurrentMode(store: RootStore): void {
     guidance.requestRecenter();
     return;
   }
-  // Planning mode: fit to route or center on rider
+  // Spec lines 108-118 ("when moving (with or without a route)"): if the
+  // rider is moving, treat planning mode like routing — anchor in the
+  // bottom quarter, zoom to riding scale, rotate to GPS-derived heading.
+  const trailHeading = store.locationStore.travelHeadingDegrees;
+  if (trailHeading !== undefined) {
+    const ROUTING_FOLLOW_ZOOM = 16;
+    store.mapCameraStore.setCenter(guidance.riderLocation, ROUTING_FOLLOW_ZOOM, trailHeading);
+    return;
+  }
+  // Stationary planning: fit to route or center on rider.
   const selected = selectedAlternative(store.planningStore.preview);
   if (selected && selected.normalizedPackage.geometry.length > 0) {
     store.mapCameraStore.fitBounds(selected.normalizedPackage.geometry);

@@ -401,6 +401,29 @@ class CameraModeTest {
     }
 
     @Test
+    fun movingInPlanning_travelHeadingPopulated_evenWithoutRoute() = runTest {
+        // Spec lines 108-118: "when moving (with or without a route)" the
+        // camera enters riding mode. The trail must be fed in any mode and
+        // expose travelHeadingDegrees so the Compose camera dispatch can
+        // rotate. Existing tests only covered phoneGuidance.
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val state = CompanionAppState(app)
+        val holder = HomeStateHolder(state, FakePlaceSearch())
+        // No startSelectedRoute — homeMode stays PLANNING.
+        val start = CoordinatePoint(60.17, 24.94)
+        for (i in 0 until 8) {
+            holder.ingestRiderLocationFix(offset(start, eastM = i * 2.5, northM = 0.0),
+                (i * 200).toLong())
+        }
+        assertEquals(HomeMode.PLANNING, holder.homeMode)
+        val heading = holder.travelHeadingDegrees
+        assertTrue(
+            "moving in planning mode (no route) — travelHeadingDegrees must be defined and ≈90° east, got $heading",
+            heading != null && kotlin.math.abs(heading - 90.0) < 8.0,
+        )
+    }
+
+    @Test
     fun stationaryOnRoute_cameraBearingFallsBackToRouteSegment() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
         val state = CompanionAppState(app)

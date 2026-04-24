@@ -27,6 +27,13 @@ export class LocationStore {
     minDisplacementM: 3.0,
     smoothingAlpha: 0.25,
   });
+  /**
+   * MobX-observable cache of `headingTrail.travelHeadingDegrees`. Read-only
+   * for outside callers (use `travelHeadingDegrees`); mutated only inside
+   * `recordFix` and the live geolocation listener so reactions/autoruns
+   * fire when the smoothed heading changes.
+   */
+  private trailHeadingDegreesCache: number | undefined = undefined;
   /** Last good fix loaded from persistence — used as a fallback the first time the app boots. */
   lastKnownLocation: CoordinatePoint | null = null;
   /** True from start() until the first fix or a terminal error arrives. */
@@ -66,6 +73,7 @@ export class LocationStore {
           this.currentLocation = update.point;
           this.currentHeadingDegrees = update.headingDegrees ?? null;
           this.headingTrail.recordFix(update.point, Date.now());
+          this.trailHeadingDegreesCache = this.headingTrail.travelHeadingDegrees;
           this.lastKnownLocation = update.point;
           this.isLocating = false;
           this.lastError = null;
@@ -98,21 +106,24 @@ export class LocationStore {
   /**
    * Smoothed travel heading (0-360, clockwise from north) from the last few
    * GPS fixes, or `undefined` when stationary / buffer not primed. Spec 110.
+   * Reads from an observable cache that's refreshed inside `recordFix` and
+   * the live geolocation listener so MobX reactions can depend on it.
    */
   get travelHeadingDegrees(): number | undefined {
-    return this.headingTrail.travelHeadingDegrees;
+    return this.trailHeadingDegreesCache;
   }
 
   /**
-   * Test-only hook: inject a fix into the trail without going through the
-   * live `service.start(listener)` path. Also updates the same observable
-   * fields the listener would so observers see a coherent snapshot.
+   * Inject a fix into the trail. Used by the live geolocation listener
+   * (replay) and by tests/headless drivers (e.g. simulated rides). Updates
+   * the same observable fields a real fix would so observers stay coherent.
    */
   recordFix(point: CoordinatePoint, timestampMs: number): void {
     runInAction(() => {
       this.currentLocation = point;
       this.lastKnownLocation = point;
       this.headingTrail.recordFix(point, timestampMs);
+      this.trailHeadingDegreesCache = this.headingTrail.travelHeadingDegrees;
     });
   }
 
