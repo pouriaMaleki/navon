@@ -1,4 +1,4 @@
-use std::time::Duration;
+use core::time::Duration;
 
 use bevy_ecs::prelude::{IntoScheduleConfigs, Res, ResMut, Resource, Schedule, SystemSet, World};
 

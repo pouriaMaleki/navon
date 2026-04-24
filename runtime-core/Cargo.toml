@@ -6,5 +6,21 @@ edition = "2024"
 [lib]
 path = "src/lib.rs"
 
+[features]
+default = ["std"]
+# `std` pulls std-dependent bevy_ecs features (bevy_reflect, async_executor,
+# backtrace, parallel schedules). Disable it for bare-metal targets that only
+# provide `alloc` — the runtime logic itself is portable; only bevy_ecs needs
+# the feature dance.
+std = [
+    "bevy_ecs/std",
+    "bevy_ecs/bevy_reflect",
+    "bevy_ecs/async_executor",
+    "bevy_ecs/backtrace",
+]
+
 [dependencies]
-bevy_ecs = "0.17.2"
+bevy_ecs = { version = "0.17.2", default-features = false }
+# Provides `Float` trait methods (sqrt/hypot/atan2/sin/cos/...) for both
+# std and no_std builds. On no_std the `libm` feature routes to libm.
+num-traits = { version = "0.2", default-features = false, features = ["libm"] }

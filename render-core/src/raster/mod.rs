@@ -1,3 +1,8 @@
+#[allow(unused_imports)]
+use alloc::{vec, vec::Vec, string::{String, ToString}, boxed::Box, format, borrow::ToOwned};
+#[allow(unused_imports)]
+use num_traits::Float as _;
+
 use runtime_core::api::ScreenPoint;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -236,17 +241,17 @@ impl Framebuffer {
             return;
         }
 
-        let sweep_rad = std::f32::consts::TAU * clamped_progress;
+        let sweep_rad = core::f32::consts::TAU * clamped_progress;
         self.draw_rotated_mask_with_filter(center, mask, angle_rad, color, |local_x, local_y| {
             if local_x == 0.0 && local_y == 0.0 {
                 return true;
             }
             let mut delta = local_y.atan2(local_x) - start_angle_rad;
             while delta < 0.0 {
-                delta += std::f32::consts::TAU;
+                delta += core::f32::consts::TAU;
             }
-            while delta >= std::f32::consts::TAU {
-                delta -= std::f32::consts::TAU;
+            while delta >= core::f32::consts::TAU {
+                delta -= core::f32::consts::TAU;
             }
             delta <= sweep_rad
         });

@@ -1,5 +1,7 @@
-use std::f64::consts::{FRAC_PI_4, PI};
-use std::time::Duration;
+#[allow(unused_imports)]
+use num_traits::Float as _;
+use core::f64::consts::{FRAC_PI_4, PI};
+use core::time::Duration;
 
 use crate::api::{GpsSample, WorldPoint};
 

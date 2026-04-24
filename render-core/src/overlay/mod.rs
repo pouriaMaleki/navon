@@ -1,3 +1,8 @@
+#[allow(unused_imports)]
+use alloc::{vec, vec::Vec, string::{String, ToString}, boxed::Box, format, borrow::ToOwned};
+#[allow(unused_imports)]
+use num_traits::Float as _;
+
 pub(crate) mod assets;
 
 use runtime_core::api::{
@@ -12,7 +17,7 @@ use crate::style::RenderStyle;
 
 const NORTH_INDICATOR_ACK_BASE_RADIUS_PX: f32 = 20.0;
 const NORTH_INDICATOR_ACK_EXPANSION_PX: f32 = 12.0;
-const TOP_START_ANGLE_RAD: f32 = -std::f32::consts::FRAC_PI_2;
+const TOP_START_ANGLE_RAD: f32 = -core::f32::consts::FRAC_PI_2;
 const SPEED_PANEL_HEIGHT_RATIO: f32 = 0.25;
 const SPEED_PANEL_UNIT_SCALE_PX: i32 = 5;
 const UNIT_GLYPH_WIDTH: usize = 3;
@@ -151,7 +156,7 @@ fn draw_ring(
     color: crate::raster::Color,
 ) {
     let segments = 64usize;
-    let angle_step = std::f32::consts::TAU / segments as f32;
+    let angle_step = core::f32::consts::TAU / segments as f32;
     for segment in 0..=segments {
         let angle = TOP_START_ANGLE_RAD + (angle_step * segment as f32);
         let x = center.x_px + (radius_px * angle.cos());

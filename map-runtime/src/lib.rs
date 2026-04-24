@@ -1,4 +1,12 @@
-use std::collections::HashSet;
+#![cfg_attr(not(feature = "std"), no_std)]
+
+extern crate alloc;
+
+#[allow(unused_imports)]
+use alloc::{vec, vec::Vec, string::{String, ToString}, boxed::Box, format};
+#[allow(unused_imports)]
+use num_traits::Float as _;
+use hashbrown::HashSet;
 
 use runtime_core::api::{
     GeometryCandidate, MapLayer, MapPointCandidate, MapPolylineCandidate, MapQueryResult,
@@ -12,7 +20,7 @@ const SVM_HEADER_LEN: usize = 30;
 const SVM_SEGMENT_RECORD_LEN: usize = 24;
 const TILE_EXTENT: f64 = 4096.0;
 const EARTH_RADIUS_M: f64 = 6_378_137.0;
-const EARTH_CIRCUMFERENCE_M: f64 = std::f64::consts::TAU * EARTH_RADIUS_M;
+const EARTH_CIRCUMFERENCE_M: f64 = core::f64::consts::TAU * EARTH_RADIUS_M;
 const HALF_EARTH_CIRCUMFERENCE_M: f64 = EARTH_CIRCUMFERENCE_M / 2.0;
 const GRID_CELL_WORLD_UNITS: i32 = 4_096;
 
@@ -239,7 +247,7 @@ fn validate_svm_header(bytes: &[u8]) -> Result<(), String> {
     if magic != SVM_MAGIC.as_slice() {
         return Err(format!(
             "svm magic mismatch: expected {:?}, got {:?}",
-            std::str::from_utf8(SVM_MAGIC).unwrap_or("SVM1"),
+            core::str::from_utf8(SVM_MAGIC).unwrap_or("SVM1"),
             String::from_utf8_lossy(magic)
         ));
     }

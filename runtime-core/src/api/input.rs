@@ -1,4 +1,7 @@
-use std::time::Duration;
+#[allow(unused_imports)]
+use alloc::{vec, vec::Vec, string::{String, ToString}, boxed::Box, format, borrow::ToOwned};
+
+use core::time::Duration;
 
 use super::route::RouteSyncMessage;
 
@@ -118,7 +121,7 @@ impl TouchContactFrame {
 }
 
 fn validate_contact_ids(contacts: &[TouchContact]) -> Result<(), TouchContactFrameError> {
-    let mut seen = std::collections::BTreeSet::new();
+    let mut seen = alloc::collections::BTreeSet::new();
     for contact in contacts {
         if !seen.insert(contact.id) {
             return Err(TouchContactFrameError::DuplicateContactId(contact.id));

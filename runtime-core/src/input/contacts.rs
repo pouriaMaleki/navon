@@ -1,3 +1,6 @@
+#[allow(unused_imports)]
+use alloc::{vec, vec::Vec, string::{String, ToString}, boxed::Box, format, borrow::ToOwned};
+
 use bevy_ecs::prelude::Resource;
 
 use crate::api::{TouchContact, TouchContactFrame};

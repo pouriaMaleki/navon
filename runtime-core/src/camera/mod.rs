@@ -1,4 +1,6 @@
-use std::time::Duration;
+#[allow(unused_imports)]
+use num_traits::Float as _;
+use core::time::Duration;
 
 use crate::api::{
     CameraMode, CameraOrientationMode, CameraStateSnapshot, NormalizedScreenPoint, RuntimeConfig,
@@ -646,11 +648,11 @@ fn interpolate_bearing(from_rad: f32, to_rad: f32, t: f32) -> f32 {
 
 fn normalize_signed_angle(angle_rad: f32) -> f32 {
     let mut normalized = angle_rad;
-    while normalized > std::f32::consts::PI {
-        normalized -= std::f32::consts::TAU;
+    while normalized > core::f32::consts::PI {
+        normalized -= core::f32::consts::TAU;
     }
-    while normalized < -std::f32::consts::PI {
-        normalized += std::f32::consts::TAU;
+    while normalized < -core::f32::consts::PI {
+        normalized += core::f32::consts::TAU;
     }
     normalized
 }

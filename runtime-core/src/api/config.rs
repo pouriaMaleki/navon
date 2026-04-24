@@ -1,4 +1,6 @@
-use std::time::Duration;
+#[allow(unused_imports)]
+use num_traits::Float as _;
+use core::time::Duration;
 
 use super::input::ViewportSize;
 

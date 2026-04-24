@@ -1,3 +1,8 @@
+#[allow(unused_imports)]
+use alloc::{vec, vec::Vec, string::{String, ToString}, boxed::Box, format, borrow::ToOwned};
+#[allow(unused_imports)]
+use num_traits::Float as _;
+
 use runtime_core::api::{CameraStateSnapshot, ScreenPoint, ViewportSize, WorldPoint};
 
 #[derive(Debug, Clone, Copy, PartialEq)]

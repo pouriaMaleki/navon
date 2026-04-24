@@ -20,7 +20,7 @@ log = "0.4"
 enumset = "1.1.10"
 
 [build-dependencies]
-embuild = "0.33"
+embuild = { version = "0.33", features = ["espidf"] }
 
 [package.metadata.esp-idf-sys]
 esp_idf_sdkconfig_defaults = "sdkconfig.defaults"

@@ -48,7 +48,7 @@ impl core::fmt::Display for GpxImportError {
     }
 }
 
-impl std::error::Error for GpxImportError {}
+impl core::error::Error for GpxImportError {}
 
 #[derive(Debug, Clone, PartialEq)]
 struct GpxPoint {

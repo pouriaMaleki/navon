@@ -1,3 +1,12 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+
+extern crate alloc;
+
+#[allow(unused_imports)]
+use alloc::{vec, vec::Vec, string::String, boxed::Box, format};
+#[allow(unused_imports)]
+use num_traits::Float as _;
+
 pub mod camera_view;
 pub mod overlay;
 pub mod raster;
@@ -255,6 +264,7 @@ mod tests {
                 speed_panel_visible: false,
                 speed_display_value: 0,
                 speed_unit: SpeedUnit::Kph,
+                map_tiles_loading: false,
             },
             map_query: MapQuerySpec::new(
                 WorldPoint::ORIGIN,
@@ -350,7 +360,7 @@ mod tests {
         let mut north_output = sample_output();
         north_output.overlay.rider_heading_rad = Some(0.0);
         let mut east_output = sample_output();
-        east_output.overlay.rider_heading_rad = Some(std::f32::consts::FRAC_PI_2);
+        east_output.overlay.rider_heading_rad = Some(core::f32::consts::FRAC_PI_2);
 
         let mut north = Framebuffer::new(128, 128);
         let mut east = Framebuffer::new(128, 128);
@@ -382,7 +392,7 @@ mod tests {
         let mut north_up = sample_output();
         north_up.camera.orientation_rad = 0.0;
         let mut east_up = sample_output();
-        east_up.camera.orientation_rad = std::f32::consts::FRAC_PI_2;
+        east_up.camera.orientation_rad = core::f32::consts::FRAC_PI_2;
 
         let mut north = Framebuffer::new(128, 128);
         let mut east = Framebuffer::new(128, 128);

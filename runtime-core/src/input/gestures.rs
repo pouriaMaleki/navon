@@ -1,3 +1,8 @@
+#[allow(unused_imports)]
+use alloc::{vec, vec::Vec, string::{String, ToString}, boxed::Box, format, borrow::ToOwned};
+
+#[allow(unused_imports)]
+use num_traits::Float as _;
 use bevy_ecs::prelude::Resource;
 
 use crate::api::{GestureEventKind, ScreenPoint};
@@ -208,12 +213,12 @@ fn angle_rad(a: ScreenPoint, b: ScreenPoint) -> f32 {
 }
 
 fn normalize_angle(angle: f32) -> f32 {
-    let tau = std::f32::consts::TAU;
+    let tau = core::f32::consts::TAU;
     let mut normalized = angle;
-    while normalized > std::f32::consts::PI {
+    while normalized > core::f32::consts::PI {
         normalized -= tau;
     }
-    while normalized < -std::f32::consts::PI {
+    while normalized < -core::f32::consts::PI {
         normalized += tau;
     }
     normalized

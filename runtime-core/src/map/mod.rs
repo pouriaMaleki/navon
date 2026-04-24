@@ -1,3 +1,5 @@
+#[allow(unused_imports)]
+use num_traits::Float as _;
 use crate::api::{
     CameraStateSnapshot, LodMask, MapLayer, MapPresentationBand, MapQueryResult, MapQuerySpec,
     ViewportSize, WorldBounds,

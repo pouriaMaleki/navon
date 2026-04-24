@@ -1,4 +1,9 @@
-use std::time::Duration;
+#[allow(unused_imports)]
+use alloc::{vec, vec::Vec, string::{String, ToString}, boxed::Box, format, borrow::ToOwned};
+
+#[allow(unused_imports)]
+use num_traits::Float as _;
+use core::time::Duration;
 
 use crate::api::config::RouteAlertVerbosity;
 use crate::api::input::GpsSample;
