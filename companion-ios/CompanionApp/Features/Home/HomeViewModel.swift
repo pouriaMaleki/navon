@@ -230,8 +230,18 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
+    /// Short window after `selectSuggestion` during which `openSearch()` is
+    /// absorbed. The user-reported bug is the dropdown re-opens visually
+    /// after a pick because the SwiftUI TextField still holds focus and
+    /// re-fires onFocus on the next layout pass. This latch swallows that
+    /// follow-up open while a legitimate "user explicitly tapped the
+    /// input again" intent fires after the window closes.
+    private let postSelectionLatchSeconds: TimeInterval = 0.35
+    private var postSelectionLatchUntil: Date = .distantPast
+
     func openSearch() {
         guard homeMode == .planning else { return }
+        if Date() < postSelectionLatchUntil { return }
         isSearchOpen = true
         visibleRecentCount = 10
         visibleSuggestionCount = 10
@@ -332,6 +342,7 @@ final class HomeViewModel: ObservableObject {
     func selectSuggestion(_ suggestion: DestinationSearchResult) {
         latestSearchTask?.cancel()
         closeSearch()
+        postSelectionLatchUntil = Date().addingTimeInterval(postSelectionLatchSeconds)
         Task {
             planningStatus = "Planning route to \(suggestion.title)…"
             defer { planningStatus = nil }
