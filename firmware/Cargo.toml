@@ -10,10 +10,11 @@ name = "firmware"
 path = "src/main.rs"
 
 [dependencies]
-# Disable the `embedded-city-map` feature so the 79 MB city.svm is not
-# linked into the device binary; it exceeds P4 flash-mapped DROM. The full
-# map will be loaded from a dedicated flash partition at runtime (Phase 3).
-map-runtime = { path = "../map-runtime", default-features = false, features = ["std"] }
+# Inherit the default `embedded-map` feature; map-runtime's `Default` impl
+# picks `city-small.svm` (~9.6 MB, 400k segments, fits the P4 DROM region)
+# automatically on `target_os = "espidf"` and `city.svm` (~76 MB full) on
+# host builds. No per-consumer feature wiring needed — one source of truth.
+map-runtime = { path = "../map-runtime" }
 render-core = { path = "../render-core" }
 runtime-core = { path = "../runtime-core" }
 

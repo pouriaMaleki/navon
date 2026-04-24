@@ -7,14 +7,19 @@ edition = "2024"
 path = "src/lib.rs"
 
 [features]
-default = ["std", "embedded-city-map"]
+default = ["std", "embedded-map"]
 std = ["runtime-core/std"]
-# Embeds `../map-data/city.svm` (~79 MB) into the binary via include_bytes!.
-# Emulator/wasm builds keep this on for offline convenience. Device firmware
-# MUST disable it — the map exceeds the ESP32-P4's 64 MB flash-mapped DROM
-# region and causes the linker to discard the section. Device firmware should
-# load the map from a separate partition at runtime instead.
-embedded-city-map = []
+# Embeds a city map into the binary via `include_bytes!`. Selected at
+# compile time by target_os (not by a separate feature), so workspace
+# feature unification cannot accidentally embed two maps in one binary:
+#   - `target_os = "espidf"` → `../map-data/city-small.svm` (~9.6 MB, 400k
+#     segments, fits the ESP32-P4's 64 MB flash-mapped DROM region).
+#   - otherwise → `../map-data/city.svm` (~76 MB full dataset for the
+#     emulator, wasm, and host fixtures).
+# Disabling this feature yields a zero-segment placeholder map via
+# `EmbeddedMapSource::empty()` — useful for fixture tests that supply
+# their own `MapSource` without paying the include-bytes compile cost.
+embedded-map = []
 
 [dependencies]
 runtime-core = { path = "../runtime-core", default-features = false }

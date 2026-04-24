@@ -1,5 +1,18 @@
 CONFIG_IDF_TARGET="esp32p4"
 
+# The Waveshare ESP32-P4-Module-DEV-KIT ships with 32 MB of SPI flash.
+# Without this the image header reports 4 MB and the bootloader warns
+# "Detected size(32768k) larger than the size in the binary image header".
+CONFIG_ESPTOOLPY_FLASHSIZE_32MB=y
+
+# Custom partition layout. The `factory` slot is 16 MB so the ~9.6 MB
+# embedded `city-small.svm` + firmware text/rodata fit with room to grow.
+# The default `partitions_singleapp.csv` gives only 1 MB of factory space.
+# embuild's `PROJECT_DIR` points at `/work/target`, not the crate source,
+# so resolve the CSV via an absolute path rather than a crate-relative one.
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="/work/firmware/partitions.csv"
+
 # Watchdog / task stacks for a simple main loop.
 CONFIG_ESP_MAIN_TASK_STACK_SIZE=16384
 CONFIG_ESP_TASK_WDT_EN=y

@@ -277,6 +277,7 @@ struct Workspace {
     map_data: PathBuf,
     xtask_tmp: PathBuf,
     firmware_crate: PathBuf,
+    partitions_csv: PathBuf,
     device_target: PathBuf,
     device_out_dir: PathBuf,
     esp_export_script: PathBuf,
@@ -284,6 +285,9 @@ struct Workspace {
 
 const DEVICE_RUST_TARGET: &str = "riscv32imafc-esp-espidf";
 const DEVICE_CHIP: &str = "esp32p4";
+// Waveshare ESP32-P4-Module-DEV-KIT has 32 MB SPI flash. espflash defaults
+// to 4 MB, which collides with our 16 MB factory partition in partitions.csv.
+const DEVICE_FLASH_SIZE: &str = "32mb";
 
 impl Workspace {
     fn new() -> Result<Self, String> {
@@ -308,6 +312,7 @@ impl Workspace {
             map_data: root.join("map-data/city.svm"),
             xtask_tmp: root.join(".xtask/tmp"),
             firmware_crate: root.join("firmware"),
+            partitions_csv: root.join("firmware/partitions.csv"),
             device_target: cargo_target_dir.join(DEVICE_RUST_TARGET),
             device_out_dir: root.join(".xtask/device"),
             esp_export_script,
@@ -452,11 +457,19 @@ impl CommandSpec {
     fn espflash_save_image(workspace: &Workspace, release: bool) -> Self {
         let elf = workspace.firmware_elf_path(release);
         let out = workspace.device_image_path(release);
+        // `save-image --merge` defaults to the esp-idf 4 MB factory partition
+        // table. Our firmware embeds the ~9.6 MB city-small.svm so the ELF
+        // is ~10.5 MB and needs the custom 16 MB factory table in
+        // firmware/partitions.csv. Same file esp-idf-sys uses at link time.
         let args = vec![
             OsString::from("save-image"),
             OsString::from("--chip"),
             OsString::from(DEVICE_CHIP),
             OsString::from("--merge"),
+            OsString::from("--flash-size"),
+            OsString::from(DEVICE_FLASH_SIZE),
+            OsString::from("--partition-table"),
+            workspace.partitions_csv.clone().into_os_string(),
             elf.into_os_string(),
             out.into_os_string(),
         ];
@@ -476,6 +489,8 @@ impl CommandSpec {
             OsString::from(DEVICE_CHIP),
             OsString::from("--port"),
             OsString::from(port),
+            OsString::from("--partition-table"),
+            workspace.partitions_csv.clone().into_os_string(),
             OsString::from("--monitor"),
             elf.into_os_string(),
         ];
@@ -591,6 +606,7 @@ mod tests {
             map_data: PathBuf::from("/work/map-data/city.svm"),
             xtask_tmp: PathBuf::from("/work/.xtask/tmp"),
             firmware_crate: PathBuf::from("/work/firmware"),
+            partitions_csv: PathBuf::from("/work/firmware/partitions.csv"),
             device_target: PathBuf::from("/work/target/riscv32imafc-esp-espidf"),
             device_out_dir: PathBuf::from("/work/.xtask/device"),
             esp_export_script: PathBuf::from("/does-not-exist/export-esp.sh"),
@@ -714,6 +730,10 @@ mod tests {
                 OsString::from("--chip"),
                 OsString::from(DEVICE_CHIP),
                 OsString::from("--merge"),
+                OsString::from("--flash-size"),
+                OsString::from(DEVICE_FLASH_SIZE),
+                OsString::from("--partition-table"),
+                OsString::from("/work/firmware/partitions.csv"),
                 OsString::from("/work/target/riscv32imafc-esp-espidf/release/firmware"),
                 OsString::from("/work/.xtask/device/firmware-release.bin"),
             ]
@@ -735,6 +755,8 @@ mod tests {
                 OsString::from(DEVICE_CHIP),
                 OsString::from("--port"),
                 OsString::from("/dev/ttyACM0"),
+                OsString::from("--partition-table"),
+                OsString::from("/work/firmware/partitions.csv"),
                 OsString::from("--monitor"),
                 OsString::from("/work/target/riscv32imafc-esp-espidf/debug/firmware"),
             ]

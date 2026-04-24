@@ -1,0 +1,14 @@
+# ESP32-P4 partition table for the bike-minimap firmware.
+#
+# The factory app partition is sized to 16 MB so the embedded ~9.6 MB
+# `city-small.svm` map (pulled in via `include_bytes!` through the
+# map-runtime `embedded-city-map-small` feature) fits alongside code and
+# read-only data with room to grow. The Waveshare ESP32-P4-Module-DEV-KIT
+# ships with 32 MB of SPI flash; the remaining ~16 MB beyond `factory`
+# is intentionally left unused for now — we can carve out SPIFFS, coredump,
+# or OTA slots in later steps without disturbing this table.
+#
+# Name,    Type, SubType,  Offset,   Size,      Flags
+nvs,       data, nvs,      0x9000,   0x6000
+phy_init,  data, phy,      0xf000,   0x1000
+factory,   app,  factory,  0x10000,  0x1000000

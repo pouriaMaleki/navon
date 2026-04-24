@@ -112,12 +112,163 @@ fn run() -> Result<(), String> {
             );
             Ok(())
         }
+        "shrink-svm" => {
+            let cfg = parse_shrink_args(args.collect())?;
+            let map = read_standard_map(&cfg.input)?;
+            let shrunk = shrink_standard_map(map, cfg.max_segments);
+            write_standard_map(&cfg.output, &shrunk)?;
+            eprintln!(
+                "map-vector-cli: wrote shrunk city map {} segments to {}",
+                shrunk.segments.len(),
+                cfg.output.display()
+            );
+            Ok(())
+        }
         _ => Err(usage().to_owned()),
     }
 }
 
 fn usage() -> &'static str {
-    "usage:\n  map-vector-cli convert-mbtiles --input <file.mbtiles> --output <city.svm> [--target-zoom <i32>] [--max-segments <usize>] [--profile <bike|all>]"
+    "usage:\n  map-vector-cli convert-mbtiles --input <file.mbtiles> --output <city.svm> [--target-zoom <i32>] [--max-segments <usize>] [--profile <bike|all>]\n  map-vector-cli shrink-svm --input <city.svm> --output <city-small.svm> --max-segments <usize>"
+}
+
+struct ShrinkArgs {
+    input: PathBuf,
+    output: PathBuf,
+    max_segments: usize,
+}
+
+fn parse_shrink_args(args: Vec<String>) -> Result<ShrinkArgs, String> {
+    let mut input = None;
+    let mut output = None;
+    let mut max_segments: Option<usize> = None;
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--input" => {
+                i += 1;
+                input = args.get(i).map(PathBuf::from);
+            }
+            "--output" => {
+                i += 1;
+                output = args.get(i).map(PathBuf::from);
+            }
+            "--max-segments" => {
+                i += 1;
+                max_segments = Some(parse_usize(args.get(i), "--max-segments")?);
+            }
+            other => return Err(format!("unknown arg: {other}")),
+        }
+        i += 1;
+    }
+    Ok(ShrinkArgs {
+        input: input.ok_or("missing --input")?,
+        output: output.ok_or("missing --output")?,
+        max_segments: max_segments.ok_or("missing --max-segments")?,
+    })
+}
+
+/// Keeps segments in priority order: lower `road_class` first (arterial
+/// roads and dedicated bike-route spines before residential footpaths),
+/// then by segment index for determinism. Truncates at `max_segments`.
+fn shrink_standard_map(mut map: StandardMap, max_segments: usize) -> StandardMap {
+    map.segments.sort_by_key(|s| (s.road_class, s.geometry_kind));
+    if map.segments.len() > max_segments {
+        map.segments.truncate(max_segments);
+    }
+    map
+}
+
+fn read_standard_map(path: &Path) -> Result<StandardMap, String> {
+    let bytes =
+        fs::read(path).map_err(|e| format!("failed reading {}: {e}", path.display()))?;
+    parse_standard_map(&bytes)
+}
+
+fn parse_standard_map(bytes: &[u8]) -> Result<StandardMap, String> {
+    const HEADER_LEN: usize = 30;
+    const RECORD_LEN: usize = 24;
+    if bytes.len() < HEADER_LEN {
+        return Err("svm input too short for header".to_owned());
+    }
+    if &bytes[0..4] != MAGIC {
+        return Err("svm magic mismatch".to_owned());
+    }
+    let version = read_u16(bytes, 4)?;
+    if version != VERSION {
+        return Err(format!(
+            "unexpected svm version: got {}, expected {}",
+            version, VERSION
+        ));
+    }
+    let source_zoom = read_i32(bytes, 8)?;
+    let bounds = Bounds {
+        min_x: read_i32(bytes, 12)?,
+        max_x: read_i32(bytes, 16)?,
+        min_y: read_i32(bytes, 20)?,
+        max_y: read_i32(bytes, 24)?,
+    };
+    let name_len = read_u16(bytes, 28)? as usize;
+    let segment_count_offset = HEADER_LEN
+        .checked_add(name_len)
+        .ok_or("svm name offset overflow")?;
+    if bytes.len() < segment_count_offset + 4 {
+        return Err("svm truncated before segment count".to_owned());
+    }
+    let source_name = std::str::from_utf8(&bytes[HEADER_LEN..HEADER_LEN + name_len])
+        .map_err(|e| format!("svm source name is not utf-8: {e}"))?
+        .to_owned();
+    let segment_count = read_u32(bytes, segment_count_offset)? as usize;
+    let mut offset = segment_count_offset + 4;
+    let segment_bytes = segment_count
+        .checked_mul(RECORD_LEN)
+        .ok_or("svm segment count overflow")?;
+    if bytes.len() < offset + segment_bytes {
+        return Err("svm truncated before segment table end".to_owned());
+    }
+    let mut segments = Vec::with_capacity(segment_count);
+    for _ in 0..segment_count {
+        segments.push(Segment {
+            x1: read_i32(bytes, offset)?,
+            y1: read_i32(bytes, offset + 4)?,
+            x2: read_i32(bytes, offset + 8)?,
+            y2: read_i32(bytes, offset + 12)?,
+            road_class: bytes[offset + 16],
+            geometry_kind: bytes[offset + 17],
+            attr_id: read_u32(bytes, offset + 20)?,
+        });
+        offset += RECORD_LEN;
+    }
+    Ok(StandardMap {
+        source_name,
+        source_zoom,
+        bounds,
+        segments,
+    })
+}
+
+fn read_u16(bytes: &[u8], offset: usize) -> Result<u16, String> {
+    bytes
+        .get(offset..offset + 2)
+        .and_then(|slice| slice.try_into().ok())
+        .map(u16::from_le_bytes)
+        .ok_or_else(|| format!("svm: unexpected eof at offset {offset}"))
+}
+
+fn read_u32(bytes: &[u8], offset: usize) -> Result<u32, String> {
+    bytes
+        .get(offset..offset + 4)
+        .and_then(|slice| slice.try_into().ok())
+        .map(u32::from_le_bytes)
+        .ok_or_else(|| format!("svm: unexpected eof at offset {offset}"))
+}
+
+fn read_i32(bytes: &[u8], offset: usize) -> Result<i32, String> {
+    bytes
+        .get(offset..offset + 4)
+        .and_then(|slice| slice.try_into().ok())
+        .map(i32::from_le_bytes)
+        .ok_or_else(|| format!("svm: unexpected eof at offset {offset}"))
 }
 
 fn parse_convert_args(args: Vec<String>) -> Result<ConvertArgs, String> {

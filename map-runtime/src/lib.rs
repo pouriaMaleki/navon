@@ -139,19 +139,26 @@ pub struct EmbeddedMapSource {
 }
 
 impl Default for EmbeddedMapSource {
-    #[cfg(feature = "embedded-city-map")]
+    // On ESP32-P4 (target_os = "espidf") embed the downsampled 9.6 MB map;
+    // the full 76 MB city.svm exceeds the P4's 64 MB DROM region and the
+    // linker discards the section. Emulator / wasm / host fixtures embed
+    // the full-size map for maximum geographic coverage.
+    #[cfg(all(feature = "embedded-map", target_os = "espidf"))]
+    fn default() -> Self {
+        Self::from_svm_bytes(include_bytes!("../../map-data/city-small.svm"))
+            .expect("embedded city-small.svm should be valid")
+    }
+
+    #[cfg(all(feature = "embedded-map", not(target_os = "espidf")))]
     fn default() -> Self {
         Self::from_svm_bytes(include_bytes!("../../map-data/city.svm"))
             .expect("embedded city.svm should be valid")
     }
 
-    #[cfg(not(feature = "embedded-city-map"))]
+    #[cfg(not(feature = "embedded-map"))]
     fn default() -> Self {
-        // Device firmware builds with `embedded-city-map` off so the binary
-        // does not embed the ~79 MB city.svm; instead the map is loaded from
-        // a flash partition at runtime via `from_svm_bytes`. The zero-segment
-        // placeholder here keeps `MapSource::query` working (returns empty
-        // geometry) until the real map is loaded.
+        // No map embedded. Zero-segment placeholder for callers that plug
+        // their own `MapSource` in (fixture tests, CLI tools).
         Self::empty()
     }
 
