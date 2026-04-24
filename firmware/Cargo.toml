@@ -2,6 +2,8 @@
 name = "firmware"
 version = "0.1.0"
 edition = "2024"
+resolver = "2"
+build = "build.rs"
 
 [[bin]]
 name = "firmware"
@@ -13,8 +15,16 @@ render-core = { path = "../render-core" }
 runtime-core = { path = "../runtime-core" }
 
 [target.'cfg(target_os = "espidf")'.dependencies]
-esp-idf-svc = "0.52.1"
+esp-idf-svc = { version = "0.52.1", features = ["binstart"] }
+log = "0.4"
 enumset = "1.1.10"
+
+[build-dependencies]
+embuild = "0.33"
+
+[package.metadata.esp-idf-sys]
+esp_idf_sdkconfig_defaults = "sdkconfig.defaults"
+esp_idf_tools_install_dir = "workspace"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [

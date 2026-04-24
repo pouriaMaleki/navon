@@ -1,0 +1,30 @@
+CONFIG_IDF_TARGET="esp32p4"
+
+# Watchdog / task stacks for a simple main loop.
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=16384
+CONFIG_ESP_TASK_WDT_EN=y
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=30
+CONFIG_ESP_TASK_WDT_INIT=y
+
+# Log everything at INFO by default.
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
+CONFIG_LOG_MAXIMUM_LEVEL_INFO=y
+
+# Waveshare ESP32-P4-Module-DEV-KIT has 32MB HyperBus PSRAM (hex mode).
+# We use PSRAM for the heap only — keep code/rodata in internal flash/SRAM.
+# Code-placement options (FETCH_INSTRUCTIONS, RODATA, XIP_FROM_PSRAM) all
+# enable ld's `--enable-non-contiguous-regions`, which discards orphan
+# sections produced by `-Zbuild-std`. If the app outgrows internal SRAM
+# we revisit flash XIP rather than PSRAM XIP to keep orphan handling sane.
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_HEX=y
+CONFIG_SPIRAM_SPEED_200M=y
+CONFIG_SPIRAM_USE_MALLOC=y
+
+# Size-optimize the IDF side too; the Rust side is already -Os with LTO.
+CONFIG_COMPILER_OPTIMIZATION_SIZE=y
+
+# Disable C++ exceptions and RTTI so libstdc++'s eh_globals / type_info
+# objects are not dragged into the link. The Rust binary does not need them.
+CONFIG_COMPILER_CXX_EXCEPTIONS=n
+CONFIG_COMPILER_CXX_RTTI=n

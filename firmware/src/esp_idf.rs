@@ -574,8 +574,55 @@ pub fn run_device_main() -> Result<(), String> {
     }
 }
 
+// ESP32-P4 bring-up entrypoint. The P4 has no on-chip radio, so Bluedroid is
+// not available through `esp-idf-svc`; a BLE route-sync service must come from
+// the external ESP32-C6 radio path. For the first device bring-up we boot the
+// same headless runtime with a `NullRouteSyncIo`, which proves the toolchain
+// end-to-end (flash, boot, run frames, log over USB-serial) without display,
+// touch, GPS, or BLE wiring.
+#[cfg(all(target_os = "espidf", esp32p4))]
+pub fn run_device_main() -> Result<(), String> {
+    use std::thread;
+
+    use esp_idf_svc::log::EspLogger;
+    use esp_idf_svc::sys;
+
+    sys::link_patches();
+    EspLogger::initialize_default();
+
+    let board = BoardConfig::default();
+    let mut platform =
+        build_headless_route_sync_platform(board, crate::platform::NullRouteSyncIo)
+            .map_err(|error| format!("failed to build headless P4 platform: {error:?}"))?;
+
+    log::info!(
+        "esp32p4 bring-up: viewport={}x{}, frame_interval_ms={}",
+        board.viewport_size.width_px,
+        board.viewport_size.height_px,
+        board.frame_interval.as_millis()
+    );
+
+    let mut last_log = std::time::Instant::now();
+    loop {
+        let frame = platform
+            .run_frame()
+            .map_err(|error| format!("device frame failed: {error:?}"))?;
+        if last_log.elapsed() >= std::time::Duration::from_secs(1) {
+            log::info!(
+                "frame={} lit_pixels={} geometry={}",
+                frame.output.frame_index,
+                frame.lit_pixel_count,
+                frame.geometry_count
+            );
+            last_log = std::time::Instant::now();
+        }
+        thread::sleep(board.frame_interval);
+    }
+}
+
 #[cfg(all(
     target_os = "espidf",
+    not(esp32p4),
     not(all(
         not(any(esp32s2, esp32p4)),
         esp_idf_bt_enabled,

@@ -1,6 +1,12 @@
 #[cfg(target_os = "espidf")]
 fn main() {
-    firmware::esp_idf::run_device_main().expect("firmware device entrypoint should build");
+    if let Err(error) = firmware::esp_idf::run_device_main() {
+        eprintln!("firmware device entrypoint failed: {error}");
+        loop {
+            std::thread::sleep(std::time::Duration::from_secs(5));
+            eprintln!("firmware device entrypoint failed: {error}");
+        }
+    }
 }
 
 #[cfg(not(target_os = "espidf"))]
