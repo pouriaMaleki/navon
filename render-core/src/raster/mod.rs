@@ -101,11 +101,25 @@ impl Framebuffer {
     }
 
     pub fn clear(&mut self, color: Color) {
-        for rgba in self.pixels.chunks_exact_mut(4) {
-            rgba[0] = color.r;
-            rgba[1] = color.g;
-            rgba[2] = color.b;
-            rgba[3] = 255;
+        // Pack RGBA8888 into one u32 (little-endian so byte-offset reads of
+        // the buffer see r @ 0, g @ 1, b @ 2, a @ 3). Filling as &mut [u32]
+        // gives the compiler one word store per pixel instead of four byte
+        // stores — on the ESP32-P4 this ~4x's the instruction density of
+        // the framebuffer-clear path, which dominates frame time when
+        // rendering onto 800x800 in PSRAM.
+        let packed = u32::from_le_bytes([color.r, color.g, color.b, 255]);
+        // SAFETY: `align_to_mut` handles any alignment; Vec<u8> from alloc
+        // is typically 16-byte aligned and a framebuffer sized w*h*4 has
+        // length divisible by 4, so head/tail are empty. The fall-through
+        // byte stores below keep the function sound if either ever isn't.
+        let (head, body, tail) = unsafe { self.pixels.align_to_mut::<u32>() };
+        let packed_bytes = packed.to_le_bytes();
+        for (i, byte) in head.iter_mut().enumerate() {
+            *byte = packed_bytes[i & 3];
+        }
+        body.fill(packed);
+        for (i, byte) in tail.iter_mut().enumerate() {
+            *byte = packed_bytes[i & 3];
         }
     }
 
