@@ -472,17 +472,30 @@ class HomeStateHolder(
      * (spec line 84). Outside phoneGuidance it's a no-op.
      */
     fun notifyRiderLocationUpdated() {
-        if (homeMode != HomeMode.PHONE_GUIDANCE) return
+        // Spec line 84 + 108-118: bump on every fix in routing OR when the
+        // rider is moving in any mode. The Compose camera onChange respects
+        // mode + trail in its dispatch.
+        val moving = travelHeadingDegrees != null
+        if (homeMode != HomeMode.PHONE_GUIDANCE && !moving) return
         mapFollowRiderTick += 1
     }
 
     /**
-     * Feed a GPS fix into the heading-trail buffer and follow-rider tick.
-     * Drives spec line 110 (GPS-derived camera rotation). Callable from
-     * the location listener AND from tests.
+     * Compose-observable cache of `headingTrail.travelHeadingDegrees`. The
+     * raw trail is a plain object with no Compose hookup; this mirror is
+     * updated on every `ingestRiderLocationFix` so LaunchedEffects can
+     * react to "rider started/stopped moving" without polling.
+     */
+    private var trailHeadingCache by mutableStateOf<Double?>(null)
+
+    /**
+     * Feed a GPS fix into the heading-trail buffer and the Compose-observable
+     * mirror. Drives spec line 110 (GPS-derived camera rotation). Callable
+     * from the location listener AND from tests.
      */
     fun ingestRiderLocationFix(point: CoordinatePoint, timestampMs: Long) {
         headingTrail.recordFix(point, timestampMs)
+        trailHeadingCache = headingTrail.travelHeadingDegrees
     }
 
     /**
@@ -491,7 +504,7 @@ class HomeStateHolder(
      * when the rider is moving.
      */
     val travelHeadingDegrees: Double?
-        get() = headingTrail.travelHeadingDegrees
+        get() = trailHeadingCache
 
     /**
      * Unified camera heading merging spec lines 110 (GPS trail, wins when

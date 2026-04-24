@@ -73,10 +73,13 @@ struct CompanionHomeView: View {
                 .onChange(of: viewModel.mapFollowRiderTick) { _, _ in
                     refreshCameraForCurrentMode()
                 }
-                .onChange(of: appModel.riderLocation) { _, _ in
-                    // Spec line 84: during routing, follow the rider on
-                    // every GPS update. HomeViewModel filters for phone
-                    // guidance; this is just the publish side.
+                .onChange(of: appModel.riderLocation) { _, newValue in
+                    // Spec lines 84 + 110 + 108-118: every GPS fix feeds
+                    // the heading-trail buffer (so the camera can rotate
+                    // to riding direction) AND bumps the follow tick
+                    // (which wakes refreshCameraForCurrentMode). The
+                    // viewmodel filters by mode + motion before acting.
+                    viewModel.ingestRiderLocationFix(newValue, timestampMs: Int64(Date().timeIntervalSince1970 * 1000))
                     viewModel.notifyRiderLocationUpdated()
                 }
         }
@@ -608,6 +611,16 @@ struct CompanionHomeView: View {
 
     private func resetPlanningCamera() {
         let coordinates = viewModel.displayedRouteCoordinates
+        // Spec lines 108-118: if the rider is moving (with or without a
+        // route preview), enter riding-mode camera — bottom-quarter anchor
+        // and rotate to GPS-trail heading.
+        if let trailHeading = viewModel.travelHeadingDegrees {
+            let rider = appModel.riderLocation
+            let center = CLLocationCoordinate2D(latitude: rider.latitude, longitude: rider.longitude)
+            cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: 1200, heading: trailHeading, pitch: 0))
+            lastProgrammaticCameraSetAt = Date()
+            return
+        }
         if !coordinates.isEmpty {
             fitCamera(to: coordinates, recordPlanningReference: true)
         } else {
