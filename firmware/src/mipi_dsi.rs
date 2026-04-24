@@ -29,13 +29,16 @@ use core::ffi::c_void;
 use core::ptr;
 
 use esp_idf_svc::sys::{
-    self, esp_err_t, esp_lcd_dbi_io_config_t, esp_lcd_dpi_panel_config_t,
+    self, esp_err_t, esp_ldo_acquire_channel, esp_ldo_channel_config_t,
+    esp_ldo_channel_handle_t, esp_lcd_dbi_io_config_t, esp_lcd_dpi_panel_config_t,
     esp_lcd_dpi_panel_config_t_extra_dpi_panel_flags, esp_lcd_dsi_bus_config_t,
     esp_lcd_dsi_bus_handle_t, esp_lcd_new_dsi_bus, esp_lcd_new_panel_io_dbi, esp_lcd_panel_del,
     esp_lcd_panel_handle_t, esp_lcd_panel_init, esp_lcd_panel_io_handle_t,
     esp_lcd_panel_io_tx_param, esp_lcd_panel_reset, esp_lcd_video_timing_t,
     // Enum values come through bindgen as namespaced constants, not as
     // associated items on the type alias.
+    gpio_config_t, gpio_int_type_t_GPIO_INTR_DISABLE, gpio_mode_t_GPIO_MODE_OUTPUT,
+    gpio_pulldown_t_GPIO_PULLDOWN_DISABLE, gpio_pullup_t_GPIO_PULLUP_DISABLE, gpio_set_level,
     lcd_color_format_t_LCD_COLOR_FMT_RGB565,
     lcd_color_rgb_pixel_format_t_LCD_COLOR_PIXEL_FORMAT_RGB565,
     soc_periph_mipi_dsi_dpi_clk_src_t_MIPI_DSI_DPI_CLK_SRC_DEFAULT,
@@ -246,6 +249,166 @@ impl EspIdfPanel for MipiDsiPanel {
         }
         Ok(())
     }
+}
+
+/// Waveshare ESP32-P4-WIFI6-Touch-LCD-3.4C — 3.4″ round 800×800 MIPI-DSI
+/// panel with an ST77922 driver IC, on the same carrier board as the P4.
+/// Pin wiring (reset, backlight) comes from the Waveshare schematic; the
+/// init sequence is the minimum known-good subset (sleep-out + display-on)
+/// plus the pixel-format / tearing-effect settings that the Waveshare
+/// demo firmware ships. Gamma / VCOM tuning is deferred — the panel
+/// should light up with legible (if slightly off-color) output at this
+/// level, which is enough to prove the full pipeline on device.
+pub fn waveshare_3p4c_st77922_config() -> MipiDsiConfig {
+    MipiDsiConfig {
+        timing: PanelTiming {
+            h_active: 800,
+            v_active: 800,
+            // Values from Waveshare's ESP-IDF sample for the 3.4C kit.
+            // Conservative porches; the ST77922 is tolerant here.
+            h_sync_pulse_width: 20,
+            h_back_porch: 20,
+            h_front_porch: 40,
+            v_sync_pulse_width: 4,
+            v_back_porch: 12,
+            v_front_porch: 20,
+            dpi_clock_mhz: 48,
+            lane_bit_rate_mbps: 1000,
+            num_data_lanes: 2,
+        },
+        init_sequence: &[
+            // Sitronix command-set select page 0 (most ST77922 registers
+            // live here; some panels omit this — kept for robustness).
+            InitCommand {
+                cmd: 0xFE,
+                params: &[0x00],
+                delay_ms: 0,
+            },
+            // Tearing effect line enabled, vsync-only.
+            InitCommand {
+                cmd: 0x35,
+                params: &[0x00],
+                delay_ms: 0,
+            },
+            // Pixel format: 16 bpp RGB565 on DBI / RGB565 on DPI.
+            InitCommand {
+                cmd: 0x3A,
+                params: &[0x55],
+                delay_ms: 0,
+            },
+            // Sleep out.
+            InitCommand {
+                cmd: 0x11,
+                params: &[],
+                delay_ms: 120,
+            },
+            // Display on.
+            InitCommand {
+                cmd: 0x29,
+                params: &[],
+                delay_ms: 20,
+            },
+        ],
+    }
+}
+
+/// Default reset / backlight GPIO mapping for the Waveshare
+/// ESP32-P4-WIFI6-Touch-LCD-3.4C carrier. These are the values the
+/// Waveshare reference firmware uses; if the board in hand disagrees,
+/// adjust via [`PanelGpios`] at construction time.
+pub const WAVESHARE_3P4C_RESET_GPIO: i32 = 27;
+pub const WAVESHARE_3P4C_BACKLIGHT_GPIO: i32 = 26;
+
+/// GPIOs for the panel's out-of-band control lines. Values are
+/// `gpio_num_t` (i32); `None` means the line is not connected.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PanelGpios {
+    pub reset: Option<i32>,
+    pub backlight: Option<i32>,
+}
+
+impl PanelGpios {
+    pub const WAVESHARE_3P4C: Self = Self {
+        reset: Some(WAVESHARE_3P4C_RESET_GPIO),
+        backlight: Some(WAVESHARE_3P4C_BACKLIGHT_GPIO),
+    };
+}
+
+/// Acquire the on-chip LDO channel that powers the MIPI-DSI PHY. On the
+/// ESP32-P4 this is channel 3 at 2500 mV; the DSI PHY will not lock
+/// without it. The returned handle must be kept alive for the lifetime
+/// of the DSI bus — dropping it powers the rail down.
+pub fn acquire_mipi_dsi_phy_power() -> Result<esp_ldo_channel_handle_t, EspIdfError> {
+    let cfg = esp_ldo_channel_config_t {
+        chan_id: 3,
+        voltage_mv: 2500,
+        flags: Default::default(),
+    };
+    let mut handle: esp_ldo_channel_handle_t = core::ptr::null_mut();
+    let status = unsafe { esp_ldo_acquire_channel(&cfg, &mut handle) };
+    if status != sys::ESP_OK as esp_err_t {
+        return Err(EspIdfError::Io(format!(
+            "esp_ldo_acquire_channel(3, 2500mV) failed: {}",
+            status
+        )));
+    }
+    Ok(handle)
+}
+
+/// Drive a GPIO low then high with the delays commonly required by
+/// MIPI-DSI panels after power-up. Call before `MipiDsiPanel::initialize`.
+pub fn pulse_reset(gpio: i32) -> Result<(), EspIdfError> {
+    configure_output(gpio)?;
+    unsafe {
+        set_level(gpio, 1)?;
+        sys::vTaskDelay(10 / 10); // 10 ms
+        set_level(gpio, 0)?;
+        sys::vTaskDelay(10 / 10); // 10 ms
+        set_level(gpio, 1)?;
+        sys::vTaskDelay(120 / 10); // 120 ms settle
+    }
+    Ok(())
+}
+
+/// Enable the panel backlight by driving its GPIO high. Power budget on
+/// the 3.4C module is low enough that a single-GPIO always-on is fine
+/// for bring-up; PWM dimming can be layered on later.
+pub fn enable_backlight(gpio: i32) -> Result<(), EspIdfError> {
+    configure_output(gpio)?;
+    unsafe {
+        set_level(gpio, 1)?;
+    }
+    Ok(())
+}
+
+fn configure_output(gpio: i32) -> Result<(), EspIdfError> {
+    let config = gpio_config_t {
+        pin_bit_mask: 1u64 << gpio,
+        mode: gpio_mode_t_GPIO_MODE_OUTPUT,
+        pull_up_en: gpio_pullup_t_GPIO_PULLUP_DISABLE,
+        pull_down_en: gpio_pulldown_t_GPIO_PULLDOWN_DISABLE,
+        intr_type: gpio_int_type_t_GPIO_INTR_DISABLE,
+        ..gpio_config_t::default()
+    };
+    let status = unsafe { sys::gpio_config(&config) };
+    if status != sys::ESP_OK as esp_err_t {
+        return Err(EspIdfError::Io(format!(
+            "gpio_config({}) failed: {}",
+            gpio, status
+        )));
+    }
+    Ok(())
+}
+
+unsafe fn set_level(gpio: i32, level: u32) -> Result<(), EspIdfError> {
+    let status = unsafe { gpio_set_level(gpio, level) };
+    if status != sys::ESP_OK as esp_err_t {
+        return Err(EspIdfError::Io(format!(
+            "gpio_set_level({}, {}) failed: {}",
+            gpio, level, status
+        )));
+    }
+    Ok(())
 }
 
 /// Convenience factory for the Waveshare 1024×600 7″ panel (JT070L1B).

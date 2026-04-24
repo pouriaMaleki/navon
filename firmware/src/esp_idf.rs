@@ -590,9 +590,11 @@ pub fn run_device_main() -> Result<(), String> {
     use runtime_core::api::RuntimeConfig;
 
     use crate::app::App;
-    use crate::display::MemoryDisplayBackend;
     use crate::gps::{FixedGpsProvider, GpsInput};
     use crate::map_source::MapSourceBridge;
+    use crate::mipi_dsi::{
+        self, MipiDsiPanel, PanelGpios, waveshare_3p4c_st77922_config,
+    };
     use crate::platform::{NullRouteSyncIo, NullTouchSource, RuntimePlatform, SystemFrameClock};
     use crate::settings::default_settings_store;
 
@@ -637,6 +639,39 @@ pub fn run_device_main() -> Result<(), String> {
     // but swap the GPS provider for a fixed fix at the map center so the
     // render pipeline actually has geometry to draw until real GPS / touch
     // hardware is wired.
+    // Bring up the Waveshare 3.4" round 800x800 MIPI-DSI panel.
+    //
+    // Order matters:
+    //   1. Acquire the LDO3 rail for the DSI PHY — the peripheral will
+    //      not lock without it.
+    //   2. Enable the panel's backlight GPIO so anything we eventually
+    //      push to it is actually visible.
+    //   3. Pulse the panel reset line so the ST77922 starts from a clean
+    //      state before we send DCS init commands.
+    //   4. Construct `MipiDsiPanel` (sets up DSI bus + DBI command IO).
+    //   5. Wrap it in `EspIdfDisplayBackend` so the `App` drives it
+    //      through the existing `DisplayBackend` trait.
+    //   6. The `backend.initialize` call (inside `App::with_parts_*`)
+    //      performs the DPI panel creation, runs the init sequence, and
+    //      leaves the panel ready to accept `draw_bitmap` calls.
+    let gpios = PanelGpios::WAVESHARE_3P4C;
+    // Keep the LDO handle alive for the life of the platform; dropping
+    // it powers the PHY rail off.
+    let _phy_ldo = mipi_dsi::acquire_mipi_dsi_phy_power()
+        .map_err(|error| format!("failed to power MIPI-DSI PHY: {error:?}"))?;
+    if let Some(bl) = gpios.backlight {
+        mipi_dsi::enable_backlight(bl)
+            .map_err(|error| format!("failed to enable panel backlight: {error:?}"))?;
+    }
+    if let Some(rst) = gpios.reset {
+        mipi_dsi::pulse_reset(rst)
+            .map_err(|error| format!("failed to reset panel: {error:?}"))?;
+    }
+    let panel = MipiDsiPanel::new(waveshare_3p4c_st77922_config())
+        .map_err(|error| format!("failed to create MIPI-DSI bus: {error:?}"))?;
+    let display_backend = EspIdfDisplayBackend::new(panel);
+    log::info!("mipi-dsi panel: Waveshare 3.4C ST77922, 800x800, 2 lanes @ 1000 Mbps");
+
     let runtime_config = RuntimeConfig {
         viewport_size: board.viewport_size,
         ..RuntimeConfig::default()
@@ -646,11 +681,11 @@ pub fn run_device_main() -> Result<(), String> {
         board,
         runtime_config,
         map_source,
-        MemoryDisplayBackend::default(),
+        display_backend,
         default_settings_store()
             .map_err(|error| format!("failed to open settings store: {error:?}"))?,
     )
-    .map_err(|error| format!("failed to build headless P4 app: {error:?}"))?;
+    .map_err(|error| format!("failed to build P4 app with panel: {error:?}"))?;
 
     let (seed_lat, seed_lon) = center_lat_lon.unwrap_or((60.1699, 24.9384)); // Helsinki fallback
     let gps = FixedGpsProvider::new(GpsInput {
