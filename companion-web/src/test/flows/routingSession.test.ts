@@ -158,6 +158,81 @@ describe("routing session (plan flows #43, #44, #61, #62)", () => {
     expect(guidance.offRouteLabel).toBe("Rerouting…");
   });
 
+  it("nextInstructionLine transitions to the next maneuver as the rider advances past a corner (spec line 102)", () => {
+    // Spec line 102: the UI shows the upcoming turn direction + distance.
+    // As the rider passes a maneuver, the displayed line must switch to
+    // the NEXT maneuver. The previous test suite only used straight-line
+    // routes (depart→arrive), so this transition was never asserted.
+    //
+    // L-shape route: start → 400 m N → 400 m E. Three maneuvers:
+    //   m1 depart at 0 m
+    //   m2 right at 400 m  (the corner)
+    //   m3 arrive at 800 m
+    const NORTH_M_PER_DEG = 111_320.0;
+    const start = { latitude: 60.17, longitude: 24.94 };
+    const mid = { latitude: 60.17 + 400 / NORTH_M_PER_DEG, longitude: 24.94 };
+    const cosLat = Math.cos((60.17 * Math.PI) / 180);
+    const end = { latitude: mid.latitude, longitude: mid.longitude + 400 / (NORTH_M_PER_DEG * cosLat) };
+    const lShape = {
+      version: CURRENT_ROUTE_PACKAGE_VERSION,
+      routeIdentifier: "lshape",
+      revision: 1,
+      geometry: [start, mid, end],
+      maneuvers: [
+        {
+          id: "m1",
+          maneuverType: "depart" as const,
+          location: start,
+          distanceFromStartMeters: 0,
+        },
+        {
+          id: "m2",
+          maneuverType: "right" as const,
+          location: mid,
+          distanceFromStartMeters: 400,
+          instructionText: "Turn right onto 2nd street",
+        },
+        {
+          id: "m3",
+          maneuverType: "arrive" as const,
+          location: end,
+          distanceFromStartMeters: 800,
+        },
+      ],
+      summary: { totalDistanceMeters: 800, estimatedDurationSeconds: 240 },
+      provenance: { providerID: "osm" as const, generatedAtUnixMs: 0 },
+    };
+    const { planning, guidance } = buildHarness();
+    planning.setPreview({
+      alternatives: [
+        {
+          id: "lr",
+          title: "L route",
+          subtitle: "",
+          distanceMeters: 800,
+          durationSeconds: 240,
+          normalizedPackage: lShape,
+        },
+      ],
+      selectedAlternativeID: "lr",
+    });
+    guidance.startSelectedRoute();
+    // At start, the next maneuver should be the right turn at the corner.
+    let line = guidance.nextInstructionLine ?? "";
+    expect(line.toLowerCase(), "before any progress, next instruction is the right turn at the corner").toContain(
+      "right",
+    );
+    // Move rider past the corner (slightly past mid, projecting beyond 400m).
+    const pastCorner = { latitude: mid.latitude, longitude: mid.longitude + 50 / (NORTH_M_PER_DEG * cosLat) };
+    guidance.advanceProgress(pastCorner, 0);
+    guidance.advanceProgress(pastCorner, 500);
+    line = guidance.nextInstructionLine ?? "";
+    expect(
+      line.toLowerCase(),
+      "after passing the corner, next instruction must transition off 'right' to the next (arrive) maneuver",
+    ).not.toContain("right");
+  });
+
   it("returning to route clears rerouteRequested", () => {
     const { planning, guidance } = buildHarness();
     planning.setPreview({
