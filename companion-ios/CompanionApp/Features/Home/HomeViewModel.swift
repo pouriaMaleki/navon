@@ -210,13 +210,46 @@ final class HomeViewModel: ObservableObject {
     }
 
     var nextInstructionLine: String? {
+        // Spec line 102: as the rider advances along the route, the
+        // displayed line must switch to the NEXT upcoming maneuver. We
+        // skip depart/arrive turn-types and pick the first maneuver
+        // whose distance-from-start is still ahead of `progressDistanceM`.
+        // Distance shown is the REMAINING distance to that maneuver, not
+        // the static distance-from-route-start.
         guard let route = guidanceRoute else { return nil }
-        let nextStep = route.maneuvers.first(where: { $0.maneuverType != .depart })
-        let instruction = nextStep?.instructionText ?? "Ride toward destination"
-        if let distance = nextStep?.distanceFromStartMeters {
-            return "\(instruction) • \(Int(distance.rounded())) m"
+        for m in route.maneuvers {
+            if m.maneuverType == .depart || m.maneuverType == .arrive { continue }
+            let remaining = m.distanceFromStartMeters - progressDistanceM
+            if remaining < 0 { continue }
+            let instruction = m.instructionText ?? "Continue"
+            return "\(instruction) • \(formatDistance(remaining))"
         }
-        return instruction
+        // Past the last interesting maneuver: show "Arrive" remaining.
+        if let arrive = route.maneuvers.last(where: { $0.maneuverType == .arrive }) {
+            let remaining = max(0, arrive.distanceFromStartMeters - progressDistanceM)
+            return "Arrive in \(formatDistance(remaining))"
+        }
+        return nil
+    }
+
+    private func formatDistance(_ meters: Double) -> String {
+        if meters >= 1000 { return String(format: "%.1f km", meters / 1000) }
+        return "\(Int(meters.rounded())) m"
+    }
+
+    private func polylineLengthMeters(_ points: [CoordinatePoint]) -> Double {
+        guard points.count >= 2 else { return 0 }
+        let metersPerDegLat = 111_320.0
+        var total = 0.0
+        for i in 0..<(points.count - 1) {
+            let a = points[i]
+            let b = points[i + 1]
+            let meanLat = (a.latitude + b.latitude) / 2.0 * .pi / 180.0
+            let dN = (b.latitude - a.latitude) * metersPerDegLat
+            let dE = (b.longitude - a.longitude) * cos(meanLat) * metersPerDegLat
+            total += (dN * dN + dE * dE).squareRoot()
+        }
+        return total
     }
 
     var compassSymbolName: String {
@@ -433,6 +466,10 @@ final class HomeViewModel: ObservableObject {
             appModel.activeSession.sourceMode = sourceMode
             homeMode = .phoneGuidance
             compassMode = .autoFollow
+            // Reset progress for the new route so spec line 102 (next-turn
+            // tracking) starts at 0 and advances as the rider proceeds.
+            progressDistanceM = 0
+            routeTotalDistanceM = polylineLengthMeters(selectedPreview.normalizedPackage.geometry)
         }
     }
 
@@ -596,11 +633,33 @@ final class HomeViewModel: ObservableObject {
         mapFollowRiderTick &+= 1
     }
 
-    /// Feed a GPS fix into the trail buffer and location notifications.
+    /// Feed a GPS fix into the trail buffer + advance routing progress.
     /// Used by the location-service callback and the test harness. Drives
-    /// spec line 110 (GPS-derived camera rotation).
+    /// spec line 110 (GPS-derived camera rotation) and spec line 102
+    /// (next-turn instruction tracking).
     func ingestRiderLocationFix(_ point: CoordinatePoint, timestampMs: Int64) {
         headingTrail.recordFix(point, timestampMs: timestampMs)
+        if homeMode == .phoneGuidance {
+            advanceProgress(rider: point)
+        }
+    }
+
+    /// Monotonic distance (m) the rider has progressed along the active
+    /// route, projecting the latest fix onto the polyline. Drives spec
+    /// line 102 (next-turn switching as the rider passes maneuvers).
+    @Published private(set) var progressDistanceM: Double = 0
+
+    /// Total length of the active route in meters. Cached on Start.
+    private var routeTotalDistanceM: Double = 0
+
+    /// Project the rider onto the active route geometry and advance
+    /// `progressDistanceM` monotonically (never regresses), mirroring
+    /// runtime-core's behaviour.
+    private func advanceProgress(rider: CoordinatePoint) {
+        guard let geometry = guidanceRoute?.geometry, geometry.count >= 2 else { return }
+        let projected = projectProgress(onto: geometry, rider: rider)
+        let bounded = min(routeTotalDistanceM > 0 ? routeTotalDistanceM : projected, projected)
+        progressDistanceM = max(progressDistanceM, bounded)
     }
 
     /// Smoothed travel heading from the last few GPS fixes, `nil` while
