@@ -7,8 +7,14 @@ edition = "2024"
 path = "src/lib.rs"
 
 [features]
-default = ["std"]
+default = ["std", "embedded-city-map"]
 std = ["runtime-core/std"]
+# Embeds `../map-data/city.svm` (~79 MB) into the binary via include_bytes!.
+# Emulator/wasm builds keep this on for offline convenience. Device firmware
+# MUST disable it — the map exceeds the ESP32-P4's 64 MB flash-mapped DROM
+# region and causes the linker to discard the section. Device firmware should
+# load the map from a separate partition at runtime instead.
+embedded-city-map = []
 
 [dependencies]
 runtime-core = { path = "../runtime-core", default-features = false }

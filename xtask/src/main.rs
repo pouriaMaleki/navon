@@ -238,6 +238,12 @@ impl Workspace {
             .map(PathBuf::from)
             .map(|home| home.join(".config/esp/export-esp.sh"))
             .unwrap_or_else(|| PathBuf::from("/home/vscode/.config/esp/export-esp.sh"));
+        // Honor `CARGO_TARGET_DIR` when it is set (the devcontainer sets it
+        // to /work/target/devcontainer so builds don't collide with the host
+        // user's target dir on a bind mount).
+        let cargo_target_dir = env::var_os("CARGO_TARGET_DIR")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| root.join("target"));
         Ok(Self {
             emulator_web: root.join("emulator/web"),
             wasm_pkg: root.join("emulator/web/wasm-pkg"),
@@ -245,7 +251,7 @@ impl Workspace {
             map_data: root.join("map-data/city.svm"),
             xtask_tmp: root.join(".xtask/tmp"),
             firmware_crate: root.join("firmware"),
-            device_target: root.join("target").join(DEVICE_RUST_TARGET),
+            device_target: cargo_target_dir.join(DEVICE_RUST_TARGET),
             device_out_dir: root.join(".xtask/device"),
             esp_export_script,
             root,

@@ -10,7 +10,10 @@ name = "firmware"
 path = "src/main.rs"
 
 [dependencies]
-map-runtime = { path = "../map-runtime" }
+# Disable the `embedded-city-map` feature so the 79 MB city.svm is not
+# linked into the device binary; it exceeds P4 flash-mapped DROM. The full
+# map will be loaded from a dedicated flash partition at runtime (Phase 3).
+map-runtime = { path = "../map-runtime", default-features = false, features = ["std"] }
 render-core = { path = "../render-core" }
 runtime-core = { path = "../runtime-core" }
 

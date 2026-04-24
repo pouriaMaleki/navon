@@ -139,13 +139,45 @@ pub struct EmbeddedMapSource {
 }
 
 impl Default for EmbeddedMapSource {
+    #[cfg(feature = "embedded-city-map")]
     fn default() -> Self {
         Self::from_svm_bytes(include_bytes!("../../map-data/city.svm"))
             .expect("embedded city.svm should be valid")
     }
+
+    #[cfg(not(feature = "embedded-city-map"))]
+    fn default() -> Self {
+        // Device firmware builds with `embedded-city-map` off so the binary
+        // does not embed the ~79 MB city.svm; instead the map is loaded from
+        // a flash partition at runtime via `from_svm_bytes`. The zero-segment
+        // placeholder here keeps `MapSource::query` working (returns empty
+        // geometry) until the real map is loaded.
+        Self::empty()
+    }
+
+    // (The full `Self::empty` is defined in the impl block below.)
 }
 
 impl EmbeddedMapSource {
+    /// Constructs an empty map source with no geometry. `query` returns an
+    /// empty result. Used by device firmware before the real map is loaded
+    /// from a flash partition.
+    pub fn empty() -> Self {
+        let bounds = SourceBounds {
+            min_x: 0,
+            max_x: 0,
+            min_y: 0,
+            max_y: 0,
+        };
+        let segments: Vec<SegmentRecord> = Vec::new();
+        let grid = SpatialGrid::new(bounds, &segments);
+        Self {
+            meters_per_world_unit: 1.0,
+            segments,
+            grid,
+        }
+    }
+
     pub fn from_svm_bytes(bytes: &[u8]) -> Result<Self, String> {
         validate_svm_header(bytes)?;
         let source_zoom = read_i32(bytes, 8)?;
