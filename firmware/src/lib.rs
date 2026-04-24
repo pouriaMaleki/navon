@@ -8,6 +8,8 @@ pub mod gps;
 pub mod input_bridge;
 pub mod map_source;
 #[cfg(target_os = "espidf")]
+pub mod i2c_scan;
+#[cfg(target_os = "espidf")]
 pub mod mipi_dsi;
 pub mod platform;
 pub mod route_sync;

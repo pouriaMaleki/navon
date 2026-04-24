@@ -639,6 +639,17 @@ pub fn run_device_main() -> Result<(), String> {
     // but swap the GPS provider for a fixed fix at the map center so the
     // render pipeline actually has geometry to draw until real GPS / touch
     // hardware is wired.
+    // Diagnostic: scan the I²C bus before touching the panel. Waveshare
+    // ESP32-P4 boards often route LCD-reset/backlight/touch-reset through
+    // a CH422G I/O expander (0x20-0x27 typical) or similar, not through
+    // direct ESP32 GPIOs. This one-shot probe logs every ACKing address
+    // so we can see whether the 3.4C has an expander and at what address.
+    if let Err(error) =
+        crate::i2c_scan::scan_bus(crate::i2c_scan::DEFAULT_SDA_GPIO, crate::i2c_scan::DEFAULT_SCL_GPIO)
+    {
+        log::warn!("i2c scan failed: {:?}", error);
+    }
+
     // Bring up the Waveshare 3.4" round 800x800 MIPI-DSI panel.
     //
     // Order matters:
