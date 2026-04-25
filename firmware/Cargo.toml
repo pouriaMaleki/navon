@@ -30,6 +30,17 @@ embuild = { version = "0.33", features = ["espidf"] }
 esp_idf_sdkconfig_defaults = "sdkconfig.defaults"
 esp_idf_tools_install_dir = "workspace"
 
+# Pull the upstream Espressif JD9365 panel driver (the IC on the Waveshare
+# ESP32-P4-WIFI6-Touch-LCD-3.4C) as a managed component. This gives us the
+# `esp_lcd_new_panel_jd9365` C function — handles the ~200-command vendor
+# init sequence and reset pulse internally, far cleaner than re-implementing
+# all those DCS commands by hand. The `bindings_header` directive feeds the
+# component's public header into bindgen so the Rust-side symbols appear
+# in `esp_idf_svc::sys`.
+extra_components = [
+    { remote_component = { name = "espressif/esp_lcd_jd9365", version = "1.0.4" }, bindings_header = "jd9365_bindings.h" }
+]
+
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [
     "cfg(esp32s2)",

@@ -24,6 +24,14 @@ build-std = ["std", "panic_abort"]
 MCU = "esp32p4"
 ESP_IDF_VERSION = "v5.4.2"
 ESP_IDF_SDKCONFIG_DEFAULTS = { value = "sdkconfig.defaults", relative = true }
+# embuild's workspace_dir() falls back to popping 6 levels from OUT_DIR,
+# which on the devcontainer's CARGO_TARGET_DIR=/work/target/devcontainer
+# layout lands on /work/target (no Cargo.toml) instead of /work. Force
+# both knobs so esp-idf-sys finds the right manifest and resolves
+# `package.metadata.esp-idf-sys.extra_components` from `firmware/Cargo.toml`.
+# Use a relative path so the same config works on contributors' hosts.
+CARGO_WORKSPACE_DIR = { value = "../", relative = true }
+ESP_IDF_SYS_ROOT_CRATE = "firmware"
 # esp-idf-sys 0.37 needs libclang for bindgen. espup installs clang headers
 # at `esp-clang/16.0.1-fe4f10a809` when esp-idf < v5.4 is configured; reuse
 # that shared library explicitly because IDF 5.4's esp-clang-18 package does

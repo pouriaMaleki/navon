@@ -593,7 +593,7 @@ pub fn run_device_main() -> Result<(), String> {
     use crate::gps::{FixedGpsProvider, GpsInput};
     use crate::map_source::MapSourceBridge;
     use crate::mipi_dsi::{
-        self, MipiDsiPanel, PanelGpios, waveshare_3p4c_st77922_config,
+        self, MipiDsiPanel, PanelGpios, waveshare_3p4c_config,
     };
     use crate::platform::{NullRouteSyncIo, NullTouchSource, RuntimePlatform, SystemFrameClock};
     use crate::settings::default_settings_store;
@@ -639,77 +639,39 @@ pub fn run_device_main() -> Result<(), String> {
     // but swap the GPS provider for a fixed fix at the map center so the
     // render pipeline actually has geometry to draw until real GPS / touch
     // hardware is wired.
-    // Diagnostic: scan the I²C bus before touching the panel. Waveshare
-    // ESP32-P4 boards often route LCD-reset/backlight/touch-reset through
-    // a CH422G I/O expander (0x20-0x27 typical) or similar, not through
-    // direct ESP32 GPIOs. This one-shot probe logs every ACKing address
-    // so we can see whether the 3.4C has an expander and at what address.
-    if let Err(error) =
-        crate::i2c_scan::scan_bus(crate::i2c_scan::DEFAULT_SDA_GPIO, crate::i2c_scan::DEFAULT_SCL_GPIO)
-    {
-        log::warn!("i2c scan failed: {:?}", error);
-    }
-
-    // Bring up the Waveshare 3.4" round 800x800 MIPI-DSI panel.
+    // Bring up the Waveshare 3.4″ round 800×800 MIPI-DSI panel
+    // (JD9365 driver IC, 2 lanes @ 1500 Mbps, 80 MHz DPI clock).
     //
-    // Order matters:
-    //   1. Acquire the LDO3 rail for the DSI PHY — the peripheral will
-    //      not lock without it.
-    //   2. Enable the panel's backlight GPIO so anything we eventually
-    //      push to it is actually visible.
-    //   3. Pulse the panel reset line so the ST77922 starts from a clean
-    //      state before we send DCS init commands.
-    //   4. Construct `MipiDsiPanel` (sets up DSI bus + DBI command IO).
-    //   5. Wrap it in `EspIdfDisplayBackend` so the `App` drives it
-    //      through the existing `DisplayBackend` trait.
-    //   6. The `backend.initialize` call (inside `App::with_parts_*`)
-    //      performs the DPI panel creation, runs the init sequence, and
-    //      leaves the panel ready to accept `draw_bitmap` calls.
+    // Pin map and timing values come straight from the official
+    // `waveshare/esp32_p4_wifi6_touch_lcd_xc` BSP — confirmed against the
+    // kit's schematic. The JD9365 init sequence (~200 DCS commands) is
+    // shipped via the `espressif/esp_lcd_jd9365` managed component which
+    // is pulled in through esp-idf-sys metadata in firmware/Cargo.toml.
+    //
+    // Order:
+    //   1. LDO3 → MIPI-DSI PHY power (BSP: `BSP_MIPI_DSI_PHY_PWR_LDO_CHAN`).
+    //   2. Backlight GPIO26 high.
+    //   3. Construct `MipiDsiPanel` — opens DSI bus, DBI IO, builds the
+    //      JD9365 vendor config, calls `esp_lcd_new_panel_jd9365` (which
+    //      handles reset GPIO27 + transmits the init sequence + creates
+    //      the DPI panel), then `esp_lcd_panel_reset` and
+    //      `esp_lcd_panel_init`. Returns ready-to-use.
+    //   4. Wrap in `EspIdfDisplayBackend` so the runtime feeds frames
+    //      through the trait surface.
     let gpios = PanelGpios::WAVESHARE_3P4C;
-    // Keep the LDO handle alive for the life of the platform; dropping
-    // it powers the PHY rail off.
     let _phy_ldo = mipi_dsi::acquire_mipi_dsi_phy_power()
         .map_err(|error| format!("failed to power MIPI-DSI PHY: {error:?}"))?;
-    // LDO 4 commonly powers the panel's AVDD rail on Waveshare ESP32-P4
-    // carriers. If it's already on (e.g. tied to a different rail on
-    // this revision) the acquire is a no-op; we just keep the handle.
-    let _avdd_ldo = match mipi_dsi::acquire_panel_avdd_power(3300) {
-        Ok(handle) => {
-            log::info!("ldo: panel AVDD enabled on LDO4 @ 3300 mV");
-            Some(handle)
-        }
-        Err(error) => {
-            log::warn!("ldo: panel AVDD acquire failed (continuing anyway): {error:?}");
-            None
-        }
-    };
-
-    // Diagnostic: cycle a set of backlight-candidate GPIOs through HIGH
-    // → LOW → HIGH so the operator can see which one (if any) drives
-    // the actual backlight. Each pin dwells in each state for 700 ms
-    // — enough for visual confirmation but short enough that boot still
-    // reaches the render loop in a reasonable time. Pins that aren't
-    // wired to anything cost nothing; pins that are wired settle to HIGH
-    // at the end of the test, so the right one keeps backlight on.
-    log::info!("blink test: probing backlight-candidate GPIOs (watch the panel)");
-    if let Err(error) =
-        mipi_dsi::blink_test_candidates(&[22, 23, 26, 27, 28, 29], 700)
-    {
-        log::warn!("blink test failed: {error:?}");
-    }
 
     if let Some(bl) = gpios.backlight {
         mipi_dsi::enable_backlight(bl)
             .map_err(|error| format!("failed to enable panel backlight: {error:?}"))?;
     }
-    if let Some(rst) = gpios.reset {
-        mipi_dsi::pulse_reset(rst)
-            .map_err(|error| format!("failed to reset panel: {error:?}"))?;
-    }
-    let panel = MipiDsiPanel::new(waveshare_3p4c_st77922_config())
-        .map_err(|error| format!("failed to create MIPI-DSI bus: {error:?}"))?;
+    let panel = MipiDsiPanel::new(waveshare_3p4c_config())
+        .map_err(|error| format!("failed to bring up MIPI-DSI panel: {error:?}"))?;
     let display_backend = EspIdfDisplayBackend::new(panel);
-    log::info!("mipi-dsi panel: Waveshare 3.4C ST77922, 800x800, 2 lanes @ 1000 Mbps");
+    log::info!(
+        "mipi-dsi panel: Waveshare 3.4C JD9365, 800x800, 2 lanes @ 1500 Mbps, DPI 80 MHz"
+    );
 
     let runtime_config = RuntimeConfig {
         viewport_size: board.viewport_size,

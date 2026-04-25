@@ -2,6 +2,18 @@
 /firmware/target/
 /target/
 
+# embuild cache (~5 GB of vendored ESP-IDF + tools). Lives under
+# /work/.embuild because esp-idf-sys's workspace detection lands here
+# once CARGO_WORKSPACE_DIR is pinned to the workspace root.
+/.embuild/
+
+# ESP-IDF Component Manager lockfile, generated for each MCU when
+# `package.metadata.esp-idf-sys.extra_components` pulls in a remote
+# component. Reproducibility is already covered by the explicit
+# `version = "..."` pins in firmware/Cargo.toml; the lockfile is just
+# build cache.
+/components_*.lock
+
 # Cargo local config. `config.toml` is checked in because it holds the
 # shared P4 rustflags / ldproxy / ESP_IDF_VERSION wiring that every
 # contributor needs; only truly local/generated state stays ignored.
