@@ -670,6 +670,34 @@ pub fn run_device_main() -> Result<(), String> {
     // it powers the PHY rail off.
     let _phy_ldo = mipi_dsi::acquire_mipi_dsi_phy_power()
         .map_err(|error| format!("failed to power MIPI-DSI PHY: {error:?}"))?;
+    // LDO 4 commonly powers the panel's AVDD rail on Waveshare ESP32-P4
+    // carriers. If it's already on (e.g. tied to a different rail on
+    // this revision) the acquire is a no-op; we just keep the handle.
+    let _avdd_ldo = match mipi_dsi::acquire_panel_avdd_power(3300) {
+        Ok(handle) => {
+            log::info!("ldo: panel AVDD enabled on LDO4 @ 3300 mV");
+            Some(handle)
+        }
+        Err(error) => {
+            log::warn!("ldo: panel AVDD acquire failed (continuing anyway): {error:?}");
+            None
+        }
+    };
+
+    // Diagnostic: cycle a set of backlight-candidate GPIOs through HIGH
+    // → LOW → HIGH so the operator can see which one (if any) drives
+    // the actual backlight. Each pin dwells in each state for 700 ms
+    // — enough for visual confirmation but short enough that boot still
+    // reaches the render loop in a reasonable time. Pins that aren't
+    // wired to anything cost nothing; pins that are wired settle to HIGH
+    // at the end of the test, so the right one keeps backlight on.
+    log::info!("blink test: probing backlight-candidate GPIOs (watch the panel)");
+    if let Err(error) =
+        mipi_dsi::blink_test_candidates(&[22, 23, 26, 27, 28, 29], 700)
+    {
+        log::warn!("blink test failed: {error:?}");
+    }
+
     if let Some(bl) = gpios.backlight {
         mipi_dsi::enable_backlight(bl)
             .map_err(|error| format!("failed to enable panel backlight: {error:?}"))?;

@@ -347,20 +347,59 @@ impl PanelGpios {
 /// without it. The returned handle must be kept alive for the lifetime
 /// of the DSI bus — dropping it powers the rail down.
 pub fn acquire_mipi_dsi_phy_power() -> Result<esp_ldo_channel_handle_t, EspIdfError> {
+    acquire_ldo(3, 2500)
+}
+
+/// Acquire LDO 4 at the requested voltage. Several Waveshare ESP32-P4
+/// carriers route the panel's AVDD (logic + analog) supply through this
+/// rail, with the ESP32 controlling enable / voltage. If we don't power
+/// it, the panel's command logic stays unpowered even though MIPI-DSI
+/// frames are being transmitted to the connector — i.e. the screen
+/// looks black despite a healthy serial-side render loop.
+pub fn acquire_panel_avdd_power(voltage_mv: i32) -> Result<esp_ldo_channel_handle_t, EspIdfError> {
+    acquire_ldo(4, voltage_mv)
+}
+
+fn acquire_ldo(chan_id: i32, voltage_mv: i32) -> Result<esp_ldo_channel_handle_t, EspIdfError> {
     let cfg = esp_ldo_channel_config_t {
-        chan_id: 3,
-        voltage_mv: 2500,
+        chan_id,
+        voltage_mv,
         flags: Default::default(),
     };
     let mut handle: esp_ldo_channel_handle_t = core::ptr::null_mut();
     let status = unsafe { esp_ldo_acquire_channel(&cfg, &mut handle) };
     if status != sys::ESP_OK as esp_err_t {
         return Err(EspIdfError::Io(format!(
-            "esp_ldo_acquire_channel(3, 2500mV) failed: {}",
-            status
+            "esp_ldo_acquire_channel({}, {}mV) failed: {}",
+            chan_id, voltage_mv, status
         )));
     }
     Ok(handle)
+}
+
+/// Bring-up diagnostic: cycle a list of candidate backlight GPIOs HIGH
+/// then LOW with a `dwell_ms` pause in each state, logging which GPIO
+/// + polarity is currently asserted. Use it to find which pin (if any)
+/// drives the panel's backlight on a board whose schematic is not yet
+/// in hand. The operator watches the screen and notes which combination
+/// caused a visible change.
+pub fn blink_test_candidates(candidates: &[i32], dwell_ms: u32) -> Result<(), EspIdfError> {
+    for &gpio in candidates {
+        configure_output(gpio)?;
+        unsafe {
+            log::info!("blink: GPIO{} HIGH (dwell {} ms)", gpio, dwell_ms);
+            set_level(gpio, 1)?;
+            sys::vTaskDelay(dwell_ms / 10);
+            log::info!("blink: GPIO{} LOW (dwell {} ms)", gpio, dwell_ms);
+            set_level(gpio, 0)?;
+            sys::vTaskDelay(dwell_ms / 10);
+            // Leave each candidate HIGH after the test so a working pin
+            // continues to drive backlight while the rest of the firmware
+            // runs. Wrong pins cost nothing — they were already toggling.
+            set_level(gpio, 1)?;
+        }
+    }
+    Ok(())
 }
 
 /// Drive a GPIO low then high with the delays commonly required by
