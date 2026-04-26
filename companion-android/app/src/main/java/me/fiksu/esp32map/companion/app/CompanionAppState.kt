@@ -35,6 +35,7 @@ import me.fiksu.esp32map.companion.domain.geo.UusimaaBounds
 import me.fiksu.esp32map.companion.integration.AndroidLocationService
 import me.fiksu.esp32map.companion.integration.ble.BleRouteSyncService
 import me.fiksu.esp32map.companion.integration.diagnostics.CompanionDiagnosticsStore
+import me.fiksu.esp32map.companion.integration.cycling.OsmCyclingRoutingAdapter
 import me.fiksu.esp32map.companion.integration.gpx.GpxRoutingAdapter
 import me.fiksu.esp32map.companion.integration.hsl.HslRoutingAdapter
 import me.fiksu.esp32map.companion.integration.persistence.CompanionPersistence
@@ -85,7 +86,7 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
 
     private val providers: Map<RouteProviderId, RoutingProvider> = mapOf(
         RouteProviderId.HSL to HslRoutingAdapter(settingsProvider = { settings }),
-        RouteProviderId.OSM to SampleRoutingAdapter(RouteProviderId.OSM),
+        RouteProviderId.OSM to OsmCyclingRoutingAdapter(),
         RouteProviderId.GPX_IMPORT to GpxRoutingAdapter(),
         RouteProviderId.FIT_IMPORT to SampleRoutingAdapter(RouteProviderId.FIT_IMPORT),
         RouteProviderId.TCX_IMPORT to SampleRoutingAdapter(RouteProviderId.TCX_IMPORT),
