@@ -50,7 +50,7 @@ final class AppModel: ObservableObject {
 
     private lazy var providers: [RouteProviderID: RoutingProvider] = [
         .hsl: HslRoutingAdapter(settingsProvider: { [unowned self] in self.settings }),
-        .osm: SampleRoutingAdapter(providerID: .osm),
+        .osm: OsmCyclingRoutingAdapter(),
         .gpxImport: GpxRoutingAdapter(),
         .fitImport: SampleRoutingAdapter(providerID: .fitImport),
         .tcxImport: SampleRoutingAdapter(providerID: .tcxImport),
