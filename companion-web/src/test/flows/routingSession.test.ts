@@ -240,6 +240,49 @@ describe("routing session (plan flows #43, #44, #61, #62)", () => {
     ).not.toContain("right");
   });
 
+  it("OSRM adapter uses the bike profile (documents current limitation: demo server's bike profile does not strongly prefer cycle infrastructure)", async () => {
+    // Spec line 50 + user-reported regression: in Helsinki, where dense
+    // cycling infrastructure exists, the route still prefers driving
+    // roads. Root cause is upstream: project-osrm.org demo's `bike`
+    // profile is generic (does not aggressively prefer cycleway/path
+    // ways). A real fix requires a cycling-specific routing source —
+    // BRouter is the obvious candidate (free, public, OSM-based,
+    // dedicated cycling profiles `trekking`/`safety`/`fastbike`).
+    //
+    // Until that adapter lands, this test pins the current behaviour:
+    //   - Adapter hits `/route/v1/bike` (so a self-hosted OSRM with a
+    //     stricter cycling profile would Just Work as a drop-in).
+    //   - Demo limitation is documented in code + architecture doc.
+    const mod = await import("../../integrations/osm/OsrmRoutingAdapter.js");
+    const adapter = new mod.OsrmRoutingAdapter();
+    let lastUrl = "";
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (input: RequestInfo | URL) => {
+      lastUrl = String(input);
+      return new Response(JSON.stringify({ code: "Ok", routes: [] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    };
+    try {
+      try {
+        await adapter.planRoute({
+          origin: { latitude: 60.17, longitude: 24.94 },
+          destination: { latitude: 60.18, longitude: 24.95 },
+          providerID: "osm",
+        });
+      } catch {
+        // Empty routes throws; we only care about the URL the adapter sent.
+      }
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+    expect(
+      lastUrl,
+      "OSRM URL must address the bike profile (demo server's `bike` profile is the closest to a cycling intent until BRouter lands)",
+    ).toContain("/route/v1/bike");
+  });
+
   it("returning to route clears rerouteRequested", () => {
     const { planning, guidance } = buildHarness();
     planning.setPreview({

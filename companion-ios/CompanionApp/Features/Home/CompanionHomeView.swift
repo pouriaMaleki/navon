@@ -73,6 +73,14 @@ struct CompanionHomeView: View {
                 .onChange(of: viewModel.mapFollowRiderTick) { _, _ in
                     refreshCameraForCurrentMode()
                 }
+                .onChange(of: viewModel.progressDistanceM) { _, _ in
+                    // Spec line 102 + 101: when progress crosses a vertex,
+                    // the route-segment bearing flips and the camera must
+                    // re-orient. mapFollowRiderTick covers the GPS-fix
+                    // case but not the "bearing changed because we crossed
+                    // a corner" case during a single fix's processing.
+                    refreshCameraForCurrentMode()
+                }
                 .onChange(of: appModel.riderLocation) { _, newValue in
                     // Spec lines 84 + 110 + 108-118: every GPS fix feeds
                     // the heading-trail buffer (so the camera can rotate
@@ -616,7 +624,8 @@ struct CompanionHomeView: View {
         // and rotate to GPS-trail heading.
         if let trailHeading = viewModel.travelHeadingDegrees {
             let rider = appModel.riderLocation
-            let center = CLLocationCoordinate2D(latitude: rider.latitude, longitude: rider.longitude)
+            let centerPoint = viewModel.cameraCenterCoordinate(rider: rider, headingDegrees: trailHeading)
+            let center = CLLocationCoordinate2D(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
             cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: 1200, heading: trailHeading, pitch: 0))
             lastProgrammaticCameraSetAt = Date()
             return
@@ -647,7 +656,12 @@ struct CompanionHomeView: View {
         let rider = appModel.riderLocation
         let heading = viewModel.cameraHeadingDegrees(rider: rider)
             ?? bearingDegrees(from: route.geometry[0], to: route.geometry[1])
-        let center = CLLocationCoordinate2D(latitude: rider.latitude, longitude: rider.longitude)
+        // Spec line 84: anchor rider in the bottom quarter. iOS MapKit has
+        // no padding-based anchor offset; instead we shift the camera
+        // center ahead of the rider in the heading direction so the rider
+        // renders visually below center.
+        let centerPoint = viewModel.cameraCenterCoordinate(rider: rider, headingDegrees: heading)
+        let center = CLLocationCoordinate2D(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
         cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: 1200, heading: heading, pitch: 0))
         lastProgrammaticCameraSetAt = Date()
     }

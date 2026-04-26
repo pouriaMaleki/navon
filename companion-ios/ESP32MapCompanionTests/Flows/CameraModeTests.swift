@@ -406,6 +406,45 @@ final class CameraModeTests: XCTestCase {
             "moving east without a route — camera must still rotate to travel direction (spec 110)")
     }
 
+    // MARK: - Bottom-quarter anchor on iOS (regression: rider in middle on real device)
+
+    func test_riderAnchoredInBottomQuarter_whenRouting() async {
+        // Spec line 84: rider sits in the bottom quarter of the screen
+        // during routing. iOS Map(position:) with MapCamera(centerCoordinate:)
+        // renders the centerCoordinate at SCREEN CENTER, not bottom-quarter.
+        // To get the visual offset, the model must offer a "camera center"
+        // shifted AHEAD of the rider (in the heading direction). Today no
+        // such helper exists — `cameraHeadingDegrees(rider:)` returns the
+        // angle but no offset center.
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        let pkg = lShapeRoute()
+        app.preview = RoutePreviewModel(
+            alternatives: [RouteAlternative(
+                id: UUID(), title: "L", subtitle: "",
+                distanceMeters: 800, durationSeconds: 240, normalizedPackage: pkg
+            )],
+            selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        await vm.startSelectedRoute()
+        let rider = pkg.geometry[0]
+        // Heading north (0°) — the camera center should be NORTH of the rider
+        // so the rider visually sits below it (bottom-quarter when rendered).
+        let center = vm.cameraCenterCoordinate(rider: rider, headingDegrees: 0.0)
+        XCTAssertGreaterThan(
+            center.latitude,
+            rider.latitude,
+            "camera center for north-heading must be north of the rider so rider renders in the bottom quarter"
+        )
+        // Heading east (90°) — center should be EAST of rider.
+        let centerEast = vm.cameraCenterCoordinate(rider: rider, headingDegrees: 90.0)
+        XCTAssertGreaterThan(
+            centerEast.longitude,
+            rider.longitude,
+            "camera center for east-heading must be east of the rider"
+        )
+    }
+
     func test_movingInPlanning_cameraHeadingFromTrail_evenWithoutRoute() {
         // Spec lines 108-118: "when moving (with or without a route)" the
         // camera enters riding mode. The previous test only verified the
