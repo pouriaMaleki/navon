@@ -98,6 +98,19 @@ cargo run -p map-vector-cli --release -- \
   `sudo apt-get install -y python3-venv` in the devcontainer. ESP-IDF's
   `idf_tools.py` needs venv to provision its Python environment.
 
+## Performance
+
+The device boot loop logs per-phase timings every second:
+
+```
+frame=N fps=X.X avg_work_ms=NN geometry=NN | query=Nms render=Nms convert=Nms push=Nms
+```
+
+See [docs/device-performance.md](../docs/device-performance.md) for the
+profile breakdown, known-good baselines, optimization knobs not yet
+pulled, and the methodology for adding new probes / bisecting
+regressions.
+
 ## Status
 
 - Phase 1 (runtime crates `no_std`): **done**.
@@ -106,6 +119,8 @@ cargo run -p map-vector-cli --release -- \
   **partial** — panel driver wiring depends on confirmed Waveshare SKU.
 - **Embedded map**: **done** — `city-small.svm` (400k segments) ships
   inside the firmware binary; `geometry > 0` on boot.
+- **GT911 touch + JD9365 panel + RGB565 device raster**: **done** —
+  pan/zoom/rotate work at ~5–8 fps depending on density.
 - Phase 4 (migrate to `esp-hal` when P4 support lands): blocked on upstream.
   Run `cargo xtask check-esp-hal-p4` to probe.
 
