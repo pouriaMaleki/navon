@@ -680,6 +680,28 @@ final class HomeViewModel: ObservableObject {
         return routingBearingDegrees(rider: rider)
     }
 
+    /// MapKit's `MapCamera(centerCoordinate:)` renders that point at the
+    /// SCREEN CENTER. Spec line 84 wants the rider in the bottom quarter
+    /// (anchor 0.72). To achieve that without `mapPadding` (no equivalent
+    /// on iOS), we shift the camera center AHEAD of the rider in the
+    /// camera's heading direction by ~`anchorOffsetMeters`. That makes
+    /// the rider render below center on screen — visually the bottom
+    /// quarter — while the camera still tracks the rider's position.
+    func cameraCenterCoordinate(rider: CoordinatePoint, headingDegrees: Double) -> CoordinatePoint {
+        // 264 m at the camera's `distance: 1200` matches the web 0.72 anchor
+        // (≈ 22% of viewport ahead of rider). Tunable.
+        let anchorOffsetMeters = 264.0
+        let metersPerDegLat = 111_320.0
+        let headingRad = headingDegrees * .pi / 180.0
+        let dNorth = cos(headingRad) * anchorOffsetMeters
+        let dEast = sin(headingRad) * anchorOffsetMeters
+        let cosLat = cos(rider.latitude * .pi / 180.0)
+        return CoordinatePoint(
+            latitude: rider.latitude + dNorth / metersPerDegLat,
+            longitude: rider.longitude + dEast / (metersPerDegLat * cosLat)
+        )
+    }
+
     /// Called by the map view on every user pan/zoom/rotate during routing.
     /// Schedules a recenter to the routing default after the pinned
     /// inactivity timeout (spec line 104). Outside phoneGuidance it's a
