@@ -17,10 +17,10 @@ const HELSINKI_DEST = { latitude: 60.1921, longitude: 24.9458 };
  * `isStyleLoaded()` transiently returns false while `setData` is in flight —
  * that was the source of the "Start doesn't move camera" bug.
  */
-function makeFakeMap() {
+function makeFakeMap(viewportHeight = 800) {
   const easeToCalls: Array<{ center: [number, number]; zoom: number; bearing: number }> = [];
   const fitBoundsCalls: Array<unknown> = [];
-  const paddingCalls: Array<{ bottom: number }> = [];
+  const paddingCalls: Array<{ top: number; right: number; bottom: number; left: number }> = [];
   let styleLoadedReturn = true;
   return {
     _easeToCalls: easeToCalls,
@@ -32,8 +32,8 @@ function makeFakeMap() {
       styleLoadedReturn = value;
     },
     isStyleLoaded: () => styleLoadedReturn,
-    getCanvas: () => ({ clientHeight: 800 }),
-    setPadding: (p: { bottom: number }) => {
+    getCanvas: () => ({ clientHeight: viewportHeight }),
+    setPadding: (p: { top: number; right: number; bottom: number; left: number }) => {
       paddingCalls.push(p);
     },
     easeTo: (args: { center: [number, number]; zoom: number; bearing: number }) => {
@@ -117,5 +117,46 @@ describe("dispatchCameraTarget (spec lines 84, 101 — regression for 'Start doe
     const map = makeFakeMap();
     dispatchCameraTarget(map as unknown as import("maplibre-gl").Map, store, false);
     expect(map._easeToCalls).toHaveLength(0);
+  });
+
+  it("reserves bottomReservedPx as MapLibre padding.bottom for fitBounds (regression: route squished above tall alternatives card)", () => {
+    // After Stop, the planning view shows up to 3 alternatives in a tall
+    // bottom card (~330 px). If the dispatcher doesn't reserve that space,
+    // fitBounds renders the whole route polyline behind the card and only
+    // the upper third of the map shows usable content. The bottom-overlay
+    // observer in HomeView writes the measured height to
+    // `mapCameraStore.bottomReservedPx` — the dispatcher must consume it.
+    store.mapCameraStore.fitBounds([HELSINKI, HELSINKI_DEST], 120);
+    store.mapCameraStore.setBottomReservedPx(330);
+    const map = makeFakeMap(896);
+    dispatchCameraTarget(map as unknown as import("maplibre-gl").Map, store, true);
+    expect(map._paddingCalls.length).toBeGreaterThan(0);
+    const lastPadding = map._paddingCalls[map._paddingCalls.length - 1];
+    expect(lastPadding.bottom, "fitBounds must reserve the measured bottom-overlay height").toBe(
+      330,
+    );
+    expect(
+      lastPadding.top,
+      "fitBounds must NOT push content down with a top padding — only reserve the bottom",
+    ).toBe(0);
+  });
+
+  it("anchors the rider against the visible map area (viewport minus bottomReservedPx) for follow-rider, not the raw viewport", () => {
+    // Spec line 84: rider in the bottom quarter. With a 132 px routing card
+    // on an 896 px viewport, the rider rendered at 0.72 * 896 = 645 sits
+    // BEHIND the card. The fix reads anchor against the *visible* area, so
+    // rider y = 0.72 * (896 - 132) ≈ 550 — comfortably above the card.
+    store.mapCameraStore.setCenter(HELSINKI, 16, 0);
+    store.mapCameraStore.setRiderAnchorNormalizedY(0.72);
+    store.mapCameraStore.setBottomReservedPx(132);
+    const map = makeFakeMap(896);
+    dispatchCameraTarget(map as unknown as import("maplibre-gl").Map, store, true);
+    const lastPadding = map._paddingCalls[map._paddingCalls.length - 1];
+    // MapLibre center y = (top + h - bottom) / 2 must equal 0.72 * (h - bottom).
+    const camCenterY = (lastPadding.top + 896 - lastPadding.bottom) / 2;
+    const expectedY = 0.72 * (896 - 132);
+    expect(camCenterY).toBeCloseTo(expectedY, 0);
+    // And the rider must NOT land in the bottom-card region.
+    expect(camCenterY).toBeLessThan(896 - 132);
   });
 });

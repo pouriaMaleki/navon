@@ -682,15 +682,18 @@ final class HomeViewModel: ObservableObject {
 
     /// MapKit's `MapCamera(centerCoordinate:)` renders that point at the
     /// SCREEN CENTER. Spec line 84 wants the rider in the bottom quarter
-    /// (anchor 0.72). To achieve that without `mapPadding` (no equivalent
-    /// on iOS), we shift the camera center AHEAD of the rider in the
-    /// camera's heading direction by ~`anchorOffsetMeters`. That makes
-    /// the rider render below center on screen — visually the bottom
-    /// quarter — while the camera still tracks the rider's position.
+    /// of the *visible* map area — but iOS has no `mapPadding` anchor
+    /// equivalent. We shift the camera center AHEAD of the rider in the
+    /// camera's heading direction so the rider renders below center.
+    ///
+    /// The previous 264 m offset matched web's 0.72 anchor against the
+    /// FULL viewport, which placed the rider behind the routing card
+    /// (Stop button + turn instruction occupies the bottom ~180 px on a
+    /// 896 px screen). 130 m drops the rider to roughly 0.62 of the full
+    /// viewport — comfortably above the card on iPhone 14 Pro Max-class
+    /// devices and still distinctly in the lower half.
     func cameraCenterCoordinate(rider: CoordinatePoint, headingDegrees: Double) -> CoordinatePoint {
-        // 264 m at the camera's `distance: 1200` matches the web 0.72 anchor
-        // (≈ 22% of viewport ahead of rider). Tunable.
-        let anchorOffsetMeters = 264.0
+        let anchorOffsetMeters = 130.0
         let metersPerDegLat = 111_320.0
         let headingRad = headingDegrees * .pi / 180.0
         let dNorth = cos(headingRad) * anchorOffsetMeters

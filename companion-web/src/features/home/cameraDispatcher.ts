@@ -20,19 +20,22 @@ export function dispatchCameraTarget(map: MaplibreMap, store: RootStore, mapRead
   if (!mapReady) return;
   const target = store.mapCameraStore.target;
   const anchorY = store.mapCameraStore.riderAnchorNormalizedY;
+  const bottomInset = store.mapCameraStore.bottomReservedPx;
   const canvas = map.getCanvas?.();
   const viewportHeight = canvas?.clientHeight ?? 0;
-  // MapLibre centers on y = (padding.top + height - padding.bottom) / 2.
-  // To anchor the rider at fraction `anchorY` of the viewport (0 = top,
-  // 1 = bottom), we want that y = anchorY * height, which solves to
-  //   padding.top - padding.bottom = 2 * (anchorY - 0.5) * height.
-  // For anchorY > 0.5 (rider in bottom half, e.g. routing's 0.72 = bottom
-  // quarter, spec line 84), that means a positive padding.TOP — which pushes
-  // the center DOWN on screen. The previous implementation set
-  // padding.bottom instead, which pushed the rider UP into the top half.
-  const topPadding = Math.max(0, (anchorY - 0.5) * 2 * viewportHeight);
-  map.setPadding?.({ top: topPadding, right: 0, bottom: 0, left: 0 });
+  // The bottom UI overlay (routing card during guidance, alternatives card
+  // during planning) covers the lowest `bottomInset` pixels. Treat the
+  // *visible* map area as `viewportHeight - bottomInset` and apply MapLibre
+  // padding so neither follow-rider nor fitBounds lands content under that
+  // overlay. Rider anchor is interpreted relative to the visible area —
+  // spec line 84 "bottom quarter" means bottom quarter of what the user can
+  // actually see.
   if (target.kind === "center") {
+    const visibleH = Math.max(0, viewportHeight - bottomInset);
+    const targetY = anchorY * visibleH; // rider's y in screen pixels
+    // MapLibre centers at y = (top + h - bottom) / 2; solve for top.
+    const topPadding = Math.max(0, 2 * targetY - viewportHeight + bottomInset);
+    map.setPadding?.({ top: topPadding, right: 0, bottom: bottomInset, left: 0 });
     map.easeTo({
       center: [target.center.longitude, target.center.latitude],
       zoom: target.zoom,
@@ -41,6 +44,9 @@ export function dispatchCameraTarget(map: MaplibreMap, store: RootStore, mapRead
     });
     return;
   }
+  // fitBounds: only reserve bottom for the overlay; let the bounds fill the
+  // unblocked area without an artificial top push.
+  map.setPadding?.({ top: 0, right: 0, bottom: bottomInset, left: 0 });
   if (target.coordinates.length === 0) return;
   let minLat = target.coordinates[0].latitude;
   let maxLat = minLat;

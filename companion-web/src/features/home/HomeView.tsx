@@ -58,6 +58,40 @@ export const HomeView = observer(({ store }: Props) => {
     );
   }, [store]);
 
+  // Measure the bottom overlay (routing card / alternatives card) and feed
+  // its height to MapCameraStore so the camera reserves that space —
+  // otherwise fitBounds and follow-rider both render content under the
+  // opaque card. Spec 84 says rider sits in the bottom quarter; "bottom"
+  // here means visible map area, not absolute viewport.
+  useEffect(() => {
+    const update = () => {
+      const el = document.querySelector(".overlay-bottom") as HTMLElement | null;
+      const h = el ? el.getBoundingClientRect().height : 0;
+      // Add the bottom safe-area-inset slack so the card's visual edge,
+      // not its DOM box, defines the reserved area.
+      store.mapCameraStore.setBottomReservedPx(h + 12);
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    const el = document.querySelector(".overlay-bottom");
+    if (el) observer.observe(el);
+    // The overlay element is conditional (different cards for different
+    // modes), so re-attach on every mode/preview change.
+    const mo = new MutationObserver(() => {
+      const next = document.querySelector(".overlay-bottom");
+      if (next && next !== el) {
+        observer.disconnect();
+        observer.observe(next);
+      }
+      update();
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      mo.disconnect();
+    };
+  }, [store]);
+
   return (
     <>
       <MapSurface store={store} />
