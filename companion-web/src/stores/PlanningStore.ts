@@ -4,7 +4,6 @@ import {
   type DestinationSearchResult,
   primaryProviderID,
   ROUTE_PROVIDER_DISPLAY_NAME,
-  ROUTE_SUGGESTION_KIND_DISPLAY_NAME,
   type RouteAlternative,
   type RoutePlanRequest,
   type RoutePreviewModel,
@@ -332,8 +331,16 @@ export class PlanningStore {
     this.preview = preview;
   }
 
-  /** Plan a route through the current source mode. Mirrors AppModel.buildPreview/buildMixedPreview. */
-  async planRoute(preferredTitle?: string): Promise<void> {
+  /** Plan a route through the current source mode. Mirrors AppModel.buildPreview/buildMixedPreview.
+   *
+   * `_preferredTitle` is preserved as a parameter (callers pass the
+   * destination name they typed) so the call signature stays compatible
+   * with route-history and suggestion-pick paths. The value itself is
+   * unused now: alternatives are labelled "<Provider> Route N" by
+   * `presentAlternatives`. The destination name is shown in the top
+   * overlay's "Selected destination" line instead.
+   */
+  async planRoute(_preferredTitle?: string): Promise<void> {
     this.currentPlanAbort?.abort();
     const controller = new AbortController();
     this.currentPlanAbort = controller;
@@ -350,15 +357,13 @@ export class PlanningStore {
           : await this.buildSinglePreview(sourceMode, request, controller.signal);
       runInAction(() => {
         if (this.currentPlanAbort === controller) {
+          // Note: a `preferredTitle` (typically the destination name) used
+          // to override the first alternative's title here. The displayed
+          // alternatives now use a numbered "<Provider> Route N" scheme,
+          // so the override is dropped — the destination is shown in the
+          // top "Selected destination" overlay instead, and route-history
+          // items keep their own title at recordPlannedPreview time.
           this.preview = preview;
-          if (preferredTitle && this.preview.alternatives.length > 0) {
-            this.preview = {
-              ...this.preview,
-              alternatives: this.preview.alternatives.map((alt, idx) =>
-                idx === 0 ? { ...alt, title: preferredTitle } : alt,
-              ),
-            };
-          }
         }
       });
     } catch (err) {
@@ -506,22 +511,27 @@ export function mergeMixedAlternatives(alternatives: RouteAlternative[]): RouteA
   return presentAlternatives(chosen, "mixed");
 }
 
+/**
+ * Label every visible alternative as "<Provider> Route N", where N is a
+ * per-provider counter (so OSM Route 1, OSM Route 2, HSL Route 1, …).
+ * This replaces the prior "Fastest / Quieter / Simpler" scheme which
+ * implied semantics the routing backends don't actually deliver — the
+ * order is just whatever the provider returned.
+ */
 export function presentAlternatives(
   alternatives: RouteAlternative[],
   _mode: RouteSourceMode,
 ): RouteAlternative[] {
-  const styles: Array<keyof typeof ROUTE_SUGGESTION_KIND_DISPLAY_NAME> = [
-    "fastest",
-    "quieter",
-    "simpler",
-  ];
-  return alternatives.slice(0, 3).map((alt, idx) => {
-    const style = styles[Math.min(idx, styles.length - 1)];
-    const providerLabel = ROUTE_PROVIDER_DISPLAY_NAME[alt.normalizedPackage.provenance.providerID];
+  const counters = new Map<string, number>();
+  return alternatives.slice(0, 3).map((alt) => {
+    const providerID = alt.normalizedPackage.provenance.providerID;
+    const providerLabel = ROUTE_PROVIDER_DISPLAY_NAME[providerID];
+    const next = (counters.get(providerID) ?? 0) + 1;
+    counters.set(providerID, next);
     return {
       ...alt,
-      title: ROUTE_SUGGESTION_KIND_DISPLAY_NAME[style],
-      subtitle: `via ${providerLabel}`,
+      title: `${providerLabel} Route ${next}`,
+      subtitle: alt.normalizedPackage.provenance.sourceReference ?? `via ${providerLabel}`,
     };
   });
 }

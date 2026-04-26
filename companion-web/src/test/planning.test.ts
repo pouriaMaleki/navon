@@ -69,9 +69,10 @@ describe("mergeMixedAlternatives", () => {
     expect(merged).toHaveLength(3);
     expect(merged[0].normalizedPackage.routeIdentifier).toBe("a");
     expect(merged[1].normalizedPackage.routeIdentifier).toBe("b");
-    expect(merged[0].title).toBe("Fastest");
-    expect(merged[1].title).toBe("Quieter");
-    expect(merged[2].title).toBe("Simpler");
+    // Numbered "<Provider> Route N" labels: a=hsl(1), b=osm(1), c=hsl(2).
+    expect(merged[0].title).toBe("HSL Route 1");
+    expect(merged[1].title).toBe("OSM Route 1");
+    expect(merged[2].title).toBe("HSL Route 2");
   });
 
   it("returns empty list for empty input", () => {

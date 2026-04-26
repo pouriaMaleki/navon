@@ -28,7 +28,6 @@ import me.fiksu.esp32map.companion.domain.RouteProviderId
 import me.fiksu.esp32map.companion.domain.RouteRerouteRequestMessage
 import me.fiksu.esp32map.companion.domain.RoutePreviewModel
 import me.fiksu.esp32map.companion.domain.RouteSourceMode
-import me.fiksu.esp32map.companion.domain.RouteSuggestionKind
 import me.fiksu.esp32map.companion.domain.RoutingProvider
 import me.fiksu.esp32map.companion.domain.SyncSessionState
 import me.fiksu.esp32map.companion.domain.geo.UusimaaBounds
@@ -606,12 +605,24 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
         return presentAlternatives(chosen)
     }
 
+    /**
+     * Label every visible alternative as "<Provider> Route N", where N is
+     * a per-provider counter (so OSM Route 1, OSM Route 2, HSL Route 1,
+     * …). Replaces the prior "Fastest / Quieter / Simpler" scheme which
+     * implied semantics the routing backends don't deliver — the order
+     * is just whatever the provider returned.
+     */
     private fun presentAlternatives(alternatives: List<RouteAlternative>): List<RouteAlternative> {
-        val labels = listOf(RouteSuggestionKind.FASTEST, RouteSuggestionKind.QUIETER, RouteSuggestionKind.SIMPLER)
-        return alternatives.take(3).mapIndexed { index, alternative ->
+        val counters = mutableMapOf<RouteProviderId, Int>()
+        return alternatives.take(3).map { alternative ->
+            val providerId = alternative.normalizedPackage.provenance.providerId
+            val providerLabel = providerId.displayName
+            val next = (counters[providerId] ?: 0) + 1
+            counters[providerId] = next
             alternative.copy(
-                title = labels[minOf(index, labels.lastIndex)].displayName,
-                subtitle = "via ${alternative.normalizedPackage.provenance.providerId.displayName}",
+                title = "$providerLabel Route $next",
+                subtitle = alternative.normalizedPackage.provenance.sourceReference
+                    ?: "via $providerLabel",
             )
         }
     }

@@ -551,15 +551,22 @@ final class AppModel: ObservableObject {
         return presentAlternatives(chosen, sourceMode: .mixed)
     }
 
+    /// Label every visible alternative as "<Provider> Route N", where N is
+    /// a per-provider counter (so OSM Route 1, OSM Route 2, HSL Route 1,
+    /// …). Replaces the prior "Fastest / Quieter / Simpler" scheme which
+    /// implied semantics the routing backends don't deliver — the order
+    /// is just whatever the provider returned.
     private func presentAlternatives(_ alternatives: [RouteAlternative], sourceMode: RouteSourceMode) -> [RouteAlternative] {
-        let styles = [RouteSuggestionKind.fastest, .quieter, .simpler]
-        return alternatives.prefix(3).enumerated().map { index, alternative in
-            let style = styles[min(index, styles.count - 1)]
-            let providerLabel = alternative.normalizedPackage.provenance.providerID.displayName
+        var counters: [RouteProviderID: Int] = [:]
+        return alternatives.prefix(3).map { alternative in
+            let providerID = alternative.normalizedPackage.provenance.providerID
+            let providerLabel = providerID.displayName
+            let next = (counters[providerID] ?? 0) + 1
+            counters[providerID] = next
             return RouteAlternative(
                 id: alternative.id,
-                title: style.displayName,
-                subtitle: "via \(providerLabel)",
+                title: "\(providerLabel) Route \(next)",
+                subtitle: alternative.normalizedPackage.provenance.sourceReference ?? "via \(providerLabel)",
                 distanceMeters: alternative.distanceMeters,
                 durationSeconds: alternative.durationSeconds,
                 normalizedPackage: alternative.normalizedPackage
