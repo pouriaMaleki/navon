@@ -240,47 +240,129 @@ describe("routing session (plan flows #43, #44, #61, #62)", () => {
     ).not.toContain("right");
   });
 
-  it("OSRM adapter uses the bike profile (documents current limitation: demo server's bike profile does not strongly prefer cycle infrastructure)", async () => {
-    // Spec line 50 + user-reported regression: in Helsinki, where dense
-    // cycling infrastructure exists, the route still prefers driving
-    // roads. Root cause is upstream: project-osrm.org demo's `bike`
-    // profile is generic (does not aggressively prefer cycleway/path
-    // ways). A real fix requires a cycling-specific routing source —
-    // BRouter is the obvious candidate (free, public, OSM-based,
-    // dedicated cycling profiles `trekking`/`safety`/`fastbike`).
-    //
-    // Until that adapter lands, this test pins the current behaviour:
-    //   - Adapter hits `/route/v1/bike` (so a self-hosted OSRM with a
-    //     stricter cycling profile would Just Work as a drop-in).
-    //   - Demo limitation is documented in code + architecture doc.
-    const mod = await import("../../integrations/osm/OsrmRoutingAdapter.js");
-    const adapter = new mod.OsrmRoutingAdapter();
-    let lastUrl = "";
+  it("OSM cycling adapter fans out to BRouter fastbike + trekking + OSRM bike and labels alternatives", async () => {
+    // The product shows up to 3 route alternatives (UX flow #44). Cycling
+    // backends each have different infrastructure biases — BRouter
+    // `fastbike` prefers paths, `trekking` is balanced, OSRM `bike` is
+    // direct. Bundling them as alternatives lets the rider pick the line
+    // that looks right on the map for their trip.
+    const fs = await import("node:fs/promises");
+    const path = await import("node:path");
+    const fixturesDir = path.resolve(process.cwd(), "..", "parity-fixtures", "data", "cycling");
+    const fastbike = JSON.parse(
+      await fs.readFile(path.join(fixturesDir, "brouter-fastbike-helsinki-kallio.json"), "utf-8"),
+    );
+    const trekking = JSON.parse(
+      await fs.readFile(path.join(fixturesDir, "brouter-trekking-helsinki-kallio.json"), "utf-8"),
+    );
+    const osrm = JSON.parse(
+      await fs.readFile(path.join(fixturesDir, "osrm-bike-helsinki-kallio.json"), "utf-8"),
+    );
+
+    const calls: string[] = [];
     const originalFetch = globalThis.fetch;
     globalThis.fetch = async (input: RequestInfo | URL) => {
-      lastUrl = String(input);
-      return new Response(JSON.stringify({ code: "Ok", routes: [] }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      });
-    };
-    try {
-      try {
-        await adapter.planRoute({
-          origin: { latitude: 60.17, longitude: 24.94 },
-          destination: { latitude: 60.18, longitude: 24.95 },
-          providerID: "osm",
-        });
-      } catch {
-        // Empty routes throws; we only care about the URL the adapter sent.
+      const url = String(input);
+      calls.push(url);
+      if (url.includes("brouter.de") && url.includes("profile=fastbike")) {
+        return new Response(JSON.stringify(fastbike), { status: 200 });
       }
+      if (url.includes("brouter.de") && url.includes("profile=trekking")) {
+        return new Response(JSON.stringify(trekking), { status: 200 });
+      }
+      if (url.includes("router.project-osrm.org")) {
+        return new Response(JSON.stringify(osrm), { status: 200 });
+      }
+      return new Response("not found", { status: 404 });
+    };
+
+    try {
+      const mod = await import("../../integrations/osm/OsmCyclingRoutingAdapter.js");
+      const adapter = new mod.OsmCyclingRoutingAdapter();
+      const preview = await adapter.planRoute({
+        origin: { latitude: 60.1699, longitude: 24.9384 },
+        destination: { latitude: 60.1854, longitude: 24.9522 },
+        providerID: "osm",
+      });
+      expect(
+        calls.some((u) => u.includes("brouter.de") && u.includes("fastbike")),
+        "must hit BRouter fastbike",
+      ).toBe(true);
+      expect(
+        calls.some((u) => u.includes("brouter.de") && u.includes("trekking")),
+        "must hit BRouter trekking",
+      ).toBe(true);
+      expect(
+        calls.some((u) => u.includes("router.project-osrm.org/route/v1/bike")),
+        "must hit OSRM bike",
+      ).toBe(true);
+      const titles = preview.alternatives.map((a) => a.title);
+      expect(titles, "all three labelled alternatives present").toEqual(
+        expect.arrayContaining(["Bike-paths first", "Balanced cycling", "Fastest"]),
+      );
+      expect(preview.planningNotice).toMatch(/BRouter \+ OSRM/);
     } finally {
       globalThis.fetch = originalFetch;
     }
-    expect(
-      lastUrl,
-      "OSRM URL must address the bike profile (demo server's `bike` profile is the closest to a cycling intent until BRouter lands)",
-    ).toContain("/route/v1/bike");
+  });
+
+  it("when a source fails, only successful alternatives are returned and the planningNotice flags it", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("brouter.de")) {
+        return new Response("oops", { status: 500 });
+      }
+      // OSRM fixture
+      const fs = await import("node:fs/promises");
+      const path = await import("node:path");
+      const osrm = JSON.parse(
+        await fs.readFile(
+          path.resolve(
+            process.cwd(),
+            "..",
+            "parity-fixtures",
+            "data",
+            "cycling",
+            "osrm-bike-helsinki-kallio.json",
+          ),
+          "utf-8",
+        ),
+      );
+      return new Response(JSON.stringify(osrm), { status: 200 });
+    };
+    try {
+      const mod = await import("../../integrations/osm/OsmCyclingRoutingAdapter.js");
+      const adapter = new mod.OsmCyclingRoutingAdapter();
+      const preview = await adapter.planRoute({
+        origin: { latitude: 60.1699, longitude: 24.9384 },
+        destination: { latitude: 60.1854, longitude: 24.9522 },
+        providerID: "osm",
+      });
+      expect(preview.alternatives).toHaveLength(1);
+      expect(preview.alternatives[0].title).toBe("Fastest");
+      expect(preview.planningNotice).toMatch(/2 sources unavailable/);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("when ALL sources fail, falls back to the sample preview", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () => new Response("oops", { status: 500 });
+    try {
+      const mod = await import("../../integrations/osm/OsmCyclingRoutingAdapter.js");
+      const adapter = new mod.OsmCyclingRoutingAdapter();
+      const preview = await adapter.planRoute({
+        origin: { latitude: 60.1699, longitude: 24.9384 },
+        destination: { latitude: 60.1854, longitude: 24.9522 },
+        providerID: "osm",
+      });
+      expect(preview.alternatives.length).toBeGreaterThan(0);
+      expect(preview.planningNotice).toMatch(/sample/i);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 
   it("returning to route clears rerouteRequested", () => {

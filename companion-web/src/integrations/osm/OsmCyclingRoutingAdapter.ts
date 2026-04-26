@@ -11,23 +11,47 @@ import {
   type RouteProviderID,
 } from "../../domain/models.js";
 import type { RoutingProvider } from "../../domain/providers.js";
-import { decodePolyline } from "../geo.js";
 import { newAlternativeId, normalizedFromPreview } from "../routePackage.js";
 import { buildSamplePreview } from "../sample/SampleRoutingAdapter.js";
+import { type BrouterProfile, fetchBrouter } from "./brouter/BrouterClient.js";
+import { mapBrouterToAlternative } from "./brouter/mapBrouterToRoute.js";
 
+/**
+ * OSM cycling routing orchestrator. Issues parallel requests to BRouter
+ * (`fastbike` paths-preferred + `trekking` balanced) AND OSRM bike, then
+ * exposes whichever succeed as 1-3 alternatives in the route preview.
+ *
+ * Why multi-source: no single backend is universally best. BRouter
+ * profiles each have different cycle-infra biases; OSRM's bike profile
+ * is more direct. Showing all three lets the rider pick the line that
+ * looks right on the map for their trip. See
+ * `docs/companion-app-architecture.md` "OSM cycling sources".
+ */
 const OSRM_BASE = "https://router.project-osrm.org/route/v1/bike";
 
 type OsrmManeuver = { type: string; modifier?: string; location: [number, number] };
 type OsrmStep = { distance: number; duration: number; name: string; maneuver: OsrmManeuver };
 type OsrmLeg = { summary?: string; steps: OsrmStep[] };
-type OsrmRoute = { distance: number; duration: number; geometry: string; legs: OsrmLeg[] };
+type OsrmRoute = {
+  distance: number;
+  duration: number;
+  geometry: { type: "LineString"; coordinates: number[][] };
+  legs: OsrmLeg[];
+};
 type OsrmResponse = { code: string; message?: string; routes: OsrmRoute[] };
 
-export class OsrmRoutingAdapter implements RoutingProvider {
+type SourceTask = {
+  label: string;
+  run: () => Promise<RouteAlternative | null>;
+  /** Stable key used in dedupe and to spot which source produced the alt. */
+  sourceKey: BrouterProfile | "osrm-bike";
+};
+
+export class OsmCyclingRoutingAdapter implements RoutingProvider {
   readonly providerID: RouteProviderID = "osm";
 
   async planRoute(request: RoutePlanRequest, signal?: AbortSignal): Promise<RoutePreviewModel> {
-    return this.fetchOrFallback(request, 1, signal);
+    return this.fanOutOrFallback(request, 1, signal);
   }
 
   async replanRoute(
@@ -40,80 +64,137 @@ export class OsrmRoutingAdapter implements RoutingProvider {
       destination: session.destinationCoordinate ?? riderLocation,
       providerID: this.providerID,
     };
-    return this.fetchOrFallback(request, (session.routeRevision ?? 0) + 1, signal);
+    return this.fanOutOrFallback(request, (session.routeRevision ?? 0) + 1, signal);
   }
 
   normalizePreview(preview: RoutePreviewModel, request: RoutePlanRequest): NormalizedRoutePackage {
     return normalizedFromPreview(preview, request);
   }
 
-  private async fetchOrFallback(
+  private async fanOutOrFallback(
     request: RoutePlanRequest,
     revision: number,
     signal?: AbortSignal,
   ): Promise<RoutePreviewModel> {
-    try {
-      return await this.fetchLive(request, revision, signal);
-    } catch (err) {
-      if ((err as Error)?.name === "AbortError") throw err;
-      const message = err instanceof Error ? err.message : "Unknown error";
+    const tasks: SourceTask[] = [
+      {
+        label: "Bike-paths first",
+        sourceKey: "fastbike",
+        run: async () => this.runBrouter("fastbike", "Bike-paths first", request, revision, signal),
+      },
+      {
+        label: "Balanced cycling",
+        sourceKey: "trekking",
+        run: async () => this.runBrouter("trekking", "Balanced cycling", request, revision, signal),
+      },
+      {
+        label: "Fastest",
+        sourceKey: "osrm-bike",
+        run: async () => this.runOsrm(request, revision, signal),
+      },
+    ];
+    const settled = await Promise.allSettled(tasks.map((t) => t.run()));
+    if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+    const ok: { task: SourceTask; alt: RouteAlternative }[] = [];
+    for (let i = 0; i < settled.length; i++) {
+      const r = settled[i];
+      if (r.status === "fulfilled" && r.value) ok.push({ task: tasks[i], alt: r.value });
+    }
+    const deduped = dedupeAlternatives(ok);
+    if (deduped.length === 0) {
       return buildSamplePreview(
         "osm",
         request,
         revision,
-        `Live OSM failed: ${message}. Showing sample route instead.`,
+        "Showing sample route — live routing failed",
       );
     }
+    const failedCount = tasks.length - ok.length;
+    return {
+      alternatives: deduped.map((d) => d.alt),
+      selectedAlternativeID: deduped[0].alt.id,
+      routeIdentifier: deduped[0].alt.normalizedPackage.routeIdentifier,
+      routeRevision: deduped[0].alt.normalizedPackage.revision,
+      planningNotice:
+        failedCount === 0
+          ? "Cycling alternatives via BRouter + OSRM"
+          : `Cycling alternatives — ${failedCount} source${failedCount === 1 ? "" : "s"} unavailable`,
+    };
   }
 
-  private async fetchLive(
+  private async runBrouter(
+    profile: BrouterProfile,
+    title: string,
     request: RoutePlanRequest,
     revision: number,
     signal?: AbortSignal,
-  ): Promise<RoutePreviewModel> {
+  ): Promise<RouteAlternative | null> {
+    const feature = await fetchBrouter(profile, request.origin, request.destination, signal);
+    return mapBrouterToAlternative(feature, request, revision, { title, profile });
+  }
+
+  private async runOsrm(
+    request: RoutePlanRequest,
+    revision: number,
+    signal?: AbortSignal,
+  ): Promise<RouteAlternative | null> {
     const coords = `${request.origin.longitude.toFixed(6)},${request.origin.latitude.toFixed(6)};${request.destination.longitude.toFixed(6)},${request.destination.latitude.toFixed(6)}`;
-    const url = `${OSRM_BASE}/${coords}?alternatives=3&overview=full&steps=true&geometries=polyline`;
+    const url = `${OSRM_BASE}/${coords}?alternatives=false&overview=full&steps=true&geometries=geojson`;
     const response = await fetch(url, { signal });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = (await response.json()) as OsrmResponse;
-    if (data.code !== "Ok") {
-      throw new Error(data.message ?? `OSRM returned ${data.code}`);
-    }
-    if (data.routes.length === 0) {
-      throw new Error("No alternatives available");
-    }
-    const alternatives = data.routes
-      .slice(0, 3)
-      .map((route, index) => mapAlternative(route, request, revision, index))
-      .filter((a): a is RouteAlternative => a !== null);
-    if (alternatives.length === 0) {
-      throw new Error("No usable alternatives");
-    }
-    return {
-      alternatives,
-      selectedAlternativeID: alternatives[0].id,
-      routeIdentifier: alternatives[0].normalizedPackage.routeIdentifier,
-      routeRevision: alternatives[0].normalizedPackage.revision,
-      planningNotice: "Live OSM bike routing via OSRM demo server",
-    };
+    if (data.code !== "Ok") throw new Error(data.message ?? `OSRM returned ${data.code}`);
+    if (data.routes.length === 0) throw new Error("OSRM returned no routes");
+    return mapOsrmToAlternative(data.routes[0], request, revision);
   }
 }
 
-function mapAlternative(
+function dedupeAlternatives(
+  candidates: { task: SourceTask; alt: RouteAlternative }[],
+): { task: SourceTask; alt: RouteAlternative }[] {
+  const kept: { task: SourceTask; alt: RouteAlternative }[] = [];
+  for (const c of candidates) {
+    const dup = kept.find((k) => alternativesAreNearIdentical(k.alt, c.alt));
+    if (!dup) kept.push(c);
+  }
+  return kept;
+}
+
+function alternativesAreNearIdentical(a: RouteAlternative, b: RouteAlternative): boolean {
+  const aLen = a.normalizedPackage.summary.totalDistanceMeters;
+  const bLen = b.normalizedPackage.summary.totalDistanceMeters;
+  if (aLen <= 0 || bLen <= 0) return false;
+  const lengthDelta = Math.abs(aLen - bLen) / Math.max(aLen, bLen);
+  if (lengthDelta > 0.03) return false;
+  const ag = a.normalizedPackage.geometry;
+  const bg = b.normalizedPackage.geometry;
+  if (ag.length === 0 || bg.length === 0) return false;
+  return (
+    samePoint(ag[0], bg[0]) &&
+    samePoint(ag[ag.length - 1], bg[bg.length - 1]) &&
+    samePoint(ag[Math.floor(ag.length / 2)], bg[Math.floor(bg.length / 2)])
+  );
+}
+
+function samePoint(a: CoordinatePoint, b: CoordinatePoint): boolean {
+  return Math.abs(a.latitude - b.latitude) < 1e-4 && Math.abs(a.longitude - b.longitude) < 1e-4;
+}
+
+function mapOsrmToAlternative(
   route: OsrmRoute,
   request: RoutePlanRequest,
   revision: number,
-  alternativeIndex: number,
 ): RouteAlternative | null {
-  const geometry = decodePolyline(route.geometry);
+  const geometry: CoordinatePoint[] = (route.geometry?.coordinates ?? []).map((c) => ({
+    longitude: c[0],
+    latitude: c[1],
+  }));
   if (geometry.length < 2) return null;
-  const maneuvers = buildLiveManeuvers(route, geometry);
+  const maneuvers = buildOsrmManeuvers(route, geometry);
   const durationSeconds = Math.max(Math.round(route.duration), 60);
   const package_: NormalizedRoutePackage = {
     version: CURRENT_ROUTE_PACKAGE_VERSION,
-    routeIdentifier: liveRouteId(request, alternativeIndex),
+    routeIdentifier: osrmRouteId(request),
     revision,
     geometry,
     maneuvers,
@@ -125,21 +206,23 @@ function mapAlternative(
     },
     provenance: {
       providerID: "osm",
-      sourceReference: "OSRM bike route",
+      sourceReference: "OSRM bike",
       generatedAtUnixMs: Date.now(),
     },
   };
+  const km = (route.distance / 1000).toFixed(1);
+  const min = Math.max(Math.round(durationSeconds / 60), 1);
   return {
     id: newAlternativeId(),
-    title: alternativeIndex === 0 ? "OSRM primary route" : "OSRM alternative route",
-    subtitle: route.legs[0]?.summary || "OSRM bike route",
+    title: "Fastest",
+    subtitle: `${km} km • ${min} min`,
     distanceMeters: Math.round(route.distance),
     durationSeconds,
     normalizedPackage: package_,
   };
 }
 
-function buildLiveManeuvers(route: OsrmRoute, geometry: CoordinatePoint[]): RouteManeuver[] {
+function buildOsrmManeuvers(route: OsrmRoute, geometry: CoordinatePoint[]): RouteManeuver[] {
   const maneuvers: RouteManeuver[] = [
     {
       id: "depart",
@@ -171,11 +254,11 @@ function buildLiveManeuvers(route: OsrmRoute, geometry: CoordinatePoint[]): Rout
       }
       maneuvers.push({
         id: `step-${maneuvers.length}${step.name ? `-${step.name}` : ""}`,
-        maneuverType: maneuverType(step),
+        maneuverType: osrmManeuverType(step),
         location: { latitude: step.maneuver.location[1], longitude: step.maneuver.location[0] },
         distanceFromStartMeters: distanceFromStart,
         distanceToNextMeters: stepDistance,
-        instructionText: instructionText(step),
+        instructionText: osrmInstructionText(step),
       });
       distanceFromStart += stepDistance;
     }
@@ -199,7 +282,7 @@ function firstStepDistance(legs: OsrmLeg[]): number | undefined {
   return undefined;
 }
 
-function maneuverType(step: OsrmStep): RouteManeuverType {
+function osrmManeuverType(step: OsrmStep): RouteManeuverType {
   const t = step.maneuver.type.toLowerCase();
   const m = step.maneuver.modifier?.toLowerCase() ?? "";
   if (t === "roundabout" || t === "rotary") return "roundabout";
@@ -225,7 +308,7 @@ function maneuverType(step: OsrmStep): RouteManeuverType {
   }
 }
 
-function instructionText(step: OsrmStep): string {
+function osrmInstructionText(step: OsrmStep): string {
   const t = step.maneuver.type.toLowerCase();
   const m = step.maneuver.modifier?.toLowerCase() ?? "";
   if (t === "roundabout" || t === "rotary") return "Enter roundabout";
@@ -257,8 +340,8 @@ function instructionText(step: OsrmStep): string {
   }
 }
 
-function liveRouteId(request: RoutePlanRequest, alternativeIndex: number): string {
+function osrmRouteId(request: RoutePlanRequest): string {
   const o = `${request.origin.latitude.toFixed(5)},${request.origin.longitude.toFixed(5)}`;
   const d = `${request.destination.latitude.toFixed(5)},${request.destination.longitude.toFixed(5)}`;
-  return `osm-live:${o}->${d}:alt-${alternativeIndex}`;
+  return `osm-osrm:${o}->${d}`;
 }

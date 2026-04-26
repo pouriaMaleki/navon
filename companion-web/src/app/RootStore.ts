@@ -10,7 +10,7 @@ import type { PlaceSearchService } from "../domain/providers.js";
 import { GpxRoutingAdapter } from "../integrations/gpx/GpxRoutingAdapter.js";
 import { HslRoutingAdapter } from "../integrations/hsl/HslRoutingAdapter.js";
 import { BrowserLocationService } from "../integrations/location/BrowserLocationService.js";
-import { OsrmRoutingAdapter } from "../integrations/osm/OsrmRoutingAdapter.js";
+import { OsmCyclingRoutingAdapter } from "../integrations/osm/OsmCyclingRoutingAdapter.js";
 import { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
 import { SampleRoutingAdapter } from "../integrations/sample/SampleRoutingAdapter.js";
 import { PhotonNominatimSearchService } from "../integrations/search/PhotonNominatimSearchService.js";
@@ -51,7 +51,7 @@ export class RootStore {
 
   constructor() {
     const hsl = new HslRoutingAdapter(() => this.settingsStore.snapshotForAdapter());
-    const osm = new OsrmRoutingAdapter();
+    const osm = new OsmCyclingRoutingAdapter();
     const fitSample = new SampleRoutingAdapter("fitImport");
     const tcxSample = new SampleRoutingAdapter("tcxImport");
     this.providers = {
