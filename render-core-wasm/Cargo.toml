@@ -12,6 +12,7 @@ map-runtime = { path = "../map-runtime" }
 runtime-core = { path = "../runtime-core" }
 route-import-gpx = { path = "../route-import-gpx" }
 render-core = { path = "../render-core" }
+smallvec = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 js-sys = "0.3"

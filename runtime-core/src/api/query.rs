@@ -190,7 +190,12 @@ impl Default for MapQuerySpec {
 #[derive(Debug, Clone, PartialEq)]
 pub struct MapPolylineCandidate {
     pub layer: MapLayer,
-    pub points: Vec<WorldPoint>,
+    /// Inline storage for the common 2-point case (every segment from
+    /// `EmbeddedMapSource` is exactly 2 points). Polylines with >2 points
+    /// — route geometry, parity fixtures — spill to heap automatically;
+    /// `SmallVec` derefs to `&[T]` so consumer code that uses
+    /// `.windows(2)` works unchanged.
+    pub points: smallvec::SmallVec<[WorldPoint; 2]>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

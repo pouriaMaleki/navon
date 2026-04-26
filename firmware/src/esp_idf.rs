@@ -595,7 +595,8 @@ pub fn run_device_main() -> Result<(), String> {
     use crate::mipi_dsi::{
         self, MipiDsiPanel, PanelGpios, waveshare_3p4c_config,
     };
-    use crate::platform::{NullRouteSyncIo, NullTouchSource, RuntimePlatform, SystemFrameClock};
+    use crate::platform::{NullRouteSyncIo, RuntimePlatform, SystemFrameClock};
+    use crate::touch_gt911::Gt911TouchSource;
     use crate::settings::default_settings_store;
 
     sys::link_patches();
@@ -613,6 +614,32 @@ pub fn run_device_main() -> Result<(), String> {
             internal / 1024,
             psram / 1024,
         );
+    }
+
+    // Ground-truth PSRAM bandwidth before we extrapolate render-pipeline
+    // budgets from theoretical numbers. Two `Vec<u8>` of 4 MiB each go
+    // straight to PSRAM (above the IDF's `CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL`
+    // threshold). `copy_from_slice` lowers to memcpy, exercising both a
+    // PSRAM read stream and a PSRAM write stream — same access pattern as
+    // a per-frame framebuffer copy. The reported MB/s number is what we
+    // can actually expect for `present_from_render` + `draw_bitmap`.
+    {
+        const PROBE_BYTES: usize = 4 * 1024 * 1024;
+        let src: Vec<u8> = vec![0xAB; PROBE_BYTES];
+        let mut dst: Vec<u8> = vec![0; PROBE_BYTES];
+        let t0 = std::time::Instant::now();
+        dst.copy_from_slice(&src);
+        let elapsed = t0.elapsed();
+        let mb_per_s = (PROBE_BYTES as f64 / 1_048_576.0) / elapsed.as_secs_f64();
+        log::info!(
+            "psram probe: 4 MiB memcpy in {} us → {:.1} MiB/s effective bandwidth",
+            elapsed.as_micros(),
+            mb_per_s,
+        );
+        // Drop both before we allocate the framebuffer; we don't want
+        // 8 MiB sitting around for the rest of the boot.
+        drop(dst);
+        drop(src);
     }
 
     let board = BoardConfig::default();
@@ -698,9 +725,16 @@ pub fn run_device_main() -> Result<(), String> {
     });
     log::info!("seeded fixed GPS fix at lat={:.4} lon={:.4}", seed_lat, seed_lon);
 
+    // Bring up the GT911 capacitive touch controller on the same I2C bus
+    // the panel CH422G shares (SDA=GPIO7, SCL=GPIO8 @ 400 kHz). The 3.4C
+    // schematic ties INT to NC, so the driver runs in polled mode — we
+    // hit `esp_lcd_touch_read_data` once per frame inside the runtime.
+    let touch_source = Gt911TouchSource::new(board.touch)
+        .map_err(|error| format!("failed to bring up GT911 touch: {error:?}"))?;
+
     let mut platform = RuntimePlatform::with_route_sync(
         app,
-        NullTouchSource,
+        touch_source,
         gps,
         SystemFrameClock::new(board.frame_interval),
         NullRouteSyncIo,
@@ -716,32 +750,50 @@ pub fn run_device_main() -> Result<(), String> {
     let mut last_log = std::time::Instant::now();
     let mut frames_since_last_log: u32 = 0;
     let mut frame_work_total = std::time::Duration::ZERO;
+    let mut phase_query = std::time::Duration::ZERO;
+    let mut phase_render = std::time::Duration::ZERO;
+    let mut phase_convert = std::time::Duration::ZERO;
+    let mut phase_push = std::time::Duration::ZERO;
     loop {
         let frame_start = std::time::Instant::now();
         let frame = platform
             .run_frame()
             .map_err(|error| format!("device frame failed: {error:?}"))?;
         frame_work_total += frame_start.elapsed();
+        phase_query += frame.phase_timings.map_query;
+        phase_render += frame.phase_timings.render;
+        phase_convert += frame.phase_timings.convert;
+        phase_push += frame.phase_timings.panel_push;
         frames_since_last_log += 1;
 
         let elapsed = last_log.elapsed();
         if elapsed >= std::time::Duration::from_secs(1) {
             let fps = frames_since_last_log as f32 / elapsed.as_secs_f32();
-            let avg_work_ms = if frames_since_last_log > 0 {
-                frame_work_total.as_millis() / u128::from(frames_since_last_log)
-            } else {
-                0
-            };
+            let n = u128::from(frames_since_last_log).max(1);
+            let avg_work_ms = frame_work_total.as_millis() / n;
+            // Log per-phase averages on the same line so we can see at a
+            // glance which step is eating the per-frame budget. Phases
+            // sum to slightly less than `avg_work_ms` because they
+            // exclude input bridging, runtime step, and route-sync
+            // bookkeeping — that gap itself is informative.
             log::info!(
-                "frame={} fps={:.1} avg_work_ms={} geometry={}",
+                "frame={} fps={:.1} avg_work_ms={} geometry={} | query={}ms render={}ms convert={}ms push={}ms",
                 frame.output.frame_index,
                 fps,
                 avg_work_ms,
-                frame.geometry_count
+                frame.geometry_count,
+                phase_query.as_millis() / n,
+                phase_render.as_millis() / n,
+                phase_convert.as_millis() / n,
+                phase_push.as_millis() / n,
             );
             last_log = std::time::Instant::now();
             frames_since_last_log = 0;
             frame_work_total = std::time::Duration::ZERO;
+            phase_query = std::time::Duration::ZERO;
+            phase_render = std::time::Duration::ZERO;
+            phase_convert = std::time::Duration::ZERO;
+            phase_push = std::time::Duration::ZERO;
         }
         thread::sleep(board.frame_interval);
     }
@@ -994,7 +1046,9 @@ mod tests {
             backlight_gpio: None,
         };
         let mut framebuffer = Framebuffer::new(2, 2, PanelPixelFormat::Rgb565Le);
-        let mut render = render_core::raster::Framebuffer::new(2, 2);
+        let mut render = crate::framebuffer::RenderFramebuffer::new(2, 2);
+        // Test runs on host, where `RenderFramebuffer = Framebuffer<RgbaPixel>`.
+        // 2x2 * 4 bytes/pixel = 16 bytes of RGBA.
         render.pixels_mut().copy_from_slice(&[
             0, 64, 128, 255, 0, 64, 128, 255, 0, 64, 128, 255, 0, 64, 128, 255,
         ]);

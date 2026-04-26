@@ -25,3 +25,6 @@ embedded-map = []
 runtime-core = { path = "../runtime-core", default-features = false }
 hashbrown = { version = "0.15", default-features = false, features = ["default-hasher"] }
 num-traits = { version = "0.2", default-features = false, features = ["libm"] }
+# Used in the `query` hot path to construct 2-point polylines with
+# inline storage instead of one heap allocation per visible segment.
+smallvec = { version = "1", default-features = false }

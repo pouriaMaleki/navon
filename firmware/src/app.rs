@@ -1,6 +1,6 @@
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
-use render_core::raster::Framebuffer as RenderFramebuffer;
+use crate::framebuffer::RenderFramebuffer;
 use runtime_core::RuntimeCore;
 use runtime_core::api::{
     RouteStatusMessage, RuntimeConfig, RuntimeFrameOutput, TouchContactFrameError,
@@ -16,12 +16,24 @@ use crate::route_sync::{RouteSyncTransport, RouteSyncTransportError, RouteTransf
 use crate::settings::{DeviceSettings, NullSettingsStore, SettingsError, SettingsStore};
 use crate::touch::TouchInput;
 
+/// Per-phase timings for one `step_frame` call. All zero on host builds
+/// where timing isn't recorded; on device this lets the boot loop split
+/// the 186 ms baseline into "where does the time actually go".
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct PhaseTimings {
+    pub map_query: Duration,
+    pub render: Duration,
+    pub convert: Duration,
+    pub panel_push: Duration,
+}
+
 #[derive(Debug, Clone)]
 pub struct FrameResult {
     pub output: RuntimeFrameOutput,
     pub geometry_count: usize,
     pub lit_pixel_count: usize,
     pub route_sync_statuses: Vec<RouteStatusMessage>,
+    pub phase_timings: PhaseTimings,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -126,7 +138,12 @@ where
             None => input,
         };
         let output = self.runtime.step(input);
+
+        let t_query_start = Instant::now();
         let geometry = self.map_source.query(&output.map_query);
+        let map_query = t_query_start.elapsed();
+
+        let t_render_start = Instant::now();
         render_core::render_frame(
             render_core::RenderScene {
                 config: self.runtime.config(),
@@ -135,7 +152,15 @@ where
             },
             &mut self.render_framebuffer,
         );
-        self.display.present(&self.render_framebuffer)?;
+        let render = t_render_start.elapsed();
+
+        let (convert, panel_push) = self.display.present_timed(&self.render_framebuffer)?;
+        let phase_timings = PhaseTimings {
+            map_query,
+            render,
+            convert,
+            panel_push,
+        };
 
         let next_settings = DeviceSettings {
             speed_unit: output.overlay.speed_unit,
@@ -156,6 +181,7 @@ where
             geometry_count: geometry.geometry.len(),
             lit_pixel_count: self.display.framebuffer().lit_pixel_count(),
             route_sync_statuses,
+            phase_timings,
         })
     }
 

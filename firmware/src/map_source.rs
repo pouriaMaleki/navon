@@ -24,7 +24,7 @@ impl Default for MapSourceBridge {
 }
 
 impl MapSource for MapSourceBridge {
-    fn query(&self, spec: &MapQuerySpec) -> MapQueryResult {
+    fn query(&mut self, spec: &MapQuerySpec) -> MapQueryResult {
         self.inner.query(spec)
     }
 }

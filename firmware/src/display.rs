@@ -1,4 +1,6 @@
-use render_core::raster::Framebuffer as RenderFramebuffer;
+use std::time::{Duration, Instant};
+
+use crate::framebuffer::RenderFramebuffer;
 
 use crate::board_config::DisplayConfig;
 use crate::framebuffer::Framebuffer;
@@ -72,10 +74,29 @@ where
     }
 
     pub fn present(&mut self, framebuffer: &RenderFramebuffer) -> Result<(), DisplayError> {
+        self.present_timed(framebuffer).map(|_| ())
+    }
+
+    /// Same as `present`, but returns the elapsed time spent in
+    /// (a) the RGBA→panel-format conversion and (b) the backend push.
+    /// Used by the device boot loop to break the per-frame budget into
+    /// "where did the time go". Always-on rather than feature-gated so
+    /// the build output stays single-shape; cost is two `Instant::now()`
+    /// calls per frame which is negligible vs. the work being timed.
+    pub fn present_timed(
+        &mut self,
+        framebuffer: &RenderFramebuffer,
+    ) -> Result<(Duration, Duration), DisplayError> {
+        let t_convert = Instant::now();
         self.framebuffer.present_from_render(framebuffer);
+        let convert_elapsed = t_convert.elapsed();
+
+        let t_push = Instant::now();
         self.backend.present(&self.framebuffer)?;
+        let push_elapsed = t_push.elapsed();
+
         self.presented_frames += 1;
-        Ok(())
+        Ok((convert_elapsed, push_elapsed))
     }
 
     pub fn framebuffer(&self) -> &Framebuffer {

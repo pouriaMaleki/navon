@@ -12,7 +12,7 @@ use runtime_core::api::{
 use runtime_core::route::{RouteRenderState, TurnAlertKind};
 
 use crate::camera_view::CameraView;
-use crate::raster::Framebuffer;
+use crate::raster::{Framebuffer, Pixel};
 use crate::style::RenderStyle;
 
 const NORTH_INDICATOR_ACK_BASE_RADIUS_PX: f32 = 20.0;
@@ -23,14 +23,14 @@ const SPEED_PANEL_UNIT_SCALE_PX: i32 = 5;
 const UNIT_GLYPH_WIDTH: usize = 3;
 const UNIT_GLYPH_HEIGHT: usize = 5;
 
-pub fn draw_overlay(
+pub fn draw_overlay<P: Pixel>(
     config: &RuntimeConfig,
     camera: &CameraStateSnapshot,
     overlay: &OverlayState,
     route: &RouteRenderState,
     viewport: ViewportSize,
     meters_per_pixel: f64,
-    framebuffer: &mut Framebuffer,
+    framebuffer: &mut Framebuffer<P>,
 ) {
     let style = RenderStyle::default();
     let camera_view = CameraView::new(viewport, camera, meters_per_pixel);
@@ -127,8 +127,8 @@ pub fn draw_overlay(
     }
 }
 
-fn draw_ack_pulse(
-    framebuffer: &mut Framebuffer,
+fn draw_ack_pulse<P: Pixel>(
+    framebuffer: &mut Framebuffer<P>,
     center: ScreenPoint,
     progress: f32,
     color: crate::raster::Color,
@@ -148,8 +148,8 @@ fn draw_ack_pulse(
     draw_ring(framebuffer, center, radius_px, 1, pulse_color);
 }
 
-fn draw_ring(
-    framebuffer: &mut Framebuffer,
+fn draw_ring<P: Pixel>(
+    framebuffer: &mut Framebuffer<P>,
     center: ScreenPoint,
     radius_px: f32,
     thickness_px: u8,
@@ -170,8 +170,8 @@ fn draw_ring(
     }
 }
 
-fn draw_off_route_banner(
-    framebuffer: &mut Framebuffer,
+fn draw_off_route_banner<P: Pixel>(
+    framebuffer: &mut Framebuffer<P>,
     viewport: ViewportSize,
     style: &RenderStyle,
 ) {
@@ -185,7 +185,7 @@ fn draw_off_route_banner(
     );
 }
 
-fn draw_reroute_banner(framebuffer: &mut Framebuffer, viewport: ViewportSize, style: &RenderStyle) {
+fn draw_reroute_banner<P: Pixel>(framebuffer: &mut Framebuffer<P>, viewport: ViewportSize, style: &RenderStyle) {
     draw_status_banner(
         framebuffer,
         viewport,
@@ -196,8 +196,8 @@ fn draw_reroute_banner(framebuffer: &mut Framebuffer, viewport: ViewportSize, st
     );
 }
 
-fn draw_major_turn_banner(
-    framebuffer: &mut Framebuffer,
+fn draw_major_turn_banner<P: Pixel>(
+    framebuffer: &mut Framebuffer<P>,
     viewport: ViewportSize,
     style: &RenderStyle,
     alert: &runtime_core::route::UpcomingTurnAlert,
@@ -214,8 +214,8 @@ fn draw_major_turn_banner(
     );
 }
 
-fn draw_status_banner(
-    framebuffer: &mut Framebuffer,
+fn draw_status_banner<P: Pixel>(
+    framebuffer: &mut Framebuffer<P>,
     viewport: ViewportSize,
     border_color: crate::raster::Color,
     background_color: crate::raster::Color,
@@ -328,8 +328,8 @@ fn measure_banner_text_width(text: &str, scale_px: i32, spacing_px: i32, gap_px:
     width
 }
 
-fn draw_banner_text(
-    framebuffer: &mut Framebuffer,
+fn draw_banner_text<P: Pixel>(
+    framebuffer: &mut Framebuffer<P>,
     text: &str,
     mut x: i32,
     y: i32,
@@ -350,8 +350,8 @@ fn draw_banner_text(
     }
 }
 
-fn draw_banner_glyph(
-    framebuffer: &mut Framebuffer,
+fn draw_banner_glyph<P: Pixel>(
+    framebuffer: &mut Framebuffer<P>,
     glyph: [&'static str; 7],
     x: i32,
     y: i32,
@@ -446,8 +446,8 @@ fn banner_glyph(ch: char) -> Option<[&'static str; 7]> {
     }
 }
 
-fn draw_speed_panel(
-    framebuffer: &mut Framebuffer,
+fn draw_speed_panel<P: Pixel>(
+    framebuffer: &mut Framebuffer<P>,
     viewport: ViewportSize,
     overlay: &OverlayState,
     style: &RenderStyle,
@@ -509,8 +509,8 @@ fn draw_speed_panel(
     }
 }
 
-fn draw_segment_digit(
-    framebuffer: &mut Framebuffer,
+fn draw_segment_digit<P: Pixel>(
+    framebuffer: &mut Framebuffer<P>,
     digit: char,
     x: i32,
     y: i32,
@@ -587,8 +587,8 @@ fn draw_segment_digit(
     }
 }
 
-fn draw_unit_glyph(
-    framebuffer: &mut Framebuffer,
+fn draw_unit_glyph<P: Pixel>(
+    framebuffer: &mut Framebuffer<P>,
     glyph: [&'static str; UNIT_GLYPH_HEIGHT],
     x: i32,
     y: i32,

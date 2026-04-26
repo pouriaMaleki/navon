@@ -14,5 +14,12 @@ std = ["runtime-core/std"]
 runtime-core = { path = "../runtime-core", default-features = false }
 num-traits = { version = "0.2", default-features = false, features = ["libm"] }
 
+[dev-dependencies]
+# Inline-storage Vec used in test fixtures that construct
+# `MapPolylineCandidate { points: smallvec![…] }`. Production
+# render-core code reads polylines as `&[WorldPoint]` and does not
+# care about the storage shape.
+smallvec = "1"
+
 [build-dependencies]
 resvg = { version = "0.47.0", default-features = false }

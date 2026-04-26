@@ -6,7 +6,7 @@ use crate::api::{
 };
 
 pub trait MapSource {
-    fn query(&self, spec: &MapQuerySpec) -> MapQueryResult;
+    fn query(&mut self, spec: &MapQuerySpec) -> MapQueryResult;
 }
 
 pub fn build_query(camera: &CameraStateSnapshot, viewport_size: ViewportSize) -> MapQuerySpec {

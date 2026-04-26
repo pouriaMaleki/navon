@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 runtime-core = { path = "../runtime-core" }
+smallvec = "1"
 
 [dev-dependencies]
 firmware = { path = "../firmware" }

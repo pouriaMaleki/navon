@@ -66,13 +66,13 @@ pub trait Gt9271Transport {
 }
 
 #[derive(Debug, Clone, Default)]
-struct TouchContactState {
+pub(crate) struct TouchContactState {
     previous_active: BTreeMap<u64, ScreenPoint>,
     next_sequence: u64,
 }
 
 impl TouchContactState {
-    fn update(
+    pub(crate) fn update(
         &mut self,
         config: TouchControllerConfig,
         active_contacts: Vec<Gt9271ContactRecord>,

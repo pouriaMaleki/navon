@@ -6,7 +6,6 @@ extern crate alloc;
 use alloc::{vec, vec::Vec, string::{String, ToString}, boxed::Box, format};
 #[allow(unused_imports)]
 use num_traits::Float as _;
-use hashbrown::HashSet;
 
 use runtime_core::api::{
     GeometryCandidate, MapLayer, MapPointCandidate, MapPolylineCandidate, MapQueryResult,
@@ -67,6 +66,16 @@ struct SpatialGrid {
     cols: usize,
     rows: usize,
     cells: Vec<Vec<u32>>,
+    // Per-segment frame stamp used to dedup indices across the cells a
+    // single segment overlaps. Replaces the per-call `HashSet::new()` +
+    // ~21k `insert()` operations that used to dominate `query` cost on
+    // PSRAM. We bump `query_counter` once per query and stamp
+    // `last_seen_query[index] = query_counter` the first time we
+    // encounter a segment in this frame; later cells skip it via a
+    // single `==` check. No clearing needed — `u32` rolls over after
+    // ~4 billion queries (~5,000 hours at 240 Hz).
+    last_seen_query: Vec<u32>,
+    query_counter: u32,
 }
 
 impl SpatialGrid {
@@ -95,16 +104,19 @@ impl SpatialGrid {
             cols,
             rows,
             cells,
+            last_seen_query: vec![0; segments.len()],
+            query_counter: 0,
         }
     }
 
-    fn candidate_indices(&self, query_bounds: SourceBounds) -> Vec<u32> {
+    fn candidate_indices(&mut self, query_bounds: SourceBounds, indices: &mut Vec<u32>) {
+        indices.clear();
         if query_bounds.max_x < self.bounds.min_x
             || query_bounds.min_x > self.bounds.max_x
             || query_bounds.max_y < self.bounds.min_y
             || query_bounds.min_y > self.bounds.max_y
         {
-            return Vec::new();
+            return;
         }
 
         let min_col = ((query_bounds.min_x - self.bounds.min_x) / self.cell_size)
@@ -116,18 +128,27 @@ impl SpatialGrid {
         let max_row = ((query_bounds.max_y - self.bounds.min_y) / self.cell_size)
             .clamp(0, self.rows as i32 - 1) as usize;
 
-        let mut seen = HashSet::new();
-        let mut indices = Vec::new();
+        // Bump the counter; on overflow zero the stamp buffer (a wraparound
+        // at u32::MAX is essentially never reached in practice but cheap
+        // to handle correctly).
+        self.query_counter = self.query_counter.wrapping_add(1);
+        if self.query_counter == 0 {
+            self.last_seen_query.fill(0);
+            self.query_counter = 1;
+        }
+        let stamp = self.query_counter;
+
         for row in min_row..=max_row {
             for col in min_col..=max_col {
-                for index in &self.cells[(row * self.cols) + col] {
-                    if seen.insert(*index) {
-                        indices.push(*index);
+                for &index in &self.cells[(row * self.cols) + col] {
+                    let slot = &mut self.last_seen_query[index as usize];
+                    if *slot != stamp {
+                        *slot = stamp;
+                        indices.push(index);
                     }
                 }
             }
         }
-        indices
     }
 }
 
@@ -136,6 +157,11 @@ pub struct EmbeddedMapSource {
     meters_per_world_unit: f64,
     segments: Vec<SegmentRecord>,
     grid: SpatialGrid,
+    /// Scratch buffer reused across `query` calls to hold the candidate
+    /// index list `SpatialGrid::candidate_indices` writes into. Owning
+    /// the storage here means we don't allocate a fresh `Vec<u32>` per
+    /// frame against the PSRAM allocator.
+    candidate_scratch: Vec<u32>,
 }
 
 impl Default for EmbeddedMapSource {
@@ -216,6 +242,7 @@ impl EmbeddedMapSource {
             meters_per_world_unit: 1.0,
             segments,
             grid,
+            candidate_scratch: Vec::new(),
         }
     }
 
@@ -283,6 +310,7 @@ impl EmbeddedMapSource {
             meters_per_world_unit,
             segments,
             grid,
+            candidate_scratch: Vec::new(),
         })
     }
 
@@ -296,6 +324,7 @@ impl EmbeddedMapSource {
             meters_per_world_unit,
             segments,
             grid,
+            candidate_scratch: Vec::new(),
         }
     }
 
@@ -334,10 +363,19 @@ fn validate_svm_header(bytes: &[u8]) -> Result<(), String> {
 }
 
 impl MapSource for EmbeddedMapSource {
-    fn query(&self, spec: &MapQuerySpec) -> MapQueryResult {
+    fn query(&mut self, spec: &MapQuerySpec) -> MapQueryResult {
         let query_bounds = self.query_bounds_in_source_units(spec.bounds);
-        let mut geometry = Vec::new();
-        for index in self.grid.candidate_indices(query_bounds) {
+        // Reuse the per-source index buffer so we don't allocate a fresh
+        // `Vec<u32>` (and grow it via push) on every frame.
+        let mut candidate_indices = core::mem::take(&mut self.candidate_scratch);
+        self.grid
+            .candidate_indices(query_bounds, &mut candidate_indices);
+        // Pre-size the result Vec from the candidate count so we don't
+        // pay 14× regrowth at zoomed-out views (~21k segments). Worst-
+        // case overshoot is fine — every candidate that survives the
+        // bounds + lod filter ends up here.
+        let mut geometry = Vec::with_capacity(candidate_indices.len());
+        for &index in &candidate_indices {
             let segment = self.segments[index as usize];
             if !segment_intersects_bounds(segment, query_bounds) {
                 continue;
@@ -365,9 +403,15 @@ impl MapSource for EmbeddedMapSource {
 
             geometry.push(GeometryCandidate::Polyline(MapPolylineCandidate {
                 layer,
-                points: vec![start, end],
+                // Inline 2-point storage — `SmallVec<[WorldPoint; 2]>`
+                // avoids the per-segment heap allocation that
+                // `vec![start, end]` would pay against PSRAM.
+                points: smallvec::smallvec![start, end],
             }));
         }
+        // Stash the scratch buffer back so the next call reuses its
+        // capacity instead of reallocating from zero.
+        self.candidate_scratch = candidate_indices;
         MapQueryResult { geometry }
     }
 }
@@ -508,7 +552,7 @@ mod tests {
 
     #[test]
     fn query_returns_segments_inside_bounds_and_excludes_outside() {
-        let source = EmbeddedMapSource::from_segments(
+        let mut source = EmbeddedMapSource::from_segments(
             14,
             vec![
                 SegmentRecord {
@@ -548,7 +592,7 @@ mod tests {
 
     #[test]
     fn query_keeps_edge_touching_segments() {
-        let source = EmbeddedMapSource::from_segments(
+        let mut source = EmbeddedMapSource::from_segments(
             14,
             vec![SegmentRecord {
                 x1: 1_000,
@@ -624,7 +668,7 @@ mod tests {
 
     #[test]
     fn embedded_city_map_returns_geometry_for_helsinki_query() {
-        let source = EmbeddedMapSource::default();
+        let mut source = EmbeddedMapSource::default();
         let center = project_gps_to_world(GpsSample {
             lat_deg: 60.17442,
             lon_deg: 24.94210,
@@ -666,7 +710,7 @@ mod tests {
 
     #[test]
     fn embedded_city_map_returns_poi_points_for_helsinki_query() {
-        let source = EmbeddedMapSource::default();
+        let mut source = EmbeddedMapSource::default();
         let center = project_gps_to_world(GpsSample {
             lat_deg: 60.1699,
             lon_deg: 24.9384,
@@ -705,7 +749,7 @@ mod tests {
 
     #[test]
     fn query_decodes_point_records_into_point_geometry() {
-        let source = EmbeddedMapSource::from_segments(
+        let mut source = EmbeddedMapSource::from_segments(
             14,
             vec![SegmentRecord {
                 x1: 1_000,

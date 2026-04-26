@@ -17,7 +17,7 @@ use runtime_core::api::{MapQueryResult, RuntimeConfig, RuntimeFrameOutput, Viewp
 
 use camera_view::CameraView;
 use overlay::draw_overlay;
-use raster::Framebuffer;
+use raster::{Framebuffer, Pixel};
 use style::RenderStyle;
 use visibility::clip_segment_to_viewport;
 
@@ -28,7 +28,7 @@ pub struct RenderScene<'a> {
     pub geometry: &'a MapQueryResult,
 }
 
-pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
+pub fn render_frame<P: Pixel>(scene: RenderScene<'_>, framebuffer: &mut Framebuffer<P>) {
     let viewport = ViewportSize::new(framebuffer.width(), framebuffer.height());
     let meters_per_pixel = scene.output.map_query.meters_per_pixel;
     let camera_view = CameraView::new(viewport, &scene.output.camera, meters_per_pixel);
@@ -45,6 +45,18 @@ pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
                 };
                 let from_screen = camera_view.world_to_screen(*from);
                 let to_screen = camera_view.world_to_screen(*to);
+                // Sub-pixel cull: at zoomed-out views many basemap
+                // segments project to a single pixel. Skip them — the
+                // alternative is a single `stamp_circle` whose 1-pixel
+                // dot is barely visible against road density anyway,
+                // and it costs us a per-segment `clip + stamp` walk.
+                // Worst case: a high-zoom-out frame has 20k+ candidate
+                // segments collapsing here, saving ~10 ms aggregate.
+                if from_screen.x_px.round() == to_screen.x_px.round()
+                    && from_screen.y_px.round() == to_screen.y_px.round()
+                {
+                    continue;
+                }
                 if let Some((clip_from, clip_to)) =
                     clip_segment_to_viewport(from_screen, to_screen, viewport)
                 {
@@ -75,12 +87,12 @@ pub fn render_frame(scene: RenderScene<'_>, framebuffer: &mut Framebuffer) {
     );
 }
 
-fn render_route_overlay(
+fn render_route_overlay<P: Pixel>(
     camera_view: &CameraView,
     viewport: ViewportSize,
     style: &RenderStyle,
     route: &runtime_core::route::RouteRenderState,
-    framebuffer: &mut Framebuffer,
+    framebuffer: &mut Framebuffer<P>,
 ) {
     draw_route_polyline(
         camera_view,
@@ -100,13 +112,13 @@ fn render_route_overlay(
     );
 }
 
-fn draw_route_polyline(
+fn draw_route_polyline<P: Pixel>(
     camera_view: &CameraView,
     viewport: ViewportSize,
     route_geometry_world: &[runtime_core::api::WorldPoint],
     backdrop: crate::style::StrokeStyle,
     line: crate::style::StrokeStyle,
-    framebuffer: &mut Framebuffer,
+    framebuffer: &mut Framebuffer<P>,
 ) {
     for segment in route_geometry_world.windows(2) {
         let [from, to] = segment else {
@@ -123,12 +135,12 @@ fn draw_route_polyline(
     }
 }
 
-fn render_points(
+fn render_points<P: Pixel>(
     camera_view: &CameraView,
     viewport: ViewportSize,
     style: &RenderStyle,
     geometry: &MapQueryResult,
-    framebuffer: &mut Framebuffer,
+    framebuffer: &mut Framebuffer<P>,
 ) {
     let mut points = geometry
         .geometry
@@ -175,8 +187,8 @@ fn render_points(
     }
 }
 
-fn draw_poi_marker(
-    framebuffer: &mut Framebuffer,
+fn draw_poi_marker<P: Pixel>(
+    framebuffer: &mut Framebuffer<P>,
     screen: runtime_core::api::ScreenPoint,
     layer: runtime_core::api::MapLayer,
     point_style: crate::style::PointStyle,
@@ -286,7 +298,10 @@ mod tests {
             geometry: vec![runtime_core::api::GeometryCandidate::Polyline(
                 MapPolylineCandidate {
                     layer: MapLayer::ArterialRoad,
-                    points: vec![WorldPoint::new(-40.0, 0.0), WorldPoint::new(40.0, 0.0)],
+                    points: smallvec::smallvec![
+                        WorldPoint::new(-40.0, 0.0),
+                        WorldPoint::new(40.0, 0.0)
+                    ],
                 },
             )],
         };
@@ -295,8 +310,8 @@ mod tests {
             output: &output,
             geometry: &geometry,
         };
-        let mut first = Framebuffer::new(128, 128);
-        let mut second = Framebuffer::new(128, 128);
+        let mut first : Framebuffer = Framebuffer::new(128, 128);
+        let mut second : Framebuffer = Framebuffer::new(128, 128);
 
         render_frame(scene.clone(), &mut first);
         render_frame(scene, &mut second);
@@ -321,7 +336,10 @@ mod tests {
             geometry: vec![runtime_core::api::GeometryCandidate::Polyline(
                 MapPolylineCandidate {
                     layer: MapLayer::ArterialRoad,
-                    points: vec![WorldPoint::new(-40.0, 0.0), WorldPoint::new(40.0, 0.0)],
+                    points: smallvec::smallvec![
+                        WorldPoint::new(-40.0, 0.0),
+                        WorldPoint::new(40.0, 0.0)
+                    ],
                 },
             )],
         };
@@ -330,8 +348,8 @@ mod tests {
         let mut far_output = sample_output();
         far_output.map_query.meters_per_pixel = 100.0;
 
-        let mut near = Framebuffer::new(128, 128);
-        let mut far = Framebuffer::new(128, 128);
+        let mut near : Framebuffer = Framebuffer::new(128, 128);
+        let mut far : Framebuffer = Framebuffer::new(128, 128);
 
         render_frame(
             RenderScene {
@@ -362,8 +380,8 @@ mod tests {
         let mut east_output = sample_output();
         east_output.overlay.rider_heading_rad = Some(core::f32::consts::FRAC_PI_2);
 
-        let mut north = Framebuffer::new(128, 128);
-        let mut east = Framebuffer::new(128, 128);
+        let mut north : Framebuffer = Framebuffer::new(128, 128);
+        let mut east : Framebuffer = Framebuffer::new(128, 128);
 
         render_frame(
             RenderScene {
@@ -394,8 +412,8 @@ mod tests {
         let mut east_up = sample_output();
         east_up.camera.orientation_rad = core::f32::consts::FRAC_PI_2;
 
-        let mut north = Framebuffer::new(128, 128);
-        let mut east = Framebuffer::new(128, 128);
+        let mut north : Framebuffer = Framebuffer::new(128, 128);
+        let mut east : Framebuffer = Framebuffer::new(128, 128);
 
         render_frame(
             RenderScene {
@@ -436,10 +454,10 @@ mod tests {
         ack_output.overlay.north_up_active = true;
         ack_output.overlay.compass_ack_progress = 0.8;
 
-        let mut preview = Framebuffer::new(128, 128);
-        let mut locked = Framebuffer::new(128, 128);
-        let mut acquisition = Framebuffer::new(128, 128);
-        let mut ack = Framebuffer::new(128, 128);
+        let mut preview : Framebuffer = Framebuffer::new(128, 128);
+        let mut locked : Framebuffer = Framebuffer::new(128, 128);
+        let mut acquisition : Framebuffer = Framebuffer::new(128, 128);
+        let mut ack : Framebuffer = Framebuffer::new(128, 128);
 
         render_frame(
             RenderScene {
@@ -487,7 +505,7 @@ mod tests {
         output.overlay.speed_panel_visible = true;
         output.overlay.speed_display_value = 22;
         output.overlay.speed_unit = SpeedUnit::Kph;
-        let mut framebuffer = Framebuffer::new(128, 128);
+        let mut framebuffer : Framebuffer = Framebuffer::new(128, 128);
 
         render_frame(
             RenderScene {
@@ -523,8 +541,8 @@ mod tests {
         let mut mph_output = kph_output.clone();
         mph_output.overlay.speed_unit = SpeedUnit::Mph;
 
-        let mut kph = Framebuffer::new(128, 128);
-        let mut mph = Framebuffer::new(128, 128);
+        let mut kph : Framebuffer = Framebuffer::new(128, 128);
+        let mut mph : Framebuffer = Framebuffer::new(128, 128);
 
         render_frame(
             RenderScene {
@@ -567,8 +585,8 @@ mod tests {
                 }),
             ],
         };
-        let mut empty = Framebuffer::new(128, 128);
-        let mut framebuffer = Framebuffer::new(128, 128);
+        let mut empty : Framebuffer = Framebuffer::new(128, 128);
+        let mut framebuffer : Framebuffer = Framebuffer::new(128, 128);
 
         render_frame(
             RenderScene {
@@ -601,7 +619,7 @@ mod tests {
             instruction_text: Some("Turn left".to_owned()),
         });
 
-        let mut framebuffer = Framebuffer::new(160, 160);
+        let mut framebuffer : Framebuffer = Framebuffer::new(160, 160);
         render_frame(
             RenderScene {
                 config: &config,
@@ -632,8 +650,8 @@ mod tests {
             instruction_text: Some("Turn left".to_owned()),
         });
 
-        let mut standard = Framebuffer::new(160, 160);
-        let mut essential = Framebuffer::new(160, 160);
+        let mut standard : Framebuffer = Framebuffer::new(160, 160);
+        let mut essential : Framebuffer = Framebuffer::new(160, 160);
         render_frame(
             RenderScene {
                 config: &standard_config,
@@ -667,8 +685,8 @@ mod tests {
             instruction_text: Some("Turn right".to_owned()),
         });
 
-        let mut standard = Framebuffer::new(160, 160);
-        let mut detailed = Framebuffer::new(160, 160);
+        let mut standard : Framebuffer = Framebuffer::new(160, 160);
+        let mut detailed : Framebuffer = Framebuffer::new(160, 160);
         render_frame(
             RenderScene {
                 config: &standard_config,
@@ -697,7 +715,7 @@ mod tests {
         output.route.reroute_requested = true;
         output.route.off_route = true;
 
-        let mut framebuffer = Framebuffer::new(160, 160);
+        let mut framebuffer : Framebuffer = Framebuffer::new(160, 160);
         render_frame(
             RenderScene {
                 config: &config,
@@ -722,7 +740,7 @@ mod tests {
         let mut output = sample_output();
         output.route.off_route = true;
 
-        let mut framebuffer = Framebuffer::new(160, 160);
+        let mut framebuffer : Framebuffer = Framebuffer::new(160, 160);
         render_frame(
             RenderScene {
                 config: &config,
@@ -759,7 +777,7 @@ mod tests {
             instruction_text: Some("Turn left".to_owned()),
         });
 
-        let mut framebuffer = Framebuffer::new(96, 96);
+        let mut framebuffer : Framebuffer = Framebuffer::new(96, 96);
         render_frame(
             RenderScene {
                 config: &config,
@@ -796,7 +814,7 @@ mod tests {
         output.route.remaining_geometry_world =
             vec![WorldPoint::new(-5.0, 10.0), WorldPoint::new(25.0, 22.0)];
 
-        let mut framebuffer = Framebuffer::new(128, 128);
+        let mut framebuffer : Framebuffer = Framebuffer::new(128, 128);
         render_frame(
             RenderScene {
                 config: &config,
@@ -836,7 +854,7 @@ mod tests {
         output.route.remaining_geometry_world =
             vec![WorldPoint::new(-5.0, 10.0), WorldPoint::new(25.0, 22.0)];
 
-        let mut framebuffer = Framebuffer::new(128, 128);
+        let mut framebuffer : Framebuffer = Framebuffer::new(128, 128);
         render_frame(
             RenderScene {
                 config: &config,

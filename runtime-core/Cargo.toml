@@ -24,3 +24,9 @@ bevy_ecs = { version = "0.17.2", default-features = false }
 # Provides `Float` trait methods (sqrt/hypot/atan2/sin/cos/...) for both
 # std and no_std builds. On no_std the `libm` feature routes to libm.
 num-traits = { version = "0.2", default-features = false, features = ["libm"] }
+# Inline-storage Vec replacement for `MapPolylineCandidate.points`. Almost
+# all polylines from `EmbeddedMapSource` are exactly 2 points (one segment),
+# so inlining 2 `WorldPoint`s on the struct removes ~21k heap allocations
+# per frame on the device's PSRAM allocator. >2-point producers (route
+# overlay, parity fixtures) spill to heap automatically.
+smallvec = { version = "1", default-features = false }

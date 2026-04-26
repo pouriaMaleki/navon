@@ -26,6 +26,165 @@ impl Color {
     }
 }
 
+/// Pixel format abstraction. Each `Framebuffer<P>` is parameterized over one
+/// concrete `Pixel` impl, so the rasterizer's hot path (set_pixel,
+/// set_pixel_overwrite, clear) compiles down to format-specific code with
+/// no runtime branches.
+///
+/// Two impls ship today:
+/// * [`RgbaPixel`] — 8/8/8/8, the historical default. Used by host parity
+///   tests, the wasm emulator, and any downstream consumer that wants
+///   byte-exact reproducibility.
+/// * [`Rgb565Pixel`] — 5/6/5 packed little-endian. Used on the
+///   ESP32-P4 firmware so the rasterizer writes panel-format bytes
+///   directly, eliminating a per-frame RGBA→RGB565 conversion pass.
+pub trait Pixel: Copy + Default + core::fmt::Debug + PartialEq + Eq {
+    /// Bytes consumed in the framebuffer per pixel.
+    const BYTES_PER_PIXEL: usize;
+
+    /// Lower a 24-bit `Color` into this pixel format.
+    fn from_color(color: Color) -> Self;
+
+    /// Channel-wise max-blend, matching the historical `set_pixel`
+    /// semantic — the rasterizer treats brighter samples as winners
+    /// without alpha compositing. For RGB565 the max is performed in
+    /// 5/6/5 space; the small precision delta (±1 LSB per channel
+    /// vs RGBA8) is intentional and within panel gamma noise.
+    fn blend_max(self, other: Self) -> Self;
+
+    /// Write `BYTES_PER_PIXEL` bytes into `dst[..BYTES_PER_PIXEL]`.
+    fn write_to(self, dst: &mut [u8]);
+
+    /// Read `BYTES_PER_PIXEL` bytes from `src[..BYTES_PER_PIXEL]`.
+    fn read_from(src: &[u8]) -> Self;
+
+    /// Fast-fill a whole framebuffer with `self`. Default impl loops
+    /// per-pixel; format-specific impls override with vectorizable
+    /// stride fills (e.g. `align_to_mut::<u32>()` for RgbaPixel).
+    fn fill_buffer(self, buf: &mut [u8]) {
+        for chunk in buf.chunks_exact_mut(Self::BYTES_PER_PIXEL) {
+            self.write_to(chunk);
+        }
+    }
+}
+
+#[derive(Default, Copy, Clone, PartialEq, Eq, Debug)]
+pub struct RgbaPixel {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+    pub a: u8,
+}
+
+impl Pixel for RgbaPixel {
+    const BYTES_PER_PIXEL: usize = 4;
+
+    fn from_color(color: Color) -> Self {
+        Self {
+            r: color.r,
+            g: color.g,
+            b: color.b,
+            a: 255,
+        }
+    }
+
+    fn blend_max(self, other: Self) -> Self {
+        Self {
+            r: self.r.max(other.r),
+            g: self.g.max(other.g),
+            b: self.b.max(other.b),
+            a: 255,
+        }
+    }
+
+    fn write_to(self, dst: &mut [u8]) {
+        dst[0] = self.r;
+        dst[1] = self.g;
+        dst[2] = self.b;
+        dst[3] = self.a;
+    }
+
+    fn read_from(src: &[u8]) -> Self {
+        Self {
+            r: src[0],
+            g: src[1],
+            b: src[2],
+            a: src[3],
+        }
+    }
+
+    fn fill_buffer(self, buf: &mut [u8]) {
+        // Pack the 4-byte pixel into a single u32 and stride-fill via
+        // `align_to_mut::<u32>` so the inner store is one word per
+        // pixel. Preserves the perf trick from the pre-generic code
+        // path on the 800x800 RGBA framebuffer used by host fixtures
+        // and the wasm emulator.
+        let packed = u32::from_le_bytes([self.r, self.g, self.b, self.a]);
+        let packed_bytes = packed.to_le_bytes();
+        // SAFETY: align_to_mut returns prefix/body/suffix without
+        // overlap; head/tail are byte-fallback paths and the body is
+        // u32-aligned.
+        let (head, body, tail) = unsafe { buf.align_to_mut::<u32>() };
+        for (i, byte) in head.iter_mut().enumerate() {
+            *byte = packed_bytes[i & 3];
+        }
+        body.fill(packed);
+        for (i, byte) in tail.iter_mut().enumerate() {
+            *byte = packed_bytes[i & 3];
+        }
+    }
+}
+
+#[derive(Default, Copy, Clone, PartialEq, Eq, Debug)]
+pub struct Rgb565Pixel(pub u16);
+
+impl Pixel for Rgb565Pixel {
+    const BYTES_PER_PIXEL: usize = 2;
+
+    fn from_color(color: Color) -> Self {
+        let r = u16::from(color.r >> 3);
+        let g = u16::from(color.g >> 2);
+        let b = u16::from(color.b >> 3);
+        Self((r << 11) | (g << 5) | b)
+    }
+
+    fn blend_max(self, other: Self) -> Self {
+        let r1 = (self.0 >> 11) & 0x1F;
+        let g1 = (self.0 >> 5) & 0x3F;
+        let b1 = self.0 & 0x1F;
+        let r2 = (other.0 >> 11) & 0x1F;
+        let g2 = (other.0 >> 5) & 0x3F;
+        let b2 = other.0 & 0x1F;
+        Self((r1.max(r2) << 11) | (g1.max(g2) << 5) | b1.max(b2))
+    }
+
+    fn write_to(self, dst: &mut [u8]) {
+        let bytes = self.0.to_le_bytes();
+        dst[0] = bytes[0];
+        dst[1] = bytes[1];
+    }
+
+    fn read_from(src: &[u8]) -> Self {
+        Self(u16::from_le_bytes([src[0], src[1]]))
+    }
+
+    fn fill_buffer(self, buf: &mut [u8]) {
+        // Stride-fill via `align_to_mut::<u16>` so the inner store is
+        // one halfword per pixel — same perf trick as RgbaPixel's u32
+        // fill, sized for the 2-bytes-per-pixel format.
+        let packed = self.0;
+        let packed_bytes = packed.to_le_bytes();
+        let (head, body, tail) = unsafe { buf.align_to_mut::<u16>() };
+        for (i, byte) in head.iter_mut().enumerate() {
+            *byte = packed_bytes[i & 1];
+        }
+        body.fill(packed);
+        for (i, byte) in tail.iter_mut().enumerate() {
+            *byte = packed_bytes[i & 1];
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct AlphaMask {
     width: u32,
@@ -59,18 +218,20 @@ impl AlphaMask {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Framebuffer {
+pub struct Framebuffer<P: Pixel = RgbaPixel> {
     width: u32,
     height: u32,
     pixels: Vec<u8>,
+    _marker: core::marker::PhantomData<P>,
 }
 
-impl Framebuffer {
+impl<P: Pixel> Framebuffer<P> {
     pub fn new(width: u32, height: u32) -> Self {
         Self {
             width,
             height,
-            pixels: vec![0; (width as usize) * (height as usize) * 4],
+            pixels: vec![0; (width as usize) * (height as usize) * P::BYTES_PER_PIXEL],
+            _marker: core::marker::PhantomData,
         }
     }
 
@@ -81,7 +242,7 @@ impl Framebuffer {
         self.width = width;
         self.height = height;
         self.pixels
-            .resize((width as usize) * (height as usize) * 4, 0);
+            .resize((width as usize) * (height as usize) * P::BYTES_PER_PIXEL, 0);
     }
 
     pub fn width(&self) -> u32 {
@@ -100,27 +261,19 @@ impl Framebuffer {
         &mut self.pixels
     }
 
+    /// Bytes per pixel for this framebuffer's format. Useful for callers
+    /// that need to size adjacent buffers (panel side-uploads, parity
+    /// snapshots) without hardcoding 4.
+    pub const fn bytes_per_pixel(&self) -> usize {
+        P::BYTES_PER_PIXEL
+    }
+
+    fn pixel_offset(&self, x: i32, y: i32) -> usize {
+        ((y as usize * self.width as usize) + x as usize) * P::BYTES_PER_PIXEL
+    }
+
     pub fn clear(&mut self, color: Color) {
-        // Pack RGBA8888 into one u32 (little-endian so byte-offset reads of
-        // the buffer see r @ 0, g @ 1, b @ 2, a @ 3). Filling as &mut [u32]
-        // gives the compiler one word store per pixel instead of four byte
-        // stores — on the ESP32-P4 this ~4x's the instruction density of
-        // the framebuffer-clear path, which dominates frame time when
-        // rendering onto 800x800 in PSRAM.
-        let packed = u32::from_le_bytes([color.r, color.g, color.b, 255]);
-        // SAFETY: `align_to_mut` handles any alignment; Vec<u8> from alloc
-        // is typically 16-byte aligned and a framebuffer sized w*h*4 has
-        // length divisible by 4, so head/tail are empty. The fall-through
-        // byte stores below keep the function sound if either ever isn't.
-        let (head, body, tail) = unsafe { self.pixels.align_to_mut::<u32>() };
-        let packed_bytes = packed.to_le_bytes();
-        for (i, byte) in head.iter_mut().enumerate() {
-            *byte = packed_bytes[i & 3];
-        }
-        body.fill(packed);
-        for (i, byte) in tail.iter_mut().enumerate() {
-            *byte = packed_bytes[i & 3];
-        }
+        P::from_color(color).fill_buffer(&mut self.pixels);
     }
 
     pub fn set_pixel(&mut self, x: i32, y: i32, color: Color) {
@@ -132,11 +285,10 @@ impl Framebuffer {
         if x >= width || y >= height {
             return;
         }
-        let index = ((y as usize * self.width as usize) + x as usize) * 4;
-        self.pixels[index] = self.pixels[index].max(color.r);
-        self.pixels[index + 1] = self.pixels[index + 1].max(color.g);
-        self.pixels[index + 2] = self.pixels[index + 2].max(color.b);
-        self.pixels[index + 3] = 255;
+        let index = self.pixel_offset(x, y);
+        let bytes = &mut self.pixels[index..index + P::BYTES_PER_PIXEL];
+        let blended = P::read_from(bytes).blend_max(P::from_color(color));
+        blended.write_to(bytes);
     }
 
     pub fn set_pixel_overwrite(&mut self, x: i32, y: i32, color: Color) {
@@ -148,11 +300,8 @@ impl Framebuffer {
         if x >= width || y >= height {
             return;
         }
-        let index = ((y as usize * self.width as usize) + x as usize) * 4;
-        self.pixels[index] = color.r;
-        self.pixels[index + 1] = color.g;
-        self.pixels[index + 2] = color.b;
-        self.pixels[index + 3] = 255;
+        let index = self.pixel_offset(x, y);
+        P::from_color(color).write_to(&mut self.pixels[index..index + P::BYTES_PER_PIXEL]);
     }
 
     pub fn draw_line(
@@ -307,7 +456,7 @@ impl Framebuffer {
     }
 }
 
-impl Default for Framebuffer {
+impl<P: Pixel> Default for Framebuffer<P> {
     fn default() -> Self {
         Self::new(0, 0)
     }

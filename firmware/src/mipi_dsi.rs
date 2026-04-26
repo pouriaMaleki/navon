@@ -515,12 +515,16 @@ fn acquire_ldo(chan_id: i32, voltage_mv: i32) -> Result<esp_ldo_channel_handle_t
     Ok(handle)
 }
 
-/// Drive the panel backlight GPIO high. The Waveshare 3.4C wires the
-/// backlight enable straight to a P4 GPIO (active-high).
+/// Drive the panel backlight ON. The Waveshare 3.4C wires the BL enable
+/// to GPIO26 as **active-low**: the upstream `esp32_p4_wifi6_touch_lcd_xc`
+/// BSP drives this pin via LEDC PWM with `output_invert = 1` and duty=1023
+/// for "full brightness", which physically holds GPIO26 LOW. Driving the
+/// GPIO HIGH (the obvious default) keeps the backlight OFF — the panel
+/// initializes correctly over DSI but the screen stays black.
 pub fn enable_backlight(gpio: i32) -> Result<(), EspIdfError> {
     configure_output(gpio)?;
     unsafe {
-        set_level(gpio, 1)?;
+        set_level(gpio, 0)?;
     }
     Ok(())
 }

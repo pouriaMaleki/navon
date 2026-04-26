@@ -11,6 +11,8 @@ pub mod map_source;
 pub mod i2c_scan;
 #[cfg(target_os = "espidf")]
 pub mod mipi_dsi;
+#[cfg(target_os = "espidf")]
+pub mod touch_gt911;
 pub mod platform;
 pub mod route_sync;
 pub mod route_sync_ble;

@@ -72,6 +72,17 @@ pub fn write_byte(addr: u8, byte: u8) -> Result<(), EspIdfError> {
     Ok(())
 }
 
+/// Install the legacy I²C master driver on `I2C_NUM_0` if it is not
+/// already installed. Idempotent — `ESP_ERR_INVALID_STATE` from
+/// `i2c_driver_install` (driver already up) is treated as success so the
+/// scanner and the touch driver can both call this without coordinating.
+pub fn install_legacy_master_if_needed(
+    sda_gpio: i32,
+    scl_gpio: i32,
+) -> Result<(), EspIdfError> {
+    install_legacy_master(sda_gpio, scl_gpio)
+}
+
 fn install_legacy_master(sda_gpio: i32, scl_gpio: i32) -> Result<(), EspIdfError> {
     let config = i2c_config_t {
         mode: i2c_mode_t_I2C_MODE_MASTER,

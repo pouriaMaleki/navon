@@ -46,25 +46,25 @@ pub struct FixtureScenario {
 pub struct FixtureMapSource;
 
 impl MapSource for FixtureMapSource {
-    fn query(&self, spec: &MapQuerySpec) -> MapQueryResult {
+    fn query(&mut self, spec: &MapQuerySpec) -> MapQueryResult {
         let center = spec.center;
         let horizontal = GeometryCandidate::Polyline(MapPolylineCandidate {
             layer: MapLayer::ArterialRoad,
-            points: vec![
+            points: smallvec::smallvec![
                 WorldPoint::new(spec.bounds.min.x_m, center.y_m),
                 WorldPoint::new(spec.bounds.max.x_m, center.y_m),
             ],
         });
         let vertical = GeometryCandidate::Polyline(MapPolylineCandidate {
             layer: MapLayer::StreetRoad,
-            points: vec![
+            points: smallvec::smallvec![
                 WorldPoint::new(center.x_m, spec.bounds.min.y_m),
                 WorldPoint::new(center.x_m, spec.bounds.max.y_m),
             ],
         });
         let diagonal = GeometryCandidate::Polyline(MapPolylineCandidate {
             layer: MapLayer::BikeRouteMain,
-            points: vec![
+            points: smallvec::smallvec![
                 WorldPoint::new(spec.bounds.min.x_m, spec.bounds.min.y_m),
                 WorldPoint::new(spec.bounds.max.x_m, spec.bounds.max.y_m),
             ],
