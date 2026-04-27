@@ -124,12 +124,129 @@ fn run() -> Result<(), String> {
             );
             Ok(())
         }
+        "crop-svm" => {
+            let cfg = parse_crop_args(args.collect())?;
+            let map = read_standard_map(&cfg.input)?;
+            let cropped = crop_standard_map(map, &cfg);
+            let count = cropped.segments.len();
+            write_standard_map(&cfg.output, &cropped)?;
+            eprintln!(
+                "map-vector-cli: wrote cropped city map {} segments to {}",
+                count,
+                cfg.output.display()
+            );
+            Ok(())
+        }
         _ => Err(usage().to_owned()),
     }
 }
 
 fn usage() -> &'static str {
-    "usage:\n  map-vector-cli convert-mbtiles --input <file.mbtiles> --output <city.svm> [--target-zoom <i32>] [--max-segments <usize>] [--profile <bike|all>]\n  map-vector-cli shrink-svm --input <city.svm> --output <city-small.svm> --max-segments <usize>"
+    "usage:\n  map-vector-cli convert-mbtiles --input <file.mbtiles> --output <city.svm> [--target-zoom <i32>] [--max-segments <usize>] [--profile <bike|all>]\n  map-vector-cli shrink-svm --input <city.svm> --output <city-small.svm> --max-segments <usize>\n  map-vector-cli crop-svm --input <city.svm> --output <city-cropped.svm> --bbox-latlon <min_lat,min_lon,max_lat,max_lon>"
+}
+
+struct CropArgs {
+    input: PathBuf,
+    output: PathBuf,
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+}
+
+fn parse_crop_args(args: Vec<String>) -> Result<CropArgs, String> {
+    let mut input = None;
+    let mut output = None;
+    let mut bbox: Option<(f64, f64, f64, f64)> = None;
+    let mut i = 0;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--input" => {
+                i += 1;
+                input = args.get(i).map(PathBuf::from);
+            }
+            "--output" => {
+                i += 1;
+                output = args.get(i).map(PathBuf::from);
+            }
+            "--bbox-latlon" => {
+                i += 1;
+                let s = args.get(i).ok_or("--bbox-latlon needs a value")?;
+                let parts: Vec<f64> = s
+                    .split(',')
+                    .map(|p| p.trim().parse::<f64>())
+                    .collect::<Result<_, _>>()
+                    .map_err(|e| format!("--bbox-latlon parse error: {e}"))?;
+                if parts.len() != 4 {
+                    return Err(
+                        "--bbox-latlon requires 4 comma-separated values: min_lat,min_lon,max_lat,max_lon"
+                            .to_owned(),
+                    );
+                }
+                bbox = Some((parts[0], parts[1], parts[2], parts[3]));
+            }
+            other => return Err(format!("unknown arg: {other}")),
+        }
+        i += 1;
+    }
+    let (min_lat, min_lon, max_lat, max_lon) = bbox.ok_or("missing --bbox-latlon")?;
+    Ok(CropArgs {
+        input: input.ok_or("missing --input")?,
+        output: output.ok_or("missing --output")?,
+        min_lat,
+        min_lon,
+        max_lat,
+        max_lon,
+    })
+}
+
+/// Convert lat/lon to the SVM coordinate system (zoom-N Mercator tile-pixel
+/// units, Y-flipped to match the output of `convert-mbtiles`). The source
+/// zoom is read from the SVM header, so this works regardless of the zoom
+/// level the source map was generated at.
+fn latlon_to_world(lat: f64, lon: f64, zoom: i32) -> (f64, f64) {
+    let scale = (1i64 << zoom) as f64 * TILE_EXTENT;
+    let x = (lon + 180.0) / 360.0 * scale;
+    let y_merc = (std::f64::consts::FRAC_PI_4 + lat * std::f64::consts::PI / 360.0)
+        .tan()
+        .ln()
+        / (2.0 * std::f64::consts::PI);
+    let y = -((0.5 - y_merc) * scale);
+    (x, y)
+}
+
+/// Keeps every segment whose bounding box intersects the lat/lon bbox.
+/// All road classes and feature classes are preserved at full source density
+/// — this is a spatial crop, not a downsample.
+fn crop_standard_map(mut map: StandardMap, cfg: &CropArgs) -> StandardMap {
+    let zoom = map.source_zoom;
+    let (x_a, y_a) = latlon_to_world(cfg.min_lat, cfg.min_lon, zoom);
+    let (x_b, y_b) = latlon_to_world(cfg.max_lat, cfg.max_lon, zoom);
+    let xmin = x_a.min(x_b) as i32;
+    let xmax = x_a.max(x_b) as i32;
+    let ymin = y_a.min(y_b) as i32;
+    let ymax = y_a.max(y_b) as i32;
+    eprintln!(
+        "crop bbox in world units (zoom {zoom}): x=[{xmin}, {xmax}]  y=[{ymin}, {ymax}]"
+    );
+
+    map.segments.retain(|s| {
+        let smin_x = s.x1.min(s.x2);
+        let smax_x = s.x1.max(s.x2);
+        let smin_y = s.y1.min(s.y2);
+        let smax_y = s.y1.max(s.y2);
+        smin_x <= xmax && smax_x >= xmin && smin_y <= ymax && smax_y >= ymin
+    });
+
+    if !map.segments.is_empty() {
+        map.bounds = Bounds {
+            min_x: map.segments.iter().map(|s| s.x1.min(s.x2)).min().unwrap(),
+            max_x: map.segments.iter().map(|s| s.x1.max(s.x2)).max().unwrap(),
+            min_y: map.segments.iter().map(|s| s.y1.min(s.y2)).min().unwrap(),
+            max_y: map.segments.iter().map(|s| s.y1.max(s.y2)).max().unwrap(),
+        };
+    }
+    map
 }
 
 struct ShrinkArgs {

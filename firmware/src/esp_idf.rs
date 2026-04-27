@@ -574,6 +574,97 @@ pub fn run_device_main() -> Result<(), String> {
     }
 }
 
+/// Tries to load the map from `/sdcard/map.svm`. Returns `None` if no card
+/// is inserted, the file is missing, the buffer doesn't fit in PSRAM, or any
+/// other error — all non-fatal so the caller can fall back to the flash
+/// partition. The C side (`components/sdmap/sdmap.c`) mounts read-only and
+/// never writes or formats the card.
+#[cfg(all(target_os = "espidf", esp32p4))]
+fn try_load_map_from_sd() -> Option<map_runtime::EmbeddedMapSource> {
+    use esp_idf_svc::sys;
+
+    let mut size: usize = 0;
+    let buf = unsafe { sys::sdmap_load(&mut size) };
+    if buf.is_null() {
+        return None;
+    }
+
+    let result = unsafe {
+        let bytes = core::slice::from_raw_parts(buf, size);
+        map_runtime::EmbeddedMapSource::from_svm_bytes(bytes)
+    };
+
+    unsafe { sys::sdmap_free(buf) };
+
+    match result {
+        Ok(map) => {
+            log::info!("loaded map from SD card ({} bytes)", size);
+            Some(map)
+        }
+        Err(e) => {
+            log::warn!("SD map parse failed: {e} — falling back to flash");
+            None
+        }
+    }
+}
+
+/// Reads the SVM map file from the "map_data" flash partition.
+///
+/// The partition holds the city-small.svm binary starting at its first byte.
+/// The map is memory-mapped (zero-copy) for parsing, then unmapped; the parsed
+/// `EmbeddedMapSource` keeps segments in PSRAM via its internal Vec.
+#[cfg(all(target_os = "espidf", esp32p4))]
+fn load_map_from_partition() -> Result<map_runtime::EmbeddedMapSource, String> {
+    use esp_idf_svc::sys;
+
+    // Partition type DATA = 0x01, custom subtype 0x80
+    const DATA: u32 = 0x01;
+    const SUBTYPE: u32 = 0x80;
+
+    unsafe {
+        let partition = sys::esp_partition_find_first(
+            DATA,
+            SUBTYPE,
+            b"map_data\0".as_ptr() as *const core::ffi::c_char,
+        );
+        if partition.is_null() {
+            return Err(
+                "map_data partition not found — make sure city-small.svm \
+                 is bundled into the flash image at offset 0x1010000"
+                    .to_owned(),
+            );
+        }
+
+        let part_size = (*partition).size as usize;
+        log::info!("map_data partition: {} MB", part_size / 1_048_576);
+
+        // Memory-map the partition for zero-copy parsing.
+        // SPI_FLASH_MMAP_DATA = 0; segments are copied into PSRAM Vec during
+        // from_svm_bytes, so we unmap immediately after.
+        let mut mmap_ptr: *const core::ffi::c_void = core::ptr::null();
+        let mut mmap_handle: sys::spi_flash_mmap_handle_t = 0;
+
+        let err = sys::esp_partition_mmap(
+            partition,
+            0,
+            part_size,
+            0, // SPI_FLASH_MMAP_DATA
+            &mut mmap_ptr,
+            &mut mmap_handle,
+        );
+        if err != 0 {
+            return Err(format!("esp_partition_mmap failed: err={err}"));
+        }
+
+        let bytes = core::slice::from_raw_parts(mmap_ptr as *const u8, part_size);
+        let result = map_runtime::EmbeddedMapSource::from_svm_bytes(bytes)
+            .map_err(|e| format!("map SVM parse failed: {e}"));
+
+        sys::spi_flash_munmap(mmap_handle);
+        result
+    }
+}
+
 // ESP32-P4 bring-up entrypoint. The P4 has no on-chip radio, so Bluedroid is
 // not available through `esp-idf-svc`; a BLE route-sync service must come from
 // the external ESP32-C6 radio path. For the first device bring-up we boot the
@@ -586,7 +677,6 @@ pub fn run_device_main() -> Result<(), String> {
 
     use esp_idf_svc::log::EspLogger;
     use esp_idf_svc::sys;
-    use map_runtime::EmbeddedMapSource;
     use runtime_core::api::RuntimeConfig;
 
     use crate::app::App;
@@ -644,12 +734,14 @@ pub fn run_device_main() -> Result<(), String> {
 
     let board = BoardConfig::default();
 
-    // Load the map first so we can log its bounds and derive an initial
-    // camera position from its centroid. Without a real GPS fix the camera
-    // would otherwise sit at world (0, 0), which is outside the embedded
-    // map's coverage, and `MapSource::query` would return zero geometry —
-    // the exact symptom we saw on the first flash.
-    let map = EmbeddedMapSource::default();
+    // Try the SD card first (read-only `/sdcard/map.svm`); fall back to the
+    // on-flash `map_data` partition if no card is inserted or the file is
+    // missing. SD lets users carry a larger map without reflashing, but the
+    // file must still fit in PSRAM (≈ 24 MB / ≈ 1 M segments after parse).
+    let map = match try_load_map_from_sd() {
+        Some(map) => map,
+        None => load_map_from_partition()?,
+    };
     let (map_min_x, map_max_x, map_min_y, map_max_y) = map.bounds_world();
     let center_lat_lon = map.center_lat_lon();
     log::info!(
@@ -715,7 +807,8 @@ pub fn run_device_main() -> Result<(), String> {
     )
     .map_err(|error| format!("failed to build P4 app with panel: {error:?}"))?;
 
-    let (seed_lat, seed_lon) = center_lat_lon.unwrap_or((60.1699, 24.9384)); // Helsinki fallback
+    let (seed_lat, seed_lon) = (60.183564_f64, 24.946295_f64); // hardcoded home fix
+    let _ = center_lat_lon; // map centroid available but overridden above
     let gps = FixedGpsProvider::new(GpsInput {
         lat_deg: seed_lat,
         lon_deg: seed_lon,

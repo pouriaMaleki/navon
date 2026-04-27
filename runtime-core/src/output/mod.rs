@@ -1,7 +1,7 @@
 use crate::api::MapQuerySpec;
 use crate::api::{
-    CameraMode, CameraOrientationMode, CameraStateSnapshot, DiagnosticsSnapshot, OverlayState,
-    RuntimeFrameOutput,
+    CameraMode, CameraOrientationMode, CameraStateSnapshot, DiagnosticsSnapshot, GestureEventKind,
+    OverlayState, RuntimeFrameOutput,
 };
 use crate::motion::MotionState;
 use crate::overlay_ui::OverlayUiState;
@@ -16,6 +16,7 @@ pub fn build_frame_output(
     motion: &MotionState,
     overlay_ui: &OverlayUiState,
     route: RouteRenderState,
+    active_gesture: Option<GestureEventKind>,
 ) -> RuntimeFrameOutput {
     let mut overlay = OverlayState {
         north_indicator_visible: true,
@@ -36,5 +37,6 @@ pub fn build_frame_output(
         overlay,
         route,
         diagnostics,
+        active_gesture,
     }
 }

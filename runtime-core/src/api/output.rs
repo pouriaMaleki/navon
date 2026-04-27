@@ -1,5 +1,6 @@
 use super::config::{NormalizedScreenPoint, SpeedUnit};
 use super::diagnostics::DiagnosticsSnapshot;
+use super::events::GestureEventKind;
 use super::query::{MapQuerySpec, WorldPoint};
 use crate::route::RouteRenderState;
 
@@ -102,4 +103,5 @@ pub struct RuntimeFrameOutput {
     pub overlay: OverlayState,
     pub route: RouteRenderState,
     pub diagnostics: Option<DiagnosticsSnapshot>,
+    pub active_gesture: Option<GestureEventKind>,
 }

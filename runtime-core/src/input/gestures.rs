@@ -307,6 +307,45 @@ mod tests {
     }
 
     #[test]
+    fn clockwise_gesture_produces_positive_rotate_delta() {
+        // Frame 1: A at (300,400), B at (500,400) — horizontal, angle=0.
+        // Frame 2: B moves to (450,470) — clockwise rotation in screen coords
+        // (Y-down), so atan2(dy,dx) increases.  rotate_delta_rad > 0 by raw
+        // screen-coordinate convention; the camera layer negates before
+        // applying to orientation so the map visually rotates clockwise.
+        let mut state = GestureState::default();
+        let first = active_frame(1, vec![touch(1, 300.0, 400.0), touch(2, 500.0, 400.0)]);
+        let second = active_frame(2, vec![touch(1, 300.0, 400.0), touch(2, 450.0, 470.0)]);
+
+        state.derive(Some(&first), 8.0, 0.001);
+        let gesture = state.derive(Some(&second), 8.0, 0.001);
+
+        assert_eq!(gesture.active_gesture, Some(GestureEventKind::Rotate));
+        assert!(
+            gesture.rotate_delta_rad > 0.0,
+            "clockwise screen gesture produces positive rotate_delta_rad (screen Y-down convention)"
+        );
+    }
+
+    #[test]
+    fn counterclockwise_gesture_produces_negative_rotate_delta() {
+        // Frame 1: A at (300,400), B at (500,400) — horizontal, angle=0.
+        // Frame 2: B moves to (450,330) — counterclockwise in screen coords.
+        let mut state = GestureState::default();
+        let first = active_frame(1, vec![touch(1, 300.0, 400.0), touch(2, 500.0, 400.0)]);
+        let second = active_frame(2, vec![touch(1, 300.0, 400.0), touch(2, 450.0, 330.0)]);
+
+        state.derive(Some(&first), 8.0, 0.001);
+        let gesture = state.derive(Some(&second), 8.0, 0.001);
+
+        assert_eq!(gesture.active_gesture, Some(GestureEventKind::Rotate));
+        assert!(
+            gesture.rotate_delta_rad < 0.0,
+            "counterclockwise screen gesture produces negative rotate_delta_rad"
+        );
+    }
+
+    #[test]
     fn contact_count_transition_resets_gesture_state() {
         let mut state = GestureState::default();
         let drag_start = active_frame(1, vec![touch(1, 10.0, 10.0)]);

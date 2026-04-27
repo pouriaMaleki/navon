@@ -266,6 +266,7 @@ fn riding_north_is_not_reported_as_north_up_mode() {
         },
         &runtime_core::overlay_ui::OverlayUiState::new(SpeedUnit::Kph),
         runtime_core::route::RouteRenderState::default(),
+        None,
     );
 
     assert!(!output.overlay.north_up_active);

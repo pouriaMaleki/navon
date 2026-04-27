@@ -220,7 +220,8 @@ fn map_query(
     camera: Res<CameraResource>,
     mut query: ResMut<QueryResource>,
 ) {
-    query.0 = map::build_query(&camera.0.snapshot(&config.0), config.0.viewport_size);
+    let snapshot = camera.0.snapshot(&config.0);
+    query.0 = map::build_query(&snapshot, config.0.viewport_size);
 }
 
 fn overlay_ui_policy(
@@ -245,6 +246,7 @@ fn output_build(
     camera: Res<CameraResource>,
     overlay_ui: Res<OverlayUiResource>,
     query: Res<QueryResource>,
+    derived_input: Res<DerivedInputState>,
     mut route: ResMut<RouteResource>,
     mut output_resource: ResMut<OutputResource>,
 ) {
@@ -280,5 +282,6 @@ fn output_build(
         &motion.0,
         &overlay_ui.0,
         route.0.snapshot(),
+        derived_input.gesture.active_gesture,
     );
 }

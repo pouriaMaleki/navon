@@ -165,14 +165,15 @@ pub struct EmbeddedMapSource {
 }
 
 impl Default for EmbeddedMapSource {
-    // On ESP32-P4 (target_os = "espidf") embed the downsampled 9.6 MB map;
-    // the full 76 MB city.svm exceeds the P4's 64 MB DROM region and the
-    // linker discards the section. Emulator / wasm / host fixtures embed
-    // the full-size map for maximum geographic coverage.
+    // On ESP32 the map is loaded from the "map_data" flash partition at
+    // runtime by the firmware entrypoint; not embedded into the ELF via
+    // include_bytes!. Return an empty placeholder here so callers that
+    // construct EmbeddedMapSource::default() before the partition is loaded
+    // (e.g. headless BLE sync path) get a valid but geometry-free source.
+    // The firmware's run_device_main() replaces this with the partition map.
     #[cfg(all(feature = "embedded-map", target_os = "espidf"))]
     fn default() -> Self {
-        Self::from_svm_bytes(include_bytes!("../../map-data/city-small.svm"))
-            .expect("embedded city-small.svm should be valid")
+        Self::empty()
     }
 
     #[cfg(all(feature = "embedded-map", not(target_os = "espidf")))]

@@ -4,6 +4,17 @@
 
 use std::time::Duration;
 
+/// Signed bearing delta from `from_rad` to `to_rad`, both in [0, 2π).
+/// Returns a value in (-π, π]: positive = counterclockwise (map rotated CCW),
+/// negative = clockwise (map rotated CW, north went right).
+fn bearing_delta(from_rad: f32, to_rad: f32) -> f32 {
+    let raw = to_rad - from_rad;
+    let tau = std::f32::consts::TAU;
+    let pi = std::f32::consts::PI;
+    let wrapped = ((raw % tau) + tau) % tau; // [0, 2π)
+    if wrapped > pi { wrapped - tau } else { wrapped } // (-π, π]
+}
+
 use parity_fixtures::FIXTURE_VIEWPORT;
 use runtime_core::RuntimeCore;
 use runtime_core::api::{
@@ -268,5 +279,137 @@ fn pinch_and_rotate_simultaneously_changes_zoom_and_orientation() {
          (zoom Δ {}, orientation Δ {})",
         (output.camera.zoom - baseline.camera.zoom).abs(),
         (output.camera.orientation_rad - baseline.camera.orientation_rad).abs()
+    );
+}
+
+#[test]
+fn clockwise_two_finger_gesture_decreases_orientation_rad() {
+    // Regression test for rotation reversal bug.
+    //
+    // Physical gesture: user rotates two fingers clockwise (like spinning a paper
+    // map clockwise).  Expected map behaviour: north goes toward the right edge,
+    // orientation_rad decreases (negative bearing means "northwest is at top").
+    //
+    // Bug: positive rotate_delta_rad (clockwise screen angle via atan2 in Y-down
+    // coords) was added directly to heading_offset_rad, making the map rotate
+    // counterclockwise instead.
+    let mut runtime = RuntimeCore::new(RuntimeConfig::default());
+    runtime.step(frame(16, 1, vec![]));
+    runtime.step(frame(16, 2, vec![]));
+    let baseline = runtime.step(frame(16, 3, vec![]));
+    assert_eq!(
+        baseline.camera.orientation_rad, 0.0,
+        "baseline must be north-up"
+    );
+
+    // Frame that seeds the two-finger gesture state (no delta yet).
+    runtime.step(frame(
+        16,
+        10,
+        vec![
+            TouchContact {
+                id: 1,
+                phase: TouchPhase::Started,
+                position: ScreenPoint::new(300.0, 400.0),
+                pressure: Some(0.5),
+            },
+            TouchContact {
+                id: 2,
+                phase: TouchPhase::Started,
+                position: ScreenPoint::new(500.0, 400.0),
+                pressure: Some(0.5),
+            },
+        ],
+    ));
+
+    // Clockwise rotation: A stays still, B moves down-left.
+    // Initial angle = atan2(0, 200) = 0; new angle = atan2(70, 150) ≈ +0.44 rad.
+    // rotate_delta_rad ≈ +0.44 (clockwise screen gesture, Y-down atan2).
+    let output = runtime.step(frame(
+        16,
+        11,
+        vec![
+            TouchContact {
+                id: 1,
+                phase: TouchPhase::Moved,
+                position: ScreenPoint::new(300.0, 400.0),
+                pressure: Some(0.5),
+            },
+            TouchContact {
+                id: 2,
+                phase: TouchPhase::Moved,
+                position: ScreenPoint::new(450.0, 470.0),
+                pressure: Some(0.5),
+            },
+        ],
+    ));
+
+    // orientation_rad is normalize_bearing_rad([0, 2π)), so negative deltas wrap
+    // to near-2π.  Use signed-delta arithmetic to determine direction.
+    let signed_delta = bearing_delta(baseline.camera.orientation_rad, output.camera.orientation_rad);
+    assert!(
+        signed_delta < 0.0,
+        "clockwise two-finger gesture must produce a negative signed bearing delta \
+         (north goes right, map rotates clockwise); got orientation={} delta={}",
+        output.camera.orientation_rad,
+        signed_delta
+    );
+}
+
+#[test]
+fn counterclockwise_two_finger_gesture_increases_orientation_rad() {
+    // Symmetric partner to the clockwise test above.
+    let mut runtime = RuntimeCore::new(RuntimeConfig::default());
+    runtime.step(frame(16, 1, vec![]));
+    runtime.step(frame(16, 2, vec![]));
+    let baseline = runtime.step(frame(16, 3, vec![]));
+
+    runtime.step(frame(
+        16,
+        10,
+        vec![
+            TouchContact {
+                id: 1,
+                phase: TouchPhase::Started,
+                position: ScreenPoint::new(300.0, 400.0),
+                pressure: Some(0.5),
+            },
+            TouchContact {
+                id: 2,
+                phase: TouchPhase::Started,
+                position: ScreenPoint::new(500.0, 400.0),
+                pressure: Some(0.5),
+            },
+        ],
+    ));
+
+    // Counterclockwise rotation: B moves up-left.
+    // new angle = atan2(-70, 150) ≈ -0.44 rad → rotate_delta_rad ≈ -0.44.
+    let output = runtime.step(frame(
+        16,
+        11,
+        vec![
+            TouchContact {
+                id: 1,
+                phase: TouchPhase::Moved,
+                position: ScreenPoint::new(300.0, 400.0),
+                pressure: Some(0.5),
+            },
+            TouchContact {
+                id: 2,
+                phase: TouchPhase::Moved,
+                position: ScreenPoint::new(450.0, 330.0),
+                pressure: Some(0.5),
+            },
+        ],
+    ));
+
+    let signed_delta = bearing_delta(baseline.camera.orientation_rad, output.camera.orientation_rad);
+    assert!(
+        signed_delta > 0.0,
+        "counterclockwise two-finger gesture must produce a positive signed bearing delta \
+         (north goes left, map rotates counterclockwise); got orientation={} delta={}",
+        output.camera.orientation_rad,
+        signed_delta
     );
 }

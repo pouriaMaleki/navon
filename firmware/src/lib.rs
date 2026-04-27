@@ -18,3 +18,4 @@ pub mod route_sync;
 pub mod route_sync_ble;
 pub mod settings;
 pub mod touch;
+pub mod world_buffer;

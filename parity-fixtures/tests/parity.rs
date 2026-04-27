@@ -131,6 +131,11 @@ fn wasm_snapshot(
 fn assert_scenario_parity(scenario: &FixtureScenario) {
     let board = BoardConfig::new(FIXTURE_VIEWPORT);
     let mut firmware_app = App::with_map_source(board, runtime_config(), FixtureMapSource);
+    // Disable world buffer so firmware and wasm clip segments identically (both at
+    // the 800×800 viewport boundary). The world buffer clips at 1600×1600, which
+    // causes ±1 px Bresenham differences in diagonal strokes — acceptable on device
+    // but would break the pixel_hash comparison here.
+    firmware_app.disable_world_buffer();
     let mut wasm_bridge = RuntimeRenderBridge::with_map_source(runtime_config(), FixtureMapSource);
 
     for (index, frame) in scenario.frames.iter().enumerate() {

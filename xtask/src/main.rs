@@ -45,13 +45,49 @@ fn run_bundle_device(workspace: &Workspace, release: bool) -> Result<(), String>
     run_command(CommandSpec::cargo_build_firmware(workspace, release))?;
     run_command(CommandSpec::espflash_save_image(workspace, release))?;
 
+    // Truncate the full image to MAP_PARTITION_FLASH_OFFSET bytes so that
+    // write-bin at 0x0 stops before the map_data partition. espflash fails
+    // to write 32 MB in one shot (stub timeout); two separate writes work.
+    let app_image = workspace.device_app_image_path(release);
+    {
+        use std::io::Read as _;
+        let mut src = std::fs::File::open(workspace.device_image_path(release))
+            .map_err(|e| format!("failed to open image for app copy: {e}"))?;
+        let mut buf = vec![0u8; MAP_PARTITION_FLASH_OFFSET];
+        src.read_exact(&mut buf)
+            .map_err(|e| format!("image shorter than map offset 0x{MAP_PARTITION_FLASH_OFFSET:x}: {e}"))?;
+        std::fs::write(&app_image, &buf)
+            .map_err(|e| format!("failed to write app image: {e}"))?;
+    }
+
+    let app = workspace.device_app_image_path(release);
+    let map = &workspace.device_map_data;
+    let app_mb = std::fs::metadata(&app).map(|m| m.len()).unwrap_or(0) / 1_048_576;
+    let map_mb = std::fs::metadata(map).map(|m| m.len()).unwrap_or(0) / 1_048_576;
     println!(
-        "\ndevice image ready: {}\nflash it from a host with USB access:\n  espflash flash --monitor {}",
-        workspace.device_image_path(release).display(),
-        workspace.device_image_path(release).display(),
+        "\ndevice image ready.\n\
+         \nOPTION A: load map from SD card (carry a larger map without reflashing).\n\
+         Format an SD card as FAT32, copy any svm file to the card root as `map.svm`,\n\
+         insert it, and flash only the firmware:\n  \
+         espflash write-bin --chip esp32p4 --port <PORT> 0x0 {}\n  \
+         (then power-cycle; firmware reads /sdcard/map.svm read-only at boot)\n\
+         \nOPTION B: bundle map into flash (no SD card needed).\n  \
+         # Step 1 — firmware (~{} MB):\n  \
+         espflash write-bin --chip esp32p4 --port <PORT> 0x0 {}\n  \
+         # Step 2 — map (~{} MB):\n  \
+         espflash write-bin --chip esp32p4 --port <PORT> 0x{MAP_PARTITION_FLASH_OFFSET:x} {}",
+        app.display(),
+        app_mb,
+        app.display(),
+        map_mb,
+        map.display(),
     );
     Ok(())
 }
+
+/// Flash offset of the `map_data` partition defined in firmware/partitions.csv.
+const MAP_PARTITION_FLASH_OFFSET: usize = 0x400000;
+
 
 fn run_deploy_device(workspace: &Workspace, port: &str, release: bool) -> Result<(), String> {
     ensure_tool("ldproxy")?;
@@ -274,7 +310,13 @@ struct Workspace {
     emulator_web: PathBuf,
     wasm_pkg: PathBuf,
     wasm_crate: PathBuf,
+    /// Full city.svm used by the emulator / wasm build.
     map_data: PathBuf,
+    /// SVM bundled into the device flash image (`map_data` partition).
+    /// Stays under the 12 MB partition and within the PSRAM budget for
+    /// peak parse memory. SD card (looking for `/sdcard/city.svm`) can
+    /// override this at boot.
+    device_map_data: PathBuf,
     xtask_tmp: PathBuf,
     firmware_crate: PathBuf,
     partitions_csv: PathBuf,
@@ -310,6 +352,7 @@ impl Workspace {
             wasm_pkg: root.join("emulator/web/wasm-pkg"),
             wasm_crate: root.join("render-core-wasm"),
             map_data: root.join("map-data/city.svm"),
+            device_map_data: root.join("map-data/city-small.svm"),
             xtask_tmp: root.join(".xtask/tmp"),
             firmware_crate: root.join("firmware"),
             partitions_csv: root.join("firmware/partitions.csv"),
@@ -333,6 +376,13 @@ impl Workspace {
         ))
     }
 
+    fn device_app_image_path(&self, release: bool) -> PathBuf {
+        self.device_out_dir.join(format!(
+            "firmware-{}-app.bin",
+            if release { "release" } else { "debug" }
+        ))
+    }
+
     fn ensure_device_prerequisites(&self) -> Result<(), String> {
         if !self.firmware_crate.join("Cargo.toml").is_file() {
             return Err(format!(
@@ -352,6 +402,13 @@ impl Workspace {
                 "missing Espressif export script at {}; run `espup install \
                  --targets esp32p4 --esp-riscv-gcc` to produce it",
                 self.esp_export_script.display()
+            ));
+        }
+        if !self.device_map_data.is_file() {
+            return Err(format!(
+                "missing device map at {}; regenerate it from the full city.svm \
+                 using map-vector-cli shrink-svm",
+                self.device_map_data.display()
             ));
         }
         std::fs::create_dir_all(&self.device_out_dir).map_err(|error| {
@@ -458,9 +515,10 @@ impl CommandSpec {
         let elf = workspace.firmware_elf_path(release);
         let out = workspace.device_image_path(release);
         // `save-image --merge` defaults to the esp-idf 4 MB factory partition
-        // table. Our firmware embeds the ~9.6 MB city-small.svm so the ELF
-        // is ~10.5 MB and needs the custom 16 MB factory table in
-        // firmware/partitions.csv. Same file esp-idf-sys uses at link time.
+        // table. We use the custom table in firmware/partitions.csv which adds
+        // the 15 MB map_data partition. The map is no longer embedded in the
+        // ELF; bundle_map_partition() appends city-small.svm to the image
+        // afterwards at MAP_PARTITION_FLASH_OFFSET.
         let args = vec![
             OsString::from("save-image"),
             OsString::from("--chip"),
@@ -604,6 +662,7 @@ mod tests {
             wasm_pkg: PathBuf::from("/work/emulator/web/wasm-pkg"),
             wasm_crate: PathBuf::from("/work/render-core-wasm"),
             map_data: PathBuf::from("/work/map-data/city.svm"),
+            device_map_data: PathBuf::from("/work/map-data/city-small.svm"),
             xtask_tmp: PathBuf::from("/work/.xtask/tmp"),
             firmware_crate: PathBuf::from("/work/firmware"),
             partitions_csv: PathBuf::from("/work/firmware/partitions.csv"),

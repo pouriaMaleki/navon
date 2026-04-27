@@ -1629,6 +1629,7 @@ dependencies = [
  "firmware",
  "render-core-wasm",
  "runtime-core",
+ "serde_json",
  "smallvec",
 ]
 

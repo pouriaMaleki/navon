@@ -44,7 +44,7 @@
     {
       "label": "Device: bundle",
       "type": "shell",
-      "command": "cargo xtask bundle-device",
+      "command": "cargo xtask bundle-device --release",
       "options": {
         "cwd": "${workspaceFolder}"
       },

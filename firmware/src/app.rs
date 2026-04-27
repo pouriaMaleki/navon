@@ -3,7 +3,8 @@ use std::time::{Duration, Instant};
 use crate::framebuffer::RenderFramebuffer;
 use runtime_core::RuntimeCore;
 use runtime_core::api::{
-    RouteStatusMessage, RuntimeConfig, RuntimeFrameOutput, TouchContactFrameError,
+    GestureEventKind, MapQueryResult, RouteStatusMessage, RuntimeConfig, RuntimeFrameOutput,
+    TouchContactFrameError,
 };
 use runtime_core::map::MapSource;
 
@@ -15,6 +16,7 @@ use crate::map_source::MapSourceBridge;
 use crate::route_sync::{RouteSyncTransport, RouteSyncTransportError, RouteTransferChunk};
 use crate::settings::{DeviceSettings, NullSettingsStore, SettingsError, SettingsStore};
 use crate::touch::TouchInput;
+use crate::world_buffer::{WorldBuffer, render_ui_overlay};
 
 /// Per-phase timings for one `step_frame` call. All zero on host builds
 /// where timing isn't recorded; on device this lets the boot loop split
@@ -93,6 +95,8 @@ where
     settings_store: U,
     persisted_settings: DeviceSettings,
     route_sync_transport: RouteSyncTransport,
+    world_buffer: WorldBuffer,
+    world_buffer_enabled: bool,
 }
 
 impl<S, B, U> App<S, B, U>
@@ -122,6 +126,8 @@ where
             settings_store,
             persisted_settings,
             route_sync_transport: RouteSyncTransport::default(),
+            world_buffer: WorldBuffer::new(),
+            world_buffer_enabled: true,
         })
     }
 
@@ -139,19 +145,75 @@ where
         };
         let output = self.runtime.step(input);
 
+        let active_gesture = output.active_gesture;
+        let use_world_buffer =
+            self.world_buffer_enabled && self.world_buffer.is_valid_for(&output.camera);
+
         let t_query_start = Instant::now();
-        let geometry = self.map_source.query(&output.map_query);
+        let world_buffer_will_handle =
+            self.world_buffer_enabled && active_gesture.is_none() && !use_world_buffer;
+        let (geometry, mut geometry_count) = if use_world_buffer || world_buffer_will_handle {
+            // Pan/idle: query handled by world buffer path below.
+            (MapQueryResult::default(), 0)
+        } else {
+            // Rotate or pinch: normal query with coarse LOD (already applied by ECS).
+            let geo = self.map_source.query(&output.map_query);
+            let count = geo.geometry.len();
+            (geo, count)
+        };
         let map_query = t_query_start.elapsed();
 
         let t_render_start = Instant::now();
-        render_core::render_frame(
-            render_core::RenderScene {
-                config: self.runtime.config(),
-                output: &output,
-                geometry: &geometry,
-            },
-            &mut self.render_framebuffer,
-        );
+        if use_world_buffer {
+            // Fast path: blit pre-rendered basemap, then draw screen-fixed UI.
+            geometry_count = self.world_buffer.last_geometry_count();
+            self.world_buffer.blit_into(&output.camera, &mut self.render_framebuffer);
+            render_ui_overlay(
+                self.runtime.config(),
+                &output,
+                &geometry,
+                &mut self.render_framebuffer,
+            );
+        } else if matches!(
+            active_gesture,
+            Some(GestureEventKind::Rotate) | Some(GestureEventKind::Pinch)
+        ) {
+            // Rotate/pinch: full render at coarse LOD; world buffer is now stale.
+            self.world_buffer.invalidate();
+            render_core::render_frame(
+                render_core::RenderScene {
+                    config: self.runtime.config(),
+                    output: &output,
+                    geometry: &geometry,
+                },
+                &mut self.render_framebuffer,
+            );
+        } else if world_buffer_will_handle {
+            // Idle (world buffer enabled but stale): rebuild then blit, UI on top.
+            geometry_count = self.world_buffer.render_and_blit(
+                &mut self.map_source,
+                self.runtime.config(),
+                &output,
+                &mut self.render_framebuffer,
+            );
+            render_ui_overlay(
+                self.runtime.config(),
+                &output,
+                &MapQueryResult::default(),
+                &mut self.render_framebuffer,
+            );
+        } else {
+            // World buffer disabled, or pan past world-buffer edge with buffer disabled:
+            // direct render as before.
+            render_core::render_frame(
+                render_core::RenderScene {
+                    config: self.runtime.config(),
+                    output: &output,
+                    geometry: &geometry,
+                },
+                &mut self.render_framebuffer,
+            );
+        }
         let render = t_render_start.elapsed();
 
         let (convert, panel_push) = self.display.present_timed(&self.render_framebuffer)?;
@@ -178,7 +240,7 @@ where
 
         Ok(FrameResult {
             output,
-            geometry_count: geometry.geometry.len(),
+            geometry_count,
             lit_pixel_count: self.display.framebuffer().lit_pixel_count(),
             route_sync_statuses,
             phase_timings,
@@ -187,6 +249,16 @@ where
 
     pub fn display(&self) -> &Display<B> {
         &self.display
+    }
+
+    /// Permanently disables the world buffer for this `App` instance. Intended
+    /// for parity tests that compare pixel-level output between firmware and
+    /// wasm render paths — the world buffer clips segments at 1600×1600 bounds
+    /// while the direct render uses 800×800, producing ±1 px Bresenham
+    /// differences in diagonal strokes. Tests that check `pixel_hash` should
+    /// call this after construction.
+    pub fn disable_world_buffer(&mut self) {
+        self.world_buffer_enabled = false;
     }
 
     pub fn ingest_route_sync_chunk(

@@ -298,9 +298,14 @@ impl CameraState {
         // (zoom and rotation work at the same time too)". Apply the rotation
         // delta in every orientation mode, not just TravelUpAuto — otherwise
         // two-finger rotate is silently dropped while stationary.
+        //
+        // Negate: rotate_delta_rad is positive for clockwise screen gestures
+        // (atan2 in Y-down screen coords).  A clockwise gesture should rotate
+        // the map clockwise (north goes right), which is a DECREASE in bearing.
+        // Subtracting brings the two coordinate systems into agreement.
         if gesture.rotate_delta_rad != 0.0 {
             self.heading_offset_rad =
-                normalize_signed_angle(self.heading_offset_rad + gesture.rotate_delta_rad);
+                normalize_signed_angle(self.heading_offset_rad - gesture.rotate_delta_rad);
         }
 
         if viewport_size.is_empty() {
@@ -655,4 +660,75 @@ fn normalize_signed_angle(angle_rad: f32) -> f32 {
         normalized += core::f32::consts::TAU;
     }
     normalized
+}
+
+#[cfg(test)]
+mod tests {
+    use core::time::Duration;
+
+    use super::*;
+    use crate::api::{RuntimeConfig, ViewportSize};
+    use crate::input::gestures::DerivedGesture;
+    use crate::input::staging::DerivedInputState;
+    use crate::motion::MotionState;
+
+    fn one_frame_with_gesture(rotate_delta_rad: f32) -> CameraState {
+        let mut camera = CameraState::default();
+        let derived = DerivedInputState {
+            gesture: DerivedGesture {
+                rotate_delta_rad,
+                touch_active: true,
+                ..DerivedGesture::default()
+            },
+            tap: None,
+        };
+        camera.advance(
+            &MotionState::default(),
+            &derived,
+            Duration::from_millis(16),
+            ViewportSize::new(800, 800),
+            &RuntimeConfig::default(),
+        );
+        camera
+    }
+
+    #[test]
+    fn clockwise_gesture_rotates_map_clockwise() {
+        // A clockwise two-finger gesture in screen space (rotate_delta_rad > 0,
+        // per Y-down atan2 convention) should make north go toward the right edge
+        // of the screen — i.e. heading_offset_rad must DECREASE.
+        //
+        // heading_offset_rad is the internal signed accumulator; orientation_rad
+        // goes through normalize_bearing_rad([0, 2π)) so negative deltas wrap
+        // to near-2π.  We test heading_offset_rad, not orientation_rad.
+        let camera = one_frame_with_gesture(0.4);
+        assert!(
+            camera.heading_offset_rad < 0.0,
+            "clockwise gesture must decrease heading_offset_rad (north goes right); got {}",
+            camera.heading_offset_rad
+        );
+    }
+
+    #[test]
+    fn counterclockwise_gesture_rotates_map_counterclockwise() {
+        let camera = one_frame_with_gesture(-0.4);
+        assert!(
+            camera.heading_offset_rad > 0.0,
+            "counterclockwise gesture must increase heading_offset_rad (north goes left); got {}",
+            camera.heading_offset_rad
+        );
+    }
+
+    #[test]
+    fn rotation_magnitude_is_preserved() {
+        // The magnitude of heading_offset_rad must match the gesture magnitude.
+        let delta = 0.3_f32;
+        let camera = one_frame_with_gesture(delta);
+        assert!(
+            (camera.heading_offset_rad.abs() - delta).abs() < 1e-5,
+            "rotation magnitude must be preserved; expected {} got {}",
+            delta,
+            camera.heading_offset_rad.abs()
+        );
+    }
 }

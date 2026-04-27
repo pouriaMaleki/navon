@@ -29,6 +29,14 @@ pub struct RenderScene<'a> {
 }
 
 pub fn render_frame<P: Pixel>(scene: RenderScene<'_>, framebuffer: &mut Framebuffer<P>) {
+    render_world(scene.clone(), framebuffer);
+    render_ui(scene, framebuffer);
+}
+
+/// Renders basemap geometry, route polylines, and POI markers into `framebuffer`.
+/// Clears the framebuffer first. Screen-anchored UI elements are NOT drawn.
+/// Use `render_ui` afterwards to composite the UI layer on top.
+pub fn render_world<P: Pixel>(scene: RenderScene<'_>, framebuffer: &mut Framebuffer<P>) {
     let viewport = ViewportSize::new(framebuffer.width(), framebuffer.height());
     let meters_per_pixel = scene.output.map_query.meters_per_pixel;
     let camera_view = CameraView::new(viewport, &scene.output.camera, meters_per_pixel);
@@ -75,7 +83,13 @@ pub fn render_frame<P: Pixel>(scene: RenderScene<'_>, framebuffer: &mut Framebuf
     );
 
     render_points(&camera_view, viewport, &style, scene.geometry, framebuffer);
+}
 
+/// Draws screen-anchored UI (speed panel, north indicator, rider marker, turn banners)
+/// on top of whatever is already in `framebuffer`. Does NOT clear first.
+pub fn render_ui<P: Pixel>(scene: RenderScene<'_>, framebuffer: &mut Framebuffer<P>) {
+    let viewport = ViewportSize::new(framebuffer.width(), framebuffer.height());
+    let meters_per_pixel = scene.output.map_query.meters_per_pixel;
     draw_overlay(
         scene.config,
         &scene.output.camera,

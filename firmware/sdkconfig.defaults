@@ -5,8 +5,9 @@ CONFIG_IDF_TARGET="esp32p4"
 # "Detected size(32768k) larger than the size in the binary image header".
 CONFIG_ESPTOOLPY_FLASHSIZE_32MB=y
 
-# Custom partition layout. The `factory` slot is 16 MB so the ~9.6 MB
-# embedded `city-small.svm` + firmware text/rodata fit with room to grow.
+# Custom partition layout. The `factory` slot is 4 MB (firmware is ~1 MB).
+# The `map_data` slot follows at 0x400000 and ends at 0x1000000 (16 MB),
+# staying within the range the ESP-IDF generic flash driver can mmap.
 # The default `partitions_singleapp.csv` gives only 1 MB of factory space.
 # embuild's `PROJECT_DIR` points at `/work/target`, not the crate source,
 # so resolve the CSV via an absolute path rather than a crate-relative one.
