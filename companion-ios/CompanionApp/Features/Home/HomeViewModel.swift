@@ -924,4 +924,26 @@ final class HomeViewModel: ObservableObject {
         let headingRad = headingDegrees * .pi / 180.0
         let dNorth = cos(headingRad) * anchorOffsetMeters
         let dEast = sin(headingRad) * anchorOffsetMeters
-        let cosLat = cos(rider.latitude * 
+        let cosLat = cos(rider.latitude * .pi / 180.0)
+        return CoordinatePoint(
+            latitude: rider.latitude + dNorth / metersPerDegLat,
+            longitude: rider.longitude + dEast / (metersPerDegLat * cosLat)
+        )
+    }
+
+    /// Called by the map view on every user pan/zoom/rotate during routing.
+    /// Schedules a recenter to the routing default after the pinned
+    /// inactivity timeout (spec line 104). Outside phoneGuidance it's a
+    /// no-op. Successive interactions reset the timer.
+    func noteUserMapInteraction() {
+        guard homeMode == .phoneGuidance else { return }
+        mapInteractionRecenterTask?.cancel()
+        let delay = mapInteractionRecenterDelay
+        mapInteractionRecenterTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            guard let self, !Task.isCancelled else { return }
+            guard self.homeMode == .phoneGuidance else { return }
+            self.mapRecenterRequestID &+= 1
+        }
+    }
+} 
