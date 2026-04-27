@@ -251,19 +251,19 @@ struct CompanionHomeView: View {
             refreshCameraForCurrentMode()
         case .planning, .deviceOverview, .sendingToDevice:
             // Outside riding: a session-only zoom on the current camera.
-            // We can't read the live MapKit zoom, so pull the current span
-            // off the planning reference (or current region) and scale it.
-            let currentSpan: MKCoordinateSpan = {
-                if case .region(let region) = cameraPosition { return region.span }
-                if let ref = planningCameraReference { return ref.span }
-                return MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
-            }()
-            let center: CLLocationCoordinate2D = {
-                if case .region(let region) = cameraPosition { return region.center }
-                if let ref = planningCameraReference { return ref.center }
-                let rider = appModel.riderLocation
-                return CLLocationCoordinate2D(latitude: rider.latitude, longitude: rider.longitude)
-            }()
+            // We can't read the live MapKit zoom directly, so derive the
+            // current span/center from `cameraPosition` (when it's a
+            // region) or fall back to the planning reference / rider.
+            var currentSpan = MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
+            let riderFallback = appModel.riderLocation
+            var center = CLLocationCoordinate2D(latitude: riderFallback.latitude, longitude: riderFallback.longitude)
+            if case .region(let region) = cameraPosition {
+                currentSpan = region.span
+                center = region.center
+            } else if let ref = planningCameraReference {
+                currentSpan = ref.span
+                center = ref.center
+            }
             let scaledLat = min(20.0, max(0.0008, currentSpan.latitudeDelta * factor))
             let scaledLon = min(20.0, max(0.0008, currentSpan.longitudeDelta * factor))
             let scaledSpan = MKCoordinateSpan(latitudeDelta: scaledLat, longitudeDelta: scaledLon)
