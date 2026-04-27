@@ -1,5 +1,6 @@
 import CoreLocation
 import Foundation
+import MapKit
 
 @MainActor
 final class HomeViewModel: ObservableObject {
@@ -556,7 +557,22 @@ final class HomeViewModel: ObservableObject {
             let success = await appModel.sendSelectedRoute()
             homeMode = success ? .deviceOverview : .planning
         } else {
+            // Populate the active session even on the phone-guidance path
+            // so downstream consumers (split-way reroute, diagnostics,
+            // off-route reroute) can read destination + identifier
+            // without falling back to nil. The device branch gets this
+            // for free through `appModel.sendSelectedRoute`; phone
+            // guidance has to do it explicitly.
+            let pkg = selectedPreview.normalizedPackage
+            appModel.activeSession.routeIdentifier = pkg.routeIdentifier
+            appModel.activeSession.routeRevision = pkg.revision
+            appModel.activeSession.destinationCoordinate = pkg.geometry.last
+                ?? appModel.activeSession.destinationCoordinate
+            appModel.activeSession.providerID = pkg.provenance.providerID
             appModel.activeSession.sourceMode = sourceMode
+            if let label = pkg.summary.destinationLabel {
+                appModel.activeSession.destinationLabel = label
+            }
             homeMode = .phoneGuidance
             compassMode = .autoFollow
             // Reset progress for the new route so spec line 102 (next-turn
@@ -596,6 +612,76 @@ final class HomeViewModel: ObservableObject {
             await appModel.planRoute(using: sourceToReuse, preferredTitle: query.isEmpty ? activeNavigationTitle : query)
             appModel.recordPlannedPreview(source: .plannedRoute, sourceLabel: sourceToReuse.displayName)
         }
+    }
+
+    /// Spec #11 ("split-way reroute"): from inside an active route the rider
+    /// can ask for fresh alternatives from their current location to the
+    /// same destination, without committing to one until they Start it.
+    /// Mirrors web's `RootStore.exploreAlternateRoutes`.
+    ///
+    /// Behavior:
+    /// - Re-plans from `appModel.riderLocation` to the active destination
+    ///   using whatever sourceMode the active session was using.
+    /// - Drops out of phoneGuidance back to `.planning` so the standard
+    ///   alternatives card and route-overview camera take over.
+    /// - The original route's identifier survives on `activeSession`, so
+    ///   if the rider cancels (clearPreview / picks the matching
+    ///   alternative) routing resumes on it.
+    func exploreAlternateRoutes() {
+        guard homeMode == .phoneGuidance,
+              let destination = appModel.activeSession.destinationCoordinate
+        else { return }
+        let sourceToReuse = appModel.activeSession.sourceMode
+        let titleHint = appModel.activeSession.destinationLabel
+        // Synchronous state changes so the view immediately reflects the
+        // mode swap (camera, alternatives card, etc.) and so unit tests
+        // can observe the transition without awaiting the network plan.
+        northPreviewTask?.cancel()
+        compassMode = .autoFollow
+        homeMode = .planning
+        planningStatus = "Looking for alternatives…"
+        appModel.routeRequest = RoutePlanRequest(
+            origin: appModel.riderLocation,
+            destination: destination,
+            providerID: sourceToReuse.primaryProviderID
+        )
+        Task {
+            defer {
+                if planningStatus == "Looking for alternatives…" {
+                    planningStatus = nil
+                }
+            }
+            await appModel.planRoute(using: sourceToReuse, preferredTitle: titleHint)
+            appModel.recordPlannedPreview(source: .plannedRoute, sourceLabel: sourceToReuse.displayName)
+        }
+    }
+
+    /// The MKCoordinateRegion to fit when showing a route overview. Pure
+    /// math, exposed as a static so it can be unit-tested without
+    /// instantiating a view.
+    ///
+    /// The bottom UI overlay (alternatives card during planning, arrival
+    /// banner, etc.) covers roughly the lower 30% of the screen. MapKit
+    /// has no `padding` API for `setRegion`, so we expand the latitude
+    /// delta and shift the camera center SOUTH by ~15% of that delta.
+    /// The bbox then sits in the upper ~65% of the visible region — the
+    /// half the user can actually see — instead of being cropped behind
+    /// the card.
+    static func fittedRouteRegion(
+        minLat: Double, maxLat: Double,
+        minLon: Double, maxLon: Double
+    ) -> MKCoordinateRegion {
+        let latDelta = max((maxLat - minLat) * 1.8, 0.012)
+        let lonDelta = max((maxLon - minLon) * 1.5, 0.01)
+        let bboxCenterLat = (minLat + maxLat) / 2.0
+        let shiftedCenterLat = bboxCenterLat - 0.15 * latDelta
+        return MKCoordinateRegion(
+            center: CLLocationCoordinate2D(
+                latitude: shiftedCenterLat,
+                longitude: (minLon + maxLon) / 2.0
+            ),
+            span: MKCoordinateSpan(latitudeDelta: latDelta, longitudeDelta: lonDelta)
+        )
     }
 
     func clearPreview() {

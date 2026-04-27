@@ -221,8 +221,24 @@ struct CompanionHomeView: View {
             zoomButton(symbol: "plus", label: "Zoom in") { applyZoom(direction: .zoomIn) }
             zoomButton(symbol: "minus", label: "Zoom out") { applyZoom(direction: .zoomOut) }
         }
-        .padding(.top, 96)
+        // Mode-aware vertical placement so the +/- column never sits on
+        // top of:
+        //  - planning: the floating north-up / recenter accessory at top
+        //    72 + 50 + a bit of slack → 130
+        //  - phoneGuidance: the top guidance card (next-turn headline,
+        //    destination subtitle, off-route pill) which can run ~150 px
+        //    tall on a Pro Max-class screen → 184 leaves daylight.
+        // Earlier 96 caused the user-reported overlaps in routing & in
+        // planning when the recenter button was visible.
+        .padding(.top, zoomControlsTopPadding)
         .padding(.trailing, 12)
+    }
+
+    private var zoomControlsTopPadding: CGFloat {
+        switch viewModel.homeMode {
+        case .phoneGuidance: return 184
+        case .planning, .deviceOverview, .sendingToDevice: return 130
+        }
     }
 
     private func zoomButton(symbol: String, label: String, action: @escaping () -> Void) -> some View {
@@ -358,6 +374,21 @@ struct CompanionHomeView: View {
                     .lineLimit(2)
             }
             Spacer()
+            // Spec #11 ("split-way reroute"): plan fresh alternatives from
+            // the rider's current location to the same destination,
+            // keeping the active session intact so cancelling resumes the
+            // original route.
+            Button {
+                viewModel.exploreAlternateRoutes()
+            } label: {
+                Image(systemName: "arrow.triangle.branch")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .frame(width: 48, height: 48)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Find alternate routes")
             Image(systemName: viewModel.compassSymbolName)
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(.primary)
@@ -845,14 +876,11 @@ struct CompanionHomeView: View {
             maxLon = max(maxLon, point.longitude)
         }
 
-        let latDelta = max((maxLat - minLat) * 1.5, 0.01)
-        let lonDelta = max((maxLon - minLon) * 1.5, 0.01)
-        let center = CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2.0, longitude: (minLon + maxLon) / 2.0)
-        setCamera(
-            region: MKCoordinateRegion(center: center, span: MKCoordinateSpan(latitudeDelta: latDelta, longitudeDelta: lonDelta)),
-            heading: 0,
-            recordPlanningReference: recordPlanningReference
+        let region = HomeViewModel.fittedRouteRegion(
+            minLat: minLat, maxLat: maxLat,
+            minLon: minLon, maxLon: maxLon
         )
+        setCamera(region: region, heading: 0, recordPlanningReference: recordPlanningReference)
     }
 
     private func setCamera(region: MKCoordinateRegion, heading: CLLocationDirection, recordPlanningReference: Bool) {
