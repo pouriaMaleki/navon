@@ -74,6 +74,31 @@ pub fn render_world<P: Pixel>(scene: RenderScene<'_>, framebuffer: &mut Framebuf
         }
     }
 
+    // Route polyline is intentionally NOT drawn here. It lives in
+    // `render_ui` so the firmware's world-buffer fast path (which blits
+    // a pre-rendered basemap and then calls `render_ui` on top, skipping
+    // `render_world`) still renders the active route. Drawing the route
+    // here would invalidate the world-buffer cache every time the rider
+    // advances along the route.
+
+    render_points(&camera_view, viewport, &style, scene.geometry, framebuffer);
+}
+
+/// Draws the route polyline (completed + remaining segments) and then the
+/// screen-anchored UI (speed panel, north indicator, rider marker, turn
+/// banners) on top of whatever is already in `framebuffer`. Does NOT
+/// clear first.
+///
+/// The route lives in this layer rather than in `render_world` because
+/// the firmware caches the basemap in a world buffer that's only
+/// invalidated on camera changes. The route advances every frame as the
+/// rider moves along it, so it has to be composited per-frame on top of
+/// the cached basemap blit.
+pub fn render_ui<P: Pixel>(scene: RenderScene<'_>, framebuffer: &mut Framebuffer<P>) {
+    let viewport = ViewportSize::new(framebuffer.width(), framebuffer.height());
+    let meters_per_pixel = scene.output.map_query.meters_per_pixel;
+    let camera_view = CameraView::new(viewport, &scene.output.camera, meters_per_pixel);
+    let style = RenderStyle::default();
     render_route_overlay(
         &camera_view,
         viewport,
@@ -81,15 +106,6 @@ pub fn render_world<P: Pixel>(scene: RenderScene<'_>, framebuffer: &mut Framebuf
         &scene.output.route,
         framebuffer,
     );
-
-    render_points(&camera_view, viewport, &style, scene.geometry, framebuffer);
-}
-
-/// Draws screen-anchored UI (speed panel, north indicator, rider marker, turn banners)
-/// on top of whatever is already in `framebuffer`. Does NOT clear first.
-pub fn render_ui<P: Pixel>(scene: RenderScene<'_>, framebuffer: &mut Framebuffer<P>) {
-    let viewport = ViewportSize::new(framebuffer.width(), framebuffer.height());
-    let meters_per_pixel = scene.output.map_query.meters_per_pixel;
     draw_overlay(
         scene.config,
         &scene.output.camera,
