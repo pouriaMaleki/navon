@@ -85,6 +85,7 @@ export class HslRoutingAdapter implements RoutingProvider {
     signal: AbortSignal | undefined,
   ): Promise<RoutePreviewModel> {
     const settings = this.settingsProvider();
+    const cyclingSpeedKph = settings.cyclingSpeedKph;
     if (settings.preferLiveHslRouting) {
       const trimmedKey = settings.hslSubscriptionKey.trim();
       if (!trimmedKey) {
@@ -93,11 +94,18 @@ export class HslRoutingAdapter implements RoutingProvider {
           request,
           revisionOverride,
           "No HSL subscription key configured. Showing sample route instead.",
+          cyclingSpeedKph,
         );
       }
       try {
         const live = await fetchLive(request, settings, signal);
-        return normalizeItineraries(live, request, revisionOverride, "Live HSL Digitransit");
+        return normalizeItineraries(
+          live,
+          request,
+          revisionOverride,
+          "Live HSL Digitransit",
+          cyclingSpeedKph,
+        );
       } catch (err) {
         if ((err as Error)?.name === "AbortError") throw err;
         const message = err instanceof Error ? err.message : "Unknown error";
@@ -106,6 +114,7 @@ export class HslRoutingAdapter implements RoutingProvider {
           request,
           revisionOverride,
           `Live HSL failed: ${message}. Showing sample route instead.`,
+          cyclingSpeedKph,
         );
       }
     }
@@ -114,6 +123,7 @@ export class HslRoutingAdapter implements RoutingProvider {
       request,
       revisionOverride,
       "Using sample HSL routes. Enable live HSL in Settings.",
+      cyclingSpeedKph,
     );
   }
 }
@@ -188,9 +198,10 @@ function normalizeItineraries(
   request: RoutePlanRequest,
   revisionOverride: number | undefined,
   planningNotice: string | undefined,
+  cyclingSpeedKph: number,
 ): RoutePreviewModel {
   const alternatives = itineraries.map((itinerary, index) =>
-    normalizeItinerary(itinerary, request, index, revisionOverride ?? 1),
+    normalizeItinerary(itinerary, request, index, revisionOverride ?? 1, cyclingSpeedKph),
   );
   return {
     alternatives,
@@ -206,10 +217,18 @@ function normalizeItinerary(
   request: RoutePlanRequest,
   alternativeIndex: number,
   revision: number,
+  cyclingSpeedKph: number,
 ): RouteAlternative {
   const geometry = deduplicatedGeometryFromLegs(itinerary.legs);
   const totalDistance = itinerary.legs.reduce((sum, leg) => sum + leg.distanceMeters, 0);
   const maneuvers = buildManeuvers(geometry, totalDistance);
+  // Digitransit's bike speed is conservative for actual riders; recompute the
+  // ETA from the user-set cycling speed so listed times match real-world riding.
+  const durationSeconds = overrideDurationSeconds(
+    totalDistance,
+    cyclingSpeedKph,
+    itinerary.durationSeconds,
+  );
   const package_: NormalizedRoutePackage = {
     version: CURRENT_ROUTE_PACKAGE_VERSION,
     routeIdentifier: buildRouteIdentifier(request, alternativeIndex),
@@ -218,7 +237,7 @@ function normalizeItinerary(
     maneuvers,
     summary: {
       totalDistanceMeters: totalDistance,
-      estimatedDurationSeconds: itinerary.durationSeconds,
+      estimatedDurationSeconds: durationSeconds,
       startLabel: itinerary.startLabel,
       destinationLabel: itinerary.destinationLabel,
     },
@@ -233,9 +252,19 @@ function normalizeItinerary(
     title: alternativeIndex === 0 ? "Fastest bike route" : "Alternative bike route",
     subtitle: itinerary.systemNotice,
     distanceMeters: Math.round(totalDistance),
-    durationSeconds: itinerary.durationSeconds,
+    durationSeconds,
     normalizedPackage: package_,
   };
+}
+
+function overrideDurationSeconds(
+  totalDistanceMeters: number,
+  cyclingSpeedKph: number,
+  fallbackSeconds: number,
+): number {
+  if (!Number.isFinite(cyclingSpeedKph) || cyclingSpeedKph <= 0) return fallbackSeconds;
+  const mps = cyclingSpeedKph / 3.6;
+  return Math.max(1, Math.round(totalDistanceMeters / mps));
 }
 
 function deduplicatedGeometryFromLegs(legs: { geometry: CoordinatePoint[] }[]): CoordinatePoint[] {

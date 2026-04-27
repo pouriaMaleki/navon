@@ -88,6 +88,55 @@ export const RoutePlannerSettingsView = observer(({ store }: Props) => {
       </div>
 
       <div className="settings-section">
+        <h2>Riding</h2>
+        <div className="settings-row">
+          <div>
+            <div className="settings-row__label">Cycling speed</div>
+            <div className="settings-row__hint">
+              Used to compute route ETAs. HSL defaults to a slow bike speed; bump this if its
+              estimates feel too long.
+            </div>
+          </div>
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="number"
+              min={1}
+              max={50}
+              step={1}
+              className="text-input"
+              style={{ width: 80 }}
+              value={settings.cyclingSpeedKph}
+              onChange={(event) => {
+                const next = Number(event.target.value);
+                if (!Number.isFinite(next) || next <= 0) return;
+                store.settingsStore.updateSettings({ cyclingSpeedKph: next });
+              }}
+            />
+            <span style={{ fontSize: 13, color: "var(--fg-soft)" }}>kph</span>
+          </label>
+        </div>
+        <div className="settings-row">
+          <div>
+            <div className="settings-row__label">Speed unit</div>
+            <div className="settings-row__hint">How live speed is shown on the map.</div>
+          </div>
+          <select
+            className="text-input"
+            style={{ maxWidth: 120 }}
+            value={settings.speedUnit}
+            onChange={(event) =>
+              store.settingsStore.updateSettings({
+                speedUnit: event.target.value === "mph" ? "mph" : "kph",
+              })
+            }
+          >
+            <option value="kph">km/h</option>
+            <option value="mph">mph</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="settings-section">
         <h2>HSL Digitransit</h2>
         <div
           className="settings-row__hint"

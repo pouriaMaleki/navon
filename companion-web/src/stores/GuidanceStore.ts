@@ -11,6 +11,7 @@ import {
   selectedAlternative,
 } from "../domain/models.js";
 import {
+  approximateDistanceMeters,
   bearingDegrees,
   projectOntoPolyline,
   splitPolylineAtDistance,
@@ -30,6 +31,12 @@ const OFF_ROUTE_ENTER_DISTANCE_M = 35;
 const OFF_ROUTE_EXIT_DISTANCE_M = 22;
 const MAJOR_TURN_ALERT_DISTANCE_M = 80;
 const REROUTE_REQUEST_DELAY_MS = 2000;
+/**
+ * Arrival is declared when the rider is within this many metres of the route
+ * destination. Larger than the off-route exit distance so a rider drifting
+ * around the destination doesn't bounce between "off route" and "arrived".
+ */
+const ARRIVAL_RADIUS_M = 25;
 
 export type TurnAlertKind = "left" | "right" | "uturn" | "generic";
 
@@ -106,6 +113,11 @@ export class GuidanceStore {
   offRouteDistanceM = 0;
   rerouteRequested = false;
   upcomingTurnAlert: UpcomingTurnAlert | undefined = undefined;
+  /**
+   * Set to a banner message when the rider has reached the destination and
+   * guidance has been auto-stopped. Cleared when a new route starts.
+   */
+  arrivalNotice: string | undefined = undefined;
 
   private offRouteDurationMs = 0;
   private lastAdvanceTimestampMs = 0;
@@ -181,6 +193,23 @@ export class GuidanceStore {
     return `${km} km • ${minutes} min`;
   }
 
+  /**
+   * Single line: destination address + remaining distance + remaining minutes.
+   * Used as the subtitle of the top guidance card so the bottom no longer
+   * needs to repeat the same information; the bottom only shows a stop
+   * button. Empty destination labels are dropped so the line never starts
+   * with a stray separator.
+   */
+  get guidanceSubtitleLine(): string {
+    const route = this.guidanceRoute;
+    const destination = (
+      route?.summary.destinationLabel ?? this.activeSession.destinationLabel
+    )?.trim();
+    const remainingPart = this.activeNavigationSubtitle;
+    if (!destination || destination === "No destination") return remainingPart;
+    return `${destination} • ${remainingPart}`;
+  }
+
   /** Remaining distance along the route from current progress. */
   get remainingDistanceM(): number {
     if (this.routeTotalDistanceM <= 0) return 0;
@@ -199,6 +228,20 @@ export class GuidanceStore {
   get routeSplit(): { completed: CoordinatePoint[]; remaining: CoordinatePoint[] } | undefined {
     if (this.activeRouteGeometry.length === 0) return undefined;
     return splitPolylineAtDistance(this.activeRouteGeometry, this.progressDistanceM);
+  }
+
+  /**
+   * Geometry that the route-overview camera should fit when the user taps
+   * the compass during routing. Equals the remaining route ahead of the
+   * rider — late in a ride the start segment is no longer relevant, so
+   * including it would zoom the camera out unnecessarily. Falls back to
+   * the full active geometry before any progress has been recorded.
+   */
+  get routeOverviewGeometry(): CoordinatePoint[] | undefined {
+    if (this.activeRouteGeometry.length === 0) return undefined;
+    const split = this.routeSplit;
+    if (split && split.remaining.length >= 2) return split.remaining;
+    return this.activeRouteGeometry;
   }
 
   /** Off-route status label for UI display. */
@@ -341,6 +384,23 @@ export class GuidanceStore {
     if (this.compassMode === "autoFollow") {
       this.emitRecenterRequested();
     }
+
+    // Spec: when the rider arrives at the destination, end routing.
+    // Use straight-line distance to the last geometry vertex so a rider
+    // approaching from any side trips arrival, not just one travelling
+    // along-route.
+    const last = this.activeRouteGeometry[this.activeRouteGeometry.length - 1];
+    if (last && approximateDistanceMeters(riderLocation, last) <= ARRIVAL_RADIUS_M) {
+      this.declareArrival();
+    }
+  }
+
+  private declareArrival(): void {
+    this.arrivalNotice = "Arrived at destination";
+    // Reuse the same teardown as a manual stop so persistence + UI camera
+    // intents stay consistent. The arrival banner survives because we set it
+    // before stopGuidance() (stopGuidance does not clear arrivalNotice).
+    this.stopGuidance();
   }
 
   /**
@@ -391,6 +451,7 @@ export class GuidanceStore {
     this.rerouteRequested = false;
     this.lastAdvanceTimestampMs = 0;
     this.upcomingTurnAlert = undefined;
+    this.arrivalNotice = undefined;
   }
 
   private clearProgress(): void {

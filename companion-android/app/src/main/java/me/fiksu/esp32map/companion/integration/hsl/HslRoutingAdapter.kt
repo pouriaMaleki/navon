@@ -212,8 +212,9 @@ class HslRoutingAdapter(
         revisionOverride: Int?,
         planningNotice: String?,
     ): RoutePreviewModel {
+        val cyclingSpeedKph = settingsProvider().cyclingSpeedKph
         val alternatives = response.data.plan.itineraries.mapIndexed { index, itinerary ->
-            normalizeItinerary(itinerary, request, index, revisionOverride ?: 1)
+            normalizeItinerary(itinerary, request, index, revisionOverride ?: 1, cyclingSpeedKph)
         }
         return RoutePreviewModel(
             alternatives = alternatives,
@@ -229,14 +230,23 @@ class HslRoutingAdapter(
         request: RoutePlanRequest,
         alternativeIndex: Int,
         revision: Int,
+        cyclingSpeedKph: Double,
     ): RouteAlternative {
         val routeId = buildRouteIdentifier(request, alternativeIndex)
         val geometry = deduplicatedGeometry(itinerary.legs)
         val maneuvers = buildManeuvers(itinerary, geometry)
         val totalDistance = itinerary.legs.sumOf { it.distanceMeters }
+        // Digitransit's bike speed is conservative for actual riders; recompute
+        // the ETA from the user-set cycling speed so listed times match
+        // real-world riding.
+        val durationSeconds = overrideDurationSeconds(
+            totalDistanceMeters = totalDistance,
+            cyclingSpeedKph = cyclingSpeedKph,
+            fallbackSeconds = itinerary.durationSeconds,
+        )
         val summary = RouteSummary(
             totalDistanceMeters = totalDistance,
-            estimatedDurationSeconds = itinerary.durationSeconds,
+            estimatedDurationSeconds = durationSeconds,
             startLabel = itinerary.startLabel,
             destinationLabel = itinerary.destinationLabel,
         )
@@ -258,7 +268,7 @@ class HslRoutingAdapter(
             title = if (alternativeIndex == 0) "Fastest bike route" else "Alternative bike route",
             subtitle = itinerary.systemNotice,
             distanceMeters = totalDistance.toInt(),
-            durationSeconds = itinerary.durationSeconds,
+            durationSeconds = durationSeconds,
             normalizedPackage = routePackage,
         )
     }
@@ -555,6 +565,16 @@ class HslRoutingAdapter(
     )
 
     companion object {
+        fun overrideDurationSeconds(
+            totalDistanceMeters: Double,
+            cyclingSpeedKph: Double,
+            fallbackSeconds: Int,
+        ): Int {
+            if (!cyclingSpeedKph.isFinite() || cyclingSpeedKph <= 0.0) return fallbackSeconds
+            val mps = cyclingSpeedKph / 3.6
+            return kotlin.math.max(1L, kotlin.math.round(totalDistanceMeters / mps).toLong()).toInt()
+        }
+
         val ROUTE_PLAN_QUERY = """
             query RoutePlan(${'$'}from: InputCoordinates!, ${'$'}to: InputCoordinates!, ${'$'}numItineraries: Int!, ${'$'}transportModes: [TransportMode!]!, ${'$'}optimize: OptimizeType!) {
               plan(

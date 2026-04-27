@@ -153,10 +153,42 @@ class HomeStateHolder(
 
     val activeNavigationSubtitle: String
         get() = when (homeMode) {
-            HomeMode.PHONE_GUIDANCE -> nextInstructionLine ?: "Riding on phone"
+            HomeMode.PHONE_GUIDANCE -> {
+                // Mirror web/iOS: "X km remaining • Y min" — but without
+                // route-progress tracking on Android we substitute the
+                // route summary line. Still gives the rider a sense of
+                // total distance / ETA.
+                guidanceRoute?.summaryLine ?: "Riding on phone"
+            }
             HomeMode.DEVICE_OVERVIEW, HomeMode.SENDING_TO_DEVICE -> appState.syncSession.lastSyncResult
             HomeMode.PLANNING -> selectedPreview?.normalizedPackage?.summaryLine.orEmpty()
         }
+
+    /**
+     * Single line: destination address + remaining distance + remaining
+     * minutes. Pinned as the subtitle of the top guidance card so the bottom
+     * no longer needs to repeat the same information; it shows only a
+     * floating Stop button. Empty destination labels are dropped so the line
+     * never starts with a stray separator.
+     */
+    val guidanceSubtitleLine: String
+        get() {
+            val destination = (guidanceRoute?.summary?.destinationLabel ?: appState.activeSession.destinationLabel).trim()
+            val remainingPart = activeNavigationSubtitle
+            return if (destination.isEmpty() || destination == "No destination") {
+                remainingPart
+            } else {
+                "$destination • $remainingPart"
+            }
+        }
+
+    /**
+     * Set when the rider arrives at the destination; cleared when the next
+     * route starts. The Compose UI shows a banner in the bottom slot and
+     * routing has been auto-stopped.
+     */
+    var arrivalNotice by mutableStateOf<String?>(null)
+        private set
 
         fun syncQueryFromPreview() {
         previewRoute?.summary?.destinationLabel?.takeIf { it.isNotBlank() }?.let {
@@ -335,6 +367,9 @@ class HomeStateHolder(
         closeSearch()
         val routeIdentifier = selectedPreview?.normalizedPackage?.routeIdentifier ?: return
         activeRouteIdentifier = routeIdentifier
+        // Starting a new route clears any stale arrival banner from the
+        // previous trip.
+        arrivalNotice = null
         if (appState.isDeviceConnected) {
             homeMode = HomeMode.SENDING_TO_DEVICE
             appState.sendSelectedRoute { success ->
@@ -496,6 +531,39 @@ class HomeStateHolder(
     fun ingestRiderLocationFix(point: CoordinatePoint, timestampMs: Long) {
         headingTrail.recordFix(point, timestampMs)
         trailHeadingCache = headingTrail.travelHeadingDegrees
+        // Spec: when the rider arrives at the destination, end routing.
+        // Straight-line distance to the route's last vertex — Android lacks
+        // along-route projection, so this check trips when the rider is
+        // physically near the destination from any approach direction.
+        if (homeMode == HomeMode.PHONE_GUIDANCE) {
+            val destination = guidanceRoute?.geometry?.lastOrNull()
+            if (destination != null && straightLineMeters(destination, point) <= ARRIVAL_RADIUS_M) {
+                declareArrival()
+            }
+        }
+    }
+
+    private fun declareArrival() {
+        arrivalNotice = "Arrived at destination"
+        // Reuse the manual-stop teardown so persistence + UI stay consistent.
+        // arrivalNotice survives because stopActiveNavigation() doesn't clear it.
+        stopActiveNavigation()
+    }
+
+    companion object {
+        /**
+         * Larger than the off-route exit distance so a rider drifting around
+         * the destination doesn't bounce between "off route" and "arrived".
+         */
+        private const val ARRIVAL_RADIUS_M = 25.0
+
+        private fun straightLineMeters(a: CoordinatePoint, b: CoordinatePoint): Double {
+            val metersPerDegLat = 111_320.0
+            val dN = (b.latitude - a.latitude) * metersPerDegLat
+            val meanLat = ((a.latitude + b.latitude) / 2.0) * Math.PI / 180.0
+            val dE = (b.longitude - a.longitude) * kotlin.math.cos(meanLat) * metersPerDegLat
+            return kotlin.math.sqrt(dN * dN + dE * dE)
+        }
     }
 
     /**

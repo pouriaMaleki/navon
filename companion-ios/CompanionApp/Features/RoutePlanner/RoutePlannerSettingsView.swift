@@ -48,6 +48,27 @@ struct RoutePlannerSettingsView: View {
             }
 
             Section {
+                Stepper(value: $appModel.settings.cyclingSpeedKph, in: 5...50, step: 1) {
+                    HStack {
+                        Text("Cycling speed")
+                        Spacer()
+                        Text("\(Int(appModel.settings.cyclingSpeedKph.rounded())) kph")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Picker("Speed unit", selection: $appModel.settings.speedUnit) {
+                    ForEach(SpeedUnit.allCases) { unit in
+                        Text(unit.label).tag(unit)
+                    }
+                }
+            } header: {
+                Text("Riding")
+            } footer: {
+                Text("Cycling speed overrides HSL ETAs (Digitransit defaults to a slow bike speed). Speed unit is how the live-speed badge is shown on the map.")
+                    .font(.footnote)
+            }
+
+            Section {
                 Toggle("Prefer live HSL routing", isOn: $appModel.settings.preferLiveHslRouting)
                 SecureField("Digitransit subscription key", text: $appModel.settings.hslSubscriptionKey)
                     .textInputAutocapitalization(.never)

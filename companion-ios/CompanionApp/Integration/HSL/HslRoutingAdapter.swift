@@ -169,8 +169,15 @@ struct HslRoutingAdapter: RoutingProvider {
         revisionOverride: Int?,
         planningNotice: String?
     ) -> RoutePreviewModel {
+        let cyclingSpeedKph = settingsProvider().cyclingSpeedKph
         let alternatives = response.data.plan.itineraries.enumerated().map { index, itinerary in
-            normalizeItinerary(itinerary, request: request, alternativeIndex: index, revision: revisionOverride ?? 1)
+            normalizeItinerary(
+                itinerary,
+                request: request,
+                alternativeIndex: index,
+                revision: revisionOverride ?? 1,
+                cyclingSpeedKph: cyclingSpeedKph
+            )
         }
         return RoutePreviewModel(
             alternatives: alternatives,
@@ -185,15 +192,24 @@ struct HslRoutingAdapter: RoutingProvider {
         _ itinerary: DigitransitItinerary,
         request: RoutePlanRequest,
         alternativeIndex: Int,
-        revision: Int
+        revision: Int,
+        cyclingSpeedKph: Double
     ) -> RouteAlternative {
         let routeID = buildRouteIdentifier(request: request, alternativeIndex: alternativeIndex)
         let geometry = deduplicatedGeometry(from: itinerary.legs)
         let maneuvers = buildManeuvers(from: itinerary, geometry: geometry)
         let totalDistance = itinerary.legs.reduce(0.0) { $0 + $1.distanceMeters }
+        // Digitransit's bike speed is conservative for actual riders; recompute
+        // the ETA from the user-set cycling speed so listed times match
+        // real-world riding.
+        let durationSeconds = Self.overrideDurationSeconds(
+            totalDistanceMeters: totalDistance,
+            cyclingSpeedKph: cyclingSpeedKph,
+            fallbackSeconds: itinerary.durationSeconds
+        )
         let summary = RouteSummary(
             totalDistanceMeters: totalDistance,
-            estimatedDurationSeconds: itinerary.durationSeconds,
+            estimatedDurationSeconds: durationSeconds,
             startLabel: itinerary.startLabel,
             destinationLabel: itinerary.destinationLabel
         )
@@ -218,6 +234,16 @@ struct HslRoutingAdapter: RoutingProvider {
             durationSeconds: summary.estimatedDurationSeconds,
             normalizedPackage: package
         )
+    }
+
+    static func overrideDurationSeconds(
+        totalDistanceMeters: Double,
+        cyclingSpeedKph: Double,
+        fallbackSeconds: Int
+    ) -> Int {
+        guard cyclingSpeedKph.isFinite, cyclingSpeedKph > 0 else { return fallbackSeconds }
+        let mps = cyclingSpeedKph / 3.6
+        return max(1, Int((totalDistanceMeters / mps).rounded()))
     }
 
     private func buildManeuvers(

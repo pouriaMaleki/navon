@@ -2,7 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!--
+      Lock the page-level scale so the OS browser-zoom can't fight the
+      MapLibre pinch-zoom and shred the layout when the device rotates.
+      The map handles its own pinch/zoom; the page itself never needs to scale.
+    -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
     <meta name="theme-color" content="#050B12" />
     <title>ESP32 Bike Companion</title>
   </head>

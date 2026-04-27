@@ -137,7 +137,18 @@ export class RootStore {
     });
     // Route-overview intent: fit the active route geometry, north-up. Fires
     // on compass single-tap (northPreview) and double-tap (northLocked).
+    // During phoneGuidance we fit ONLY the remaining route ahead of the
+    // rider (`routeOverviewGeometry`) so the camera doesn't zoom out to
+    // include kilometres already ridden — long rides made the overview
+    // useless before this change.
     this.guidanceStore.onFitRouteRequested(() => {
+      if (this.guidanceStore.homeMode === "phoneGuidance") {
+        const remaining = this.guidanceStore.routeOverviewGeometry;
+        if (remaining && remaining.length >= 2) {
+          this.mapCameraStore.fitBounds(remaining, 120);
+          return;
+        }
+      }
       const selected =
         this.planningStore.preview.alternatives.find(
           (a) => a.id === this.planningStore.preview.selectedAlternativeID,
@@ -347,6 +358,9 @@ export class RootStore {
           routeRevision: package_.revision,
           planningNotice: item.sourceLabel,
         });
+        // Mirror the suggestion-pick UX: pin the input label and close the
+        // dropdown so the route preview underneath becomes visible.
+        this.planningStore.markPickCompleted(item.title);
       });
     } else if (item.destination) {
       runInAction(() => {
@@ -355,8 +369,13 @@ export class RootStore {
           destination: item.destination as CoordinatePoint,
           providerID: primaryProviderID(this.planningStore.currentSourceMode),
         };
+        this.planningStore.markPickCompleted(item.title);
       });
       await this.planningStore.planRoute(item.title);
+      // Re-arm the post-selection latch so it covers the React re-render
+      // that fires when the new preview lands — the original arm fired
+      // before `planRoute` (a network call) and may have already expired.
+      this.planningStore.markPickCompleted();
     }
     this.goHome();
     if (startImmediately) this.guidanceStore.startSelectedRoute();

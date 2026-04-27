@@ -3,7 +3,14 @@ import type { CoordinatePoint } from "../../domain/models.js";
 export type LocationErrorKind = "denied" | "unavailable" | "timeout" | "unsupported";
 
 export type LocationUpdate =
-  | { kind: "fix"; point: CoordinatePoint; accuracyMeters?: number; headingDegrees?: number }
+  | {
+      kind: "fix";
+      point: CoordinatePoint;
+      accuracyMeters?: number;
+      headingDegrees?: number;
+      /** Instantaneous ground speed in m/s, when reported by the geolocation source. */
+      speedMps?: number;
+    }
   | { kind: "error"; error: LocationErrorKind; message: string };
 
 export type LocationListener = (update: LocationUpdate) => void;
@@ -42,6 +49,7 @@ export class BrowserLocationService implements LocationService {
     const id = navigator.geolocation.watchPosition(
       (position) => {
         const heading = position.coords.heading;
+        const speed = position.coords.speed;
         listener({
           kind: "fix",
           point: {
@@ -50,6 +58,7 @@ export class BrowserLocationService implements LocationService {
           },
           accuracyMeters: position.coords.accuracy,
           headingDegrees: heading != null && !Number.isNaN(heading) ? heading : undefined,
+          speedMps: speed != null && Number.isFinite(speed) && speed >= 0 ? speed : undefined,
         });
       },
       (error) => {

@@ -206,16 +206,78 @@ struct RoutePlanRequest: Equatable {
     var providerID: RouteProviderID
 }
 
+enum SpeedUnit: String, CaseIterable, Identifiable, Codable {
+    case kph
+    case mph
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .kph: return "km/h"
+        case .mph: return "mph"
+        }
+    }
+}
+
 struct CompanionSettings: Equatable, Codable {
     var preferLiveHslRouting: Bool
     var hslSubscriptionKey: String
     var hslEndpointURL: String
+    /// Cyclist's planning speed in km/h. Used to override route ETA so that
+    /// `estimatedDurationSeconds = totalDistanceMeters / (cyclingSpeedKph / 3.6)`.
+    /// HSL Digitransit defaults to a slow bike speed and routinely returns
+    /// inflated ETAs; override applies to both live and sample HSL itineraries.
+    var cyclingSpeedKph: Double
+    /// Display unit for the live-speed badge.
+    var speedUnit: SpeedUnit
 
     static let defaults = CompanionSettings(
         preferLiveHslRouting: false,
         hslSubscriptionKey: "",
-        hslEndpointURL: "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1"
+        hslEndpointURL: "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1",
+        cyclingSpeedKph: 18,
+        speedUnit: .kph
     )
+
+    /// Tolerant decode so existing on-disk settings (no `cyclingSpeedKph` /
+    /// `speedUnit` field) keep working after upgrade — the missing fields
+    /// fall back to the defaults instead of failing the decode entirely.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.preferLiveHslRouting = try container.decodeIfPresent(Bool.self, forKey: .preferLiveHslRouting)
+            ?? Self.defaults.preferLiveHslRouting
+        self.hslSubscriptionKey = try container.decodeIfPresent(String.self, forKey: .hslSubscriptionKey)
+            ?? Self.defaults.hslSubscriptionKey
+        self.hslEndpointURL = try container.decodeIfPresent(String.self, forKey: .hslEndpointURL)
+            ?? Self.defaults.hslEndpointURL
+        self.cyclingSpeedKph = try container.decodeIfPresent(Double.self, forKey: .cyclingSpeedKph)
+            ?? Self.defaults.cyclingSpeedKph
+        self.speedUnit = try container.decodeIfPresent(SpeedUnit.self, forKey: .speedUnit)
+            ?? Self.defaults.speedUnit
+    }
+
+    init(
+        preferLiveHslRouting: Bool,
+        hslSubscriptionKey: String,
+        hslEndpointURL: String,
+        cyclingSpeedKph: Double,
+        speedUnit: SpeedUnit
+    ) {
+        self.preferLiveHslRouting = preferLiveHslRouting
+        self.hslSubscriptionKey = hslSubscriptionKey
+        self.hslEndpointURL = hslEndpointURL
+        self.cyclingSpeedKph = cyclingSpeedKph
+        self.speedUnit = speedUnit
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case preferLiveHslRouting
+        case hslSubscriptionKey
+        case hslEndpointURL
+        case cyclingSpeedKph
+        case speedUnit
+    }
 }
 
 struct RouteAlternative: Identifiable, Equatable {

@@ -15,6 +15,13 @@ export class LocationStore {
   /** GPS heading in degrees from true north (0-360), or null if unavailable/stationary. */
   currentHeadingDegrees: number | null = null;
   /**
+   * Instantaneous ground speed in m/s reported by the geolocation source, or
+   * `undefined` if the source did not report it on the last fix. Used by the
+   * speed badge (spec line 30 / "always render speed when riding"). Negative
+   * or non-finite values from the platform are coerced to `undefined`.
+   */
+  currentSpeedMps: number | undefined = undefined;
+  /**
    * Smoothed travel heading derived from the last few GPS fixes. Spec line
    * 110 (authoritative): this is what the routing camera should rotate to
    * when the rider is moving — overrides the route-segment bearing.
@@ -72,6 +79,7 @@ export class LocationStore {
         runInAction(() => {
           this.currentLocation = update.point;
           this.currentHeadingDegrees = update.headingDegrees ?? null;
+          this.currentSpeedMps = sanitizeSpeed(update.speedMps);
           this.headingTrail.recordFix(update.point, Date.now());
           this.trailHeadingDegreesCache = this.headingTrail.travelHeadingDegrees;
           this.lastKnownLocation = update.point;
@@ -138,4 +146,10 @@ export class LocationStore {
       this.permission = state;
     });
   }
+}
+
+function sanitizeSpeed(raw: number | undefined): number | undefined {
+  if (raw === undefined) return undefined;
+  if (!Number.isFinite(raw) || raw < 0) return undefined;
+  return raw;
 }

@@ -196,16 +196,30 @@ export type PendingHomePresentation = {
   debugTrail: string[];
 };
 
+export type SpeedUnit = "kph" | "mph";
+
 export type CompanionSettings = {
   preferLiveHslRouting: boolean;
   hslSubscriptionKey: string;
   hslEndpointURL: string;
+  /**
+   * Cyclist's planning speed in km/h. Used to override route ETA so that
+   * `estimatedDurationSeconds = totalDistanceMeters / (cyclingSpeedKph / 3.6)`.
+   * Why: HSL Digitransit defaults a cautious bike speed and routinely returns
+   * inflated ETAs; for a moving rider 14–22 kph is realistic. Applies to both
+   * live and sample HSL itineraries.
+   */
+  cyclingSpeedKph: number;
+  /** Display unit for live speed; persisted so all companions render the same. */
+  speedUnit: SpeedUnit;
 };
 
 export const DEFAULT_COMPANION_SETTINGS: CompanionSettings = {
   preferLiveHslRouting: false,
   hslSubscriptionKey: "",
   hslEndpointURL: "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1",
+  cyclingSpeedKph: 18,
+  speedUnit: "kph",
 };
 
 export type RoutePlannerPreferences = {

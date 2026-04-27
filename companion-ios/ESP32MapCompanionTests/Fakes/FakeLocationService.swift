@@ -10,6 +10,7 @@ final class FakeLocationService: ObservableObject, LocationService {
     @Published private(set) var lastKnownLocation: CoordinatePoint?
     @Published private(set) var isLocating: Bool = false
     @Published private(set) var lastError: LocationErrorKind?
+    @Published private(set) var currentSpeedMps: Double?
 
     private(set) var startCount = 0
     private(set) var stopCount = 0
@@ -25,10 +26,11 @@ final class FakeLocationService: ObservableObject, LocationService {
         isLocating = false
     }
 
-    func emitFix(latitude: Double, longitude: Double) {
+    func emitFix(latitude: Double, longitude: Double, speedMps: Double? = nil) {
         let point = CoordinatePoint(latitude: latitude, longitude: longitude)
         currentLocation = point
         lastKnownLocation = point
+        currentSpeedMps = speedMps
         isLocating = false
         lastError = nil
     }

@@ -40,6 +40,9 @@ protocol LocationService: AnyObject {
     var lastKnownLocation: CoordinatePoint? { get }
     var isLocating: Bool { get }
     var lastError: LocationErrorKind? { get }
+    /// Instantaneous ground speed in m/s for the most recent fix, or `nil`
+    /// if the platform did not report it. Used by the speed badge.
+    var currentSpeedMps: Double? { get }
     /// Begin watching the device's foreground location. Idempotent.
     func start()
     /// Pause watching. Idempotent.

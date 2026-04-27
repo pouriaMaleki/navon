@@ -201,13 +201,73 @@ final class HomeViewModel: ObservableObject {
     var activeNavigationSubtitle: String {
         switch homeMode {
         case .phoneGuidance:
-            return nextInstructionLine ?? "Riding on phone"
+            // Mirror web's `activeNavigationSubtitle`: "X km remaining • Y min".
+            // The destination address is now bundled into `guidanceSubtitleLine`
+            // (the top card) so the bottom no longer shows it.
+            let remaining = remainingDistanceM
+            if remaining > 0 {
+                let km = String(format: "%.1f", remaining / 1000)
+                let etaMin = max(1, Int(ceil(remainingDurationSeconds / 60.0)))
+                return "\(km) km remaining • \(etaMin) min"
+            }
+            if let route = guidanceRoute {
+                let km = String(format: "%.1f", route.summary.totalDistanceMeters / 1000)
+                let min = max(1, route.summary.estimatedDurationSeconds / 60)
+                return "\(km) km • \(min) min"
+            }
+            return "Phone guidance ready"
         case .deviceOverview, .sendingToDevice:
             return appModel.bleService.sessionState.lastSyncResult
         case .planning:
             return selectedPreview?.normalizedPackage.summaryLine ?? ""
         }
     }
+
+    /// Single line: destination address + remaining distance + remaining
+    /// minutes. Pinned as the subtitle of the top guidance card so the
+    /// bottom no longer needs to repeat the same information; it shows
+    /// only a floating Stop button. Empty destination labels are dropped
+    /// so the line never starts with a stray separator.
+    var guidanceSubtitleLine: String {
+        let raw = guidanceRoute?.summary.destinationLabel ?? appModel.activeSession.destinationLabel
+        let destination = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        let remainingPart = activeNavigationSubtitle
+        if destination.isEmpty || destination == "No destination" {
+            return remainingPart
+        }
+        return "\(destination) • \(remainingPart)"
+    }
+
+    /// Remaining distance (m) along the active route from the rider's current
+    /// progress. Returns 0 when there's no active route.
+    var remainingDistanceM: Double {
+        guard routeTotalDistanceM > 0 else { return 0 }
+        return max(0, routeTotalDistanceM - progressDistanceM)
+    }
+
+    /// Estimated remaining duration (s), proportional to the fraction of the
+    /// route still to cover. Mirrors web `remainingDurationSeconds`.
+    var remainingDurationSeconds: Double {
+        guard let route = guidanceRoute, routeTotalDistanceM > 0 else { return 0 }
+        let fraction = max(0, 1 - progressDistanceM / routeTotalDistanceM)
+        return Double(route.summary.estimatedDurationSeconds) * fraction
+    }
+
+    /// Geometry the route-overview camera should fit when the user taps the
+    /// compass during routing. Equals the remaining route ahead of the
+    /// rider — late in a ride the start segment is no longer relevant, so
+    /// including it would zoom the camera out unnecessarily. Falls back to
+    /// the full geometry before any progress.
+    var routeOverviewGeometry: [CoordinatePoint] {
+        guard let geometry = guidanceRoute?.geometry, !geometry.isEmpty else { return [] }
+        let split = splitPolylineAtDistance(geometry, distance: progressDistanceM)
+        if split.remaining.count >= 2 { return split.remaining }
+        return geometry
+    }
+
+    /// Set when the rider has reached the destination and guidance has been
+    /// auto-stopped. Cleared on the next route start.
+    @Published var arrivalNotice: String?
 
     var nextInstructionLine: String? {
         // Spec line 102: as the rider advances along the route, the
@@ -458,6 +518,9 @@ final class HomeViewModel: ObservableObject {
         closeSearch()
         guard let selectedPreview else { return }
         activeRouteIdentifier = selectedPreview.normalizedPackage.routeIdentifier
+        // Starting a new route clears any stale arrival banner from the
+        // previous trip.
+        arrivalNotice = nil
         if appModel.isDeviceConnected {
             homeMode = .sendingToDevice
             let success = await appModel.sendSelectedRoute()
@@ -660,6 +723,73 @@ final class HomeViewModel: ObservableObject {
         let projected = projectProgress(onto: geometry, rider: rider)
         let bounded = min(routeTotalDistanceM > 0 ? routeTotalDistanceM : projected, projected)
         progressDistanceM = max(progressDistanceM, bounded)
+        // Spec: when the rider arrives at the destination, end routing.
+        // Use straight-line distance to the last geometry vertex so a rider
+        // approaching from any side trips arrival, not just one travelling
+        // along-route.
+        if let last = geometry.last,
+           Self.straightLineMeters(last, rider) <= Self.arrivalRadiusM {
+            declareArrival()
+        }
+    }
+
+    /// Larger than the off-route exit distance so a rider drifting around
+    /// the destination doesn't bounce between "off route" and "arrived".
+    private static let arrivalRadiusM: Double = 25
+
+    private func declareArrival() {
+        arrivalNotice = "Arrived at destination"
+        // Reuse the same teardown as a manual stop — keep persistence + UI
+        // intent consistent. arrivalNotice stays set because stopActiveNavigation
+        // does not clear it.
+        stopActiveNavigation()
+    }
+
+    /// Equirectangular distance approximation in meters. Same formula used
+    /// elsewhere in this file; pulled into one place for the arrival check.
+    static func straightLineMeters(_ a: CoordinatePoint, _ b: CoordinatePoint) -> Double {
+        let metersPerDegLat = 111_320.0
+        let dN = (b.latitude - a.latitude) * metersPerDegLat
+        let meanLat = ((a.latitude + b.latitude) / 2.0) * .pi / 180.0
+        let dE = (b.longitude - a.longitude) * cos(meanLat) * metersPerDegLat
+        return (dN * dN + dE * dE).squareRoot()
+    }
+
+    /// Split a polyline at a given distance-along-route. Mirrors the web
+    /// `splitPolylineAtDistance` helper: returns the prefix up to that
+    /// distance and the suffix from there to the end. Inserts a synthesized
+    /// vertex on the segment that contains the split point so each side
+    /// stays a valid polyline.
+    func splitPolylineAtDistance(
+        _ polyline: [CoordinatePoint],
+        distance: Double
+    ) -> (completed: [CoordinatePoint], remaining: [CoordinatePoint]) {
+        guard polyline.count >= 2, distance > 0 else { return ([], polyline) }
+        let metersPerDegLat = 111_320.0
+        var traversed = 0.0
+        var completed: [CoordinatePoint] = [polyline[0]]
+        for i in 0..<(polyline.count - 1) {
+            let a = polyline[i]
+            let b = polyline[i + 1]
+            let meanLat = ((a.latitude + b.latitude) / 2.0) * .pi / 180.0
+            let dN = (b.latitude - a.latitude) * metersPerDegLat
+            let dE = (b.longitude - a.longitude) * cos(meanLat) * metersPerDegLat
+            let segLen = (dN * dN + dE * dE).squareRoot()
+            if traversed + segLen >= distance {
+                let t = segLen <= 0 ? 0 : (distance - traversed) / segLen
+                let split = CoordinatePoint(
+                    latitude: a.latitude + (b.latitude - a.latitude) * t,
+                    longitude: a.longitude + (b.longitude - a.longitude) * t
+                )
+                completed.append(split)
+                var remaining: [CoordinatePoint] = [split]
+                remaining.append(contentsOf: polyline[(i + 1)...])
+                return (completed, remaining)
+            }
+            completed.append(b)
+            traversed += segLen
+        }
+        return (polyline, [polyline.last!])
     }
 
     /// Smoothed travel heading from the last few GPS fixes, `nil` while

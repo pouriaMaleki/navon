@@ -27,11 +27,14 @@ here are important things to know:
     - suggested route(s)
     - start/stop button
     - next turn
-  - speed
+  - speed: shown whenever the rider is moving (with or without an active route); unit (km/h or mph) is a setting
   - target user location icon (move camera back to user location)
   - settings icon
   - long press to pick a location
   - loading (a route, route suggestions or maps or getting location)
+- companion orientation / scaling:
+  - iOS / Android: portrait only (camera/UX is tuned for one orientation)
+  - web: page-level zoom is locked (the map handles its own pinch); orientation changes must not reflow
 - north indicator has different states and does different things:
   - shows north so it rotates to show where north is when map is rotated
   - pinned to north up
@@ -99,7 +102,11 @@ Tests should cover these ux cases as end to end tests (or if they suite for inte
     - when in routing:
       - camera moves so that user location is on the bottom quarter of the screen
       - camera rotates so that immidiate route direction is towards top of the screen (riding towards, even when stationary yet)
-      - next turn direction and distance in meters is shown
+      - top card title is the next-turn line (direction + distance in meters); subtitle is the destination address + remaining distance + remaining minutes — single source of truth (no duplicate destination card at the bottom)
+      - bottom: only a floating Stop button (plus optional off-route alert pill); no second card
+      - route overview (compass single- / double-tap) fits ONLY the remaining route ahead of the rider, never the already-completed prefix
+      - HSL ETA is recomputed from `cyclingSpeedKph` (settings) so listed times match real-world riding instead of Digitransit's conservative default
+      - when the rider is within ~25 m of the destination, guidance auto-stops and an "Arrived at destination" notice replaces the bottom button
       - speed is shown (is zero, stationary now)
       - user can move the camera by pan or pinch to zoom or rotate, when doing so in this state, after a timeout camera goes back to default (when in routing) smoothly
       - if user press north indicator map rotates to show the north up, after a timeout it goes back to default (when in routing) smoothly. north indicator animates the timeout, giving user a feedback something will be done

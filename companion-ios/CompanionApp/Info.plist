@@ -44,6 +44,22 @@
     </dict>
     <key>UIApplicationSupportsIndirectInputEvents</key>
     <true/>
+    <!--
+      Portrait-only: companion app camera/UX is tuned for a single
+      orientation. Allowing landscape forces the map camera math to
+      account for a different bottom-quarter anchor and breaks the
+      route overlay layout. iPhone keeps portrait + upside-down off;
+      iPad gets portrait variants only.
+    -->
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+    </array>
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+    </array>
     <key>UILaunchScreen</key>
     <dict/>
 </dict>

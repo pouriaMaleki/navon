@@ -39,10 +39,17 @@ class AndroidLocationService(
         override fun onLocationResult(result: LocationResult) {
             val last: Location = result.lastLocation ?: return
             val point = CoordinatePoint(latitude = last.latitude, longitude = last.longitude)
+            // Android exposes -1f (and `hasSpeed=false`) for unknown speed.
+            // Coerce non-positive / non-finite values to null so the badge
+            // can render a "—" placeholder instead of a misleading 0.
+            val speed: Double? = if (last.hasSpeed() && last.speed.isFinite() && last.speed >= 0f) {
+                last.speed.toDouble()
+            } else null
             persistence.saveLastKnownRider(point)
             _state.value = _state.value.copy(
                 currentLocation = point,
                 lastKnownLocation = point,
+                currentSpeedMps = speed,
                 isLocating = false,
                 lastError = null,
             )

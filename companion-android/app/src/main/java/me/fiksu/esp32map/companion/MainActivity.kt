@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.IconButton
@@ -73,6 +74,7 @@ import me.fiksu.esp32map.companion.domain.HomeCompassMode
 import me.fiksu.esp32map.companion.domain.HomeMode
 import me.fiksu.esp32map.companion.domain.RouteHistoryItem
 import me.fiksu.esp32map.companion.domain.RouteSourceMode
+import me.fiksu.esp32map.companion.domain.SpeedUnit
 import me.fiksu.esp32map.companion.domain.RouteStartBehavior
 import me.fiksu.esp32map.companion.domain.RouteSuggestionMode
 import me.fiksu.esp32map.companion.feature.home.HomeStateHolder
@@ -335,10 +337,43 @@ private fun CompanionHomeScreen(
             Spacer(Modifier.weight(1f))
 
             when (homeState.homeMode) {
-                HomeMode.PLANNING -> if (homeState.previewAlternatives.isNotEmpty()) RouteSuggestionsCard(appState, homeState)
+                HomeMode.PLANNING -> {
+                    val arrival = homeState.arrivalNotice
+                    if (arrival != null) {
+                        ArrivalCard(arrival)
+                    } else if (homeState.previewAlternatives.isNotEmpty()) {
+                        RouteSuggestionsCard(appState, homeState)
+                    }
+                }
                 HomeMode.PHONE_GUIDANCE -> ActiveGuidanceCard(homeState)
                 HomeMode.SENDING_TO_DEVICE, HomeMode.DEVICE_OVERVIEW -> DeviceOverviewCard(appState, homeState)
             }
+            SpeedBadge(appState = appState, homeState = homeState)
+        }
+    }
+}
+
+@Composable
+private fun SpeedBadge(appState: CompanionAppState, homeState: HomeStateHolder) {
+    // Spec: render speed whenever the rider is moving (with or without an
+    // active route). The "moving" signal is the heading-trail's
+    // travelHeadingDegrees — same threshold the camera uses to enter
+    // routing-anchor mode — so the badge appears/disappears in lock-step
+    // with the bottom-quarter anchor.
+    val moving = homeState.travelHeadingDegrees != null
+    val inGuidance = homeState.homeMode == HomeMode.PHONE_GUIDANCE
+    if (!moving && !inGuidance) return
+    val unit = appState.settings.speedUnit
+    val mps = appState.locationState.currentSpeedMps
+    val factor = if (unit == SpeedUnit.MPH) 2.2369363 else 3.6
+    val label = if (mps == null || !mps.isFinite()) {
+        "— ${unit.label}"
+    } else {
+        "${kotlin.math.round(mps * factor).toInt()} ${unit.label}"
+    }
+    Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        Surface(shape = MaterialTheme.shapes.medium, tonalElevation = 4.dp) {
+            Text(label, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp), style = MaterialTheme.typography.titleSmall)
         }
     }
 }
@@ -453,6 +488,10 @@ private fun PhoneGuidanceTopArea(
     homeState: HomeStateHolder,
     scope: kotlinx.coroutines.CoroutineScope,
 ) {
+    // Top card: next-turn line as the headline, destination + remaining
+    // bundled as the subtitle (single source of truth — the bottom just
+    // floats a stop button). See HomeStateHolder.guidanceSubtitleLine.
+    val headline = homeState.nextInstructionLine ?: homeState.activeNavigationTitle
     Surface(shape = MaterialTheme.shapes.large, tonalElevation = 4.dp) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(14.dp),
@@ -460,8 +499,8 @@ private fun PhoneGuidanceTopArea(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(homeState.activeNavigationTitle, fontWeight = FontWeight.SemiBold)
-                Text(homeState.activeNavigationSubtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(headline, fontWeight = FontWeight.SemiBold)
+                Text(homeState.guidanceSubtitleLine, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Box(
                 modifier = Modifier
@@ -587,16 +626,35 @@ private fun RouteSuggestionsCard(appState: CompanionAppState, homeState: HomeSta
 
 @Composable
 private fun ActiveGuidanceCard(homeState: HomeStateHolder) {
-    val route = homeState.guidanceRoute ?: return
-    Column(
-        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.94f), shape = MaterialTheme.shapes.extraLarge).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+    // Destination + remaining + ETA all live in the top card now (see
+    // `guidanceSubtitleLine`). The bottom slot is intentionally minimal:
+    // a floating Stop button so the map stays maximally visible.
+    if (homeState.guidanceRoute == null) return
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.End,
     ) {
-        Text(route.summary.destinationLabel ?: "Guidance active", style = MaterialTheme.typography.titleMedium)
-        Text(homeState.nextInstructionLine ?: route.summaryLine, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Button(onClick = { homeState.stopActiveNavigation() }, modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = { homeState.stopActiveNavigation() },
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+        ) {
             Text("Stop")
         }
+    }
+}
+
+@Composable
+private fun ArrivalCard(message: String) {
+    Column(
+        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.94f), shape = MaterialTheme.shapes.extraLarge).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(message, style = MaterialTheme.typography.titleMedium)
+        Text(
+            "Routing finished. Tap a destination to plan again.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -749,6 +807,45 @@ private fun RoutePlannerSettingsScreen(appState: CompanionAppState, onBack: () -
                 label = { Text(behavior.displayName) },
             )
         }
+
+        Spacer(Modifier.height(16.dp))
+        Text("Riding", fontWeight = FontWeight.SemiBold)
+        Text(
+            "Cycling speed overrides HSL ETAs (Digitransit defaults to a slow bike speed). Speed unit is how the live-speed badge is shown on the map.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Cycling speed", modifier = Modifier.weight(1f))
+            TextField(
+                value = appState.settings.cyclingSpeedKph.toInt().toString(),
+                onValueChange = { raw ->
+                    val parsed = raw.toIntOrNull()
+                    if (parsed != null && parsed > 0) {
+                        appState.settings = appState.settings.copy(cyclingSpeedKph = parsed.toDouble())
+                        appState.persistSettings()
+                    }
+                },
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
+                ),
+                label = { Text("kph") },
+                modifier = Modifier.width(120.dp),
+            )
+        }
+        Text("Speed unit")
+        SpeedUnit.entries.forEach { unit ->
+            FilterChip(
+                selected = appState.settings.speedUnit == unit,
+                onClick = {
+                    appState.settings = appState.settings.copy(speedUnit = unit)
+                    appState.persistSettings()
+                },
+                label = { Text(unit.label) },
+            )
+        }
+
         Spacer(Modifier.height(16.dp))
         Text("HSL Digitransit", fontWeight = FontWeight.SemiBold)
         Text(

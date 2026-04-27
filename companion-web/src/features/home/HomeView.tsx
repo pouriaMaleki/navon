@@ -2,6 +2,7 @@ import { reaction } from "mobx";
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef } from "react";
 import type { RootStore } from "../../app/RootStore.js";
+import { formatSpeedLabel } from "../../integrations/speed.js";
 import { ActiveGuidanceCard } from "./ActiveGuidanceCard.js";
 import { MapSurface } from "./MapSurface.js";
 import { RouteSuggestionsCard } from "./RouteSuggestionsCard.js";
@@ -98,8 +99,25 @@ export const HomeView = observer(({ store }: Props) => {
       <TopOverlay store={store} />
       <BottomOverlay store={store} />
       <RecenterButton store={store} />
+      <SpeedBadge store={store} />
       <LocationBanner store={store} />
     </>
+  );
+});
+
+// Spec: render speed whenever the rider is moving (with or without an active
+// route). The "moving" signal is the heading-trail's `travelHeadingDegrees`
+// — same threshold the camera uses to enter routing-anchor mode — so the
+// badge appears/disappears in lock-step with the bottom-quarter anchor.
+const SpeedBadge = observer(({ store }: { store: RootStore }) => {
+  const moving = store.locationStore.travelHeadingDegrees !== undefined;
+  const inGuidance = store.guidanceStore.homeMode === "phoneGuidance";
+  if (!moving && !inGuidance) return null;
+  const unit = store.settingsStore.settings.speedUnit;
+  return (
+    <div className="speed-badge" aria-label="Current speed" role="status">
+      {formatSpeedLabel(store.locationStore.currentSpeedMps, unit)}
+    </div>
   );
 });
 
@@ -164,12 +182,16 @@ const TopOverlay = observer(({ store }: { store: RootStore }) => {
   }, [planning, planning.isSearchOpen]);
 
   if (guidance.homeMode === "phoneGuidance") {
+    // Top card: next-turn line as the headline, destination + remaining bundled
+    // as the subtitle (single source of truth — the bottom just floats a stop
+    // button). See GuidanceStore.guidanceSubtitleLine.
+    const headline = guidance.nextInstructionLine ?? guidance.activeNavigationTitle;
     return (
       <div className="overlay-top">
         <div className="card guidance-header">
           <div className="guidance-header__text">
-            <div className="list-row__title">{guidance.activeNavigationTitle}</div>
-            <div className="list-row__subtitle">{guidance.activeNavigationSubtitle}</div>
+            <div className="list-row__title">{headline}</div>
+            <div className="list-row__subtitle">{guidance.guidanceSubtitleLine}</div>
           </div>
           <button
             type="button"
@@ -244,6 +266,18 @@ const BottomOverlay = observer(({ store }: { store: RootStore }) => {
         <div className="card">
           <div className="list-row__title">Working on route</div>
           <div className="list-row__subtitle">{status}</div>
+        </div>
+      </div>
+    );
+  }
+  if (guidance.arrivalNotice) {
+    return (
+      <div className="overlay-bottom">
+        <div className="card" role="status">
+          <div className="list-row__title">{guidance.arrivalNotice}</div>
+          <div className="list-row__subtitle">
+            Routing finished. Tap a destination to plan again.
+          </div>
         </div>
       </div>
     );

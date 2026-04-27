@@ -155,10 +155,24 @@ data class RoutePlanRequest(
     val providerId: RouteProviderId,
 )
 
+enum class SpeedUnit(val label: String) {
+    KPH("km/h"),
+    MPH("mph");
+}
+
 data class CompanionSettings(
     val preferLiveHslRouting: Boolean = false,
     val hslSubscriptionKey: String = "",
     val hslEndpointUrl: String = "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1",
+    /**
+     * Cyclist's planning speed in km/h. Used to override route ETA so that
+     * `estimatedDurationSeconds = totalDistanceMeters / (cyclingSpeedKph / 3.6)`.
+     * HSL Digitransit defaults to a slow bike speed and routinely returns
+     * inflated ETAs; override applies to both live and sample HSL itineraries.
+     */
+    val cyclingSpeedKph: Double = 18.0,
+    /** Display unit for the live-speed badge. */
+    val speedUnit: SpeedUnit = SpeedUnit.KPH,
 )
 
 data class RouteAlternative(

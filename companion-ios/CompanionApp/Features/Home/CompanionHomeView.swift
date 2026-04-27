@@ -38,6 +38,9 @@ struct CompanionHomeView: View {
                 .overlay(alignment: .bottom) {
                     bottomOverlay
                 }
+                .overlay(alignment: .bottomLeading) {
+                    speedBadge
+                }
                 .ignoresSafeArea(edges: .bottom)
                 .onAppear { refreshCameraForCurrentMode() }
                 .onChange(of: appModel.preview.selectedAlternativeID) { _, _ in refreshCameraForCurrentMode() }
@@ -164,11 +167,45 @@ struct CompanionHomeView: View {
         .padding(.top, 8)
     }
 
+    /// Speed badge shown whenever the rider is moving (with or without an
+    /// active route) — the same "moving" signal the camera uses to enter
+    /// routing-anchor mode (`travelHeadingDegrees != nil`). Lives in the
+    /// bottom-leading corner so it sits next to the floating Stop button
+    /// during routing without overlapping it.
+    @ViewBuilder
+    private var speedBadge: some View {
+        let moving = viewModel.travelHeadingDegrees != nil
+        let inGuidance = viewModel.homeMode == .phoneGuidance
+        if moving || inGuidance {
+            Text(formatSpeed(
+                appModel.locationService.currentSpeedMps,
+                unit: appModel.settings.speedUnit
+            ))
+            .font(.system(size: 14, weight: .bold))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .padding(.leading, 16)
+            .padding(.bottom, 32)
+            .accessibilityLabel("Current speed")
+        }
+    }
+
+    private func formatSpeed(_ mps: Double?, unit: SpeedUnit) -> String {
+        let factor = unit == .mph ? 2.2369363 : 3.6
+        guard let mps, mps.isFinite else {
+            return "— \(unit.label)"
+        }
+        return "\(Int((mps * factor).rounded())) \(unit.label)"
+    }
+
     @ViewBuilder
     private var bottomOverlay: some View {
         switch viewModel.homeMode {
         case .planning:
-            if viewModel.planningStatus != nil || appModel.importActivityStatus != nil {
+            if let arrival = viewModel.arrivalNotice {
+                arrivalCard(arrival)
+            } else if viewModel.planningStatus != nil || appModel.importActivityStatus != nil {
                 planningProgressCard
             } else if !viewModel.previewAlternatives.isEmpty {
                 routeSuggestionsCard
@@ -184,6 +221,21 @@ struct CompanionHomeView: View {
         }
     }
 
+    private func arrivalCard(_ message: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(message)
+                .font(.headline)
+            Text("Routing finished. Tap a destination to plan again.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .padding(.horizontal, 16)
+        .padding(.bottom, 16)
+    }
+
     private var planningTopOverlay: some View {
         VStack(spacing: 8) {
             topBar
@@ -194,12 +246,16 @@ struct CompanionHomeView: View {
     }
 
     private var phoneGuidanceTopOverlay: some View {
-        HStack(alignment: .center, spacing: 12) {
+        // Top card: next-turn line as the headline, destination + remaining
+        // bundled as the subtitle (single source of truth — the bottom just
+        // floats a stop button). See HomeViewModel.guidanceSubtitleLine.
+        let headline = viewModel.nextInstructionLine ?? viewModel.activeNavigationTitle
+        return HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(viewModel.activeNavigationTitle)
+                Text(headline)
                     .font(.headline)
                     .lineLimit(1)
-                Text(viewModel.activeNavigationSubtitle)
+                Text(viewModel.guidanceSubtitleLine)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
@@ -556,22 +612,20 @@ struct CompanionHomeView: View {
     }
 
     private func activeGuidanceCard(_ active: NormalizedRoutePackage) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(active.summary.destinationLabel ?? "Guidance active")
+        // The destination + remaining + ETA all live in the top card now
+        // (see `guidanceSubtitleLine`). The bottom slot is intentionally
+        // minimal: a floating Stop button (and the speed badge sits next
+        // to it via the surrounding overlay).
+        Button(role: .destructive, action: viewModel.stopActiveNavigation) {
+            Text("Stop")
                 .font(.headline)
-            Text(viewModel.nextInstructionLine ?? active.summaryLine)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Button(role: .destructive, action: viewModel.stopActiveNavigation) {
-                Text("Stop")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
+                .padding(.horizontal, 24)
         }
-        .padding(16)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+        .padding(.bottom, 24)
         .padding(.horizontal, 16)
-        .padding(.bottom, 16)
+        .frame(maxWidth: .infinity, alignment: .trailing)
     }
 
     private func deviceOverviewCard(_ active: NormalizedRoutePackage) -> some View {
@@ -612,7 +666,11 @@ struct CompanionHomeView: View {
             case .autoFollow:
                 orientCameraForTravel(on: route)
             case .northPreview, .northLocked:
-                fitCamera(to: route.geometry)
+                // Fit ONLY the remaining route — long rides made overview
+                // useless when the camera kept zooming out to include
+                // already-completed kilometres.
+                let overview = viewModel.routeOverviewGeometry
+                fitCamera(to: overview.count >= 2 ? overview : route.geometry)
             }
         }
     }

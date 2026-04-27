@@ -7,6 +7,9 @@ final class CoreLocationService: NSObject, ObservableObject, LocationService {
     @Published private(set) var lastKnownLocation: CoordinatePoint?
     @Published private(set) var isLocating: Bool = false
     @Published private(set) var lastError: LocationErrorKind?
+    /// Instantaneous ground speed (m/s) from the most recent CLLocation fix.
+    /// Negative `CLLocation.speed` means "unavailable" — we coerce that to nil.
+    @Published private(set) var currentSpeedMps: Double?
 
     private let manager: CLLocationManager
     private let persistence: CompanionPersistence
@@ -66,10 +69,11 @@ extension CoreLocationService: CLLocationManagerDelegate {
     }
 
     nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let coord = locations.last?.coordinate else { return }
-        let point = CoordinatePoint(latitude: coord.latitude, longitude: coord.longitude)
+        guard let location = locations.last else { return }
+        let point = CoordinatePoint(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
+        let speed: Double? = location.speed >= 0 && location.speed.isFinite ? location.speed : nil
         Task { @MainActor in
-            self.handleFix(point)
+            self.handleFix(point, speedMps: speed)
         }
     }
 
@@ -98,9 +102,10 @@ extension CoreLocationService: CLLocationManagerDelegate {
     }
 
     @MainActor
-    private func handleFix(_ point: CoordinatePoint) {
+    private func handleFix(_ point: CoordinatePoint, speedMps: Double?) {
         currentLocation = point
         lastKnownLocation = point
+        currentSpeedMps = speedMps
         isLocating = false
         lastError = nil
         persistence.saveLastKnownRider(point)

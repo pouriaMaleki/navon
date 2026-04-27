@@ -284,9 +284,21 @@ export class PlanningStore {
       destination: suggestion.coordinate,
       providerID: primaryProviderID(this.currentSourceMode),
     };
+    this.markPickCompleted();
+    void this.planRoute(suggestion.title);
+  }
+
+  /**
+   * Pin the input label and dismiss the dropdown after any kind of
+   * destination pick (typeahead suggestion, recent history item, dropped
+   * pin). Also arms the post-selection latch so the React onFocus replay
+   * that fires on the next render is absorbed instead of re-opening the
+   * panel. Single source of truth — every pick path goes through here.
+   */
+  markPickCompleted(label?: string): void {
+    if (label !== undefined) this.query = label;
     this.isSearchOpen = false;
     this.postSelectionLatchUntilMs = Date.now() + this.postSelectionLatchMs;
-    void this.planRoute(suggestion.title);
   }
 
   setDestinationFromMap(coordinate: CoordinatePoint, fallbackTitle = "Dropped pin"): void {

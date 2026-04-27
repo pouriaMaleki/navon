@@ -35,6 +35,11 @@ data class LocationState(
     val lastKnownLocation: CoordinatePoint? = null,
     val isLocating: Boolean = false,
     val lastError: LocationErrorKind? = null,
+    /**
+     * Instantaneous ground speed (m/s) for the most recent fix, or `null` if
+     * the platform did not report it. Used by the speed badge.
+     */
+    val currentSpeedMps: Double? = null,
 )
 
 interface LocationService {

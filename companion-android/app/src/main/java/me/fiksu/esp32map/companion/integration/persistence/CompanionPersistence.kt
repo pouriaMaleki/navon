@@ -14,6 +14,7 @@ import me.fiksu.esp32map.companion.domain.RouteHistoryItem
 import me.fiksu.esp32map.companion.domain.RouteHistorySource
 import me.fiksu.esp32map.companion.domain.RoutePlannerPreferences
 import me.fiksu.esp32map.companion.domain.RouteSessionStore
+import me.fiksu.esp32map.companion.domain.SpeedUnit
 
 class CompanionPersistence(context: Context? = null) : RouteSessionStore {
     private object Key {
@@ -150,7 +151,18 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
     fun loadSettings(): CompanionSettings {
         defaults?.let {
             val stored = it.getString(Key.SETTINGS, null) ?: return settings
-            return gson.fromJson(stored, CompanionSettings::class.java)
+            // Gson uses reflection / Unsafe and bypasses Kotlin data-class
+            // default values, so a stored blob written before the
+            // `cyclingSpeedKph` / `speedUnit` fields existed would
+            // deserialize them as 0.0 / null. Patch missing-or-invalid
+            // values to the model defaults so old installs upgrade cleanly.
+            val raw = gson.fromJson(stored, CompanionSettings::class.java) ?: return settings
+            val fallback = CompanionSettings()
+            return raw.copy(
+                cyclingSpeedKph = if (raw.cyclingSpeedKph > 0) raw.cyclingSpeedKph else fallback.cyclingSpeedKph,
+                @Suppress("USELESS_ELVIS")
+                speedUnit = (raw.speedUnit as SpeedUnit?) ?: fallback.speedUnit,
+            )
         }
         return settings
     }

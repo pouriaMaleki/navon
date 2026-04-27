@@ -24,6 +24,14 @@ body,
   margin: 0;
   background: var(--bg);
   color: var(--fg);
+  /* Prevent iOS Safari double-tap zoom and the rubber-band scroll that
+     visibly resizes the map on orientation change. The map owns its own
+     pinch / pan; page-level pan-zoom is never useful here. */
+  touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior: none;
+  overflow: hidden;
 }
 
 button {
@@ -226,6 +234,22 @@ textarea {
   cursor: pointer;
 }
 
+.active-guidance-floating {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.danger-button--floating {
+  width: auto;
+  align-self: flex-end;
+  min-width: 120px;
+  border-radius: 999px;
+  padding: 12px 22px;
+  box-shadow: 0 8px 24px rgba(255, 95, 95, 0.35);
+}
+
 .source-picker {
   display: flex;
   gap: 6px;
@@ -320,6 +344,23 @@ textarea {
   top: 84px;
   right: 12px;
   pointer-events: auto;
+}
+
+.speed-badge {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom) + 12px);
+  left: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  pointer-events: none;
+  z-index: 5;
 }
 
 .compass-button {
