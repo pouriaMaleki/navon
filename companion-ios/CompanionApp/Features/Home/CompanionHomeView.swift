@@ -251,24 +251,21 @@ struct CompanionHomeView: View {
             refreshCameraForCurrentMode()
         case .planning, .deviceOverview, .sendingToDevice:
             // Outside riding: a session-only zoom on the current camera.
-            // We can't read the live MapKit zoom directly, so derive the
-            // current span/center from `cameraPosition` (when it's a
-            // region) or fall back to the planning reference / rider.
-            var currentSpan = MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
-            let riderFallback = appModel.riderLocation
-            var center = CLLocationCoordinate2D(latitude: riderFallback.latitude, longitude: riderFallback.longitude)
-            if case .region(let region) = cameraPosition {
-                currentSpan = region.span
-                center = region.center
-            } else if let ref = planningCameraReference {
-                currentSpan = ref.span
-                center = ref.center
-            }
-            let scaledLat = min(20.0, max(0.0008, currentSpan.latitudeDelta * factor))
-            let scaledLon = min(20.0, max(0.0008, currentSpan.longitudeDelta * factor))
+            // `MapCameraPosition` is an opaque struct (not an enum) so we
+            // can't read its current region directly — but `onMapCameraChange`
+            // already keeps `planningCameraReference` in sync with the live
+            // camera, so we use that as the source of truth and fall back
+            // to the rider when no reference is available yet.
+            let rider = appModel.riderLocation
+            let baseSpan = planningCameraReference?.span
+                ?? MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
+            let baseCenter = planningCameraReference?.center
+                ?? CLLocationCoordinate2D(latitude: rider.latitude, longitude: rider.longitude)
+            let scaledLat = min(20.0, max(0.0008, baseSpan.latitudeDelta * factor))
+            let scaledLon = min(20.0, max(0.0008, baseSpan.longitudeDelta * factor))
             let scaledSpan = MKCoordinateSpan(latitudeDelta: scaledLat, longitudeDelta: scaledLon)
             setCamera(
-                region: MKCoordinateRegion(center: center, span: scaledSpan),
+                region: MKCoordinateRegion(center: baseCenter, span: scaledSpan),
                 heading: 0,
                 recordPlanningReference: false
             )
