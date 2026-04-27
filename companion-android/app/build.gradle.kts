@@ -56,6 +56,23 @@ kotlin {
     }
 }
 
+// Pin transitive dependencies that arrive via Robolectric and other test
+// libs to versions Dependabot considers safe. Without these forces,
+// older Bouncy Castle (< 1.84) and Guava (< 32.0.0-android) flow in
+// from upstream artifacts and trip the GitHub security alerts even
+// though our app code never uses them directly.
+//
+// See dependabot alerts #29 (bcpkix), #30/#35 (bcprov), #33/#34 (guava)
+// on https://github.com/pouriaMaleki/esp32-map/security/dependabot
+configurations.all {
+    resolutionStrategy {
+        force("org.bouncycastle:bcprov-jdk18on:1.84")
+        force("org.bouncycastle:bcpkix-jdk18on:1.84")
+        force("org.bouncycastle:bcutil-jdk18on:1.84")
+        force("com.google.guava:guava:32.0.1-android")
+    }
+}
+
 dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
 
