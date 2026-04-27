@@ -216,7 +216,20 @@ struct CompanionHomeView: View {
     /// rider's preferred navigation zoom survives across sessions; in
     /// planning/overview the camera updates for the moment but isn't
     /// persisted (spec: "only keep it for moment").
+    @ViewBuilder
     private var zoomControls: some View {
+        // Hide the +/- column whenever the where-to dropdown is on
+        // screen, otherwise the dropdown's bottom rows render under the
+        // zoom buttons (the dropdown is part of `topOverlay`, which sits
+        // BELOW the zoomControls overlay layer).
+        if viewModel.shouldShowSearchPanel {
+            EmptyView()
+        } else {
+            zoomControlsStack
+        }
+    }
+
+    private var zoomControlsStack: some View {
         VStack(spacing: 8) {
             zoomButton(symbol: "plus", label: "Zoom in") { applyZoom(direction: .zoomIn) }
             zoomButton(symbol: "minus", label: "Zoom out") { applyZoom(direction: .zoomOut) }
@@ -242,11 +255,17 @@ struct CompanionHomeView: View {
     }
 
     private func zoomButton(symbol: String, label: String, action: @escaping () -> Void) -> some View {
+        // Match `planningMapAccessoryControls` (the north-up / recenter
+        // button) and the top-right settings cog: 50×50 frame, corner
+        // 18, ultraThinMaterial, primary foreground. The earlier 44/14
+        // values made the +/- column visually inconsistent with the
+        // existing top-right glyphs.
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 18, weight: .semibold))
-                .frame(width: 44, height: 44)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .foregroundStyle(.primary)
+                .frame(width: 50, height: 50)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
@@ -258,13 +277,29 @@ struct CompanionHomeView: View {
         let factor: Double = direction == .zoomIn ? (1.0 / zoomStepFactor) : zoomStepFactor
         switch viewModel.homeMode {
         case .phoneGuidance:
-            // Riding mode: mutate the persisted distance and rerun the
-            // follow-rider camera so the change is visible immediately.
+            // Riding mode: persist the new distance AND apply it directly
+            // to the live MapKit camera. Going only through
+            // `refreshCameraForCurrentMode()` had a perceptible "no-op"
+            // window when GPS-fix-driven refreshes ran in parallel with
+            // the user tap — this direct path closes that gap.
             let raw = ridingCameraDistanceM * factor
             let next = min(ridingDistanceMax, max(ridingDistanceMin, raw))
             appModel.settings.ridingCameraDistanceM = next
             appModel.persistSettings()
-            refreshCameraForCurrentMode()
+            if let route = viewModel.guidanceRoute {
+                let rider = appModel.riderLocation
+                let heading = viewModel.cameraHeadingDegrees(rider: rider)
+                    ?? bearingDegrees(from: route.geometry.first ?? rider,
+                                      to: route.geometry.dropFirst().first ?? rider)
+                let centerPoint = viewModel.cameraCenterCoordinate(rider: rider, headingDegrees: heading)
+                let center = CLLocationCoordinate2D(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: next, heading: heading, pitch: 0))
+                }
+                lastProgrammaticCameraSetAt = Date()
+            } else {
+                refreshCameraForCurrentMode()
+            }
         case .planning, .deviceOverview, .sendingToDevice:
             // Outside riding: a session-only zoom on the current camera.
             // `MapCameraPosition` is an opaque struct (not an enum) so we

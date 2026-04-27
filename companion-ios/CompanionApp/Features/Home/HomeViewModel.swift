@@ -671,10 +671,16 @@ final class HomeViewModel: ObservableObject {
         minLat: Double, maxLat: Double,
         minLon: Double, maxLon: Double
     ) -> MKCoordinateRegion {
-        let latDelta = max((maxLat - minLat) * 1.8, 0.012)
-        let lonDelta = max((maxLon - minLon) * 1.5, 0.01)
+        // Bottom card during planning with 2-3 alternatives can run
+        // ~45% of screen height; the previous 1.8× / 0.15 shift wasn't
+        // enough and the routes still rendered behind the list. 2.2×
+        // span + 0.22 southward shift puts the bbox center at roughly
+        // the upper-third of the visible region while keeping the
+        // bbox fully covered.
+        let latDelta = max((maxLat - minLat) * 2.2, 0.014)
+        let lonDelta = max((maxLon - minLon) * 1.6, 0.012)
         let bboxCenterLat = (minLat + maxLat) / 2.0
-        let shiftedCenterLat = bboxCenterLat - 0.15 * latDelta
+        let shiftedCenterLat = bboxCenterLat - 0.22 * latDelta
         return MKCoordinateRegion(
             center: CLLocationCoordinate2D(
                 latitude: shiftedCenterLat,

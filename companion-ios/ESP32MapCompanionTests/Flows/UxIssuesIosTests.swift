@@ -75,8 +75,27 @@ final class UxIssuesIosTests: XCTestCase {
             minLat: 60.1699, maxLat: 60.1699,
             minLon: 24.9384, maxLon: 24.9384
         )
-        XCTAssertGreaterThanOrEqual(region.span.latitudeDelta, 0.012)
-        XCTAssertGreaterThanOrEqual(region.span.longitudeDelta, 0.01)
+        XCTAssertGreaterThanOrEqual(region.span.latitudeDelta, 0.014)
+        XCTAssertGreaterThanOrEqual(region.span.longitudeDelta, 0.012)
+    }
+
+    func test_fittedRouteRegion_putsBboxCenterInUpperHalfOfVisible() {
+        // Spec for the upward shift: the bbox center must sit ABOVE the
+        // visible region's center (closer to the top of the screen) so
+        // the bottom card doesn't crop the route. With the 0.22 *
+        // latDelta southward shift, the bbox center should be roughly
+        // in the upper third of the visible region.
+        let region = HomeViewModel.fittedRouteRegion(
+            minLat: 60.1700, maxLat: 60.1850,
+            minLon: 24.9300, maxLon: 24.9380
+        )
+        let bboxCenterLat = (60.1700 + 60.1850) / 2.0
+        let visibleSpan = region.span.latitudeDelta
+        // bboxCenter relative to the visible region, where 0=bottom and
+        // 1=top. Should land above 0.5 (upper half).
+        let relative = (bboxCenterLat - (region.center.latitude - visibleSpan / 2.0)) / visibleSpan
+        XCTAssertGreaterThan(relative, 0.6,
+            "bbox center must sit in the upper portion of the visible region so the bottom card doesn't crop the route")
     }
 
     // MARK: Issue #4 — exploreAlternateRoutes drops out of phoneGuidance
