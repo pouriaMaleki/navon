@@ -416,6 +416,18 @@ final class AppModel: ObservableObject {
     }
 
     private func bindBleState() {
+        // SwiftUI observes AppModel via @EnvironmentObject. `bleService` is a
+        // nested ObservableObject held in a plain `let`, so its @Published
+        // updates don't reach views that read `appModel.bleService.*`. Forward
+        // its `objectWillChange` so the device-settings UI re-renders when the
+        // BLE session state moves between scanning / connecting / connected /
+        // disconnected — without this, "Reconnect" appears to do nothing.
+        bleService.objectWillChange
+            .receive(on: RunLoop.main)
+            .sink { [weak self] in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
         bleService.$sessionState
             .receive(on: RunLoop.main)
             .sink { [weak self] state in

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DeviceSettingsView: View {
     @EnvironmentObject private var appModel: AppModel
+    @State private var isConnecting = false
 
     var body: some View {
         List {
@@ -9,9 +10,21 @@ struct DeviceSettingsView: View {
                 Text("State: \(appModel.bleService.sessionState.connectionState.rawValue)")
                 Text("Sync: \(appModel.bleService.sessionState.routeSyncState.rawValue)")
                 Text("Last device: \(appModel.bleService.sessionState.lastDeviceName ?? "None")")
-                Button("Reconnect") {
-                    Task { await appModel.connectToDevice() }
+                // `lastSyncResult` carries the most recent transition string —
+                // including BLE permission errors, scan timeouts, and connect
+                // failures. Surfacing it here is what makes Reconnect feel
+                // responsive when scans don't find the peripheral.
+                Text("Status: \(appModel.bleService.sessionState.lastSyncResult)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                Button(isConnecting ? "Reconnecting…" : "Reconnect") {
+                    isConnecting = true
+                    Task {
+                        await appModel.connectToDevice()
+                        isConnecting = false
+                    }
                 }
+                .disabled(isConnecting)
             }
 
             Section("Transfer") {

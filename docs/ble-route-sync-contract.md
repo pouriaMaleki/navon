@@ -92,10 +92,11 @@ Important compatibility note:
 
 ## Current Implementation Status
 Implemented in firmware:
-- packet encode/decode for `chunk` and `sync_message` in firmware
-- route chunk reassembly and runtime ingress in firmware
-- platform bridge for inbound chunk polling plus outbound `status` and `reroute_request` publication in firmware
-- ESP-IDF BLE/GATT server adapter for the fixed route-sync service and characteristics on BLE-capable ESP-IDF targets
+- packet encode/decode for `chunk` and `sync_message`
+- route chunk reassembly and runtime ingress
+- platform bridge for inbound chunk polling plus outbound `status` and `reroute_request` publication
+- ESP-IDF BLE/GATT server adapter for the fixed route-sync service and characteristics on BLE-capable ESP-IDF targets (on-chip radio path via `esp-idf-svc::bt`)
+- ESP32-P4 BLE/GATT server backed by the on-board ESP32-C6 radio over hosted SDIO (`firmware/components/hosted_ble`, exposed to Rust as `HostedBleRouteSyncIo`); the P4 device entrypoint advertises the route-sync service on boot and routes chunks straight into the same `RouteSyncTransport` the host tests cover
 - deterministic firmware tests for packet round-trips, runtime activation, and reroute-request publication from the platform seam
 
 Implemented in native companion apps:
@@ -105,4 +106,28 @@ Implemented in native companion apps:
 
 Remaining implementation work:
 - live packet-loss / interruption fault-injection tests against the concrete adapters
-- full field validation on real ESP32 hardware and both mobile platforms
+- full field validation on real ESP32-P4 hardware paired with each mobile platform
+
+## ESP32-C6 slave firmware
+
+Espressif and Waveshare pre-flash the on-board C6 with the `esp_hosted` slave (typically `v0.0.6` on the 3.4C). That older firmware doesn't implement the `Req_FeatureControl` RPC the v2.x host stack issues, but it does auto-start BT on boot. We treat the controller-init/enable RPCs as advisory (matching Espressif's `host_bluedroid_host_only` reference), so BLE comes up against the pre-flashed slave anyway. You'll see this in the serial log:
+
+```
+W (...) transport: Version mismatch: Host [2.x.x] > Co-proc [0.0.0]
+W (...) hosted_ble: esp_hosted_bt_controller_init returned ESP_FAIL — slave BT is expected to be self-starting; continuing with HCI bridge
+I (...) hosted_ble: BLE host stack online via ESP32-C6 over hosted SDIO
+I (...) firmware::hosted_ble: hosted-ble: route-sync GATT server online
+```
+
+That's the expected steady state — no slave reflash required. If the version mismatch ever turns into a real incompatibility (HCI-bridge symptoms, missed advertisements, broken connections), the upgrade path below builds and flashes the matching slave image:
+
+1. Build the slave image (after at least one `cargo xtask bundle-device` run, which unpacks the `esp_hosted` managed component):
+   ```
+   cargo xtask build-c6-slave
+   ```
+   This produces `.xtask/c6-slave/c6-slave-merged.bin` — a single bootloader + partition-table + app image flashable at offset 0x0.
+2. Flash to the C6 over its UART. The C6 is **not** reachable over the same USB-JTAG port that flashes the P4 — the Waveshare 3.4C exposes the C6's UART on a separate connector / pad set (see the kit's schematic). Once that port shows up on your host:
+   ```
+   espflash write-bin --chip esp32c6 --port <C6-PORT> 0x0 c6-slave-merged.bin
+   ```
+3. Power-cycle the board. The next P4 boot should print `H_API: Transport active`, `Identified slave [esp32c6]`, and `Host BT Support: Enabled` without the version-mismatch warning, and `hosted-ble: route-sync GATT server online` from our wrapper.

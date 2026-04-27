@@ -53,3 +53,60 @@ CONFIG_COMPILER_OPTIMIZATION_PERF=y
 # objects are not dragged into the link. The Rust binary does not need them.
 CONFIG_COMPILER_CXX_EXCEPTIONS=n
 CONFIG_COMPILER_CXX_RTTI=n
+
+# --- Hosted BLE via the on-board ESP32-C6 ----------------------------------
+#
+# The P4 has no on-chip radio; the Waveshare 3.4C wires an ESP32-C6 to the
+# P4 over SDIO and `espressif/esp_hosted` runs the Bluetooth controller +
+# Wi-Fi MAC on the C6. The P4 only runs the host stack (Bluedroid for BLE).
+#
+# CONFIG_BT_CONTROLLER_DISABLED=y tells IDF "there is no on-chip controller
+# under your control"; combined with esp_hosted's HCI driver, Bluedroid
+# attaches to the virtual HCI and the standard `esp_ble_gap_*` /
+# `esp_ble_gatts_*` APIs work transparently.
+
+# Enable the BT subsystem and Bluedroid host. Classic BT and BR/EDR are
+# off — the C6 only does BLE anyway.
+CONFIG_BT_ENABLED=y
+CONFIG_BT_CONTROLLER_DISABLED=y
+CONFIG_BT_BLUEDROID_ENABLED=y
+CONFIG_BT_CLASSIC_ENABLED=n
+CONFIG_BT_BLE_ENABLED=y
+CONFIG_BT_GATTS_ENABLE=y
+# Bluedroid splits its API surface into BLE 4.2 (the legacy advertising/
+# scan APIs we use: `esp_ble_gap_config_adv_data`,
+# `esp_ble_gap_start_advertising`, `esp_ble_gap_stop_advertising`) and BLE
+# 5.0 extended-advertising APIs. Without 4.2 features explicitly enabled,
+# IDF compiles those symbols out and the link fails with `undefined
+# reference to esp_ble_gap_*`. We don't need 5.0 extended advertising for
+# the route-sync service — the 4.2 surface is enough.
+CONFIG_BT_BLE_42_FEATURES_SUPPORTED=y
+# One ATT MTU large enough to carry the BLE packet wire format (header
+# block + chunk payload) without per-write fragmentation when the peer
+# supports it. Companions cap MTU lower will simply negotiate down.
+CONFIG_BT_GATT_MAX_MTU=512
+
+# esp_hosted: drive the C6 over SDIO. The transport pins are wired by the
+# Waveshare 3.4C; esp_hosted's defaults match. Both the BT and Wi-Fi
+# subsystems on the C6 ride this same SDIO link.
+CONFIG_ESP_HOSTED_ENABLED=y
+CONFIG_ESP_HOSTED_HOST_INTERFACE_SDIO=y
+# Compile in `hosted_hci_bluedroid_*` and the VHCI bridge that
+# `esp_bluedroid_attach_hci_driver` consumes. Without this Kconfig the
+# whole `esp_hosted_bluedroid.c` source is excluded and the link fails
+# with `undefined reference to hosted_hci_bluedroid_*`.
+CONFIG_ESP_HOSTED_ENABLE_BT_BLUEDROID=y
+CONFIG_ESP_HOSTED_BLUEDROID_HCI_VHCI=y
+
+# Park esp_hosted's two long-running tasks (rx/tx + RPC) on PSRAM stacks.
+# With the default (off) routing, the task buffers come out of internal
+# DRAM via plain `xTaskCreate`. On the Waveshare P4 build, the small
+# fragmented internal-DRAM region those allocations land in fails
+# FreeRTOS's `xPortcheckValidStackMem` assert on boot — `kTaskCreate`
+# inside esp_hosted's port layer panics before it ever opens the SDIO
+# link. Routing those stacks through PSRAM puts them on the larger pool
+# we already validated, and the matching `xTaskCreateStatic` path inside
+# esp_hosted handles the static buffer setup. Permitted because we have
+# CONFIG_FREERTOS_TASK_CREATE_ALLOW_EXT_MEM=y (set automatically when
+# SPIRAM is enabled).
+CONFIG_ESP_HOSTED_DFLT_TASK_FROM_SPIRAM=y

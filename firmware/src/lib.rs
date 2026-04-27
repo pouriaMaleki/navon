@@ -4,6 +4,8 @@ pub mod display;
 pub mod esp_idf;
 pub mod esp_idf_ble;
 pub mod framebuffer;
+#[cfg(all(target_os = "espidf", esp32p4))]
+pub mod hosted_ble;
 pub mod gps;
 pub mod input_bridge;
 pub mod map_source;

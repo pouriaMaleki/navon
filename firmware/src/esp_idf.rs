@@ -665,12 +665,12 @@ fn load_map_from_partition() -> Result<map_runtime::EmbeddedMapSource, String> {
     }
 }
 
-// ESP32-P4 bring-up entrypoint. The P4 has no on-chip radio, so Bluedroid is
-// not available through `esp-idf-svc`; a BLE route-sync service must come from
-// the external ESP32-C6 radio path. For the first device bring-up we boot the
-// same headless runtime with a `NullRouteSyncIo`, which proves the toolchain
-// end-to-end (flash, boot, run frames, log over USB-serial) without display,
-// touch, GPS, or BLE wiring.
+// ESP32-P4 bring-up entrypoint. The P4 has no on-chip radio, so the BLE
+// controller runs on the on-board ESP32-C6 over the hosted-SDIO HCI link
+// (see components/hosted_ble). After hosted_ble_route_sync_start() returns,
+// the standard BLE GATT service from `docs/ble-route-sync-contract.md` is
+// advertising and the same RouteSyncTransport that backs the host tests
+// is plumbed straight into the runtime loop.
 #[cfg(all(target_os = "espidf", esp32p4))]
 pub fn run_device_main() -> Result<(), String> {
     use std::thread;
@@ -681,11 +681,12 @@ pub fn run_device_main() -> Result<(), String> {
 
     use crate::app::App;
     use crate::gps::{FixedGpsProvider, GpsInput};
+    use crate::hosted_ble::HostedBleRouteSyncIo;
     use crate::map_source::MapSourceBridge;
     use crate::mipi_dsi::{
         self, MipiDsiPanel, PanelGpios, waveshare_3p4c_config,
     };
-    use crate::platform::{NullRouteSyncIo, RuntimePlatform, SystemFrameClock};
+    use crate::platform::{RuntimePlatform, SystemFrameClock};
     use crate::touch_gt911::Gt911TouchSource;
     use crate::settings::default_settings_store;
 
@@ -825,12 +826,34 @@ pub fn run_device_main() -> Result<(), String> {
     let touch_source = Gt911TouchSource::new(board.touch)
         .map_err(|error| format!("failed to bring up GT911 touch: {error:?}"))?;
 
+    // Bring up Bluedroid against the on-board C6 radio and start the
+    // route-sync GATT service. Companions (iOS / Android) discover the
+    // service by UUID, write chunked route packages to the chunk
+    // characteristic, and subscribe to status / reroute notifications on
+    // the event characteristic. See `docs/ble-route-sync-contract.md`.
+    //
+    // If the C6 isn't running matching esp_hosted slave firmware,
+    // `start_or_fallback` logs a warning and returns an `Inactive`
+    // transport; the runtime keeps rendering / GPS / touch alive while
+    // BLE stays offline.
+    let route_sync = HostedBleRouteSyncIo::start_or_fallback();
+    if route_sync.is_active() {
+        let (service_uuid, chunk_uuid, event_uuid) =
+            crate::esp_idf_ble::gatt_service_summary();
+        log::info!(
+            "ble route-sync online via ESP32-C6: service={} chunk_w={} event_n={}",
+            service_uuid,
+            chunk_uuid,
+            event_uuid,
+        );
+    }
+
     let mut platform = RuntimePlatform::with_route_sync(
         app,
         touch_source,
         gps,
         SystemFrameClock::new(board.frame_interval),
-        NullRouteSyncIo,
+        route_sync,
     );
 
     log::info!(
@@ -902,7 +925,7 @@ pub fn run_device_main() -> Result<(), String> {
     ))
 ))]
 pub fn run_device_main() -> Result<(), String> {
-    Err("this ESP-IDF target does not expose the standard Bluedroid BLE APIs required by the route-sync GATT server; on the Waveshare ESP32-P4 board this must be implemented through the external radio path instead of esp-idf-svc::bt".to_owned())
+    Err("this ESP-IDF target does not expose the standard Bluedroid BLE APIs required by the route-sync GATT server; the ESP32-P4 board has its own entrypoint that drives BLE via the on-board ESP32-C6 over hosted SDIO".to_owned())
 }
 
 #[cfg(not(target_os = "espidf"))]

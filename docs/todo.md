@@ -76,8 +76,7 @@ Current checkpoint:
 - The native redesign shell is now in place: map-first Home on both platforms, long-press destination selection, three-route suggestion preview, universal route-detail surface, and a full-screen Settings hub with `Routes`, `Device`, `Route Planner`, and `Import Diagnostics` sections.
 - Native device screens now expose live BLE fault-injection controls for retryable interruption, write failure, disconnect-after-chunk, and dropped inbound status so packet-loss and ack-loss recovery can be exercised against the same chunked session model used by real CoreBluetooth and Android BLE clients.
 - All remaining provider slots now have sample-backed companion adapters that produce normalized route packages through the shared preview/send path, while only HSL is live-provider-ready today.
-- Hardware validation is deferred until a BLE-capable device is available. Near-term implementation should focus on optional Wi-Fi transport, live provider integrations beyond HSL, and companion-product expansion work.
-- Once hardware is available, the next hardware milestone remains end-to-end device validation against the ESP GATT server on BLE-capable hardware, followed by the ESP32-P4 external-radio path.
+- ESP32-P4 BLE bring-up now runs through `firmware/components/hosted_ble`, which drives Bluedroid against the on-board ESP32-C6 radio over hosted SDIO; the P4 device entrypoint advertises the route-sync GATT service on boot. Next hardware milestone is end-to-end field validation: connect each native companion to the P4, push routes, and confirm status / reroute notifications round-trip in real conditions.
 - Planned companion expansion notes: standalone map/routing usability, route planning from current location to a destination selected on the device map, share-sheet ingestion for locations/GPX/related payloads, and a substantial future UI/UX redesign.
 - Planned companion redesign target is a single map-first Home surface plus a full-screen Settings hub, not a tabbed app shell.
 - Architecture doc `companion-app-architecture.md` now captures the redesign boundaries and guardrails.
@@ -102,11 +101,10 @@ Depends on:
 Current checkpoint:
 - Native BLE transport seams in iOS and Android now use real CoreBluetooth / Android BLE packet IO when a compatible ESP32 route-sync peripheral is available, while preserving the existing chunked transfer/session state model.
 - Firmware now owns device-side route sync reassembly, checksum verification, stale-revision rejection, duplicate replay dedupe, conflicting same-revision detection, runtime route ingress, platform-to-runtime status publication, and outbound reroute-request publication.
-- The BLE wire contract is now fixed in code and docs across firmware plus both native companion apps, including service/characteristic UUIDs, packet envelopes for `chunk` and `sync_message` traffic, and actual GATT adapter implementations on all three sides where the target silicon exposes standard BLE APIs. The ESP32-P4 production board still needs its external-radio path wired separately.
+- The BLE wire contract is now fixed in code and docs across firmware plus both native companion apps, including service/characteristic UUIDs, packet envelopes for `chunk` and `sync_message` traffic, and actual GATT adapter implementations on all three sides. The ESP32-P4 production board now drives BLE through the on-board ESP32-C6 over hosted SDIO via `firmware/components/hosted_ble`, so the P4 entrypoint advertises the route-sync service on boot.
 - Deterministic firmware fault-injection coverage now exists for interrupted transfer resume, out-of-order chunks, checksum mismatch handling, and malformed payload handling.
 - Native companion apps now expose matching live adapter fault-injection controls and acknowledgement-timeout recovery so the phone-side transport loop can be validated against the same failure classes.
-- Hardware validation is deferred until a BLE-capable device is available. Until then, transport work should focus on the optional Wi-Fi path while companion-side product work continues.
-- Once hardware is available, the next hardware milestone remains field validation against real ESP hardware, followed by the ESP32-P4 external-radio path.
+- Next hardware milestone is end-to-end field validation: pair the P4 dev kit with iOS and Android companions, send `set` / `update` / `clear`, and confirm `status` / `reroute_request` notifications round-trip cleanly under realistic packet-loss conditions.
 
 ### Work Items
 - [x] Define message protocol for `set`, `update`, `clear`, `status`, and `reroute_request`.

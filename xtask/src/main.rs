@@ -18,8 +18,9 @@ fn run(args: Vec<String>) -> Result<(), String> {
         Cli::BundleDevice { release } => run_bundle_device(&workspace, release),
         Cli::DeployDevice { port, release } => run_deploy_device(&workspace, &port, release),
         Cli::CheckEspHalP4 => run_check_esp_hal_p4(),
+        Cli::BuildC6Slave => run_build_c6_slave(&workspace),
         Cli::Stub { command } => Err(format!(
-            "{command} is not implemented yet; available commands: prepare-map, emu, bundle-device, deploy-device, check-esp-hal-p4"
+            "{command} is not implemented yet; available commands: prepare-map, emu, bundle-device, deploy-device, check-esp-hal-p4, build-c6-slave"
         )),
         Cli::Help => {
             print_help();
@@ -41,6 +42,16 @@ fn run_bundle_device(workspace: &Workspace, release: bool) -> Result<(), String>
     ensure_tool("ldproxy")?;
     ensure_tool("espflash")?;
     workspace.ensure_device_prerequisites()?;
+
+    // esp-idf-sys is the crate that drives the CMake/Ninja compile of the
+    // C side (ESP-IDF + our local components). Cargo doesn't track our
+    // local component sources as inputs to esp-idf-sys, so an edit to e.g.
+    // `firmware/components/hosted_ble/hosted_ble.c` quietly links against
+    // the stale object from a previous build. Detect when any file under
+    // `firmware/components/` is newer than esp-idf-sys's last invocation
+    // timestamp and force-clean esp-idf-sys so the next cargo invocation
+    // re-runs CMake.
+    invalidate_esp_idf_sys_if_components_changed(workspace, release)?;
 
     run_command(CommandSpec::cargo_build_firmware(workspace, release))?;
     run_command(CommandSpec::espflash_save_image(workspace, release))?;
@@ -206,8 +217,264 @@ xtask commands:
   cargo xtask prepare-map
   cargo xtask bundle-device [--debug]
   cargo xtask deploy-device --port <PORT> [--debug]
+  cargo xtask build-c6-slave       # builds esp_hosted slave fw for the on-board ESP32-C6
   cargo xtask check-esp-hal-p4     # checks whether esp-hal ecosystem has P4 support yet"
     );
+}
+
+/// Build the `esp_hosted` slave firmware for the on-board ESP32-C6.
+///
+/// The slave project is unpacked under
+/// `<target>/.../esp-idf-sys-*/out/managed_components/espressif__esp_hosted/slave`
+/// after a successful `bundle-device` run. We point cmake at it with
+/// `IDF_TARGET=esp32c6`, merge in the SDIO transport sdkconfig, and let
+/// the ESP-IDF cmake build do the rest. The resulting flat image is
+/// dropped at `.xtask/c6-slave/c6-slave-merged.bin` for flashing onto
+/// the C6 over its UART.
+fn run_build_c6_slave(workspace: &Workspace) -> Result<(), String> {
+    ensure_tool("ldproxy")?;
+    ensure_tool("espflash")?;
+
+    let slave_src = locate_c6_slave_source(workspace).ok_or_else(|| {
+        format!(
+            "could not locate the esp_hosted slave project under {}; \
+             run `cargo xtask bundle-device` first so the managed component is unpacked",
+            workspace.device_target.display()
+        )
+    })?;
+
+    let out_dir = workspace.root.join(".xtask/c6-slave");
+    let build_dir = out_dir.join("build");
+    std::fs::create_dir_all(&build_dir)
+        .map_err(|error| format!("failed to create {}: {error}", build_dir.display()))?;
+
+    let env = c6_slave_build_env(workspace);
+    let toolchain = workspace
+        .root
+        .join(".embuild/espressif/esp-idf/v5.4.2/tools/cmake/toolchain-esp32c6.cmake");
+    let python = workspace
+        .root
+        .join(".embuild/espressif/python_env/idf5.4_py3.11_env/bin/python");
+    let sdkconfig_defaults = format!(
+        "{};{};{}",
+        slave_src.join("sdkconfig.defaults").display(),
+        slave_src.join("sdkconfig.defaults.esp32c6").display(),
+        slave_src.join("sdkconfig.ci.sdio").display(),
+    );
+
+    println!("configuring esp_hosted slave build at {}", build_dir.display());
+    run_command(CommandSpec {
+        program: OsString::from("cmake"),
+        args: vec![
+            OsString::from("-G"),
+            OsString::from("Ninja"),
+            slave_src.clone().into_os_string(),
+            OsString::from(format!("-DCMAKE_TOOLCHAIN_FILE={}", toolchain.display())),
+            OsString::from(format!("-DSDKCONFIG_DEFAULTS={sdkconfig_defaults}")),
+            OsString::from(format!("-DPYTHON={}", python.display())),
+        ],
+        cwd: build_dir.clone(),
+        env: env.clone(),
+    })?;
+
+    println!("compiling esp_hosted slave (target esp32c6) — this takes a couple of minutes");
+    run_command(CommandSpec {
+        program: OsString::from("ninja"),
+        args: vec![OsString::from("-C"), build_dir.clone().into_os_string()],
+        cwd: build_dir.clone(),
+        env,
+    })?;
+
+    let elf = build_dir.join("network_adapter.elf");
+    let bootloader = build_dir.join("bootloader/bootloader.bin");
+    let partition_table = build_dir.join("partition_table/partition-table.bin");
+    let merged = out_dir.join("c6-slave-merged.bin");
+
+    run_command(CommandSpec {
+        program: OsString::from("espflash"),
+        args: vec![
+            OsString::from("save-image"),
+            OsString::from("--chip"),
+            OsString::from("esp32c6"),
+            OsString::from("--merge"),
+            OsString::from("--flash-size"),
+            OsString::from("4mb"),
+            OsString::from("--partition-table"),
+            partition_table.into_os_string(),
+            OsString::from("--bootloader"),
+            bootloader.into_os_string(),
+            elf.into_os_string(),
+            merged.clone().into_os_string(),
+        ],
+        cwd: workspace.root.clone(),
+        env: BTreeMap::new(),
+    })?;
+
+    let bytes = std::fs::metadata(&merged).map(|m| m.len()).unwrap_or(0);
+    println!(
+        "\nesp32-c6 slave image ready: {}  ({} KB)\n\
+         \nFlash with espflash on the host that has the C6 UART connected:\n  \
+         espflash write-bin --chip esp32c6 --port <PORT> 0x0 c6-slave-merged.bin\n\
+         \nThe C6's UART is exposed on a separate connector from the P4's USB-JTAG \
+         (see the Waveshare 3.4C kit schematic). Power-cycle after flashing; the \
+         next P4 boot should report `Host BT Support: Enabled` and \
+         `hosted-ble: route-sync GATT server online`.",
+        merged.display(),
+        bytes / 1024,
+    );
+    Ok(())
+}
+
+/// If anything under `firmware/components/` is newer than esp-idf-sys's
+/// last build timestamp, force-clean it so the next cargo build re-runs
+/// CMake/Ninja for the C side.
+fn invalidate_esp_idf_sys_if_components_changed(
+    workspace: &Workspace,
+    release: bool,
+) -> Result<(), String> {
+    let components_dir = workspace.firmware_crate.join("components");
+    let Some(latest_source_mtime) = newest_mtime_in(&components_dir) else {
+        return Ok(()); // no components dir or it's empty — nothing to track
+    };
+
+    let profile = if release { "release" } else { "debug" };
+    let build_root = workspace.device_target.join(profile).join("build");
+    let Ok(entries) = std::fs::read_dir(&build_root) else {
+        return Ok(()); // first build — cargo will compile esp-idf-sys anyway
+    };
+    let mut needs_clean = false;
+    let mut any_esp_idf_sys = false;
+    for entry in entries.flatten() {
+        let name = entry.file_name();
+        let Some(name_str) = name.to_str() else {
+            continue;
+        };
+        if !name_str.starts_with("esp-idf-sys-") {
+            continue;
+        }
+        any_esp_idf_sys = true;
+        let invoked = entry.path().join("invoked.timestamp");
+        let Ok(meta) = std::fs::metadata(&invoked) else {
+            continue;
+        };
+        let Ok(invoked_mtime) = meta.modified() else {
+            continue;
+        };
+        if latest_source_mtime > invoked_mtime {
+            needs_clean = true;
+            break;
+        }
+    }
+    if !any_esp_idf_sys || !needs_clean {
+        return Ok(());
+    }
+
+    println!(
+        "components/ changed since last esp-idf-sys build — forcing C rebuild"
+    );
+    let mut args = vec![
+        OsString::from("clean"),
+        OsString::from("-p"),
+        OsString::from("esp-idf-sys"),
+        OsString::from("--target"),
+        OsString::from(DEVICE_RUST_TARGET),
+    ];
+    if release {
+        args.push(OsString::from("--release"));
+    }
+    run_command(CommandSpec {
+        program: OsString::from("cargo"),
+        args,
+        cwd: workspace.firmware_crate.clone(),
+        env: BTreeMap::new(),
+    })
+}
+
+fn newest_mtime_in(dir: &Path) -> Option<std::time::SystemTime> {
+    fn walk(dir: &Path, newest: &mut Option<std::time::SystemTime>) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let Ok(meta) = entry.metadata() else { continue };
+            if meta.is_dir() {
+                walk(&path, newest);
+            } else if let Ok(mtime) = meta.modified() {
+                if newest.map_or(true, |existing| mtime > existing) {
+                    *newest = Some(mtime);
+                }
+            }
+        }
+    }
+    let mut newest = None;
+    walk(dir, &mut newest);
+    newest
+}
+
+fn locate_c6_slave_source(workspace: &Workspace) -> Option<PathBuf> {
+    // The managed component lives under
+    // `<target>/<profile>/build/esp-idf-sys-<hash>/out/managed_components/...`.
+    // The hash changes whenever esp-idf-sys's inputs change, so glob the
+    // build dir for the slave path rather than hardcoding it.
+    for profile in ["release", "debug"] {
+        let build_root = workspace.device_target.join(profile).join("build");
+        let Ok(entries) = std::fs::read_dir(&build_root) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let candidate = entry.path().join(
+                "out/managed_components/espressif__esp_hosted/slave/CMakeLists.txt",
+            );
+            if candidate.is_file() {
+                return Some(candidate.parent().unwrap().to_path_buf());
+            }
+        }
+    }
+    None
+}
+
+/// Build env for the esp_hosted slave cmake project. Mirrors the env
+/// `embuild` sets up for the P4 build, but explicitly switches
+/// `IDF_TARGET` to esp32c6 and skips `LIBCLANG_PATH` (the slave is pure
+/// C, no bindgen).
+fn c6_slave_build_env(workspace: &Workspace) -> BTreeMap<OsString, OsString> {
+    let mut env = BTreeMap::new();
+    let idf_path = workspace
+        .root
+        .join(".embuild/espressif/esp-idf/v5.4.2");
+    let idf_tools = workspace.root.join(".embuild/espressif");
+    env.insert(OsString::from("IDF_PATH"), idf_path.into_os_string());
+    env.insert(OsString::from("IDF_TOOLS_PATH"), idf_tools.clone().into_os_string());
+    env.insert(OsString::from("IDF_TARGET"), OsString::from("esp32c6"));
+    env.insert(OsString::from("IDF_COMPONENT_MANAGER"), OsString::from("1"));
+    env.insert(
+        OsString::from("ESP_ROM_ELF_DIR"),
+        idf_tools.join("tools/esp-rom-elfs/20241011/").into_os_string(),
+    );
+
+    // PATH — embuild's tool dirs in the same order it uses for the P4 build.
+    let extra_path = [
+        idf_tools.join("python_env/idf5.4_py3.11_env/bin"),
+        idf_tools.join("tools/cmake/3.30.2/bin"),
+        idf_tools.join("tools/ninja/1.12.1"),
+        idf_tools.join("tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin"),
+        idf_tools.join("tools/esp-clang/esp-18.1.2_20240912/esp-clang/bin"),
+    ];
+    let existing = env::var_os("PATH").unwrap_or_default();
+    let mut combined = OsString::new();
+    for (i, dir) in extra_path.iter().enumerate() {
+        if i > 0 {
+            combined.push(":");
+        }
+        combined.push(dir.as_os_str());
+    }
+    if !existing.is_empty() {
+        combined.push(":");
+        combined.push(&existing);
+    }
+    env.insert(OsString::from("PATH"), combined);
+    env
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -216,6 +483,7 @@ enum Cli {
     BundleDevice { release: bool },
     DeployDevice { port: String, release: bool },
     CheckEspHalP4,
+    BuildC6Slave,
     Stub { command: String },
     Help,
 }
@@ -230,6 +498,7 @@ fn parse_cli(args: &[String]) -> Result<Cli, String> {
         "bundle-device" => parse_bundle_device_args(&args[1..]),
         "deploy-device" => parse_deploy_device_args(&args[1..]),
         "check-esp-hal-p4" => Ok(Cli::CheckEspHalP4),
+        "build-c6-slave" => Ok(Cli::BuildC6Slave),
         "prepare-map" => Ok(Cli::Stub {
             command: command.clone(),
         }),
@@ -591,6 +860,15 @@ fn device_build_env(workspace: &Workspace) -> BTreeMap<OsString, OsString> {
     }
     for (key, value) in extras {
         env.insert(OsString::from(key), OsString::from(value));
+    }
+    // bindgen needs libclang.so at run-time. firmware/.cargo/config.toml sets
+    // this when cargo is invoked from inside the firmware crate, but xtask
+    // runs cargo from the workspace root, where that file isn't picked up.
+    // Mirror it here so `cargo xtask bundle-device` works from anywhere.
+    let libclang =
+        workspace.root.join("target/.embuild/espressif/tools/esp-clang/16.0.1-fe4f10a809/esp-clang/lib");
+    if libclang.is_dir() {
+        env.insert(OsString::from("LIBCLANG_PATH"), libclang.into_os_string());
     }
     env
 }

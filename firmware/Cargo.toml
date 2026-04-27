@@ -51,7 +51,13 @@ extra_components = [
     # PSRAM buffer if a card is inserted; otherwise returns NULL and the
     # firmware falls back to the on-flash map_data partition. The component
     # never writes, erases, or formats the card.
-    { component_dirs = ["components/sdmap"], bindings_header = "sdmap_bindings.h" }
+    { component_dirs = ["components/sdmap"], bindings_header = "sdmap_bindings.h" },
+    # Hosted BLE bring-up + route-sync GATT server. Brings up Bluedroid
+    # against the ESP32-C6 radio that Waveshare wires to the P4 over SDIO,
+    # then publishes the route-sync service/characteristic contract from
+    # `docs/ble-route-sync-contract.md`. Pulls in `espressif/esp_hosted`
+    # via the component's idf_component.yml.
+    { component_dirs = ["components/hosted_ble"], bindings_header = "hosted_ble_bindings.h" }
 ]
 
 [lints.rust]

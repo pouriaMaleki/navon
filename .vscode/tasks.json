@@ -51,6 +51,16 @@
       "problemMatcher": []
     },
     {
+      "label": "Device: bundle (clean)",
+      "type": "shell",
+      "command": "cargo clean -p esp-idf-sys --target riscv32imafc-esp-espidf --release && cargo clean -p firmware --target riscv32imafc-esp-espidf --release && rm -rf target/devcontainer/riscv32imafc-esp-espidf/release/build/esp-idf-sys-*/out/build && cargo xtask bundle-device --release",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "detail": "Clean rebuild: drops esp-idf-sys, firmware, and the CMake build dir before bundling. Use when sdkconfig or extra_components changes don't seem to land. Takes ~2-3 minutes."
+    },
+    {
       "label": "Device: deploy",
       "type": "shell",
       "command": "cargo xtask deploy-device --port ${input:esp_port}",

@@ -1,0 +1,14 @@
+# The Waveshare ESP32-P4-WIFI6-Touch-LCD-3.4C wires an ESP32-C6 to the P4
+# over SDIO. esp_hosted drives that link and exposes a virtual HCI plus a
+# Wi-Fi netif on the P4 side. We only need the HCI bridge for BLE here;
+# Wi-Fi piggy-backs on the same transport when it's needed later.
+#
+# `esp_wifi_remote` is the host-side shim that re-exports the standard
+# `esp_wifi` API onto whichever remote-radio backend is configured (here,
+# esp_hosted). esp_hosted's transport headers reference `esp_wifi_remote.h`
+# unconditionally, so it has to be a direct dependency even though we
+# don't bring up Wi-Fi yet.
+dependencies:
+  espressif/esp_hosted: "^2.0.0"
+  espressif/esp_wifi_remote: "*"
+  idf: ">=5.3"
