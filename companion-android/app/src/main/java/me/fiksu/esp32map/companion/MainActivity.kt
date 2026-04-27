@@ -51,6 +51,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.core.content.ContextCompat
 import androidx.activity.viewModels
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -64,6 +68,7 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -243,12 +248,14 @@ private fun CompanionHomeScreen(
         // whether a route is loaded — bottom-quarter anchor + GPS-trail
         // heading. Falls through to fit/no-op when stationary.
         val trailHeading = homeState.travelHeadingDegrees
+        val ridingZoom = appState.settings.ridingZoom ?: 16f
         if (homeState.homeMode == HomeMode.PLANNING && trailHeading != null) {
             orientCameraForTravel(
                 cameraPositionState,
                 coordinates,
                 rider = appState.riderLocation,
                 bearingDegrees = trailHeading,
+                ridingZoom = ridingZoom,
             )
             return@LaunchedEffect
         }
@@ -261,8 +268,17 @@ private fun CompanionHomeScreen(
                     coordinates,
                     rider = appState.riderLocation,
                     bearingDegrees = homeState.cameraHeadingDegrees(appState.riderLocation),
+                    ridingZoom = ridingZoom,
                 )
-                HomeCompassMode.NORTH_PREVIEW, HomeCompassMode.NORTH_LOCKED -> fitCameraToRoute(cameraPositionState, coordinates)
+                HomeCompassMode.NORTH_PREVIEW, HomeCompassMode.NORTH_LOCKED -> {
+                    // Spec #7: route-overview during routing should fit only
+                    // the remaining geometry, not the completed prefix —
+                    // otherwise late in a ride the camera zooms out far past
+                    // anything useful.
+                    val remaining = homeState.routeOverviewGeometry
+                    val toFit = if (remaining.size >= 2) remaining else coordinates
+                    fitCameraToRoute(cameraPositionState, toFit)
+                }
             }
         }
     }
@@ -350,6 +366,65 @@ private fun CompanionHomeScreen(
             }
             SpeedBadge(appState = appState, homeState = homeState)
         }
+
+        // Spec line 10: zoom +/- buttons under the top bar on the right.
+        // Riding-mode taps persist (`appState.settings.ridingZoom`) so the
+        // rider's preferred navigation zoom carries over between rides;
+        // overview/planning taps animate the camera now but aren't
+        // persisted.
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 96.dp, end = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ZoomButton(label = "Zoom in", glyph = "+") {
+                applyZoomDelta(scope, cameraPositionState, appState, homeState, +1f)
+            }
+            ZoomButton(label = "Zoom out", glyph = "−") {
+                applyZoomDelta(scope, cameraPositionState, appState, homeState, -1f)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ZoomButton(label: String, glyph: String, onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .size(44.dp)
+            .background(
+                color = Color(0xCC1F2937),
+                shape = RoundedCornerShape(14.dp),
+            )
+            .semantics { contentDescription = label },
+    ) {
+        Text(
+            text = glyph,
+            color = Color.White,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+    }
+}
+
+private fun applyZoomDelta(
+    scope: kotlinx.coroutines.CoroutineScope,
+    cameraPositionState: com.google.maps.android.compose.CameraPositionState,
+    appState: CompanionAppState,
+    homeState: HomeStateHolder,
+    delta: Float,
+) {
+    val current = cameraPositionState.position.zoom
+    val next = (current + delta).coerceIn(2f, 21f)
+    if (homeState.homeMode == HomeMode.PHONE_GUIDANCE) {
+        // Persist so future rides start at the rider's preferred scale.
+        appState.settings = appState.settings.copy(ridingZoom = next)
+        appState.persistSettings()
+    }
+    scope.launch {
+        cameraPositionState.animate(CameraUpdateFactory.zoomTo(next))
     }
 }
 
@@ -976,13 +1051,16 @@ private suspend fun orientCameraForTravel(
     coordinates: List<CoordinatePoint>,
     rider: CoordinatePoint? = null,
     bearingDegrees: Double? = null,
+    ridingZoom: Float = 16f,
 ) {
     if (coordinates.size < 2) {
         fitCameraToRoute(cameraPositionState, coordinates)
         return
     }
     // Spec line 101: anchor on the rider's current position and rotate
-    // toward the segment they're riding towards.
+    // toward the segment they're riding towards. `ridingZoom` is sourced
+    // from CompanionSettings so the on-map zoom +/- buttons can persist
+    // a user's preferred navigation scale across rides.
     val anchor = rider ?: coordinates.first()
     val bearing = bearingDegrees
         ?: bearingDegrees(coordinates.first(), coordinates[1])
@@ -990,7 +1068,7 @@ private suspend fun orientCameraForTravel(
         CameraUpdateFactory.newCameraPosition(
             CameraPosition.Builder()
                 .target(anchor.toLatLng())
-                .zoom(16f)
+                .zoom(ridingZoom)
                 .bearing(bearing.toFloat())
                 .tilt(0f)
                 .build(),

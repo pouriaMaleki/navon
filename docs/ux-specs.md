@@ -107,6 +107,9 @@ Tests should cover these ux cases as end to end tests (or if they suite for inte
       - route overview (compass single- / double-tap) fits ONLY the remaining route ahead of the rider, never the already-completed prefix
       - HSL ETA is recomputed from `cyclingSpeedKph` (settings) so listed times match real-world riding instead of Digitransit's conservative default
       - when the rider is within ~25 m of the destination, guidance auto-stops and an "Arrived at destination" notice replaces the bottom button
+      - off-route alert: when perpendicular distance to the projected route crosses 35 m the top card gets a yellow "Off route" pill (web/iOS); after 2 s sustained off-route the pill turns cyan and reads "Rerouting…" while a fresh route is fetched
+      - alternates from current location ("split-way reroute"): a ⇄ icon next to the compass plans new alternatives from the rider's current location to the same destination and surfaces them in the suggestions card with the original route preserved on `activeSession`. Camera switches to north-up overview while the user picks; tapping Start on an alternative swaps the active route to it.
+      - on-map zoom +/- buttons: tapping in riding mode persists the chosen zoom (`settings.ridingZoom` on web/Android, `settings.ridingCameraDistanceM` on iOS) so future rides start at that scale. Tapping in overview/planning is session-only — going back to riding restores the persisted/default scale.
       - speed is shown (is zero, stationary now)
       - user can move the camera by pan or pinch to zoom or rotate, when doing so in this state, after a timeout camera goes back to default (when in routing) smoothly
       - if user press north indicator map rotates to show the north up, after a timeout it goes back to default (when in routing) smoothly. north indicator animates the timeout, giving user a feedback something will be done

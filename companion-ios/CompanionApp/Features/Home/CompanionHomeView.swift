@@ -29,6 +29,21 @@ struct CompanionHomeView: View {
     private let programmaticCameraQuietWindow: TimeInterval = 0.6
     @FocusState private var isSearchFieldFocused: Bool
 
+    /// Camera distance in meters used for the riding-mode follow-rider
+    /// camera. Reads the persisted override from settings (written by the
+    /// on-map zoom +/- buttons) and falls back to 1200 m, matching the
+    /// pre-zoom-button default. Smaller distance = "zoomed in", larger =
+    /// "zoomed out".
+    private var ridingCameraDistanceM: Double {
+        appModel.settings.ridingCameraDistanceM ?? 1200
+    }
+    /// Multiplicative step the on-map zoom buttons apply to the riding
+    /// camera distance. 1.5× per tap is the same span as ~0.6 zoom levels
+    /// on web's 1.0/tap — a comfortable scale change without being jumpy.
+    private let zoomStepFactor: Double = 1.5
+    private let ridingDistanceMin: Double = 250
+    private let ridingDistanceMax: Double = 8000
+
     var body: some View {
         MapReader { proxy in
             mapSurface(proxy: proxy)
@@ -40,6 +55,9 @@ struct CompanionHomeView: View {
                 }
                 .overlay(alignment: .bottomLeading) {
                     speedBadge
+                }
+                .overlay(alignment: .topTrailing) {
+                    zoomControls
                 }
                 .ignoresSafeArea(edges: .bottom)
                 .onAppear { refreshCameraForCurrentMode() }
@@ -191,6 +209,72 @@ struct CompanionHomeView: View {
         }
     }
 
+    /// On-map zoom +/- buttons. Spec line 10: "zoom + and - buttons under
+    /// the top bar on the right side of screen." Adjusts the camera by a
+    /// multiplicative factor each tap. In riding mode the new camera
+    /// distance is persisted (`settings.ridingCameraDistanceM`) so the
+    /// rider's preferred navigation zoom survives across sessions; in
+    /// planning/overview the camera updates for the moment but isn't
+    /// persisted (spec: "only keep it for moment").
+    private var zoomControls: some View {
+        VStack(spacing: 8) {
+            zoomButton(symbol: "plus", label: "Zoom in") { applyZoom(direction: .in) }
+            zoomButton(symbol: "minus", label: "Zoom out") { applyZoom(direction: .out) }
+        }
+        .padding(.top, 96)
+        .padding(.trailing, 12)
+    }
+
+    private func zoomButton(symbol: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 18, weight: .semibold))
+                .frame(width: 44, height: 44)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+    }
+
+    private enum ZoomDirection { case `in`, out }
+
+    private func applyZoom(direction: ZoomDirection) {
+        let factor: Double = direction == .in ? (1.0 / zoomStepFactor) : zoomStepFactor
+        switch viewModel.homeMode {
+        case .phoneGuidance:
+            // Riding mode: mutate the persisted distance and rerun the
+            // follow-rider camera so the change is visible immediately.
+            let raw = ridingCameraDistanceM * factor
+            let next = min(ridingDistanceMax, max(ridingDistanceMin, raw))
+            appModel.settings.ridingCameraDistanceM = next
+            appModel.persistSettings()
+            refreshCameraForCurrentMode()
+        case .planning, .deviceOverview, .sendingToDevice:
+            // Outside riding: a session-only zoom on the current camera.
+            // We can't read the live MapKit zoom, so pull the current span
+            // off the planning reference (or current region) and scale it.
+            let currentSpan: MKCoordinateSpan = {
+                if case .region(let region) = cameraPosition { return region.span }
+                if let ref = planningCameraReference { return ref.span }
+                return MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
+            }()
+            let center: CLLocationCoordinate2D = {
+                if case .region(let region) = cameraPosition { return region.center }
+                if let ref = planningCameraReference { return ref.center }
+                let rider = appModel.riderLocation
+                return CLLocationCoordinate2D(latitude: rider.latitude, longitude: rider.longitude)
+            }()
+            let scaledLat = min(20.0, max(0.0008, currentSpan.latitudeDelta * factor))
+            let scaledLon = min(20.0, max(0.0008, currentSpan.longitudeDelta * factor))
+            let scaledSpan = MKCoordinateSpan(latitudeDelta: scaledLat, longitudeDelta: scaledLon)
+            setCamera(
+                region: MKCoordinateRegion(center: center, span: scaledSpan),
+                heading: 0,
+                recordPlanningReference: false
+            )
+        }
+    }
+
     private func formatSpeed(_ mps: Double?, unit: SpeedUnit) -> String {
         let factor = unit == .mph ? 2.2369363 : 3.6
         guard let mps, mps.isFinite else {
@@ -250,7 +334,23 @@ struct CompanionHomeView: View {
         // bundled as the subtitle (single source of truth — the bottom just
         // floats a stop button). See HomeViewModel.guidanceSubtitleLine.
         let headline = viewModel.nextInstructionLine ?? viewModel.activeNavigationTitle
-        return HStack(alignment: .center, spacing: 12) {
+        return VStack(spacing: 6) {
+            if let offLabel = viewModel.offRouteLabel {
+                Text(offLabel)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 12)
+                    .background(viewModel.rerouteRequested ? Color.cyan : Color.yellow,
+                                in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            phoneGuidanceTopRow(headline: headline)
+        }
+    }
+
+    private func phoneGuidanceTopRow(headline: String) -> some View {
+        HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(headline)
                     .font(.headline)
@@ -684,7 +784,11 @@ struct CompanionHomeView: View {
             let rider = appModel.riderLocation
             let centerPoint = viewModel.cameraCenterCoordinate(rider: rider, headingDegrees: trailHeading)
             let center = CLLocationCoordinate2D(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
-            cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: 1200, heading: trailHeading, pitch: 0))
+            // Smooth motion (#2): without `withAnimation` MapKit hard-snaps on
+            // each fix and the rider visually jumps before the map catches up.
+            withAnimation(.easeInOut(duration: 0.45)) {
+                cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: ridingCameraDistanceM, heading: trailHeading, pitch: 0))
+            }
             lastProgrammaticCameraSetAt = Date()
             return
         }
@@ -720,7 +824,13 @@ struct CompanionHomeView: View {
         // renders visually below center.
         let centerPoint = viewModel.cameraCenterCoordinate(rider: rider, headingDegrees: heading)
         let center = CLLocationCoordinate2D(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
-        cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: 1200, heading: heading, pitch: 0))
+        // Smooth motion (#2): wrap programmatic camera moves so SwiftUI Map
+        // animates the transition instead of snapping. Pinned a hair under
+        // the GPS cadence (≥1 s typical) so successive fixes can interrupt
+        // the previous animation without queueing.
+        withAnimation(.easeInOut(duration: 0.45)) {
+            cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: 1200, heading: heading, pitch: 0))
+        }
         lastProgrammaticCameraSetAt = Date()
     }
 
@@ -749,7 +859,12 @@ struct CompanionHomeView: View {
     }
 
     private func setCamera(region: MKCoordinateRegion, heading: CLLocationDirection, recordPlanningReference: Bool) {
-        cameraPosition = .region(region)
+        // Animate region changes (overview fits, planning recenter) so the
+        // map moves smoothly rather than snapping. Same envelope as the
+        // follow-rider path so cadence feels uniform.
+        withAnimation(.easeInOut(duration: 0.45)) {
+            cameraPosition = .region(region)
+        }
         lastProgrammaticCameraSetAt = Date()
         if recordPlanningReference {
             planningCameraReference = PlanningCameraReference(center: region.center, span: region.span, heading: heading)

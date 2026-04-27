@@ -150,6 +150,28 @@ export const MapSurface = observer(({ store }: Props) => {
     );
   }, [store]);
 
+  // Zoom +/- button reaction. We let MapLibre apply the delta to whatever
+  // the live camera is (works for both fitBounds and center targets), then
+  // — when in phoneGuidance — persist the new zoom as the rider's
+  // preferred riding zoom. Overview zooms are intentionally NOT persisted
+  // (spec line 10).
+  useEffect(() => {
+    return reaction(
+      () => store.mapCameraStore.zoomTick,
+      () => {
+        const map = mapRef.current;
+        if (!map || !mapReadyRef.current) return;
+        const delta = store.mapCameraStore.lastZoomDelta;
+        if (!delta) return;
+        const next = Math.max(1, Math.min(20, map.getZoom() + delta));
+        map.easeTo({ zoom: next, duration: 200 });
+        if (store.guidanceStore.homeMode === "phoneGuidance") {
+          store.settingsStore.updateSettings({ ridingZoom: next });
+        }
+      },
+    );
+  }, [store]);
+
   // Long-press → drop pin (planning only)
   useEffect(() => {
     const map = mapRef.current;

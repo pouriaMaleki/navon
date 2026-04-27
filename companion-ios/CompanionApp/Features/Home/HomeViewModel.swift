@@ -269,6 +269,29 @@ final class HomeViewModel: ObservableObject {
     /// auto-stopped. Cleared on the next route start.
     @Published var arrivalNotice: String?
 
+    /// Spec mirroring web's GuidanceStore: distance from the projected
+    /// route, off-route latched state with hysteresis, and a reroute-request
+    /// flag set after sustained off-route. Surface a single string label so
+    /// the view layer doesn't have to know the state machine.
+    @Published private(set) var offRouteDistanceM: Double = 0
+    @Published private(set) var offRoute: Bool = false
+    @Published private(set) var rerouteRequested: Bool = false
+    private var offRouteDurationMs: Double = 0
+    private var lastAdvanceTimestampMs: Int64 = 0
+
+    /// Single off-route label for the top guidance card. Returns "Rerouting…"
+    /// once the off-route dwell threshold trips, "Off route" while in the
+    /// off-route hysteresis band, and `nil` otherwise.
+    var offRouteLabel: String? {
+        if rerouteRequested { return "Rerouting…" }
+        if offRoute { return "Off route" }
+        return nil
+    }
+
+    private static let offRouteEnterDistanceM: Double = 35
+    private static let offRouteExitDistanceM: Double = 22
+    private static let rerouteRequestDelayMs: Double = 2000
+
     var nextInstructionLine: String? {
         // Spec line 102: as the rider advances along the route, the
         // displayed line must switch to the NEXT upcoming maneuver. We
@@ -521,6 +544,13 @@ final class HomeViewModel: ObservableObject {
         // Starting a new route clears any stale arrival banner from the
         // previous trip.
         arrivalNotice = nil
+        // Reset off-route state so an old latch from a previous trip doesn't
+        // bleed into the new one before the first fix arrives.
+        offRoute = false
+        offRouteDistanceM = 0
+        offRouteDurationMs = 0
+        rerouteRequested = false
+        lastAdvanceTimestampMs = 0
         if appModel.isDeviceConnected {
             homeMode = .sendingToDevice
             let success = await appModel.sendSelectedRoute()
@@ -717,12 +747,41 @@ final class HomeViewModel: ObservableObject {
 
     /// Project the rider onto the active route geometry and advance
     /// `progressDistanceM` monotonically (never regresses), mirroring
-    /// runtime-core's behaviour.
+    /// runtime-core's behaviour. Also runs the off-route hysteresis: when
+    /// perpendicular distance to the route crosses the enter/exit
+    /// thresholds, latch / unlatch the off-route flag and accumulate dwell
+    /// time toward the reroute-request signal.
     private func advanceProgress(rider: CoordinatePoint) {
         guard let geometry = guidanceRoute?.geometry, geometry.count >= 2 else { return }
-        let projected = projectProgress(onto: geometry, rider: rider)
-        let bounded = min(routeTotalDistanceM > 0 ? routeTotalDistanceM : projected, projected)
+        let projection = projectProgressWithDistance(onto: geometry, rider: rider)
+        let bounded = min(routeTotalDistanceM > 0 ? routeTotalDistanceM : projection.progress, projection.progress)
         progressDistanceM = max(progressDistanceM, bounded)
+        offRouteDistanceM = projection.distanceToRouteM
+
+        let nowMs = Int64(Date().timeIntervalSince1970 * 1000)
+        let dt = lastAdvanceTimestampMs > 0 ? Double(nowMs - lastAdvanceTimestampMs) : 0
+        lastAdvanceTimestampMs = nowMs
+
+        // Off-route latch with hysteresis (35 m enter, 22 m exit) — same
+        // bands as runtime-core / companion-web.
+        let wasOffRoute = offRoute
+        if offRoute {
+            if projection.distanceToRouteM <= Self.offRouteExitDistanceM {
+                offRoute = false
+            }
+        } else if projection.distanceToRouteM >= Self.offRouteEnterDistanceM {
+            offRoute = true
+        }
+        if offRoute {
+            offRouteDurationMs = wasOffRoute ? offRouteDurationMs + dt : dt
+            if offRouteDurationMs >= Self.rerouteRequestDelayMs {
+                rerouteRequested = true
+            }
+        } else {
+            offRouteDurationMs = 0
+            rerouteRequested = false
+        }
+
         // Spec: when the rider arrives at the destination, end routing.
         // Use straight-line distance to the last geometry vertex so a rider
         // approaching from any side trips arrival, not just one travelling
@@ -731,6 +790,44 @@ final class HomeViewModel: ObservableObject {
            Self.straightLineMeters(last, rider) <= Self.arrivalRadiusM {
             declareArrival()
         }
+    }
+
+    /// Variant of `projectProgress` that also returns the perpendicular
+    /// distance to the closest segment — needed for off-route hysteresis.
+    private func projectProgressWithDistance(
+        onto polyline: [CoordinatePoint],
+        rider: CoordinatePoint
+    ) -> (progress: Double, distanceToRouteM: Double) {
+        guard polyline.count >= 2 else { return (0, .infinity) }
+        let metersPerDegreeLat = 111_320.0
+        var bestDistSq = Double.infinity
+        var bestProgress = 0.0
+        var traversed = 0.0
+        for i in 0..<(polyline.count - 1) {
+            let a = polyline[i]
+            let b = polyline[i + 1]
+            let meanLat = ((a.latitude + rider.latitude) / 2.0) * .pi / 180.0
+            let cosLat = cos(meanLat)
+            let endX = (b.longitude - a.longitude) * cosLat * metersPerDegreeLat
+            let endY = (b.latitude - a.latitude) * metersPerDegreeLat
+            let riderX = (rider.longitude - a.longitude) * cosLat * metersPerDegreeLat
+            let riderY = (rider.latitude - a.latitude) * metersPerDegreeLat
+            let segLenSq = endX * endX + endY * endY
+            guard segLenSq > 1e-12 else { continue }
+            let t = max(0.0, min(1.0, (riderX * endX + riderY * endY) / segLenSq))
+            let projX = t * endX
+            let projY = t * endY
+            let dx = riderX - projX
+            let dy = riderY - projY
+            let distSq = dx * dx + dy * dy
+            if distSq < bestDistSq {
+                bestDistSq = distSq
+                let segLen = sqrt(segLenSq)
+                bestProgress = traversed + segLen * t
+            }
+            traversed += sqrt(segLenSq)
+        }
+        return (bestProgress, sqrt(bestDistSq))
     }
 
     /// Larger than the off-route exit distance so a rider drifting around
@@ -816,38 +913,15 @@ final class HomeViewModel: ObservableObject {
     /// equivalent. We shift the camera center AHEAD of the rider in the
     /// camera's heading direction so the rider renders below center.
     ///
-    /// The previous 264 m offset matched web's 0.72 anchor against the
-    /// FULL viewport, which placed the rider behind the routing card
-    /// (Stop button + turn instruction occupies the bottom ~180 px on a
-    /// 896 px screen). 130 m drops the rider to roughly 0.62 of the full
-    /// viewport — comfortably above the card on iPhone 14 Pro Max-class
-    /// devices and still distinctly in the lower half.
+    /// History: 264 m → 130 m → 90 m. The 130 m anchor combined with the
+    /// old bottom card (which occupied ~180 px) sometimes pushed the rider
+    /// under the Stop button. The bottom is now just a small floating Stop
+    /// pill, so 90 m anchors the rider at roughly 0.6 of the visible area
+    /// — distinctly bottom-half, but with daylight above the floating UI.
     func cameraCenterCoordinate(rider: CoordinatePoint, headingDegrees: Double) -> CoordinatePoint {
-        let anchorOffsetMeters = 130.0
+        let anchorOffsetMeters = 90.0
         let metersPerDegLat = 111_320.0
         let headingRad = headingDegrees * .pi / 180.0
         let dNorth = cos(headingRad) * anchorOffsetMeters
         let dEast = sin(headingRad) * anchorOffsetMeters
-        let cosLat = cos(rider.latitude * .pi / 180.0)
-        return CoordinatePoint(
-            latitude: rider.latitude + dNorth / metersPerDegLat,
-            longitude: rider.longitude + dEast / (metersPerDegLat * cosLat)
-        )
-    }
-
-    /// Called by the map view on every user pan/zoom/rotate during routing.
-    /// Schedules a recenter to the routing default after the pinned
-    /// inactivity timeout (spec line 104). Outside phoneGuidance it's a
-    /// no-op. Successive interactions reset the timer.
-    func noteUserMapInteraction() {
-        guard homeMode == .phoneGuidance else { return }
-        mapInteractionRecenterTask?.cancel()
-        let delay = mapInteractionRecenterDelay
-        mapInteractionRecenterTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-            guard let self, !Task.isCancelled else { return }
-            guard self.homeMode == .phoneGuidance else { return }
-            self.mapRecenterRequestID &+= 1
-        }
-    }
-}
+        let cosLat = cos(rider.latitude * 

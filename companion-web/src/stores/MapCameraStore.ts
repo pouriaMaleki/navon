@@ -35,6 +35,18 @@ export class MapCameraStore {
    * camera both render in the unblocked area only.
    */
   bottomReservedPx = 0;
+  /**
+   * Increments each time the user taps an on-map zoom button. The sign of
+   * the most recent delta lives on `lastZoomDelta` so MapSurface can apply
+   * it directly to the live MapLibre instance — going through the store
+   * keeps both the planning case (fitBounds target, no zoom field to
+   * mutate) and the riding case (center target, persisted override) on
+   * the same code path. Spec lines 10/11 ("zoom + and - buttons under the
+   * top bar... when pressed it should preserve that zoom" for riding
+   * mode; overview "only keep it for moment").
+   */
+  zoomTick = 0;
+  lastZoomDelta = 0;
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
@@ -62,6 +74,11 @@ export class MapCameraStore {
     if (Math.abs(clamped - this.riderAnchorNormalizedY) < 1e-6) return;
     this.riderAnchorNormalizedY = clamped;
     this.revision += 1;
+  }
+
+  requestZoomDelta(delta: number): void {
+    this.lastZoomDelta = delta;
+    this.zoomTick += 1;
   }
 
   setBottomReservedPx(px: number): void {

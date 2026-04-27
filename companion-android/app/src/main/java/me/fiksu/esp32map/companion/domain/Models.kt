@@ -173,6 +173,15 @@ data class CompanionSettings(
     val cyclingSpeedKph: Double = 18.0,
     /** Display unit for the live-speed badge. */
     val speedUnit: SpeedUnit = SpeedUnit.KPH,
+    /**
+     * Persistent zoom level (Google Maps zoom; 1 = world, 21 = building)
+     * for riding-mode follow-rider. The on-map zoom +/- buttons write
+     * here so the rider's preferred navigation zoom survives across
+     * sessions. `null` falls back to 16f, matching the prior hard-coded
+     * value. Overview/planning zoom is intentionally NOT persisted
+     * (spec line 10).
+     */
+    val ridingZoom: Float? = null,
 )
 
 data class RouteAlternative(

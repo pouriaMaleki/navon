@@ -99,6 +99,7 @@ export const HomeView = observer(({ store }: Props) => {
       <TopOverlay store={store} />
       <BottomOverlay store={store} />
       <RecenterButton store={store} />
+      <ZoomControls store={store} />
       <SpeedBadge store={store} />
       <LocationBanner store={store} />
     </>
@@ -196,6 +197,15 @@ const TopOverlay = observer(({ store }: { store: RootStore }) => {
           <button
             type="button"
             className="compass-button"
+            aria-label="Find alternate routes"
+            title="Find alternate routes from here"
+            onClick={() => void store.exploreAlternateRoutes()}
+          >
+            ⇄
+          </button>
+          <button
+            type="button"
+            className="compass-button"
             aria-label="North indicator"
             onClick={() => guidance.handleCompassTap()}
             onDoubleClick={() => guidance.handleCompassDoubleTap()}
@@ -290,6 +300,32 @@ const BottomOverlay = observer(({ store }: { store: RootStore }) => {
     );
   }
   return null;
+});
+
+const ZoomControls = observer(({ store }: { store: RootStore }) => {
+  // Hide the on-map zoom controls while a search dropdown / location banner
+  // is active, since they would visually crowd the top of the screen.
+  if (store.planningStore.isSearchOpen) return null;
+  return (
+    <div className="zoom-controls" aria-label="Zoom controls" role="group">
+      <button
+        type="button"
+        className="icon-button zoom-controls__button"
+        aria-label="Zoom in"
+        onClick={() => store.mapCameraStore.requestZoomDelta(1)}
+      >
+        +
+      </button>
+      <button
+        type="button"
+        className="icon-button zoom-controls__button"
+        aria-label="Zoom out"
+        onClick={() => store.mapCameraStore.requestZoomDelta(-1)}
+      >
+        −
+      </button>
+    </div>
+  );
 });
 
 const RecenterButton = observer(({ store }: { store: RootStore }) => {

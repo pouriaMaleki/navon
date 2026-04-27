@@ -190,6 +190,32 @@ class HomeStateHolder(
     var arrivalNotice by mutableStateOf<String?>(null)
         private set
 
+    /**
+     * Distance (m) the rider has progressed along the active route, from
+     * monotonic projection of each fix onto the polyline. Bumped only on
+     * `ingestRiderLocationFix` while in PHONE_GUIDANCE. Drives the
+     * route-overview camera (#7) so the compass-tap fit ignores already-
+     * completed segments behind the rider.
+     */
+    var progressDistanceM by mutableStateOf(0.0)
+        private set
+    private var routeTotalDistanceM: Double = 0.0
+
+    /**
+     * Geometry the route-overview camera should fit when the user taps
+     * the compass during routing. Equals the remaining route ahead of
+     * the rider — late in a ride the start segment is no longer relevant,
+     * so including it would zoom the camera out unnecessarily. Falls back
+     * to the full geometry before any progress.
+     */
+    val routeOverviewGeometry: List<CoordinatePoint>
+        get() {
+            val geometry = guidanceRoute?.geometry ?: return emptyList()
+            if (geometry.isEmpty()) return emptyList()
+            val split = splitPolylineAtDistance(geometry, progressDistanceM)
+            return if (split.remaining.size >= 2) split.remaining else geometry
+        }
+
         fun syncQueryFromPreview() {
         previewRoute?.summary?.destinationLabel?.takeIf { it.isNotBlank() }?.let {
             query = it
@@ -368,8 +394,11 @@ class HomeStateHolder(
         val routeIdentifier = selectedPreview?.normalizedPackage?.routeIdentifier ?: return
         activeRouteIdentifier = routeIdentifier
         // Starting a new route clears any stale arrival banner from the
-        // previous trip.
+        // previous trip and resets progress so route-overview-remaining
+        // begins at the start of the new geometry.
         arrivalNotice = null
+        progressDistanceM = 0.0
+        routeTotalDistanceM = polylineLengthMeters(selectedPreview?.normalizedPackage?.geometry ?: emptyList())
         if (appState.isDeviceConnected) {
             homeMode = HomeMode.SENDING_TO_DEVICE
             appState.sendSelectedRoute { success ->
@@ -379,6 +408,21 @@ class HomeStateHolder(
             compassMode = HomeCompassMode.AUTO_FOLLOW
             homeMode = HomeMode.PHONE_GUIDANCE
         }
+    }
+
+    private fun polylineLengthMeters(polyline: List<CoordinatePoint>): Double {
+        if (polyline.size < 2) return 0.0
+        val metersPerDegLat = 111_320.0
+        var total = 0.0
+        for (i in 0 until polyline.size - 1) {
+            val a = polyline[i]
+            val b = polyline[i + 1]
+            val meanLat = ((a.latitude + b.latitude) / 2.0) * Math.PI / 180.0
+            val dN = (b.latitude - a.latitude) * metersPerDegLat
+            val dE = (b.longitude - a.longitude) * kotlin.math.cos(meanLat) * metersPerDegLat
+            total += kotlin.math.sqrt(dN * dN + dE * dE)
+        }
+        return total
     }
 
     fun stopActiveNavigation() {
@@ -531,17 +575,108 @@ class HomeStateHolder(
     fun ingestRiderLocationFix(point: CoordinatePoint, timestampMs: Long) {
         headingTrail.recordFix(point, timestampMs)
         trailHeadingCache = headingTrail.travelHeadingDegrees
-        // Spec: when the rider arrives at the destination, end routing.
-        // Straight-line distance to the route's last vertex — Android lacks
-        // along-route projection, so this check trips when the rider is
-        // physically near the destination from any approach direction.
         if (homeMode == HomeMode.PHONE_GUIDANCE) {
-            val destination = guidanceRoute?.geometry?.lastOrNull()
+            // Project onto active geometry and advance progress monotonically
+            // (never regresses) so route-overview-remaining (#7) can drop the
+            // completed prefix.
+            val geometry = guidanceRoute?.geometry
+            if (geometry != null && geometry.size >= 2) {
+                val projected = projectProgressMeters(geometry, point)
+                val capped = if (routeTotalDistanceM > 0.0) {
+                    kotlin.math.min(routeTotalDistanceM, projected)
+                } else projected
+                if (capped > progressDistanceM) progressDistanceM = capped
+            }
+            // Spec: when the rider arrives at the destination, end routing.
+            // Straight-line distance to the route's last vertex so a rider
+            // approaching from any side trips arrival.
+            val destination = geometry?.lastOrNull()
             if (destination != null && straightLineMeters(destination, point) <= ARRIVAL_RADIUS_M) {
                 declareArrival()
             }
         }
     }
+
+    /**
+     * Distance along `polyline` to the closest projected point on `rider`.
+     * Mirrors the iOS `projectProgress` helper. Equirectangular metric — the
+     * absolute scale is approximate but the relative ordering is exact, which
+     * is what the monotonic-progress invariant needs.
+     */
+    private fun projectProgressMeters(polyline: List<CoordinatePoint>, rider: CoordinatePoint): Double {
+        if (polyline.size < 2) return 0.0
+        val metersPerDegLat = 111_320.0
+        var bestDistSq = Double.POSITIVE_INFINITY
+        var bestProgress = 0.0
+        var traversed = 0.0
+        for (i in 0 until polyline.size - 1) {
+            val a = polyline[i]
+            val b = polyline[i + 1]
+            val meanLat = ((a.latitude + rider.latitude) / 2.0) * Math.PI / 180.0
+            val cosLat = kotlin.math.cos(meanLat)
+            val endX = (b.longitude - a.longitude) * cosLat * metersPerDegLat
+            val endY = (b.latitude - a.latitude) * metersPerDegLat
+            val riderX = (rider.longitude - a.longitude) * cosLat * metersPerDegLat
+            val riderY = (rider.latitude - a.latitude) * metersPerDegLat
+            val segLenSq = endX * endX + endY * endY
+            if (segLenSq < 1e-12) continue
+            val t = ((riderX * endX + riderY * endY) / segLenSq).coerceIn(0.0, 1.0)
+            val dx = riderX - t * endX
+            val dy = riderY - t * endY
+            val distSq = dx * dx + dy * dy
+            val segLen = kotlin.math.sqrt(segLenSq)
+            if (distSq < bestDistSq) {
+                bestDistSq = distSq
+                bestProgress = traversed + segLen * t
+            }
+            traversed += segLen
+        }
+        return bestProgress
+    }
+
+    /**
+     * Split a polyline at a given distance-along-route. Returns the prefix up
+     * to the split distance and the suffix from there to the end. Inserts a
+     * synthesized vertex on the segment containing the split point so each
+     * side stays a valid polyline. Mirrors `splitPolylineAtDistance` on web
+     * and iOS.
+     */
+    fun splitPolylineAtDistance(
+        polyline: List<CoordinatePoint>,
+        distance: Double,
+    ): PolylineSplit {
+        if (polyline.size < 2 || distance <= 0.0) return PolylineSplit(emptyList(), polyline)
+        val metersPerDegLat = 111_320.0
+        var traversed = 0.0
+        val completed = mutableListOf(polyline[0])
+        for (i in 0 until polyline.size - 1) {
+            val a = polyline[i]
+            val b = polyline[i + 1]
+            val meanLat = ((a.latitude + b.latitude) / 2.0) * Math.PI / 180.0
+            val dN = (b.latitude - a.latitude) * metersPerDegLat
+            val dE = (b.longitude - a.longitude) * kotlin.math.cos(meanLat) * metersPerDegLat
+            val segLen = kotlin.math.sqrt(dN * dN + dE * dE)
+            if (traversed + segLen >= distance) {
+                val t = if (segLen <= 0.0) 0.0 else (distance - traversed) / segLen
+                val split = CoordinatePoint(
+                    latitude = a.latitude + (b.latitude - a.latitude) * t,
+                    longitude = a.longitude + (b.longitude - a.longitude) * t,
+                )
+                completed += split
+                val remaining = mutableListOf(split)
+                remaining += polyline.subList(i + 1, polyline.size)
+                return PolylineSplit(completed, remaining)
+            }
+            completed += b
+            traversed += segLen
+        }
+        return PolylineSplit(polyline, listOf(polyline.last()))
+    }
+
+    data class PolylineSplit(
+        val completed: List<CoordinatePoint>,
+        val remaining: List<CoordinatePoint>,
+    )
 
     private fun declareArrival() {
         arrivalNotice = "Arrived at destination"

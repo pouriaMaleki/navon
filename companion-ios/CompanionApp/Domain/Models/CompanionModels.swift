@@ -231,13 +231,19 @@ struct CompanionSettings: Equatable, Codable {
     var cyclingSpeedKph: Double
     /// Display unit for the live-speed badge.
     var speedUnit: SpeedUnit
+    /// Persistent camera distance (meters) for riding-mode follow-rider.
+    /// The on-map zoom +/- buttons write here; `nil` falls back to the
+    /// built-in default of 1200 m. Overview/planning zooms are NOT
+    /// persisted (spec line 10).
+    var ridingCameraDistanceM: Double?
 
     static let defaults = CompanionSettings(
         preferLiveHslRouting: false,
         hslSubscriptionKey: "",
         hslEndpointURL: "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1",
         cyclingSpeedKph: 18,
-        speedUnit: .kph
+        speedUnit: .kph,
+        ridingCameraDistanceM: nil
     )
 
     /// Tolerant decode so existing on-disk settings (no `cyclingSpeedKph` /
@@ -255,6 +261,7 @@ struct CompanionSettings: Equatable, Codable {
             ?? Self.defaults.cyclingSpeedKph
         self.speedUnit = try container.decodeIfPresent(SpeedUnit.self, forKey: .speedUnit)
             ?? Self.defaults.speedUnit
+        self.ridingCameraDistanceM = try container.decodeIfPresent(Double.self, forKey: .ridingCameraDistanceM)
     }
 
     init(
@@ -262,13 +269,15 @@ struct CompanionSettings: Equatable, Codable {
         hslSubscriptionKey: String,
         hslEndpointURL: String,
         cyclingSpeedKph: Double,
-        speedUnit: SpeedUnit
+        speedUnit: SpeedUnit,
+        ridingCameraDistanceM: Double?
     ) {
         self.preferLiveHslRouting = preferLiveHslRouting
         self.hslSubscriptionKey = hslSubscriptionKey
         self.hslEndpointURL = hslEndpointURL
         self.cyclingSpeedKph = cyclingSpeedKph
         self.speedUnit = speedUnit
+        self.ridingCameraDistanceM = ridingCameraDistanceM
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -277,6 +286,7 @@ struct CompanionSettings: Equatable, Codable {
         case hslEndpointURL
         case cyclingSpeedKph
         case speedUnit
+        case ridingCameraDistanceM
     }
 }
 

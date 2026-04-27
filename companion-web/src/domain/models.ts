@@ -212,6 +212,15 @@ export type CompanionSettings = {
   cyclingSpeedKph: number;
   /** Display unit for live speed; persisted so all companions render the same. */
   speedUnit: SpeedUnit;
+  /**
+   * Persistent zoom level for riding-mode (phoneGuidance follow-rider).
+   * The zoom +/- buttons in routing write here so the rider's preferred
+   * "navigation zoom" survives across sessions. `null` falls back to the
+   * built-in default of 16. Overview (north-preview / planning) zoom is
+   * intentionally NOT persisted — see spec line 10: "in over view mode
+   * user changes zoom, only keep it for moment".
+   */
+  ridingZoom: number | null;
 };
 
 export const DEFAULT_COMPANION_SETTINGS: CompanionSettings = {
@@ -220,6 +229,7 @@ export const DEFAULT_COMPANION_SETTINGS: CompanionSettings = {
   hslEndpointURL: "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1",
   cyclingSpeedKph: 18,
   speedUnit: "kph",
+  ridingZoom: null,
 };
 
 export type RoutePlannerPreferences = {

@@ -346,6 +346,25 @@ textarea {
   pointer-events: auto;
 }
 
+.zoom-controls {
+  position: absolute;
+  /* Placed below the recenter slot (top 84 + 44 button + 12 gap = 140). */
+  top: 140px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: auto;
+  z-index: 5;
+}
+.zoom-controls__button {
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 600;
+}
+
 .speed-badge {
   position: absolute;
   bottom: calc(env(safe-area-inset-bottom) + 12px);

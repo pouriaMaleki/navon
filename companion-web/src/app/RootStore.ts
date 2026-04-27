@@ -110,7 +110,7 @@ export class RootStore {
     // to the current route-segment bearing. Fires on startSelectedRoute, on
     // every GPS tick during guidance, after map-interaction inactivity
     // timeout, and when compass returns to autoFollow from northLocked.
-    const ROUTING_FOLLOW_ZOOM = 16;
+    const ROUTING_FOLLOW_ZOOM_DEFAULT = 16;
     this.guidanceStore.onRecenterRequested(() => {
       const rider =
         this.locationStore.currentLocation ??
@@ -118,11 +118,17 @@ export class RootStore {
         this.planningStore.routeRequest.origin;
       if (!rider) return;
       const inRouting = this.guidanceStore.homeMode === "phoneGuidance";
-      // Routing uses a fixed "navigation zoom" (16) so Start always snaps
-      // the camera in — regardless of what planning-mode overview zoom was.
-      // Outside routing, preserve whatever the user was looking at.
+      // Routing uses a fixed "navigation zoom" (16 by default) so Start
+      // always snaps the camera in — regardless of what planning-mode
+      // overview zoom was. The user can override this with the on-map
+      // zoom +/- buttons; the override is persisted in
+      // `settingsStore.settings.ridingZoom` so the same scale is used on
+      // future rides. Outside routing, preserve whatever the user was
+      // looking at — overview zoom is intentionally session-only.
+      const ridingZoom =
+        this.settingsStore.settings.ridingZoom ?? ROUTING_FOLLOW_ZOOM_DEFAULT;
       const zoom = inRouting
-        ? ROUTING_FOLLOW_ZOOM
+        ? ridingZoom
         : this.mapCameraStore.target.kind === "center"
           ? this.mapCameraStore.target.zoom
           : 14;
@@ -234,6 +240,50 @@ export class RootStore {
   dispose(): void {
     this.rerouteAbort?.abort();
     this.locationStore.stop();
+  }
+
+  /**
+   * Spec #11 ("split-way reroute"): from inside an active route, plan a fresh
+   * set of alternatives from the rider's current location to the same
+   * destination and surface them in the route-suggestions card without
+   * stopping the active guidance state. Camera switches to a north-up
+   * fitBounds so the user can see all options at once — same vantage
+   * point as planning before Start. Picking an alternative and tapping
+   * Start swaps the active route to it (the standard
+   * `startSelectedRoute` path); cancelling resumes the original route
+   * because we never mutated `guidanceStore.activeSession`.
+   */
+  async exploreAlternateRoutes(): Promise<void> {
+    const session = this.guidanceStore.activeSession;
+    if (!session.destinationCoordinate || !session.routeIdentifier) return;
+    const rider =
+      this.locationStore.currentLocation ??
+      this.locationStore.lastKnownLocation;
+    if (!rider) return;
+
+    this.rerouteAbort?.abort();
+    const controller = new AbortController();
+    this.rerouteAbort = controller;
+    try {
+      const provider = this.providers[session.providerID];
+      const preview = await provider.replanRoute(session, rider, controller.signal);
+      if (controller.signal.aborted) return;
+      runInAction(() => {
+        // Drop guidance state so the home view renders as planning with
+        // the alternatives card. The active route's identifier survives
+        // on the session object so the user can re-Start the same path
+        // by picking the matching alternative.
+        this.guidanceStore.homeMode = "planning";
+        this.planningStore.setPreview(preview);
+        // North-up overview camera, mirroring pre-Start planning.
+        const selected = preview.alternatives[0];
+        if (selected) this.mapCameraStore.fitBounds(selected.normalizedPackage.geometry, 120);
+      });
+    } catch (err) {
+      if ((err as Error)?.name === "AbortError") return;
+    } finally {
+      if (this.rerouteAbort === controller) this.rerouteAbort = undefined;
+    }
   }
 
   goHome(): void {

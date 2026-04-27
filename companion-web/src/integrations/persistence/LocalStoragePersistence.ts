@@ -29,7 +29,11 @@ const RECENT_DEDUP_METERS = 80;
 
 export class LocalStoragePersistence {
   loadSettings(): CompanionSettings {
-    return readJson(KEY_SETTINGS, DEFAULT_COMPANION_SETTINGS);
+    // Spread the defaults so newly added fields (e.g. `ridingZoom` added when
+    // zoom +/- buttons landed) default cleanly for users with older
+    // localStorage payloads, instead of arriving as `undefined` and
+    // surprising callers that expect the typed shape.
+    return { ...DEFAULT_COMPANION_SETTINGS, ...readJson(KEY_SETTINGS, DEFAULT_COMPANION_SETTINGS) };
   }
   saveSettings(value: CompanionSettings): void {
     writeJson(KEY_SETTINGS, value);
