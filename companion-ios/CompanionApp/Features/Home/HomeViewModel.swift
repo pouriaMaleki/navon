@@ -81,6 +81,47 @@ final class HomeViewModel: ObservableObject {
     /// (spec line 104).
     private let mapInteractionRecenterDelay: TimeInterval = 1.3
 
+    /// Default camera distance (m) for the riding-mode follow-rider camera
+    /// when the rider hasn't overridden it via the on-map +/- buttons.
+    /// 1200 m is the same scale companion-web uses (zoom 16 ≈ 1200 m
+    /// distance at typical mid-latitudes).
+    static let defaultRidingCameraDistanceM: Double = 1200
+    /// Lower bound for `ridingCameraDistanceM` so successive zoom-in taps
+    /// can't drive the camera into a sub-block scale where the rider can
+    /// no longer see the next turn.
+    static let minRidingCameraDistanceM: Double = 250
+    /// Upper bound so a stray zoom-out chain can't end up viewing the
+    /// entire region from orbit.
+    static let maxRidingCameraDistanceM: Double = 8000
+    /// Multiplicative step the +/- buttons apply per tap. 1.5× ≈ 0.6
+    /// MapLibre zoom levels — same as companion-web's per-tap step.
+    static let ridingZoomStepFactor: Double = 1.5
+
+    /// Camera distance (m) used by the autoFollow follow-rider camera in
+    /// routing mode. Reads the persisted override (set by the on-map +/-
+    /// buttons). Falls back to `defaultRidingCameraDistanceM` when no
+    /// override has ever been written. The view layer must use this
+    /// value — NOT a hardcoded constant — so the rider's preferred zoom
+    /// survives compass cycles + every GPS-fix-driven camera refresh.
+    var ridingCameraDistanceM: Double {
+        appModel.settings.ridingCameraDistanceM ?? Self.defaultRidingCameraDistanceM
+    }
+
+    enum RidingZoomDirection { case zoomIn, zoomOut }
+
+    /// Apply a single +/- tap in routing mode. Multiplies the saved
+    /// distance by 1/1.5 (zoom-in) or 1.5 (zoom-out), clamps to
+    /// [`minRidingCameraDistanceM`, `maxRidingCameraDistanceM`], and
+    /// persists. Mirrors the web companion's `settings.ridingZoom` path
+    /// where overview/planning zooms are intentionally session-only.
+    func bumpRidingZoom(direction: RidingZoomDirection) {
+        let factor = direction == .zoomIn ? (1.0 / Self.ridingZoomStepFactor) : Self.ridingZoomStepFactor
+        let raw = ridingCameraDistanceM * factor
+        let next = min(Self.maxRidingCameraDistanceM, max(Self.minRidingCameraDistanceM, raw))
+        appModel.settings.ridingCameraDistanceM = next
+        appModel.persistSettings()
+    }
+
     private let appModel: AppModel
     private let placeSearchService: PlaceSearchService
     private var latestSearchTask: Task<Void, Never>?
@@ -671,14 +712,23 @@ final class HomeViewModel: ObservableObject {
         minLat: Double, maxLat: Double,
         minLon: Double, maxLon: Double
     ) -> MKCoordinateRegion {
-        // Bottom card during planning with 2-3 alternatives can run
-        // ~45% of screen height; the previous 1.8× / 0.15 shift wasn't
-        // enough and the routes still rendered behind the list. 2.2×
-        // span + 0.22 southward shift puts the bbox center at roughly
-        // the upper-third of the visible region while keeping the
-        // bbox fully covered.
-        let latDelta = max((maxLat - minLat) * 2.2, 0.014)
-        let lonDelta = max((maxLon - minLon) * 1.6, 0.012)
+        // The visible "uncovered" map strip during planning is bounded by
+        // the top "Where to?" search bar (~12% of screen) and the bottom
+        // alternatives card (which can run ~55% with 3 alternatives + source
+        // picker + Start button on smaller iPhones). The fit must keep the
+        // bbox INSIDE that strip — both extremes matter, and over-correcting
+        // either way reintroduces the original crop:
+        //
+        //   - 2.2× / 0.22 cropped the route start behind the bottom card.
+        //   - 2.6× / 0.30 (later 3.0× / 0.20) over-shifted upward — the
+        //     route end ended up under the where-to bar at the top.
+        //
+        // 4.0× span + 0.22 southward shift puts the bbox at screen-y
+        // 15.5%-40.5% (centred at ~28%), which sits comfortably inside the
+        // 12%-45% visible strip even when the card runs slightly over 50%.
+        // Both the top and bottom edges keep ~3-5% of buffer.
+        let latDelta = max((maxLat - minLat) * 4.0, 0.022)
+        let lonDelta = max((maxLon - minLon) * 2.0, 0.014)
         let bboxCenterLat = (minLat + maxLat) / 2.0
         let shiftedCenterLat = bboxCenterLat - 0.22 * latDelta
         return MKCoordinateRegion(
@@ -1005,13 +1055,23 @@ final class HomeViewModel: ObservableObject {
     /// equivalent. We shift the camera center AHEAD of the rider in the
     /// camera's heading direction so the rider renders below center.
     ///
-    /// History: 264 m → 130 m → 90 m. The 130 m anchor combined with the
-    /// old bottom card (which occupied ~180 px) sometimes pushed the rider
-    /// under the Stop button. The bottom is now just a small floating Stop
-    /// pill, so 90 m anchors the rider at roughly 0.6 of the visible area
-    /// — distinctly bottom-half, but with daylight above the floating UI.
-    func cameraCenterCoordinate(rider: CoordinatePoint, headingDegrees: Double) -> CoordinatePoint {
-        let anchorOffsetMeters = 90.0
+    /// The offset MUST scale with `cameraDistanceM`. MapKit's `distance`
+    /// (camera altitude in m) drives how many meters of ground show
+    /// vertically on screen, so a fixed-meters offset is a different
+    /// fraction of the visible map at every zoom level. At D=1200 m we
+    /// want 90 m of offset (rider sits at ~0.6 of the visible area —
+    /// distinctly bottom-half, but with daylight above the floating Stop
+    /// pill). The same screen-relative position at D=300 m needs only
+    /// 22.5 m of offset; otherwise the rider drifts off the bottom edge
+    /// of the screen at deep zoom-in. Linear scaling keeps the rider's
+    /// screen-relative anchor invariant under zoom.
+    static let anchorOffsetMetersPerDistance: Double = 0.075
+    func cameraCenterCoordinate(
+        rider: CoordinatePoint,
+        headingDegrees: Double,
+        cameraDistanceM: Double
+    ) -> CoordinatePoint {
+        let anchorOffsetMeters = Self.anchorOffsetMetersPerDistance * cameraDistanceM
         let metersPerDegLat = 111_320.0
         let headingRad = headingDegrees * .pi / 180.0
         let dNorth = cos(headingRad) * anchorOffsetMeters
@@ -1021,6 +1081,14 @@ final class HomeViewModel: ObservableObject {
             latitude: rider.latitude + dNorth / metersPerDegLat,
             longitude: rider.longitude + dEast / (metersPerDegLat * cosLat)
         )
+    }
+
+    /// Convenience overload that uses the rider's preferred routing-mode
+    /// camera distance. Keeps existing call sites compiling and still
+    /// produces a zoom-aware offset because `ridingCameraDistanceM`
+    /// reflects the persisted +/- override.
+    func cameraCenterCoordinate(rider: CoordinatePoint, headingDegrees: Double) -> CoordinatePoint {
+        cameraCenterCoordinate(rider: rider, headingDegrees: headingDegrees, cameraDistanceM: ridingCameraDistanceM)
     }
 
     /// Called by the map view on every user pan/zoom/rotate during routing.

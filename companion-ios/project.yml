@@ -43,6 +43,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: me.fiksu.esp32map.companion.ios.tests
         SWIFT_VERSION: 5.10
+        INFOPLIST_FILE: ESP32MapCompanionTests/Info.plist
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/ESP32MapCompanion.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ESP32MapCompanion"
         BUNDLE_LOADER: "$(TEST_HOST)"
   ESP32MapCompanionUITests:
@@ -57,6 +58,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: me.fiksu.esp32map.companion.ios.uitests
         SWIFT_VERSION: 5.10
+        INFOPLIST_FILE: ESP32MapCompanionUITests/Info.plist
         TEST_TARGET_NAME: ESP32MapCompanion
   ESP32MapCompanionShare:
     type: app-extension

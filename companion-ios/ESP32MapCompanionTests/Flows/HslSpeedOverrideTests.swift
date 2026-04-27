@@ -21,7 +21,8 @@ final class HslSpeedOverrideTests: XCTestCase {
                 hslSubscriptionKey: "",
                 hslEndpointURL: CompanionSettings.defaults.hslEndpointURL,
                 cyclingSpeedKph: cyclingSpeedKph,
-                speedUnit: .kph
+                speedUnit: .kph,
+                ridingCameraDistanceM: nil
             )
         })
     }

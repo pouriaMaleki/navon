@@ -29,20 +29,12 @@ struct CompanionHomeView: View {
     private let programmaticCameraQuietWindow: TimeInterval = 0.6
     @FocusState private var isSearchFieldFocused: Bool
 
-    /// Camera distance in meters used for the riding-mode follow-rider
-    /// camera. Reads the persisted override from settings (written by the
-    /// on-map zoom +/- buttons) and falls back to 1200 m, matching the
-    /// pre-zoom-button default. Smaller distance = "zoomed in", larger =
-    /// "zoomed out".
-    private var ridingCameraDistanceM: Double {
-        appModel.settings.ridingCameraDistanceM ?? 1200
-    }
-    /// Multiplicative step the on-map zoom buttons apply to the riding
-    /// camera distance. 1.5× per tap is the same span as ~0.6 zoom levels
-    /// on web's 1.0/tap — a comfortable scale change without being jumpy.
-    private let zoomStepFactor: Double = 1.5
-    private let ridingDistanceMin: Double = 250
-    private let ridingDistanceMax: Double = 8000
+    /// Camera distance (m) used for the riding-mode follow-rider camera.
+    /// Authoritative value lives on the viewModel so both `applyZoom` and
+    /// `orientCameraForTravel` read from the same source — that's what
+    /// keeps the rider's preferred zoom alive across compass cycles +
+    /// GPS-fix-driven camera refreshes.
+    private var ridingCameraDistanceM: Double { viewModel.ridingCameraDistanceM }
 
     var body: some View {
         MapReader { proxy in
@@ -274,24 +266,24 @@ struct CompanionHomeView: View {
     private enum ZoomDirection { case zoomIn, zoomOut }
 
     private func applyZoom(direction: ZoomDirection) {
-        let factor: Double = direction == .zoomIn ? (1.0 / zoomStepFactor) : zoomStepFactor
         switch viewModel.homeMode {
         case .phoneGuidance:
-            // Riding mode: persist the new distance AND apply it directly
-            // to the live MapKit camera. Going only through
-            // `refreshCameraForCurrentMode()` had a perceptible "no-op"
-            // window when GPS-fix-driven refreshes ran in parallel with
-            // the user tap — this direct path closes that gap.
-            let raw = ridingCameraDistanceM * factor
-            let next = min(ridingDistanceMax, max(ridingDistanceMin, raw))
-            appModel.settings.ridingCameraDistanceM = next
-            appModel.persistSettings()
+            // Riding mode: persist the new distance through the viewModel
+            // (so the autoFollow camera in `orientCameraForTravel` reads the
+            // same value next time GPS bumps the follow tick) AND apply it
+            // directly here so there's no perceptible "no-op" window
+            // between the tap and the next refresh.
+            viewModel.bumpRidingZoom(direction: direction == .zoomIn ? .zoomIn : .zoomOut)
+            let next = viewModel.ridingCameraDistanceM
             if let route = viewModel.guidanceRoute {
                 let rider = appModel.riderLocation
                 let heading = viewModel.cameraHeadingDegrees(rider: rider)
                     ?? bearingDegrees(from: route.geometry.first ?? rider,
                                       to: route.geometry.dropFirst().first ?? rider)
-                let centerPoint = viewModel.cameraCenterCoordinate(rider: rider, headingDegrees: heading)
+                // Pass the new camera distance so the anchor offset scales
+                // proportionally — without this, deep zoom-in (small distance)
+                // pushes the rider off the bottom of the visible map.
+                let centerPoint = viewModel.cameraCenterCoordinate(rider: rider, headingDegrees: heading, cameraDistanceM: next)
                 let center = CLLocationCoordinate2D(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
                 withAnimation(.easeInOut(duration: 0.25)) {
                     cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: next, heading: heading, pitch: 0))
@@ -307,6 +299,9 @@ struct CompanionHomeView: View {
             // already keeps `planningCameraReference` in sync with the live
             // camera, so we use that as the source of truth and fall back
             // to the rider when no reference is available yet.
+            let factor: Double = direction == .zoomIn
+                ? (1.0 / HomeViewModel.ridingZoomStepFactor)
+                : HomeViewModel.ridingZoomStepFactor
             let rider = appModel.riderLocation
             let baseSpan = planningCameraReference?.span
                 ?? MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
@@ -845,7 +840,9 @@ struct CompanionHomeView: View {
         // and rotate to GPS-trail heading.
         if let trailHeading = viewModel.travelHeadingDegrees {
             let rider = appModel.riderLocation
-            let centerPoint = viewModel.cameraCenterCoordinate(rider: rider, headingDegrees: trailHeading)
+            let centerPoint = viewModel.cameraCenterCoordinate(
+                rider: rider, headingDegrees: trailHeading, cameraDistanceM: ridingCameraDistanceM
+            )
             let center = CLLocationCoordinate2D(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
             // Smooth motion (#2): without `withAnimation` MapKit hard-snaps on
             // each fix and the rider visually jumps before the map catches up.
@@ -884,15 +881,25 @@ struct CompanionHomeView: View {
         // Spec line 84: anchor rider in the bottom quarter. iOS MapKit has
         // no padding-based anchor offset; instead we shift the camera
         // center ahead of the rider in the heading direction so the rider
-        // renders visually below center.
-        let centerPoint = viewModel.cameraCenterCoordinate(rider: rider, headingDegrees: heading)
+        // renders visually below center. Pass the same camera distance
+        // we're about to use so the offset scales with zoom — without
+        // this, a deep zoom-in puts the rider off the bottom edge.
+        let centerPoint = viewModel.cameraCenterCoordinate(
+            rider: rider, headingDegrees: heading, cameraDistanceM: ridingCameraDistanceM
+        )
         let center = CLLocationCoordinate2D(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
         // Smooth motion (#2): wrap programmatic camera moves so SwiftUI Map
         // animates the transition instead of snapping. Pinned a hair under
         // the GPS cadence (≥1 s typical) so successive fixes can interrupt
         // the previous animation without queueing.
+        //
+        // Distance must come from the viewModel — NOT a hardcoded constant.
+        // The +/- buttons write through `viewModel.bumpRidingZoom` and the
+        // autoFollow camera reads that same value here, which is what keeps
+        // the rider's preferred zoom alive across compass cycles + every
+        // GPS-fix-driven refresh.
         withAnimation(.easeInOut(duration: 0.45)) {
-            cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: 1200, heading: heading, pitch: 0))
+            cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: ridingCameraDistanceM, heading: heading, pitch: 0))
         }
         lastProgrammaticCameraSetAt = Date()
     }
