@@ -218,8 +218,8 @@ struct CompanionHomeView: View {
     /// persisted (spec: "only keep it for moment").
     private var zoomControls: some View {
         VStack(spacing: 8) {
-            zoomButton(symbol: "plus", label: "Zoom in") { applyZoom(direction: .in) }
-            zoomButton(symbol: "minus", label: "Zoom out") { applyZoom(direction: .out) }
+            zoomButton(symbol: "plus", label: "Zoom in") { applyZoom(direction: .zoomIn) }
+            zoomButton(symbol: "minus", label: "Zoom out") { applyZoom(direction: .zoomOut) }
         }
         .padding(.top, 96)
         .padding(.trailing, 12)
@@ -236,10 +236,10 @@ struct CompanionHomeView: View {
         .accessibilityLabel(label)
     }
 
-    private enum ZoomDirection { case `in`, out }
+    private enum ZoomDirection { case zoomIn, zoomOut }
 
     private func applyZoom(direction: ZoomDirection) {
-        let factor: Double = direction == .in ? (1.0 / zoomStepFactor) : zoomStepFactor
+        let factor: Double = direction == .zoomIn ? (1.0 / zoomStepFactor) : zoomStepFactor
         switch viewModel.homeMode {
         case .phoneGuidance:
             // Riding mode: mutate the persisted distance and rerun the
