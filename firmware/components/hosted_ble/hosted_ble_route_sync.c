@@ -68,16 +68,19 @@ static bool s_scan_rsp_set;
 
 // Main advertising packet: flags + 128-bit service UUID. The name and
 // appearance go in the scan response below — splitting them keeps both
-// payloads under the 31-byte legacy-adv budget. Without this split the
-// 128-bit UUID (18 bytes) plus the device name (20 bytes for "ESP32 Bike
-// Minimap") overflow and Bluedroid drops the UUID field, which prevents
-// iOS / Android scanners from finding us via service-UUID filtering.
+// payloads under the 31-byte legacy-adv budget. We deliberately leave
+// `min_interval` / `max_interval` at 0 so Bluedroid does NOT add a
+// "Slave Connection Interval Range" AD field; with the 18-byte 128-bit
+// UUID + 3-byte flags, that range field's 6 bytes plus IDF's internal
+// overhead pushed the main adv over 31 bytes and the 128-bit UUID was
+// being dropped, which prevents iOS / Android scanners from finding us
+// via service-UUID filtering.
 static esp_ble_adv_data_t s_adv_data = {
     .set_scan_rsp = false,
     .include_name = false,
     .include_txpower = false,
-    .min_interval = 0x0006,
-    .max_interval = 0x0010,
+    .min_interval = 0,
+    .max_interval = 0,
     .appearance = 0,
     .manufacturer_len = 0,
     .p_manufacturer_data = NULL,

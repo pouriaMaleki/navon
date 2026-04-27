@@ -20,6 +20,14 @@ CONFIG_ESP_TASK_WDT_EN=y
 CONFIG_ESP_TASK_WDT_TIMEOUT_S=30
 CONFIG_ESP_TASK_WDT_INIT=y
 
+# Interrupt watchdog. The default 300 ms is too tight once the hosted-BLE
+# stack is up: when esp_hosted's RPC layer retries a `Req_FeatureControl`
+# against the older v0.0.6 C6 slave the synchronous wait holds the BTM
+# task long enough that legacy-I2C (touch) polling stalls IRQ servicing,
+# and HP_WDT fires ~1 minute after boot. 1 second is more than enough
+# headroom while we still catch real lockups.
+CONFIG_ESP_INT_WDT_TIMEOUT_MS=1000
+
 # Log everything at INFO by default.
 CONFIG_LOG_DEFAULT_LEVEL_INFO=y
 CONFIG_LOG_MAXIMUM_LEVEL_INFO=y

@@ -106,7 +106,20 @@ Implemented in native companion apps:
 
 Remaining implementation work:
 - live packet-loss / interruption fault-injection tests against the concrete adapters
-- full field validation on real ESP32-P4 hardware paired with each mobile platform
+- full field validation on real ESP32-P4 hardware paired with each mobile platform (initial bring-up confirmed on the Waveshare 3.4C with the iOS companion: scan via service UUID, connect, GATT discovery, notification subscription all round-trip end-to-end)
+
+## Advertising layout
+
+Legacy BLE advertising is capped at 31 bytes per packet, so the route-sync service splits its identifying data across two packets:
+
+- **Main advertising packet** — flags (3 bytes) + the 128-bit service UUID (18 bytes). Nothing else: the device name, appearance, and connection-interval-range fields are deliberately omitted. With the 18-byte UUID + 3-byte flags + IDF's internal accounting overhead, even one extra optional field (the 6-byte Slave Connection Interval Range) was enough to push the packet over 31 bytes, at which point Bluedroid silently drops the trailing AD entries — typically the 128-bit UUID itself, which is the exact field iOS / Android filter on while scanning.
+- **Scan response** — device name (`ESP32 Bike Minimap`, 20 bytes) + appearance (4 bytes, `0x0480` "generic cycling"). Returned only when the central does an active scan, so there's no cost to including it.
+
+The iOS / Android companions filter scan results by the 128-bit service UUID. Make sure that field stays in the *main* packet across any future advertising changes; if you add another field there, recount the bytes.
+
+## Interrupt watchdog
+
+`CONFIG_ESP_INT_WDT_TIMEOUT_MS` is set to **1000 ms** (versus IDF's 300 ms default) on this build. Once the hosted-BLE stack is running, the v2.x host periodically retries the `Req_FeatureControl` RPC against the older v0.0.6 C6 slave; the synchronous wait holds the BTM task long enough that legacy-I2C touch polling stalls IRQ servicing past the 300 ms threshold and HP_WDT trips. 1 s is enough headroom to absorb the worst observed stalls without disabling the watchdog entirely; once the C6 slave is upgraded (or the failing RPC is stubbed at the host) we can tighten this back down.
 
 ## ESP32-C6 slave firmware
 
