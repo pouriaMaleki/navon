@@ -215,6 +215,10 @@ where
         &self.app
     }
 
+    pub fn app_mut(&mut self) -> &mut App<S, B, U> {
+        &mut self.app
+    }
+
     pub fn route_sync(&self) -> &R {
         &self.route_sync
     }

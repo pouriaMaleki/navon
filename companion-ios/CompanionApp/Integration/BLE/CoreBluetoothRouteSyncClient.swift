@@ -1,6 +1,16 @@
 import Foundation
 import CoreBluetooth
 
+/// Identification of the peripheral the client is currently connected to.
+/// Returned from `connectToAdvertisedPeripheral` so the caller can persist
+/// the CoreBluetooth `identifier` for the fast-path reconnect later.
+struct ConnectedPeripheralInfo: Equatable {
+    let name: String
+    /// `CBPeripheral.identifier.uuidString`, stable across reconnects of the
+    /// same paired peer on iOS. iOS does not get the BD_ADDR.
+    let identifier: String
+}
+
 /// Surface of `CoreBluetoothRouteSyncClient` that `BleRouteSyncService` depends on.
 /// Exists so unit tests can inject `FakeRouteSyncBluetoothClient` without spinning
 /// up `CBCentralManager`. Callbacks may fire on a CoreBluetooth queue.
@@ -13,7 +23,10 @@ protocol RouteSyncBluetoothClient: AnyObject {
     func scanForRouteSyncPeripheral(timeout: TimeInterval) async throws -> String
     func connectToScannedPeripheral() async throws -> String
     func connectToPairedPeripheral(identifier: String) async throws -> String
-    func connectToAdvertisedPeripheral(identifier: String) async throws -> String
+    /// Pairing-flow connect: scan by service UUID and connect to the first
+    /// peripheral that advertises it (no identifier from QR — iOS only sees
+    /// CoreBluetooth's per-app UUID once a peripheral is discovered).
+    func connectToAdvertisedPeripheral() async throws -> ConnectedPeripheralInfo
     func writePairingConfirm(secret: Data) async throws
     func write(packet: BleRouteSyncPacket) async throws
 }
@@ -68,13 +81,11 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
     private var chunkWriteCharacteristic: CBCharacteristic?
     private var eventNotifyCharacteristic: CBCharacteristic?
     private var pairingConfirmCharacteristic: CBCharacteristic?
-    private var targetedScanIdentifier: UUID?
 
     private var pendingPowerOnContinuation: CheckedContinuation<Void, Error>?
     private var pendingScanContinuation: CheckedContinuation<String, Error>?
     private var pendingConnectContinuation: CheckedContinuation<String, Error>?
     private var pendingWriteContinuation: CheckedContinuation<Void, Error>?
-    private var pendingTargetedScanContinuation: CheckedContinuation<CBPeripheral, Error>?
 
     private let serviceUUID = CBUUID(string: BleRouteSyncGattContract.serviceUUID)
     private let chunkWriteUUID = CBUUID(string: BleRouteSyncGattContract.chunkWriteCharacteristicUUID)
@@ -138,42 +149,21 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
         return try await beginConnect(to: peripheral)
     }
 
-    /// Connect to the QR-advertised peripheral as part of the pairing flow.
-    /// Tries the system bond store first (`retrievePeripherals`) and, if that
-    /// returns empty, falls back to a targeted scan filtered by identifier —
-    /// the iOS-fresh-install case where the bond hasn't been cached yet.
-    func connectToAdvertisedPeripheral(identifier: String) async throws -> String {
-        try await ensurePoweredOn()
-        guard let uuid = UUID(uuidString: identifier) else {
+    /// Pairing-flow connect: scan for the route-sync service UUID and connect
+    /// to the first responder. iOS does not get the peripheral identifier
+    /// from the QR — `id_android` is the BD_ADDR (CoreBluetooth surfaces a
+    /// per-app UUID instead) and the firmware doesn't emit `id_ios`. The
+    /// caller persists the returned `ConnectedPeripheralInfo.identifier` for
+    /// future fast-path reconnects.
+    func connectToAdvertisedPeripheral() async throws -> ConnectedPeripheralInfo {
+        // Scan via the existing scan path so the timeout and continuation
+        // semantics stay aligned with `scanForDevices()`.
+        _ = try await scanForRouteSyncPeripheral(timeout: 6.0)
+        let name = try await connectToScannedPeripheral()
+        guard let identifier = connectedPeripheral?.identifier.uuidString else {
             throw CoreBluetoothRouteSyncError.noDiscoveredPeripheral
         }
-        if let peripheral = centralManager.retrievePeripherals(withIdentifiers: [uuid]).first {
-            return try await beginConnect(to: peripheral)
-        }
-        // Bond store empty: scan and only accept the QR-advertised identifier.
-        targetedScanIdentifier = uuid
-        onConnectionStateChange?(.scanning, nil)
-        let resolved: CBPeripheral
-        do {
-            resolved = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<CBPeripheral, Error>) in
-                pendingTargetedScanContinuation = continuation
-                centralManager.scanForPeripherals(withServices: [serviceUUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
-                Task { @MainActor in
-                    try? await Task.sleep(nanoseconds: 6_000_000_000)
-                    if let pendingTargetedScanContinuation {
-                        self.pendingTargetedScanContinuation = nil
-                        self.targetedScanIdentifier = nil
-                        self.centralManager.stopScan()
-                        pendingTargetedScanContinuation.resume(throwing: CoreBluetoothRouteSyncError.scanTimedOut)
-                    }
-                }
-            }
-        } catch {
-            targetedScanIdentifier = nil
-            throw error
-        }
-        targetedScanIdentifier = nil
-        return try await beginConnect(to: resolved)
+        return ConnectedPeripheralInfo(name: name, identifier: identifier)
     }
 
     /// Send the QR-OOB confirmation secret to the device's pairing-confirm
@@ -312,17 +302,6 @@ extension CoreBluetoothRouteSyncClient: CBCentralManagerDelegate {
     }
 
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-        if let target = targetedScanIdentifier {
-            guard peripheral.identifier == target else { return }
-            central.stopScan()
-            discoveredPeripheral = peripheral
-            if let pendingTargetedScanContinuation {
-                self.pendingTargetedScanContinuation = nil
-                self.targetedScanIdentifier = nil
-                pendingTargetedScanContinuation.resume(returning: peripheral)
-            }
-            return
-        }
         discoveredPeripheral = peripheral
         central.stopScan()
         if let pendingScanContinuation {

@@ -1,7 +1,1 @@
-{
-  "v": 1,
-  "id_ios": "B6C8AE6A-1A8C-4F2E-9F1A-9D2B0C3E4F5A",
-  "id_android": "AA:BB:CC:DD:EE:FF",
-  "secret": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
-  "fw": "1.2.3"
-}
+{"v":1,"id_android":"AA:BB:CC:DD:EE:FF","secret":"QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkI=","fw":"0.1.0"}

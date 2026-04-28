@@ -5,6 +5,7 @@
 //   service    8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1001
 //   chunk_w    8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1002  (write / write-no-rsp)
 //   event_n    8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1003  (notify)
+//   pair_w     8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1004  (write, encrypted)
 //
 // The companion (iOS / Android) writes BLE packets containing
 // `RouteTransferChunk` payloads to the chunk characteristic. The Rust side
@@ -22,6 +23,7 @@
 
 #include <inttypes.h>
 #include <stdatomic.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include "esp_bt_defs.h"
@@ -36,8 +38,17 @@ static const char *TAG = "hosted_ble_rs";
 
 #define HOSTED_BLE_APP_ID 0x4553
 #define HOSTED_BLE_DEVICE_NAME "ESP32 Bike Minimap"
-#define HOSTED_BLE_SERVICE_NUM_HANDLE 8
+// 8 handles per characteristic was right when we had two (chunk + event).
+// Each char now needs decl + value (+ optional CCCD), so 12 covers all
+// three characteristics (chunk + event-with-CCCD + pairing) with room
+// to spare; under-provisioning here causes ESP_GATT_NO_RESOURCES on the
+// add_char_descr call after the third characteristic lands.
+#define HOSTED_BLE_SERVICE_NUM_HANDLE 12
 #define HOSTED_BLE_MAX_PACKET_LEN 512
+// Pairing-confirm payload is exactly the 32-byte ephemeral secret from
+// the QR. Anything longer is malformed; reject early to keep the C path
+// simple.
+#define HOSTED_BLE_PAIRING_SECRET_LEN 32
 
 // 128-bit UUIDs are sent on the wire little-endian, so flip the readable
 // big-endian form `8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e100X` byte-for-byte.
@@ -53,8 +64,14 @@ static const uint8_t EVENT_UUID128[ESP_UUID_LEN_128] = {
     0x03, 0x10, 0x4e, 0x7e, 0x8e, 0x2f, 0x24, 0x8b,
     0x7c, 0x4f, 0x4d, 0x7b, 0x30, 0x3f, 0x0f, 0x8d,
 };
+static const uint8_t PAIRING_UUID128[ESP_UUID_LEN_128] = {
+    0x04, 0x10, 0x4e, 0x7e, 0x8e, 0x2f, 0x24, 0x8b,
+    0x7c, 0x4f, 0x4d, 0x7b, 0x30, 0x3f, 0x0f, 0x8d,
+};
 
 static hosted_ble_chunk_cb_t s_chunk_cb;
+static hosted_ble_pairing_confirm_cb_t s_pairing_confirm_cb;
+static hosted_ble_is_pairing_mode_cb_t s_is_pairing_mode_cb;
 static void *s_chunk_ctx;
 
 static esp_gatt_if_t s_gatts_if = ESP_GATT_IF_NONE;
@@ -70,6 +87,7 @@ _Static_assert(ATOMIC_INT_LOCK_FREE == 2,
 static uint16_t s_service_handle;
 static uint16_t s_chunk_char_handle;
 static uint16_t s_event_char_handle;
+static uint16_t s_pairing_char_handle;
 // Tracks which of the two advertising payloads (main + scan response)
 // have been accepted by the controller. We only call
 // `esp_ble_gap_start_advertising` once both have landed.
@@ -217,12 +235,19 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
         }
         s_service_handle = param->create.service_handle;
 
+        // Both route-sync characteristics require an encrypted link:
+        // the chunk-write payload carries the rider's destination /
+        // route geometry, and the notify channel ships back-channel
+        // status that includes the same geometry. Bluedroid only
+        // exposes attributes whose permissions match the link's
+        // current encryption level — `_ENCRYPTED` here triggers SMP
+        // pairing on the first read/write attempt.
         esp_bt_uuid_t chunk_uuid;
         memset(&chunk_uuid, 0, sizeof(chunk_uuid));
         chunk_uuid.len = ESP_UUID_LEN_128;
         memcpy(chunk_uuid.uuid.uuid128, CHUNK_UUID128, ESP_UUID_LEN_128);
         esp_ble_gatts_add_char(s_service_handle, &chunk_uuid,
-                               ESP_GATT_PERM_WRITE,
+                               ESP_GATT_PERM_WRITE_ENCRYPTED,
                                ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_WRITE_NR,
                                NULL, NULL);
 
@@ -231,8 +256,20 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
         event_uuid.len = ESP_UUID_LEN_128;
         memcpy(event_uuid.uuid.uuid128, EVENT_UUID128, ESP_UUID_LEN_128);
         esp_ble_gatts_add_char(s_service_handle, &event_uuid,
-                               ESP_GATT_PERM_READ,
+                               ESP_GATT_PERM_READ_ENCRYPTED,
                                ESP_GATT_CHAR_PROP_BIT_NOTIFY,
+                               NULL, NULL);
+
+        // Pairing-confirm: encrypted-write so the secret is only
+        // accepted over a link that's gone through SMP Just Works
+        // pairing. The secret itself adds OOB MITM resistance on top.
+        esp_bt_uuid_t pairing_uuid;
+        memset(&pairing_uuid, 0, sizeof(pairing_uuid));
+        pairing_uuid.len = ESP_UUID_LEN_128;
+        memcpy(pairing_uuid.uuid.uuid128, PAIRING_UUID128, ESP_UUID_LEN_128);
+        esp_ble_gatts_add_char(s_service_handle, &pairing_uuid,
+                               ESP_GATT_PERM_WRITE_ENCRYPTED,
+                               ESP_GATT_CHAR_PROP_BIT_WRITE,
                                NULL, NULL);
         break;
     }
@@ -255,9 +292,12 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
             esp_ble_gatts_add_char_descr(s_service_handle, &cccd_uuid,
                                          ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
                                          NULL, NULL);
+        } else if (uuid_matches(&param->add_char.char_uuid, PAIRING_UUID128)) {
+            s_pairing_char_handle = param->add_char.attr_handle;
         }
 
-        if (s_chunk_char_handle != 0 && s_event_char_handle != 0) {
+        if (s_chunk_char_handle != 0 && s_event_char_handle != 0 &&
+            s_pairing_char_handle != 0) {
             esp_ble_gatts_start_service(s_service_handle);
         }
         break;
@@ -301,13 +341,37 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
         break;
     }
     case ESP_GATTS_WRITE_EVT: {
+        esp_gatt_status_t write_status = ESP_GATT_OK;
         if (param->write.handle == s_chunk_char_handle && s_chunk_cb != NULL &&
             param->write.value != NULL && param->write.len > 0) {
             s_chunk_cb(param->write.value, param->write.len, s_chunk_ctx);
+        } else if (param->write.handle == s_pairing_char_handle) {
+            // Single-bond policy: refuse pairing-confirm writes once the
+            // device is bonded. The companion-side `forgetPairedDevice`
+            // flow is the only way back to pairing mode.
+            bool accept = (s_is_pairing_mode_cb != NULL) &&
+                          s_is_pairing_mode_cb(s_chunk_ctx);
+            if (!accept) {
+                ESP_LOGW(TAG,
+                         "rejecting pairing_confirm write while not in pairing "
+                         "mode (single-bond policy)");
+                write_status = ESP_GATT_WRITE_NOT_PERMIT;
+            } else if (s_pairing_confirm_cb != NULL && param->write.value != NULL &&
+                       param->write.len == HOSTED_BLE_PAIRING_SECRET_LEN) {
+                s_pairing_confirm_cb(param->write.value, param->write.len,
+                                     s_chunk_ctx);
+            } else {
+                ESP_LOGW(TAG,
+                         "dropping pairing_confirm write of unexpected length %u "
+                         "(expected %u)",
+                         (unsigned)param->write.len,
+                         (unsigned)HOSTED_BLE_PAIRING_SECRET_LEN);
+                write_status = ESP_GATT_INVALID_ATTR_LEN;
+            }
         }
         if (param->write.need_rsp) {
             esp_ble_gatts_send_response(gatts_if, param->write.conn_id,
-                                        param->write.trans_id, ESP_GATT_OK, NULL);
+                                        param->write.trans_id, write_status, NULL);
         }
         break;
     }
@@ -331,6 +395,8 @@ esp_err_t hosted_ble_route_sync_start(const hosted_ble_route_sync_callbacks_t *c
     }
 
     s_chunk_cb = cb->on_chunk;
+    s_pairing_confirm_cb = cb->on_pairing_confirm;
+    s_is_pairing_mode_cb = cb->is_pairing_mode;
     s_chunk_ctx = cb->ctx;
 
     err = esp_ble_gap_register_callback(gap_event_handler);
@@ -356,6 +422,38 @@ esp_err_t hosted_ble_route_sync_start(const hosted_ble_route_sync_callbacks_t *c
     if (err != ESP_OK) {
         ESP_LOGW(TAG, "set_local_mtu(%d) -> %s", HOSTED_BLE_MAX_PACKET_LEN, esp_err_to_name(err));
     }
+    return ESP_OK;
+}
+
+esp_err_t hosted_ble_route_sync_set_adv_filter(bool whitelist_only,
+                                               const uint8_t peer_addr[6],
+                                               uint8_t addr_type)
+{
+    if (whitelist_only) {
+        if (peer_addr == NULL) {
+            return ESP_ERR_INVALID_ARG;
+        }
+        // Loading the whitelist before flipping the filter policy
+        // prevents a race where the controller would briefly reject all
+        // connection attempts (including from the bonded phone) because
+        // the whitelist was empty.
+        esp_bd_addr_t bd;
+        memcpy(bd, peer_addr, sizeof(bd));
+        esp_err_t err = esp_ble_gap_update_whitelist(true, bd, addr_type);
+        if (err != ESP_OK) {
+            ESP_LOGW(TAG, "esp_ble_gap_update_whitelist -> %s",
+                     esp_err_to_name(err));
+            return err;
+        }
+        s_adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST;
+    } else {
+        s_adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY;
+    }
+    // The next ADV_DATA_SET_COMPLETE → start_advertising() will pick up
+    // the new filter policy. If we're already advertising, stop+start
+    // so the change takes effect immediately.
+    esp_ble_gap_stop_advertising();
+    start_advertising();
     return ESP_OK;
 }
 

@@ -1022,11 +1022,13 @@ checksum = "5baebc0774151f905a1a2cc41989300b1e6fbb29aff0ceffa1064fdd3088d582"
 name = "firmware"
 version = "0.1.0"
 dependencies = [
+ "base64",
  "embuild",
  "enumset",
  "esp-idf-svc",
  "log",
  "map-runtime",
+ "qrcodegen",
  "render-core",
  "runtime-core",
 ]
@@ -1806,6 +1808,12 @@ dependencies = [
  "quote",
  "syn 2.0.117",
 ]
+
+[[package]]
+name = "qrcodegen"
+version = "1.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4339fc7a1021c9c1621d87f5e3505f2805c8c105420ba2f2a4df86814590c142"
 
 [[package]]
 name = "quote"

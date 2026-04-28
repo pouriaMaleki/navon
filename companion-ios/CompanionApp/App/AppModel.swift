@@ -97,22 +97,27 @@ final class AppModel: ObservableObject {
         pairingState = .instructions
     }
 
-    /// Drive the pairing flow's BLE half: connect to the QR-advertised peer,
-    /// write the OOB confirmation secret, and persist the bond on success.
-    /// On any failure we leave persistence untouched so the user can retry
-    /// without the app holding a half-state record.
+    /// Drive the pairing flow's BLE half: scan for the route-sync service,
+    /// connect to whichever peripheral advertises it, write the OOB
+    /// confirmation secret, and persist the bond on success. On any failure
+    /// we leave persistence untouched so the user can retry without the app
+    /// holding a half-state record.
+    ///
+    /// The persisted identifier comes from CoreBluetooth at connect time —
+    /// the QR carries `id_android` (BD_ADDR) which iOS cannot use directly,
+    /// so iOS captures `peripheral.identifier.uuidString` instead.
     ///
     /// Auto-dismiss timing: 1.5 s after `.succeeded` we drop back to `.idle`.
     /// Tests can drive this synchronously by waiting on `pairingState`.
     func completePairing(payload: PairingQrPayload) async {
         pairingState = .connecting
         do {
-            _ = try await bleService.connectToAdvertisedPeripheral(identifier: payload.peripheralIdentifier)
+            let info = try await bleService.connectToAdvertisedPeripheral()
             pairingState = .confirming
             try await bleService.writePairingConfirm(secret: payload.ephemeralSecret)
             let record = PairedPeripheralRecord(
-                identifier: payload.peripheralIdentifier,
-                friendlyName: bleService.sessionState.lastDeviceName ?? "ESP32 Bike Minimap",
+                identifier: info.identifier,
+                friendlyName: info.name,
                 pairedAt: Date()
             )
             persistence.savePairedPeripheral(record)

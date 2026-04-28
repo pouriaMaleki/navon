@@ -94,6 +94,15 @@ CONFIG_BT_BLE_42_FEATURES_SUPPORTED=y
 # supports it. Companions cap MTU lower will simply negotiate down.
 CONFIG_BT_GATT_MAX_MTU=512
 
+# Enable the Security Manager Protocol so we can pair (Just Works at the
+# link layer + custom QR-OOB confirmation on top — see
+# `docs/ble-route-sync-contract.md`). Without these the chunk-write +
+# event-notify chars stay unauthenticated and route traffic is in clear.
+# `_BOND_NVS_FLASH` persists bonds across power cycles; the ESP-IDF v5.4
+# `bt` component manages the NVS namespace internally.
+CONFIG_BT_BLE_SMP_ENABLE=y
+CONFIG_BT_BLE_SMP_BOND_NVS_FLASH=y
+
 # esp_hosted: drive the C6 over SDIO. The transport pins are wired by the
 # Waveshare 3.4C; esp_hosted's defaults match. Both the BT and Wi-Fi
 # subsystems on the C6 ride this same SDIO link.

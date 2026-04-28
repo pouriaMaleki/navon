@@ -15,11 +15,14 @@ import kotlinx.coroutines.launch
 import me.fiksu.esp32map.companion.domain.ActiveRouteSession
 import me.fiksu.esp32map.companion.domain.CompanionSettings
 import me.fiksu.esp32map.companion.domain.CoordinatePoint
+import me.fiksu.esp32map.companion.domain.DeviceConnectionState
 import me.fiksu.esp32map.companion.domain.ImportDiagnosticsEntry
 import me.fiksu.esp32map.companion.domain.SharedImportClassification
 import me.fiksu.esp32map.companion.domain.SharedImportDisposition
 import me.fiksu.esp32map.companion.domain.SharedImportEnvelope
 import me.fiksu.esp32map.companion.domain.NormalizedRoutePackage
+import me.fiksu.esp32map.companion.domain.PairedPeripheralRecord
+import me.fiksu.esp32map.companion.domain.PairingFlowState
 import me.fiksu.esp32map.companion.domain.RouteAlternative
 import me.fiksu.esp32map.companion.domain.RouteHistoryItem
 import me.fiksu.esp32map.companion.domain.RouteHistorySource
@@ -34,6 +37,7 @@ import me.fiksu.esp32map.companion.domain.SyncSessionState
 import me.fiksu.esp32map.companion.domain.geo.UusimaaBounds
 import me.fiksu.esp32map.companion.integration.AndroidLocationService
 import me.fiksu.esp32map.companion.integration.ble.BleRouteSyncService
+import me.fiksu.esp32map.companion.integration.ble.PairingQrPayload
 import me.fiksu.esp32map.companion.integration.diagnostics.CompanionDiagnosticsStore
 import me.fiksu.esp32map.companion.integration.cycling.OsmCyclingRoutingAdapter
 import me.fiksu.esp32map.companion.integration.gpx.GpxRoutingAdapter
@@ -42,7 +46,11 @@ import me.fiksu.esp32map.companion.integration.persistence.CompanionPersistence
 import me.fiksu.esp32map.companion.integration.sample.SampleRoutingAdapter
 import me.fiksu.esp32map.companion.integration.share.AndroidShareImportParser
 
-class CompanionAppState(application: Application) : AndroidViewModel(application) {
+class CompanionAppState(
+    application: Application,
+    persistenceOverride: CompanionPersistence? = null,
+    bleServiceOverride: BleRouteSyncService? = null,
+) : AndroidViewModel(application) {
     companion object {
         private val DEFAULT_RIDER_FALLBACK = CoordinatePoint(60.1699, 24.9384)
     }
@@ -65,10 +73,23 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
     private var persistenceRevision by mutableIntStateOf(0)
 
     val diagnosticsStore = CompanionDiagnosticsStore()
-    val persistence = CompanionPersistence(application.applicationContext)
-    val bleService = BleRouteSyncService(application.applicationContext)
+    val persistence: CompanionPersistence =
+        persistenceOverride ?: CompanionPersistence(application.applicationContext)
+    val bleService: BleRouteSyncService =
+        bleServiceOverride ?: BleRouteSyncService(application.applicationContext)
     val locationService = AndroidLocationService(application.applicationContext, persistence)
     var locationState by mutableStateOf(locationService.state.value)
+
+    /**
+     * Currently bonded BLE peripheral, loaded from persistence on init.
+     * Drives the home-screen device chip and the fast-path reconnect.
+     */
+    var pairedPeripheral by mutableStateOf<PairedPeripheralRecord?>(persistence.loadPairedPeripheral())
+        private set
+
+    /** Tracks the QR-OOB pairing flow's current step. */
+    var pairingState by mutableStateOf<PairingFlowState>(PairingFlowState.Idle)
+        private set
 
     /** Best estimate of where the rider currently is. Falls back to last-known then default. */
     val riderLocation: CoordinatePoint
@@ -329,10 +350,89 @@ class CompanionAppState(application: Application) : AndroidViewModel(application
 
     fun connectToDevice() {
         viewModelScope.launch {
-            bleService.scanForDevices()
-            bleService.connectToLastKnownDevice()
+            // Fast path when we already know the peripheral identifier:
+            // skip scanning entirely. Only fall back to a scan when we
+            // either have no record or the identifier failed to connect
+            // (the pairing flow + iOS-equivalent both follow this rule).
+            val paired = pairedPeripheral
+            if (paired != null) {
+                bleService.connectToPairedPeripheral(paired.identifier)
+            }
+            if (bleService.state.value.connectionState != DeviceConnectionState.CONNECTED) {
+                bleService.scanForDevices()
+                bleService.connectToLastKnownDevice()
+            }
             refreshDiagnostics()
         }
+    }
+
+    /**
+     * Enter the pairing flow's introductory step. The UI sheet observes
+     * `pairingState` and walks the user through QR scan → confirm.
+     */
+    fun beginPairingFlow() {
+        pairingState = PairingFlowState.Instructions
+    }
+
+    /**
+     * Drive the pairing handshake to completion: connect to the
+     * advertised peripheral, write the QR's secret to the
+     * pairing-confirm characteristic, then persist the bond. On any
+     * step failure, no half-state is committed — the persisted record
+     * is left untouched so the user can retry.
+     *
+     * The auto-dismiss delay (1.5s) lets the success state render before
+     * we drop back to `Idle`; tests pass `autoDismissDelayMs = 0L` to
+     * skip the delay.
+     */
+    suspend fun completePairing(
+        payload: PairingQrPayload,
+        autoDismissDelayMs: Long = 1_500L,
+    ) {
+        pairingState = PairingFlowState.Connecting
+        val deviceName = try {
+            bleService.connectToAdvertisedPeripheral(payload.peripheralIdentifier)
+        } catch (error: Throwable) {
+            pairingState = PairingFlowState.Failed(
+                error.localizedMessage ?: "BLE connection failed during pairing",
+            )
+            return
+        }
+
+        pairingState = PairingFlowState.Confirming
+        try {
+            bleService.writePairingConfirm(payload.ephemeralSecret)
+        } catch (error: Throwable) {
+            pairingState = PairingFlowState.Failed(
+                error.localizedMessage ?: "Pairing-confirm write failed",
+            )
+            return
+        }
+
+        val record = PairedPeripheralRecord(
+            identifier = payload.peripheralIdentifier,
+            friendlyName = deviceName,
+            pairedAt = java.time.Instant.now().toString(),
+        )
+        persistence.savePairedPeripheral(record)
+        pairedPeripheral = record
+        pairingState = PairingFlowState.Succeeded
+
+        if (autoDismissDelayMs > 0L) {
+            kotlinx.coroutines.delay(autoDismissDelayMs)
+        }
+        pairingState = PairingFlowState.Idle
+    }
+
+    /**
+     * Drop the bond. The next connection attempt will need to go
+     * through the full pairing flow again. Mirrors the iOS-side
+     * `AppModel.forgetPairedDevice` so the cross-platform UX has parity.
+     */
+    fun forgetPairedDevice() {
+        persistence.clearPairedPeripheral()
+        pairedPeripheral = null
+        pairingState = PairingFlowState.Idle
     }
 
     fun resumePendingTransfer() {

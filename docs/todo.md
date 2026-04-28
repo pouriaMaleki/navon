@@ -104,7 +104,35 @@ Current checkpoint:
 - The BLE wire contract is now fixed in code and docs across firmware plus both native companion apps, including service/characteristic UUIDs, packet envelopes for `chunk` and `sync_message` traffic, and actual GATT adapter implementations on all three sides. The ESP32-P4 production board now drives BLE through the on-board ESP32-C6 over hosted SDIO via `firmware/components/hosted_ble`, so the P4 entrypoint advertises the route-sync service on boot.
 - Deterministic firmware fault-injection coverage now exists for interrupted transfer resume, out-of-order chunks, checksum mismatch handling, and malformed payload handling.
 - Native companion apps now expose matching live adapter fault-injection controls and acknowledgement-timeout recovery so the phone-side transport loop can be validated against the same failure classes.
-- Hardware bring-up now confirmed end-to-end on the Waveshare 3.4C with the iOS companion: BLE advertising as `ESP32 Bike Minimap`, scan by service UUID, GATT connect, characteristic discovery and notification subscription all round-trip. Remaining milestone: exercise `set` / `update` / `clear` route pushes plus `status` / `reroute_request` notifications under realistic packet-loss conditions.
+- BLE link is now encrypted end-to-end. SMP Just Works pairing via the
+  on-board C6 (`CONFIG_BT_BLE_SMP_ENABLE=y` + bond persistence to NVS),
+  OOB confirmation on top via the new `pairing_confirm` characteristic
+  (UUID `…-1004`, `WRITE_ENCRYPTED`); the QR panel encodes a
+  cross-platform v1 JSON payload (`peripheral_address || secret + fw`)
+  read by both Android and iOS decoders against the same fixture
+  (`parity-fixtures/data/pairing_qr_v1.json`). Single-bond policy
+  enforced at the GATT layer + persistence layer; allowlist-filter
+  advertising flips on once bonded.
+- Robustness caps land alongside encryption: chunk-count, payload-byte,
+  and idle-timeout caps in `RouteSyncTransport`; bounded inbound
+  chunk + pairing queues; single-connection guard via `_Atomic int32_t
+  s_conn_id`. Each cap returns a typed `RetryableFailure` status the
+  companion can surface as a retry prompt.
+- Android pairing UX implemented end-to-end: home `DeviceStatusChip`
+  (4-state derivation), 3-step `PairingFlowScreen` (CameraX + ML Kit
+  barcode scan, permission-denied path → app settings),
+  fast-path reconnect to a stored `PairedPeripheralRecord`, and a
+  reworked Settings → Device with a destructive Forget-paired-device
+  alert (verbatim copy parity with iOS).
+- Hardware bring-up now confirmed end-to-end on the Waveshare 3.4C with the iOS companion: BLE advertising as `ESP32 Bike Minimap`, scan by service UUID, GATT connect, characteristic discovery and notification subscription all round-trip. Remaining milestone: full bonded flow on hardware against both companion platforms.
+
+Out of scope (deferred):
+- Multi-bond support (owner + partner). Single-bond per user decision.
+- Factory-reset gesture on the device for the case where the bonded
+  phone is lost. Today the only recovery path is reflashing NVS;
+  documented in [pairing-flow.md](pairing-flow.md).
+- Auto-reconnect retry timer on the companion when the device drops
+  mid-ride. Manual reconnect via the chip is the current path.
 
 ### Work Items
 - [x] Define message protocol for `set`, `update`, `clear`, `status`, and `reroute_request`.
@@ -113,6 +141,9 @@ Current checkpoint:
 - [x] Implement transfer resume/retry for interrupted sessions.
 - [ ] Add optional Wi-Fi transport path behind same message contract.
 - [x] Add route version lifecycle handling on device.
+- [x] Encrypt route-sync characteristics + bond persistence.
+- [x] QR-OOB pairing handshake (firmware side + Android companion side).
+- [ ] iOS companion-side `PairingFlowView` + persisted-bond record (handed off to a Mac-resident agent via [_plan-ios-pairing.md](_plan-ios-pairing.md)).
 
 ### Definition of Done
 - [x] Route transfer remains correct under interrupted sessions and resumed transfer.

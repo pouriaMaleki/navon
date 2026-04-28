@@ -29,7 +29,9 @@ final class FakeRouteSyncBluetoothClient: RouteSyncBluetoothClient {
     var scanResult: Result<String, Error> = .success("ESP32 Bike Minimap")
     var connectResult: Result<String, Error> = .success("ESP32 Bike Minimap")
     var connectToPairedResult: Result<String, Error> = .success("ESP32 Bike Minimap")
-    var connectToAdvertisedResult: Result<String, Error> = .success("ESP32 Bike Minimap")
+    var connectToAdvertisedResult: Result<ConnectedPeripheralInfo, Error> = .success(
+        ConnectedPeripheralInfo(name: "ESP32 Bike Minimap", identifier: "B6C8AE6A-1A8C-4F2E-9F1A-9D2B0C3E4F5A")
+    )
     var writeResult: Result<Void, Error> = .success(())
     var writePairingConfirmResult: Result<Void, Error> = .success(())
 
@@ -55,10 +57,11 @@ final class FakeRouteSyncBluetoothClient: RouteSyncBluetoothClient {
         return try connectToPairedResult.get()
     }
 
-    func connectToAdvertisedPeripheral(identifier: String) async throws -> String {
+    func connectToAdvertisedPeripheral() async throws -> ConnectedPeripheralInfo {
         connectToAdvertisedCallCount += 1
-        lastConnectedIdentifier = identifier
-        return try connectToAdvertisedResult.get()
+        let info = try connectToAdvertisedResult.get()
+        lastConnectedIdentifier = info.identifier
+        return info
     }
 
     func writePairingConfirm(secret: Data) async throws {

@@ -4,13 +4,17 @@ import XCTest
 @MainActor
 final class PairingConfirmFlowTests: XCTestCase {
 
-    private let identifier = "B6C8AE6A-1A8C-4F2E-9F1A-9D2B0C3E4F5A"
+    /// CoreBluetooth identifier captured at connect time (not from the QR —
+    /// see `PairingQrPayload`). Tests pin this to a known UUID so we can
+    /// assert the persisted record matches what the connect path returned.
+    private let connectedIdentifier = "B6C8AE6A-1A8C-4F2E-9F1A-9D2B0C3E4F5A"
 
     private func samplePayload() -> PairingQrPayload {
+        // 32 bytes of 0x42 — matches the canonical parity fixture.
         PairingQrPayload(
-            peripheralIdentifier: identifier,
-            ephemeralSecret: Data((UInt8(0)...UInt8(31)).map { $0 }),
-            firmwareVersion: "1.2.3"
+            ephemeralSecret: Data(repeating: 0x42, count: 32),
+            firmwareVersion: "0.1.0",
+            androidIdentifier: "AA:BB:CC:DD:EE:FF"
         )
     }
 
@@ -23,7 +27,9 @@ final class PairingConfirmFlowTests: XCTestCase {
     }
 
     private func makeHarness(
-        connectResult: Result<String, Error> = .success("ESP32 Bike Minimap"),
+        connectResult: Result<ConnectedPeripheralInfo, Error> = .success(
+            ConnectedPeripheralInfo(name: "ESP32 Bike Minimap", identifier: "B6C8AE6A-1A8C-4F2E-9F1A-9D2B0C3E4F5A")
+        ),
         writeResult: Result<Void, Error> = .success(())
     ) -> (AppModel, FakeRouteSyncBluetoothClient, CompanionPersistence) {
         let defaults = UserDefaults(suiteName: "pairing-confirm-tests-\(UUID().uuidString)")!
@@ -44,9 +50,10 @@ final class PairingConfirmFlowTests: XCTestCase {
         XCTAssertEqual(fake.connectToAdvertisedCallCount, 1)
         XCTAssertEqual(fake.writePairingConfirmCallCount, 1)
         XCTAssertEqual(fake.lastWrittenPairingSecret, samplePayload().ephemeralSecret)
-        XCTAssertEqual(persistence.loadPairedPeripheral()?.identifier, identifier)
-        XCTAssertEqual(appModel.pairedPeripheral?.identifier, identifier)
-        // After auto-dismiss, state collapses back to idle.
+        // Persisted identifier comes from CoreBluetooth at connect time, not
+        // from the QR — that is the cross-platform contract for iOS.
+        XCTAssertEqual(persistence.loadPairedPeripheral()?.identifier, connectedIdentifier)
+        XCTAssertEqual(appModel.pairedPeripheral?.identifier, connectedIdentifier)
         XCTAssertEqual(appModel.pairingState, .idle)
     }
 
@@ -93,8 +100,8 @@ final class PairingConfirmFlowTests: XCTestCase {
 
         await appModel.completePairing(payload: samplePayload())
 
-        XCTAssertEqual(persistence.loadPairedPeripheral()?.identifier, identifier)
-        XCTAssertEqual(appModel.pairedPeripheral?.identifier, identifier)
+        XCTAssertEqual(persistence.loadPairedPeripheral()?.identifier, connectedIdentifier)
+        XCTAssertEqual(appModel.pairedPeripheral?.identifier, connectedIdentifier)
     }
 
     func test_completePairing_clearsPairingStateAfterAutoDismissDelay() async {

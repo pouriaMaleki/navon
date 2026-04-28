@@ -1,7 +1,9 @@
 #include "hosted_ble.h"
 
 #include "esp_bluedroid_hci.h"
+#include "esp_bt_defs.h"
 #include "esp_bt_main.h"
+#include "esp_gap_ble_api.h"
 #include "esp_log.h"
 
 #include "esp_hosted.h"
@@ -80,6 +82,33 @@ esp_err_t hosted_ble_init(void)
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "esp_bluedroid_enable failed: %s", esp_err_to_name(err));
         return err;
+    }
+
+    // Configure SMP for LE Secure Connections + bonding ("Just Works"
+    // at the link layer; OOB-secret confirmation on top via the
+    // pairing_confirm characteristic provides MITM resistance). The
+    // resulting bond is persisted to NVS by Bluedroid automatically
+    // because we set CONFIG_BT_BLE_SMP_BOND_NVS_FLASH=y.
+    esp_ble_auth_req_t auth_req = ESP_LE_AUTH_REQ_SC_BOND;
+    esp_ble_io_cap_t iocap = ESP_IO_CAP_NONE;
+    uint8_t key_size = 16;
+    esp_err_t sec_err = esp_ble_gap_set_security_param(ESP_BLE_SM_AUTHEN_REQ_MODE,
+                                                      &auth_req, sizeof(auth_req));
+    if (sec_err != ESP_OK) {
+        ESP_LOGW(TAG, "esp_ble_gap_set_security_param(AUTHEN_REQ_MODE) -> %s",
+                 esp_err_to_name(sec_err));
+    }
+    sec_err = esp_ble_gap_set_security_param(ESP_BLE_SM_IOCAP_MODE,
+                                             &iocap, sizeof(iocap));
+    if (sec_err != ESP_OK) {
+        ESP_LOGW(TAG, "esp_ble_gap_set_security_param(IOCAP_MODE) -> %s",
+                 esp_err_to_name(sec_err));
+    }
+    sec_err = esp_ble_gap_set_security_param(ESP_BLE_SM_MAX_KEY_SIZE,
+                                             &key_size, sizeof(key_size));
+    if (sec_err != ESP_OK) {
+        ESP_LOGW(TAG, "esp_ble_gap_set_security_param(MAX_KEY_SIZE) -> %s",
+                 esp_err_to_name(sec_err));
     }
 
     s_initialized = true;

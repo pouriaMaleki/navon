@@ -5,13 +5,7 @@ import XCTest
 final class PairingFlowViewModelTests: XCTestCase {
 
     private let validJson = #"""
-    {
-      "v": 1,
-      "id_ios": "B6C8AE6A-1A8C-4F2E-9F1A-9D2B0C3E4F5A",
-      "id_android": "AA:BB:CC:DD:EE:FF",
-      "secret": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
-      "fw": "1.2.3"
-    }
+    {"v":1,"id_android":"AA:BB:CC:DD:EE:FF","secret":"QkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkI=","fw":"0.1.0"}
     """#
 
     private func makeAppModel() -> AppModel {
@@ -31,7 +25,10 @@ final class PairingFlowViewModelTests: XCTestCase {
         await Task.yield()
 
         XCTAssertEqual(vm.pairingState, .connecting)
-        XCTAssertEqual(vm.lastDecodedPayload?.peripheralIdentifier, "B6C8AE6A-1A8C-4F2E-9F1A-9D2B0C3E4F5A")
+        XCTAssertNotNil(vm.lastDecodedPayload)
+        // The decoded secret is what gets written to `…1004` next; assert
+        // on it (and not on `id_android`) because iOS uses only the secret.
+        XCTAssertEqual(vm.lastDecodedPayload?.ephemeralSecret, Data(repeating: 0x42, count: 32))
     }
 
     func test_qrCallback_invalidPayload_setsHumanReadableError() async {

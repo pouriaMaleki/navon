@@ -1,11 +1,22 @@
 import Foundation
 
 /// Decoded form of the QR payload the firmware emits during pairing mode.
-/// Cross-platform contract — see `parity-fixtures/data/pairing_qr_v1.json`.
+/// Cross-platform contract — see `parity-fixtures/data/pairing_qr_v1.json`
+/// and `docs/ble-route-sync-contract.md`.
+///
+/// iOS does not get a usable peripheral identifier from the QR — `id_android`
+/// is the BD_ADDR (CoreBluetooth surfaces a per-app UUID, not the MAC), and
+/// the firmware does not emit `id_ios`. Instead, iOS scans for the route-sync
+/// service UUID, connects to whichever peripheral advertises it while the
+/// device is in pairing mode, and writes `ephemeralSecret` to the
+/// pairing-confirm characteristic. The persisted `peripheral.identifier` is
+/// captured AT CONNECT TIME, not from the QR.
 struct PairingQrPayload: Equatable {
-    let peripheralIdentifier: String
     let ephemeralSecret: Data
     let firmwareVersion: String?
+    /// Optional. Surfaced for diagnostics only; iOS does not use this to
+    /// match peripherals.
+    let androidIdentifier: String?
 
     static func decode(_ string: String) throws -> PairingQrPayload {
         guard let data = string.data(using: .utf8) else {
@@ -21,30 +32,23 @@ struct PairingQrPayload: Equatable {
         guard raw.v == 1 else {
             throw PairingQrError.unsupportedVersion(raw.v)
         }
-        guard let idIos = raw.id_ios else {
-            throw PairingQrError.missingField("id_ios")
-        }
-        guard UUID(uuidString: idIos) != nil else {
-            throw PairingQrError.malformedField("id_ios")
-        }
         guard let secretBase64 = raw.secret else {
             throw PairingQrError.missingField("secret")
         }
-        guard let secretData = Data(base64Encoded: secretBase64) else {
+        guard let secretData = Data(base64Encoded: secretBase64), secretData.count == 32 else {
             throw PairingQrError.malformedField("secret")
         }
         return PairingQrPayload(
-            peripheralIdentifier: idIos,
             ephemeralSecret: secretData,
-            firmwareVersion: raw.fw
+            firmwareVersion: raw.fw,
+            androidIdentifier: raw.id_android
         )
     }
 
     private struct WireV1: Codable {
-        // Note: Android-side IDs use snake_case; the decoder mirrors that
-        // verbatim so Codable picks up the wire-format keys directly.
+        // Snake_case mirrors the firmware's emitted JSON verbatim so Codable
+        // picks up the wire-format keys directly.
         let v: Int
-        let id_ios: String?
         let id_android: String?
         let secret: String?
         let fw: String?

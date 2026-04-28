@@ -80,18 +80,21 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
         }
     }
 
-    /// Pairing-flow connect: tries the bond store first (`retrievePeripherals`)
-    /// and falls back to a targeted scan filtered by identifier. Throws on
-    /// failure so the caller (`AppModel.completePairing`) can surface a UI
-    /// error without persisting a half-state.
-    func connectToAdvertisedPeripheral(identifier: String) async throws -> String {
+    /// Pairing-flow connect: scan for the route-sync service UUID and connect
+    /// to whichever peripheral advertises it. iOS does not get an identifier
+    /// from the QR — the returned `ConnectedPeripheralInfo.identifier` is
+    /// captured at connect time and persisted by the caller for future
+    /// fast-path reconnects. Throws on failure so the caller
+    /// (`AppModel.completePairing`) can surface a UI error without persisting
+    /// a half-state.
+    func connectToAdvertisedPeripheral() async throws -> ConnectedPeripheralInfo {
         sessionState.connectionState = .connecting
         do {
-            let name = try await bluetoothClient.connectToAdvertisedPeripheral(identifier: identifier)
-            sessionState.lastDeviceName = name
+            let info = try await bluetoothClient.connectToAdvertisedPeripheral()
+            sessionState.lastDeviceName = info.name
             sessionState.connectionState = .connected
-            sessionState.lastSyncResult = "Connected to \(name)"
-            return name
+            sessionState.lastSyncResult = "Connected to \(info.name)"
+            return info
         } catch {
             sessionState.connectionState = .disconnected
             sessionState.lastSyncResult = error.localizedDescription

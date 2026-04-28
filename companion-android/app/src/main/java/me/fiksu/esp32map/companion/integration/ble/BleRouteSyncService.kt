@@ -69,6 +69,73 @@ class BleRouteSyncService(
             }
     }
 
+    /**
+     * Fast-path reconnect to a previously-bonded peripheral. Skips
+     * scanning entirely; on failure the caller is expected to fall back
+     * to [scanForDevices] + [connectToLastKnownDevice]. Mirrors the
+     * iOS-side `connectToPairedPeripheral`.
+     */
+    suspend fun connectToPairedPeripheral(identifier: String) {
+        updateState { it.copy(connectionState = DeviceConnectionState.CONNECTING) }
+        runCatching { bluetoothClient.connectToPairedPeripheral(identifier) }
+            .onSuccess { deviceName ->
+                updateState {
+                    it.copy(
+                        connectionState = DeviceConnectionState.CONNECTED,
+                        lastDeviceName = deviceName,
+                        lastSyncResult = "Reconnected to $deviceName",
+                    )
+                }
+            }
+            .onFailure { error ->
+                updateState {
+                    it.copy(
+                        connectionState = DeviceConnectionState.DISCONNECTED,
+                        lastSyncResult = error.localizedMessage ?: "BLE fast-path connection failed",
+                    )
+                }
+            }
+    }
+
+    /**
+     * Connect to an as-yet-unbonded peripheral whose BD_ADDR was just
+     * pulled from the pairing-flow QR. Returns the friendly name of the
+     * connected peer; throws on failure so the caller can surface a
+     * specific error in the pairing UI.
+     */
+    suspend fun connectToAdvertisedPeripheral(identifier: String): String {
+        updateState { it.copy(connectionState = DeviceConnectionState.CONNECTING) }
+        return runCatching { bluetoothClient.connectToAdvertisedPeripheral(identifier) }
+            .onSuccess { deviceName ->
+                updateState {
+                    it.copy(
+                        connectionState = DeviceConnectionState.CONNECTED,
+                        lastDeviceName = deviceName,
+                        lastSyncResult = "Connecting for pairing: $deviceName",
+                    )
+                }
+            }
+            .onFailure { error ->
+                updateState {
+                    it.copy(
+                        connectionState = DeviceConnectionState.DISCONNECTED,
+                        lastSyncResult = error.localizedMessage
+                            ?: "BLE pairing connection failed",
+                    )
+                }
+            }
+            .getOrThrow()
+    }
+
+    /**
+     * Write the QR's 32-byte secret to the firmware's pairing-confirm
+     * characteristic to close the OOB handshake. Throws on write
+     * failure so the pairing UI can surface a retry button.
+     */
+    suspend fun writePairingConfirm(secret: ByteArray) {
+        bluetoothClient.writePairingConfirm(secret)
+    }
+
     override suspend fun connectToLastKnownDevice() {
         updateState { it.copy(connectionState = DeviceConnectionState.CONNECTING) }
         runCatching { bluetoothClient.connectToScannedPeripheral() }
