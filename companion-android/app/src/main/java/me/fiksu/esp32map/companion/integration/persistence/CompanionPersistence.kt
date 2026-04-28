@@ -10,6 +10,7 @@ import me.fiksu.esp32map.companion.domain.ActiveRouteSession
 import me.fiksu.esp32map.companion.domain.CompanionSettings
 import me.fiksu.esp32map.companion.domain.CoordinatePoint
 import me.fiksu.esp32map.companion.domain.ImportDiagnosticsEntry
+import me.fiksu.esp32map.companion.domain.PairedPeripheralRecord
 import me.fiksu.esp32map.companion.domain.RouteHistoryItem
 import me.fiksu.esp32map.companion.domain.RouteHistorySource
 import me.fiksu.esp32map.companion.domain.RoutePlannerPreferences
@@ -26,6 +27,7 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
         const val SETTINGS = "settings"
         const val PLANNER_PREFERENCES = "planner_preferences"
         const val LAST_KNOWN_RIDER = "last_known_rider"
+        const val PAIRED_PERIPHERAL = "paired_peripheral"
     }
 
     private val defaults = context?.getSharedPreferences(Key.STORE, Context.MODE_PRIVATE)
@@ -38,6 +40,7 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
     private var lastSession: ActiveRouteSession? = null
     private var settings: CompanionSettings = CompanionSettings()
     private var plannerPreferences: RoutePlannerPreferences = RoutePlannerPreferences()
+    private var pairedPeripheral: PairedPeripheralRecord? = null
 
     override fun loadRecentDestinations(): List<CoordinatePoint> {
         defaults?.let {
@@ -177,6 +180,32 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
             defaults.edit().putString(Key.SETTINGS, gson.toJson(newSettings)).apply()
         } else {
             settings = newSettings
+        }
+    }
+
+    fun loadPairedPeripheral(): PairedPeripheralRecord? {
+        defaults?.let {
+            val stored = it.getString(Key.PAIRED_PERIPHERAL, null) ?: return pairedPeripheral
+            return runCatching {
+                gson.fromJson(stored, PairedPeripheralRecord::class.java)
+            }.getOrNull()
+        }
+        return pairedPeripheral
+    }
+
+    fun savePairedPeripheral(record: PairedPeripheralRecord) {
+        if (defaults != null) {
+            defaults.edit().putString(Key.PAIRED_PERIPHERAL, gson.toJson(record)).apply()
+        } else {
+            pairedPeripheral = record
+        }
+    }
+
+    fun clearPairedPeripheral() {
+        if (defaults != null) {
+            defaults.edit().remove(Key.PAIRED_PERIPHERAL).apply()
+        } else {
+            pairedPeripheral = null
         }
     }
 

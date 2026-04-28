@@ -33,9 +33,9 @@ import me.fiksu.esp32map.companion.domain.RouteSyncMessage
 
 class AndroidBleRouteSyncClient(
     private val context: Context,
-) {
-    var onSyncMessage: ((RouteSyncMessage) -> Unit)? = null
-    var onConnectionStateChange: ((DeviceConnectionState, String?) -> Unit)? = null
+) : RouteSyncBluetoothClient {
+    override var onSyncMessage: ((RouteSyncMessage) -> Unit)? = null
+    override var onConnectionStateChange: ((DeviceConnectionState, String?) -> Unit)? = null
 
     private val bluetoothManager: BluetoothManager? = context.getSystemService(BluetoothManager::class.java)
     private val bluetoothAdapter: BluetoothAdapter? get() = bluetoothManager?.adapter
@@ -51,15 +51,15 @@ class AndroidBleRouteSyncClient(
     private var pendingWriteContinuation: kotlin.coroutines.Continuation<Unit>? = null
     private var armedDebugFaultMode: RouteSyncFaultInjectionMode? = null
 
-    val isReady: Boolean
+    override val isReady: Boolean
         get() = bluetoothGatt != null && chunkWriteCharacteristic != null && eventNotifyCharacteristic != null
 
-    fun armDebugFault(mode: RouteSyncFaultInjectionMode) {
+    override fun armDebugFault(mode: RouteSyncFaultInjectionMode) {
         armedDebugFaultMode = mode
     }
 
     @SuppressLint("MissingPermission")
-    suspend fun scanForRouteSyncPeripheral(timeoutMs: Long = 6_000): String {
+    override suspend fun scanForRouteSyncPeripheral(timeoutMs: Long): String {
         ensurePermissions()
         ensureBluetoothEnabled()
         val scanner = scanner ?: error("Bluetooth LE scanner is unavailable")
@@ -104,7 +104,7 @@ class AndroidBleRouteSyncClient(
     }
 
     @SuppressLint("MissingPermission")
-    suspend fun connectToScannedPeripheral(): String {
+    override suspend fun connectToScannedPeripheral(): String {
         ensurePermissions()
         ensureBluetoothEnabled()
         val device = scannedDevice ?: error("No scanned ESP32 device is available to connect")
@@ -117,7 +117,24 @@ class AndroidBleRouteSyncClient(
     }
 
     @SuppressLint("MissingPermission")
-    suspend fun write(packet: BleRouteSyncPacket) {
+    override suspend fun connectToPairedPeripheral(identifier: String): String {
+        ensurePermissions()
+        ensureBluetoothEnabled()
+        val adapter = bluetoothAdapter ?: error("Bluetooth is unavailable on this device")
+        val device = runCatching { adapter.getRemoteDevice(identifier) }.getOrElse {
+            throw IllegalArgumentException("Stored paired peripheral identifier is not a valid BLE address: $identifier", it)
+        }
+        scannedDevice = device
+        onConnectionStateChange?.invoke(DeviceConnectionState.CONNECTING, device.nameOrFallback("ESP32 Bike Minimap"))
+        return suspendCancellableCoroutine { continuation ->
+            pendingConnectContinuation = continuation
+            val gatt = device.connectGatt(context, false, callback, BluetoothDevice.TRANSPORT_LE)
+            bluetoothGatt = gatt
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    override suspend fun write(packet: BleRouteSyncPacket) {
         ensurePermissions()
         val gatt = bluetoothGatt ?: error("BLE route-sync GATT connection is not ready")
         val characteristic = chunkWriteCharacteristic ?: error("BLE route chunk characteristic is missing")
