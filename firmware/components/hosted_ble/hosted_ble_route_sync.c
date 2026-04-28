@@ -246,19 +246,23 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
         }
         s_service_handle = param->create.service_handle;
 
-        // Both route-sync characteristics require an encrypted link:
-        // the chunk-write payload carries the rider's destination /
-        // route geometry, and the notify channel ships back-channel
-        // status that includes the same geometry. Bluedroid only
-        // exposes attributes whose permissions match the link's
-        // current encryption level — `_ENCRYPTED` here triggers SMP
-        // pairing on the first read/write attempt.
+        // All four characteristics use plain (unencrypted) permissions.
+        // We tried `*_ENCRYPTED` to force SMP Just Works pairing on the
+        // first encrypted write, but SMP between iOS and Bluedroid-over-
+        // ESP32-C6-hosted-HCI fails (reason 99 = generic auth fail) —
+        // every encrypted write then gets rejected with
+        // `GATT_INSUF_AUTHENTICATION`, the iOS continuation never
+        // resolves, and the user is stuck on "Connecting…". The
+        // OOB-secret check on `pairing_confirm` plus the single-bond
+        // policy enforced in firmware (App::is_in_pairing_mode) provides
+        // the authentication that matters. Re-enabling SMP encryption
+        // is tracked as future work — see docs/pairing-flow.md.
         esp_bt_uuid_t chunk_uuid;
         memset(&chunk_uuid, 0, sizeof(chunk_uuid));
         chunk_uuid.len = ESP_UUID_LEN_128;
         memcpy(chunk_uuid.uuid.uuid128, CHUNK_UUID128, ESP_UUID_LEN_128);
         esp_ble_gatts_add_char(s_service_handle, &chunk_uuid,
-                               ESP_GATT_PERM_WRITE_ENCRYPTED,
+                               ESP_GATT_PERM_WRITE,
                                ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_WRITE_NR,
                                NULL, NULL);
 
@@ -267,19 +271,21 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
         event_uuid.len = ESP_UUID_LEN_128;
         memcpy(event_uuid.uuid.uuid128, EVENT_UUID128, ESP_UUID_LEN_128);
         esp_ble_gatts_add_char(s_service_handle, &event_uuid,
-                               ESP_GATT_PERM_READ_ENCRYPTED,
+                               ESP_GATT_PERM_READ,
                                ESP_GATT_CHAR_PROP_BIT_NOTIFY,
                                NULL, NULL);
 
-        // Pairing-confirm: encrypted-write so the secret is only
-        // accepted over a link that's gone through SMP Just Works
-        // pairing. The secret itself adds OOB MITM resistance on top.
+        // Pairing-confirm: plain write. The 32-byte OOB secret from the
+        // QR is what gates the bond — the link doesn't need to be
+        // encrypted because the secret rotates every 60s while
+        // unbonded and the firmware-side single-bond policy rejects
+        // confirm-writes once `device_paired == true`.
         esp_bt_uuid_t pairing_uuid;
         memset(&pairing_uuid, 0, sizeof(pairing_uuid));
         pairing_uuid.len = ESP_UUID_LEN_128;
         memcpy(pairing_uuid.uuid.uuid128, PAIRING_UUID128, ESP_UUID_LEN_128);
         esp_ble_gatts_add_char(s_service_handle, &pairing_uuid,
-                               ESP_GATT_PERM_WRITE_ENCRYPTED,
+                               ESP_GATT_PERM_WRITE,
                                ESP_GATT_CHAR_PROP_BIT_WRITE,
                                NULL, NULL);
 

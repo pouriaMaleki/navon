@@ -100,6 +100,18 @@ final class PairingFlowViewModel: ObservableObject {
     }
 
     func handleScannedQr(_ raw: String) {
+        // AVFoundation re-fires the metadata callback for every camera
+        // frame the QR is in view of (~30 Hz). Without this gate, we'd
+        // launch a fresh `completePairing` task for every frame —
+        // multiple in-flight BLE writes pile up, the iOS write
+        // continuation slot gets overwritten, and Swift logs
+        // "leaked its continuation". Only the first successful decode
+        // matters; ignore everything that arrives after we've already
+        // moved past the scanning step.
+        guard pairingState == .scanning else {
+            pairingLog.debug("handleScannedQr ignored — past scanning step (state=\(String(describing: self.pairingState), privacy: .public))")
+            return
+        }
         pairingLog.notice("PairingFlowViewModel.handleScannedQr (\(raw.count, privacy: .public) chars)")
         do {
             let payload = try PairingQrPayload.decode(raw)

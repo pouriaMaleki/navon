@@ -81,6 +81,14 @@ pub fn encode_payload(payload: &str) -> Result<QrCode, qrcodegen::DataTooLong> {
 /// chosen so the code fits inside the framebuffer bounds with the
 /// quiet-zone margin baked in. Caller is responsible for clearing the
 /// framebuffer first; this function only writes the QR area.
+///
+/// The Waveshare 3.4C panel is round, so the QR has to fit inside the
+/// inscribed square of the framebuffer — otherwise the corners (which
+/// hold the QR's finder patterns) get clipped by the bezel and the
+/// scanner can't lock onto the code. We use 70% of the panel diameter
+/// as the QR's bounding box, comfortably inside the inscribed square
+/// (which is 1/sqrt(2) ≈ 70.7% of the diameter) with a small margin
+/// for the panel's chamfer.
 pub fn render_pairing_qr(qr: &QrCode, fb: &mut RenderFramebuffer) {
     let modules = qr.size() as i32 + 2 * QUIET_MODULES;
     let fb_w = fb.width() as i32;
@@ -89,7 +97,9 @@ pub fn render_pairing_qr(qr: &QrCode, fb: &mut RenderFramebuffer) {
     if modules <= 0 || max_dim <= 0 {
         return;
     }
-    let module_px = (max_dim / modules).max(1);
+    // Restrict the QR to the inscribed square of the round display.
+    let inscribed_dim = max_dim * 7 / 10;
+    let module_px = (inscribed_dim / modules).max(1);
     let qr_px = module_px * qr.size() as i32;
     let origin_x = (fb_w - qr_px) / 2;
     let origin_y = (fb_h - qr_px) / 2;
@@ -176,7 +186,10 @@ mod tests {
         let fb_w = fb.width() as i32;
         let fb_h = fb.height() as i32;
         let max_dim = fb_w.min(fb_h);
-        let module_px = max_dim / modules;
+        // Mirror the inscribed-square sizing rule that the renderer
+        // uses so the round-display panel doesn't clip the corners.
+        let inscribed_dim = max_dim * 7 / 10;
+        let module_px = inscribed_dim / modules;
         let origin_x = (fb_w - module_px * qr.size() as i32) / 2;
         let origin_y = (fb_h - module_px * qr.size() as i32) / 2;
         // Sample the centre of the (0,0) module so we don't catch a

@@ -16,42 +16,53 @@ Characteristics:
 - Companion -> device route chunk write:
   - `8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1002`
   - expected properties: `write` or `writeWithoutResponse`
-  - permission: **`ESP_GATT_PERM_WRITE_ENCRYPTED`** — first encrypted
-    write triggers SMP Just Works pairing transparently
+  - permission: `ESP_GATT_PERM_WRITE` (plain)
 - Device -> companion route event notify:
   - `8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1003`
   - expected properties: `notify`
-  - permission: **`ESP_GATT_PERM_READ_ENCRYPTED`**
+  - permission: `ESP_GATT_PERM_READ` (plain)
 - Companion -> device pairing-confirm write (QR-OOB handshake):
   - `8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1004`
   - expected properties: `write`
-  - permission: **`ESP_GATT_PERM_WRITE_ENCRYPTED`**
+  - permission: `ESP_GATT_PERM_WRITE` (plain)
   - Companion writes the 32-byte secret pulled from the firmware's QR
-    panel. Firmware rejects writes with `ESP_GATT_WRITE_NOT_PERMIT`
+    panel. Firmware rejects the write with `ESP_GATT_WRITE_NOT_PERMIT`
     when the device is already bonded (single-bond policy — user must
     Forget on the companion before re-pairing).
 
 ## Security
-- **SMP Just Works** for link-layer encryption (configured in
-  `firmware/components/hosted_ble/hosted_ble.c::hosted_ble_init`):
-  `ESP_LE_AUTH_REQ_SC_BOND` + `ESP_IO_CAP_NONE` + 16-byte max key.
-  Bond is persisted by Bluedroid into NVS via
-  `CONFIG_BT_BLE_SMP_BOND_NVS_FLASH=y`.
-- **OOB confirmation** on top of Just Works: the firmware shows a QR
-  containing a 32-byte ephemeral secret on its panel; the companion
-  writes the secret back to the pairing-confirm characteristic. The
-  device matches the secret in `PairingStateMachine::on_pairing_confirm`
-  before flipping to `Operational` and persisting `peer_identity` to NVS.
+- **OOB confirmation** is the only authentication: the firmware shows
+  a QR containing a 32-byte ephemeral secret on its panel; the
+  companion writes the secret back to the pairing-confirm
+  characteristic. The device matches the secret in
+  `PairingStateMachine::on_pairing_confirm` before flipping to
+  `Operational` and persisting `peer_identity` to NVS. The secret
+  rotates every 60s while unbonded so a stale photo of the QR can't
+  be replayed later.
 - **Single-bond policy**: once bonded, the device rejects all
-  pairing-confirm writes. Re-pair entry is from the companion via
-  *Forget paired device* — clearing the local bond fails the next
-  encrypted write at the SMP layer, the firmware sees the auth
-  failure, drops `peer_identity`, and re-enters pairing mode.
-- **Allowlist filter advertising** flips from
-  `ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY` to
-  `ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST` after bonding (see
-  `hosted_ble_route_sync_set_adv_filter`); the bonded peer's BD_ADDR
-  is loaded into the controller's whitelist.
+  pairing-confirm writes until the companion explicitly writes
+  `pairing_request` again — the App side then drops the prior bond
+  before reopening the QR window.
+- **Pairing-request gates the QR window**: the device never shows the
+  QR on its own; the companion has to write the unencrypted
+  `pairing_request` characteristic first. Mitigates the "always-on
+  QR is ugly" UX while keeping the OOB step intact.
+- **Known regression — link-layer encryption is currently disabled**.
+  We tried `ESP_GATT_PERM_*_ENCRYPTED` to force SMP Just Works pairing
+  on the first encrypted write. iOS triggered SMP correctly, but
+  Bluedroid running over the on-board ESP32-C6 hosted HCI fails the
+  exchange with `auth-cmpl rsn 99` (generic auth failure). After SMP
+  fails, every subsequent encrypted write returns
+  `GATT_INSUF_AUTHENTICATION`, the iOS write continuation never
+  resolves, and the user is stuck on "Connecting…". The chars are
+  back to plain permissions until the SMP path is debugged. Route
+  data flows in cleartext over the air during this regression — the
+  OOB secret still gates *who can land routes*, but a passive
+  attacker in BLE range can sniff geometry. Tracked in
+  [todo.md](todo.md).
+- **Allowlist filter advertising** is wired (see
+  `hosted_ble_route_sync_set_adv_filter`) but currently not invoked
+  while encryption is disabled — re-enable once SMP works.
 
 ## Pairing flow
 The QR encodes a v1 JSON payload:
