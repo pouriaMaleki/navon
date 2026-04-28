@@ -412,10 +412,7 @@ extension CoreBluetoothRouteSyncClient: CBPeripheralDelegate {
             // notifications during the QR-OOB handshake. Subsequent
             // operational reconnects re-trigger setNotifyValue and the
             // refreshed cache lets it succeed.
-            pairingLog.error(
-                "setNotifyValue failed (\(error.localizedDescription, privacy: .public)) — \
-                 resuming connect anyway; notifications will be off until a clean reconnect"
-            )
+            pairingLog.error("setNotifyValue failed (\(error.localizedDescription, privacy: .public)) — resuming connect anyway; notifications will be off until a clean reconnect")
             let name = peripheral.name ?? "ESP32 Bike Minimap"
             if let pendingConnectContinuation {
                 self.pendingConnectContinuation = nil

@@ -20,15 +20,26 @@ final class PairingFlowViewModelTests: XCTestCase {
         let permission = FakeCameraPermissionProvider()
         let appModel = makeAppModel()
         let vm = PairingFlowViewModel(session: session, permission: permission, appModel: appModel)
+        // The VM gates `handleScannedQr` on `pairingState == .scanning`
+        // (dedup against AVFoundation's repeated metadata callbacks), so
+        // we must enter the scanning step before simulating a scan.
+        await vm.enterScanningStep()
 
         session.simulateScan(validJson)
-        await Task.yield()
+        // `handleScannedQr` is dispatched via a spawned `Task { @MainActor }`;
+        // a single `Task.yield()` doesn't reliably flush that hop. Sleep a
+        // tick so the spawned task runs before we assert.
+        try? await Task.sleep(nanoseconds: 50_000_000)
 
-        XCTAssertEqual(vm.pairingState, .connecting)
         XCTAssertNotNil(vm.lastDecodedPayload)
         // The decoded secret is what gets written to `…1004` next; assert
         // on it (and not on `id_android`) because iOS uses only the secret.
         XCTAssertEqual(vm.lastDecodedPayload?.ephemeralSecret, Data(repeating: 0x42, count: 32))
+        // After a successful scan the VM moves out of `.scanning`. `completePairing`
+        // races forward through `.confirming` → `.succeeded` → `.idle` so we
+        // accept anything that isn't `.scanning` (or `.instructions`).
+        XCTAssertNotEqual(vm.pairingState, .scanning)
+        XCTAssertNotEqual(vm.pairingState, .instructions)
     }
 
     func test_qrCallback_invalidPayload_setsHumanReadableError() async {

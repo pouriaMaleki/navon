@@ -40,10 +40,17 @@ final class BleRouteSyncServiceFastPathTests: XCTestCase {
         let service = BleRouteSyncService(bluetoothClient: fake)
         let appModel = AppModel(persistence: persistence, bleService: service)
 
+        // AppModel.init kicks off a background auto-reconnect Task when a
+        // paired record is loaded. Drain it before measuring so the test
+        // only asserts on the explicit `connectToDevice()` call below.
+        try? await Task.sleep(nanoseconds: 50_000_000)
+        let baselinePairedCalls = fake.connectToPairedCallCount
+        let baselineScanCalls = fake.scanCallCount
+
         await appModel.connectToDevice()
 
-        XCTAssertEqual(fake.scanCallCount, 0)
-        XCTAssertEqual(fake.connectToPairedCallCount, 1)
+        XCTAssertEqual(fake.scanCallCount - baselineScanCalls, 0)
+        XCTAssertEqual(fake.connectToPairedCallCount - baselinePairedCalls, 1)
         XCTAssertEqual(fake.lastConnectedIdentifier, storedUUID)
     }
 
@@ -68,9 +75,17 @@ final class BleRouteSyncServiceFastPathTests: XCTestCase {
         let service = BleRouteSyncService(bluetoothClient: fake)
         let appModel = AppModel(persistence: persistence, bleService: service)
 
+        // The init-time auto-reconnect also fails (same fake) but does not
+        // fall back to scan — that path is gated behind an explicit user
+        // action. So drain the init Task, then assert only on the explicit
+        // call.
+        try? await Task.sleep(nanoseconds: 50_000_000)
+        let baselinePairedCalls = fake.connectToPairedCallCount
+        let baselineScanCalls = fake.scanCallCount
+
         await appModel.connectToDevice()
 
-        XCTAssertEqual(fake.connectToPairedCallCount, 1)
-        XCTAssertEqual(fake.scanCallCount, 1)
+        XCTAssertEqual(fake.connectToPairedCallCount - baselinePairedCalls, 1)
+        XCTAssertEqual(fake.scanCallCount - baselineScanCalls, 1)
     }
 }
