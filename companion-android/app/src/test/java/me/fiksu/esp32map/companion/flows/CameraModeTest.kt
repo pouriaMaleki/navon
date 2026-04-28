@@ -198,7 +198,7 @@ class CameraModeTest {
                     normalizedPackage = pkg,
                 ),
             ),
-            selectedAlternativeID = null, routeIdentifier = null,
+            selectedAlternativeId = null, routeIdentifier = null,
             routeRevision = null, planningNotice = null,
         )
         holder.startSelectedRoute()
@@ -224,7 +224,7 @@ class CameraModeTest {
                     normalizedPackage = pkg,
                 ),
             ),
-            selectedAlternativeID = null, routeIdentifier = null,
+            selectedAlternativeId = null, routeIdentifier = null,
             routeRevision = null, planningNotice = null,
         )
         holder.startSelectedRoute()
@@ -368,7 +368,7 @@ class CameraModeTest {
         )
         state.preview = RoutePreviewModel(
             alternatives = listOf(RouteAlternative("a1", "R", "", 500, 120, pkg)),
-            selectedAlternativeID = null, routeIdentifier = null,
+            selectedAlternativeId = null, routeIdentifier = null,
             routeRevision = null, planningNotice = null,
         )
         holder.startSelectedRoute()
@@ -444,7 +444,7 @@ class CameraModeTest {
         )
         state.preview = RoutePreviewModel(
             alternatives = listOf(RouteAlternative("a1", "R", "", 500, 120, pkg)),
-            selectedAlternativeID = null, routeIdentifier = null,
+            selectedAlternativeId = null, routeIdentifier = null,
             routeRevision = null, planningNotice = null,
         )
         holder.startSelectedRoute()

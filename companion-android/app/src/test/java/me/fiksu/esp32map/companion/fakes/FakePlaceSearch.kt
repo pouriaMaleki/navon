@@ -10,7 +10,11 @@ class FakePlaceSearch : PlaceSearchService {
     val searchCalls: MutableList<Pair<String, Int>> = mutableListOf()
     val resolveCalls: MutableList<CoordinatePoint> = mutableListOf()
 
-    override suspend fun searchDestinations(query: String, limit: Int): List<DestinationSearchResult> {
+    override suspend fun searchDestinations(
+        query: String,
+        limit: Int,
+        riderBias: CoordinatePoint?,
+    ): List<DestinationSearchResult> {
         searchCalls += query to limit
         return nextResults
     }

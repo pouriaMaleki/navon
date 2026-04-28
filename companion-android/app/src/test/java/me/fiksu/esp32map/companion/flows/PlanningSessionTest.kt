@@ -5,7 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import me.fiksu.esp32map.companion.app.CompanionAppState
-import me.fiksu.esp32map.companion.domain.CURRENT_ROUTE_PACKAGE_VERSION
+import me.fiksu.esp32map.companion.domain.RoutePackageVersion
 import me.fiksu.esp32map.companion.domain.CoordinatePoint
 import me.fiksu.esp32map.companion.domain.HomeMode
 import me.fiksu.esp32map.companion.domain.NormalizedRoutePackage
@@ -36,7 +36,7 @@ class PlanningSessionTest {
         val origin = CoordinatePoint(60.1699, 24.9384)
         val destination = CoordinatePoint(60.1921, 24.9458)
         return NormalizedRoutePackage(
-            version = CURRENT_ROUTE_PACKAGE_VERSION,
+            version = RoutePackageVersion.CURRENT,
             routeIdentifier = "osm-straight",
             revision = 1,
             geometry = listOf(origin, destination),
@@ -88,7 +88,7 @@ class PlanningSessionTest {
                     normalizedPackage = straightLinePackage(),
                 ),
             ),
-            selectedAlternativeID = null,
+            selectedAlternativeId = null,
             routeIdentifier = null,
             routeRevision = null,
             planningNotice = null,
