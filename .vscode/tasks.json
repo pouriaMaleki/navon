@@ -68,6 +68,92 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Android: install toolchain",
+      "type": "shell",
+      "command": "bash infra/devcontainer/scripts/install-android-toolchain.sh",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "detail": "Idempotent: installs Temurin JDK 21 + Android SDK (platform-35, build-tools 35) under /work/.tools and appends env to ~/.bashrc. Skip when already installed."
+    },
+    {
+      "label": "Android: assemble debug",
+      "type": "shell",
+      "command": "./gradlew :app:assembleDebug",
+      "options": {
+        "cwd": "${workspaceFolder}/companion-android",
+        "env": {
+          "JAVA_HOME": "/work/.tools/jdk-21.0.11+10",
+          "ANDROID_HOME": "/work/.tools/android-sdk",
+          "PATH": "/work/.tools/jdk-21.0.11+10/bin:/work/.tools/android-sdk/cmdline-tools/latest/bin:/work/.tools/android-sdk/platform-tools:${env:PATH}"
+        }
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": [],
+      "dependsOn": [
+        "Android: install toolchain"
+      ],
+      "dependsOrder": "sequence",
+      "detail": "Builds companion-android/app/build/outputs/apk/debug/app-debug.apk (~70 s clean, ~10 s incremental)."
+    },
+    {
+      "label": "Android: assemble release",
+      "type": "shell",
+      "command": "./gradlew :app:assembleRelease",
+      "options": {
+        "cwd": "${workspaceFolder}/companion-android",
+        "env": {
+          "JAVA_HOME": "/work/.tools/jdk-21.0.11+10",
+          "ANDROID_HOME": "/work/.tools/android-sdk",
+          "PATH": "/work/.tools/jdk-21.0.11+10/bin:/work/.tools/android-sdk/cmdline-tools/latest/bin:/work/.tools/android-sdk/platform-tools:${env:PATH}"
+        }
+      },
+      "problemMatcher": [],
+      "dependsOn": [
+        "Android: install toolchain"
+      ],
+      "dependsOrder": "sequence",
+      "detail": "Unsigned release APK; will need a real signing config before publishing."
+    },
+    {
+      "label": "Android: lint + compile",
+      "type": "shell",
+      "command": "./gradlew :app:compileDebugKotlin :app:lintDebug",
+      "options": {
+        "cwd": "${workspaceFolder}/companion-android",
+        "env": {
+          "JAVA_HOME": "/work/.tools/jdk-21.0.11+10",
+          "ANDROID_HOME": "/work/.tools/android-sdk",
+          "PATH": "/work/.tools/jdk-21.0.11+10/bin:/work/.tools/android-sdk/cmdline-tools/latest/bin:/work/.tools/android-sdk/platform-tools:${env:PATH}"
+        }
+      },
+      "problemMatcher": [],
+      "dependsOn": [
+        "Android: install toolchain"
+      ],
+      "dependsOrder": "sequence",
+      "detail": "Faster gate when iterating: compiles Kotlin and runs Android Lint without packaging an APK."
+    },
+    {
+      "label": "Android: clean",
+      "type": "shell",
+      "command": "./gradlew clean",
+      "options": {
+        "cwd": "${workspaceFolder}/companion-android",
+        "env": {
+          "JAVA_HOME": "/work/.tools/jdk-21.0.11+10",
+          "ANDROID_HOME": "/work/.tools/android-sdk",
+          "PATH": "/work/.tools/jdk-21.0.11+10/bin:/work/.tools/android-sdk/cmdline-tools/latest/bin:/work/.tools/android-sdk/platform-tools:${env:PATH}"
+        }
+      },
+      "problemMatcher": [],
+      "detail": "Drops companion-android/build and companion-android/app/build."
     }
   ],
   "inputs": [
