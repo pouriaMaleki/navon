@@ -73,20 +73,25 @@ final class PairingFlowViewModel: ObservableObject {
     }
 
     func enterScanningStep() async {
+        pairingLog.notice("PairingFlowViewModel.enterScanningStep")
         pairingState = .scanning
         appModel?.pairingState = .scanning
         await refreshPermissionDescriptor()
+        pairingLog.notice("PairingFlowViewModel permission → \(String(describing: self.permissionDescriptor), privacy: .public)")
     }
 
     func cancel() {
+        pairingLog.notice("PairingFlowViewModel.cancel from step \(String(describing: self.pairingState), privacy: .public)")
         session.tearDown()
         appModel?.pairingState = .idle
         pairingState = .instructions
     }
 
     func handleScannedQr(_ raw: String) {
+        pairingLog.notice("PairingFlowViewModel.handleScannedQr (\(raw.count, privacy: .public) chars)")
         do {
             let payload = try PairingQrPayload.decode(raw)
+            pairingLog.notice("QR decoded — secret \(payload.ephemeralSecret.count, privacy: .public) B")
             lastDecodedPayload = payload
             scanErrorMessage = nil
             scanGuidance = .none
@@ -98,8 +103,10 @@ final class PairingFlowViewModel: ObservableObject {
                 Task { await appModel.completePairing(payload: payload) }
             }
         } catch let error as PairingQrError {
+            pairingLog.error("QR decode failed: \(error.errorDescription ?? "?", privacy: .public)")
             registerInvalidScan(message: error.errorDescription ?? "Pairing QR could not be read.")
         } catch {
+            pairingLog.error("QR decode failed (other): \(error.localizedDescription, privacy: .public)")
             registerInvalidScan(message: error.localizedDescription)
         }
     }

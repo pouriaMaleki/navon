@@ -48,6 +48,25 @@ struct DeviceSettingsView: View {
         } message: {
             Text("You'll need to scan the pairing code again to use it. Your route history stays.")
         }
+        // The pairing flow is initiated from this screen; the sheet must
+        // also live here. Settings is presented as a `fullScreenCover` over
+        // Home, so a sheet attached at Home wouldn't be visible while
+        // Settings is up — that's exactly the "tap → nothing happens" bug.
+        .sheet(isPresented: pairingSheetBinding) {
+            PairingFlowView(appModel: appModel)
+                .environmentObject(appModel)
+        }
+    }
+
+    private var pairingSheetBinding: Binding<Bool> {
+        Binding(
+            get: { appModel.pairingState != .idle },
+            set: { newValue in
+                if !newValue {
+                    appModel.pairingState = .idle
+                }
+            }
+        )
     }
 
     private var pairedDeviceSection: some View {

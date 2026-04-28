@@ -133,6 +133,13 @@ where
     /// Diagnostics: number of route-sync chunks rejected because the
     /// device was still in pairing mode. Exposed to tests / settings UI.
     pairing_dropped_chunks: u32,
+    /// Tracks whether the previous frame entered the pairing-overlay path
+    /// so we can emit a single info-level log on the transition (instead
+    /// of spamming the 60 Hz render loop).
+    was_in_pairing_overlay: bool,
+    /// One-shot flag for the first successful QR encode so the operator
+    /// gets a single confirmation in the boot log instead of 60/s spam.
+    qr_encoded_logged: bool,
     /// Per-frame render-path tag. Lets tests assert that they actually
     /// exercised the world-buffer cached-blit code path; production
     /// callers ignore it.
@@ -174,6 +181,11 @@ where
     ) -> Result<Self, AppBuildError> {
         let persisted_settings = settings_store.load_settings()?.unwrap_or_default();
         config.default_speed_unit = persisted_settings.speed_unit;
+        log::info!(
+            "App::new — loaded settings: device_paired={}, has_peer_identity={}",
+            persisted_settings.device_paired,
+            persisted_settings.peer_identity.is_some(),
+        );
         // The board's BLE peripheral address comes from the GAP layer
         // at runtime (`esp_ble_gap_get_local_used_addr`); host builds
         // and tests use a stable placeholder so the QR payload is
@@ -182,11 +194,13 @@ where
         let peripheral_address = [0x00u8; PERIPHERAL_ADDRESS_LEN];
         let initial_secret = zero_secret();
         let pairing = if persisted_settings.device_paired {
+            log::info!("App::new — device_paired=true → starting in Operational mode (no QR)");
             PairingStateMachine::new_paired(
                 peripheral_address,
                 persisted_settings.peer_identity.unwrap_or([0u8; 16]),
             )
         } else {
+            log::info!("App::new — device_paired=false → starting in Pairing mode (QR will render)");
             PairingStateMachine::new_unpaired(
                 peripheral_address,
                 initial_secret,
@@ -211,6 +225,8 @@ where
             pairing,
             pairing_secret_factory: zero_secret,
             pairing_dropped_chunks: 0,
+            was_in_pairing_overlay: false,
+            qr_encoded_logged: false,
             #[cfg(test)]
             last_render_path: FramePath::None,
         })
@@ -224,8 +240,16 @@ where
     /// only used for the QR.
     pub fn set_peripheral_address(&mut self, address: [u8; PERIPHERAL_ADDRESS_LEN]) {
         if self.pairing.is_paired() {
+            log::info!(
+                "set_peripheral_address: already paired, keeping bond (BD_ADDR {:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X})",
+                address[0], address[1], address[2], address[3], address[4], address[5]
+            );
             return;
         }
+        log::info!(
+            "set_peripheral_address: rebuilt pairing state with BD_ADDR {:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X} — QR payload now valid",
+            address[0], address[1], address[2], address[3], address[4], address[5]
+        );
         self.pairing = PairingStateMachine::new_unpaired(
             address,
             (self.pairing_secret_factory)(),
@@ -320,7 +344,18 @@ where
         let pairing_factory = self.pairing_secret_factory;
         self.pairing.tick(self.monotonic_clock, || pairing_factory());
         if self.is_in_pairing_mode() {
+            if !self.was_in_pairing_overlay {
+                log::info!(
+                    "step_frame → entering Pairing-mode QR overlay (clock={}ms)",
+                    self.monotonic_clock.as_millis()
+                );
+                self.was_in_pairing_overlay = true;
+            }
             return self.render_pairing_overlay();
+        }
+        if self.was_in_pairing_overlay {
+            log::info!("step_frame → leaving Pairing-mode overlay (device bonded)");
+            self.was_in_pairing_overlay = false;
         }
 
         let mut transport_tick_statuses = self
@@ -495,12 +530,34 @@ where
             // if encoding ever fails so the device still pushes a
             // (blank) frame and the operator sees a screen instead of a
             // panic.
-            if let Ok(qr) = crate::pairing_overlay::encode_payload(&json) {
-                crate::pairing_overlay::render_pairing_qr(
-                    &qr,
-                    &mut self.render_framebuffer,
-                );
+            match crate::pairing_overlay::encode_payload(&json) {
+                Ok(qr) => {
+                    if !self.qr_encoded_logged {
+                        log::info!(
+                            "QR encoded — JSON {} bytes, modules {}, BD_ADDR {:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
+                            json.len(),
+                            qr.size(),
+                            address[0], address[1], address[2], address[3], address[4], address[5]
+                        );
+                        self.qr_encoded_logged = true;
+                    }
+                    crate::pairing_overlay::render_pairing_qr(
+                        &qr,
+                        &mut self.render_framebuffer,
+                    );
+                }
+                Err(err) => {
+                    log::error!(
+                        "QR encode failed (json {} bytes): {:?} — operator will see a blank panel",
+                        json.len(), err
+                    );
+                }
             }
+        } else {
+            // current_qr_payload() returns None only when the state machine
+            // is in Operational mode — but we should never reach here in
+            // that case because step_frame's gate already excluded it.
+            log::warn!("render_pairing_overlay called but pairing.current_qr_payload() is None");
         }
         let render = t_render_start.elapsed();
         let (convert, panel_push) =

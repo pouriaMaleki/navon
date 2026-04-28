@@ -2,6 +2,12 @@ import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 import Combine
+import os.log
+
+/// Pairing-flow log channel. Filter Console.app with
+/// `subsystem:me.fiksu.esp32map.companion.ios category:pairing` to follow
+/// each step (begin → scan → connect → write → persist).
+let pairingLog = Logger(subsystem: "me.fiksu.esp32map.companion.ios", category: "pairing")
 
 @MainActor
 final class AppModel: ObservableObject {
@@ -94,6 +100,7 @@ final class AppModel: ObservableObject {
     /// Surfaces the instructions step before the camera sheet opens so the
     /// user knows what to do with the QR.
     func beginPairingFlow() {
+        pairingLog.notice("beginPairingFlow tapped — pairingState → .instructions")
         pairingState = .instructions
     }
 
@@ -110,11 +117,14 @@ final class AppModel: ObservableObject {
     /// Auto-dismiss timing: 1.5 s after `.succeeded` we drop back to `.idle`.
     /// Tests can drive this synchronously by waiting on `pairingState`.
     func completePairing(payload: PairingQrPayload) async {
+        pairingLog.notice("completePairing — connecting (secret \(payload.ephemeralSecret.count, privacy: .public) B)")
         pairingState = .connecting
         do {
             let info = try await bleService.connectToAdvertisedPeripheral()
+            pairingLog.notice("completePairing — connected to \(info.name, privacy: .public) [\(info.identifier, privacy: .public)]")
             pairingState = .confirming
             try await bleService.writePairingConfirm(secret: payload.ephemeralSecret)
+            pairingLog.notice("completePairing — pairing-confirm write OK")
             let record = PairedPeripheralRecord(
                 identifier: info.identifier,
                 friendlyName: info.name,
@@ -130,6 +140,7 @@ final class AppModel: ObservableObject {
                 pairingState = .idle
             }
         } catch {
+            pairingLog.error("completePairing failed: \(error.localizedDescription, privacy: .public)")
             pairingState = .failed(error.localizedDescription)
         }
     }

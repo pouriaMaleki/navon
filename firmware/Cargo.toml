@@ -19,10 +19,13 @@ map-runtime = { path = "../map-runtime" }
 qrcodegen = { version = "1.8.0", default-features = false }
 render-core = { path = "../render-core" }
 runtime-core = { path = "../runtime-core" }
+# `log` is needed on both host (for `app.rs` pairing-flow trace) and the
+# device target. On host the calls are no-ops unless a logger is initialized
+# in tests; on espidf `EspLogger::initialize_default()` routes them to UART.
+log = "0.4"
 
 [target.'cfg(target_os = "espidf")'.dependencies]
 esp-idf-svc = { version = "0.52.1", features = ["binstart"] }
-log = "0.4"
 enumset = "1.1.10"
 
 [build-dependencies]

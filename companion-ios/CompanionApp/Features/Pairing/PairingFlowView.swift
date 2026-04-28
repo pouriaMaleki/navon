@@ -32,6 +32,9 @@ struct PairingFlowView: View {
         }
         .padding()
         .interactiveDismissDisabled(true)
+        .onAppear {
+            pairingLog.notice("PairingFlowView.onAppear — sheet rendered, step=\(String(describing: self.viewModel.pairingState), privacy: .public)")
+        }
     }
 
     private var instructionsStep: some View {

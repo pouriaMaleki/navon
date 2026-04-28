@@ -1,5 +1,6 @@
 import Foundation
 import CoreBluetooth
+import os.log
 
 /// Identification of the peripheral the client is currently connected to.
 /// Returned from `connectToAdvertisedPeripheral` so the caller can persist
@@ -102,7 +103,9 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
 
     func scanForRouteSyncPeripheral(timeout: TimeInterval = 6.0) async throws -> String {
         try await ensurePoweredOn()
+        pairingLog.notice("BLE.scanForRouteSyncPeripheral start (timeout \(timeout, privacy: .public)s, central state \(self.centralManager.state.rawValue, privacy: .public))")
         if let connectedPeripheral {
+            pairingLog.notice("BLE.scan: already connected — returning \(connectedPeripheral.name ?? "?", privacy: .public)")
             return connectedPeripheral.name ?? discoveredPeripheral?.name ?? "ESP32 Bike Minimap"
         }
 
@@ -115,6 +118,7 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
                 if let pendingScanContinuation {
                     self.pendingScanContinuation = nil
                     self.centralManager.stopScan()
+                    pairingLog.error("BLE.scan timed out after \(timeout, privacy: .public)s — no peripheral advertising service \(BleRouteSyncGattContract.serviceUUID, privacy: .public)")
                     pendingScanContinuation.resume(throwing: CoreBluetoothRouteSyncError.scanTimedOut)
                     self.onConnectionStateChange?(.disconnected, nil)
                 }
@@ -171,8 +175,10 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
     /// transition from pairing mode to operational mode.
     func writePairingConfirm(secret: Data) async throws {
         guard let peripheral = connectedPeripheral, let characteristic = pairingConfirmCharacteristic else {
+            pairingLog.error("BLE.writePairingConfirm: characteristic missing (connectedPeripheral? \(self.connectedPeripheral != nil, privacy: .public), pairingConfirmChar? \(self.pairingConfirmCharacteristic != nil, privacy: .public))")
             throw CoreBluetoothRouteSyncError.characteristicMissing
         }
+        pairingLog.notice("BLE.writePairingConfirm — \(secret.count, privacy: .public) B to \(characteristic.uuid.uuidString, privacy: .public)")
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             pendingWriteContinuation = continuation
             peripheral.writeValue(secret, for: characteristic, type: .withResponse)
@@ -302,6 +308,7 @@ extension CoreBluetoothRouteSyncClient: CBCentralManagerDelegate {
     }
 
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+        pairingLog.notice("BLE.didDiscover \(peripheral.name ?? "(no name)", privacy: .public) [\(peripheral.identifier.uuidString, privacy: .public)] rssi=\(RSSI.intValue, privacy: .public)")
         discoveredPeripheral = peripheral
         central.stopScan()
         if let pendingScanContinuation {

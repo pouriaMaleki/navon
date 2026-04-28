@@ -103,22 +103,7 @@ struct CompanionHomeView: View {
                     viewModel.ingestRiderLocationFix(newValue, timestampMs: Int64(Date().timeIntervalSince1970 * 1000))
                     viewModel.notifyRiderLocationUpdated()
                 }
-                .sheet(isPresented: pairingSheetBinding) {
-                    PairingFlowView(appModel: appModel)
-                        .environmentObject(appModel)
-                }
         }
-    }
-
-    private var pairingSheetBinding: Binding<Bool> {
-        Binding(
-            get: { appModel.pairingState != .idle },
-            set: { newValue in
-                if !newValue {
-                    appModel.pairingState = .idle
-                }
-            }
-        )
     }
 
     @ViewBuilder
