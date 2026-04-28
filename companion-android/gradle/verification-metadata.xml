@@ -3,6 +3,18 @@
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
+      <!-- BOM and parent-POM artifacts ship no executable code; their
+           hashes change whenever transitive dep upgrades pull a new BOM
+           version (see Dependabot alerts on bouncycastle / guava that
+           forced versions in app/build.gradle.kts). Trust them by
+           group+name so each minor transitive shift doesn't require a
+           regenerated metadata file. Code-bearing artifacts (.aar, .jar)
+           keep their per-version hash entries below. -->
+      <trusted-artifacts>
+         <trust group="com.google.guava" name="guava-parent"/>
+         <trust group="org.junit" name="junit-bom"/>
+         <trust group="org.jetbrains.kotlinx" name="kotlinx-coroutines-bom"/>
+      </trusted-artifacts>
    </configuration>
    <components>
       <component group="androidx.activity" name="activity" version="1.10.0">

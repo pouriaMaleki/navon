@@ -125,8 +125,7 @@ export class RootStore {
       // `settingsStore.settings.ridingZoom` so the same scale is used on
       // future rides. Outside routing, preserve whatever the user was
       // looking at — overview zoom is intentionally session-only.
-      const ridingZoom =
-        this.settingsStore.settings.ridingZoom ?? ROUTING_FOLLOW_ZOOM_DEFAULT;
+      const ridingZoom = this.settingsStore.settings.ridingZoom ?? ROUTING_FOLLOW_ZOOM_DEFAULT;
       const zoom = inRouting
         ? ridingZoom
         : this.mapCameraStore.target.kind === "center"
@@ -256,9 +255,7 @@ export class RootStore {
   async exploreAlternateRoutes(): Promise<void> {
     const session = this.guidanceStore.activeSession;
     if (!session.destinationCoordinate || !session.routeIdentifier) return;
-    const rider =
-      this.locationStore.currentLocation ??
-      this.locationStore.lastKnownLocation;
+    const rider = this.locationStore.currentLocation ?? this.locationStore.lastKnownLocation;
     if (!rider) return;
 
     this.rerouteAbort?.abort();

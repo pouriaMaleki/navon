@@ -158,10 +158,15 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
             // values to the model defaults so old installs upgrade cleanly.
             val raw = gson.fromJson(stored, CompanionSettings::class.java) ?: return settings
             val fallback = CompanionSettings()
+            // Gson reflection can leave `speedUnit` null on blobs written
+            // before that field existed, even though the Kotlin type is
+            // non-null. Cast to a nullable view to write the elvis safely
+            // and silence the resulting "useless elvis" lint.
+            @Suppress("USELESS_ELVIS")
+            val resolvedSpeedUnit: SpeedUnit = (raw.speedUnit as SpeedUnit?) ?: fallback.speedUnit
             return raw.copy(
                 cyclingSpeedKph = if (raw.cyclingSpeedKph > 0) raw.cyclingSpeedKph else fallback.cyclingSpeedKph,
-                @Suppress("USELESS_ELVIS")
-                speedUnit = (raw.speedUnit as SpeedUnit?) ?: fallback.speedUnit,
+                speedUnit = resolvedSpeedUnit,
             )
         }
         return settings

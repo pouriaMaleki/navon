@@ -307,7 +307,7 @@ const ZoomControls = observer(({ store }: { store: RootStore }) => {
   // is active, since they would visually crowd the top of the screen.
   if (store.planningStore.isSearchOpen) return null;
   return (
-    <div className="zoom-controls" aria-label="Zoom controls" role="group">
+    <div className="zoom-controls">
       <button
         type="button"
         className="icon-button zoom-controls__button"

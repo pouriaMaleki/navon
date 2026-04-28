@@ -19,6 +19,7 @@ import me.fiksu.esp32map.companion.domain.ImportDiagnosticsEntry
 import me.fiksu.esp32map.companion.domain.SharedImportClassification
 import me.fiksu.esp32map.companion.domain.SharedImportDisposition
 import me.fiksu.esp32map.companion.domain.SharedImportEnvelope
+import me.fiksu.esp32map.companion.domain.NormalizedRoutePackage
 import me.fiksu.esp32map.companion.domain.RouteAlternative
 import me.fiksu.esp32map.companion.domain.RouteHistoryItem
 import me.fiksu.esp32map.companion.domain.RouteHistorySource
