@@ -841,7 +841,9 @@ pub fn run_device_main() -> Result<(), String> {
         let (service_uuid, chunk_uuid, event_uuid) =
             crate::esp_idf_ble::gatt_service_summary();
         log::info!(
-            "ble route-sync online via ESP32-C6: service={} chunk_w={} event_n={}",
+            "ble route-sync online via ESP32-C6: service={} chunk_w={} event_n={} \
+             pairing_confirm=8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1004 \
+             pairing_request=8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1005",
             service_uuid,
             chunk_uuid,
             event_uuid,

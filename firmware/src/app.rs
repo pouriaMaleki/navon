@@ -213,7 +213,10 @@ where
                 persisted_settings.peer_identity.unwrap_or([0u8; 16]),
             )
         } else {
-            log::info!("App::new — device_paired=false → starting in Pairing mode (QR will render)");
+            log::info!(
+                "App::new — device_paired=false → unbonded; map renders by default. \
+                 QR will only show after a companion writes pairing_request (UUID …-1005)"
+            );
             PairingStateMachine::new_unpaired(
                 peripheral_address,
                 initial_secret,

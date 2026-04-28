@@ -188,12 +188,17 @@ where
         // open the QR-display window before we render so the user
         // sees the QR on this same frame.
         if self.route_sync.poll_pairing_request()? {
+            log::info!("platform.run_frame — pairing_request flag drained; calling request_qr_display");
             self.app.request_qr_display();
         }
         // Drain any pairing-confirm secrets the BT host task delivered.
         // On a match the App transitions to Operational and clears the
         // QR display window.
         while let Some(secret) = self.route_sync.poll_pairing_secret()? {
+            log::info!(
+                "platform.run_frame — pairing-confirm secret drained ({} B); calling ingest_pairing_confirm",
+                secret.len()
+            );
             let _ = self.app.ingest_pairing_confirm(&secret);
         }
 
