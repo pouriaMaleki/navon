@@ -6,11 +6,13 @@ import UIKit
 /// `AVCaptureSession` whose `.qr` metadata feeds the `onScan` callback.
 /// Production code path; `FakeQrCaptureSession` covers the same protocol in
 /// unit tests.
-final class AVFoundationQrCaptureSession: NSObject, QrCaptureSession, AVCaptureMetadataOutputObjectsDelegate {
+@MainActor
+final class AVFoundationQrCaptureSession: NSObject, ObservableObject, QrCaptureSession, AVCaptureMetadataOutputObjectsDelegate {
     var onScan: ((String) -> Void)?
 
     let session = AVCaptureSession()
     private let metadataOutput = AVCaptureMetadataOutput()
+    private(set) var configureDidSucceed = false
 
     override init() {
         super.init()
@@ -23,18 +25,31 @@ final class AVFoundationQrCaptureSession: NSObject, QrCaptureSession, AVCaptureM
               session.canAddInput(input),
               session.canAddOutput(metadataOutput)
         else {
+            pairingLog.error("AVFoundationQrCaptureSession.configure failed — no camera available or input/output rejected")
             return
         }
         session.addInput(input)
         session.addOutput(metadataOutput)
         metadataOutput.setMetadataObjectsDelegate(self, queue: .main)
         metadataOutput.metadataObjectTypes = [.qr]
+        configureDidSucceed = true
+        pairingLog.notice("AVFoundationQrCaptureSession configured (preset=\(self.session.sessionPreset.rawValue, privacy: .public))")
     }
 
     func start() {
+        guard configureDidSucceed else {
+            pairingLog.error("AVFoundationQrCaptureSession.start skipped — configure failed earlier")
+            return
+        }
         guard !session.isRunning else { return }
+        // `startRunning` blocks; do it off the main thread per Apple's docs
+        // and let CoreAnimation/CoreVideo pull frames into the preview layer
+        // on its own queue.
         Task.detached { [session] in
             session.startRunning()
+            await MainActor.run {
+                pairingLog.notice("AVFoundationQrCaptureSession.start — running=\(session.isRunning, privacy: .public)")
+            }
         }
     }
 
@@ -43,9 +58,10 @@ final class AVFoundationQrCaptureSession: NSObject, QrCaptureSession, AVCaptureM
             session.stopRunning()
         }
         onScan = nil
+        pairingLog.notice("AVFoundationQrCaptureSession.tearDown — running=\(self.session.isRunning, privacy: .public)")
     }
 
-    func metadataOutput(
+    nonisolated func metadataOutput(
         _ output: AVCaptureMetadataOutput,
         didOutput metadataObjects: [AVMetadataObject],
         from connection: AVCaptureConnection
@@ -55,7 +71,9 @@ final class AVFoundationQrCaptureSession: NSObject, QrCaptureSession, AVCaptureM
                   machineReadable.type == .qr,
                   let raw = machineReadable.stringValue
             else { continue }
-            onScan?(raw)
+            DispatchQueue.main.async { [weak self] in
+                self?.onScan?(raw)
+            }
         }
     }
 }

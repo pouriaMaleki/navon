@@ -5,23 +5,20 @@ import UIKit
 /// progress/result panel while the BLE confirm flow runs.
 struct PairingFlowView: View {
     @EnvironmentObject private var appModel: AppModel
-    @StateObject private var viewModel: PairingFlowViewModel
-    @StateObject private var cameraSession = StoredQrCaptureSession()
+    @StateObject private var controller: PairingFlowController
 
-    init(viewModel: PairingFlowViewModel? = nil, appModel: AppModel? = nil) {
-        if let viewModel {
-            _viewModel = StateObject(wrappedValue: viewModel)
-        } else {
-            // Real session is wired lazily on first appearance so the camera
-            // pipeline isn't spun up until the sheet opens.
-            let bootstrap = PairingFlowViewModelBootstrap()
-            _viewModel = StateObject(wrappedValue: bootstrap.makeViewModel(appModel: appModel))
-        }
+    init(appModel: AppModel? = nil) {
+        // Capture the appModel ref outside the closure: SwiftUI calls the
+        // wrappedValue closure once on first render, but we still want a
+        // single AVFoundationQrCaptureSession shared by both the VM (for
+        // metadata callbacks) and the preview layer (for frames on screen).
+        let captured = appModel
+        _controller = StateObject(wrappedValue: PairingFlowController(appModel: captured))
     }
 
     var body: some View {
         VStack(spacing: 16) {
-            switch viewModel.pairingState {
+            switch controller.viewModel.pairingState {
             case .instructions:
                 instructionsStep
             case .scanning:
@@ -33,9 +30,14 @@ struct PairingFlowView: View {
         .padding()
         .interactiveDismissDisabled(true)
         .onAppear {
-            pairingLog.notice("PairingFlowView.onAppear — sheet rendered, step=\(String(describing: self.viewModel.pairingState), privacy: .public)")
+            pairingLog.notice("PairingFlowView.onAppear — sheet rendered, step=\(String(describing: self.controller.viewModel.pairingState), privacy: .public)")
+        }
+        .onDisappear {
+            controller.session.tearDown()
         }
     }
+
+    private var viewModel: PairingFlowViewModel { controller.viewModel }
 
     private var instructionsStep: some View {
         VStack(spacing: 16) {
@@ -60,14 +62,7 @@ struct PairingFlowView: View {
             case .denied(.openSettings):
                 deniedCard
             case .notDetermined, .authorized:
-                ZStack {
-                    Color.black.ignoresSafeArea()
-                    Text("Align the QR code in the frame")
-                        .foregroundStyle(.white)
-                        .padding()
-                }
-                .frame(height: 320)
-                .clipShape(RoundedRectangle(cornerRadius: 18))
+                cameraPreviewCard
             }
             if let message = viewModel.scanErrorMessage {
                 Text(message)
@@ -82,6 +77,51 @@ struct PairingFlowView: View {
             Button("Cancel", role: .cancel) {
                 viewModel.cancel()
             }
+        }
+    }
+
+    /// Live AVFoundation preview. The session is owned by `controller` and
+    /// shared by the QR-metadata pipeline that drives the VM.
+    private var cameraPreviewCard: some View {
+        ZStack {
+            PairingCameraPreview(session: controller.session)
+                .ignoresSafeArea(edges: .horizontal)
+            // Crosshair overlay. The plan asks for a frame around the
+            // center 70% of the preview; a stroked rounded rect gives the
+            // user a clear target without blocking the AVFoundation
+            // metadata detector (which scans the whole frame regardless).
+            GeometryReader { proxy in
+                let dim = min(proxy.size.width, proxy.size.height) * 0.7
+                Path { path in
+                    let rect = CGRect(
+                        x: (proxy.size.width - dim) / 2,
+                        y: (proxy.size.height - dim) / 2,
+                        width: dim,
+                        height: dim
+                    )
+                    path.addRoundedRect(in: rect, cornerSize: CGSize(width: 12, height: 12))
+                }
+                .stroke(Color.white.opacity(0.85), lineWidth: 2)
+            }
+            VStack {
+                Spacer()
+                Text("Align the QR code in the frame")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(.black.opacity(0.55), in: Capsule())
+                    .padding(.bottom, 16)
+            }
+        }
+        .frame(height: 380)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .onAppear {
+            // Camera permission may be pending here on first run; start
+            // the session unconditionally — AVFoundation simply produces
+            // no frames if permission is denied (we surface the denial
+            // through `permissionDescriptor` in the next layout pass).
+            controller.session.start()
         }
     }
 
@@ -126,18 +166,21 @@ struct PairingFlowView: View {
     }
 }
 
-/// Holder for the lazy AVFoundation session so SwiftUI's `@StateObject` can
-/// keep a reference across re-renders without re-creating the camera pipeline.
+/// Owns the AVFoundation session + VM together so SwiftUI's `@StateObject`
+/// keeps them paired across re-renders without re-creating either. The VM's
+/// `session` reference and the preview layer's `session` reference are the
+/// same `AVFoundationQrCaptureSession` instance — this is what fixes the
+/// "black rectangle" bug where two unrelated sessions ended up live.
 @MainActor
-private final class StoredQrCaptureSession: ObservableObject {
-    let session = AVFoundationQrCaptureSession()
-}
+final class PairingFlowController: ObservableObject {
+    let session: AVFoundationQrCaptureSession
+    let viewModel: PairingFlowViewModel
 
-@MainActor
-private struct PairingFlowViewModelBootstrap {
-    func makeViewModel(appModel: AppModel?) -> PairingFlowViewModel {
-        PairingFlowViewModel(
-            session: AVFoundationQrCaptureSession(),
+    init(appModel: AppModel?) {
+        let session = AVFoundationQrCaptureSession()
+        self.session = session
+        self.viewModel = PairingFlowViewModel(
+            session: session,
             permission: AVFoundationCameraPermissionProvider(),
             appModel: appModel
         )
