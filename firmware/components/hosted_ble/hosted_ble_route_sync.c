@@ -207,8 +207,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
     // them anyway means a future surprise is visible immediately
     // rather than dropping silently into the `default` case.
     case ESP_GAP_BLE_AUTH_CMPL_EVT: {
-        const struct ble_auth_cmpl_evt_param *cmpl =
-            &param->ble_security.auth_cmpl;
+        const esp_ble_auth_cmpl_t *cmpl = &param->ble_security.auth_cmpl;
         if (cmpl->success) {
             ESP_LOGI(TAG,
                      "SMP auth_cmpl SUCCESS — bd=%02x:%02x:%02x:%02x:%02x:%02x "

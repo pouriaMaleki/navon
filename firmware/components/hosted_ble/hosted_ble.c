@@ -90,7 +90,7 @@ esp_err_t hosted_ble_init(void)
     // resulting bond is persisted to NVS by Bluedroid automatically
     // because we set CONFIG_BT_BLE_SMP_BOND_NVS_FLASH=y.
     //
-    // We deliberately use Legacy (`ESP_LE_AUTH_REQ_BOND`) rather than
+    // We deliberately use Legacy (`ESP_LE_AUTH_BOND`) rather than
     // LE Secure Connections (`ESP_LE_AUTH_REQ_SC_BOND`). On the P4
     // hosted-HCI path through the C6 controller, SC's ECDH key
     // exchange has been failing with `auth_cmpl rsn 99` — Legacy
@@ -98,7 +98,7 @@ esp_err_t hosted_ble_init(void)
     // of controller-firmware version skew. Once SMP is verified to
     // work end-to-end against the matching slave (cargo xtask
     // build-c6-slave), we can promote back to SC.
-    esp_ble_auth_req_t auth_req = ESP_LE_AUTH_REQ_BOND;
+    esp_ble_auth_req_t auth_req = ESP_LE_AUTH_BOND;
     esp_ble_io_cap_t iocap = ESP_IO_CAP_NONE;
     uint8_t key_size = 16;
     // Tell Bluedroid we don't have BLE-layer OOB data to exchange —
