@@ -33,6 +33,7 @@ use std::sync::{Mutex, OnceLock};
 
 use runtime_core::api::RouteSyncMessage;
 
+use crate::hosted_ble_queue::{enqueue_chunk, QueueFullError};
 use crate::platform::{RouteSyncIo, RouteSyncIoError};
 use crate::route_sync::RouteTransferChunk;
 use crate::route_sync_ble::{BleRouteSyncPacket, decode_ble_packet, encode_ble_packet};
@@ -114,7 +115,13 @@ unsafe extern "C" fn on_chunk_trampoline(data: *const u8, len: usize, _ctx: *mut
         return;
     };
     if let Ok(mut queue) = inbound().lock() {
-        queue.push_back(chunk);
+        if let Err(QueueFullError) = enqueue_chunk(&mut queue, chunk) {
+            log::warn!(
+                "hosted-ble: inbound queue full at cap {} — dropping chunk; \
+                 companion will retry after ack timeout",
+                crate::hosted_ble_queue::MAX_INBOUND_QUEUE,
+            );
+        }
     }
 }
 

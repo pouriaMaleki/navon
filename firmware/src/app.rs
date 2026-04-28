@@ -95,6 +95,11 @@ where
     settings_store: U,
     persisted_settings: DeviceSettings,
     route_sync_transport: RouteSyncTransport,
+    /// Monotonic accumulator of `dt` deltas, used as the "now" handed
+    /// to `route_sync_transport.tick(...)` each frame for idle-timeout
+    /// bookkeeping. Drift across `Instant::now()` discontinuities is
+    /// fine for this purpose since it's only used for relative gaps.
+    monotonic_clock: Duration,
     world_buffer: WorldBuffer,
     world_buffer_enabled: bool,
     /// Per-frame render-path tag. Lets tests assert that they actually
@@ -147,6 +152,7 @@ where
             settings_store,
             persisted_settings,
             route_sync_transport: RouteSyncTransport::default(),
+            monotonic_clock: Duration::ZERO,
             world_buffer: WorldBuffer::new(),
             world_buffer_enabled: true,
             #[cfg(test)]
@@ -160,6 +166,15 @@ where
         gps: Option<GpsInput>,
         touch: Option<TouchInput>,
     ) -> Result<FrameResult, AppError> {
+        // Advance the monotonic clock and let the route-sync transport
+        // drop any in-flight transfer that has gone idle. The returned
+        // statuses (currently at most one `RetryableFailure` per timeout)
+        // surface in `FrameResult.route_sync_statuses` so the platform
+        // forwards them back to the companion.
+        self.monotonic_clock = self.monotonic_clock.saturating_add(dt);
+        let mut transport_tick_statuses = self
+            .route_sync_transport
+            .tick(self.monotonic_clock);
         let pending_route_sync = self.route_sync_transport.take_pending_runtime_message();
         let input = self.input_bridge.frame_from_samples(dt, gps, touch)?;
         let input = match pending_route_sync {
@@ -271,11 +286,12 @@ where
             self.persisted_settings = next_settings;
         }
 
-        let route_sync_statuses = self
-            .route_sync_transport
-            .complete_applied_message()
-            .into_iter()
-            .collect();
+        // Compose statuses in arrival order: idle-timeout drops fire
+        // first (so the companion can react before we surface a new
+        // Active for the freshly-applied transfer), then the
+        // apply-completion `Active` status (if any).
+        let mut route_sync_statuses = std::mem::take(&mut transport_tick_statuses);
+        route_sync_statuses.extend(self.route_sync_transport.complete_applied_message());
 
         Ok(FrameResult {
             output,

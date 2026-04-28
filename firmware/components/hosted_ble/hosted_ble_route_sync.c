@@ -20,6 +20,8 @@
 
 #include "hosted_ble.h"
 
+#include <inttypes.h>
+#include <stdatomic.h>
 #include <string.h>
 
 #include "esp_bt_defs.h"
@@ -56,7 +58,15 @@ static hosted_ble_chunk_cb_t s_chunk_cb;
 static void *s_chunk_ctx;
 
 static esp_gatt_if_t s_gatts_if = ESP_GATT_IF_NONE;
-static volatile int32_t s_conn_id = -1;
+// Atomic so the BTM task and the publish path don't race on the
+// 32-bit slot. RV32 word-aligned 32-bit reads/writes happen to be
+// atomic on this hardware so the previous `volatile` was correct in
+// practice, but `_Atomic` is what the C standard requires for shared
+// state read by both the BT host task and the runtime task. Lock-free
+// on every esp32p4 toolchain we ship.
+static _Atomic int32_t s_conn_id = -1;
+_Static_assert(ATOMIC_INT_LOCK_FREE == 2,
+               "this build expects atomic_int to be lock-free");
 static uint16_t s_service_handle;
 static uint16_t s_chunk_char_handle;
 static uint16_t s_event_char_handle;
@@ -260,16 +270,36 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
     case ESP_GATTS_START_EVT:
         ESP_LOGI(TAG, "route-sync GATT service started (handle=%u)", param->start.service_handle);
         break;
-    case ESP_GATTS_CONNECT_EVT:
-        s_conn_id = param->connect.conn_id;
-        esp_ble_gap_stop_advertising();
-        ESP_LOGI(TAG, "companion connected: conn_id=%u", param->connect.conn_id);
+    case ESP_GATTS_CONNECT_EVT: {
+        // Single-bond enforcement at the connection layer: if a peer is
+        // already connected, reject the new one. Mirrors
+        // `BleConnectionState::on_connect` in `firmware/src/hosted_ble_state.rs`,
+        // which is the host-testable rule reference.
+        int32_t expected = -1;
+        if (atomic_compare_exchange_strong(&s_conn_id, &expected,
+                                           (int32_t)param->connect.conn_id)) {
+            esp_ble_gap_stop_advertising();
+            ESP_LOGI(TAG, "companion connected: conn_id=%u", param->connect.conn_id);
+        } else {
+            ESP_LOGW(TAG,
+                     "rejecting duplicate connection conn_id=%u while "
+                     "conn_id=%" PRId32 " is still active",
+                     param->connect.conn_id, expected);
+            esp_ble_gap_disconnect(param->connect.remote_bda);
+        }
         break;
-    case ESP_GATTS_DISCONNECT_EVT:
-        s_conn_id = -1;
-        ESP_LOGI(TAG, "companion disconnected: reason=0x%02x", param->disconnect.reason);
+    }
+    case ESP_GATTS_DISCONNECT_EVT: {
+        // Only clear the slot if the disconnect is for the active peer;
+        // stale events from a rejected duplicate connection must not
+        // knock the active session offline.
+        int32_t expected = (int32_t)param->disconnect.conn_id;
+        atomic_compare_exchange_strong(&s_conn_id, &expected, -1);
+        ESP_LOGI(TAG, "companion disconnected: conn_id=%u reason=0x%02x",
+                 param->disconnect.conn_id, param->disconnect.reason);
         start_advertising();
         break;
+    }
     case ESP_GATTS_WRITE_EVT: {
         if (param->write.handle == s_chunk_char_handle && s_chunk_cb != NULL &&
             param->write.value != NULL && param->write.len > 0) {
@@ -334,10 +364,11 @@ esp_err_t hosted_ble_route_sync_notify(const uint8_t *data, size_t len)
     if (data == NULL || len == 0) {
         return ESP_ERR_INVALID_ARG;
     }
-    if (s_conn_id < 0 || s_event_char_handle == 0 || s_gatts_if == ESP_GATT_IF_NONE) {
+    int32_t conn_id = atomic_load(&s_conn_id);
+    if (conn_id < 0 || s_event_char_handle == 0 || s_gatts_if == ESP_GATT_IF_NONE) {
         return ESP_ERR_INVALID_STATE;
     }
-    return esp_ble_gatts_send_indicate(s_gatts_if, (uint16_t)s_conn_id,
+    return esp_ble_gatts_send_indicate(s_gatts_if, (uint16_t)conn_id,
                                        s_event_char_handle, (uint16_t)len,
                                        (uint8_t *)data, false);
 }

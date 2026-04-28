@@ -6,6 +6,8 @@ pub mod esp_idf_ble;
 pub mod framebuffer;
 #[cfg(all(target_os = "espidf", esp32p4))]
 pub mod hosted_ble;
+pub mod hosted_ble_queue;
+pub mod hosted_ble_state;
 pub mod gps;
 pub mod input_bridge;
 pub mod map_source;

@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::time::Duration;
 
 use runtime_core::api::{
     GeoPoint, RouteClearMessage, RouteManeuver, RouteManeuverType, RoutePackage, RoutePackageError,
@@ -16,6 +17,29 @@ pub struct RouteTransferChunk {
     pub payload_fragment: Vec<u8>,
 }
 
+/// Upper bound on `RouteTransferChunk::total_chunks`. A peer that announces
+/// more chunks than this is rejected before any allocation happens — defends
+/// against a malicious or buggy peer claiming `total_chunks = u32::MAX` to
+/// force the device to allocate an unbounded `BTreeMap` slot reservation.
+/// 1024 chunks at the contract's 96-byte chunk size is ~96 KiB of payload —
+/// comfortably more than any plausible route's serialized form.
+pub const MAX_TOTAL_CHUNKS: u32 = 1024;
+
+/// Upper bound on the cumulative `payload_fragment` bytes accumulated for
+/// a single transfer. Defends against a peer pumping individually-valid
+/// chunks (each MTU-sized) until the device runs out of heap. 128 KiB is
+/// generous: a fully-loaded 1024-chunk transfer at 96 bytes/chunk is
+/// ~96 KiB; the cap leaves headroom for future chunk-size growth without
+/// hitting the wall on a normal transfer.
+pub const MAX_PAYLOAD_BYTES: usize = 128 * 1024;
+
+/// Duration after which an in-flight transfer with no new chunks is
+/// dropped. Defends against a peer that opens a transfer (allocating
+/// state) then silently goes away — without this, `pending_transfer`
+/// would stay alive forever pinning memory and blocking new transfers
+/// from peers that use a different `transfer_id`.
+pub const IDLE_TIMEOUT: Duration = Duration::from_secs(30);
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum RouteSyncTransportError {
     EmptyTransferId,
@@ -30,6 +54,23 @@ pub enum RouteSyncTransportError {
     ChecksumMismatch {
         expected: String,
         actual: String,
+    },
+    /// Peer announced a `total_chunks` count exceeding `MAX_TOTAL_CHUNKS`.
+    /// Returned before the pending transfer is allocated, so no state has
+    /// to be cleaned up — the next chunk with a valid count starts fresh.
+    TooManyChunks {
+        total_chunks: u32,
+        limit: u32,
+    },
+    /// Cumulative payload bytes for the in-flight transfer would exceed
+    /// `MAX_PAYLOAD_BYTES`. Reported on the chunk that crosses the cap;
+    /// the entire transfer is dropped (no half-state retained) so the
+    /// runtime can't accidentally apply a partial route later. `observed`
+    /// is the post-overflow byte count so the companion can report a
+    /// precise message.
+    PayloadTooLarge {
+        observed: usize,
+        limit: usize,
     },
     Utf8Payload,
     MissingField(&'static str),
@@ -53,7 +94,9 @@ impl RouteSyncTransportError {
             Self::EmptyTransferId
             | Self::InvalidChunkIndex { .. }
             | Self::ConflictingChunkData { .. }
-            | Self::ChecksumMismatch { .. } => RouteSyncStatusCode::RetryableFailure,
+            | Self::ChecksumMismatch { .. }
+            | Self::TooManyChunks { .. }
+            | Self::PayloadTooLarge { .. } => RouteSyncStatusCode::RetryableFailure,
             Self::Utf8Payload
             | Self::MissingField(_)
             | Self::InvalidField { .. }
@@ -80,6 +123,17 @@ impl RouteSyncTransportError {
             } => format!(
                 "Conflicting payload received for transfer {} chunk {}",
                 transfer_id, chunk_index
+            ),
+            Self::TooManyChunks {
+                total_chunks,
+                limit,
+            } => format!(
+                "Rejected route transfer announcing {} chunks (cap {})",
+                total_chunks, limit
+            ),
+            Self::PayloadTooLarge { observed, limit } => format!(
+                "Rejected route transfer payload of {} bytes (cap {})",
+                observed, limit
             ),
             Self::ChecksumMismatch { expected, actual } => format!(
                 "Route transfer checksum mismatch: expected {}, got {}",
@@ -118,9 +172,45 @@ pub struct RouteSyncTransport {
     active_route_checksum_hex: Option<String>,
     pending_transfer: Option<PendingTransfer>,
     pending_apply: Option<PendingApply>,
+    /// The most recent monotonic timestamp the transport has observed,
+    /// updated by either `tick` or `ingest_chunk`. The pending transfer's
+    /// `last_activity` is set from this on each chunk so the idle timer
+    /// has a single, consistent source of "now".
+    last_observed_now: Duration,
 }
 
 impl RouteSyncTransport {
+    /// Advance the transport's notion of "now" and drop any pending
+    /// transfer that has been idle longer than `IDLE_TIMEOUT`. Returns
+    /// status messages to publish back to the companion (currently at
+    /// most one `RetryableFailure` when an idle timeout fires).
+    ///
+    /// `App::step_frame` calls this once per frame with a monotonic
+    /// `Duration` accumulator. Tests call it directly to advance time
+    /// without driving the runtime.
+    pub fn tick(&mut self, now: Duration) -> Vec<RouteStatusMessage> {
+        self.last_observed_now = now;
+        let Some(pending) = self.pending_transfer.as_ref() else {
+            return Vec::new();
+        };
+        let elapsed = now.saturating_sub(pending.last_activity);
+        if elapsed <= IDLE_TIMEOUT {
+            return Vec::new();
+        }
+        // Drop the entire pending transfer; companion will start over
+        // with a fresh transfer_id on retry.
+        self.pending_transfer = None;
+        vec![RouteStatusMessage {
+            route_id: None,
+            revision: None,
+            status: RouteSyncStatusCode::RetryableFailure,
+            detail: Some(format!(
+                "Route transfer dropped after idle timeout ({}s without a new chunk)",
+                IDLE_TIMEOUT.as_secs(),
+            )),
+        }]
+    }
+
     pub fn ingest_chunk(
         &mut self,
         chunk: RouteTransferChunk,
@@ -134,6 +224,12 @@ impl RouteSyncTransport {
                 total_chunks: chunk.total_chunks,
             });
         }
+        if chunk.total_chunks > MAX_TOTAL_CHUNKS {
+            return Err(RouteSyncTransportError::TooManyChunks {
+                total_chunks: chunk.total_chunks,
+                limit: MAX_TOTAL_CHUNKS,
+            });
+        }
 
         let needs_reset = self
             .pending_transfer
@@ -145,11 +241,24 @@ impl RouteSyncTransport {
                 chunk.transfer_id.clone(),
                 chunk.total_chunks,
                 chunk.checksum_hex.clone(),
+                self.last_observed_now,
             ));
         }
 
         let pending = self.pending_transfer.as_mut().expect("pending transfer");
-        pending.insert_chunk(chunk)?;
+        pending.last_activity = self.last_observed_now;
+        if let Err(error) = pending.insert_chunk(chunk) {
+            // PayloadTooLarge means the running total crossed the cap;
+            // drop the entire pending transfer so a malicious peer can't
+            // pump partial chunks indefinitely. Other errors leave the
+            // pending state intact so the legitimate companion can retry
+            // a single bad chunk without losing progress.
+            if matches!(error, RouteSyncTransportError::PayloadTooLarge { .. }) {
+                self.pending_transfer = None;
+            }
+            return Err(error);
+        }
+        let pending = self.pending_transfer.as_ref().expect("pending transfer");
         if !pending.is_complete() {
             return Ok(Vec::new());
         }
@@ -890,15 +999,31 @@ struct PendingTransfer {
     total_chunks: u32,
     checksum_hex: String,
     chunks: BTreeMap<u32, Vec<u8>>,
+    /// Running total of bytes accumulated so far. Updated only when a new
+    /// chunk is inserted (duplicates don't double-count). Compared against
+    /// `MAX_PAYLOAD_BYTES` before insertion so an oversized chunk is
+    /// rejected without growing the buffer.
+    bytes_assembled: usize,
+    /// Monotonic timestamp of the most recent chunk observed for this
+    /// transfer. Compared against the transport's `last_observed_now` in
+    /// `tick` to drop the transfer after `IDLE_TIMEOUT`.
+    last_activity: Duration,
 }
 
 impl PendingTransfer {
-    fn new(transfer_id: String, total_chunks: u32, checksum_hex: String) -> Self {
+    fn new(
+        transfer_id: String,
+        total_chunks: u32,
+        checksum_hex: String,
+        last_activity: Duration,
+    ) -> Self {
         Self {
             transfer_id,
             total_chunks,
             checksum_hex,
             chunks: BTreeMap::new(),
+            bytes_assembled: 0,
+            last_activity,
         }
     }
 
@@ -912,6 +1037,16 @@ impl PendingTransfer {
             }
             Some(_) => Ok(()),
             None => {
+                let projected = self
+                    .bytes_assembled
+                    .saturating_add(chunk.payload_fragment.len());
+                if projected > MAX_PAYLOAD_BYTES {
+                    return Err(RouteSyncTransportError::PayloadTooLarge {
+                        observed: projected,
+                        limit: MAX_PAYLOAD_BYTES,
+                    });
+                }
+                self.bytes_assembled = projected;
                 self.chunks
                     .insert(chunk.chunk_index, chunk.payload_fragment);
                 Ok(())
@@ -1167,5 +1302,246 @@ mod tests {
             result,
             Err(RouteSyncTransportError::ChecksumMismatch { .. })
         ));
+    }
+
+    #[test]
+    fn transport_rejects_total_chunks_above_cap() {
+        let mut transport = RouteSyncTransport::default();
+        let chunk = RouteTransferChunk {
+            transfer_id: "t1".to_owned(),
+            chunk_index: 0,
+            total_chunks: MAX_TOTAL_CHUNKS + 1,
+            checksum_hex: "deadbeef".to_owned(),
+            payload_fragment: Vec::new(),
+        };
+
+        let result = transport.ingest_chunk(chunk);
+
+        assert!(
+            matches!(
+                result,
+                Err(RouteSyncTransportError::TooManyChunks {
+                    total_chunks,
+                    limit,
+                }) if total_chunks == MAX_TOTAL_CHUNKS + 1 && limit == MAX_TOTAL_CHUNKS
+            ),
+            "expected TooManyChunks {{ total_chunks: {}, limit: {} }}, got {result:?}",
+            MAX_TOTAL_CHUNKS + 1,
+            MAX_TOTAL_CHUNKS,
+        );
+    }
+
+    #[test]
+    fn too_many_chunks_error_maps_to_retryable_failure_status() {
+        let err = RouteSyncTransportError::TooManyChunks {
+            total_chunks: 1025,
+            limit: 1024,
+        };
+        assert_eq!(err.status_code(), RouteSyncStatusCode::RetryableFailure);
+        let detail = err.detail_message();
+        assert!(
+            detail.contains("1025") && detail.contains("1024"),
+            "detail should report observed and limit so the companion can surface it: {detail:?}",
+        );
+    }
+
+    fn tiny_chunk(transfer_id: &str, index: u32, total: u32) -> RouteTransferChunk {
+        RouteTransferChunk {
+            transfer_id: transfer_id.to_owned(),
+            chunk_index: index,
+            total_chunks: total,
+            checksum_hex: "deadbeef".to_owned(),
+            payload_fragment: vec![0xCC_u8; 4],
+        }
+    }
+
+    #[test]
+    fn pending_transfer_drops_after_idle_timeout() {
+        let mut transport = RouteSyncTransport::default();
+        // Ingest 3 of 5 chunks at t=0.
+        for index in 0..3 {
+            transport
+                .ingest_chunk(tiny_chunk("t-idle", index, 5))
+                .expect("partial chunk accepted at t=0");
+        }
+        let statuses = transport.tick(IDLE_TIMEOUT + Duration::from_secs(1));
+
+        assert_eq!(
+            statuses.len(),
+            1,
+            "exactly one RetryableFailure status should fire on idle timeout"
+        );
+        assert_eq!(statuses[0].status, RouteSyncStatusCode::RetryableFailure);
+        let detail = statuses[0].detail.as_deref().unwrap_or_default();
+        assert!(
+            detail.contains("idle"),
+            "detail should mention idle timeout so the companion can prompt a retry: {detail:?}",
+        );
+        // The pending transfer is gone — sending chunk 0 again starts fresh.
+        let resumed = transport
+            .ingest_chunk(tiny_chunk("t-idle", 0, 5))
+            .expect("post-timeout chunk accepted as a fresh transfer");
+        assert!(resumed.is_empty(), "first chunk of a fresh transfer emits no statuses yet");
+    }
+
+    #[test]
+    fn pending_transfer_survives_tick_inside_timeout_window() {
+        let mut transport = RouteSyncTransport::default();
+        for index in 0..3 {
+            transport
+                .ingest_chunk(tiny_chunk("t-window", index, 5))
+                .expect("partial chunk accepted");
+        }
+        let statuses = transport.tick(IDLE_TIMEOUT - Duration::from_secs(1));
+        assert!(
+            statuses.is_empty(),
+            "tick inside the timeout window must not drop the pending transfer",
+        );
+        // Confirm pending is still there by sending a duplicate chunk and
+        // verifying it doesn't reset state — duplicates don't error and
+        // don't allocate; if pending were gone, this would start a new
+        // transfer instead.
+        transport
+            .ingest_chunk(tiny_chunk("t-window", 1, 5))
+            .expect("duplicate chunk accepted while transfer is alive");
+    }
+
+    #[test]
+    fn pending_transfer_idle_timer_resets_on_each_chunk() {
+        let mut transport = RouteSyncTransport::default();
+        transport.tick(Duration::from_secs(0));
+        transport
+            .ingest_chunk(tiny_chunk("t-reset", 0, 5))
+            .expect("chunk 0 accepted at t=0");
+        transport.tick(Duration::from_secs(20));
+        transport
+            .ingest_chunk(tiny_chunk("t-reset", 1, 5))
+            .expect("chunk 1 accepted at t=20s");
+        // 25s after the last activity (at t=45s, last_activity=t=20s).
+        // Inside the 30s window — must NOT drop.
+        let statuses = transport.tick(Duration::from_secs(45));
+        assert!(
+            statuses.is_empty(),
+            "the idle timer must reset on each chunk, not on the first chunk only",
+        );
+    }
+
+    #[test]
+    fn tick_with_no_pending_transfer_is_noop() {
+        let mut transport = RouteSyncTransport::default();
+        let statuses = transport.tick(Duration::from_secs(3600));
+        assert!(statuses.is_empty(), "tick with no pending transfer must not panic or emit");
+    }
+
+    #[test]
+    fn transport_rejects_single_oversized_chunk_payload() {
+        let mut transport = RouteSyncTransport::default();
+        let oversized = vec![0xAA_u8; MAX_PAYLOAD_BYTES + 1];
+        let chunk = RouteTransferChunk {
+            transfer_id: "t-oversized".to_owned(),
+            chunk_index: 0,
+            total_chunks: 1,
+            checksum_hex: "deadbeef".to_owned(),
+            payload_fragment: oversized,
+        };
+
+        let result = transport.ingest_chunk(chunk);
+
+        assert!(
+            matches!(
+                result,
+                Err(RouteSyncTransportError::PayloadTooLarge {
+                    observed,
+                    limit,
+                }) if observed == MAX_PAYLOAD_BYTES + 1 && limit == MAX_PAYLOAD_BYTES
+            ),
+            "expected PayloadTooLarge {{ observed: {}, limit: {} }}, got {result:?}",
+            MAX_PAYLOAD_BYTES + 1,
+            MAX_PAYLOAD_BYTES,
+        );
+        // Rejected before allocation — no half-state retained.
+        assert!(
+            transport.take_pending_runtime_message().is_none(),
+            "rejected oversized chunk should not allocate any pending transfer state",
+        );
+    }
+
+    #[test]
+    fn transport_rejects_chunk_that_overflows_running_total() {
+        let mut transport = RouteSyncTransport::default();
+        // 31 chunks of 5 KiB each: 31 * 5120 = 158_720 bytes,
+        // which crosses the 131_072-byte cap on chunk 27 (27 * 5120 = 138_240).
+        const FRAGMENT_SIZE: usize = 5120;
+        const TOTAL_CHUNKS: u32 = 60;
+        let mut last_result = Ok(Vec::new());
+        let mut overflow_index = None;
+        for index in 0..TOTAL_CHUNKS {
+            let chunk = RouteTransferChunk {
+                transfer_id: "t-overflow".to_owned(),
+                chunk_index: index,
+                total_chunks: TOTAL_CHUNKS,
+                checksum_hex: "deadbeef".to_owned(),
+                payload_fragment: vec![0xBB_u8; FRAGMENT_SIZE],
+            };
+            last_result = transport.ingest_chunk(chunk);
+            if matches!(last_result, Err(RouteSyncTransportError::PayloadTooLarge { .. })) {
+                overflow_index = Some(index);
+                break;
+            }
+        }
+
+        let overflow_index = overflow_index
+            .expect("expected at least one chunk to trip the payload cap");
+        // Cap is 131_072. Each chunk is 5120 bytes. Chunks 0..=24 (25 chunks)
+        // accumulate to 128_000 bytes which fits; chunk 25 (the 26th) would
+        // push to 26 * 5120 = 133_120 bytes, crossing the cap. The
+        // overflowing chunk is therefore index 25.
+        assert_eq!(
+            overflow_index, 25,
+            "overflow should fire on the chunk that crosses the cap, not earlier or later",
+        );
+        // Error reports the post-overflow size so the companion can surface
+        // a precise message.
+        let observed = match &last_result {
+            Err(RouteSyncTransportError::PayloadTooLarge { observed, .. }) => *observed,
+            _ => panic!("expected PayloadTooLarge, got {last_result:?}"),
+        };
+        assert_eq!(observed, 26 * FRAGMENT_SIZE);
+        // The entire transfer is dropped — no half-state retained, so the
+        // runtime can't accidentally apply a partial route later.
+        assert!(transport.take_pending_runtime_message().is_none());
+    }
+
+    #[test]
+    fn payload_too_large_error_maps_to_retryable_failure_status() {
+        let err = RouteSyncTransportError::PayloadTooLarge {
+            observed: 200_000,
+            limit: MAX_PAYLOAD_BYTES,
+        };
+        assert_eq!(err.status_code(), RouteSyncStatusCode::RetryableFailure);
+        let detail = err.detail_message();
+        assert!(
+            detail.contains("200000") && detail.contains(&MAX_PAYLOAD_BYTES.to_string()),
+            "detail should report observed and limit so the companion can surface it: {detail:?}",
+        );
+    }
+
+    #[test]
+    fn transport_accepts_exactly_max_total_chunks() {
+        let mut transport = RouteSyncTransport::default();
+        let chunk = RouteTransferChunk {
+            transfer_id: "t-boundary".to_owned(),
+            chunk_index: 0,
+            total_chunks: MAX_TOTAL_CHUNKS,
+            checksum_hex: "deadbeef".to_owned(),
+            payload_fragment: b"first-of-many".to_vec(),
+        };
+
+        let result = transport.ingest_chunk(chunk);
+
+        assert!(
+            !matches!(result, Err(RouteSyncTransportError::TooManyChunks { .. })),
+            "boundary value MAX_TOTAL_CHUNKS must be accepted (cap is `>` not `>=`)",
+        );
     }
 }
