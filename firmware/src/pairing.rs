@@ -71,6 +71,11 @@ pub enum Transition {
     /// Auth failure from Bluedroid (the bonded phone forgot us, or the
     /// IRK didn't match). Drop the bond and return to pairing mode.
     ClearBondAndPair,
+    /// Single-bond policy: an unbonded peer connected while the device
+    /// is already `Operational`. The C handler should call
+    /// `esp_ble_gap_disconnect` immediately so the peer can't sit on
+    /// the connection probing the encrypted characteristics.
+    DropConnection,
 }
 
 #[derive(Debug, Clone)]
@@ -181,6 +186,21 @@ impl PairingStateMachine {
         };
         Transition::Bonded {
             peer_identity: identity,
+        }
+    }
+
+    /// A peer attempted to connect without going through the bond
+    /// flow. While unpaired, this is the normal pairing path (the
+    /// caller still has to `on_pairing_confirm` to land a bond), so
+    /// we return `None` here. Once `Operational`, the policy is
+    /// single-bond: drop the connection immediately so the peer can't
+    /// camp on the encrypted characteristics waiting for the SMP
+    /// timeout.
+    pub fn on_unbonded_connect_attempt(&self) -> Transition {
+        if matches!(self.state.mode, Mode::Operational { .. }) {
+            Transition::DropConnection
+        } else {
+            Transition::None
         }
     }
 
@@ -307,6 +327,32 @@ mod tests {
         machine.tick(Duration::from_secs(60), || second_secret());
         let payload = machine.current_qr_payload().expect("pairing mode");
         assert_eq!(&payload[6..], &second_secret());
+    }
+
+    #[test]
+    fn on_unbonded_connect_attempt_while_operational_drops_connection() {
+        let machine = PairingStateMachine::new_paired(fixed_addr(), [0xAB; 16]);
+        assert_eq!(
+            machine.on_unbonded_connect_attempt(),
+            Transition::DropConnection,
+            "single-bond policy: the bonded peer is the only one allowed; \
+             everyone else gets dropped at the connection layer",
+        );
+    }
+
+    #[test]
+    fn on_unbonded_connect_attempt_while_pairing_is_noop() {
+        let machine = PairingStateMachine::new_unpaired(
+            fixed_addr(),
+            first_secret(),
+            Duration::ZERO,
+        );
+        assert_eq!(
+            machine.on_unbonded_connect_attempt(),
+            Transition::None,
+            "during the pairing window any connection is welcome — the \
+             companion is expected to write `pairing_confirm` next",
+        );
     }
 
     #[test]

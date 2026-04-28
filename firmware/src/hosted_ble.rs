@@ -29,19 +29,49 @@
 
 use std::collections::VecDeque;
 use std::ffi::c_void;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 use runtime_core::api::RouteSyncMessage;
 
-use crate::hosted_ble_queue::{enqueue_chunk, QueueFullError};
+use crate::hosted_ble_queue::{enqueue_chunk, enqueue_pairing_secret, QueueFullError};
+use crate::pairing::SECRET_LEN;
 use crate::platform::{RouteSyncIo, RouteSyncIoError};
 use crate::route_sync::RouteTransferChunk;
 use crate::route_sync_ble::{BleRouteSyncPacket, decode_ble_packet, encode_ble_packet};
 
 static INBOUND: OnceLock<Mutex<VecDeque<RouteTransferChunk>>> = OnceLock::new();
+static PAIRING_INBOUND: OnceLock<Mutex<VecDeque<[u8; SECRET_LEN]>>> = OnceLock::new();
+
+/// Whether the device is currently in pairing mode. Read from the C
+/// pairing-confirm write path (under the BT host task) and updated by
+/// the runtime when the pairing state machine transitions; using an
+/// atomic dodges the lock-ordering footgun of grabbing the runtime
+/// state mutex from inside a Bluedroid callback.
+static PAIRING_MODE: AtomicBool = AtomicBool::new(true);
+
+pub fn set_pairing_mode(value: bool) {
+    PAIRING_MODE.store(value, Ordering::SeqCst);
+}
+
+pub fn pairing_mode() -> bool {
+    PAIRING_MODE.load(Ordering::SeqCst)
+}
 
 fn inbound() -> &'static Mutex<VecDeque<RouteTransferChunk>> {
     INBOUND.get_or_init(|| Mutex::new(VecDeque::new()))
+}
+
+fn pairing_inbound() -> &'static Mutex<VecDeque<[u8; SECRET_LEN]>> {
+    PAIRING_INBOUND.get_or_init(|| Mutex::new(VecDeque::new()))
+}
+
+/// Drain one queued pairing-confirm secret if any are available. Called
+/// once per frame from `App::step_frame` while the device is in pairing
+/// mode; the secret is then matched against the current QR's secret by
+/// `PairingStateMachine::on_pairing_confirm`.
+pub fn drain_pairing_secret() -> Option<[u8; SECRET_LEN]> {
+    pairing_inbound().lock().ok().and_then(|mut q| q.pop_front())
 }
 
 /// Route-sync IO backed by the hosted-BLE GATT server in C.
@@ -70,12 +100,15 @@ impl HostedBleRouteSyncIo {
     /// the device entrypoint (which would put the firmware in a panic
     /// loop).
     pub fn start_or_fallback() -> Self {
-        // Touch the queue so the C callback can lock without racing on
-        // OnceLock initialisation under the BT host task.
+        // Touch the queues so the C callback can lock without racing
+        // on OnceLock initialisation under the BT host task.
         let _ = inbound();
+        let _ = pairing_inbound();
 
         let cbs = esp_idf_svc::sys::hosted_ble_route_sync_callbacks_t {
             on_chunk: Some(on_chunk_trampoline),
+            on_pairing_confirm: Some(on_pairing_confirm_trampoline),
+            is_pairing_mode: Some(is_pairing_mode_trampoline),
             ctx: std::ptr::null_mut(),
         };
 
@@ -123,6 +156,31 @@ unsafe extern "C" fn on_chunk_trampoline(data: *const u8, len: usize, _ctx: *mut
             );
         }
     }
+}
+
+unsafe extern "C" fn on_pairing_confirm_trampoline(
+    data: *const u8,
+    len: usize,
+    _ctx: *mut c_void,
+) {
+    if data.is_null() || len != SECRET_LEN {
+        return;
+    }
+    let bytes = unsafe { std::slice::from_raw_parts(data, len) };
+    let mut secret = [0u8; SECRET_LEN];
+    secret.copy_from_slice(bytes);
+    if let Ok(mut queue) = pairing_inbound().lock() {
+        if let Err(QueueFullError) = enqueue_pairing_secret(&mut queue, secret) {
+            log::warn!(
+                "hosted-ble: pairing-confirm queue full at cap {} — dropping secret",
+                crate::hosted_ble_queue::MAX_INBOUND_QUEUE_PAIRING,
+            );
+        }
+    }
+}
+
+unsafe extern "C" fn is_pairing_mode_trampoline(_ctx: *mut c_void) -> bool {
+    pairing_mode()
 }
 
 impl RouteSyncIo for HostedBleRouteSyncIo {

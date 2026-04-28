@@ -13,10 +13,28 @@ use crate::display::{Display, DisplayBackend, DisplayError, MemoryDisplayBackend
 use crate::gps::GpsInput;
 use crate::input_bridge::InputBridge;
 use crate::map_source::MapSourceBridge;
+use crate::pairing::{
+    PERIPHERAL_ADDRESS_LEN, PairingStateMachine, SECRET_LEN, Transition,
+};
 use crate::route_sync::{RouteSyncTransport, RouteSyncTransportError, RouteTransferChunk};
 use crate::settings::{DeviceSettings, NullSettingsStore, SettingsError, SettingsStore};
 use crate::touch::TouchInput;
 use crate::world_buffer::{WorldBuffer, render_ui_overlay};
+
+/// Deterministic placeholder used by host builds + tests. The device
+/// entrypoint replaces this with an ESP-IDF `esp_fill_random`-backed
+/// factory so production secrets come from the hardware RNG.
+fn zero_secret() -> [u8; SECRET_LEN] {
+    [0u8; SECRET_LEN]
+}
+
+/// Identity computed for a successful pairing-confirm match. Production
+/// would derive this from the connecting peer's BD_ADDR + IRK; for now
+/// any non-zero value is fine — the iOS / Android companion stores the
+/// same identity in its own paired-peripheral record.
+fn placeholder_peer_identity() -> [u8; 16] {
+    [0u8; 16]
+}
 
 /// Per-phase timings for one `step_frame` call. All zero on host builds
 /// where timing isn't recorded; on device this lets the boot loop split
@@ -102,6 +120,19 @@ where
     monotonic_clock: Duration,
     world_buffer: WorldBuffer,
     world_buffer_enabled: bool,
+    /// QR-OOB pairing state machine. Owns the current ephemeral secret
+    /// (when in pairing mode) or the bonded peer's identity (when
+    /// `Operational`). Driven from `step_frame`: rotates the secret
+    /// once per `ROTATION_PERIOD`, drains the inbound pairing-confirm
+    /// queue.
+    pairing: PairingStateMachine,
+    /// Pluggable factory for fresh ephemeral pairing secrets. Production
+    /// (esp-idf) wires this to `esp_fill_random`; host builds and tests
+    /// use `zero_secret` so the QR is deterministic.
+    pairing_secret_factory: fn() -> [u8; SECRET_LEN],
+    /// Diagnostics: number of route-sync chunks rejected because the
+    /// device was still in pairing mode. Exposed to tests / settings UI.
+    pairing_dropped_chunks: u32,
     /// Per-frame render-path tag. Lets tests assert that they actually
     /// exercised the world-buffer cached-blit code path; production
     /// callers ignore it.
@@ -121,6 +152,9 @@ pub enum FramePath {
     /// Direct full render into the display framebuffer; no world buffer.
     /// Runs during rotate/pinch gestures.
     DirectRender,
+    /// Pairing-mode QR overlay; the basemap and runtime are skipped
+    /// entirely until the device is bonded.
+    PairingOverlay,
     /// Initial sentinel before the first frame has run.
     None,
 }
@@ -140,6 +174,25 @@ where
     ) -> Result<Self, AppBuildError> {
         let persisted_settings = settings_store.load_settings()?.unwrap_or_default();
         config.default_speed_unit = persisted_settings.speed_unit;
+        // The board's BLE peripheral address comes from the GAP layer
+        // at runtime (`esp_ble_gap_get_local_used_addr`); host builds
+        // and tests use a stable placeholder so the QR payload is
+        // reproducible. The device entrypoint replaces this via
+        // `App::set_peripheral_address` once Bluedroid is up.
+        let peripheral_address = [0x00u8; PERIPHERAL_ADDRESS_LEN];
+        let initial_secret = zero_secret();
+        let pairing = if persisted_settings.device_paired {
+            PairingStateMachine::new_paired(
+                peripheral_address,
+                persisted_settings.peer_identity.unwrap_or([0u8; 16]),
+            )
+        } else {
+            PairingStateMachine::new_unpaired(
+                peripheral_address,
+                initial_secret,
+                Duration::ZERO,
+            )
+        };
         Ok(Self {
             runtime: RuntimeCore::new(config),
             input_bridge: InputBridge::new(board.viewport_size),
@@ -155,9 +208,98 @@ where
             monotonic_clock: Duration::ZERO,
             world_buffer: WorldBuffer::new(),
             world_buffer_enabled: true,
+            pairing,
+            pairing_secret_factory: zero_secret,
+            pairing_dropped_chunks: 0,
             #[cfg(test)]
             last_render_path: FramePath::None,
         })
+    }
+
+    /// Replace the placeholder peripheral address baked in at
+    /// construction with the real BD_ADDR returned by Bluedroid. Called
+    /// once during boot after Bluedroid is up; rebuilds the pairing
+    /// state machine in-place so the QR payload encodes the right
+    /// address. No-op if the device is already bonded — the address is
+    /// only used for the QR.
+    pub fn set_peripheral_address(&mut self, address: [u8; PERIPHERAL_ADDRESS_LEN]) {
+        if self.pairing.is_paired() {
+            return;
+        }
+        self.pairing = PairingStateMachine::new_unpaired(
+            address,
+            (self.pairing_secret_factory)(),
+            self.monotonic_clock,
+        );
+    }
+
+    /// Override the pairing-secret RNG. The device entrypoint sets this
+    /// to a thin wrapper around `esp_fill_random` so production secrets
+    /// come from the hardware RNG.
+    pub fn set_pairing_secret_factory(&mut self, factory: fn() -> [u8; SECRET_LEN]) {
+        self.pairing_secret_factory = factory;
+    }
+
+    /// Ingest a pairing-confirm secret pulled off the inbound BLE queue
+    /// (or, in tests, a synthetic one). Returns the resulting state
+    /// transition; the caller is responsible for persisting the bond
+    /// when the transition is `Bonded`.
+    pub fn ingest_pairing_confirm(&mut self, payload: &[u8]) -> Transition {
+        let transition = self
+            .pairing
+            .on_pairing_confirm(payload, placeholder_peer_identity);
+        if let Transition::Bonded { peer_identity } = transition {
+            let _ = self.mark_paired(peer_identity);
+        }
+        transition
+    }
+
+    /// Persist a fresh bond to the settings store and flip the
+    /// in-memory `device_paired` flag so subsequent boots come up
+    /// `Operational` rather than back in pairing mode.
+    fn mark_paired(&mut self, peer_identity: [u8; 16]) -> Result<(), SettingsError> {
+        let next = DeviceSettings {
+            device_paired: true,
+            peer_identity: Some(peer_identity),
+            ..self.persisted_settings
+        };
+        if next != self.persisted_settings {
+            self.settings_store.save_settings(&next)?;
+            self.persisted_settings = next;
+        }
+        Ok(())
+    }
+
+    /// True if the device has not yet bonded with a companion. The
+    /// runtime renders a QR overlay and refuses route writes while this
+    /// is true.
+    pub fn is_in_pairing_mode(&self) -> bool {
+        !self.pairing.is_paired()
+    }
+
+    /// Test-only: shortcut into the `Operational` state without going
+    /// through the QR-OOB handshake. Used by smoke tests that just want
+    /// to exercise the runtime/render path; pairing-flow coverage lives
+    /// in dedicated tests below.
+    #[cfg(test)]
+    pub fn force_paired_for_test(&mut self) {
+        self.pairing = PairingStateMachine::new_paired(
+            [0u8; PERIPHERAL_ADDRESS_LEN],
+            [0u8; 16],
+        );
+        self.persisted_settings.device_paired = true;
+        self.persisted_settings.peer_identity = Some([0u8; 16]);
+    }
+
+    /// Diagnostics counter — number of route-sync chunks dropped because
+    /// they arrived while the device was still in pairing mode.
+    pub fn pairing_dropped_chunks(&self) -> u32 {
+        self.pairing_dropped_chunks
+    }
+
+    /// The bytes the QR overlay needs to encode. `None` once bonded.
+    pub fn current_qr_payload(&self) -> Option<Vec<u8>> {
+        self.pairing.current_qr_payload()
     }
 
     pub fn step_frame(
@@ -166,12 +308,21 @@ where
         gps: Option<GpsInput>,
         touch: Option<TouchInput>,
     ) -> Result<FrameResult, AppError> {
-        // Advance the monotonic clock and let the route-sync transport
-        // drop any in-flight transfer that has gone idle. The returned
-        // statuses (currently at most one `RetryableFailure` per timeout)
-        // surface in `FrameResult.route_sync_statuses` so the platform
-        // forwards them back to the companion.
+        // Advance the monotonic clock first so all per-frame timers
+        // (route-sync idle, pairing rotation) share one source of
+        // truth.
         self.monotonic_clock = self.monotonic_clock.saturating_add(dt);
+
+        // Pairing mode short-circuits the rest of the frame. The
+        // runtime, map query, and route-sync apply path are all
+        // bypassed; the only thing the device does is rotate the QR
+        // and watch for an inbound pairing-confirm secret.
+        let pairing_factory = self.pairing_secret_factory;
+        self.pairing.tick(self.monotonic_clock, || pairing_factory());
+        if self.is_in_pairing_mode() {
+            return self.render_pairing_overlay();
+        }
+
         let mut transport_tick_statuses = self
             .route_sync_transport
             .tick(self.monotonic_clock);
@@ -317,10 +468,62 @@ where
         self.world_buffer_enabled = false;
     }
 
+    /// Pairing-mode short-circuit. Renders the QR overlay onto the
+    /// panel and returns a placeholder `FrameResult` so the platform
+    /// driver keeps pushing frames at the normal cadence even while
+    /// the runtime is paused.
+    fn render_pairing_overlay(&mut self) -> Result<FrameResult, AppError> {
+        let t_render_start = Instant::now();
+        self.render_framebuffer
+            .clear(render_core::style::COLOR_BACKGROUND_CANVAS);
+        if let Some(payload) = self.pairing.current_qr_payload() {
+            // qrcodegen returns `DataTooLong` only above ECC-Q ~v40
+            // capacity; our 38-byte payload is far below that. Fall
+            // through silently if encoding ever fails so the device
+            // still pushes a (blank) frame and the operator can see
+            // the screen instead of a panic.
+            if let Ok(qr) = crate::pairing_overlay::encode_payload(&payload) {
+                crate::pairing_overlay::render_pairing_qr(
+                    &qr,
+                    &mut self.render_framebuffer,
+                );
+            }
+        }
+        let render = t_render_start.elapsed();
+        let (convert, panel_push) =
+            self.display.present_timed(&self.render_framebuffer)?;
+        #[cfg(test)]
+        {
+            self.last_render_path = FramePath::PairingOverlay;
+        }
+        Ok(FrameResult {
+            output: RuntimeFrameOutput::default(),
+            geometry_count: 0,
+            lit_pixel_count: self.display.framebuffer().lit_pixel_count(),
+            route_sync_statuses: Vec::new(),
+            phase_timings: PhaseTimings {
+                map_query: Duration::ZERO,
+                render,
+                convert,
+                panel_push,
+            },
+        })
+    }
+
     pub fn ingest_route_sync_chunk(
         &mut self,
         chunk: RouteTransferChunk,
     ) -> Result<Vec<RouteStatusMessage>, RouteSyncTransportError> {
+        // Single-bond policy: while we're still in pairing mode, drop
+        // route-sync chunks on the floor and bump a diagnostics
+        // counter. The companion won't see a status notification, but
+        // also can't land a route before bonding — by the time the
+        // companion finishes pairing it'll re-send.
+        if self.is_in_pairing_mode() {
+            self.pairing_dropped_chunks =
+                self.pairing_dropped_chunks.saturating_add(1);
+            return Ok(Vec::new());
+        }
         self.route_sync_transport.ingest_chunk(chunk)
     }
 
@@ -395,13 +598,24 @@ impl App<MapSourceBridge, MemoryDisplayBackend, NullSettingsStore> {
 impl Default for App<MapSourceBridge, MemoryDisplayBackend, NullSettingsStore> {
     fn default() -> Self {
         let board = BoardConfig::default();
-        Self::new(
+        let mut app = Self::new(
             board,
             RuntimeConfig {
                 viewport_size: board.viewport_size,
                 ..RuntimeConfig::default()
             },
-        )
+        );
+        // Test-convenience: start already bonded so tests that don't
+        // care about pairing exercise the runtime path. Production
+        // boots through `with_parts_and_settings` which respects the
+        // persisted bond. Tests that exercise pairing should call
+        // `App::with_parts_and_settings` (or `force_unpaired_for_test`)
+        // explicitly.
+        app.pairing =
+            PairingStateMachine::new_paired([0u8; PERIPHERAL_ADDRESS_LEN], [0u8; 16]);
+        app.persisted_settings.device_paired = true;
+        app.persisted_settings.peer_identity = Some([0u8; 16]);
+        app
     }
 }
 
@@ -603,6 +817,11 @@ mod tests {
         let board = BoardConfig::default();
         let store = MemorySettingsStore::new(Some(DeviceSettings {
             speed_unit: SpeedUnit::Mph,
+            // Skip pairing mode so the test can exercise the runtime
+            // settings round-trip; pairing-mode coverage lives in its
+            // own dedicated tests below.
+            device_paired: true,
+            peer_identity: Some([0u8; 16]),
             ..DeviceSettings::default()
         }));
         let mut app = App::with_parts_and_settings(
@@ -660,6 +879,8 @@ mod tests {
             store.shared_value(),
             Some(DeviceSettings {
                 speed_unit: SpeedUnit::Kph,
+                device_paired: true,
+                peer_identity: Some([0u8; 16]),
                 ..DeviceSettings::default()
             })
         );
@@ -870,5 +1091,83 @@ mod tests {
             line.g,
             line.b,
         );
+    }
+
+    fn unpaired_app_with_store(
+        store: MemorySettingsStore,
+    ) -> App<MapSourceBridge, MemoryDisplayBackend, MemorySettingsStore> {
+        let board = BoardConfig::default();
+        App::with_parts_and_settings(
+            board,
+            RuntimeConfig {
+                viewport_size: board.viewport_size,
+                ..RuntimeConfig::default()
+            },
+            MapSourceBridge::default(),
+            MemoryDisplayBackend::default(),
+            store,
+        )
+        .expect("unpaired app with memory settings store")
+    }
+
+    #[test]
+    fn app_in_pairing_mode_drops_route_writes() {
+        // Persisted settings come up unpaired (the default), so the App
+        // boots in pairing mode and must refuse to ingest route-sync
+        // chunks until the device is bonded.
+        let store = MemorySettingsStore::default();
+        let mut app = unpaired_app_with_store(store);
+        assert!(app.is_in_pairing_mode());
+
+        let message = RouteSyncMessage::Set(RouteSetMessage {
+            route: sample_route(1),
+        });
+        for chunk in chunk_sync_message(&message, "transfer-pairing", 32) {
+            let statuses = app
+                .ingest_route_sync_chunk(chunk)
+                .expect("chunk ingest must not error in pairing mode");
+            assert!(
+                statuses.is_empty(),
+                "pairing-mode ingest must yield no status messages — \
+                 the companion has not bonded yet"
+            );
+        }
+
+        // The runtime must NOT have applied the route — the device is
+        // still in pairing mode, so the world buffer just shows the QR.
+        assert!(app.pairing_dropped_chunks() > 0);
+        assert!(app.route_sync_transport().active_route_revision().is_none());
+    }
+
+    #[test]
+    fn pairing_confirm_match_transitions_to_operational_and_persists() {
+        // Boot unpaired with a deterministic initial secret so the QR
+        // and the inbound pairing-confirm secret line up.
+        let store = MemorySettingsStore::default();
+        let mut app = unpaired_app_with_store(store.clone());
+        assert!(app.is_in_pairing_mode());
+
+        // The initial secret used for `App::default`'s factory is
+        // `zero_secret()`, which produces 32 zero bytes. Match it.
+        let secret = [0u8; SECRET_LEN];
+        let transition = app.ingest_pairing_confirm(&secret);
+        assert!(matches!(transition, Transition::Bonded { .. }));
+        assert!(!app.is_in_pairing_mode(), "Bonded transition must flip out of pairing mode");
+
+        // Persisted settings must reflect the bond so the next boot
+        // does not drop back into pairing mode.
+        let persisted = store.shared_value().expect("settings persisted");
+        assert!(persisted.device_paired, "device_paired must be set after bond");
+        assert!(persisted.peer_identity.is_some(), "peer_identity must be persisted");
+    }
+
+    #[test]
+    fn pairing_mode_renders_pairing_overlay_path() {
+        let store = MemorySettingsStore::default();
+        let mut app = unpaired_app_with_store(store);
+        let _ = app
+            .step_frame(Duration::from_millis(16), None, None)
+            .expect("pairing-mode frame");
+        assert_eq!(app.last_render_path(), FramePath::PairingOverlay);
     }
 }

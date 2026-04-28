@@ -15,6 +15,7 @@ path = "src/main.rs"
 # returns empty(); the actual map is loaded from the "map_data" flash partition
 # at runtime by the ESP32-P4 entrypoint in esp_idf.rs.
 map-runtime = { path = "../map-runtime" }
+qrcodegen = { version = "1.8.0", default-features = false }
 render-core = { path = "../render-core" }
 runtime-core = { path = "../runtime-core" }
 

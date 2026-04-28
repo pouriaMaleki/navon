@@ -1207,6 +1207,9 @@ mod tests {
 
         let mut platform =
             build_default_device_platform(board, transport, display, gps).expect("platform");
+        // Bypass pairing mode for this end-to-end smoke test — the
+        // pairing path has its own dedicated coverage.
+        platform.app_mut().force_paired_for_test();
 
         let frame = platform.run_frame().expect("frame");
         assert_eq!(frame.output.frame_index, 1);
@@ -1217,6 +1220,7 @@ mod tests {
         let mut platform =
             build_headless_route_sync_platform(board, crate::platform::NullRouteSyncIo)
                 .expect("headless route-sync platform");
+        platform.app_mut().force_paired_for_test();
 
         let frame = platform.run_frame().expect("headless frame");
         assert_eq!(frame.output.frame_index, 1);

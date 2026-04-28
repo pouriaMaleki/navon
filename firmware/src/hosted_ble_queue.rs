@@ -8,35 +8,64 @@
 
 use std::collections::VecDeque;
 
+use crate::pairing::SECRET_LEN;
 use crate::route_sync::RouteTransferChunk;
 
 /// Upper bound on the number of unconsumed `RouteTransferChunk`s the
-/// inbound queue will hold before it starts dropping. Defends against a
-/// peer pumping chunks faster than the runtime drains them (one per
-/// frame). At ~256-byte chunks × 64 = ~16 KiB the worst-case memory
-/// footprint is bounded; combined with `MAX_TOTAL_CHUNKS` and
+/// inbound chunk queue will hold before it starts dropping. Defends
+/// against a peer pumping chunks faster than the runtime drains them
+/// (one per frame). At ~256-byte chunks × 64 = ~16 KiB the worst-case
+/// memory footprint is bounded; combined with `MAX_TOTAL_CHUNKS` and
 /// `MAX_PAYLOAD_BYTES` over in `route_sync.rs` no single transfer can
 /// exhaust internal RAM.
 pub const MAX_INBOUND_QUEUE: usize = 64;
 
-/// Returned when an `enqueue_chunk` call hits the cap. The caller is
-/// expected to drop the *new* chunk and log a warning — keeping the
-/// already-queued chunks intact lets the active transfer finish, and
-/// the companion will retry the dropped chunk after its ack timeout.
+/// Upper bound on the number of unconsumed pairing secrets the inbound
+/// pairing-confirm queue will hold. Pairing-confirm writes are rare
+/// (one per pairing handshake) and tiny (32 bytes), so the cap is much
+/// lower than the chunk queue's. The rule is the same: drop the *new*
+/// item on overflow so the in-flight handshake can finish.
+pub const MAX_INBOUND_QUEUE_PAIRING: usize = 8;
+
+/// Returned when an `enqueue_*` call hits the cap. The caller is
+/// expected to drop the *new* item and log a warning — keeping the
+/// already-queued items intact lets the active transfer/handshake
+/// finish, and the companion will retry after its ack timeout.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct QueueFullError;
 
-/// Push a chunk onto the inbound queue, refusing once the cap is hit.
-/// Pure Rust; no esp-idf dependencies.
+/// Push an item onto a bounded inbound queue, refusing once the cap is
+/// hit. Pure Rust; no esp-idf dependencies. Generic so the same rule
+/// covers chunks (cap 64) and pairing-confirm secrets (cap 8) without
+/// duplicating the logic.
+pub fn enqueue_bounded<T>(
+    queue: &mut VecDeque<T>,
+    item: T,
+    cap: usize,
+) -> Result<(), QueueFullError> {
+    if queue.len() >= cap {
+        return Err(QueueFullError);
+    }
+    queue.push_back(item);
+    Ok(())
+}
+
+/// Convenience wrapper around `enqueue_bounded` for the chunk queue,
+/// hardcoding `MAX_INBOUND_QUEUE`.
 pub fn enqueue_chunk(
     queue: &mut VecDeque<RouteTransferChunk>,
     chunk: RouteTransferChunk,
 ) -> Result<(), QueueFullError> {
-    if queue.len() >= MAX_INBOUND_QUEUE {
-        return Err(QueueFullError);
-    }
-    queue.push_back(chunk);
-    Ok(())
+    enqueue_bounded(queue, chunk, MAX_INBOUND_QUEUE)
+}
+
+/// Convenience wrapper around `enqueue_bounded` for the pairing-confirm
+/// queue, hardcoding `MAX_INBOUND_QUEUE_PAIRING`.
+pub fn enqueue_pairing_secret(
+    queue: &mut VecDeque<[u8; SECRET_LEN]>,
+    secret: [u8; SECRET_LEN],
+) -> Result<(), QueueFullError> {
+    enqueue_bounded(queue, secret, MAX_INBOUND_QUEUE_PAIRING)
 }
 
 #[cfg(test)]
@@ -100,5 +129,32 @@ mod tests {
         let attempt = enqueue_chunk(&mut queue, tiny_chunk(MAX_INBOUND_QUEUE as u32));
         assert_eq!(attempt, Ok(()));
         assert_eq!(queue.len(), MAX_INBOUND_QUEUE);
+    }
+
+    #[test]
+    fn enqueue_pairing_secret_succeeds_until_capacity() {
+        let mut queue: VecDeque<[u8; SECRET_LEN]> = VecDeque::new();
+        for i in 0..MAX_INBOUND_QUEUE_PAIRING as u8 {
+            assert_eq!(
+                enqueue_pairing_secret(&mut queue, [i; SECRET_LEN]),
+                Ok(()),
+                "pairing secret {i} should fit under cap"
+            );
+        }
+        assert_eq!(queue.len(), MAX_INBOUND_QUEUE_PAIRING);
+    }
+
+    #[test]
+    fn enqueue_pairing_secret_rejects_at_capacity() {
+        let mut queue: VecDeque<[u8; SECRET_LEN]> = VecDeque::new();
+        for i in 0..MAX_INBOUND_QUEUE_PAIRING as u8 {
+            enqueue_pairing_secret(&mut queue, [i; SECRET_LEN]).expect("under cap");
+        }
+        let attempt = enqueue_pairing_secret(&mut queue, [0xFF; SECRET_LEN]);
+        assert_eq!(attempt, Err(QueueFullError));
+        assert_eq!(queue.len(), MAX_INBOUND_QUEUE_PAIRING);
+        // First-in entries are still intact at the head — the cap drops
+        // the *new* secret so an in-flight handshake can finish.
+        assert_eq!(queue.front().copied().unwrap(), [0; SECRET_LEN]);
     }
 }

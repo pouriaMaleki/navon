@@ -113,3 +113,56 @@ mod tests {
         assert_eq!(state, BleConnectionState::Idle);
     }
 }
+
+/// Bluedroid `adv_filter_policy` value the C side should program after
+/// every state transition. While unbonded the device must accept any
+/// scanner / connection request so the companion can find the QR's
+/// peripheral; once bonded the allowlist is locked to the bonded peer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AdvertisingFilterPolicy {
+    /// `ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY` — open advertising for the
+    /// QR-OOB pairing window.
+    AllowAny,
+    /// `ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST` — accepts scans and
+    /// connections only from the bonded peer in the controller's
+    /// whitelist (loaded by the C side via
+    /// `esp_ble_gap_update_whitelist`).
+    WhitelistOnly,
+}
+
+/// Pick the right adv-filter policy based on whether the device is
+/// bonded. Single source of truth — the C handler reads this and
+/// reprograms `s_adv_params.adv_filter_policy` after every pairing
+/// transition.
+pub fn advertising_filter_policy_for(is_bonded: bool) -> AdvertisingFilterPolicy {
+    if is_bonded {
+        AdvertisingFilterPolicy::WhitelistOnly
+    } else {
+        AdvertisingFilterPolicy::AllowAny
+    }
+}
+
+#[cfg(test)]
+mod policy_tests {
+    use super::*;
+
+    #[test]
+    fn unbonded_advertising_accepts_any_scanner() {
+        assert_eq!(
+            advertising_filter_policy_for(false),
+            AdvertisingFilterPolicy::AllowAny,
+            "the QR-OOB pairing window has to be open or the companion \
+             can't discover the peripheral on its first connect",
+        );
+    }
+
+    #[test]
+    fn bonded_advertising_locks_to_whitelist() {
+        assert_eq!(
+            advertising_filter_policy_for(true),
+            AdvertisingFilterPolicy::WhitelistOnly,
+            "once bonded, only the paired phone's BD_ADDR (in the \
+             controller's whitelist) should be able to even scan us",
+        );
+    }
+}

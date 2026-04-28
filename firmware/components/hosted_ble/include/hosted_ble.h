@@ -27,6 +27,7 @@
 
 #include "esp_err.h"
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -38,14 +39,42 @@ esp_err_t hosted_ble_init(void);
 
 typedef void (*hosted_ble_chunk_cb_t)(const uint8_t *data, size_t len, void *ctx);
 
+// Called when a companion writes the 32-byte ephemeral secret to the
+// pairing-confirm characteristic (UUID …-1004). The Rust side matches
+// it against the current QR's secret in `pairing.rs` and transitions
+// the device from Pairing → Operational on a match.
+typedef void (*hosted_ble_pairing_confirm_cb_t)(const uint8_t *data, size_t len, void *ctx);
+
+// Tells the C side whether to reject pairing-confirm writes outright
+// (single-bond policy: once a bond is stored, the user must Forget
+// from the companion before re-pairing). Returning `true` accepts the
+// write and forwards it to `on_pairing_confirm`; `false` rejects with
+// `ESP_GATT_WRITE_NOT_PERMIT`.
+typedef bool (*hosted_ble_is_pairing_mode_cb_t)(void *ctx);
+
 typedef struct {
     hosted_ble_chunk_cb_t on_chunk;
+    hosted_ble_pairing_confirm_cb_t on_pairing_confirm;
+    hosted_ble_is_pairing_mode_cb_t is_pairing_mode;
     void *ctx;
 } hosted_ble_route_sync_callbacks_t;
 
 esp_err_t hosted_ble_route_sync_start(const hosted_ble_route_sync_callbacks_t *cb);
 
 esp_err_t hosted_ble_route_sync_notify(const uint8_t *data, size_t len);
+
+// Switch the advertising filter policy. Called by the runtime once the
+// device transitions to `Operational` so subsequent advertising windows
+// only accept the bonded peer in the controller's whitelist. The
+// `peer_addr` (BD_ADDR) is added to the whitelist by this call when
+// `whitelist_only == true`.
+//
+// Mirror of `AdvertisingFilterPolicy` in `hosted_ble_state.rs`:
+//   whitelist_only == false → ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY
+//   whitelist_only == true  → ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST
+esp_err_t hosted_ble_route_sync_set_adv_filter(bool whitelist_only,
+                                               const uint8_t peer_addr[6],
+                                               uint8_t addr_type);
 
 #ifdef __cplusplus
 }
