@@ -477,12 +477,25 @@ where
         self.render_framebuffer
             .clear(render_core::style::COLOR_BACKGROUND_CANVAS);
         if let Some(payload) = self.pairing.current_qr_payload() {
-            // qrcodegen returns `DataTooLong` only above ECC-Q ~v40
-            // capacity; our 38-byte payload is far below that. Fall
-            // through silently if encoding ever fails so the device
-            // still pushes a (blank) frame and the operator can see
-            // the screen instead of a panic.
-            if let Ok(qr) = crate::pairing_overlay::encode_payload(&payload) {
+            // The state machine yields the canonical binary
+            // `peripheral_address || secret` form; the QR ships JSON so
+            // the cross-platform companion decoders share one schema
+            // (see `parity-fixtures/data/pairing_qr_v1.json`).
+            let mut address = [0u8; PERIPHERAL_ADDRESS_LEN];
+            address.copy_from_slice(&payload[..PERIPHERAL_ADDRESS_LEN]);
+            let mut secret = [0u8; SECRET_LEN];
+            secret.copy_from_slice(&payload[PERIPHERAL_ADDRESS_LEN..]);
+            let json = crate::pairing_overlay::format_qr_json(
+                address,
+                secret,
+                env!("CARGO_PKG_VERSION"),
+            );
+            // qrcodegen returns `DataTooLong` only above v40 capacity;
+            // a v1 JSON payload is far below that. Fall through silently
+            // if encoding ever fails so the device still pushes a
+            // (blank) frame and the operator sees a screen instead of a
+            // panic.
+            if let Ok(qr) = crate::pairing_overlay::encode_payload(&json) {
                 crate::pairing_overlay::render_pairing_qr(
                     &qr,
                     &mut self.render_framebuffer,

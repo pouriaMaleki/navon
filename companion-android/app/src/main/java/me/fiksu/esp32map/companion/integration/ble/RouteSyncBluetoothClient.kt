@@ -34,5 +34,24 @@ interface RouteSyncBluetoothClient {
      */
     suspend fun connectToPairedPeripheral(identifier: String): String
 
+    /**
+     * Connect to an as-yet-unbonded peripheral discovered through the
+     * pairing flow's QR scan. The QR provides the BD_ADDR up front so
+     * we don't need a service-UUID scan; if the peer isn't directly
+     * connectable yet (e.g. it just rebooted into pairing mode), the
+     * implementation falls back to a targeted scan filtered by
+     * `device.address == identifier`.
+     */
+    suspend fun connectToAdvertisedPeripheral(identifier: String): String
+
+    /**
+     * Write the 32-byte ephemeral secret pulled from the QR to the
+     * firmware's pairing-confirm characteristic. The first encrypted
+     * write triggers SMP Just Works pairing transparently; on success
+     * the device transitions to `Operational` and the bond is persisted
+     * to NVS.
+     */
+    suspend fun writePairingConfirm(secret: ByteArray)
+
     suspend fun write(packet: BleRouteSyncPacket)
 }

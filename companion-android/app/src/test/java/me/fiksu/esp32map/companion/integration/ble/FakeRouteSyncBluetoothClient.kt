@@ -35,7 +35,18 @@ class FakeRouteSyncBluetoothClient : RouteSyncBluetoothClient {
     var scanResult: Result<String> = Result.success("ESP32 Bike Minimap")
     var connectResult: Result<String> = Result.success("ESP32 Bike Minimap")
     var connectPairedResult: Result<String> = Result.success("ESP32 Bike Minimap")
+    var connectAdvertisedResult: Result<String> = Result.success("ESP32 Bike Minimap")
     var writeResult: Result<Unit> = Result.success(Unit)
+    var writePairingConfirmResult: Result<Unit> = Result.success(Unit)
+
+    var connectToAdvertisedCallCount = 0
+        private set
+    var lastAdvertisedIdentifier: String? = null
+        private set
+    var writePairingConfirmCallCount = 0
+        private set
+    var lastWrittenPairingSecret: ByteArray? = null
+        private set
 
     override fun armDebugFault(mode: RouteSyncFaultInjectionMode) {
         // No-op: fault injection isn't observable through this fake yet.
@@ -55,6 +66,18 @@ class FakeRouteSyncBluetoothClient : RouteSyncBluetoothClient {
         connectToPairedCallCount += 1
         lastConnectedIdentifier = identifier
         return connectPairedResult.getOrThrow()
+    }
+
+    override suspend fun connectToAdvertisedPeripheral(identifier: String): String {
+        connectToAdvertisedCallCount += 1
+        lastAdvertisedIdentifier = identifier
+        return connectAdvertisedResult.getOrThrow()
+    }
+
+    override suspend fun writePairingConfirm(secret: ByteArray) {
+        writePairingConfirmCallCount += 1
+        lastWrittenPairingSecret = secret
+        writePairingConfirmResult.getOrThrow()
     }
 
     override suspend fun write(packet: BleRouteSyncPacket) {

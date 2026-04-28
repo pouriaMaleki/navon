@@ -94,6 +94,17 @@ dependencies {
     implementation(libs.google.gson)
     implementation(libs.kotlinx.coroutines.android)
 
+    // CameraX + ML Kit for the pairing-flow QR scan. The pairing flow
+    // is the only screen that opens the camera; CameraX is the
+    // current-best AndroidX abstraction over `Camera2`, and ML Kit's
+    // on-device barcode scanner avoids any network round-trip for the
+    // QR decode (the secret never leaves the device).
+    implementation("androidx.camera:camera-core:1.3.4")
+    implementation("androidx.camera:camera-camera2:1.3.4")
+    implementation("androidx.camera:camera-lifecycle:1.3.4")
+    implementation("androidx.camera:camera-view:1.3.4")
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 

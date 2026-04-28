@@ -10,6 +10,7 @@ name = "firmware"
 path = "src/main.rs"
 
 [dependencies]
+base64 = { version = "0.22.1", default-features = false, features = ["alloc"] }
 # The `embedded-map` feature is kept for host builds (city.svm embedded for
 # tests and the emulator). On `target_os = "espidf"`, EmbeddedMapSource::default()
 # returns empty(); the actual map is loaded from the "map_data" flash partition

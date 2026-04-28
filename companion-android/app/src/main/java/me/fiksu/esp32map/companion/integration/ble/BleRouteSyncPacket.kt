@@ -21,6 +21,13 @@ object BleRouteSyncGattContract {
     const val SERVICE_UUID: String = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1001"
     const val CHUNK_WRITE_CHARACTERISTIC_UUID: String = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1002"
     const val EVENT_NOTIFY_CHARACTERISTIC_UUID: String = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1003"
+    /**
+     * Pairing-confirm characteristic. Encrypted-write only. The companion writes
+     * the 32-byte ephemeral secret pulled out of the QR here to close the
+     * QR-OOB pairing handshake; firmware-side enforcement of the single-bond
+     * policy lives behind `is_pairing_mode_cb` in `hosted_ble_route_sync.c`.
+     */
+    const val PAIRING_CONFIRM_CHARACTERISTIC_UUID: String = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1004"
 }
 
 data class RouteTransferChunkEnvelope(

@@ -37,6 +37,7 @@ import me.fiksu.esp32map.companion.domain.SyncSessionState
 import me.fiksu.esp32map.companion.domain.geo.UusimaaBounds
 import me.fiksu.esp32map.companion.integration.AndroidLocationService
 import me.fiksu.esp32map.companion.integration.ble.BleRouteSyncService
+import me.fiksu.esp32map.companion.integration.ble.PairingQrPayload
 import me.fiksu.esp32map.companion.integration.diagnostics.CompanionDiagnosticsStore
 import me.fiksu.esp32map.companion.integration.cycling.OsmCyclingRoutingAdapter
 import me.fiksu.esp32map.companion.integration.gpx.GpxRoutingAdapter
@@ -371,6 +372,56 @@ class CompanionAppState(
      */
     fun beginPairingFlow() {
         pairingState = PairingFlowState.Instructions
+    }
+
+    /**
+     * Drive the pairing handshake to completion: connect to the
+     * advertised peripheral, write the QR's secret to the
+     * pairing-confirm characteristic, then persist the bond. On any
+     * step failure, no half-state is committed — the persisted record
+     * is left untouched so the user can retry.
+     *
+     * The auto-dismiss delay (1.5s) lets the success state render before
+     * we drop back to `Idle`; tests pass `autoDismissDelayMs = 0L` to
+     * skip the delay.
+     */
+    suspend fun completePairing(
+        payload: PairingQrPayload,
+        autoDismissDelayMs: Long = 1_500L,
+    ) {
+        pairingState = PairingFlowState.Connecting
+        val deviceName = try {
+            bleService.connectToAdvertisedPeripheral(payload.peripheralIdentifier)
+        } catch (error: Throwable) {
+            pairingState = PairingFlowState.Failed(
+                error.localizedMessage ?: "BLE connection failed during pairing",
+            )
+            return
+        }
+
+        pairingState = PairingFlowState.Confirming
+        try {
+            bleService.writePairingConfirm(payload.ephemeralSecret)
+        } catch (error: Throwable) {
+            pairingState = PairingFlowState.Failed(
+                error.localizedMessage ?: "Pairing-confirm write failed",
+            )
+            return
+        }
+
+        val record = PairedPeripheralRecord(
+            identifier = payload.peripheralIdentifier,
+            friendlyName = deviceName,
+            pairedAt = java.time.Instant.now().toString(),
+        )
+        persistence.savePairedPeripheral(record)
+        pairedPeripheral = record
+        pairingState = PairingFlowState.Succeeded
+
+        if (autoDismissDelayMs > 0L) {
+            kotlinx.coroutines.delay(autoDismissDelayMs)
+        }
+        pairingState = PairingFlowState.Idle
     }
 
     /**

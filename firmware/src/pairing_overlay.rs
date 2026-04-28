@@ -12,11 +12,19 @@
 //! `qrcodegen` is no_std + alloc-only so the same code compiles for the
 //! host (test target) and the riscv32imafc-esp-espidf device target.
 
+use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
 use qrcodegen::{QrCode, QrCodeEcc, Version};
 use render_core::raster::Color;
 use render_core::style::{COLOR_BACKGROUND_CANVAS, COLOR_TEXT_PRIMARY};
 
 use crate::framebuffer::RenderFramebuffer;
+use crate::pairing::{PERIPHERAL_ADDRESS_LEN, SECRET_LEN};
+
+/// Cross-platform pairing-QR wire format version. Bumped when the JSON
+/// schema changes; the companion's decoder rejects anything else with
+/// `UnsupportedVersion(n)`. Must match the value in
+/// `parity-fixtures/data/pairing_qr_v1.json`.
+pub const PAIRING_QR_WIRE_VERSION: u32 = 1;
 
 /// Color used for the QR's dark modules. Kept high contrast against
 /// `COLOR_BACKGROUND_CANVAS` so phone cameras pick the code up under
@@ -29,11 +37,44 @@ const QR_BG: Color = COLOR_BACKGROUND_CANVAS;
 /// finder patterns.
 const QUIET_MODULES: i32 = 4;
 
-/// Encode the QR payload using ECC level Low (the payload fits the
-/// available capacity comfortably and lower ECC keeps the QR's module
-/// count down — easier on the camera at arms-length).
-pub fn encode_payload(payload: &[u8]) -> Result<QrCode, qrcodegen::DataTooLong> {
-    QrCode::encode_binary(payload, QrCodeEcc::Low)
+/// Format the cross-platform pairing-QR JSON wire-format string. Both
+/// the Android and iOS companion decoders parse this exact shape; the
+/// golden fixture is `parity-fixtures/data/pairing_qr_v1.json`.
+///
+/// Schema (v1):
+/// ```json
+/// {"v":1,"id_android":"AA:BB:CC:DD:EE:FF","secret":"<base64-32B>","fw":"<semver>"}
+/// ```
+///
+/// `id_android` is the BLE peripheral's BD_ADDR formatted as a colon
+/// MAC string. iOS doesn't see the BD_ADDR (CoreBluetooth abstracts it
+/// away as a per-app UUID); the iOS decoder ignores `id_android` and
+/// matches the secret instead.
+pub fn format_qr_json(
+    address: [u8; PERIPHERAL_ADDRESS_LEN],
+    secret: [u8; SECRET_LEN],
+    firmware_version: &str,
+) -> String {
+    let mac = format!(
+        "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
+        address[0], address[1], address[2], address[3], address[4], address[5],
+    );
+    let secret_b64 = BASE64.encode(secret);
+    format!(
+        "{{\"v\":{version},\"id_android\":\"{mac}\",\"secret\":\"{secret_b64}\",\"fw\":\"{fw}\"}}",
+        version = PAIRING_QR_WIRE_VERSION,
+        mac = mac,
+        secret_b64 = secret_b64,
+        fw = firmware_version,
+    )
+}
+
+/// Encode the JSON payload using ECC level Low. The 32-byte secret +
+/// MAC + envelope is around 110 bytes, which fits ECC-L v8 (192 byte
+/// capacity) with comfortable headroom. Lower ECC keeps the module
+/// count down — easier on the camera at arms-length.
+pub fn encode_payload(payload: &str) -> Result<QrCode, qrcodegen::DataTooLong> {
+    QrCode::encode_binary(payload.as_bytes(), QrCodeEcc::Low)
 }
 
 /// Render `qr` into `fb`, centered. The integer module-pixel size is
@@ -92,26 +133,36 @@ mod tests {
     use crate::pairing::{PERIPHERAL_ADDRESS_LEN, SECRET_LEN};
     use render_core::raster::Framebuffer as RasterFramebuffer;
 
-    fn pairing_payload() -> Vec<u8> {
-        let mut payload = Vec::with_capacity(PERIPHERAL_ADDRESS_LEN + SECRET_LEN);
-        payload.extend_from_slice(&[0xAA; PERIPHERAL_ADDRESS_LEN]);
-        payload.extend_from_slice(&[0x42; SECRET_LEN]);
-        payload
+    fn pairing_json() -> String {
+        format_qr_json([0xAA; PERIPHERAL_ADDRESS_LEN], [0x42; SECRET_LEN], "0.1.0")
     }
 
     #[test]
-    fn qr_payload_encodes_within_v6_ecc_l_bound() {
-        let qr = encode_payload(&pairing_payload()).expect("encode");
+    fn qr_json_payload_fits_within_v8_ecc_l_capacity() {
+        let qr = encode_payload(&pairing_json()).expect("encode");
         assert!(
-            fits_within_v6_ecc_low(&qr),
-            "38-byte pairing payload should fit comfortably in v6 ECC-L; got version {}",
+            qr.version().value() <= 8,
+            "v1 pairing JSON should fit in v8 ECC-L (192 byte capacity); got version {} \
+             — capacity creep here makes the QR harder to scan from arms-length",
             qr.version().value(),
         );
     }
 
     #[test]
+    fn format_qr_json_emits_v1_schema_fields() {
+        let json = pairing_json();
+        assert!(json.contains("\"v\":1"), "version field must be present");
+        assert!(
+            json.contains("\"id_android\":\"AA:AA:AA:AA:AA:AA\""),
+            "BD_ADDR must be uppercase colon-MAC: {json}",
+        );
+        assert!(json.contains("\"secret\":\""), "secret field must be present");
+        assert!(json.contains("\"fw\":\"0.1.0\""), "firmware version must round-trip");
+    }
+
+    #[test]
     fn render_pairing_qr_writes_finder_pattern_to_framebuffer() {
-        let qr = encode_payload(&pairing_payload()).expect("encode");
+        let qr = encode_payload(&pairing_json()).expect("encode");
         let mut fb: RenderFramebuffer = RasterFramebuffer::new(800, 800);
         // Pre-fill so we can detect that the renderer actually overwrote
         // the QR region (instead of leaving the default background).

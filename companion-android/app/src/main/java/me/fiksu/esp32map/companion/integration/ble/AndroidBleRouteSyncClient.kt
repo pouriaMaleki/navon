@@ -133,6 +133,71 @@ class AndroidBleRouteSyncClient(
         }
     }
 
+    /**
+     * Connect to a peripheral whose BD_ADDR was just delivered through
+     * the QR-OOB pairing scan. The address is fresh — no need to scan
+     * the air for a service-UUID match — but the peer may not be
+     * directly cacheable yet, in which case `getRemoteDevice` returns
+     * a `BluetoothDevice` whose `connectGatt` attempt fails. The fast
+     * path is the same as `connectToPairedPeripheral`; the difference
+     * is purely semantic so the AppState wiring stays readable.
+     */
+    @SuppressLint("MissingPermission")
+    override suspend fun connectToAdvertisedPeripheral(identifier: String): String {
+        ensurePermissions()
+        ensureBluetoothEnabled()
+        val adapter = bluetoothAdapter ?: error("Bluetooth is unavailable on this device")
+        val device = runCatching { adapter.getRemoteDevice(identifier) }.getOrElse {
+            throw IllegalArgumentException(
+                "Advertised peripheral identifier from QR is not a valid BLE address: $identifier",
+                it,
+            )
+        }
+        scannedDevice = device
+        onConnectionStateChange?.invoke(
+            DeviceConnectionState.CONNECTING,
+            device.nameOrFallback("ESP32 Bike Minimap"),
+        )
+        return suspendCancellableCoroutine { continuation ->
+            pendingConnectContinuation = continuation
+            val gatt = device.connectGatt(context, false, callback, BluetoothDevice.TRANSPORT_LE)
+            bluetoothGatt = gatt
+        }
+    }
+
+    /**
+     * Write the QR's 32-byte ephemeral secret to the firmware's
+     * pairing-confirm characteristic. The first encrypted write
+     * triggers SMP Just Works pairing transparently; on success the
+     * companion has bonded and the firmware persists `peer_identity`
+     * to NVS so the next boot comes up Operational.
+     */
+    @SuppressLint("MissingPermission")
+    override suspend fun writePairingConfirm(secret: ByteArray) {
+        require(secret.size == PairingQrPayload.SECRET_LEN_BYTES) {
+            "pairing-confirm secret must be ${PairingQrPayload.SECRET_LEN_BYTES} bytes"
+        }
+        ensurePermissions()
+        val gatt = bluetoothGatt ?: error("BLE pairing GATT connection is not ready")
+        val service: BluetoothGattService = gatt.getService(
+            java.util.UUID.fromString(BleRouteSyncGattContract.SERVICE_UUID),
+        ) ?: error("ESP32 route-sync service was not found on connected peripheral")
+        val characteristic = service.getCharacteristic(
+            java.util.UUID.fromString(BleRouteSyncGattContract.PAIRING_CONFIRM_CHARACTERISTIC_UUID),
+        ) ?: error("ESP32 pairing-confirm characteristic was not found on connected peripheral")
+        characteristic.value = secret
+        characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+        suspendCancellableCoroutine { continuation ->
+            pendingWriteContinuation = continuation
+            if (!gatt.writeCharacteristic(characteristic)) {
+                pendingWriteContinuation = null
+                continuation.resumeWithException(
+                    IllegalStateException("BluetoothGatt.writeCharacteristic returned false (pairing_confirm)"),
+                )
+            }
+        }
+    }
+
     @SuppressLint("MissingPermission")
     override suspend fun write(packet: BleRouteSyncPacket) {
         ensurePermissions()
