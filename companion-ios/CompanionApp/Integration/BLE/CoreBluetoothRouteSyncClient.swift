@@ -400,8 +400,28 @@ extension CoreBluetoothRouteSyncClient: CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         if let error {
-            pendingConnectContinuation?.resume(throwing: error)
-            pendingConnectContinuation = nil
+            // iOS error 9 ("The attribute could not be found") happens
+            // here on the first cold connect after a firmware update —
+            // CoreBluetooth caches the GATT layout per peripheral, and
+            // when the cached CCCD/handle map doesn't match the new
+            // service shape, `setNotifyValue` rejects with this code.
+            // The cache self-heals on the next connect attempt (which
+            // is why the second tap works). Treat it as a soft failure
+            // so the user doesn't see "Pairing failed": the pairing
+            // flow only writes characteristics — we don't actually need
+            // notifications during the QR-OOB handshake. Subsequent
+            // operational reconnects re-trigger setNotifyValue and the
+            // refreshed cache lets it succeed.
+            pairingLog.error(
+                "setNotifyValue failed (\(error.localizedDescription, privacy: .public)) — \
+                 resuming connect anyway; notifications will be off until a clean reconnect"
+            )
+            let name = peripheral.name ?? "ESP32 Bike Minimap"
+            if let pendingConnectContinuation {
+                self.pendingConnectContinuation = nil
+                pendingConnectContinuation.resume(returning: name)
+            }
+            onConnectionStateChange?(.connected, name)
             return
         }
         completeConnectIfReady(for: peripheral)

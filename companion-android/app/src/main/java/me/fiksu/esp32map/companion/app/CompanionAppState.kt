@@ -187,6 +187,22 @@ class CompanionAppState(
                 }
             }
         }
+
+        // App-launch auto-reconnect: if the user already paired a
+        // device, try to reach it once silently. Failures are silent —
+        // the home chip stays in `PairedDisconnected` and the user can
+        // tap it to retry. We don't fall back to a service-UUID scan
+        // here so a stranger's device doesn't silently take the
+        // paired slot; that path stays gated behind explicit user
+        // action via `connectToDevice()`.
+        pairedPeripheral?.let { record ->
+            viewModelScope.launch {
+                runCatching {
+                    bleService.connectToPairedPeripheral(record.identifier)
+                }
+                refreshDiagnostics()
+            }
+        }
     }
 
     /** Begin watching the device location. Call from MainActivity once permission is granted. */

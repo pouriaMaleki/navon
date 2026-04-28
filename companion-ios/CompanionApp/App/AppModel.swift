@@ -85,6 +85,21 @@ final class AppModel: ObservableObject {
         bindBleState()
         bindLocationService()
         locationService.start()
+
+        // App-launch auto-reconnect: if the user was previously paired,
+        // try to connect once in the background. Failures are silent —
+        // the home chip stays in `PairedDisconnected` and the user can
+        // tap it to retry. We don't fall back to a service-UUID scan
+        // here so a stranger's device doesn't silently become "the
+        // paired one"; that path stays gated behind an explicit user
+        // action (the chip's tap target or Settings → Connect).
+        if let paired = pairedPeripheral {
+            Task { [weak self] in
+                pairingLog.notice("AppModel.init — auto-reconnect to paired peripheral [\(paired.identifier, privacy: .public)]")
+                await self?.bleService.connectToPairedPeripheral(identifier: paired.identifier)
+                await self?.refreshDiagnostics()
+            }
+        }
     }
 
     /// Drop the bonded peripheral. Clears in-memory + persistence and the
