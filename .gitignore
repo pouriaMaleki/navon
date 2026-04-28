@@ -40,6 +40,14 @@
 # Local xtask temp/cache state
 /.xtask/
 
+# Locally-installed JDK + Android SDK (provisioned by
+# infra/devcontainer/scripts/install-android-toolchain.sh). ~1.5 GB,
+# always reproducible, never checked in.
+/.tools/
+
+# Gradle dry-run output from `--write-verification-metadata sha256 --dry-run`.
+/companion-android/gradle/verification-metadata.dryrun.xml
+
 # Local map inputs/outputs and device bundles
 /map-src/*
 !/map-src/.gitkeep
