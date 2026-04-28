@@ -69,6 +69,34 @@ class BleRouteSyncService(
             }
     }
 
+    /**
+     * Fast-path reconnect to a previously-bonded peripheral. Skips
+     * scanning entirely; on failure the caller is expected to fall back
+     * to [scanForDevices] + [connectToLastKnownDevice]. Mirrors the
+     * iOS-side `connectToPairedPeripheral`.
+     */
+    suspend fun connectToPairedPeripheral(identifier: String) {
+        updateState { it.copy(connectionState = DeviceConnectionState.CONNECTING) }
+        runCatching { bluetoothClient.connectToPairedPeripheral(identifier) }
+            .onSuccess { deviceName ->
+                updateState {
+                    it.copy(
+                        connectionState = DeviceConnectionState.CONNECTED,
+                        lastDeviceName = deviceName,
+                        lastSyncResult = "Reconnected to $deviceName",
+                    )
+                }
+            }
+            .onFailure { error ->
+                updateState {
+                    it.copy(
+                        connectionState = DeviceConnectionState.DISCONNECTED,
+                        lastSyncResult = error.localizedMessage ?: "BLE fast-path connection failed",
+                    )
+                }
+            }
+    }
+
     override suspend fun connectToLastKnownDevice() {
         updateState { it.copy(connectionState = DeviceConnectionState.CONNECTING) }
         runCatching { bluetoothClient.connectToScannedPeripheral() }

@@ -222,6 +222,21 @@ enum class DeviceConnectionState {
     CONNECTED,
 }
 
+/**
+ * Phases of the QR-OOB pairing flow. Mirrored verbatim on iOS so the
+ * 3-step UI sheet (instructions → camera → confirm) shares the same
+ * state-machine vocabulary.
+ */
+sealed class PairingFlowState {
+    object Idle : PairingFlowState()
+    object Instructions : PairingFlowState()
+    object Scanning : PairingFlowState()
+    object Connecting : PairingFlowState()
+    object Confirming : PairingFlowState()
+    object Succeeded : PairingFlowState()
+    data class Failed(val reason: String) : PairingFlowState()
+}
+
 enum class RouteSyncState {
     IDLE,
     PREPARING,

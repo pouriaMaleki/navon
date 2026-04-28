@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,6 +37,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -84,7 +86,11 @@ import me.fiksu.esp32map.companion.domain.RouteSourceMode
 import me.fiksu.esp32map.companion.domain.SpeedUnit
 import me.fiksu.esp32map.companion.domain.RouteStartBehavior
 import me.fiksu.esp32map.companion.domain.RouteSuggestionMode
+import me.fiksu.esp32map.companion.domain.DeviceConnectionState
+import me.fiksu.esp32map.companion.feature.home.DeviceChipTapAction
+import me.fiksu.esp32map.companion.feature.home.DeviceStatusChip
 import me.fiksu.esp32map.companion.feature.home.HomeStateHolder
+import me.fiksu.esp32map.companion.feature.home.deviceChipStateOf
 import me.fiksu.esp32map.companion.integration.AndroidPlaceSearchService
 
 class MainActivity : ComponentActivity() {
@@ -490,6 +496,25 @@ private fun PlanningTopArea(
                 modifier = Modifier.weight(1f),
             )
             Spacer(Modifier.width(12.dp))
+            DeviceStatusChip(
+                state = deviceChipStateOf(
+                    paired = appState.pairedPeripheral,
+                    connection = appState.syncSession.connectionState,
+                ),
+                onTap = { action ->
+                    when (action) {
+                        is DeviceChipTapAction.BeginPairingFlow -> appState.beginPairingFlow()
+                        is DeviceChipTapAction.ConnectToDevice -> appState.connectToDevice()
+                        is DeviceChipTapAction.ShowConnectedPopover,
+                        is DeviceChipTapAction.Noop -> {
+                            // Connected popover and the disabled-state
+                            // no-op are placeholders until the home
+                            // overlay grows a real popover surface.
+                        }
+                    }
+                },
+            )
+            Spacer(Modifier.width(8.dp))
             IconButton(onClick = onOpenSettings) {
                 Text("Set")
             }
@@ -832,16 +857,47 @@ private fun RoutesSettingsScreen(appState: CompanionAppState, onBack: () -> Unit
 
 @Composable
 private fun DeviceSettingsScreen(appState: CompanionAppState, onBack: () -> Unit) {
+    var showForgetConfirm by remember { mutableStateOf(false) }
     ScreenColumn(PaddingValues(0.dp)) {
         BackHeader(title = "Device", onBack = onBack)
         BluetoothPermissionSection()
         LocationPermissionSection(appState)
+        // Paired-device section (Phase 2.6). Verbatim copy parity with iOS.
+        val paired = appState.pairedPeripheral
+        if (paired == null) {
+            Text("No device paired")
+            Button(onClick = appState::beginPairingFlow) { Text("Pair a new device") }
+        } else {
+            Text(paired.friendlyName)
+            Text("Paired: ${paired.pairedAt}")
+            if (appState.syncSession.connectionState == DeviceConnectionState.CONNECTED) {
+                Button(onClick = { /* future: bleService disconnect */ }) { Text("Disconnect") }
+            } else {
+                Button(onClick = appState::connectToDevice) { Text("Connect") }
+            }
+            Button(onClick = { showForgetConfirm = true }) { Text("Forget paired device") }
+        }
+        if (showForgetConfirm) {
+            AlertDialog(
+                onDismissRequest = { showForgetConfirm = false },
+                title = { Text("Forget this device?") },
+                text = { Text("You'll need to scan the pairing code again to use it. Your route history stays.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        appState.forgetPairedDevice()
+                        showForgetConfirm = false
+                    }) { Text("Forget") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showForgetConfirm = false }) { Text("Cancel") }
+                },
+            )
+        }
         Text("Connection: ${appState.syncSession.connectionState}")
         Text("Route sync: ${appState.syncSession.routeSyncState}")
         Text("Pending route: ${appState.syncSession.pendingRouteIdentifier ?: "None"}")
         Text("Active route: ${appState.syncSession.activeRouteIdentifier ?: "None"}")
         Text("Last sync: ${appState.syncSession.lastSyncResult}")
-        Button(onClick = appState::connectToDevice) { Text("Reconnect") }
         Button(onClick = { appState.sendSelectedRoute() }) { Text("Send selected route") }
         Button(onClick = appState::resumePendingTransfer) { Text("Resume pending transfer") }
         Button(onClick = appState::armRetryableInterruptionOnNextTransfer) { Text("Arm retryable interruption") }
