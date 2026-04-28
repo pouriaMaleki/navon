@@ -5,12 +5,23 @@ use runtime_core::api::SpeedUnit;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DeviceSettings {
     pub speed_unit: SpeedUnit,
+    /// True once the device has bonded with a companion via the
+    /// QR-OOB pairing flow. While false, the device boots into pairing
+    /// mode (renders QR, accepts only the `pairing_confirm`
+    /// characteristic, ignores route writes).
+    pub device_paired: bool,
+    /// Truncated SHA-256 digest of the bonded peer's BD_ADDR + IRK,
+    /// used to detect bond mismatch (e.g., the phone forgot us but our
+    /// NVS still says paired). `None` when unpaired.
+    pub peer_identity: Option<[u8; 16]>,
 }
 
 impl Default for DeviceSettings {
     fn default() -> Self {
         Self {
             speed_unit: SpeedUnit::Kph,
+            device_paired: false,
+            peer_identity: None,
         }
     }
 }
@@ -67,6 +78,27 @@ impl SettingsStore for MemorySettingsStore {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn device_settings_round_trip_includes_pairing_state() {
+        let mut store = MemorySettingsStore::default();
+        let settings = DeviceSettings {
+            speed_unit: SpeedUnit::Kph,
+            device_paired: true,
+            peer_identity: Some([0x42; 16]),
+        };
+        store.save_settings(&settings).expect("save");
+        let loaded = store
+            .load_settings()
+            .expect("load")
+            .expect("a value was saved");
+        assert_eq!(loaded, settings, "speed unit + pairing fields must round-trip");
+    }
+}
+
 #[cfg(target_os = "espidf")]
 mod espidf {
     use super::{DeviceSettings, SettingsError, SettingsStore};
@@ -78,6 +110,11 @@ mod espidf {
     const SPEED_UNIT_KEY: &str = "speed_unit";
     const SPEED_UNIT_KPH: u8 = 0;
     const SPEED_UNIT_MPH: u8 = 1;
+    /// `1` once a bond is stored. Absence ⇒ unpaired.
+    const PAIRED_FLAG_KEY: &str = "paired_flag";
+    /// 16-byte SHA-256-truncated digest of the bonded peer's BD_ADDR + IRK.
+    /// Present only while `paired_flag == 1`.
+    const PEER_IDENTITY_KEY: &str = "peer_identity";
 
     pub struct EspIdfSettingsStore {
         nvs: EspNvs<NvsDefault>,
@@ -111,7 +148,26 @@ mod espidf {
                     )));
                 }
             };
-            Ok(Some(DeviceSettings { speed_unit }))
+            // Optional pairing fields. A device that's never been paired
+            // simply has neither key in NVS.
+            let device_paired = self
+                .nvs
+                .get_u8(PAIRED_FLAG_KEY)
+                .map_err(|error| SettingsError::Backend(format!("{error:?}")))?
+                .map(|v| v != 0)
+                .unwrap_or(false);
+            let mut peer_identity_buf = [0u8; 16];
+            let peer_identity = self
+                .nvs
+                .get_blob(PEER_IDENTITY_KEY, &mut peer_identity_buf)
+                .map_err(|error| SettingsError::Backend(format!("{error:?}")))?
+                .filter(|slice| slice.len() == 16)
+                .map(|_| peer_identity_buf);
+            Ok(Some(DeviceSettings {
+                speed_unit,
+                device_paired,
+                peer_identity,
+            }))
         }
 
         fn save_settings(&mut self, settings: &DeviceSettings) -> Result<(), SettingsError> {
@@ -122,6 +178,18 @@ mod espidf {
             self.nvs
                 .set_u8(SPEED_UNIT_KEY, raw)
                 .map_err(|error| SettingsError::Backend(format!("{error:?}")))?;
+            self.nvs
+                .set_u8(PAIRED_FLAG_KEY, if settings.device_paired { 1 } else { 0 })
+                .map_err(|error| SettingsError::Backend(format!("{error:?}")))?;
+            if let Some(identity) = &settings.peer_identity {
+                self.nvs
+                    .set_blob(PEER_IDENTITY_KEY, identity)
+                    .map_err(|error| SettingsError::Backend(format!("{error:?}")))?;
+            } else {
+                // Drop a stale identity when the user calls Forget so a
+                // future bond doesn't accidentally inherit the old peer.
+                let _ = self.nvs.remove(PEER_IDENTITY_KEY);
+            }
             Ok(())
         }
     }

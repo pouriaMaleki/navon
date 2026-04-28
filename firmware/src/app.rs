@@ -280,6 +280,7 @@ where
 
         let next_settings = DeviceSettings {
             speed_unit: output.overlay.speed_unit,
+            ..self.persisted_settings
         };
         if next_settings != self.persisted_settings {
             self.settings_store.save_settings(&next_settings)?;
@@ -602,6 +603,7 @@ mod tests {
         let board = BoardConfig::default();
         let store = MemorySettingsStore::new(Some(DeviceSettings {
             speed_unit: SpeedUnit::Mph,
+            ..DeviceSettings::default()
         }));
         let mut app = App::with_parts_and_settings(
             board,
@@ -657,7 +659,8 @@ mod tests {
         assert_eq!(
             store.shared_value(),
             Some(DeviceSettings {
-                speed_unit: SpeedUnit::Kph
+                speed_unit: SpeedUnit::Kph,
+                ..DeviceSettings::default()
             })
         );
     }

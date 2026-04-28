@@ -8,6 +8,7 @@ pub mod framebuffer;
 pub mod hosted_ble;
 pub mod hosted_ble_queue;
 pub mod hosted_ble_state;
+pub mod pairing;
 pub mod gps;
 pub mod input_bridge;
 pub mod map_source;
