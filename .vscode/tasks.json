@@ -82,7 +82,7 @@
     {
       "label": "Android: assemble debug",
       "type": "shell",
-      "command": "./gradlew :app:assembleDebug && printf '\\n>>> Debug APK: %s\\n' \"$(ls -1 app/build/outputs/apk/debug/*.apk | head -n 1)\" && ls -lh app/build/outputs/apk/debug/*.apk",
+      "command": "./gradlew :app:assembleDebug && printf '\\n>>> Debug APK: %s\\n' \"$(ls -1 \"$(pwd)\"/app/build/outputs/apk/debug/*.apk | head -n 1)\" && ls -lh \"$(pwd)\"/app/build/outputs/apk/debug/*.apk",
       "options": {
         "cwd": "${workspaceFolder}/companion-android",
         "env": {
@@ -105,7 +105,7 @@
     {
       "label": "Android: assemble release",
       "type": "shell",
-      "command": "./gradlew :app:assembleRelease && printf '\\n>>> Release APK: %s\\n' \"$(ls -1 app/build/outputs/apk/release/*.apk | head -n 1)\" && ls -lh app/build/outputs/apk/release/*.apk",
+      "command": "./gradlew :app:assembleRelease && printf '\\n>>> Release APK: %s\\n' \"$(ls -1 \"$(pwd)\"/app/build/outputs/apk/release/*.apk | head -n 1)\" && ls -lh \"$(pwd)\"/app/build/outputs/apk/release/*.apk",
       "options": {
         "cwd": "${workspaceFolder}/companion-android",
         "env": {
