@@ -82,7 +82,7 @@
     {
       "label": "Android: assemble debug",
       "type": "shell",
-      "command": "./gradlew :app:assembleDebug",
+      "command": "./gradlew :app:assembleDebug && printf '\\n>>> Debug APK: %s\\n' \"$(ls -1 app/build/outputs/apk/debug/*.apk | head -n 1)\" && ls -lh app/build/outputs/apk/debug/*.apk",
       "options": {
         "cwd": "${workspaceFolder}/companion-android",
         "env": {
@@ -100,12 +100,12 @@
         "Android: install toolchain"
       ],
       "dependsOrder": "sequence",
-      "detail": "Builds companion-android/app/build/outputs/apk/debug/app-debug.apk (~70 s clean, ~10 s incremental)."
+      "detail": "Builds + prints the resulting APK path. Output lives at companion-android/app/build/outputs/apk/debug/app-debug.apk (~70 s clean, ~10 s incremental)."
     },
     {
       "label": "Android: assemble release",
       "type": "shell",
-      "command": "./gradlew :app:assembleRelease",
+      "command": "./gradlew :app:assembleRelease && printf '\\n>>> Release APK: %s\\n' \"$(ls -1 app/build/outputs/apk/release/*.apk | head -n 1)\" && ls -lh app/build/outputs/apk/release/*.apk",
       "options": {
         "cwd": "${workspaceFolder}/companion-android",
         "env": {
@@ -119,7 +119,7 @@
         "Android: install toolchain"
       ],
       "dependsOrder": "sequence",
-      "detail": "Unsigned release APK; will need a real signing config before publishing."
+      "detail": "Builds the unsigned release APK and prints its path. File lands at companion-android/app/build/outputs/apk/release/app-release-unsigned.apk; needs a real signing config before publishing."
     },
     {
       "label": "Android: lint + compile",
