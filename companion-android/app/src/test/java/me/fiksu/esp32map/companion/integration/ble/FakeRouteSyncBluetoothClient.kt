@@ -47,6 +47,9 @@ class FakeRouteSyncBluetoothClient : RouteSyncBluetoothClient {
         private set
     var lastWrittenPairingSecret: ByteArray? = null
         private set
+    var writePairingRequestCallCount = 0
+        private set
+    var writePairingRequestResult: Result<Unit> = Result.success(Unit)
 
     override fun armDebugFault(mode: RouteSyncFaultInjectionMode) {
         // No-op: fault injection isn't observable through this fake yet.
@@ -78,6 +81,11 @@ class FakeRouteSyncBluetoothClient : RouteSyncBluetoothClient {
         writePairingConfirmCallCount += 1
         lastWrittenPairingSecret = secret
         writePairingConfirmResult.getOrThrow()
+    }
+
+    override suspend fun writePairingRequest() {
+        writePairingRequestCallCount += 1
+        writePairingRequestResult.getOrThrow()
     }
 
     override suspend fun write(packet: BleRouteSyncPacket) {

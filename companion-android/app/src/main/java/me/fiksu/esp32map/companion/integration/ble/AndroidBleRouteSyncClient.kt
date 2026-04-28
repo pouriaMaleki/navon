@@ -166,6 +166,39 @@ class AndroidBleRouteSyncClient(
     }
 
     /**
+     * Write a sentinel byte to the firmware's pairing-request
+     * characteristic (unencrypted, UUID `…1005`) to ask the device to
+     * switch its panel from the map to the QR overlay. Companion calls
+     * this before opening the camera so the QR is on screen by the
+     * time the user tries to scan it.
+     */
+    @SuppressLint("MissingPermission")
+    override suspend fun writePairingRequest() {
+        ensurePermissions()
+        val gatt = bluetoothGatt ?: error("BLE pairing GATT connection is not ready")
+        val service: BluetoothGattService = gatt.getService(
+            java.util.UUID.fromString(BleRouteSyncGattContract.SERVICE_UUID),
+        ) ?: error("ESP32 route-sync service was not found on connected peripheral")
+        val characteristic = service.getCharacteristic(
+            java.util.UUID.fromString(BleRouteSyncGattContract.PAIRING_REQUEST_CHARACTERISTIC_UUID),
+        ) ?: error(
+            "ESP32 pairing-request characteristic was not found — firmware may predate the " +
+                "Show-QR-on-demand contract; reflash from main",
+        )
+        characteristic.value = byteArrayOf(0x01)
+        characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+        suspendCancellableCoroutine { continuation ->
+            pendingWriteContinuation = continuation
+            if (!gatt.writeCharacteristic(characteristic)) {
+                pendingWriteContinuation = null
+                continuation.resumeWithException(
+                    IllegalStateException("BluetoothGatt.writeCharacteristic returned false (pairing_request)"),
+                )
+            }
+        }
+    }
+
+    /**
      * Write the QR's 32-byte ephemeral secret to the firmware's
      * pairing-confirm characteristic. The first encrypted write
      * triggers SMP Just Works pairing transparently; on success the

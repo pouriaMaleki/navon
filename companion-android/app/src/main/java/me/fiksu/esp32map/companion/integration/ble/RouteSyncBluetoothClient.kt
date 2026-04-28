@@ -53,5 +53,15 @@ interface RouteSyncBluetoothClient {
      */
     suspend fun writePairingConfirm(secret: ByteArray)
 
+    /**
+     * Write a single byte to the firmware's pairing-request characteristic
+     * (unencrypted) to signal "user tapped Pair new device". The firmware
+     * responds by switching its panel from the map to the QR overlay so the
+     * user can scan the secret. Must be called *before* the camera opens —
+     * otherwise the device is still showing the map and there's nothing to
+     * scan.
+     */
+    suspend fun writePairingRequest()
+
     suspend fun write(packet: BleRouteSyncPacket)
 }

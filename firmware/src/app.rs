@@ -36,6 +36,12 @@ fn placeholder_peer_identity() -> [u8; 16] {
     [0u8; 16]
 }
 
+/// How long the device shows its QR after a companion writes
+/// `pairing_request`. Long enough for the user to read instructions
+/// and align the camera; short enough that the QR doesn't linger if
+/// the user abandoned the flow.
+pub const QR_DISPLAY_DURATION: Duration = Duration::from_secs(90);
+
 /// Per-phase timings for one `step_frame` call. All zero on host builds
 /// where timing isn't recorded; on device this lets the boot loop split
 /// the 186 ms baseline into "where does the time actually go".
@@ -133,6 +139,13 @@ where
     /// Diagnostics: number of route-sync chunks rejected because the
     /// device was still in pairing mode. Exposed to tests / settings UI.
     pairing_dropped_chunks: u32,
+    /// While `Some(deadline)` and `monotonic_clock < deadline`, the
+    /// device renders the QR overlay instead of the map. Set when the
+    /// companion writes `pairing_request` (UUID …-1005); cleared on a
+    /// successful pairing-confirm match or when the deadline elapses.
+    /// `None` is the default — the device shows the map until a
+    /// companion explicitly asks to enter pairing mode.
+    qr_display_deadline: Option<Duration>,
     /// Tracks whether the previous frame entered the pairing-overlay path
     /// so we can emit a single info-level log on the transition (instead
     /// of spamming the 60 Hz render loop).
@@ -225,6 +238,7 @@ where
             pairing,
             pairing_secret_factory: zero_secret,
             pairing_dropped_chunks: 0,
+            qr_display_deadline: None,
             was_in_pairing_overlay: false,
             qr_encoded_logged: false,
             #[cfg(test)]
@@ -272,8 +286,11 @@ where
         let transition = self
             .pairing
             .on_pairing_confirm(payload, placeholder_peer_identity);
-        if let Transition::Bonded { peer_identity } = transition {
-            let _ = self.mark_paired(peer_identity);
+        if let Transition::Bonded { peer_identity } = &transition {
+            let _ = self.mark_paired(*peer_identity);
+            // Successful bond → return the panel to the map even if
+            // the QR-display window hadn't elapsed yet.
+            self.qr_display_deadline = None;
         }
         transition
     }
@@ -294,11 +311,70 @@ where
         Ok(())
     }
 
-    /// True if the device has not yet bonded with a companion. The
-    /// runtime renders a QR overlay and refuses route writes while this
-    /// is true.
-    pub fn is_in_pairing_mode(&self) -> bool {
+    /// True if the device has not yet bonded with a companion. Route
+    /// writes are dropped in this state; the runtime, map query, and
+    /// render pipeline still run normally.
+    pub fn is_unbonded(&self) -> bool {
         !self.pairing.is_paired()
+    }
+
+    /// Backwards-compatible alias for [`Self::is_unbonded`]. The QR
+    /// overlay is no longer driven by bond state — it's driven by
+    /// [`Self::is_showing_qr`] — but a few existing tests still read
+    /// this method to mean "device is in the unbonded half of the
+    /// pairing state machine".
+    pub fn is_in_pairing_mode(&self) -> bool {
+        self.is_unbonded()
+    }
+
+    /// True while the QR overlay is currently being rendered. The
+    /// device enters this state when a companion writes the
+    /// `pairing_request` characteristic; it leaves on a successful
+    /// pairing-confirm match or after [`QR_DISPLAY_DURATION`] elapses
+    /// since the request.
+    pub fn is_showing_qr(&self) -> bool {
+        self.qr_display_deadline
+            .map(|deadline| self.monotonic_clock < deadline)
+            .unwrap_or(false)
+    }
+
+    /// Companion-driven trigger: a `pairing_request` write hit the GATT
+    /// server. Show the QR for the next [`QR_DISPLAY_DURATION`] so the
+    /// user can scan it. If the device is still unbonded the existing
+    /// secret is reused; if it was bonded, the bond is dropped + a
+    /// fresh secret is generated so the resulting QR carries new bytes
+    /// (otherwise a stale photograph from a previous pairing session
+    /// could be replayed).
+    pub fn request_qr_display(&mut self) {
+        let now = self.monotonic_clock;
+        self.qr_display_deadline = Some(now + QR_DISPLAY_DURATION);
+        if self.pairing.is_paired() {
+            // Re-pair flow: companion explicitly asked to bond again.
+            // Drop the prior bond locally so a fresh handshake produces
+            // a fresh peer_identity.
+            let factory = self.pairing_secret_factory;
+            self.pairing = PairingStateMachine::new_unpaired(
+                [0u8; PERIPHERAL_ADDRESS_LEN],
+                factory(),
+                now,
+            );
+            let next = DeviceSettings {
+                device_paired: false,
+                peer_identity: None,
+                ..self.persisted_settings
+            };
+            if next != self.persisted_settings {
+                if let Err(error) = self.settings_store.save_settings(&next) {
+                    log::warn!("settings_store.save_settings on re-pair: {error:?}");
+                }
+                self.persisted_settings = next;
+            }
+            log::info!(
+                "request_qr_display — was bonded; dropped bond and generated fresh secret"
+            );
+        } else {
+            log::info!("request_qr_display — showing QR for {:?}", QR_DISPLAY_DURATION);
+        }
     }
 
     /// Test-only: shortcut into the `Operational` state without going
@@ -337,16 +413,30 @@ where
         // truth.
         self.monotonic_clock = self.monotonic_clock.saturating_add(dt);
 
-        // Pairing mode short-circuits the rest of the frame. The
-        // runtime, map query, and route-sync apply path are all
-        // bypassed; the only thing the device does is rotate the QR
-        // and watch for an inbound pairing-confirm secret.
+        // The pairing state machine still ticks every frame so the
+        // ephemeral secret rotates while the device is unbonded — the
+        // QR display window may be opened on short notice and we want
+        // the secret to be fresh.
         let pairing_factory = self.pairing_secret_factory;
         self.pairing.tick(self.monotonic_clock, || pairing_factory());
-        if self.is_in_pairing_mode() {
+
+        // Auto-expire the QR-display deadline so the device returns to
+        // the map after the timeout if no bond completed.
+        if let Some(deadline) = self.qr_display_deadline {
+            if self.monotonic_clock >= deadline {
+                self.qr_display_deadline = None;
+                log::info!("QR display deadline elapsed — returning to map");
+            }
+        }
+
+        // QR-overlay path: only when a companion explicitly asked the
+        // device to enter pairing mode (via `pairing_request`). The
+        // runtime and route-sync apply path are bypassed for this
+        // window; the user is meant to scan the QR with their phone.
+        if self.is_showing_qr() {
             if !self.was_in_pairing_overlay {
                 log::info!(
-                    "step_frame → entering Pairing-mode QR overlay (clock={}ms)",
+                    "step_frame → entering QR overlay (clock={}ms)",
                     self.monotonic_clock.as_millis()
                 );
                 self.was_in_pairing_overlay = true;
@@ -354,7 +444,7 @@ where
             return self.render_pairing_overlay();
         }
         if self.was_in_pairing_overlay {
-            log::info!("step_frame → leaving Pairing-mode overlay (device bonded)");
+            log::info!("step_frame → leaving QR overlay");
             self.was_in_pairing_overlay = false;
         }
 
@@ -1261,12 +1351,84 @@ mod tests {
     }
 
     #[test]
-    fn pairing_mode_renders_pairing_overlay_path() {
+    fn unbonded_app_renders_map_until_qr_requested() {
+        // The new UX rule: an unbonded device shows the map (the
+        // companion-app pairing flow drives the QR display via
+        // `request_qr_display`). Boot-time unbonded must NOT short-
+        // circuit to the QR overlay — otherwise the user sees a QR
+        // every cold boot, which is exactly what we just fixed.
         let store = MemorySettingsStore::default();
         let mut app = unpaired_app_with_store(store);
         let _ = app
             .step_frame(Duration::from_millis(16), None, None)
-            .expect("pairing-mode frame");
+            .expect("first unbonded frame");
+        assert_ne!(
+            app.last_render_path(),
+            FramePath::PairingOverlay,
+            "unbonded boot must render the map, not the QR; the QR is opt-in",
+        );
+        assert!(!app.is_showing_qr());
+    }
+
+    #[test]
+    fn request_qr_display_renders_pairing_overlay_for_one_window() {
+        let store = MemorySettingsStore::default();
+        let mut app = unpaired_app_with_store(store);
+        // Companion-side `pairing_request` write hits the firmware →
+        // App opens the QR display window.
+        app.request_qr_display();
+        let _ = app
+            .step_frame(Duration::from_millis(16), None, None)
+            .expect("frame inside QR window");
         assert_eq!(app.last_render_path(), FramePath::PairingOverlay);
+        assert!(app.is_showing_qr());
+    }
+
+    #[test]
+    fn qr_display_window_expires_back_to_map() {
+        let store = MemorySettingsStore::default();
+        let mut app = unpaired_app_with_store(store);
+        app.request_qr_display();
+        // Step well past the QR-display window — App must auto-return
+        // to the map even if no pairing-confirm landed.
+        let dt = QR_DISPLAY_DURATION + Duration::from_secs(1);
+        let _ = app.step_frame(dt, None, None).expect("frame past window");
+        assert!(!app.is_showing_qr(), "QR window must auto-expire after timeout");
+        assert_ne!(app.last_render_path(), FramePath::PairingOverlay);
+    }
+
+    #[test]
+    fn successful_pairing_confirm_clears_qr_window_immediately() {
+        let store = MemorySettingsStore::default();
+        let mut app = unpaired_app_with_store(store);
+        app.request_qr_display();
+        assert!(app.is_showing_qr());
+        let secret = [0u8; SECRET_LEN];
+        let transition = app.ingest_pairing_confirm(&secret);
+        assert!(matches!(transition, Transition::Bonded { .. }));
+        assert!(
+            !app.is_showing_qr(),
+            "a successful bond must drop the QR overlay immediately, not wait \
+             for the deadline",
+        );
+    }
+
+    #[test]
+    fn request_qr_display_while_bonded_drops_bond_and_reshows_qr() {
+        // Re-pair flow: companion taps "Pair new device" again. The
+        // device should drop the prior bond + show a fresh QR.
+        let store = MemorySettingsStore::new(Some(DeviceSettings {
+            device_paired: true,
+            peer_identity: Some([0xAB; 16]),
+            ..DeviceSettings::default()
+        }));
+        let mut app = unpaired_app_with_store(store.clone());
+        assert!(!app.is_in_pairing_mode(), "starts bonded");
+        app.request_qr_display();
+        assert!(app.is_unbonded(), "request_qr_display must drop the prior bond");
+        assert!(app.is_showing_qr(), "and show the QR");
+        let persisted = store.shared_value().expect("settings present");
+        assert!(!persisted.device_paired, "NVS bond flag must be cleared");
+        assert!(persisted.peer_identity.is_none(), "stale peer_identity wiped");
     }
 }

@@ -66,6 +66,23 @@ pub enum RouteSyncIoError {
 pub trait RouteSyncIo {
     fn poll_chunk(&mut self) -> Result<Option<RouteTransferChunk>, RouteSyncIoError>;
     fn publish_messages(&mut self, messages: &[RouteSyncMessage]) -> Result<(), RouteSyncIoError>;
+
+    /// Whether a `pairing_request` write came in since the last call.
+    /// Default no-op so non-BLE transports (`NullRouteSyncIo`, host
+    /// fakes) don't have to implement it. The hosted-BLE impl drains
+    /// the C-side flag set by the GATT trampoline.
+    fn poll_pairing_request(&mut self) -> Result<bool, RouteSyncIoError> {
+        Ok(false)
+    }
+
+    /// Pull the next queued pairing-confirm secret (32 bytes), or
+    /// `None` if no companion has written one since the last call.
+    /// Default no-op for the same reason.
+    fn poll_pairing_secret(
+        &mut self,
+    ) -> Result<Option<[u8; crate::pairing::SECRET_LEN]>, RouteSyncIoError> {
+        Ok(None)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -167,6 +184,19 @@ where
     }
 
     pub fn run_frame(&mut self) -> Result<FrameResult, PlatformError> {
+        // Companion wrote `pairing_request` since the last frame —
+        // open the QR-display window before we render so the user
+        // sees the QR on this same frame.
+        if self.route_sync.poll_pairing_request()? {
+            self.app.request_qr_display();
+        }
+        // Drain any pairing-confirm secrets the BT host task delivered.
+        // On a match the App transitions to Operational and clears the
+        // QR display window.
+        while let Some(secret) = self.route_sync.poll_pairing_secret()? {
+            let _ = self.app.ingest_pairing_confirm(&secret);
+        }
+
         let mut route_sync_statuses = Vec::new();
         while let Some(chunk) = self.route_sync.poll_chunk()? {
             match self.app.ingest_route_sync_chunk(chunk) {

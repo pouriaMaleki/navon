@@ -157,12 +157,15 @@ mod espidf {
                 .map(|v| v != 0)
                 .unwrap_or(false);
             let mut peer_identity_buf = [0u8; 16];
-            let peer_identity = self
+            let blob_len = self
                 .nvs
                 .get_blob(PEER_IDENTITY_KEY, &mut peer_identity_buf)
                 .map_err(|error| SettingsError::Backend(format!("{error:?}")))?
-                .filter(|slice| slice.len() == 16)
-                .map(|_| peer_identity_buf);
+                .map(|slice| slice.len());
+            let peer_identity = match blob_len {
+                Some(16) => Some(peer_identity_buf),
+                _ => None,
+            };
             Ok(Some(DeviceSettings {
                 speed_unit,
                 device_paired,

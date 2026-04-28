@@ -45,6 +45,14 @@ typedef void (*hosted_ble_chunk_cb_t)(const uint8_t *data, size_t len, void *ctx
 // the device from Pairing → Operational on a match.
 typedef void (*hosted_ble_pairing_confirm_cb_t)(const uint8_t *data, size_t len, void *ctx);
 
+// Called when a companion writes any byte to the pairing-request
+// characteristic (UUID …-1005, unencrypted). Signals that the user
+// tapped "Pair new device" on the companion and the device should now
+// show its QR for ~90s. Triggered before any SMP exchange so the
+// companion can prompt the device to display the QR before the user
+// scans it.
+typedef void (*hosted_ble_pairing_request_cb_t)(void *ctx);
+
 // Tells the C side whether to reject pairing-confirm writes outright
 // (single-bond policy: once a bond is stored, the user must Forget
 // from the companion before re-pairing). Returning `true` accepts the
@@ -55,6 +63,7 @@ typedef bool (*hosted_ble_is_pairing_mode_cb_t)(void *ctx);
 typedef struct {
     hosted_ble_chunk_cb_t on_chunk;
     hosted_ble_pairing_confirm_cb_t on_pairing_confirm;
+    hosted_ble_pairing_request_cb_t on_pairing_request;
     hosted_ble_is_pairing_mode_cb_t is_pairing_mode;
     void *ctx;
 } hosted_ble_route_sync_callbacks_t;

@@ -28,6 +28,7 @@ protocol RouteSyncBluetoothClient: AnyObject {
     /// peripheral that advertises it (no identifier from QR — iOS only sees
     /// CoreBluetooth's per-app UUID once a peripheral is discovered).
     func connectToAdvertisedPeripheral() async throws -> ConnectedPeripheralInfo
+    func writePairingRequest() async throws
     func writePairingConfirm(secret: Data) async throws
     func write(packet: BleRouteSyncPacket) async throws
 }
@@ -82,6 +83,7 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
     private var chunkWriteCharacteristic: CBCharacteristic?
     private var eventNotifyCharacteristic: CBCharacteristic?
     private var pairingConfirmCharacteristic: CBCharacteristic?
+    private var pairingRequestCharacteristic: CBCharacteristic?
 
     private var pendingPowerOnContinuation: CheckedContinuation<Void, Error>?
     private var pendingScanContinuation: CheckedContinuation<String, Error>?
@@ -92,6 +94,7 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
     private let chunkWriteUUID = CBUUID(string: BleRouteSyncGattContract.chunkWriteCharacteristicUUID)
     private let eventNotifyUUID = CBUUID(string: BleRouteSyncGattContract.eventNotifyCharacteristicUUID)
     private let pairingConfirmUUID = CBUUID(string: BleRouteSyncGattContract.pairingConfirmCharacteristicUUID)
+    private let pairingRequestUUID = CBUUID(string: BleRouteSyncGattContract.pairingRequestCharacteristicUUID)
 
     var isReady: Bool {
         connectedPeripheral != nil && chunkWriteCharacteristic != nil && eventNotifyCharacteristic != nil
@@ -168,6 +171,24 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
             throw CoreBluetoothRouteSyncError.noDiscoveredPeripheral
         }
         return ConnectedPeripheralInfo(name: name, identifier: identifier)
+    }
+
+    /// Tell the device to flip its panel from the map to the QR
+    /// overlay. Companion calls this *before* opening the camera so
+    /// the QR is on screen by the time the user holds up the phone.
+    /// Unencrypted write — works without prior SMP pairing.
+    func writePairingRequest() async throws {
+        guard let peripheral = connectedPeripheral, let characteristic = pairingRequestCharacteristic else {
+            pairingLog.error("BLE.writePairingRequest: characteristic missing (connectedPeripheral? \(self.connectedPeripheral != nil, privacy: .public), pairingRequestChar? \(self.pairingRequestCharacteristic != nil, privacy: .public))")
+            throw CoreBluetoothRouteSyncError.characteristicMissing
+        }
+        pairingLog.notice("BLE.writePairingRequest — 1 B to \(characteristic.uuid.uuidString, privacy: .public)")
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            pendingWriteContinuation = continuation
+            // The payload is ignored — the existence of the write is the
+            // signal. Single byte keeps the BLE packet tiny.
+            peripheral.writeValue(Data([0x01]), for: characteristic, type: .withResponse)
+        }
     }
 
     /// Send the QR-OOB confirmation secret to the device's pairing-confirm
@@ -264,6 +285,7 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
         chunkWriteCharacteristic = characteristics.first(where: { $0.uuid == chunkWriteUUID })
         eventNotifyCharacteristic = characteristics.first(where: { $0.uuid == eventNotifyUUID })
         pairingConfirmCharacteristic = characteristics.first(where: { $0.uuid == pairingConfirmUUID })
+        pairingRequestCharacteristic = characteristics.first(where: { $0.uuid == pairingRequestUUID })
         guard let eventNotifyCharacteristic else {
             if let pendingConnectContinuation {
                 self.pendingConnectContinuation = nil
@@ -361,7 +383,10 @@ extension CoreBluetoothRouteSyncClient: CBPeripheralDelegate {
             pendingConnectContinuation = nil
             return
         }
-        peripheral.discoverCharacteristics([chunkWriteUUID, eventNotifyUUID, pairingConfirmUUID], for: routeSyncService)
+        peripheral.discoverCharacteristics(
+            [chunkWriteUUID, eventNotifyUUID, pairingConfirmUUID, pairingRequestUUID],
+            for: routeSyncService,
+        )
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {

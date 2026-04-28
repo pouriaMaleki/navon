@@ -74,6 +74,18 @@ final class PairingFlowViewModel: ObservableObject {
 
     func enterScanningStep() async {
         pairingLog.notice("PairingFlowViewModel.enterScanningStep")
+        // Tell the device to show its QR before opening the camera.
+        // The device defaults to the map; without this write the
+        // panel stays on the map and there's nothing to scan.
+        if let appModel {
+            do {
+                try await appModel.prepareDeviceForPairing()
+            } catch {
+                pairingLog.error("prepareDeviceForPairing failed before camera: \(error.localizedDescription, privacy: .public)")
+                pairingState = .failed(error.localizedDescription)
+                return
+            }
+        }
         pairingState = .scanning
         appModel?.pairingState = .scanning
         await refreshPermissionDescriptor()

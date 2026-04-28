@@ -104,6 +104,31 @@ final class AppModel: ObservableObject {
         pairingState = .instructions
     }
 
+    /// Step the device into pairing mode before the camera opens.
+    ///
+    /// The firmware defaults to showing the map; the QR overlay is
+    /// only rendered after a companion writes the unencrypted
+    /// `pairing_request` characteristic. The pairing flow runs this
+    /// between the instructions step and the camera step so the device
+    /// shows its QR by the time the user holds up the phone.
+    ///
+    /// Steps: scan → connect → write `pairing_request`. Throws so the
+    /// pairing-flow view-model can surface a user-visible error before
+    /// switching the screen to the camera.
+    func prepareDeviceForPairing() async throws {
+        pairingLog.notice("prepareDeviceForPairing — scan + connect + writePairingRequest")
+        pairingState = .connecting
+        do {
+            _ = try await bleService.connectToAdvertisedPeripheral()
+            try await bleService.writePairingRequest()
+            pairingLog.notice("prepareDeviceForPairing OK — device should now show QR")
+        } catch {
+            pairingLog.error("prepareDeviceForPairing failed: \(error.localizedDescription, privacy: .public)")
+            pairingState = .failed(error.localizedDescription)
+            throw error
+        }
+    }
+
     /// Drive the pairing flow's BLE half: scan for the route-sync service,
     /// connect to whichever peripheral advertises it, write the OOB
     /// confirmation secret, and persist the bond on success. On any failure
@@ -117,11 +142,14 @@ final class AppModel: ObservableObject {
     /// Auto-dismiss timing: 1.5 s after `.succeeded` we drop back to `.idle`.
     /// Tests can drive this synchronously by waiting on `pairingState`.
     func completePairing(payload: PairingQrPayload) async {
-        pairingLog.notice("completePairing — connecting (secret \(payload.ephemeralSecret.count, privacy: .public) B)")
-        pairingState = .connecting
+        pairingLog.notice("completePairing — confirming (secret \(payload.ephemeralSecret.count, privacy: .public) B)")
+        // We should already be connected from `prepareDeviceForPairing`.
+        // If something dropped the connection in between (rare), fall
+        // back to a fresh scan+connect — but the QR may no longer be
+        // visible on the device by then.
         do {
             let info = try await bleService.connectToAdvertisedPeripheral()
-            pairingLog.notice("completePairing — connected to \(info.name, privacy: .public) [\(info.identifier, privacy: .public)]")
+            pairingLog.notice("completePairing — connection ready: \(info.name, privacy: .public) [\(info.identifier, privacy: .public)]")
             pairingState = .confirming
             try await bleService.writePairingConfirm(secret: payload.ephemeralSecret)
             pairingLog.notice("completePairing — pairing-confirm write OK")

@@ -375,6 +375,40 @@ class CompanionAppState(
     }
 
     /**
+     * Step the device into pairing mode before opening the camera.
+     *
+     * The device defaults to showing the map; the QR overlay is only
+     * rendered after a companion writes `pairing_request` over BLE.
+     * The pairing flow runs this *between* the instructions step and
+     * the camera step so the device's panel actually shows the QR by
+     * the time the user holds the phone up to it.
+     *
+     * Steps:
+     *   1. service-UUID scan to locate the device (no fast-path here —
+     *      the user might be re-pairing after Forget, in which case
+     *      `pairedPeripheral` was just cleared).
+     *   2. connect to whatever advertised the route-sync service.
+     *   3. write `pairing_request` (unencrypted) so the device flips
+     *      from map to QR.
+     *
+     * Throws on any step failure — the pairing-flow view-model
+     * surfaces that as a user-visible error before the camera opens.
+     */
+    suspend fun prepareDeviceForPairing() {
+        pairingState = PairingFlowState.Connecting
+        bleService.scanForDevices()
+        bleService.connectToLastKnownDevice()
+        if (bleService.state.value.connectionState != DeviceConnectionState.CONNECTED) {
+            val reason = bleService.state.value.lastSyncResult
+                ?: "Couldn't connect to the device"
+            pairingState = PairingFlowState.Failed(reason)
+            error(reason)
+        }
+        bleService.writePairingRequest()
+        pairingState = PairingFlowState.Scanning
+    }
+
+    /**
      * Drive the pairing handshake to completion: connect to the
      * advertised peripheral, write the QR's secret to the
      * pairing-confirm characteristic, then persist the bond. On any
@@ -389,14 +423,26 @@ class CompanionAppState(
         payload: PairingQrPayload,
         autoDismissDelayMs: Long = 1_500L,
     ) {
-        pairingState = PairingFlowState.Connecting
-        val deviceName = try {
-            bleService.connectToAdvertisedPeripheral(payload.peripheralIdentifier)
-        } catch (error: Throwable) {
-            pairingState = PairingFlowState.Failed(
-                error.localizedMessage ?: "BLE connection failed during pairing",
-            )
-            return
+        // Reuse the existing connection from `prepareDeviceForPairing`
+        // when possible — we don't want to scan again, that would
+        // require the QR to still be visible on the device. If we
+        // somehow got disconnected between prepareDeviceForPairing and
+        // here, fall back to the QR's `id_android` for a targeted
+        // reconnect.
+        val deviceName = if (
+            bleService.state.value.connectionState == DeviceConnectionState.CONNECTED
+        ) {
+            bleService.state.value.lastDeviceName ?: "ESP32 Bike Minimap"
+        } else {
+            pairingState = PairingFlowState.Connecting
+            try {
+                bleService.connectToAdvertisedPeripheral(payload.peripheralIdentifier)
+            } catch (error: Throwable) {
+                pairingState = PairingFlowState.Failed(
+                    error.localizedMessage ?: "BLE connection failed during pairing",
+                )
+                return
+            }
         }
 
         pairingState = PairingFlowState.Confirming

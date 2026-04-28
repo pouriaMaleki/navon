@@ -136,6 +136,16 @@ class BleRouteSyncService(
         bluetoothClient.writePairingConfirm(secret)
     }
 
+    /**
+     * Ask the firmware to start showing its QR. Caller must have
+     * already established the connection via
+     * [connectToAdvertisedPeripheral]; this is then a single write
+     * over the existing GATT session.
+     */
+    suspend fun writePairingRequest() {
+        bluetoothClient.writePairingRequest()
+    }
+
     override suspend fun connectToLastKnownDevice() {
         updateState { it.copy(connectionState = DeviceConnectionState.CONNECTING) }
         runCatching { bluetoothClient.connectToScannedPeripheral() }

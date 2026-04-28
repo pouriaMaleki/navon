@@ -80,7 +80,16 @@ fun PairingFlowScreen(
 
     when (val pairingState = appState.pairingState) {
         is PairingFlowState.Idle, is PairingFlowState.Instructions -> InstructionsStep(
-            onContinue = { appState.beginPairingFlow() },
+            onContinue = {
+                // Flip the device's panel to QR before opening the
+                // camera. `prepareDeviceForPairing` connects + writes
+                // the unencrypted `pairing_request` characteristic, so
+                // by the time the camera comes up the QR is already
+                // showing on the device.
+                scope.launch {
+                    runCatching { appState.prepareDeviceForPairing() }
+                }
+            },
             onCancel = onClose,
         )
         is PairingFlowState.Scanning -> ScanStep(

@@ -28,6 +28,16 @@ object BleRouteSyncGattContract {
      * policy lives behind `is_pairing_mode_cb` in `hosted_ble_route_sync.c`.
      */
     const val PAIRING_CONFIRM_CHARACTERISTIC_UUID: String = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1004"
+
+    /**
+     * Pairing-request characteristic. Plain (unencrypted) write. The companion
+     * writes any single byte here to signal "user tapped Pair new device" so
+     * the firmware can switch its panel from the map to the QR display. The
+     * write reaches the device before any SMP pairing has happened, so the
+     * user can scan the QR before the encrypted pairing-confirm write
+     * triggers SMP.
+     */
+    const val PAIRING_REQUEST_CHARACTERISTIC_UUID: String = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1005"
 }
 
 data class RouteTransferChunkEnvelope(

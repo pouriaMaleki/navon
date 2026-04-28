@@ -8,6 +8,13 @@ enum BleRouteSyncGattContract {
     /// only while in pairing mode. Writing the QR-displayed secret is what
     /// transitions the device to operational mode and persists the bond.
     static let pairingConfirmCharacteristicUUID = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1004"
+    /// Pairing-request characteristic. Plain (unencrypted) write. The
+    /// companion writes any single byte here to signal "user tapped Pair
+    /// new device" so the firmware can switch its panel from the map to
+    /// the QR display. The write reaches the device before any SMP
+    /// pairing has happened, so the user can scan the QR before the
+    /// encrypted pairing-confirm write triggers SMP.
+    static let pairingRequestCharacteristicUUID = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1005"
 }
 
 struct RouteTransferChunkEnvelope: Equatable {

@@ -43,6 +43,12 @@ use crate::route_sync_ble::{BleRouteSyncPacket, decode_ble_packet, encode_ble_pa
 static INBOUND: OnceLock<Mutex<VecDeque<RouteTransferChunk>>> = OnceLock::new();
 static PAIRING_INBOUND: OnceLock<Mutex<VecDeque<[u8; SECRET_LEN]>>> = OnceLock::new();
 
+/// Set by the C `pairing_request` write trampoline; consumed by
+/// `App::step_frame` to open the QR-display window. Lock-free atomic
+/// because the producer runs in the BT host task and the consumer runs
+/// in the runtime task.
+static PAIRING_REQUEST_PENDING: AtomicBool = AtomicBool::new(false);
+
 /// Whether the device is currently in pairing mode. Read from the C
 /// pairing-confirm write path (under the BT host task) and updated by
 /// the runtime when the pairing state machine transitions; using an
@@ -72,6 +78,13 @@ fn pairing_inbound() -> &'static Mutex<VecDeque<[u8; SECRET_LEN]>> {
 /// `PairingStateMachine::on_pairing_confirm`.
 pub fn drain_pairing_secret() -> Option<[u8; SECRET_LEN]> {
     pairing_inbound().lock().ok().and_then(|mut q| q.pop_front())
+}
+
+/// Atomically clear and return whether a pairing-request write was
+/// pending since the last drain. The platform layer calls this once
+/// per frame and forwards the signal to `App::request_qr_display`.
+pub fn drain_pairing_request() -> bool {
+    PAIRING_REQUEST_PENDING.swap(false, Ordering::SeqCst)
 }
 
 /// Route-sync IO backed by the hosted-BLE GATT server in C.
@@ -108,6 +121,7 @@ impl HostedBleRouteSyncIo {
         let cbs = esp_idf_svc::sys::hosted_ble_route_sync_callbacks_t {
             on_chunk: Some(on_chunk_trampoline),
             on_pairing_confirm: Some(on_pairing_confirm_trampoline),
+            on_pairing_request: Some(on_pairing_request_trampoline),
             is_pairing_mode: Some(is_pairing_mode_trampoline),
             ctx: std::ptr::null_mut(),
         };
@@ -183,6 +197,11 @@ unsafe extern "C" fn is_pairing_mode_trampoline(_ctx: *mut c_void) -> bool {
     pairing_mode()
 }
 
+unsafe extern "C" fn on_pairing_request_trampoline(_ctx: *mut c_void) {
+    log::info!("hosted-ble: pairing-request flag set from BT host task");
+    PAIRING_REQUEST_PENDING.store(true, Ordering::SeqCst);
+}
+
 impl RouteSyncIo for HostedBleRouteSyncIo {
     fn poll_chunk(&mut self) -> Result<Option<RouteTransferChunk>, RouteSyncIoError> {
         match self {
@@ -219,5 +238,19 @@ impl RouteSyncIo for HostedBleRouteSyncIo {
             }
         }
         Ok(())
+    }
+
+    fn poll_pairing_request(&mut self) -> Result<bool, RouteSyncIoError> {
+        if matches!(self, Self::Inactive) {
+            return Ok(false);
+        }
+        Ok(drain_pairing_request())
+    }
+
+    fn poll_pairing_secret(&mut self) -> Result<Option<[u8; SECRET_LEN]>, RouteSyncIoError> {
+        if matches!(self, Self::Inactive) {
+            return Ok(None);
+        }
+        Ok(drain_pairing_secret())
     }
 }

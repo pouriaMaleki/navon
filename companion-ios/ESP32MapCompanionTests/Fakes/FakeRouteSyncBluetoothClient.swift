@@ -16,6 +16,7 @@ final class FakeRouteSyncBluetoothClient: RouteSyncBluetoothClient {
     private(set) var connectToAdvertisedCallCount = 0
     private(set) var writeCallCount = 0
     private(set) var writePairingConfirmCallCount = 0
+    private(set) var writePairingRequestCallCount = 0
     private(set) var armDebugFaultCallCount = 0
 
     private(set) var lastScanTimeout: TimeInterval?
@@ -34,6 +35,7 @@ final class FakeRouteSyncBluetoothClient: RouteSyncBluetoothClient {
     )
     var writeResult: Result<Void, Error> = .success(())
     var writePairingConfirmResult: Result<Void, Error> = .success(())
+    var writePairingRequestResult: Result<Void, Error> = .success(())
 
     func armDebugFault(_ mode: RouteSyncFaultInjectionMode) {
         armDebugFaultCallCount += 1
@@ -68,6 +70,11 @@ final class FakeRouteSyncBluetoothClient: RouteSyncBluetoothClient {
         writePairingConfirmCallCount += 1
         lastWrittenPairingSecret = secret
         try writePairingConfirmResult.get()
+    }
+
+    func writePairingRequest() async throws {
+        writePairingRequestCallCount += 1
+        try writePairingRequestResult.get()
     }
 
     func write(packet: BleRouteSyncPacket) async throws {

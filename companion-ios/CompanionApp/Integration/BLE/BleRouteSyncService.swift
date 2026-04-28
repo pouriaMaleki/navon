@@ -109,6 +109,14 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
         try await bluetoothClient.writePairingConfirm(secret: secret)
     }
 
+    /// Tell the device to switch from the map to the QR overlay. The
+    /// pairing flow calls this *before* opening the camera so the QR
+    /// is on screen by the time the user holds the phone up to it.
+    /// Reuses an already-connected GATT session.
+    func writePairingRequest() async throws {
+        try await bluetoothClient.writePairingRequest()
+    }
+
     func publishSet(_ route: NormalizedRoutePackage) async throws {
         try await beginTransfer(.set(RouteSetMessage(route: route)))
     }
