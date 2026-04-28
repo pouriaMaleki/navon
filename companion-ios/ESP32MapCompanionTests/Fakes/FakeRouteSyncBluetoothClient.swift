@@ -1,0 +1,75 @@
+import Foundation
+@testable import ESP32MapCompanion
+
+/// Test double for `RouteSyncBluetoothClient`. Records call counts and arguments
+/// so service- and AppModel-level tests can assert on the BLE traffic without
+/// touching CoreBluetooth.
+final class FakeRouteSyncBluetoothClient: RouteSyncBluetoothClient {
+    var onSyncMessage: ((RouteSyncMessage) -> Void)?
+    var onConnectionStateChange: ((DeviceConnectionState, String?) -> Void)?
+
+    var isReady: Bool = false
+
+    private(set) var scanCallCount = 0
+    private(set) var connectCallCount = 0
+    private(set) var connectToPairedCallCount = 0
+    private(set) var connectToAdvertisedCallCount = 0
+    private(set) var writeCallCount = 0
+    private(set) var writePairingConfirmCallCount = 0
+    private(set) var armDebugFaultCallCount = 0
+
+    private(set) var lastScanTimeout: TimeInterval?
+    private(set) var lastConnectedIdentifier: String?
+    private(set) var lastWrittenPacket: BleRouteSyncPacket?
+    private(set) var lastWrittenPairingSecret: Data?
+    private(set) var lastArmedDebugFault: RouteSyncFaultInjectionMode?
+
+    /// What `scanForRouteSyncPeripheral` should produce: a device name on
+    /// success or an error to throw. Defaults to a stub name.
+    var scanResult: Result<String, Error> = .success("ESP32 Bike Minimap")
+    var connectResult: Result<String, Error> = .success("ESP32 Bike Minimap")
+    var connectToPairedResult: Result<String, Error> = .success("ESP32 Bike Minimap")
+    var connectToAdvertisedResult: Result<String, Error> = .success("ESP32 Bike Minimap")
+    var writeResult: Result<Void, Error> = .success(())
+    var writePairingConfirmResult: Result<Void, Error> = .success(())
+
+    func armDebugFault(_ mode: RouteSyncFaultInjectionMode) {
+        armDebugFaultCallCount += 1
+        lastArmedDebugFault = mode
+    }
+
+    func scanForRouteSyncPeripheral(timeout: TimeInterval) async throws -> String {
+        scanCallCount += 1
+        lastScanTimeout = timeout
+        return try scanResult.get()
+    }
+
+    func connectToScannedPeripheral() async throws -> String {
+        connectCallCount += 1
+        return try connectResult.get()
+    }
+
+    func connectToPairedPeripheral(identifier: String) async throws -> String {
+        connectToPairedCallCount += 1
+        lastConnectedIdentifier = identifier
+        return try connectToPairedResult.get()
+    }
+
+    func connectToAdvertisedPeripheral(identifier: String) async throws -> String {
+        connectToAdvertisedCallCount += 1
+        lastConnectedIdentifier = identifier
+        return try connectToAdvertisedResult.get()
+    }
+
+    func writePairingConfirm(secret: Data) async throws {
+        writePairingConfirmCallCount += 1
+        lastWrittenPairingSecret = secret
+        try writePairingConfirmResult.get()
+    }
+
+    func write(packet: BleRouteSyncPacket) async throws {
+        writeCallCount += 1
+        lastWrittenPacket = packet
+        try writeResult.get()
+    }
+}

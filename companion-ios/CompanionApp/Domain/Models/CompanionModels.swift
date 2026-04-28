@@ -311,6 +311,28 @@ struct RoutePreviewModel: Equatable {
     }
 }
 
+/// Locally persisted record of the BLE peripheral the user has paired with.
+/// `identifier` is the platform-native peer ID — `peripheral.identifier.uuidString`
+/// on iOS, BLE MAC on Android. The JSON wire format is shared with Android via
+/// `parity-fixtures/data/paired_peripheral.json` so both companions can decode
+/// it byte-for-byte.
+struct PairedPeripheralRecord: Codable, Equatable {
+    let identifier: String
+    let friendlyName: String
+    let pairedAt: Date
+}
+
+/// Pairing flow UI state machine surfaced from `AppModel` to `PairingFlowView`.
+enum PairingFlowState: Equatable {
+    case idle
+    case instructions
+    case scanning
+    case connecting
+    case confirming
+    case succeeded
+    case failed(String)
+}
+
 struct ActiveRouteSession: Equatable, Codable {
     var routeIdentifier: String?
     var routeRevision: Int?

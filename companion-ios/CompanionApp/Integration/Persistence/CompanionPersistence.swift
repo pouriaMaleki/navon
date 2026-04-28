@@ -10,12 +10,37 @@ final class CompanionPersistence: RouteSessionStore {
         static let settings = "companion.settings"
         static let plannerPreferences = "companion.routePlannerPreferences"
         static let lastKnownRider = "companion.lastKnownRider"
+        static let pairedPeripheral = "companion.pairedPeripheral"
     }
 
     private let defaults: UserDefaults
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     private let nearbyDestinationMergeThresholdMeters = 80.0
+
+    /// Encoder used for `PairedPeripheralRecord` so its `pairedAt` round-trips
+    /// the cross-platform parity fixture (ISO-8601 with milliseconds + `Z`).
+    /// The default `JSONEncoder` strategies don't emit fractional seconds,
+    /// which would diverge from Android's record bytes.
+    private let pairedPeripheralEncoder: JSONEncoder = {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .formatted(CompanionPersistence.iso8601MillisFormatter)
+        return encoder
+    }()
+    private let pairedPeripheralDecoder: JSONDecoder = {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .formatted(CompanionPersistence.iso8601MillisFormatter)
+        return decoder
+    }()
+
+    static let iso8601MillisFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .iso8601)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        return formatter
+    }()
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -131,6 +156,20 @@ final class CompanionPersistence: RouteSessionStore {
 
     func saveLastKnownRider(_ point: CoordinatePoint) {
         save(point, forKey: Key.lastKnownRider)
+    }
+
+    func loadPairedPeripheral() -> PairedPeripheralRecord? {
+        guard let data = defaults.data(forKey: Key.pairedPeripheral) else { return nil }
+        return try? pairedPeripheralDecoder.decode(PairedPeripheralRecord.self, from: data)
+    }
+
+    func savePairedPeripheral(_ record: PairedPeripheralRecord) {
+        guard let data = try? pairedPeripheralEncoder.encode(record) else { return }
+        defaults.set(data, forKey: Key.pairedPeripheral)
+    }
+
+    func clearPairedPeripheral() {
+        defaults.removeObject(forKey: Key.pairedPeripheral)
     }
 
     private func preferredDestinationTitle(newTitle: String, existingTitle: String) -> String {

@@ -3,7 +3,7 @@ import Combine
 
 @MainActor
 final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
-    @Published private(set) var sessionState = SyncSessionState(
+    @Published var sessionState = SyncSessionState(
         connectionState: .disconnected,
         routeSyncState: .idle,
         lastSyncResult: "Not sent yet",
@@ -23,11 +23,11 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
 
     private let chunkSizeBytes = 96
     private let ackTimeoutNanoseconds: UInt64 = 2_000_000_000
-    private let bluetoothClient: CoreBluetoothRouteSyncClient
+    private let bluetoothClient: RouteSyncBluetoothClient
     private var pendingTransfer: PendingTransfer?
     private var ackTimeoutTask: Task<Void, Never>?
 
-    init(bluetoothClient: CoreBluetoothRouteSyncClient = CoreBluetoothRouteSyncClient()) {
+    init(bluetoothClient: RouteSyncBluetoothClient = CoreBluetoothRouteSyncClient()) {
         self.bluetoothClient = bluetoothClient
         self.bluetoothClient.onConnectionStateChange = { [weak self] state, name in
             Task { @MainActor in
@@ -44,7 +44,7 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
     func scanForDevices() async {
         sessionState.connectionState = .scanning
         do {
-            sessionState.lastDeviceName = try await bluetoothClient.scanForRouteSyncPeripheral()
+            sessionState.lastDeviceName = try await bluetoothClient.scanForRouteSyncPeripheral(timeout: 6.0)
             sessionState.lastSyncResult = "Discovered \(sessionState.lastDeviceName ?? "ESP32 Bike Minimap")"
         } catch {
             sessionState.connectionState = .disconnected
@@ -62,6 +62,48 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
             sessionState.connectionState = .disconnected
             sessionState.lastSyncResult = error.localizedDescription
         }
+    }
+
+    /// Fast-path reconnect to an already-paired peripheral using its persisted
+    /// CoreBluetooth identifier. Skips the scan entirely. On `noDiscoveredPeripheral`
+    /// (iOS bond store empty after a fresh install) the caller is expected to
+    /// fall back to `scanForDevices` + `connectToLastKnownDevice`.
+    func connectToPairedPeripheral(identifier: String) async {
+        sessionState.connectionState = .connecting
+        do {
+            sessionState.lastDeviceName = try await bluetoothClient.connectToPairedPeripheral(identifier: identifier)
+            sessionState.connectionState = .connected
+            sessionState.lastSyncResult = "Connected to \(sessionState.lastDeviceName ?? "ESP32 Bike Minimap")"
+        } catch {
+            sessionState.connectionState = .disconnected
+            sessionState.lastSyncResult = error.localizedDescription
+        }
+    }
+
+    /// Pairing-flow connect: tries the bond store first (`retrievePeripherals`)
+    /// and falls back to a targeted scan filtered by identifier. Throws on
+    /// failure so the caller (`AppModel.completePairing`) can surface a UI
+    /// error without persisting a half-state.
+    func connectToAdvertisedPeripheral(identifier: String) async throws -> String {
+        sessionState.connectionState = .connecting
+        do {
+            let name = try await bluetoothClient.connectToAdvertisedPeripheral(identifier: identifier)
+            sessionState.lastDeviceName = name
+            sessionState.connectionState = .connected
+            sessionState.lastSyncResult = "Connected to \(name)"
+            return name
+        } catch {
+            sessionState.connectionState = .disconnected
+            sessionState.lastSyncResult = error.localizedDescription
+            throw error
+        }
+    }
+
+    /// Forwards the OOB confirmation write to the BLE client. Throws on
+    /// failure so the AppModel can avoid persisting the bond when the
+    /// device rejects the secret.
+    func writePairingConfirm(secret: Data) async throws {
+        try await bluetoothClient.writePairingConfirm(secret: secret)
     }
 
     func publishSet(_ route: NormalizedRoutePackage) async throws {

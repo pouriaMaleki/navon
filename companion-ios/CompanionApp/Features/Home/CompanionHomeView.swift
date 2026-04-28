@@ -103,7 +103,22 @@ struct CompanionHomeView: View {
                     viewModel.ingestRiderLocationFix(newValue, timestampMs: Int64(Date().timeIntervalSince1970 * 1000))
                     viewModel.notifyRiderLocationUpdated()
                 }
+                .sheet(isPresented: pairingSheetBinding) {
+                    PairingFlowView(appModel: appModel)
+                        .environmentObject(appModel)
+                }
         }
+    }
+
+    private var pairingSheetBinding: Binding<Bool> {
+        Binding(
+            get: { appModel.pairingState != .idle },
+            set: { newValue in
+                if !newValue {
+                    appModel.pairingState = .idle
+                }
+            }
+        )
     }
 
     @ViewBuilder
@@ -404,6 +419,11 @@ struct CompanionHomeView: View {
                     .lineLimit(2)
             }
             Spacer()
+            if let chipState = viewModel.deviceChipState {
+                DeviceStatusChip(state: chipState) {
+                    viewModel.handleDeviceChipTap()
+                }
+            }
             // Spec #11 ("split-way reroute"): plan fresh alternatives from
             // the rider's current location to the same destination,
             // keeping the active session intact so cancelling resumes the
@@ -444,6 +464,11 @@ struct CompanionHomeView: View {
                     .lineLimit(2)
             }
             Spacer()
+            if let chipState = viewModel.deviceChipState {
+                DeviceStatusChip(state: chipState) {
+                    viewModel.handleDeviceChipTap()
+                }
+            }
             Button(action: onOpenSettings) {
                 Image(systemName: "gearshape.fill")
                     .font(.system(size: 18, weight: .semibold))
@@ -490,6 +515,12 @@ struct CompanionHomeView: View {
             }
             .padding(14)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+
+            if let chipState = viewModel.deviceChipState {
+                DeviceStatusChip(state: chipState) {
+                    viewModel.handleDeviceChipTap()
+                }
+            }
 
             Button(action: onOpenSettings) {
                 Image(systemName: "gearshape.fill")

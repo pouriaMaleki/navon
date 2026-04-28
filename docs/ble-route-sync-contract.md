@@ -19,6 +19,10 @@ Characteristics:
 - Device -> companion route event notify:
   - `8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1003`
   - expected properties: `notify`
+- Companion -> device pairing confirm (Phase B):
+  - `8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1004`
+  - expected properties: `write` (encrypted)
+  - exposed only while the device is in pairing mode (no bond stored). Companion writes the QR-displayed 32-byte secret here; the device verifies it, persists the bond, and drops the characteristic on the next boot.
 
 ## Packet Types
 BLE packets carry one of two payload shapes:

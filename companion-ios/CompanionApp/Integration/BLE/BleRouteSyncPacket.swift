@@ -4,6 +4,10 @@ enum BleRouteSyncGattContract {
     static let serviceUUID = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1001"
     static let chunkWriteCharacteristicUUID = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1002"
     static let eventNotifyCharacteristicUUID = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1003"
+    /// Phase B pairing: device exposes this WRITE_ENCRYPTED characteristic
+    /// only while in pairing mode. Writing the QR-displayed secret is what
+    /// transitions the device to operational mode and persists the bond.
+    static let pairingConfirmCharacteristicUUID = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1004"
 }
 
 struct RouteTransferChunkEnvelope: Equatable {

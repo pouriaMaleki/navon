@@ -6,12 +6,32 @@ import MapKit
 final class HomeViewModel: ObservableObject {
     func syncQueryFromCurrentPreview() {
         let sessionTitle = appModel.activeSession.destinationLabel.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !sessionTitle.isEmpty, sessionTitle != "No destination" {
+        if !Self.isGenericDestinationTitle(sessionTitle) {
             query = sessionTitle
-        } else if let destination = appModel.preview.selectedAlternative?.normalizedPackage.summary.destinationLabel, !destination.isEmpty {
+        } else if let destination = appModel.preview.selectedAlternative?.normalizedPackage.summary.destinationLabel,
+                  !Self.isGenericDestinationTitle(destination) {
             query = destination
         } else if let route = appModel.preview.selectedAlternative {
             query = route.title
+        }
+    }
+
+    /// Generic placeholder labels that providers fall back to when a route's
+    /// destination is anonymous (e.g. dropped pin, OSM/HSL fallback). The
+    /// search field must not surface these on launch — they prefill the
+    /// "Where to?" input with text that didn't come from the user.
+    static func isGenericDestinationTitle(_ title: String) -> Bool {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return true }
+        switch trimmed.lowercased() {
+        case "no destination",
+             "selected destination",
+             "recent destination",
+             "dropped pin",
+             "route":
+            return true
+        default:
+            return false
         }
     }
 
@@ -132,6 +152,47 @@ final class HomeViewModel: ObservableObject {
         self.appModel = appModel
         self.placeSearchService = placeSearchService
     }
+
+    /// Derived chip state for the home-screen device pairing affordance.
+    /// Returns `nil` when there is no paired record: the chip stays hidden
+    /// from home, and pairing initiation lives only in
+    /// `DeviceSettingsView` (single-bond model — the user explicitly opts
+    /// in / out from Settings, not from the busy home screen).
+    var deviceChipState: DeviceChipState? {
+        let connection = appModel.bleService.sessionState.connectionState
+        guard let record = appModel.pairedPeripheral else {
+            return nil
+        }
+        switch connection {
+        case .scanning, .connecting:
+            return .connecting(name: record.friendlyName)
+        case .connected:
+            return .connected(name: record.friendlyName)
+        case .disconnected:
+            return .pairedDisconnected(name: record.friendlyName)
+        }
+    }
+
+    /// Action invoked when the chip is tapped. The unpaired path is no
+    /// longer reachable from the chip — pairing starts from Settings.
+    /// Connecting state is dropped at the chip layer (`.disabled(true)`);
+    /// kept here as `break` so a future enabling of the state doesn't
+    /// silently misroute.
+    func handleDeviceChipTap() {
+        guard let state = deviceChipState else { return }
+        switch state {
+        case .pairedDisconnected:
+            Task { await appModel.connectToDevice() }
+        case .connecting:
+            break
+        case .connected:
+            showConnectionPopover = true
+        }
+    }
+
+    /// Toggled by tapping a connected device chip; the home view binds a
+    /// popover or sheet to it. Exposed `@Published` so SwiftUI re-renders.
+    @Published var showConnectionPopover: Bool = false
 
     var plannerPreferences: RoutePlannerPreferences {
         get { appModel.routePlannerPreferences }

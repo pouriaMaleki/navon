@@ -71,6 +71,8 @@ Build the companion apps as map-first navigation products with the same logical 
 - MapKit for the Home map surface and long-press destination selection
 - MapKit local search for destination suggestions
 - native URL handling, share extensions, and document picker flows
+- AVFoundation `AVCaptureMetadataOutput` for pairing-QR capture, gated behind `NSCameraUsageDescription`
+- Single bonded peripheral persisted as `PairedPeripheralRecord` (CompanionPersistence). Fast-path reconnect via `CBCentralManager.retrievePeripherals(withIdentifiers:)`; falls back to a service-UUID scan when the iOS bond store is empty (fresh install). Pairing flow writes the QR-displayed 32-byte secret to the `…1004` pairing-confirm characteristic to gate the device's transition to operational mode.
 
 ### Android
 - single-activity Jetpack Compose

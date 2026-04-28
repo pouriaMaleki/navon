@@ -39,10 +39,12 @@ final class AppModel: ObservableObject {
     @Published var homePreviewRequestID = UUID()
     @Published var homeStartRequestID = UUID()
     @Published private(set) var persistenceRevision = 0
+    @Published private(set) var pairedPeripheral: PairedPeripheralRecord?
+    @Published var pairingState: PairingFlowState = .idle
 
     let diagnosticsStore = CompanionDiagnosticsStore()
-    let persistence = CompanionPersistence()
-    let bleService = BleRouteSyncService()
+    let persistence: CompanionPersistence
+    let bleService: BleRouteSyncService
     let locationService: CoreLocationService
 
     private var cancellables = Set<AnyCancellable>()
@@ -56,9 +58,10 @@ final class AppModel: ObservableObject {
         .tcxImport: SampleRoutingAdapter(providerID: .tcxImport),
     ]
 
-    init() {
+    init(persistence: CompanionPersistence = CompanionPersistence(), bleService: BleRouteSyncService? = nil) {
         // All stored properties must be initialized before any self-method call.
-        let persistence = self.persistence
+        self.persistence = persistence
+        self.bleService = bleService ?? BleRouteSyncService()
         let locationService = CoreLocationService(persistence: persistence)
         self.locationService = locationService
 
@@ -69,12 +72,61 @@ final class AppModel: ObservableObject {
             activeSession = storedSession
         }
         selectedProviderID = activeSession.providerID
+        pairedPeripheral = persistence.loadPairedPeripheral()
         if let initial = locationService.currentLocation ?? locationService.lastKnownLocation {
             routeRequest.origin = initial
         }
         bindBleState()
         bindLocationService()
         locationService.start()
+    }
+
+    /// Drop the bonded peripheral. Clears in-memory + persistence and the
+    /// pairing UI state machine so a future reconnect requires a fresh QR
+    /// scan. Single-bond is enforced here and on the firmware side.
+    func forgetPairedDevice() {
+        pairedPeripheral = nil
+        persistence.clearPairedPeripheral()
+        pairingState = .idle
+    }
+
+    /// Entry point invoked by the home-screen pair chip / Settings CTA.
+    /// Surfaces the instructions step before the camera sheet opens so the
+    /// user knows what to do with the QR.
+    func beginPairingFlow() {
+        pairingState = .instructions
+    }
+
+    /// Drive the pairing flow's BLE half: connect to the QR-advertised peer,
+    /// write the OOB confirmation secret, and persist the bond on success.
+    /// On any failure we leave persistence untouched so the user can retry
+    /// without the app holding a half-state record.
+    ///
+    /// Auto-dismiss timing: 1.5 s after `.succeeded` we drop back to `.idle`.
+    /// Tests can drive this synchronously by waiting on `pairingState`.
+    func completePairing(payload: PairingQrPayload) async {
+        pairingState = .connecting
+        do {
+            _ = try await bleService.connectToAdvertisedPeripheral(identifier: payload.peripheralIdentifier)
+            pairingState = .confirming
+            try await bleService.writePairingConfirm(secret: payload.ephemeralSecret)
+            let record = PairedPeripheralRecord(
+                identifier: payload.peripheralIdentifier,
+                friendlyName: bleService.sessionState.lastDeviceName ?? "ESP32 Bike Minimap",
+                pairedAt: Date()
+            )
+            persistence.savePairedPeripheral(record)
+            pairedPeripheral = record
+            pairingState = .succeeded
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            // Only auto-dismiss if no later action moved the state already
+            // (e.g. user cancelled, error fired). Avoids stomping on it.
+            if pairingState == .succeeded {
+                pairingState = .idle
+            }
+        } catch {
+            pairingState = .failed(error.localizedDescription)
+        }
     }
 
     var providerOptions: [RouteProviderID] {
@@ -327,6 +379,13 @@ final class AppModel: ObservableObject {
     }
 
     func connectToDevice() async {
+        if let paired = pairedPeripheral {
+            await bleService.connectToPairedPeripheral(identifier: paired.identifier)
+            if bleService.sessionState.connectionState == .connected {
+                refreshDiagnostics()
+                return
+            }
+        }
         await bleService.scanForDevices()
         await bleService.connectToLastKnownDevice()
         refreshDiagnostics()
