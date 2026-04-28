@@ -16,9 +16,91 @@ Characteristics:
 - Companion -> device route chunk write:
   - `8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1002`
   - expected properties: `write` or `writeWithoutResponse`
+  - permission: **`ESP_GATT_PERM_WRITE_ENCRYPTED`** — first encrypted
+    write triggers SMP Just Works pairing transparently
 - Device -> companion route event notify:
   - `8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1003`
   - expected properties: `notify`
+  - permission: **`ESP_GATT_PERM_READ_ENCRYPTED`**
+- Companion -> device pairing-confirm write (QR-OOB handshake):
+  - `8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1004`
+  - expected properties: `write`
+  - permission: **`ESP_GATT_PERM_WRITE_ENCRYPTED`**
+  - Companion writes the 32-byte secret pulled from the firmware's QR
+    panel. Firmware rejects writes with `ESP_GATT_WRITE_NOT_PERMIT`
+    when the device is already bonded (single-bond policy — user must
+    Forget on the companion before re-pairing).
+
+## Security
+- **SMP Just Works** for link-layer encryption (configured in
+  `firmware/components/hosted_ble/hosted_ble.c::hosted_ble_init`):
+  `ESP_LE_AUTH_REQ_SC_BOND` + `ESP_IO_CAP_NONE` + 16-byte max key.
+  Bond is persisted by Bluedroid into NVS via
+  `CONFIG_BT_BLE_SMP_BOND_NVS_FLASH=y`.
+- **OOB confirmation** on top of Just Works: the firmware shows a QR
+  containing a 32-byte ephemeral secret on its panel; the companion
+  writes the secret back to the pairing-confirm characteristic. The
+  device matches the secret in `PairingStateMachine::on_pairing_confirm`
+  before flipping to `Operational` and persisting `peer_identity` to NVS.
+- **Single-bond policy**: once bonded, the device rejects all
+  pairing-confirm writes. Re-pair entry is from the companion via
+  *Forget paired device* — clearing the local bond fails the next
+  encrypted write at the SMP layer, the firmware sees the auth
+  failure, drops `peer_identity`, and re-enters pairing mode.
+- **Allowlist filter advertising** flips from
+  `ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY` to
+  `ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST` after bonding (see
+  `hosted_ble_route_sync_set_adv_filter`); the bonded peer's BD_ADDR
+  is loaded into the controller's whitelist.
+
+## Pairing flow
+The QR encodes a v1 JSON payload:
+```json
+{"v":1,"id_android":"AA:BB:CC:DD:EE:FF","secret":"<base64-32B>","fw":"<semver>"}
+```
+- `v` — schema version. Companion decoders reject unknown versions
+  with a specific error so a firmware roll-forward doesn't silently
+  break.
+- `id_android` — peripheral BD_ADDR as colon-MAC. iOS doesn't see the
+  BD_ADDR (CoreBluetooth surfaces a per-app UUID), so the iOS decoder
+  ignores this field and matches the secret over service-scan instead.
+- `secret` — base64 of the 32-byte ephemeral secret. The companion
+  writes the raw bytes to `…-1004` to close the handshake.
+- `fw` — optional. Surfaced in companion diagnostics so a
+  firmware/companion version mismatch is visible at scan time.
+
+The secret rotates every 60s while the device is in pairing mode
+(`firmware/src/pairing.rs::ROTATION_PERIOD`) so a stale photo of the
+QR can't be replayed later.
+
+Golden fixture: `parity-fixtures/data/pairing_qr_v1.json`. Both
+Android and iOS decoder unit tests read this file and assert identical
+field values; catches schema drift before it ships.
+
+## Robustness caps
+The reassembly path enforces three caps to defend against a
+misbehaving or malicious peer; each cap returns a `RetryableFailure`
+status the companion can surface as a retry prompt:
+- `MAX_TOTAL_CHUNKS = 1024` — rejects a chunk whose `total_chunks`
+  exceeds this so a malicious peer can't claim `u32::MAX` and force
+  the device to allocate a giant `Vec`.
+- `MAX_PAYLOAD_BYTES = 128 KiB` — running tally of `payload_fragment`
+  bytes across all chunks of a single transfer; rejected before the
+  overflowing chunk is appended.
+- `IDLE_TIMEOUT = 30s` — `RouteSyncTransport::tick` drops a pending
+  transfer with no chunk activity in the last 30 seconds. Companion
+  is expected to retry on the next encrypted-write window.
+
+The C-side hosted-BLE inbound queue is also bounded:
+- chunk queue capacity = 64 (`MAX_INBOUND_QUEUE`)
+- pairing-confirm queue capacity = 8 (`MAX_INBOUND_QUEUE_PAIRING`)
+Excess items are dropped at the trampoline with a warn log; existing
+queued items are preserved so the active transfer can finish.
+
+The `s_conn_id` slot is a `_Atomic int32_t` and a second concurrent
+connection is rejected (the C handler calls `esp_ble_gap_disconnect`
+on the duplicate). The host-testable rule lives in
+`firmware/src/hosted_ble_state.rs::BleConnectionState`.
 
 ## Packet Types
 BLE packets carry one of two payload shapes:
@@ -104,9 +186,28 @@ Implemented in native companion apps:
 - CoreBluetooth central/client adapter on iOS for scan, connect, chunk writes, and notification handling
 - Android BLE/GATT central adapter for scan, connect, chunk writes, notification handling, and runtime permission prompting
 
+Implemented for security:
+- SMP Just Works pairing + bond persistence (`CONFIG_BT_BLE_SMP_ENABLE=y`)
+- QR-OOB confirmation handshake via `pairing_confirm` characteristic
+- encrypted permissions on chunk-write + event-notify (Phase 3.11)
+- single-bond policy enforced at the GATT layer + persistence layer
+- allowlist-filter advertising after bonding (Phase 3.7)
+- Android `PairingFlowScreen` (CameraX + ML Kit barcode scanner) with
+  permission-denied path that routes to app settings
+
+Implemented for robustness:
+- chunk-count, payload-byte, and idle-timeout caps in
+  `route_sync.rs::RouteSyncTransport`
+- bounded inbound chunk + pairing queues with drop-on-overflow
+- single-connection guard via `_Atomic int32_t s_conn_id`
+
 Remaining implementation work:
-- live packet-loss / interruption fault-injection tests against the concrete adapters
-- full field validation on real ESP32-P4 hardware paired with each mobile platform (initial bring-up confirmed on the Waveshare 3.4C with the iOS companion: scan via service UUID, connect, GATT discovery, notification subscription all round-trip end-to-end)
+- iOS-side `PairingFlowView` (handed off to a Mac-resident agent
+  through `docs/_plan-ios-pairing.md`)
+- live packet-loss / interruption fault-injection tests against the
+  concrete adapters
+- end-to-end hardware verification of the bonded flow on real ESP32-P4
+  hardware paired with each mobile platform
 
 ## Advertising layout
 

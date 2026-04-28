@@ -561,13 +561,25 @@ where
         map_source: S,
         display_backend: B,
     ) -> Result<Self, AppBuildError> {
-        Self::with_parts_and_settings(
+        // `NullSettingsStore` is exclusively a test/dev convenience —
+        // production builds go through `with_parts_and_settings` with
+        // a real `EspIdfSettingsStore` so a freshly-flashed device
+        // boots into pairing mode. Tests using `NullSettingsStore`
+        // want runtime behavior, so start bonded.
+        let mut app = Self::with_parts_and_settings(
             board,
             config,
             map_source,
             display_backend,
             NullSettingsStore,
-        )
+        )?;
+        app.pairing = PairingStateMachine::new_paired(
+            [0u8; PERIPHERAL_ADDRESS_LEN],
+            [0u8; 16],
+        );
+        app.persisted_settings.device_paired = true;
+        app.persisted_settings.peer_identity = Some([0u8; 16]);
+        Ok(app)
     }
 }
 
@@ -598,7 +610,24 @@ where
     S: MapSource,
 {
     pub fn with_map_source(board: BoardConfig, config: RuntimeConfig, map_source: S) -> Self {
-        Self::with_map_source_and_settings(board, config, map_source, NullSettingsStore)
+        // `NullSettingsStore` is a test/dev-only convenience — production
+        // boots through `with_parts_and_settings` with a real
+        // `EspIdfSettingsStore`. Tests using `with_map_source` want
+        // the runtime/render pipeline, not the QR overlay; start
+        // bonded so they hit the runtime path.
+        let mut app = Self::with_map_source_and_settings(
+            board,
+            config,
+            map_source,
+            NullSettingsStore,
+        );
+        app.pairing = PairingStateMachine::new_paired(
+            [0u8; PERIPHERAL_ADDRESS_LEN],
+            [0u8; 16],
+        );
+        app.persisted_settings.device_paired = true;
+        app.persisted_settings.peer_identity = Some([0u8; 16]);
+        app
     }
 }
 

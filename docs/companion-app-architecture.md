@@ -111,6 +111,29 @@ Refactor these aggressively:
 - If no device is connected, `Start` enters phone guidance mode.
 - If a device is connected, `Start` becomes device-first, shows sync progress, and then leaves Home in device overview mode rather than duplicating on-phone guidance.
 
+### Device chip
+- Home renders a 4-state chip next to the settings icon. State derives
+  from `(pairedPeripheral, connectionState)`:
+  - `Unpaired` (no record) — grey "+", taps `beginPairingFlow()`.
+  - `Connecting` (record + SCANNING/CONNECTING) — non-interactive, spinner.
+  - `Connected` (record + CONNECTED) — accent tint, taps a connected popover.
+  - `PairedDisconnected` (record + DISCONNECTED) — outlined, taps `connectToDevice()`.
+- iOS uses SF Symbols; Android uses Material `Icons.Filled.*`. State
+  derivation, tap targets (≥44 dp), and copy stay verbatim parity.
+
+### Pairing flow
+- 3-step screen (Instructions → Camera scan → Confirm) driven by
+  `CompanionAppState.pairingState: PairingFlowState`.
+- iOS uses `AVCaptureSession` + `AVCaptureMetadataOutput`; Android uses
+  CameraX + ML Kit `BarcodeScanning`. Wire format is the same:
+  `PairingQrPayload` v1 JSON (cross-platform contract documented in
+  [ble-route-sync-contract.md](ble-route-sync-contract.md)).
+- Camera permission denial routes to system app-settings via
+  `Settings.ACTION_APPLICATION_DETAILS_SETTINGS` (Android) /
+  `UIApplication.openSettingsURLString` (iOS).
+- Cancel is available at every step; success state auto-dismisses
+  after 1.5s back to home.
+
 ### Route Detail
 - One route detail page is used across Google Maps imports, GPX imports, and recents.
 - Source-specific metadata appears as badges and secondary rows, not new screen types.
@@ -119,6 +142,24 @@ Refactor these aggressively:
 - Settings is the structured hub for secondary features.
 - Settings `Routes` is a lightweight recovery and re-entry surface, not a route library.
 - Settings `Device` contains pairing, sync, and troubleshooting only.
+  - When unpaired the screen leads with a "Pair a new device" CTA.
+  - When paired it shows the device name + last-paired date, primary
+    Connect/Disconnect button, and a destructive **Forget paired
+    device** action behind a confirmation alert. Alert copy (verbatim
+    parity with iOS): title `"Forget this device?"`, body `"You'll
+    need to scan the pairing code again to use it. Your route history
+    stays."`, destructive `"Forget"`, dismissive `"Cancel"`.
+
+### Persisted state
+- `PairedPeripheralRecord` (golden:
+  `parity-fixtures/data/paired_peripheral.json`) — `{identifier,
+  friendlyName, pairedAt}`. `identifier` is the BLE MAC on Android and
+  the per-app peripheral UUID on iOS; the field name is platform-shared
+  but the inhabitants are not.
+- `PairingQrPayload` v1 JSON (golden:
+  `parity-fixtures/data/pairing_qr_v1.json`) — see the BLE contract
+  for the schema. Both companion decoders read the fixture in their
+  unit tests so schema parity is locked in.
 
 ## Implementation Guardrails
 - No integration code inside views.
