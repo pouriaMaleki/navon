@@ -16,6 +16,7 @@ use crate::map_source::MapSourceBridge;
 use crate::pairing::{
     PERIPHERAL_ADDRESS_LEN, PairingStateMachine, SECRET_LEN, Transition,
 };
+use crate::platform::AuthCmplOutcome;
 use crate::route_sync::{RouteSyncTransport, RouteSyncTransportError, RouteTransferChunk};
 use crate::settings::{DeviceSettings, NullSettingsStore, SettingsError, SettingsStore};
 use crate::touch::TouchInput;
@@ -146,6 +147,15 @@ where
     /// `None` is the default — the device shows the map until a
     /// companion explicitly asks to enter pairing mode.
     qr_display_deadline: Option<Duration>,
+    /// BD_ADDR of the most recent peer that completed SMP successfully.
+    /// Captured from the `ESP_GAP_BLE_AUTH_CMPL_EVT(success)` handler
+    /// and used downstream to push the bonded peer into the
+    /// controller's whitelist for allowlist-only advertising.
+    last_bonded_peer: Option<[u8; 6]>,
+    /// Address-type byte that pairs with `last_bonded_peer` (public vs.
+    /// random-resolvable). Tracked separately because the whitelist
+    /// API takes `(bd_addr, addr_type)`.
+    last_bonded_peer_addr_type: Option<u8>,
     /// Tracks whether the previous frame entered the pairing-overlay path
     /// so we can emit a single info-level log on the transition (instead
     /// of spamming the 60 Hz render loop).
@@ -242,6 +252,8 @@ where
             pairing_secret_factory: zero_secret,
             pairing_dropped_chunks: 0,
             qr_display_deadline: None,
+            last_bonded_peer: None,
+            last_bonded_peer_addr_type: None,
             was_in_pairing_overlay: false,
             qr_encoded_logged: false,
             #[cfg(test)]
@@ -294,6 +306,61 @@ where
             // Successful bond → return the panel to the map even if
             // the QR-display window hadn't elapsed yet.
             self.qr_display_deadline = None;
+        }
+        transition
+    }
+
+    /// Forward an SMP `auth_cmpl` outcome from Bluedroid into the
+    /// pairing state machine. Two paths converge with
+    /// `ingest_pairing_confirm`:
+    ///
+    /// * On `success == true` the link is encrypted and Bluedroid
+    ///   has stored the peer's keys in its own NVS namespace. The OOB
+    ///   secret check (already passed via `pairing_confirm`) is what
+    ///   actually authorizes the bond at the application layer; this
+    ///   handler just records the bonded peer's BD_ADDR so we can
+    ///   later push it into the controller's whitelist.
+    /// * On `success == false` while we currently think we're bonded
+    ///   (the bonded phone forgot us, or its IRK rotated) we drop the
+    ///   bond from NVS and return to unbonded so the next companion
+    ///   write of `pairing_request` opens the QR cleanly.
+    pub fn ingest_auth_cmpl(&mut self, outcome: AuthCmplOutcome) -> Transition {
+        if outcome.success {
+            log::info!(
+                "App.ingest_auth_cmpl — SMP success bd={:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
+                outcome.peer_addr[0],
+                outcome.peer_addr[1],
+                outcome.peer_addr[2],
+                outcome.peer_addr[3],
+                outcome.peer_addr[4],
+                outcome.peer_addr[5],
+            );
+            self.last_bonded_peer = Some(outcome.peer_addr);
+            self.last_bonded_peer_addr_type = Some(outcome.addr_type);
+            return Transition::None;
+        }
+        log::warn!(
+            "App.ingest_auth_cmpl — SMP failure reason=0x{:02x}; \
+             dropping bond + returning to unbonded if currently paired",
+            outcome.fail_reason,
+        );
+        let transition = self.pairing.on_auth_failure();
+        if matches!(transition, Transition::ClearBondAndPair) {
+            let next = DeviceSettings {
+                device_paired: false,
+                peer_identity: None,
+                ..self.persisted_settings
+            };
+            if next != self.persisted_settings {
+                if let Err(error) = self.settings_store.save_settings(&next) {
+                    log::warn!(
+                        "settings_store.save_settings on auth-failure unbond: {error:?}"
+                    );
+                }
+                self.persisted_settings = next;
+            }
+            self.last_bonded_peer = None;
+            self.last_bonded_peer_addr_type = None;
         }
         transition
     }
@@ -392,6 +459,30 @@ where
         );
         self.persisted_settings.device_paired = true;
         self.persisted_settings.peer_identity = Some([0u8; 16]);
+    }
+
+    #[cfg(test)]
+    pub fn is_paired_for_test(&self) -> bool {
+        self.pairing.is_paired()
+    }
+
+    #[cfg(test)]
+    pub fn last_bonded_peer_for_test(&self) -> Option<([u8; 6], u8)> {
+        self.bonded_peer_for_allowlist()
+    }
+
+    /// BD_ADDR + addr-type of the currently-bonded peer if we have
+    /// both pieces (set after a successful `auth_cmpl`). Returns
+    /// `None` while unbonded so the platform layer programs the
+    /// controller's advertising filter back to "accept any scanner".
+    pub fn bonded_peer_for_allowlist(&self) -> Option<([u8; 6], u8)> {
+        if !self.pairing.is_paired() {
+            return None;
+        }
+        match (self.last_bonded_peer, self.last_bonded_peer_addr_type) {
+            (Some(bd), Some(addr_type)) => Some((bd, addr_type)),
+            _ => None,
+        }
     }
 
     /// Diagnostics counter — number of route-sync chunks dropped because
@@ -1329,6 +1420,63 @@ mod tests {
         // still in pairing mode, so the world buffer just shows the QR.
         assert!(app.pairing_dropped_chunks() > 0);
         assert!(app.route_sync_transport().active_route_revision().is_none());
+    }
+
+    fn sample_auth_outcome(success: bool, fail_reason: u8) -> AuthCmplOutcome {
+        AuthCmplOutcome {
+            success,
+            fail_reason,
+            peer_addr: [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF],
+            addr_type: 0x00,
+        }
+    }
+
+    #[test]
+    fn auth_cmpl_success_records_peer_addr() {
+        // SMP success comes after the OOB secret has already bonded
+        // the device. The auth-cmpl handler just captures the BD_ADDR
+        // we'll later push into the controller's whitelist.
+        let store = MemorySettingsStore::default();
+        let mut app = unpaired_app_with_store(store);
+        let _ = app.ingest_pairing_confirm(&[0u8; SECRET_LEN]);
+        assert!(app.is_paired_for_test());
+        let transition = app.ingest_auth_cmpl(sample_auth_outcome(true, 0));
+        assert_eq!(transition, Transition::None);
+        let (bd, addr_type) = app.last_bonded_peer_for_test().expect("BD_ADDR captured");
+        assert_eq!(bd, [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]);
+        assert_eq!(addr_type, 0x00);
+    }
+
+    #[test]
+    fn auth_cmpl_failure_drops_bond_and_returns_to_unbonded() {
+        // The bonded peer forgot us (or its IRK rotated). Bluedroid
+        // reports auth_cmpl failure; we drop the bond so the next
+        // companion `pairing_request` opens a fresh QR cleanly.
+        let store = MemorySettingsStore::new(Some(DeviceSettings {
+            device_paired: true,
+            peer_identity: Some([0x42; 16]),
+            ..DeviceSettings::default()
+        }));
+        let mut app = unpaired_app_with_store(store.clone());
+        assert!(!app.is_in_pairing_mode(), "starts bonded");
+        let transition = app.ingest_auth_cmpl(sample_auth_outcome(false, 99));
+        assert_eq!(transition, Transition::ClearBondAndPair);
+        assert!(app.is_unbonded(), "auth-cmpl failure must drop the bond");
+        let persisted = store.shared_value().expect("settings present");
+        assert!(!persisted.device_paired, "NVS bond flag must be cleared");
+        assert!(persisted.peer_identity.is_none(), "stale peer_identity wiped");
+    }
+
+    #[test]
+    fn auth_cmpl_failure_while_already_unbonded_is_noop() {
+        // Defensive: an auth-cmpl failure that arrives when we never
+        // had a bond shouldn't crash the App or churn settings.
+        let store = MemorySettingsStore::default();
+        let mut app = unpaired_app_with_store(store.clone());
+        let baseline = store.shared_value();
+        let transition = app.ingest_auth_cmpl(sample_auth_outcome(false, 99));
+        assert_eq!(transition, Transition::None);
+        assert_eq!(store.shared_value(), baseline, "no NVS write while already unbonded");
     }
 
     #[test]

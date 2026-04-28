@@ -84,14 +84,33 @@ esp_err_t hosted_ble_init(void)
         return err;
     }
 
-    // Configure SMP for LE Secure Connections + bonding ("Just Works"
-    // at the link layer; OOB-secret confirmation on top via the
+    // Configure SMP for Legacy Pairing + bonding ("Just Works" at the
+    // link layer; OOB-secret confirmation on top via the
     // pairing_confirm characteristic provides MITM resistance). The
     // resulting bond is persisted to NVS by Bluedroid automatically
     // because we set CONFIG_BT_BLE_SMP_BOND_NVS_FLASH=y.
-    esp_ble_auth_req_t auth_req = ESP_LE_AUTH_REQ_SC_BOND;
+    //
+    // We deliberately use Legacy (`ESP_LE_AUTH_REQ_BOND`) rather than
+    // LE Secure Connections (`ESP_LE_AUTH_REQ_SC_BOND`). On the P4
+    // hosted-HCI path through the C6 controller, SC's ECDH key
+    // exchange has been failing with `auth_cmpl rsn 99` — Legacy
+    // Just Works only needs key transport, which is more tolerant
+    // of controller-firmware version skew. Once SMP is verified to
+    // work end-to-end against the matching slave (cargo xtask
+    // build-c6-slave), we can promote back to SC.
+    esp_ble_auth_req_t auth_req = ESP_LE_AUTH_REQ_BOND;
     esp_ble_io_cap_t iocap = ESP_IO_CAP_NONE;
     uint8_t key_size = 16;
+    // Tell Bluedroid we don't have BLE-layer OOB data to exchange —
+    // our OOB is application-layer (the QR secret travels over a
+    // cleartext characteristic). Without this Bluedroid may signal
+    // OOB-required to the peer and SMP fails before key transport.
+    uint8_t oob_support = 0;
+    // Initiator + responder key distribution: encryption (LTK), id
+    // (IRK + identity address). Csrk is unused for our GATT traffic.
+    uint8_t init_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
+    uint8_t rsp_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
+
     esp_err_t sec_err = esp_ble_gap_set_security_param(ESP_BLE_SM_AUTHEN_REQ_MODE,
                                                       &auth_req, sizeof(auth_req));
     if (sec_err != ESP_OK) {
@@ -108,6 +127,24 @@ esp_err_t hosted_ble_init(void)
                                              &key_size, sizeof(key_size));
     if (sec_err != ESP_OK) {
         ESP_LOGW(TAG, "esp_ble_gap_set_security_param(MAX_KEY_SIZE) -> %s",
+                 esp_err_to_name(sec_err));
+    }
+    sec_err = esp_ble_gap_set_security_param(ESP_BLE_SM_OOB_SUPPORT,
+                                             &oob_support, sizeof(oob_support));
+    if (sec_err != ESP_OK) {
+        ESP_LOGW(TAG, "esp_ble_gap_set_security_param(OOB_SUPPORT) -> %s",
+                 esp_err_to_name(sec_err));
+    }
+    sec_err = esp_ble_gap_set_security_param(ESP_BLE_SM_SET_INIT_KEY,
+                                             &init_key, sizeof(init_key));
+    if (sec_err != ESP_OK) {
+        ESP_LOGW(TAG, "esp_ble_gap_set_security_param(SET_INIT_KEY) -> %s",
+                 esp_err_to_name(sec_err));
+    }
+    sec_err = esp_ble_gap_set_security_param(ESP_BLE_SM_SET_RSP_KEY,
+                                             &rsp_key, sizeof(rsp_key));
+    if (sec_err != ESP_OK) {
+        ESP_LOGW(TAG, "esp_ble_gap_set_security_param(SET_RSP_KEY) -> %s",
                  esp_err_to_name(sec_err));
     }
 

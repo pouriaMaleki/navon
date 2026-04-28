@@ -83,6 +83,37 @@ pub trait RouteSyncIo {
     ) -> Result<Option<[u8; crate::pairing::SECRET_LEN]>, RouteSyncIoError> {
         Ok(None)
     }
+
+    /// Pull the next queued SMP auth-completion event, or `None` if
+    /// none happened since the last call. Default no-op for non-BLE
+    /// transports. The hosted-BLE impl drains the queue populated by
+    /// the C-side `ESP_GAP_BLE_AUTH_CMPL_EVT` trampoline.
+    fn poll_auth_cmpl(&mut self) -> Result<Option<AuthCmplOutcome>, RouteSyncIoError> {
+        Ok(None)
+    }
+
+    /// Tell the BLE controller whether to lock its advertising-filter
+    /// policy to a whitelist (after a successful bond) or open it back
+    /// up to any scanner (after the bond is dropped). Default no-op
+    /// for non-BLE transports. The hosted-BLE impl forwards to
+    /// `hosted_ble_route_sync_set_adv_filter`.
+    fn set_advertising_allowlist(
+        &mut self,
+        _peer_addr: Option<([u8; 6], u8)>,
+    ) -> Result<(), RouteSyncIoError> {
+        Ok(())
+    }
+}
+
+/// Platform-agnostic shape of a Bluedroid `auth_cmpl` event. Mirrors
+/// `crate::hosted_ble::AuthCmplEvent` but kept here so the trait is
+/// usable from non-esp32p4 builds (host tests, parity fixtures).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AuthCmplOutcome {
+    pub success: bool,
+    pub fail_reason: u8,
+    pub peer_addr: [u8; 6],
+    pub addr_type: u8,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -200,6 +231,33 @@ where
                 secret.len()
             );
             let _ = self.app.ingest_pairing_confirm(&secret);
+        }
+
+        // Drain SMP auth-completion events so a successful bond locks
+        // in the peer identity and a failure drops the prior bond +
+        // returns to unbonded. After the App has reacted to the
+        // outcome, push the resulting allowlist policy to the
+        // controller: bonded ⇒ whitelist-only with the bonded BD_ADDR,
+        // unbonded ⇒ open advertising.
+        let mut allowlist_dirty = false;
+        while let Some(outcome) = self.route_sync.poll_auth_cmpl()? {
+            log::info!(
+                "platform.run_frame — auth_cmpl drained: success={} reason={:#x}",
+                outcome.success,
+                outcome.fail_reason,
+            );
+            self.app.ingest_auth_cmpl(outcome);
+            allowlist_dirty = true;
+        }
+        if allowlist_dirty {
+            let peer = self.app.bonded_peer_for_allowlist();
+            if let Err(error) = self.route_sync.set_advertising_allowlist(peer) {
+                log::warn!(
+                    "set_advertising_allowlist({:?}) failed: {:?}",
+                    peer,
+                    error,
+                );
+            }
         }
 
         let mut route_sync_statuses = Vec::new();

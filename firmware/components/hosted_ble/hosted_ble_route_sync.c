@@ -82,6 +82,7 @@ static hosted_ble_chunk_cb_t s_chunk_cb;
 static hosted_ble_pairing_confirm_cb_t s_pairing_confirm_cb;
 static hosted_ble_pairing_request_cb_t s_pairing_request_cb;
 static hosted_ble_is_pairing_mode_cb_t s_is_pairing_mode_cb;
+static hosted_ble_auth_cmpl_cb_t s_auth_cmpl_cb;
 static void *s_chunk_ctx;
 
 static esp_gatt_if_t s_gatts_if = ESP_GATT_IF_NONE;
@@ -200,6 +201,74 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
     case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:
         ESP_LOGI(TAG, "advertising stopped");
         break;
+    // -------- SMP / pairing observability --------
+    // These cases mirror Espressif's `ble_security` example. The Just
+    // Works (NoIO) flow shouldn't fire the passkey paths; logging
+    // them anyway means a future surprise is visible immediately
+    // rather than dropping silently into the `default` case.
+    case ESP_GAP_BLE_AUTH_CMPL_EVT: {
+        const struct ble_auth_cmpl_evt_param *cmpl =
+            &param->ble_security.auth_cmpl;
+        if (cmpl->success) {
+            ESP_LOGI(TAG,
+                     "SMP auth_cmpl SUCCESS — bd=%02x:%02x:%02x:%02x:%02x:%02x "
+                     "addr_type=%d auth_mode=0x%02x",
+                     cmpl->bd_addr[0], cmpl->bd_addr[1], cmpl->bd_addr[2],
+                     cmpl->bd_addr[3], cmpl->bd_addr[4], cmpl->bd_addr[5],
+                     cmpl->addr_type, (unsigned)cmpl->auth_mode);
+        } else {
+            ESP_LOGW(TAG,
+                     "SMP auth_cmpl FAILURE — bd=%02x:%02x:%02x:%02x:%02x:%02x "
+                     "fail_reason=0x%02x (%u) auth_mode=0x%02x",
+                     cmpl->bd_addr[0], cmpl->bd_addr[1], cmpl->bd_addr[2],
+                     cmpl->bd_addr[3], cmpl->bd_addr[4], cmpl->bd_addr[5],
+                     (unsigned)cmpl->fail_reason, (unsigned)cmpl->fail_reason,
+                     (unsigned)cmpl->auth_mode);
+        }
+        if (s_auth_cmpl_cb != NULL) {
+            s_auth_cmpl_cb(cmpl->success,
+                           (uint8_t)cmpl->fail_reason,
+                           cmpl->bd_addr,
+                           (uint8_t)cmpl->addr_type,
+                           s_chunk_ctx);
+        }
+        break;
+    }
+    case ESP_GAP_BLE_KEY_EVT:
+        ESP_LOGI(TAG, "SMP key_evt — key_type=0x%02x",
+                 (unsigned)param->ble_security.ble_key.key_type);
+        break;
+    case ESP_GAP_BLE_SEC_REQ_EVT:
+        // Peer asked us to start security. Always accept — the OOB
+        // secret is what gates the bond at the application layer; SMP
+        // just provides link-layer encryption on top.
+        ESP_LOGI(TAG, "SMP sec_req — replying yes");
+        esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, true);
+        break;
+    case ESP_GAP_BLE_NC_REQ_EVT:
+        // Numeric comparison for SC. With NoIO/NoIO this shouldn't
+        // fire (Just Works skips NC), but if it does, accept silently
+        // — we can't display a code anyway.
+        ESP_LOGI(TAG, "SMP nc_req (passkey 0x%08x) — replying yes",
+                 (unsigned)param->ble_security.key_notif.passkey);
+        esp_ble_confirm_reply(param->ble_security.key_notif.bd_addr, true);
+        break;
+    case ESP_GAP_BLE_PASSKEY_REQ_EVT:
+        ESP_LOGW(TAG,
+                 "SMP passkey_req fired (NoIO shouldn't see this) — replying 0");
+        esp_ble_passkey_reply(param->ble_security.ble_req.bd_addr, true, 0);
+        break;
+    case ESP_GAP_BLE_PASSKEY_NOTIF_EVT:
+        ESP_LOGW(TAG,
+                 "SMP passkey_notif fired (NoIO shouldn't see this): 0x%08x",
+                 (unsigned)param->ble_security.key_notif.passkey);
+        break;
+    case ESP_GAP_BLE_LOCAL_IR_EVT:
+        ESP_LOGI(TAG, "SMP local IR event (random IR generated)");
+        break;
+    case ESP_GAP_BLE_LOCAL_ER_EVT:
+        ESP_LOGI(TAG, "SMP local ER event (random ER generated)");
+        break;
     default:
         break;
     }
@@ -246,23 +315,18 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
         }
         s_service_handle = param->create.service_handle;
 
-        // All four characteristics use plain (unencrypted) permissions.
-        // We tried `*_ENCRYPTED` to force SMP Just Works pairing on the
-        // first encrypted write, but SMP between iOS and Bluedroid-over-
-        // ESP32-C6-hosted-HCI fails (reason 99 = generic auth fail) —
-        // every encrypted write then gets rejected with
-        // `GATT_INSUF_AUTHENTICATION`, the iOS continuation never
-        // resolves, and the user is stuck on "Connecting…". The
-        // OOB-secret check on `pairing_confirm` plus the single-bond
-        // policy enforced in firmware (App::is_in_pairing_mode) provides
-        // the authentication that matters. Re-enabling SMP encryption
-        // is tracked as future work — see docs/pairing-flow.md.
+        // The three data characteristics are encrypted: the first
+        // touch from a companion triggers SMP Just Works pairing
+        // transparently. The OOB secret + single-bond policy still
+        // gate the application-layer bond (see App::ingest_pairing_confirm),
+        // but link-layer encryption keeps route geometry off the air.
+        // pairing_request stays plain so it works *before* SMP runs.
         esp_bt_uuid_t chunk_uuid;
         memset(&chunk_uuid, 0, sizeof(chunk_uuid));
         chunk_uuid.len = ESP_UUID_LEN_128;
         memcpy(chunk_uuid.uuid.uuid128, CHUNK_UUID128, ESP_UUID_LEN_128);
         esp_ble_gatts_add_char(s_service_handle, &chunk_uuid,
-                               ESP_GATT_PERM_WRITE,
+                               ESP_GATT_PERM_WRITE_ENCRYPTED,
                                ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_WRITE_NR,
                                NULL, NULL);
 
@@ -271,21 +335,23 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
         event_uuid.len = ESP_UUID_LEN_128;
         memcpy(event_uuid.uuid.uuid128, EVENT_UUID128, ESP_UUID_LEN_128);
         esp_ble_gatts_add_char(s_service_handle, &event_uuid,
-                               ESP_GATT_PERM_READ,
+                               ESP_GATT_PERM_READ_ENCRYPTED,
                                ESP_GATT_CHAR_PROP_BIT_NOTIFY,
                                NULL, NULL);
 
-        // Pairing-confirm: plain write. The 32-byte OOB secret from the
-        // QR is what gates the bond — the link doesn't need to be
-        // encrypted because the secret rotates every 60s while
-        // unbonded and the firmware-side single-bond policy rejects
-        // confirm-writes once `device_paired == true`.
+        // Pairing-confirm: encrypted write. The first secret-write
+        // from the companion triggers SMP Just Works pairing on the
+        // host side; once the link is encrypted the C handler reads
+        // the 32-byte OOB secret and the App matches it against the
+        // current QR's secret. Belt-and-braces: SMP gives link
+        // encryption + bond persistence, the OOB secret gates the
+        // application-layer bond.
         esp_bt_uuid_t pairing_uuid;
         memset(&pairing_uuid, 0, sizeof(pairing_uuid));
         pairing_uuid.len = ESP_UUID_LEN_128;
         memcpy(pairing_uuid.uuid.uuid128, PAIRING_UUID128, ESP_UUID_LEN_128);
         esp_ble_gatts_add_char(s_service_handle, &pairing_uuid,
-                               ESP_GATT_PERM_WRITE,
+                               ESP_GATT_PERM_WRITE_ENCRYPTED,
                                ESP_GATT_CHAR_PROP_BIT_WRITE,
                                NULL, NULL);
 
@@ -442,6 +508,7 @@ esp_err_t hosted_ble_route_sync_start(const hosted_ble_route_sync_callbacks_t *c
     s_pairing_confirm_cb = cb->on_pairing_confirm;
     s_pairing_request_cb = cb->on_pairing_request;
     s_is_pairing_mode_cb = cb->is_pairing_mode;
+    s_auth_cmpl_cb = cb->on_auth_cmpl;
     s_chunk_ctx = cb->ctx;
 
     err = esp_ble_gap_register_callback(gap_event_handler);

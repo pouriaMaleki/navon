@@ -43,6 +43,10 @@ enum CoreBluetoothRouteSyncError: LocalizedError {
     case characteristicMissing
     case disconnected(String)
     case writeFailed(String)
+    /// Bluedroid rejected the write with `INSUFFICIENT_AUTHENTICATION`
+    /// (CBATTError code 5). Surfaces in the pairing UI so the user
+    /// understands the bond didn't take and can re-pair cleanly.
+    case pairingDenied
     case invalidInboundPacket
 
     var errorDescription: String? {
@@ -65,6 +69,8 @@ enum CoreBluetoothRouteSyncError: LocalizedError {
             return detail
         case .writeFailed(let detail):
             return detail
+        case .pairingDenied:
+            return "Couldn't bond. Tap Forget on your previous phone, or restart the device."
         case .invalidInboundPacket:
             return "Received an invalid BLE route-sync packet"
         }
@@ -428,7 +434,27 @@ extension CoreBluetoothRouteSyncClient: CBPeripheralDelegate {
         guard let pendingWriteContinuation else { return }
         self.pendingWriteContinuation = nil
         if let error {
-            pendingWriteContinuation.resume(throwing: CoreBluetoothRouteSyncError.writeFailed(error.localizedDescription))
+            // Distinguish SMP authentication rejections from other write
+            // failures so the pairing UI can surface a specific
+            // remediation hint. CBATTErrorInsufficientAuthentication = 5
+            // and the matching Apple-side mirror is
+            // `CBError.insufficientAuthentication` (code 9 in CBError);
+            // Bluedroid raises both depending on whether the rejection
+            // is at the ATT layer or on the SMP layer.
+            let nsError = error as NSError
+            let isAttAuthFailure = nsError.domain == CBATTErrorDomain
+                && nsError.code == CBATTError.insufficientAuthentication.rawValue
+            let isSmpAuthFailure = nsError.domain == CBErrorDomain
+                && nsError.code == CBError.insufficientAuthentication.rawValue
+            if isAttAuthFailure || isSmpAuthFailure {
+                pairingLog.error(
+                    "writeValue rejected with INSUFFICIENT_AUTHENTICATION — \
+                     SMP failed or stale bond on phone vs device"
+                )
+                pendingWriteContinuation.resume(throwing: CoreBluetoothRouteSyncError.pairingDenied)
+            } else {
+                pendingWriteContinuation.resume(throwing: CoreBluetoothRouteSyncError.writeFailed(error.localizedDescription))
+            }
         } else {
             pendingWriteContinuation.resume()
         }

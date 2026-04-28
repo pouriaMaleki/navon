@@ -36,12 +36,27 @@ use runtime_core::api::RouteSyncMessage;
 
 use crate::hosted_ble_queue::{enqueue_chunk, enqueue_pairing_secret, QueueFullError};
 use crate::pairing::SECRET_LEN;
-use crate::platform::{RouteSyncIo, RouteSyncIoError};
+use crate::platform::{AuthCmplOutcome, RouteSyncIo, RouteSyncIoError};
 use crate::route_sync::RouteTransferChunk;
 use crate::route_sync_ble::{BleRouteSyncPacket, decode_ble_packet, encode_ble_packet};
 
 static INBOUND: OnceLock<Mutex<VecDeque<RouteTransferChunk>>> = OnceLock::new();
 static PAIRING_INBOUND: OnceLock<Mutex<VecDeque<[u8; SECRET_LEN]>>> = OnceLock::new();
+/// Auth-completion events the GAP handler pushes from the BT host
+/// task. The runtime task drains them once per frame and forwards
+/// the outcome to `App::ingest_auth_cmpl`.
+static AUTH_CMPL_INBOUND: OnceLock<Mutex<VecDeque<AuthCmplEvent>>> = OnceLock::new();
+
+/// Mirror of the C `hosted_ble_auth_cmpl_cb_t` payload. Carried
+/// across the BT host → runtime task boundary via a queue so the App
+/// layer doesn't run inside the Bluedroid callback.
+#[derive(Debug, Clone, Copy)]
+pub struct AuthCmplEvent {
+    pub success: bool,
+    pub fail_reason: u8,
+    pub peer_addr: [u8; 6],
+    pub addr_type: u8,
+}
 
 /// Set by the C `pairing_request` write trampoline; consumed by
 /// `App::step_frame` to open the QR-display window. Lock-free atomic
@@ -72,6 +87,10 @@ fn pairing_inbound() -> &'static Mutex<VecDeque<[u8; SECRET_LEN]>> {
     PAIRING_INBOUND.get_or_init(|| Mutex::new(VecDeque::new()))
 }
 
+fn auth_cmpl_inbound() -> &'static Mutex<VecDeque<AuthCmplEvent>> {
+    AUTH_CMPL_INBOUND.get_or_init(|| Mutex::new(VecDeque::new()))
+}
+
 /// Drain one queued pairing-confirm secret if any are available. Called
 /// once per frame from `App::step_frame` while the device is in pairing
 /// mode; the secret is then matched against the current QR's secret by
@@ -85,6 +104,41 @@ pub fn drain_pairing_secret() -> Option<[u8; SECRET_LEN]> {
 /// per frame and forwards the signal to `App::request_qr_display`.
 pub fn drain_pairing_request() -> bool {
     PAIRING_REQUEST_PENDING.swap(false, Ordering::SeqCst)
+}
+
+/// Pull the next queued SMP auth-completion event. The platform layer
+/// forwards each one to `App::ingest_auth_cmpl` so the bond is
+/// persisted on success / dropped on failure.
+pub fn drain_auth_cmpl() -> Option<AuthCmplEvent> {
+    auth_cmpl_inbound().lock().ok().and_then(|mut q| q.pop_front())
+}
+
+/// Lock the controller's advertising-filter policy to the bonded peer
+/// (whitelist-only) or open it back up to any scanner. Wraps
+/// `hosted_ble_route_sync_set_adv_filter` from the C side.
+pub fn set_adv_filter_policy(whitelist_only: bool, peer_addr: &[u8; 6], addr_type: u8) {
+    let err = unsafe {
+        esp_idf_svc::sys::hosted_ble_route_sync_set_adv_filter(
+            whitelist_only,
+            peer_addr.as_ptr(),
+            addr_type,
+        )
+    };
+    if err != esp_idf_svc::sys::ESP_OK as i32 {
+        log::warn!(
+            "hosted_ble_route_sync_set_adv_filter(whitelist_only={whitelist_only}) -> err={err:#x}"
+        );
+    } else {
+        log::info!(
+            "advertising filter set: whitelist_only={whitelist_only} peer={:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
+            peer_addr[0],
+            peer_addr[1],
+            peer_addr[2],
+            peer_addr[3],
+            peer_addr[4],
+            peer_addr[5],
+        );
+    }
 }
 
 /// Route-sync IO backed by the hosted-BLE GATT server in C.
@@ -117,12 +171,14 @@ impl HostedBleRouteSyncIo {
         // on OnceLock initialisation under the BT host task.
         let _ = inbound();
         let _ = pairing_inbound();
+        let _ = auth_cmpl_inbound();
 
         let cbs = esp_idf_svc::sys::hosted_ble_route_sync_callbacks_t {
             on_chunk: Some(on_chunk_trampoline),
             on_pairing_confirm: Some(on_pairing_confirm_trampoline),
             on_pairing_request: Some(on_pairing_request_trampoline),
             is_pairing_mode: Some(is_pairing_mode_trampoline),
+            on_auth_cmpl: Some(on_auth_cmpl_trampoline),
             ctx: std::ptr::null_mut(),
         };
 
@@ -202,6 +258,36 @@ unsafe extern "C" fn on_pairing_request_trampoline(_ctx: *mut c_void) {
     PAIRING_REQUEST_PENDING.store(true, Ordering::SeqCst);
 }
 
+unsafe extern "C" fn on_auth_cmpl_trampoline(
+    success: bool,
+    fail_reason: u8,
+    peer_addr: *const u8,
+    addr_type: u8,
+    _ctx: *mut c_void,
+) {
+    if peer_addr.is_null() {
+        log::warn!("hosted-ble: auth_cmpl trampoline received null peer_addr");
+        return;
+    }
+    let mut bd = [0u8; 6];
+    let slice = unsafe { std::slice::from_raw_parts(peer_addr, 6) };
+    bd.copy_from_slice(slice);
+    let event = AuthCmplEvent {
+        success,
+        fail_reason,
+        peer_addr: bd,
+        addr_type,
+    };
+    log::info!(
+        "hosted-ble: auth_cmpl trampoline — success={success} reason=0x{fail_reason:02x} \
+         bd={:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x} addr_type={addr_type}",
+        bd[0], bd[1], bd[2], bd[3], bd[4], bd[5],
+    );
+    if let Ok(mut queue) = auth_cmpl_inbound().lock() {
+        queue.push_back(event);
+    }
+}
+
 impl RouteSyncIo for HostedBleRouteSyncIo {
     fn poll_chunk(&mut self) -> Result<Option<RouteTransferChunk>, RouteSyncIoError> {
         match self {
@@ -252,5 +338,33 @@ impl RouteSyncIo for HostedBleRouteSyncIo {
             return Ok(None);
         }
         Ok(drain_pairing_secret())
+    }
+
+    fn poll_auth_cmpl(&mut self) -> Result<Option<AuthCmplOutcome>, RouteSyncIoError> {
+        if matches!(self, Self::Inactive) {
+            return Ok(None);
+        }
+        Ok(drain_auth_cmpl().map(|event| AuthCmplOutcome {
+            success: event.success,
+            fail_reason: event.fail_reason,
+            peer_addr: event.peer_addr,
+            addr_type: event.addr_type,
+        }))
+    }
+
+    fn set_advertising_allowlist(
+        &mut self,
+        peer_addr: Option<([u8; 6], u8)>,
+    ) -> Result<(), RouteSyncIoError> {
+        if matches!(self, Self::Inactive) {
+            return Ok(());
+        }
+        match peer_addr {
+            Some((bd, addr_type)) => set_adv_filter_policy(true, &bd, addr_type),
+            // Open the controller back up. Pass a zero address — the
+            // C side ignores it when whitelist_only=false.
+            None => set_adv_filter_policy(false, &[0u8; 6], 0),
+        }
+        Ok(())
     }
 }

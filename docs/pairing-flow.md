@@ -56,12 +56,33 @@ sequence) is a planned follow-up but **not in this release** — see
 ## Anti-replay protections
 - The QR's secret rotates every 60 seconds while the device is
   unbonded, so a stale photo can't be used to pair later.
-- The first encrypted write to any of the three characteristics
-  triggers SMP Just Works pairing; until SMP succeeds the BLE link
-  isn't encrypted and routes can't flow.
+- The first encrypted write to any of the three encrypted
+  characteristics triggers SMP Just Works pairing; until SMP succeeds
+  the BLE link isn't encrypted and routes can't flow.
 - Once bonded, the device's advertising filter switches to
   `whitelist-only`; only the bonded phone's BD_ADDR can even *scan*
   the device after that.
+
+## Operator notes for SMP
+
+If pairing is failing with `auth_cmpl FAILURE — fail_reason=…` on the
+device serial console, the most common causes are:
+
+1. **C6 slave firmware out of date.** The boot log says something
+   like `transport: Version mismatch: Host [2.12.0] > Co-proc [0.0.0]`.
+   Build the matching slave image with `cargo xtask build-c6-slave`
+   and flash it on the C6's UART connector
+   (`espflash write-bin --chip esp32c6 --port <PORT> 0x0
+   .xtask/c6-slave/c6-slave-merged.bin`). Reflashing the C6 wipes
+   *its* NVS, but the P4's NVS where our bond lives is on a separate
+   chip — `device_paired` survives.
+2. **Stale iOS Settings → Bluetooth bond.** If a previous attempt
+   succeeded at the SMP layer and the phone still has it in
+   *Settings → Bluetooth*, *Forget This Device* there before
+   re-pairing.
+3. **Reflashing the P4** wipes its NVS, which means the bond is
+   gone from the device side but still present on the phone — *Forget
+   This Device* before re-pair.
 
 ## Diagnostics
 The companion's settings → diagnostics card surfaces:

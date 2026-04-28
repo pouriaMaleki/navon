@@ -60,11 +60,26 @@ typedef void (*hosted_ble_pairing_request_cb_t)(void *ctx);
 // `ESP_GATT_WRITE_NOT_PERMIT`.
 typedef bool (*hosted_ble_is_pairing_mode_cb_t)(void *ctx);
 
+// Called from the GAP `ESP_GAP_BLE_AUTH_CMPL_EVT` handler when SMP
+// pairing finishes (success or failure). `success` mirrors
+// `param->ble_security.auth_cmpl.success`; `fail_reason` is the
+// Bluedroid auth-fail reason code (e.g., 99 = generic), only valid
+// when `success == false`. `peer_addr` is the bonded peer's BD_ADDR
+// (6 bytes); `addr_type` distinguishes public vs. random-resolvable
+// addresses for the eventual whitelist call. The Rust side persists
+// `peer_identity` on success and drops the bond on failure.
+typedef void (*hosted_ble_auth_cmpl_cb_t)(bool success,
+                                          uint8_t fail_reason,
+                                          const uint8_t peer_addr[6],
+                                          uint8_t addr_type,
+                                          void *ctx);
+
 typedef struct {
     hosted_ble_chunk_cb_t on_chunk;
     hosted_ble_pairing_confirm_cb_t on_pairing_confirm;
     hosted_ble_pairing_request_cb_t on_pairing_request;
     hosted_ble_is_pairing_mode_cb_t is_pairing_mode;
+    hosted_ble_auth_cmpl_cb_t on_auth_cmpl;
     void *ctx;
 } hosted_ble_route_sync_callbacks_t;
 

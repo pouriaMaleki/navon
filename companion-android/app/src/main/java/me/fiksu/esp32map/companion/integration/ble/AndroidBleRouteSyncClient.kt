@@ -362,9 +362,20 @@ class AndroidBleRouteSyncClient(
             pendingWriteContinuation = null
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 continuation.resume(Unit)
-            } else {
-                continuation.resumeWithException(IllegalStateException("Characteristic write failed with status $status"))
+                return
             }
+            // Distinguish SMP-auth rejections from other write failures
+            // so the pairing UI can surface "Couldn't bond, tap Forget
+            // and retry" rather than a generic "Characteristic write
+            // failed". `GATT_INSUFFICIENT_AUTHENTICATION` (5) is the
+            // ATT-layer signal Bluedroid raises after SMP fails on the
+            // P4 side.
+            val message = if (status == BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION) {
+                "Couldn't bond. Tap Forget on your previous phone, or restart the device."
+            } else {
+                "Characteristic write failed with status $status"
+            }
+            continuation.resumeWithException(IllegalStateException(message))
         }
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray) {
