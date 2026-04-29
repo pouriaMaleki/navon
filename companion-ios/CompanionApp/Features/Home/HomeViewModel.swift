@@ -391,6 +391,140 @@ final class HomeViewModel: ObservableObject {
         return nil
     }
 
+    /// Legacy side-rail enum, kept so the original layout test
+    /// (`RoutingTopOverlayLayoutTests`) still compiles after the icons
+    /// moved out of the routing top card and into the persistent
+    /// top-right / bottom-right rails. The `routingTopLayout.sideRail`
+    /// array is now always empty in production.
+    enum RoutingSideRailItem: Equatable {
+        case deviceChip
+        case alternateRoutes
+        case compass
+    }
+
+    /// Layout description of the routing-mode top overlay. Three text
+    /// lines, no icons (icons live on the persistent rails so the layout
+    /// doesn't reflow between modes).
+    ///
+    ///   - `headline`               — next-turn instruction
+    ///   - `distanceToDestinationLine` — "8.6 km to Alppila" (distance
+    ///     first, then short destination name, dropping " to <name>" when
+    ///     the destination has no usable label)
+    ///   - `minutesRemainingLine`   — "16 min remaining"
+    ///
+    /// `subtitle` is retained for backwards-compat callers and renders
+    /// the same content as `distanceToDestinationLine • minutesRemainingLine`.
+    /// `nil` outside of `phoneGuidance` mode.
+    struct RoutingTopLayout: Equatable {
+        let headline: String
+        let subtitle: String
+        let distanceToDestinationLine: String
+        let minutesRemainingLine: String
+        let offRouteLabel: String?
+        let sideRail: [RoutingSideRailItem]
+    }
+
+    var routingTopLayout: RoutingTopLayout? {
+        guard homeMode == .phoneGuidance else { return nil }
+        let distanceLine = formattedDistanceToDestinationLine()
+        let minutesLine = formattedMinutesRemainingLine()
+        let combined = [distanceLine, minutesLine].filter { !$0.isEmpty }.joined(separator: " • ")
+        return RoutingTopLayout(
+            headline: nextInstructionLine ?? activeNavigationTitle,
+            subtitle: combined,
+            distanceToDestinationLine: distanceLine,
+            minutesRemainingLine: minutesLine,
+            offRouteLabel: offRouteLabel,
+            sideRail: []
+        )
+    }
+
+    private func formattedDistanceToDestinationLine() -> String {
+        let remaining = remainingDistanceM > 0
+            ? remainingDistanceM
+            : (guidanceRoute?.summary.totalDistanceMeters ?? 0)
+        guard remaining > 0 else { return "" }
+        let km = String(format: "%.1f", remaining / 1000)
+        // Prefer the user-typed destination on activeSession (set by the
+        // where-to flow). The route package's `summary.destinationLabel`
+        // is often a generic placeholder ("Selected destination" from the
+        // OSRM mapper, or empty/"Current location" from HSL legs) that
+        // would erase the real address the rider picked.
+        let candidates = [
+            appModel.activeSession.destinationLabel,
+            guidanceRoute?.summary.destinationLabel ?? "",
+        ]
+        let placeholderTitles: Set<String> = [
+            "", "No destination", "Selected destination", "Current location",
+        ]
+        let address = candidates
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .first(where: { !placeholderTitles.contains($0) })
+        if let address, !address.isEmpty {
+            return "\(km) km to \(address)"
+        }
+        return "\(km) km"
+    }
+
+    private func formattedMinutesRemainingLine() -> String {
+        let seconds: Double = remainingDurationSeconds > 0
+            ? remainingDurationSeconds
+            : Double(guidanceRoute?.summary.estimatedDurationSeconds ?? 0)
+        guard seconds > 0 else { return "" }
+        let minutes = max(1, Int(ceil(seconds / 60.0)))
+        return "\(minutes) min remaining"
+    }
+
+    /// Stable top-right icon column, sitting BELOW the Settings cog
+    /// (which itself lives in the where-to top bar). Same items in every
+    /// mode so the layout doesn't reflow when the rider transitions
+    /// between planning and routing. Order, top → bottom: compass/
+    /// north-up, device chip (only when paired). The compass tap
+    /// recentres the camera in every mode (single tap = north-up;
+    /// double-tap = lock north-up, matching the Rust implementation).
+    ///
+    /// `.settings` is left in the enum so callers can still pattern-match
+    /// it when reading the cog from the top-bar, but it never appears in
+    /// `topRightIconStack` itself.
+    enum TopRightIcon: Equatable {
+        case settings
+        case compass
+        case deviceChip
+    }
+
+    var topRightIconStack: [TopRightIcon] {
+        // Always-on items first (their on-screen position never changes
+        // between modes), conditional items at the bottom of the list.
+        var icons: [TopRightIcon] = [.settings, .compass]
+        if appModel.pairedPeripheral != nil {
+            icons.append(.deviceChip)
+        }
+        return icons
+    }
+
+    /// Top-LEFT icon column, sitting BELOW the where-to search field on
+    /// the left side of the screen. Mirrors the right rail's layout but
+    /// stays clear of the suggested-routes card / device-overview footer
+    /// at the bottom of the screen. Order, top → bottom: alternate-routes
+    /// (only in phoneGuidance), zoom-in, zoom-out.
+    enum TopLeftIcon: Equatable {
+        case alternateRoutes
+        case zoomIn
+        case zoomOut
+    }
+
+    var topLeftIconStack: [TopLeftIcon] {
+        // Zoom is always first/second so pressing Start (which adds the
+        // alternate-routes button) does NOT push the zoom column down a
+        // slot. Alternate-routes is appended at the bottom only in
+        // routing mode.
+        var icons: [TopLeftIcon] = [.zoomIn, .zoomOut]
+        if homeMode == .phoneGuidance {
+            icons.append(.alternateRoutes)
+        }
+        return icons
+    }
+
     private static let offRouteEnterDistanceM: Double = 35
     private static let offRouteExitDistanceM: Double = 22
     private static let rerouteRequestDelayMs: Double = 2000
@@ -400,20 +534,22 @@ final class HomeViewModel: ObservableObject {
         // displayed line must switch to the NEXT upcoming maneuver. We
         // skip depart/arrive turn-types and pick the first maneuver
         // whose distance-from-start is still ahead of `progressDistanceM`.
-        // Distance shown is the REMAINING distance to that maneuver, not
-        // the static distance-from-route-start.
+        //
+        // Format is "<distance> <instruction>" so the eye lands on the
+        // metric first (matches the new routing top card's other two
+        // lines: "8.6 km to Alppila", "16 min remaining").
         guard let route = guidanceRoute else { return nil }
         for m in route.maneuvers {
             if m.maneuverType == .depart || m.maneuverType == .arrive { continue }
             let remaining = m.distanceFromStartMeters - progressDistanceM
             if remaining < 0 { continue }
             let instruction = m.instructionText ?? "Continue"
-            return "\(instruction) • \(formatDistance(remaining))"
+            return "\(formatDistance(remaining)) \(instruction)"
         }
         // Past the last interesting maneuver: show "Arrive" remaining.
         if let arrive = route.maneuvers.last(where: { $0.maneuverType == .arrive }) {
             let remaining = max(0, arrive.distanceFromStartMeters - progressDistanceM)
-            return "Arrive in \(formatDistance(remaining))"
+            return "\(formatDistance(remaining)) Arrive"
         }
         return nil
     }
@@ -672,8 +808,24 @@ final class HomeViewModel: ObservableObject {
                 ?? appModel.activeSession.destinationCoordinate
             appModel.activeSession.providerID = pkg.provenance.providerID
             appModel.activeSession.sourceMode = sourceMode
+            // Don't clobber a real user-typed destination on activeSession
+            // with the route package's generic placeholder ("Selected
+            // destination" comes baked into the OSRM mapper). Only
+            // overwrite when the package carries a more specific label
+            // (e.g. an HSL stop name) AND the session is currently
+            // empty / placeholder.
             if let label = pkg.summary.destinationLabel {
-                appModel.activeSession.destinationLabel = label
+                let placeholderTitles: Set<String> = [
+                    "", "No destination", "Selected destination", "Current location",
+                ]
+                let trimmed = label.trimmingCharacters(in: .whitespacesAndNewlines)
+                let sessionIsPlaceholder = placeholderTitles.contains(
+                    appModel.activeSession.destinationLabel.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
+                let labelIsMeaningful = !placeholderTitles.contains(trimmed)
+                if labelIsMeaningful && (sessionIsPlaceholder || appModel.activeSession.destinationLabel.isEmpty) {
+                    appModel.activeSession.destinationLabel = trimmed
+                }
             }
             homeMode = .phoneGuidance
             compassMode = .autoFollow
@@ -681,6 +833,12 @@ final class HomeViewModel: ObservableObject {
             // tracking) starts at 0 and advances as the rider proceeds.
             progressDistanceM = 0
             routeTotalDistanceM = polylineLengthMeters(selectedPreview.normalizedPackage.geometry)
+            // Mark the app as routing-in-progress now (the explicit flag
+            // gates the Live Activity / background-GPS rules).
+            appModel.isRoutingInProgress = true
+            // Kick the routing activity coordinator so the Live Activity
+            // starts immediately, even before the first GPS fix lands.
+            dispatchCueTick()
         }
     }
 
@@ -697,6 +855,20 @@ final class HomeViewModel: ObservableObject {
             compassMode = .autoFollow
             activeRouteIdentifier = nil
             homeMode = .planning
+            // Clear the persisted active session so a later cold launch
+            // does not see a stale `routeIdentifier` and mistake the user
+            // for being mid-ride (which previously caused the Live
+            // Activity to spin up on app launch with nothing on screen).
+            appModel.activeSession.routeIdentifier = nil
+            appModel.activeSession.routeRevision = nil
+            appModel.persistence.saveSession(appModel.activeSession)
+            // Drop the in-progress flag BEFORE dispatching so the
+            // coordinator's gating sees `isRouting=false` and ends the
+            // Live Activity instead of refreshing it.
+            appModel.isRoutingInProgress = false
+            // Tell the routing activity coordinator that routing is over,
+            // so it ends the Live Activity (and disables idle-timer hold).
+            dispatchCueTick()
             guard !shouldPreserveCurrentPreview else { return }
             guard let destination else { return }
             planningStatus = "Refreshing route options…"
@@ -992,6 +1164,87 @@ final class HomeViewModel: ObservableObject {
         if let last = geometry.last,
            Self.straightLineMeters(last, rider) <= Self.arrivalRadiusM {
             declareArrival()
+        }
+
+        // Spec lines 133-143: dispatch a cue snapshot every tick so the
+        // cue engine can emit "Route started", 50/10 m approach, off-route,
+        // arrival, etc. The coordinator handles all gating (settings,
+        // paired-with-device).
+        dispatchCueTick()
+    }
+
+    /// Builds a `CueSnapshot` from the current routing state and dispatches
+    /// it to the routing-activity coordinator. Called every GPS fix during
+    /// routing, on route start, and on stop — the coordinator handles all
+    /// gating (settings, paired-with-device) and the Live Activity
+    /// lifecycle (start when routing begins, update each tick, end on
+    /// stop) from this single entry point.
+    func dispatchCueTick() {
+        // Spec lines 7 / 131: cues fire from the phone only when the
+        // ESP32 device isn't actively driving the on-screen guidance.
+        // Pairing alone is not enough — the device might be paired but
+        // currently disconnected (rider out of range / device off), in
+        // which case the phone is the only UI and SHOULD speak.
+        let pairedWithDevice = appModel.isDeviceConnectedForCueSuppression
+        let cueManeuvers: [CueManeuver] = (guidanceRoute?.maneuvers ?? []).compactMap { m in
+            switch m.maneuverType {
+            case .depart, .arrive:
+                return nil
+            default:
+                return CueManeuver(
+                    id: m.id,
+                    kind: cueManeuverKind(m.maneuverType),
+                    distanceFromStartM: m.distanceFromStartMeters
+                )
+            }
+        }
+        let snapshot = CueSnapshot(
+            routeId: appModel.activeSession.routeIdentifier,
+            pairedWithDevice: pairedWithDevice,
+            progressDistanceM: progressDistanceM,
+            maneuvers: cueManeuvers,
+            offRoute: offRoute,
+            rerouting: rerouteRequested,
+            arrived: arrivalNotice != nil,
+            distanceFromRouteM: offRouteDistanceM,
+            routeTotalDistanceM: routeTotalDistanceM
+        )
+        let liveContent = buildLiveActivityContent()
+        appModel.routingActivityCoordinator.onGuidanceTick(
+            snapshot: snapshot,
+            settings: appModel.settings,
+            isRouting: appModel.isRoutingInProgress,
+            liveActivityContent: liveContent
+        )
+    }
+
+    /// Build the lock-screen Live Activity content from the same per-tick
+    /// state the on-screen guidance uses, so the activity reflects the
+    /// rider's current next-turn line and ETA. Called on every guidance
+    /// tick so the activity does not go stale.
+    private func buildLiveActivityContent() -> RoutingLiveActivityContent? {
+        guard homeMode == .phoneGuidance,
+              let routeId = appModel.activeSession.routeIdentifier else {
+            return nil
+        }
+        let destination = appModel.activeSession.destinationLabel
+        let nextInstruction = nextInstructionLine ?? "On route"
+        let etaMinutes = max(0, Int((remainingDurationSeconds / 60.0).rounded()))
+        return RoutingLiveActivityContent(
+            routeIdentifier: routeId,
+            destinationLabel: destination,
+            nextInstruction: nextInstruction,
+            etaMinutes: etaMinutes
+        )
+    }
+
+    private func cueManeuverKind(_ type: RouteManeuverType) -> ManeuverKind {
+        switch type {
+        case .left, .slightLeft, .sharpLeft: return .left
+        case .right, .slightRight, .sharpRight: return .right
+        case .uturn: return .uturn
+        case .merge, .ramp, .roundabout: return .generic
+        case .depart, .arrive, .straight: return .generic
         }
     }
 

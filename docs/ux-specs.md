@@ -125,3 +125,21 @@ Tests should cover these ux cases as end to end tests (or if they suite for inte
   - if user double taps on north indicator quick, it will lock the north up
   - when north up is locked, tapping again on north indicator will make camera goes back to default (when in routing) smoothly
   - items above on companion apps also happen when in routing mode
+- on companion apps (ios, android, web)
+  - there is a setting to prevent screen from turning off right in the top of settings page
+  - there is a setting to allow gps in background right in the top of settings page. they need to active that manually in ios at least. but permissions should be requested properly as all these require. on web, imagine it would run on ios webkit based browsers, like safari on iphone, do what's nessecary. check browser and os and give proper hints for user how to make that work on browser
+  - when moving with a route on a companion app (not connected to device):
+    - there is a setting to give audio cues right in the top of settings page. it only activates to enable when user selected allow gps in background. it mentions as a sub that when this is enabled user needs to allow gps use in background.
+    - give audio cues when there is a route and in settings audio cues is on and it's on by default
+      - audio cues to give:
+        - when starting, say "route started"
+        - when approaching turns 50 meters, say "in 50 meters turn right/left or keep right/left or take left/right exit, etc."
+        - when approaching turns in 10 meters, say "turn right/left, etc."
+        - when passed previous turn 10 meters, say "next turn right/left in about X meters"
+        - when there is no other turns after last turn and already 10 meters passed from last turn, say "arriving at your destination in X meters"
+        - when approaching end, say "you have arrived at your destination"
+        - if user went offtrack, say "offtrack"
+        - if user is offtrack and app reroutes, say "rerouting" then as soon as new route is ready give the new audio cues
+        - if rerouting and being off track continued more than twice, say "off track" and stop audio cues until user is back on the route and you are confident they are on track again say "on track"
+    - there is a settings to enable live actions and map on phone lock screen, right in the top of settings page. it only activates to enable when user selected allow gps in background. it mentions as a sub that when this is enabled user needs to allow gps use in background.
+      - in different os it might require specific implementation and permission but at least on web, it can only be one notification that updates. on ios it can even show a map, as apple maps does that too. check latest features of android for same behaviour.

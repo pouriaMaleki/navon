@@ -10,10 +10,18 @@ final class CoreLocationService: NSObject, ObservableObject, LocationService {
     /// Instantaneous ground speed (m/s) from the most recent CLLocation fix.
     /// Negative `CLLocation.speed` means "unavailable" — we coerce that to nil.
     @Published private(set) var currentSpeedMps: Double?
+    /// True when the user has asked for "Always" but iOS only granted
+    /// "When-In-Use". Spec line 130 — surface a hint pointing the user to
+    /// the iOS Settings app to flip the toggle manually.
+    @Published private(set) var manualSettingsHint: Bool = false
 
     private let manager: CLLocationManager
     private let persistence: CompanionPersistence
-    private var watching: Bool = false
+    /// Visible to tests so the background-location gating contract can
+    /// be checked without depending on simulator authorization state
+    /// (which decides whether `isLocating` flips true at start time).
+    private(set) var watching: Bool = false
+    private var requestedAlways: Bool = false
 
     init(persistence: CompanionPersistence) {
         self.manager = CLLocationManager()
@@ -52,6 +60,26 @@ final class CoreLocationService: NSObject, ObservableObject, LocationService {
         manager.stopUpdatingLocation()
         isLocating = false
     }
+
+    /// Request "Always" authorization for background GPS. iOS only allows
+    /// this prompt to escalate from "When-In-Use" once; subsequent attempts
+    /// silently no-op, in which case the user must flip the toggle in
+    /// Settings (we surface that via `manualSettingsHint`).
+    func requestAlwaysAuthorization() {
+        requestedAlways = true
+        switch manager.authorizationStatus {
+        case .authorizedAlways:
+            manualSettingsHint = false
+        case .authorizedWhenInUse:
+            manager.requestAlwaysAuthorization()
+        case .notDetermined:
+            manager.requestWhenInUseAuthorization()
+        case .denied, .restricted:
+            manualSettingsHint = true
+        @unknown default:
+            break
+        }
+    }
 }
 
 extension CoreLocationService: CLLocationManagerDelegate {
@@ -88,8 +116,14 @@ extension CoreLocationService: CLLocationManagerDelegate {
     @MainActor
     private func handleAuthorizationChange(_ status: CLAuthorizationStatus) {
         switch status {
-        case .authorizedWhenInUse, .authorizedAlways:
+        case .authorizedWhenInUse:
             if watching { manager.startUpdatingLocation() }
+            // We asked for Always but iOS held us at WhenInUse.
+            manualSettingsHint = requestedAlways
+        case .authorizedAlways:
+            if watching { manager.startUpdatingLocation() }
+            manager.allowsBackgroundLocationUpdates = true
+            manualSettingsHint = false
         case .denied, .restricted:
             isLocating = false
             lastError = .denied

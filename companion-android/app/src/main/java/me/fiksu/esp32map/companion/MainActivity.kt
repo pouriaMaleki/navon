@@ -36,6 +36,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -53,6 +54,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -95,24 +97,58 @@ import me.fiksu.esp32map.companion.integration.AndroidPlaceSearchService
 
 class MainActivity : ComponentActivity() {
     private val appState: CompanionAppState by viewModels()
+    private lateinit var keepScreenOnController: me.fiksu.esp32map.companion.integration.screen.KeepScreenOnController
+    private var androidTtsService: me.fiksu.esp32map.companion.integration.audio.AndroidTtsService? = null
+    private var routingCoordinator: me.fiksu.esp32map.companion.integration.cues.RoutingActivityCoordinator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        keepScreenOnController = me.fiksu.esp32map.companion.integration.screen.KeepScreenOnController(this)
+        val tts = me.fiksu.esp32map.companion.integration.audio.AndroidTtsService(this)
+        androidTtsService = tts
+        routingCoordinator = me.fiksu.esp32map.companion.integration.cues.RoutingActivityCoordinator(keepScreenOnController, tts)
         setContent {
             MaterialTheme {
-                CompanionApp(appState = appState)
+                CompanionApp(appState = appState, onSettingsOrRoutingChange = ::syncRoutingActivityServices)
             }
         }
         processSharedIntent(intent)
         if (appState.locationService.hasLocationPermission()) {
             appState.startLocationUpdates()
         }
+        // Kick the coordinator once on launch so KEEP_SCREEN_ON honours
+        // settings even before the first user toggle.
+        syncRoutingActivityServices()
     }
 
     override fun onStop() {
         super.onStop()
         appState.stopLocationUpdates()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        androidTtsService?.shutdown()
+    }
+
+    private fun syncRoutingActivityServices() {
+        val coordinator = routingCoordinator ?: return
+        // The Android app does not (yet) track per-tick routing progress; an
+        // ActiveSession with a routeIdentifier is the closest signal we have
+        // for "routing is live".
+        val isRouting = appState.activeSession.routeIdentifier != null
+        val destination = appState.activeSession.destinationLabel
+        val title = if (destination.isNullOrBlank()) "Riding" else destination
+        val body = "On route"
+        coordinator.onSettingsOrRoutingChange(
+            context = this,
+            settings = appState.settings,
+            isRouting = isRouting,
+            pairedWithDevice = appState.pairedPeripheral != null,
+            title = title,
+            body = body,
+        )
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -145,7 +181,10 @@ private enum class SettingsDestination {
 }
 
 @Composable
-private fun CompanionApp(appState: CompanionAppState) {
+private fun CompanionApp(
+    appState: CompanionAppState,
+    onSettingsOrRoutingChange: () -> Unit = {},
+) {
     val context = LocalContext.current
     val homeState = remember(appState) { HomeStateHolder(appState, AndroidPlaceSearchService(context)) }
     var showingSettings by rememberSaveable { mutableStateOf(false) }
@@ -159,6 +198,17 @@ private fun CompanionApp(appState: CompanionAppState) {
             selectedRouteId = null
             homeState.syncQueryFromPreview()
         }
+    }
+
+    // Re-evaluate the WakeLock + foreground-service gating whenever settings
+    // or the active session changes. The activity-side coordinator owns the
+    // actual side effects.
+    LaunchedEffect(
+        appState.settings,
+        appState.activeSession.routeIdentifier,
+        appState.pairedPeripheral,
+    ) {
+        onSettingsOrRoutingChange()
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -185,6 +235,7 @@ private fun CompanionApp(appState: CompanionAppState) {
             FullScreenOverlay {
                 when (settingsDestination) {
                     SettingsDestination.ROOT -> SettingsRootScreen(
+                        appState = appState,
                         onDismiss = {
                             showingSettings = false
                             settingsDestination = SettingsDestination.ROOT
@@ -475,48 +526,62 @@ private fun PlanningTopArea(
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         LocationPermissionSection(appState)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TextField(
-                value = homeState.query,
-                onValueChange = {
-                    homeState.openSearch()
-                    homeState.updateQuery(it, scope)
+        // iOS parity: where-to spans the full row; Settings + device chip
+        // live on a vertical right-side rail below the search field.
+        TextField(
+            value = homeState.query,
+            onValueChange = {
+                homeState.openSearch()
+                homeState.updateQuery(it, scope)
+            },
+            label = { Text("Where to?") },
+            singleLine = true,
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                imeAction = androidx.compose.ui.text.input.ImeAction.Done,
+            ),
+            keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                onDone = {
+                    focusManager.clearFocus(force = true)
+                    homeState.closeSearch()
                 },
-                label = { Text("Where to?") },
-                singleLine = true,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                    imeAction = androidx.compose.ui.text.input.ImeAction.Done,
-                ),
-                keyboardActions = androidx.compose.foundation.text.KeyboardActions(
-                    onDone = {
-                        focusManager.clearFocus(force = true)
-                        homeState.closeSearch()
-                    },
-                ),
-                modifier = Modifier.weight(1f),
-            )
-            Spacer(Modifier.width(12.dp))
-            DeviceStatusChip(
-                state = deviceChipStateOf(
-                    paired = appState.pairedPeripheral,
-                    connection = appState.syncSession.connectionState,
-                ),
-                onTap = { action ->
-                    when (action) {
-                        is DeviceChipTapAction.BeginPairingFlow -> appState.beginPairingFlow()
-                        is DeviceChipTapAction.ConnectToDevice -> appState.connectToDevice()
-                        is DeviceChipTapAction.ShowConnectedPopover,
-                        is DeviceChipTapAction.Noop -> {
-                            // Connected popover and the disabled-state
-                            // no-op are placeholders until the home
-                            // overlay grows a real popover surface.
-                        }
-                    }
-                },
-            )
-            Spacer(Modifier.width(8.dp))
-            IconButton(onClick = onOpenSettings) {
-                Text("Set")
+            ),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        // Top-right rail (top → bottom): settings → device chip when
+        // paired. Compass/zoom/alternate-routes don't apply on Android
+        // because the platform delegates routing to the ESP device.
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                IconButton(onClick = onOpenSettings) {
+                    Text("Settings")
+                }
+                if (appState.pairedPeripheral != null) {
+                    DeviceStatusChip(
+                        state = deviceChipStateOf(
+                            paired = appState.pairedPeripheral,
+                            connection = appState.syncSession.connectionState,
+                        ),
+                        onTap = { action ->
+                            when (action) {
+                                is DeviceChipTapAction.BeginPairingFlow -> appState.beginPairingFlow()
+                                is DeviceChipTapAction.ConnectToDevice -> appState.connectToDevice()
+                                is DeviceChipTapAction.ShowConnectedPopover,
+                                is DeviceChipTapAction.Noop -> {
+                                    // Connected popover and the disabled-state
+                                    // no-op are placeholders until the home
+                                    // overlay grows a real popover surface.
+                                }
+                            }
+                        },
+                    )
+                }
             }
         }
 
@@ -701,12 +766,25 @@ private fun RouteSuggestionsCard(appState: CompanionAppState, homeState: HomeSta
         homeState.previewAlternatives.forEach { alternative ->
             val selected = alternative.id == appState.preview.selectedAlternativeId
             Row(
-                modifier = Modifier.fillMaxWidth().clickable { homeState.selectAlternative(alternative.id) }.background(if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent, shape = MaterialTheme.shapes.medium).padding(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { homeState.selectAlternative(alternative.id) }
+                    .background(
+                        if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent,
+                        shape = MaterialTheme.shapes.medium,
+                    )
+                    // iOS parity: tighten the row to a compact two-line
+                    // block (title + km/min summary). 6 vertical pt + the
+                    // empty-subtitle skip gives the same visual weight as
+                    // iOS's `phoneGuidanceTopCard` rows.
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(alternative.title, fontWeight = FontWeight.SemiBold)
-                    Text(alternative.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (alternative.subtitle.isNotEmpty()) {
+                        Text(alternative.subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                     Text(alternative.normalizedPackage.summaryLine, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (selected) {
@@ -781,6 +859,7 @@ private fun DeviceOverviewCard(appState: CompanionAppState, homeState: HomeState
 
 @Composable
 private fun SettingsRootScreen(
+    appState: CompanionAppState,
     onDismiss: () -> Unit,
     onRoutes: () -> Unit,
     onDevice: () -> Unit,
@@ -792,10 +871,101 @@ private fun SettingsRootScreen(
             Text("Settings", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
             Button(onClick = onDismiss) { Text("Done") }
         }
+        // UX spec lines 128-145: prevent screen off, allow GPS in background,
+        // audio cues, and live activity must appear at the TOP of the
+        // settings page in this exact order.
+        ActivitySettingsSection(appState)
         Button(onClick = onRoutes, modifier = Modifier.fillMaxWidth()) { Text("Routes") }
         Button(onClick = onDevice, modifier = Modifier.fillMaxWidth()) { Text("Device") }
         Button(onClick = onRoutePlanner, modifier = Modifier.fillMaxWidth()) { Text("Route Planner") }
         Button(onClick = onImportDiagnostics, modifier = Modifier.fillMaxWidth()) { Text("Import Diagnostics") }
+    }
+}
+
+@Composable
+private fun ActivitySettingsSection(appState: CompanionAppState) {
+    val settings = appState.settings
+    val gpsOn = settings.allowBackgroundGps
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("activity-settings"),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        SettingToggleRow(
+            testTag = "setting-keepScreenOn",
+            title = "Prevent screen from turning off",
+            subtitle = "Keeps the display awake while a route is active.",
+            checked = settings.keepScreenOn,
+            enabled = true,
+            onChange = { next ->
+                appState.settings = appState.settings.copy(keepScreenOn = next)
+                appState.persistSettings()
+            },
+        )
+        SettingToggleRow(
+            testTag = "setting-allowBackgroundGps",
+            title = "Allow GPS in background",
+            subtitle = "Required for audio cues and lock-screen route status. Grant 'Allow all the time' when prompted.",
+            checked = settings.allowBackgroundGps,
+            enabled = true,
+            onChange = { next ->
+                appState.settings = appState.settings.copy(allowBackgroundGps = next)
+                appState.persistSettings()
+            },
+        )
+        SettingToggleRow(
+            testTag = "setting-audioCuesEnabled",
+            title = "Audio cues",
+            subtitle = if (gpsOn) "Spoken turn-by-turn while you ride."
+            else "Requires GPS in background. Turn that on first.",
+            checked = settings.audioCuesEnabled,
+            enabled = gpsOn,
+            onChange = { next ->
+                appState.settings = appState.settings.copy(audioCuesEnabled = next)
+                appState.persistSettings()
+            },
+        )
+        SettingToggleRow(
+            testTag = "setting-liveActivityEnabled",
+            title = "Lock-screen live activity",
+            subtitle = if (gpsOn) "Show route status and next turn on your lock screen."
+            else "Requires GPS in background. Turn that on first.",
+            checked = settings.liveActivityEnabled,
+            enabled = gpsOn,
+            onChange = { next ->
+                appState.settings = appState.settings.copy(liveActivityEnabled = next)
+                appState.persistSettings()
+            },
+        )
+    }
+}
+
+@Composable
+private fun SettingToggleRow(
+    testTag: String,
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    enabled: Boolean,
+    onChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(testTag)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, fontWeight = FontWeight.SemiBold)
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Switch(checked = checked, onCheckedChange = onChange, enabled = enabled)
     }
 }
 

@@ -182,6 +182,23 @@ data class CompanionSettings(
      * (spec line 10).
      */
     val ridingZoom: Float? = null,
+    /** Prevents the screen from sleeping while a route is active (FLAG_KEEP_SCREEN_ON). */
+    val keepScreenOn: Boolean = false,
+    /**
+     * Permission gate for ACCESS_BACKGROUND_LOCATION + foreground service.
+     * Requires the user to grant fine location first, then background location.
+     */
+    val allowBackgroundGps: Boolean = false,
+    /**
+     * Audio cues during routing. Default true (spec: "on by default") but
+     * gated on `allowBackgroundGps` at the UI and runtime layer.
+     */
+    val audioCuesEnabled: Boolean = true,
+    /**
+     * Lock-screen live activity. Posts a foreground/ongoing notification with
+     * route status. Gated on `allowBackgroundGps`.
+     */
+    val liveActivityEnabled: Boolean = false,
 )
 
 data class RouteAlternative(

@@ -49,7 +49,10 @@ struct CompanionHomeView: View {
                     speedBadge
                 }
                 .overlay(alignment: .topTrailing) {
-                    zoomControls
+                    rightSideRailTop
+                }
+                .overlay(alignment: .topLeading) {
+                    leftSideRailTop
                 }
                 .ignoresSafeArea(edges: .bottom)
                 .onAppear { refreshCameraForCurrentMode() }
@@ -208,42 +211,115 @@ struct CompanionHomeView: View {
     /// rider's preferred navigation zoom survives across sessions; in
     /// planning/overview the camera updates for the moment but isn't
     /// persisted (spec: "only keep it for moment").
+    /// Standard size + corner radius shared by every right-side rail
+    /// glyph so the column is pixel-perfect across modes.
+    private static let railIconSize: CGFloat = 50
+    private static let railIconCorner: CGFloat = 18
+    private static let railIconSpacing: CGFloat = 8
+
+    /// Single Y offset used by BOTH rails in EVERY mode. Sized to clear
+    /// the tallest top card we ever render: the routing card with an
+    /// optional off-route pill + 3-line guidance text. Keeping both
+    /// rails on the same offset means rail icons never shift Y when
+    /// the rider goes from planning → routing → arrival.
+    ///
+    /// 130 leaves daylight for a 3-line routing card (~96pt with
+    /// paddings) without leaving an obvious empty band in planning mode.
+    private static let railTopPadding: CGFloat = 130
+
+    /// Persistent right-side rail, sitting below the Settings cog (which
+    /// is rendered inside the where-to top bar). Items, top → bottom:
+    /// compass/north-up, device chip (only when paired). Driven by
+    /// `viewModel.topRightIconStack` so the unit tests pin the order.
     @ViewBuilder
-    private var zoomControls: some View {
-        // Hide the +/- column whenever the where-to dropdown is on
-        // screen, otherwise the dropdown's bottom rows render under the
-        // zoom buttons (the dropdown is part of `topOverlay`, which sits
-        // BELOW the zoomControls overlay layer).
+    private var rightSideRailTop: some View {
         if viewModel.shouldShowSearchPanel {
             EmptyView()
         } else {
-            zoomControlsStack
+            VStack(spacing: Self.railIconSpacing) {
+                ForEach(0..<viewModel.topRightIconStack.count, id: \.self) { idx in
+                    topRailIcon(viewModel.topRightIconStack[idx])
+                }
+            }
+            .padding(.top, Self.railTopPadding)
+            .padding(.trailing, 12)
         }
     }
 
-    private var zoomControlsStack: some View {
-        VStack(spacing: 8) {
+    /// Persistent left-side rail, sitting below the where-to search bar
+    /// in the same vertical band as the right rail. Items, top → bottom:
+    /// alternate-routes (only in routing), zoom-in, zoom-out. Lives on
+    /// the LEFT rather than the bottom-right because the suggested-routes
+    /// card sits along the bottom and previously occluded the column.
+    @ViewBuilder
+    private var leftSideRailTop: some View {
+        if viewModel.shouldShowSearchPanel {
+            EmptyView()
+        } else {
+            VStack(spacing: Self.railIconSpacing) {
+                ForEach(0..<viewModel.topLeftIconStack.count, id: \.self) { idx in
+                    leftRailIcon(viewModel.topLeftIconStack[idx])
+                }
+            }
+            .padding(.top, Self.railTopPadding)
+            .padding(.leading, 16)
+        }
+    }
+
+    @ViewBuilder
+    private func topRailIcon(_ item: HomeViewModel.TopRightIcon) -> some View {
+        switch item {
+        case .settings:
+            // Only reached in non-planning modes (planning routes Settings
+            // to the where-to top bar). HomeViewModel.topRightIconStack
+            // hides this case when there is a where-to to attach to.
+            Button(action: onOpenSettings) {
+                railGlyph("gearshape.fill")
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Settings")
+        case .compass:
+            // Single combined glyph: tap = recenter / show north-up,
+            // double-tap (quick) = lock north-up. Replaces the previous
+            // separate "Recenter map" planning button + "North indicator"
+            // routing button.
+            railGlyph(viewModel.compassSymbolName)
+                .onTapGesture(count: 2) { viewModel.handleCompassDoubleTap() }
+                .onTapGesture { viewModel.handleCompassTap() }
+                .accessibilityLabel("Recenter map")
+        case .deviceChip:
+            if let chipState = viewModel.deviceChipState {
+                DeviceStatusChip(state: chipState) {
+                    viewModel.handleDeviceChipTap()
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func leftRailIcon(_ item: HomeViewModel.TopLeftIcon) -> some View {
+        switch item {
+        case .alternateRoutes:
+            Button {
+                viewModel.exploreAlternateRoutes()
+            } label: {
+                railGlyph("arrow.triangle.branch")
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Find alternate routes")
+        case .zoomIn:
             zoomButton(symbol: "plus", label: "Zoom in") { applyZoom(direction: .zoomIn) }
+        case .zoomOut:
             zoomButton(symbol: "minus", label: "Zoom out") { applyZoom(direction: .zoomOut) }
         }
-        // Mode-aware vertical placement so the +/- column never sits on
-        // top of:
-        //  - planning: the floating north-up / recenter accessory at top
-        //    72 + 50 + a bit of slack → 130
-        //  - phoneGuidance: the top guidance card (next-turn headline,
-        //    destination subtitle, off-route pill) which can run ~150 px
-        //    tall on a Pro Max-class screen → 184 leaves daylight.
-        // Earlier 96 caused the user-reported overlaps in routing & in
-        // planning when the recenter button was visible.
-        .padding(.top, zoomControlsTopPadding)
-        .padding(.trailing, 12)
     }
 
-    private var zoomControlsTopPadding: CGFloat {
-        switch viewModel.homeMode {
-        case .phoneGuidance: return 184
-        case .planning, .deviceOverview, .sendingToDevice: return 130
-        }
+    private func railGlyph(_ systemName: String) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: 18, weight: .semibold))
+            .foregroundStyle(.primary)
+            .frame(width: Self.railIconSize, height: Self.railIconSize)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Self.railIconCorner, style: .continuous))
     }
 
     private func zoomButton(symbol: String, label: String, action: @escaping () -> Void) -> some View {
@@ -373,12 +449,12 @@ struct CompanionHomeView: View {
     }
 
     private var phoneGuidanceTopOverlay: some View {
-        // Top card: next-turn line as the headline, destination + remaining
-        // bundled as the subtitle (single source of truth — the bottom just
-        // floats a stop button). See HomeViewModel.guidanceSubtitleLine.
-        let headline = viewModel.nextInstructionLine ?? viewModel.activeNavigationTitle
+        // Three-line text card (no icons): next-turn headline,
+        // "X km to <destination>", "Y min remaining". Icons live on the
+        // persistent rails so the layout doesn't reflow between modes.
+        let layout = viewModel.routingTopLayout
         return VStack(spacing: 6) {
-            if let offLabel = viewModel.offRouteLabel {
+            if let offLabel = layout?.offRouteLabel {
                 Text(offLabel)
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(.black)
@@ -388,80 +464,56 @@ struct CompanionHomeView: View {
                     .background(viewModel.rerouteRequested ? Color.cyan : Color.yellow,
                                 in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
-            phoneGuidanceTopRow(headline: headline)
+            phoneGuidanceTopCard(
+                headline: layout?.headline ?? viewModel.activeNavigationTitle,
+                distanceLine: layout?.distanceToDestinationLine ?? "",
+                minutesLine: layout?.minutesRemainingLine ?? ""
+            )
         }
     }
 
-    private func phoneGuidanceTopRow(headline: String) -> some View {
-        HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(headline)
-                    .font(.headline)
-                    .lineLimit(1)
-                Text(viewModel.guidanceSubtitleLine)
+    private func phoneGuidanceTopCard(
+        headline: String,
+        distanceLine: String,
+        minutesLine: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(headline)
+                .font(.headline)
+                .lineLimit(2)
+            if !distanceLine.isEmpty {
+                Text(distanceLine)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                    .lineLimit(1)
             }
-            Spacer()
-            if let chipState = viewModel.deviceChipState {
-                DeviceStatusChip(state: chipState) {
-                    viewModel.handleDeviceChipTap()
-                }
+            if !minutesLine.isEmpty {
+                Text(minutesLine)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
-            // Spec #11 ("split-way reroute"): plan fresh alternatives from
-            // the rider's current location to the same destination,
-            // keeping the active session intact so cancelling resumes the
-            // original route.
-            Button {
-                viewModel.exploreAlternateRoutes()
-            } label: {
-                Image(systemName: "arrow.triangle.branch")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    .frame(width: 48, height: 48)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Find alternate routes")
-            Image(systemName: viewModel.compassSymbolName)
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(.primary)
-                .frame(width: 48, height: 48)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .onTapGesture(count: 2) { viewModel.handleCompassDoubleTap() }
-                .onTapGesture { viewModel.handleCompassTap() }
-                .accessibilityLabel("North indicator")
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
+    /// Routing-mode side rail. Stacks the device-pairing chip, the
     private var deviceOverviewTopOverlay: some View {
-        HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(viewModel.activeNavigationTitle)
-                    .font(.headline)
-                    .lineLimit(1)
-                Text(viewModel.activeNavigationSubtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-            Spacer()
-            if let chipState = viewModel.deviceChipState {
-                DeviceStatusChip(state: chipState) {
-                    viewModel.handleDeviceChipTap()
-                }
-            }
-            Button(action: onOpenSettings) {
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 18, weight: .semibold))
-                    .frame(width: 48, height: 48)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            }
-            .accessibilityLabel("Settings")
+        // Text-only top card; the device chip and settings glyph live on
+        // the persistent right-side rail (which sits BELOW this card,
+        // not beside it, so the card spans full width).
+        VStack(alignment: .leading, spacing: 4) {
+            Text(viewModel.activeNavigationTitle)
+                .font(.headline)
+                .lineLimit(1)
+            Text(viewModel.activeNavigationSubtitle)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
@@ -500,20 +552,6 @@ struct CompanionHomeView: View {
             }
             .padding(14)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-
-            if let chipState = viewModel.deviceChipState {
-                DeviceStatusChip(state: chipState) {
-                    viewModel.handleDeviceChipTap()
-                }
-            }
-
-            Button(action: onOpenSettings) {
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 18, weight: .semibold))
-                    .frame(width: 50, height: 50)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-            }
-            .accessibilityLabel("Settings")
         }
     }
 
@@ -623,6 +661,11 @@ struct CompanionHomeView: View {
         .contentShape(Rectangle())
     }
 
+    /// Planning-only status overlay. The recenter button has moved into
+    /// the persistent compass glyph on the right-side rail — tapping the
+    /// compass triggers the same `refreshCameraForCurrentMode` path. What
+    /// remains here is the locating spinner and the location-blocked
+    /// indicator, both informational.
     @ViewBuilder
     private var planningMapAccessoryControls: some View {
         if viewModel.homeMode == .planning {
@@ -633,7 +676,7 @@ struct CompanionHomeView: View {
                     .frame(width: 50, height: 50)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                     .accessibilityLabel("Locating you")
-                    .padding(.trailing, 16)
+                    .padding(.trailing, 76)
                     .padding(.top, 72)
             } else if appModel.locationService.lastError == .denied {
                 Image(systemName: "location.slash.fill")
@@ -641,18 +684,8 @@ struct CompanionHomeView: View {
                     .frame(width: 50, height: 50)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                     .accessibilityLabel("Location is blocked")
-                    .padding(.trailing, 16)
+                    .padding(.trailing, 76)
                     .padding(.top, 72)
-            } else if planningCameraNeedsReset {
-                Button(action: refreshCameraForCurrentMode) {
-                    Image(systemName: "location.north.line.fill")
-                        .font(.system(size: 18, weight: .semibold))
-                        .frame(width: 50, height: 50)
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                }
-                .accessibilityLabel("Recenter map")
-                .padding(.trailing, 16)
-                .padding(.top, 72)
             }
         }
     }
@@ -733,13 +766,18 @@ struct CompanionHomeView: View {
                 Button {
                     viewModel.selectAlternative(alternative.id)
                 } label: {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 10) {
+                        VStack(alignment: .leading, spacing: 1) {
                             Text(alternative.title)
                                 .font(.subheadline.weight(.semibold))
-                            Text(alternative.subtitle)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            // Drop the redundant subtitle (it was empty
+                            // after the title rename anyway). Two visible
+                            // lines max: title + km/min summary.
+                            if !alternative.subtitle.isEmpty {
+                                Text(alternative.subtitle)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                             Text(alternative.normalizedPackage.summaryLine)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -752,8 +790,9 @@ struct CompanionHomeView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
-                    .padding(12)
-                    .background(alternative.id == appModel.preview.selectedAlternativeID ? Color.blue.opacity(0.12) : Color.clear, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(alternative.id == appModel.preview.selectedAlternativeID ? Color.blue.opacity(0.12) : Color.clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }

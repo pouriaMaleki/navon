@@ -22,9 +22,12 @@ deleted or renamed.
 - ignored: 0
 
 ## companion-web (vitest)
-- passed: 87
+- passed: 168
 - failed: 0
 - todo: 0
+- (settings-expansion: spec lines 128-145 added on 2026-04-29 — adds CueEngine,
+  WakeLockService, BackgroundGpsService, WebTtsService, LiveNotificationService,
+  SettingsHubView ordering/gating, and an E2E settings-expansion spec.)
 
 ## companion-ios (XCTest)
 - status: not run locally (requires macOS runner with xcodegen + xcodebuild — see ux-tests.yml `ios-unit` job)

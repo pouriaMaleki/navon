@@ -155,12 +155,15 @@ export class GuidanceStore {
   }
 
   get nextInstructionLine(): string | undefined {
+    // iOS parity: format is "<distance> <instruction>" so the eye lands
+    // on the metric first (matches the routing top card's other two
+    // lines: "8.6 km to Alppila", "16 min remaining").
     const alert = this.upcomingTurnAlert;
     if (alert) {
       const label = formatDistanceLabel(alert.distanceRemainingM);
-      return `${alert.instructionText ?? turnAlertLabel(alert.kind)} in ${label}`;
+      const instruction = alert.instructionText ?? turnAlertLabel(alert.kind);
+      return `${label} ${instruction}`;
     }
-    // Fallback: find next non-depart maneuver ahead of current progress
     const route = this.guidanceRoute;
     if (!route) return undefined;
     for (const m of route.maneuvers) {
@@ -168,7 +171,7 @@ export class GuidanceStore {
       const remaining = m.distanceFromStartMeters - this.progressDistanceM;
       if (remaining < 0) continue;
       const label = formatDistanceLabel(remaining);
-      return `${m.instructionText ?? "Continue"} in ${label}`;
+      return `${label} ${m.instructionText ?? "Continue"}`;
     }
     return undefined;
   }
@@ -194,20 +197,52 @@ export class GuidanceStore {
   }
 
   /**
-   * Single line: destination address + remaining distance + remaining minutes.
-   * Used as the subtitle of the top guidance card so the bottom no longer
-   * needs to repeat the same information; the bottom only shows a stop
-   * button. Empty destination labels are dropped so the line never starts
-   * with a stray separator.
+   * Legacy single-line subtitle. Kept for back-compat callers; the
+   * routing top card now renders the two new lines below directly.
    */
   get guidanceSubtitleLine(): string {
-    const route = this.guidanceRoute;
-    const destination = (
-      route?.summary.destinationLabel ?? this.activeSession.destinationLabel
-    )?.trim();
-    const remainingPart = this.activeNavigationSubtitle;
-    if (!destination || destination === "No destination") return remainingPart;
-    return `${destination} • ${remainingPart}`;
+    const lines = [this.distanceToDestinationLine, this.minutesRemainingLine].filter(
+      (line) => line.length > 0,
+    );
+    return lines.join(" • ") || this.activeNavigationSubtitle;
+  }
+
+  /**
+   * iOS-parity routing top card line 2: "8.6 km to Alppila".
+   * Prefers the user-typed destination on `activeSession` over the route
+   * package's hardcoded placeholder so OSRM bike's "Selected destination"
+   * never erases the address the rider actually picked.
+   */
+  get distanceToDestinationLine(): string {
+    const remaining =
+      this.remainingDistanceM > 0
+        ? this.remainingDistanceM
+        : this.guidanceRoute?.summary.totalDistanceMeters ?? 0;
+    if (remaining <= 0) return "";
+    const km = (remaining / 1000).toFixed(1);
+    const placeholder = new Set([
+      "",
+      "No destination",
+      "Selected destination",
+      "Current location",
+    ]);
+    const candidates = [
+      this.activeSession.destinationLabel ?? "",
+      this.guidanceRoute?.summary.destinationLabel ?? "",
+    ].map((s) => s.trim());
+    const address = candidates.find((label) => !placeholder.has(label));
+    return address && address.length > 0 ? `${km} km to ${address}` : `${km} km`;
+  }
+
+  /** iOS-parity routing top card line 3: "16 min remaining". */
+  get minutesRemainingLine(): string {
+    const seconds =
+      this.remainingDurationSeconds > 0
+        ? this.remainingDurationSeconds
+        : this.guidanceRoute?.summary.estimatedDurationSeconds ?? 0;
+    if (seconds <= 0) return "";
+    const minutes = Math.max(1, Math.ceil(seconds / 60));
+    return `${minutes} min remaining`;
   }
 
   /** Remaining distance along the route from current progress. */
@@ -242,6 +277,31 @@ export class GuidanceStore {
     const split = this.routeSplit;
     if (split && split.remaining.length >= 2) return split.remaining;
     return this.activeRouteGeometry;
+  }
+
+  /**
+   * iOS-parity top-right icon column. Same items in every mode so the
+   * layout doesn't reflow when the rider transitions between planning
+   * and routing. Order, top → bottom: settings, compass/north-up,
+   * device chip (only when paired). The compass tap recentres the camera
+   * (single tap = north-up; double-tap = lock north-up).
+   *
+   * The web app does not have ESP pairing yet; `deviceChip` never
+   * appears here. Wire that in when `RootStore` exposes a paired flag.
+   */
+  get topRightIconStack(): Array<"settings" | "compass" | "deviceChip"> {
+    return ["settings", "compass"];
+  }
+
+  /**
+   * iOS-parity top-left icon column. Always-on zoom buttons stay at the
+   * top so the alternate-routes button (visible only in routing) doesn't
+   * shift their on-screen position when the rider presses Start.
+   */
+  get topLeftIconStack(): Array<"zoomIn" | "zoomOut" | "alternateRoutes"> {
+    const icons: Array<"zoomIn" | "zoomOut" | "alternateRoutes"> = ["zoomIn", "zoomOut"];
+    if (this.homeMode === "phoneGuidance") icons.push("alternateRoutes");
+    return icons;
   }
 
   /** Off-route status label for UI display. */
@@ -292,10 +352,27 @@ export class GuidanceStore {
     const selected = selectedAlternative(this.planning.preview);
     if (!selected) return;
     const package_ = selected.normalizedPackage;
+    // iOS parity: don't clobber a real user-typed destination on
+    // activeSession with the route package's generic placeholder
+    // ("Selected destination" comes baked into the OSRM mapper).
+    const placeholder = new Set([
+      "",
+      "No destination",
+      "Selected destination",
+      "Current location",
+    ]);
+    const sessionLabel = (this.activeSession.destinationLabel ?? "").trim();
+    const packageLabel = (package_.summary.destinationLabel ?? "").trim();
+    const sessionIsPlaceholder = placeholder.has(sessionLabel);
+    const packageIsMeaningful = !placeholder.has(packageLabel);
+    const destinationLabel =
+      packageIsMeaningful && (sessionIsPlaceholder || sessionLabel.length === 0)
+        ? packageLabel
+        : sessionLabel || packageLabel;
     this.activeSession = {
       routeIdentifier: package_.routeIdentifier,
       routeRevision: package_.revision,
-      destinationLabel: package_.summary.destinationLabel ?? this.activeSession.destinationLabel,
+      destinationLabel,
       destinationCoordinate: package_.geometry[package_.geometry.length - 1],
       providerID: package_.provenance.providerID,
       sourceMode: this.planning.currentSourceMode,

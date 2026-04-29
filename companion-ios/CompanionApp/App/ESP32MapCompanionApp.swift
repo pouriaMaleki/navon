@@ -18,9 +18,16 @@ struct ESP32MapCompanionApp: App {
                     }
                 }
                 .onChange(of: scenePhase) { _, newValue in
-                    guard newValue == .active else { return }
-                    Task {
-                        await appModel.consumePendingSharedImports()
+                    switch newValue {
+                    case .active:
+                        appModel.handleApplicationLifecycleEnteredForeground()
+                        Task { await appModel.consumePendingSharedImports() }
+                    case .background:
+                        appModel.handleApplicationLifecycleEnteredBackground()
+                    case .inactive:
+                        break
+                    @unknown default:
+                        break
                     }
                 }
         }

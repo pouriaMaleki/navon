@@ -2,6 +2,8 @@ package me.fiksu.esp32map.companion.integration.persistence
 
 import android.content.Context
 import com.google.gson.Gson
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.google.gson.reflect.TypeToken
 import kotlin.math.PI
 import kotlin.math.cos
@@ -155,21 +157,26 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
         defaults?.let {
             val stored = it.getString(Key.SETTINGS, null) ?: return settings
             // Gson uses reflection / Unsafe and bypasses Kotlin data-class
-            // default values, so a stored blob written before the
-            // `cyclingSpeedKph` / `speedUnit` fields existed would
-            // deserialize them as 0.0 / null. Patch missing-or-invalid
-            // values to the model defaults so old installs upgrade cleanly.
+            // default values, so a stored blob written before a field
+            // existed would deserialize it to the JVM zero value (0/null/
+            // false). Patch missing-or-invalid values to model defaults
+            // so old installs upgrade cleanly.
             val raw = gson.fromJson(stored, CompanionSettings::class.java) ?: return settings
             val fallback = CompanionSettings()
-            // Gson reflection can leave `speedUnit` null on blobs written
-            // before that field existed, even though the Kotlin type is
-            // non-null. Cast to a nullable view to write the elvis safely
-            // and silence the resulting "useless elvis" lint.
             @Suppress("USELESS_ELVIS")
             val resolvedSpeedUnit: SpeedUnit = (raw.speedUnit as SpeedUnit?) ?: fallback.speedUnit
+            // For Boolean fields without a sentinel, parse the JSON object
+            // and check for explicit field presence — missing → use default.
+            val obj: JsonObject? = runCatching { JsonParser.parseString(stored).asJsonObject }.getOrNull()
+            fun boolOrDefault(field: String, default: Boolean): Boolean =
+                if (obj?.has(field) == true) obj.get(field).asBoolean else default
             return raw.copy(
                 cyclingSpeedKph = if (raw.cyclingSpeedKph > 0) raw.cyclingSpeedKph else fallback.cyclingSpeedKph,
                 speedUnit = resolvedSpeedUnit,
+                keepScreenOn = boolOrDefault("keepScreenOn", fallback.keepScreenOn),
+                allowBackgroundGps = boolOrDefault("allowBackgroundGps", fallback.allowBackgroundGps),
+                audioCuesEnabled = boolOrDefault("audioCuesEnabled", fallback.audioCuesEnabled),
+                liveActivityEnabled = boolOrDefault("liveActivityEnabled", fallback.liveActivityEnabled),
             )
         }
         return settings

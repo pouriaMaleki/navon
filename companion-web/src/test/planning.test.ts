@@ -69,10 +69,13 @@ describe("mergeMixedAlternatives", () => {
     expect(merged).toHaveLength(3);
     expect(merged[0].normalizedPackage.routeIdentifier).toBe("a");
     expect(merged[1].normalizedPackage.routeIdentifier).toBe("b");
-    // Numbered "<Provider> Route N" labels: a=hsl(1), b=osm(1), c=hsl(2).
-    expect(merged[0].title).toBe("HSL Route 1");
-    expect(merged[1].title).toBe("OSM Route 1");
-    expect(merged[2].title).toBe("HSL Route 2");
+    // iOS-parity engine-name titles (no per-provider counter). With the
+    // fakes' empty `sourceReference`, OSM falls back to "OSM Route" and
+    // HSL alternatives that lack the "fastest" hint fall back to
+    // "HSL Route".
+    expect(merged[0].title).toBe("HSL Route");
+    expect(merged[1].title).toBe("OSM Route");
+    expect(merged[2].title).toBe("HSL Route");
   });
 
   it("returns empty list for empty input", () => {

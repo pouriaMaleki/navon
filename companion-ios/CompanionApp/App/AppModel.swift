@@ -46,12 +46,20 @@ final class AppModel: ObservableObject {
     @Published var homeStartRequestID = UUID()
     @Published private(set) var persistenceRevision = 0
     @Published private(set) var pairedPeripheral: PairedPeripheralRecord?
+    /// Authoritative "is the rider currently following a route in this app
+    /// session" flag. Set by `HomeViewModel.startSelectedRoute` and
+    /// cleared by `stopActiveNavigation`. Defaults to false on app launch
+    /// so a stale `activeSession.routeIdentifier` from disk can't trick
+    /// the routing-activity coordinator into spinning up a Live Activity
+    /// for a ride that isn't happening.
+    @Published var isRoutingInProgress: Bool = false
     @Published var pairingState: PairingFlowState = .idle
 
     let diagnosticsStore = CompanionDiagnosticsStore()
     let persistence: CompanionPersistence
     let bleService: BleRouteSyncService
     let locationService: CoreLocationService
+    private(set) var routingActivityCoordinator: RoutingActivityCoordinator
 
     private var cancellables = Set<AnyCancellable>()
     private var lastHandledRerouteSignature: String?
@@ -70,12 +78,52 @@ final class AppModel: ObservableObject {
         self.bleService = bleService ?? BleRouteSyncService()
         let locationService = CoreLocationService(persistence: persistence)
         self.locationService = locationService
+        // Production wiring: real idle timer + AVSpeechSynthesizer + ActivityKit
+        // Live Activity (when iOS ≥ 16.2). The widget target lives in
+        // `RoutingLiveActivityWidget/`. Tests can substitute a fake port
+        // via `makeForTestingWithLiveActivityPort(_:)`.
+        let liveActivityPort: LiveActivityPort
+        if let override = AppModel.liveActivityPortTestOverride {
+            liveActivityPort = override
+        } else {
+            #if canImport(ActivityKit)
+            if #available(iOS 16.2, *) {
+                liveActivityPort = ActivityKitLiveActivityService()
+            } else {
+                liveActivityPort = NoopLiveActivityPort()
+            }
+            #else
+            liveActivityPort = NoopLiveActivityPort()
+            #endif
+        }
+        self.routingActivityCoordinator = RoutingActivityCoordinator(
+            idleTimer: IdleTimerController(),
+            speech: SpeechService(),
+            liveActivity: liveActivityPort
+        )
+        // Force-quit cleanup: a Live Activity started during the prior
+        // run remains visible on the lock screen until iOS dismisses it.
+        // On a fresh launch we know the rider is not currently routing
+        // (`isRoutingInProgress` is false), so any such activity is
+        // stale. End all of them here so tapping the lock-screen card
+        // never reopens the app to a "nothing is happening" home.
+        liveActivityPort.endAllOutstanding()
 
         settings = persistence.loadSettings()
         let preferences = persistence.loadRoutePlannerPreferences()
         currentSourceMode = preferences.defaultSourceMode
         if let storedSession = persistence.loadLastSession() {
             activeSession = storedSession
+            // The stored session reflects the LAST destination + provider
+            // the user picked, which we want to remember. The actual
+            // routing state (`routeIdentifier`/`routeRevision`) is
+            // ephemeral — a fresh launch is by definition not mid-route.
+            // Clearing here prevents the Live Activity from starting on
+            // app launch off a stale session id when the user only meant
+            // to open the app for planning.
+            activeSession.routeIdentifier = nil
+            activeSession.routeRevision = nil
+            persistence.saveSession(activeSession)
         }
         selectedProviderID = activeSession.providerID
         pairedPeripheral = persistence.loadPairedPeripheral()
@@ -240,6 +288,113 @@ final class AppModel: ObservableObject {
     func persistSettings() {
         persistence.saveSettings(settings)
         normalizeSourceModeForHslAvailability()
+        syncRoutingActivityServices()
+    }
+
+    /// Re-evaluates the routing activity coordinator's gating on every
+    /// settings or active-session change. Per-tick cue dispatch happens
+    /// from `HomeViewModel` where the per-tick guidance state lives.
+    /// Uses the explicit `isRoutingInProgress` flag so a stale
+    /// `activeSession.routeIdentifier` (loaded from disk on cold launch)
+    /// can't start the Live Activity outside of an actual ride.
+    func syncRoutingActivityServices() {
+        let pairedWithDevice = pairedPeripheral != nil
+        let liveActivityContent: RoutingLiveActivityContent? = isRoutingInProgress
+            ? RoutingLiveActivityContent(
+                routeIdentifier: activeSession.routeIdentifier ?? "",
+                destinationLabel: activeSession.destinationLabel,
+                nextInstruction: "On route",
+                etaMinutes: 0
+            )
+            : nil
+        routingActivityCoordinator.onSettingsOrRoutingChange(
+            settings: settings,
+            isRouting: isRoutingInProgress,
+            pairedWithDevice: pairedWithDevice,
+            liveActivityContent: liveActivityContent
+        )
+    }
+
+    /// Spec line 130: when the user toggles "Allow GPS in background" on,
+    /// escalate the CoreLocation authorization to Always. iOS only offers
+    /// the prompt once; if it fails to escalate, [locationManualSettingsHint]
+    /// becomes true so the UI can point the user to Settings.app.
+    func requestAlwaysLocationAuthorization() {
+        locationService.requestAlwaysAuthorization()
+    }
+
+    /// True when the user has asked for background GPS but iOS held us at
+    /// "When-In-Use", so the user must change it manually in Settings.
+    var locationManualSettingsHint: Bool {
+        locationService.manualSettingsHint
+    }
+
+    /// Called by `ESP32MapCompanionApp` when the app enters the background.
+    /// If no route is in progress we stop GPS to preserve battery — the
+    /// "Allow GPS in background" permission is for routing only, not for
+    /// keeping a planning-mode location feed alive while the user is away.
+    func handleApplicationLifecycleEnteredBackground() {
+        if !isRoutingInProgress {
+            locationService.stop()
+        }
+    }
+
+    /// Resumes GPS when the app comes back to the foreground (so the
+    /// where-to bar and the recenter button work again).
+    func handleApplicationLifecycleEnteredForeground() {
+        locationService.start()
+    }
+
+    /// Test seam: builds an AppModel whose Live Activity port is fixed
+    /// to the supplied fake from the very first line of init(). Used to
+    /// assert behaviours that fire during init itself (notably
+    /// `endAllOutstanding()` for force-quit cleanup).
+    static func makeForTestingWithLiveActivityPort(_ port: LiveActivityPort) -> AppModel {
+        liveActivityPortTestOverride = port
+        defer { liveActivityPortTestOverride = nil }
+        return AppModel()
+    }
+
+    fileprivate static var liveActivityPortTestOverride: LiveActivityPort?
+
+    /// Test seam: rebuilds the routing-activity coordinator with the given
+    /// fakes so unit tests can assert that cues are dispatched without
+    /// invoking AVSpeechSynthesizer or ActivityKit.
+    func replaceRoutingActivityCoordinatorForTesting(
+        speech: SpeechPort,
+        liveActivity: LiveActivityPort = NoopLiveActivityPort()
+    ) {
+        routingActivityCoordinator = RoutingActivityCoordinator(
+            idleTimer: IdleTimerController(),
+            speech: speech,
+            liveActivity: liveActivity
+        )
+    }
+
+    /// Test seam: stamps the paired-peripheral state without going through
+    /// the persistence + BLE pairing flow.
+    func replacePairedPeripheralForTesting(_ record: PairedPeripheralRecord?) {
+        pairedPeripheral = record
+    }
+
+    /// Test override for `isDeviceConnected`. Production reads the BLE
+    /// session; tests stand in a known boolean so the audio-cue gating
+    /// contract (cues silenced ONLY when actually connected, not just
+    /// paired) can be exercised without a real BLE link.
+    private var deviceConnectedTestOverride: Bool?
+
+    func replaceDeviceConnectedForTesting(_ value: Bool?) {
+        deviceConnectedTestOverride = value
+    }
+
+    /// True iff the companion is actively connected to the ESP32 device.
+    /// Spec lines 7 / 131 — when the device is the on-screen UI, the
+    /// phone goes silent (no cues) and the live activity is suppressed.
+    /// A previously paired peripheral that is currently DISCONNECTED
+    /// does not count: the rider is using the phone alone.
+    var isDeviceConnectedForCueSuppression: Bool {
+        if let override = deviceConnectedTestOverride { return override }
+        return isDeviceConnected
     }
 
     /// When HSL becomes unusable (no key OR endpoints outside Uusimaa), fall back any
@@ -681,26 +836,48 @@ final class AppModel: ObservableObject {
         return presentAlternatives(chosen, sourceMode: .mixed)
     }
 
-    /// Label every visible alternative as "<Provider> Route N", where N is
-    /// a per-provider counter (so OSM Route 1, OSM Route 2, HSL Route 1,
-    /// …). Replaces the prior "Fastest / Quieter / Simpler" scheme which
-    /// implied semantics the routing backends don't deliver — the order
-    /// is just whatever the provider returned.
+    /// Label every visible alternative with its underlying engine name.
+    /// User-driven: "OSM Route 1 / OSM Route 2 / HSL Route 1" was noisy —
+    /// the engine name carries the same information without the
+    /// per-provider counter, and lets us drop the redundant "via …"
+    /// subtitle entirely.
+    ///
+    ///   - OSM via BRouter `fastbike` → "BRouter fastbike"
+    ///   - OSM via BRouter `trekking` → "BRouter trekking"
+    ///   - OSM via OSRM bike          → "OSM Route"
+    ///   - HSL Digitransit live / fastest     → "HSL Fastest"
+    ///   - HSL Digitransit live / alternative → "HSL Route"
     private func presentAlternatives(_ alternatives: [RouteAlternative], sourceMode: RouteSourceMode) -> [RouteAlternative] {
-        var counters: [RouteProviderID: Int] = [:]
         return alternatives.prefix(3).map { alternative in
-            let providerID = alternative.normalizedPackage.provenance.providerID
-            let providerLabel = providerID.displayName
-            let next = (counters[providerID] ?? 0) + 1
-            counters[providerID] = next
+            let label = Self.friendlyAlternativeLabel(for: alternative)
             return RouteAlternative(
                 id: alternative.id,
-                title: "\(providerLabel) Route \(next)",
-                subtitle: alternative.normalizedPackage.provenance.sourceReference ?? "via \(providerLabel)",
+                title: label.title,
+                subtitle: label.subtitle,
                 distanceMeters: alternative.distanceMeters,
                 durationSeconds: alternative.durationSeconds,
                 normalizedPackage: alternative.normalizedPackage
             )
+        }
+    }
+
+    /// Pure helper used by `presentAlternatives` and pinned by
+    /// `RouteAlternativeTitlesTests`. Maps a normalized route package's
+    /// provider + sourceReference into the short engine-derived title
+    /// the user wanted to see in the suggested-routes card.
+    static func friendlyAlternativeLabel(for alternative: RouteAlternative) -> (title: String, subtitle: String) {
+        let providerID = alternative.normalizedPackage.provenance.providerID
+        let sourceRef = alternative.normalizedPackage.provenance.sourceReference?.lowercased() ?? ""
+        switch providerID {
+        case .osm:
+            if sourceRef.contains("fastbike") { return ("BRouter fastbike", "") }
+            if sourceRef.contains("trekking") { return ("BRouter trekking", "") }
+            return ("OSM Route", "")
+        case .hsl:
+            if sourceRef.contains("fastest") { return ("HSL Fastest", "") }
+            return ("HSL Route", "")
+        case .gpxImport, .fitImport, .tcxImport:
+            return (providerID.displayName, "")
         }
     }
 

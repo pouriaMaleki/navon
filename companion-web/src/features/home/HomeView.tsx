@@ -98,8 +98,13 @@ export const HomeView = observer(({ store }: Props) => {
       <MapSurface store={store} />
       <TopOverlay store={store} />
       <BottomOverlay store={store} />
-      <RecenterButton store={store} />
-      <ZoomControls store={store} />
+      {/* iOS-parity persistent right + left side rails. Both anchored
+          at a single Y offset (`--rail-top`) so icon positions don't
+          reflow between planning ↔ routing. Conditional items (device
+          chip, alternate-routes) sit at the BOTTOM of each rail. */}
+      <LocatingIndicator store={store} />
+      <RightSideRail store={store} />
+      <LeftSideRail store={store} />
       <SpeedBadge store={store} />
       <LocationBanner store={store} />
     </>
@@ -183,76 +188,52 @@ const TopOverlay = observer(({ store }: { store: RootStore }) => {
   }, [planning, planning.isSearchOpen]);
 
   if (guidance.homeMode === "phoneGuidance") {
-    // Top card: next-turn line as the headline, destination + remaining bundled
-    // as the subtitle (single source of truth — the bottom just floats a stop
-    // button). See GuidanceStore.guidanceSubtitleLine.
+    // iOS-parity routing top card. Three text lines, no icons (every
+    // icon lives in the persistent rails). The eye hits the metric
+    // first on every line — distance-first next-turn, then
+    // "X km to <destination>", then "Y min remaining".
     const headline = guidance.nextInstructionLine ?? guidance.activeNavigationTitle;
     return (
       <div className="overlay-top">
         <div className="card guidance-header">
           <div className="guidance-header__text">
             <div className="list-row__title">{headline}</div>
-            <div className="list-row__subtitle">{guidance.guidanceSubtitleLine}</div>
+            {guidance.distanceToDestinationLine && (
+              <div className="list-row__subtitle">{guidance.distanceToDestinationLine}</div>
+            )}
+            {guidance.minutesRemainingLine && (
+              <div className="list-row__subtitle">{guidance.minutesRemainingLine}</div>
+            )}
           </div>
-          <button
-            type="button"
-            className="compass-button"
-            aria-label="Find alternate routes"
-            title="Find alternate routes from here"
-            onClick={() => void store.exploreAlternateRoutes()}
-          >
-            ⇄
-          </button>
-          <button
-            type="button"
-            className="compass-button"
-            aria-label="North indicator"
-            onClick={() => guidance.handleCompassTap()}
-            onDoubleClick={() => guidance.handleCompassDoubleTap()}
-          >
-            {guidance.compassMode === "northLocked"
-              ? "🧭"
-              : guidance.compassMode === "northPreview"
-                ? "↑"
-                : "◎"}
-          </button>
         </div>
       </div>
     );
   }
+  // Planning: full-width where-to bar. Settings cog lives on the
+  // right rail (iOS parity) — no longer inline with the search input.
   return (
     <div className="overlay-top" ref={containerRef}>
-      <div style={{ display: "flex", gap: 10 }}>
-        <div className="search-bar" style={{ flex: 1 }}>
-          <span aria-hidden>🔍</span>
-          <input
-            type="text"
-            placeholder="Where to?"
-            value={planning.query}
-            onChange={(event) => {
-              planning.openSearch();
-              void planning.updateQuery(event.target.value);
-            }}
-            onFocus={() => planning.openSearch()}
-          />
-          {(planning.query.length > 0 || planning.preview.alternatives.length > 0) && (
-            <button
-              type="button"
-              aria-label="Clear destination"
-              onClick={() => planning.clearPreview()}
-            >
-              ✕
-            </button>
-          )}
-        </div>
-        <button
-          type="button"
-          className="icon-button"
-          aria-label="Settings"
-          onClick={() => store.goSettings()}
-        >
-          ⚙
-        </button>
+      <div className="search-bar">
+        <span aria-hidden>🔍</span>
+        <input
+          type="text"
+          placeholder="Where to?"
+          value={planning.query}
+          onChange={(event) => {
+            planning.openSearch();
+            void planning.updateQuery(event.target.value);
+          }}
+          onFocus={() => planning.openSearch()}
+        />
+        {(planning.query.length > 0 || planning.preview.alternatives.length > 0) && (
+          <button
+            type="button"
+            aria-label="Clear destination"
+            onClick={() => planning.clearPreview()}
+          >
+            ✕
+          </button>
+        )}
       </div>
       {planning.isSearchOpen ? <SearchPanel store={store} /> : null}
     </div>
@@ -302,41 +283,137 @@ const BottomOverlay = observer(({ store }: { store: RootStore }) => {
   return null;
 });
 
-const ZoomControls = observer(({ store }: { store: RootStore }) => {
-  // Hide the on-map zoom controls while a search dropdown / location banner
-  // is active, since they would visually crowd the top of the screen.
+/**
+ * iOS-parity right-side rail. Renders `topRightIconStack` items in a
+ * vertical column at a fixed Y offset. Order, top → bottom: settings →
+ * compass/north-up → device chip (only when paired). The compass tap
+ * recentres the camera (single tap = north-up; double-tap = lock north-up,
+ * matching the Rust impl).
+ */
+const RightSideRail = observer(({ store }: { store: RootStore }) => {
   if (store.planningStore.isSearchOpen) return null;
+  const guidance = store.guidanceStore;
   return (
-    <div className="zoom-controls">
-      <button
-        type="button"
-        className="icon-button zoom-controls__button"
-        aria-label="Zoom in"
-        onClick={() => store.mapCameraStore.requestZoomDelta(1)}
-      >
-        +
-      </button>
-      <button
-        type="button"
-        className="icon-button zoom-controls__button"
-        aria-label="Zoom out"
-        onClick={() => store.mapCameraStore.requestZoomDelta(-1)}
-      >
-        −
-      </button>
+    <div className="rail rail--right">
+      {guidance.topRightIconStack.map((item) => {
+        if (item === "settings") {
+          return (
+            <button
+              key="settings"
+              type="button"
+              className="rail__icon"
+              aria-label="Settings"
+              onClick={() => store.goSettings()}
+            >
+              ⚙
+            </button>
+          );
+        }
+        if (item === "compass") {
+          return (
+            <button
+              key="compass"
+              type="button"
+              className="rail__icon"
+              aria-label="Recenter map"
+              title="Tap = recenter / north-up; double-tap = lock north-up"
+              onClick={() => {
+                if (guidance.homeMode === "phoneGuidance") {
+                  guidance.handleCompassTap();
+                } else {
+                  refreshCameraForCurrentMode(store);
+                }
+              }}
+              onDoubleClick={() => guidance.handleCompassDoubleTap()}
+            >
+              {guidance.compassMode === "northLocked"
+                ? "🧭"
+                : guidance.compassMode === "northPreview"
+                  ? "↑"
+                  : "◎"}
+            </button>
+          );
+        }
+        // `deviceChip` — web has no pairing flow yet, so this branch is
+        // unreachable today but kept for shape parity with iOS.
+        return null;
+      })}
     </div>
   );
 });
 
-const RecenterButton = observer(({ store }: { store: RootStore }) => {
-  const loc = store.locationStore;
+/**
+ * iOS-parity left-side rail. Renders `topLeftIconStack` items.
+ * Order, top → bottom: zoom-in → zoom-out → alternate-routes (only in
+ * routing). The alternate-routes button appears at the BOTTOM so the
+ * zoom column never shifts position when the rider presses Start.
+ */
+const LeftSideRail = observer(({ store }: { store: RootStore }) => {
+  if (store.planningStore.isSearchOpen) return null;
+  const guidance = store.guidanceStore;
+  return (
+    <div className="rail rail--left">
+      {guidance.topLeftIconStack.map((item) => {
+        if (item === "zoomIn") {
+          return (
+            <button
+              key="zoomIn"
+              type="button"
+              className="rail__icon"
+              aria-label="Zoom in"
+              onClick={() => store.mapCameraStore.requestZoomDelta(1)}
+            >
+              +
+            </button>
+          );
+        }
+        if (item === "zoomOut") {
+          return (
+            <button
+              key="zoomOut"
+              type="button"
+              className="rail__icon"
+              aria-label="Zoom out"
+              onClick={() => store.mapCameraStore.requestZoomDelta(-1)}
+            >
+              −
+            </button>
+          );
+        }
+        // alternateRoutes — split-way reroute: plan fresh alternatives
+        // from the rider's current location to the same destination.
+        return (
+          <button
+            key="alternateRoutes"
+            type="button"
+            className="rail__icon"
+            aria-label="Find alternate routes"
+            title="Find alternate routes from here"
+            onClick={() => void store.exploreAlternateRoutes()}
+          >
+            ⇄
+          </button>
+        );
+      })}
+    </div>
+  );
+});
 
-  // While we are waiting for the first GPS fix, show a spinner in the slot
-  // instead of the recenter glyph — even if the camera has not been moved yet.
+/**
+ * Planning-only status indicator: shows a spinner while we're waiting
+ * for the first GPS fix and a "blocked" glyph when the user denied
+ * location. Sits to the LEFT of the right rail so it doesn't clobber
+ * the persistent settings/compass column. The recenter affordance is
+ * folded into the compass icon itself.
+ */
+const LocatingIndicator = observer(({ store }: { store: RootStore }) => {
+  if (store.planningStore.isSearchOpen) return null;
+  if (store.guidanceStore.homeMode !== "planning") return null;
+  const loc = store.locationStore;
   if (loc.isWaitingForFirstFix) {
     return (
       <div
-        className="icon-button recenter-button"
+        className="rail__icon locating-indicator"
         role="status"
         aria-label="Locating"
         title="Finding your location…"
@@ -345,12 +422,11 @@ const RecenterButton = observer(({ store }: { store: RootStore }) => {
       </div>
     );
   }
-
   if (loc.lastError === "denied") {
     return (
       <button
         type="button"
-        className="icon-button recenter-button"
+        className="rail__icon locating-indicator"
         aria-label="Location blocked"
         title="Location is blocked. Enable it in your browser settings to plan from your real position."
         onClick={() => store.dismissLocationBanner()}
@@ -359,16 +435,5 @@ const RecenterButton = observer(({ store }: { store: RootStore }) => {
       </button>
     );
   }
-
-  if (!store.mapCameraStore.needsRecenter) return null;
-  return (
-    <button
-      type="button"
-      className="icon-button recenter-button"
-      aria-label="Recenter map"
-      onClick={() => refreshCameraForCurrentMode(store)}
-    >
-      ⌖
-    </button>
-  );
+  return null;
 });

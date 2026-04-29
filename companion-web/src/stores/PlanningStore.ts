@@ -340,7 +340,17 @@ export class PlanningStore {
   }
 
   setPreview(preview: RoutePreviewModel): void {
-    this.preview = preview;
+    // Always run through `presentAlternatives` so every code path —
+    // initial planning, GPX import, split-way reroute (Spec #11), and
+    // any future "load preset" flow — produces the iOS-parity engine-
+    // name titles ("BRouter fastbike" / "OSM Route" / "HSL Fastest")
+    // with empty subtitles. Without this, `exploreAlternateRoutes`
+    // surfaced the raw provider sourceReference as a second row of
+    // details on each alternative card.
+    this.preview = {
+      ...preview,
+      alternatives: presentAlternatives(preview.alternatives, this.currentSourceMode),
+    };
   }
 
   /** Plan a route through the current source mode. Mirrors AppModel.buildPreview/buildMixedPreview.
@@ -534,16 +544,36 @@ export function presentAlternatives(
   alternatives: RouteAlternative[],
   _mode: RouteSourceMode,
 ): RouteAlternative[] {
-  const counters = new Map<string, number>();
   return alternatives.slice(0, 3).map((alt) => {
-    const providerID = alt.normalizedPackage.provenance.providerID;
-    const providerLabel = ROUTE_PROVIDER_DISPLAY_NAME[providerID];
-    const next = (counters.get(providerID) ?? 0) + 1;
-    counters.set(providerID, next);
-    return {
-      ...alt,
-      title: `${providerLabel} Route ${next}`,
-      subtitle: alt.normalizedPackage.provenance.sourceReference ?? `via ${providerLabel}`,
-    };
+    const label = friendlyAlternativeLabel(alt);
+    return { ...alt, title: label.title, subtitle: label.subtitle };
   });
+}
+
+/**
+ * iOS-parity helper. Maps a route alternative's provider + sourceReference
+ * onto the short engine-derived title shown in the suggested-routes card.
+ * Drops the per-provider counter and the redundant "via …" subtitle.
+ *
+ *   - OSM via BRouter `fastbike` → "BRouter fastbike"
+ *   - OSM via BRouter `trekking` → "BRouter trekking"
+ *   - OSM via OSRM bike          → "OSM Route"
+ *   - HSL Digitransit live / fastest     → "HSL Fastest"
+ *   - HSL Digitransit live / alternative → "HSL Route"
+ */
+export function friendlyAlternativeLabel(
+  alt: RouteAlternative,
+): { title: string; subtitle: string } {
+  const providerID = alt.normalizedPackage.provenance.providerID;
+  const sourceRef = (alt.normalizedPackage.provenance.sourceReference ?? "").toLowerCase();
+  if (providerID === "osm") {
+    if (sourceRef.includes("fastbike")) return { title: "BRouter fastbike", subtitle: "" };
+    if (sourceRef.includes("trekking")) return { title: "BRouter trekking", subtitle: "" };
+    return { title: "OSM Route", subtitle: "" };
+  }
+  if (providerID === "hsl") {
+    if (sourceRef.includes("fastest")) return { title: "HSL Fastest", subtitle: "" };
+    return { title: "HSL Route", subtitle: "" };
+  }
+  return { title: ROUTE_PROVIDER_DISPLAY_NAME[providerID], subtitle: "" };
 }

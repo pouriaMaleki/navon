@@ -221,6 +221,25 @@ export type CompanionSettings = {
    * user changes zoom, only keep it for moment".
    */
   ridingZoom: number | null;
+  /** Prevents the screen from sleeping while a route is active (Wake Lock). */
+  keepScreenOn: boolean;
+  /**
+   * Permission gate for background GPS. On the web this only requests the
+   * geolocation prompt; iOS Safari does not actually deliver background fixes,
+   * so the UI surfaces a platform-specific hint when this is on.
+   */
+  allowBackgroundGps: boolean;
+  /**
+   * Audio cues during routing. Stored default is true (see spec: "on by default"),
+   * but the toggle is disabled in the UI and the cues are suppressed at runtime
+   * unless allowBackgroundGps is also true.
+   */
+  audioCuesEnabled: boolean;
+  /**
+   * Lock-screen live activity. On web this surfaces a single self-updating
+   * Notification. Disabled in the UI until allowBackgroundGps is on.
+   */
+  liveActivityEnabled: boolean;
 };
 
 export const DEFAULT_COMPANION_SETTINGS: CompanionSettings = {
@@ -230,6 +249,10 @@ export const DEFAULT_COMPANION_SETTINGS: CompanionSettings = {
   cyclingSpeedKph: 18,
   speedUnit: "kph",
   ridingZoom: null,
+  keepScreenOn: false,
+  allowBackgroundGps: false,
+  audioCuesEnabled: true,
+  liveActivityEnabled: false,
 };
 
 export type RoutePlannerPreferences = {

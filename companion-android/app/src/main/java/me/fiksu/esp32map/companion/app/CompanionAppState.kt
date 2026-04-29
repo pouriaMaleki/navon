@@ -776,17 +776,42 @@ class CompanionAppState(
      * is just whatever the provider returned.
      */
     private fun presentAlternatives(alternatives: List<RouteAlternative>): List<RouteAlternative> {
-        val counters = mutableMapOf<RouteProviderId, Int>()
         return alternatives.take(3).map { alternative ->
+            val label = friendlyAlternativeLabel(alternative)
+            alternative.copy(title = label.first, subtitle = label.second)
+        }
+    }
+
+    companion object {
+        /**
+         * iOS-parity helper. Maps the route alternative's provider +
+         * sourceReference onto the short engine-derived title shown in
+         * the suggested-routes card, dropping the per-provider counter
+         * and the redundant "via …" subtitle:
+         *
+         *   - OSM via BRouter `fastbike` → "BRouter fastbike"
+         *   - OSM via BRouter `trekking` → "BRouter trekking"
+         *   - OSM via OSRM bike          → "OSM Route"
+         *   - HSL Digitransit live / fastest     → "HSL Fastest"
+         *   - HSL Digitransit live / alternative → "HSL Route"
+         */
+        fun friendlyAlternativeLabel(alternative: RouteAlternative): Pair<String, String> {
             val providerId = alternative.normalizedPackage.provenance.providerId
-            val providerLabel = providerId.displayName
-            val next = (counters[providerId] ?: 0) + 1
-            counters[providerId] = next
-            alternative.copy(
-                title = "$providerLabel Route $next",
-                subtitle = alternative.normalizedPackage.provenance.sourceReference
-                    ?: "via $providerLabel",
-            )
+            val sourceRef = alternative.normalizedPackage.provenance.sourceReference?.lowercase().orEmpty()
+            return when (providerId) {
+                RouteProviderId.OSM -> when {
+                    sourceRef.contains("fastbike") -> "BRouter fastbike" to ""
+                    sourceRef.contains("trekking") -> "BRouter trekking" to ""
+                    else -> "OSM Route" to ""
+                }
+                RouteProviderId.HSL -> when {
+                    sourceRef.contains("fastest") -> "HSL Fastest" to ""
+                    else -> "HSL Route" to ""
+                }
+                RouteProviderId.GPX_IMPORT,
+                RouteProviderId.FIT_IMPORT,
+                RouteProviderId.TCX_IMPORT -> providerId.displayName to ""
+            }
         }
     }
 

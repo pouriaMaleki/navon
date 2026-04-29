@@ -89,6 +89,27 @@ Build the companion apps as map-first navigation products with the same logical 
 - drag-and-drop + paste handling for GPX files and shared URLs; no native share-extension equivalent
 - localStorage for persistence under the same `companion.*` key prefix as the native apps
 
+## Routing Activity Coordinator (spec lines 128-145)
+
+Each companion app routes the four "activity" settings (prevent screen
+off, allow GPS in background, audio cues, lock-screen live activity)
+through a single coordinator that owns the routing-time side effects:
+
+- Wake lock / idle-timer / `FLAG_KEEP_SCREEN_ON` while routing
+- Pure `CueEngine` ticked from per-fix guidance state, output spoken via
+  TTS (web `speechSynthesis`, iOS `AVSpeechSynthesizer`, Android `TextToSpeech`)
+- Lock-screen activity: web posts a single self-updating Notification;
+  iOS uses ActivityKit (`RoutingLiveActivityWidget` extension target);
+  Android uses an ongoing foreground-service notification
+- Background-location gating: GPS stops when the app backgrounds without
+  an active route (iOS `handleApplicationLifecycleEnteredBackground`)
+- Force-quit cleanup: any leftover Live Activity from a prior process is
+  ended on cold launch (iOS `endAllOutstanding()`)
+
+Cues fire from the phone only when the companion is **not actively
+connected** to the ESP device (paired-but-disconnected still speaks; an
+active BLE link silences the phone since the device drives the UI).
+
 ## Reuse Rules
 Reuse these seams unless there is a strong architecture reason not to:
 - provider interfaces and current adapters

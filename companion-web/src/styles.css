@@ -196,10 +196,22 @@ textarea {
   justify-content: space-between;
   align-items: flex-start;
   gap: 10px;
-  padding: 10px;
+  padding: 6px 10px;
   border-radius: 12px;
   cursor: pointer;
   border: 1px solid transparent;
+}
+
+/* iOS parity: tighten line spacing inside the suggested-route row so the
+   title + km/min summary read as a compact two-line block. */
+.alternative .list-row__title {
+  margin: 0;
+  line-height: 1.2;
+}
+
+.alternative .list-row__subtitle {
+  margin-top: 1px;
+  line-height: 1.2;
 }
 
 .alternative--selected {
@@ -339,30 +351,57 @@ textarea {
   font-size: 14px;
 }
 
-.recenter-button {
-  position: absolute;
-  top: 84px;
-  right: 12px;
-  pointer-events: auto;
+/* iOS-parity persistent icon rails. Both anchored at the same Y offset
+   (`--rail-top: 130px`, sized to clear the routing top card) so glyphs
+   never shift when the rider transitions between planning and routing.
+   50×50 boxes with corner radius 18, 8px gap — pixel-identical to the
+   iOS `phoneGuidanceTopOverlay` rail constants. */
+:root {
+  --rail-icon-size: 50px;
+  --rail-icon-corner: 18px;
+  --rail-icon-gap: 8px;
+  --rail-top: 130px;
 }
 
-.zoom-controls {
+.rail {
   position: absolute;
-  /* Placed below the recenter slot (top 84 + 44 button + 12 gap = 140). */
-  top: 140px;
-  right: 12px;
+  top: var(--rail-top);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--rail-icon-gap);
   pointer-events: auto;
   z-index: 5;
 }
-.zoom-controls__button {
-  width: 44px;
-  height: 44px;
+.rail--right { right: 12px; }
+.rail--left  { left: 12px; }
+
+.rail__icon {
+  width: var(--rail-icon-size);
+  height: var(--rail-icon-size);
+  border-radius: var(--rail-icon-corner);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 22px;
   line-height: 1;
   font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Show the locating spinner / location-blocked glyph just LEFT of the
+   right rail (offset by one icon column + gap) so it never collides
+   with settings / compass. */
+.locating-indicator {
+  position: absolute;
+  top: var(--rail-top);
+  right: calc(12px + var(--rail-icon-size) + var(--rail-icon-gap));
+  pointer-events: auto;
+  z-index: 5;
 }
 
 .speed-badge {

@@ -236,6 +236,18 @@ struct CompanionSettings: Equatable, Codable {
     /// built-in default of 1200 m. Overview/planning zooms are NOT
     /// persisted (spec line 10).
     var ridingCameraDistanceM: Double?
+    /// Prevents the screen from sleeping while a route is active
+    /// (`UIApplication.shared.isIdleTimerDisabled = true`).
+    var keepScreenOn: Bool
+    /// Permission gate for Always location authorization. Spec line 130:
+    /// the user must flip to "Always" in iOS Settings; surface a hint when
+    /// the OS keeps the app on When-In-Use after our request.
+    var allowBackgroundGps: Bool
+    /// Audio cues during routing. Default true (spec: "on by default")
+    /// but gated on `allowBackgroundGps` at the UI and runtime layer.
+    var audioCuesEnabled: Bool
+    /// Lock-screen Live Activity (ActivityKit). Gated on `allowBackgroundGps`.
+    var liveActivityEnabled: Bool
 
     static let defaults = CompanionSettings(
         preferLiveHslRouting: false,
@@ -243,7 +255,11 @@ struct CompanionSettings: Equatable, Codable {
         hslEndpointURL: "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1",
         cyclingSpeedKph: 18,
         speedUnit: .kph,
-        ridingCameraDistanceM: nil
+        ridingCameraDistanceM: nil,
+        keepScreenOn: false,
+        allowBackgroundGps: false,
+        audioCuesEnabled: true,
+        liveActivityEnabled: false
     )
 
     /// Tolerant decode so existing on-disk settings (no `cyclingSpeedKph` /
@@ -262,6 +278,14 @@ struct CompanionSettings: Equatable, Codable {
         self.speedUnit = try container.decodeIfPresent(SpeedUnit.self, forKey: .speedUnit)
             ?? Self.defaults.speedUnit
         self.ridingCameraDistanceM = try container.decodeIfPresent(Double.self, forKey: .ridingCameraDistanceM)
+        self.keepScreenOn = try container.decodeIfPresent(Bool.self, forKey: .keepScreenOn)
+            ?? Self.defaults.keepScreenOn
+        self.allowBackgroundGps = try container.decodeIfPresent(Bool.self, forKey: .allowBackgroundGps)
+            ?? Self.defaults.allowBackgroundGps
+        self.audioCuesEnabled = try container.decodeIfPresent(Bool.self, forKey: .audioCuesEnabled)
+            ?? Self.defaults.audioCuesEnabled
+        self.liveActivityEnabled = try container.decodeIfPresent(Bool.self, forKey: .liveActivityEnabled)
+            ?? Self.defaults.liveActivityEnabled
     }
 
     init(
@@ -270,7 +294,11 @@ struct CompanionSettings: Equatable, Codable {
         hslEndpointURL: String,
         cyclingSpeedKph: Double,
         speedUnit: SpeedUnit,
-        ridingCameraDistanceM: Double?
+        ridingCameraDistanceM: Double?,
+        keepScreenOn: Bool = false,
+        allowBackgroundGps: Bool = false,
+        audioCuesEnabled: Bool = true,
+        liveActivityEnabled: Bool = false
     ) {
         self.preferLiveHslRouting = preferLiveHslRouting
         self.hslSubscriptionKey = hslSubscriptionKey
@@ -278,6 +306,10 @@ struct CompanionSettings: Equatable, Codable {
         self.cyclingSpeedKph = cyclingSpeedKph
         self.speedUnit = speedUnit
         self.ridingCameraDistanceM = ridingCameraDistanceM
+        self.keepScreenOn = keepScreenOn
+        self.allowBackgroundGps = allowBackgroundGps
+        self.audioCuesEnabled = audioCuesEnabled
+        self.liveActivityEnabled = liveActivityEnabled
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -287,6 +319,10 @@ struct CompanionSettings: Equatable, Codable {
         case cyclingSpeedKph
         case speedUnit
         case ridingCameraDistanceM
+        case keepScreenOn
+        case allowBackgroundGps
+        case audioCuesEnabled
+        case liveActivityEnabled
     }
 }
 

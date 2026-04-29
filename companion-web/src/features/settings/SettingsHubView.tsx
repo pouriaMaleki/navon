@@ -1,6 +1,7 @@
 import { observer } from "mobx-react-lite";
 import { useState } from "react";
 import type { RootStore } from "../../app/RootStore.js";
+import { ActivitySettingsSection } from "./ActivitySettingsSection.js";
 import { ImportDiagnosticsView } from "./ImportDiagnosticsView.js";
 import { RouteDetailView } from "./RouteDetailView.js";
 import { RoutePlannerSettingsView } from "./RoutePlannerSettingsView.js";
@@ -45,29 +46,35 @@ export const SettingsHubView = observer(({ store }: Props) => {
         </header>
 
         {screen === "hub" ? (
-          <div className="settings-section">
-            <button type="button" className="list-row" onClick={() => setScreen("routes")}>
-              <div style={{ flex: 1, textAlign: "left" }}>
-                <div className="list-row__title">Routes</div>
-                <div className="list-row__subtitle">Recent routes and GPX import</div>
-              </div>
-              <span aria-hidden>›</span>
-            </button>
-            <button type="button" className="list-row" onClick={() => setScreen("planner")}>
-              <div style={{ flex: 1, textAlign: "left" }}>
-                <div className="list-row__title">Route Planner</div>
-                <div className="list-row__subtitle">Default source, suggestions, HSL key</div>
-              </div>
-              <span aria-hidden>›</span>
-            </button>
-            <button type="button" className="list-row" onClick={() => setScreen("diagnostics")}>
-              <div style={{ flex: 1, textAlign: "left" }}>
-                <div className="list-row__title">Import Diagnostics</div>
-                <div className="list-row__subtitle">Failed shared imports</div>
-              </div>
-              <span aria-hidden>›</span>
-            </button>
-          </div>
+          <>
+            {/* UX spec lines 128-145: prevent screen off, allow GPS in
+                background, audio cues, and live activity must appear at the
+                TOP of the settings page in this exact order. */}
+            <ActivitySettingsSection store={store} />
+            <div className="settings-section">
+              <button type="button" className="list-row" onClick={() => setScreen("routes")}>
+                <div style={{ flex: 1, textAlign: "left" }}>
+                  <div className="list-row__title">Routes</div>
+                  <div className="list-row__subtitle">Recent routes and GPX import</div>
+                </div>
+                <span aria-hidden>›</span>
+              </button>
+              <button type="button" className="list-row" onClick={() => setScreen("planner")}>
+                <div style={{ flex: 1, textAlign: "left" }}>
+                  <div className="list-row__title">Route Planner</div>
+                  <div className="list-row__subtitle">Default source, suggestions, HSL key</div>
+                </div>
+                <span aria-hidden>›</span>
+              </button>
+              <button type="button" className="list-row" onClick={() => setScreen("diagnostics")}>
+                <div style={{ flex: 1, textAlign: "left" }}>
+                  <div className="list-row__title">Import Diagnostics</div>
+                  <div className="list-row__subtitle">Failed shared imports</div>
+                </div>
+                <span aria-hidden>›</span>
+              </button>
+            </div>
+          </>
         ) : null}
 
         {screen === "routes" ? (

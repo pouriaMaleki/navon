@@ -444,12 +444,16 @@ extension CoreBluetoothRouteSyncClient: CBPeripheralDelegate {
             let nsError = error as NSError
             let isAttAuthFailure = nsError.domain == CBATTErrorDomain
                 && nsError.code == CBATTError.insufficientAuthentication.rawValue
+            // CBError doesn't have a single "insufficient authentication"
+            // case — SMP/pairing failures on iOS surface as the bond being
+            // gone (`peerRemovedPairingInformation`) or as encryption that
+            // never completed (`encryptionTimedOut`).
             let isSmpAuthFailure = nsError.domain == CBErrorDomain
-                && nsError.code == CBError.insufficientAuthentication.rawValue
+                && (nsError.code == CBError.peerRemovedPairingInformation.rawValue
+                    || nsError.code == CBError.encryptionTimedOut.rawValue)
             if isAttAuthFailure || isSmpAuthFailure {
                 pairingLog.error(
-                    "writeValue rejected with INSUFFICIENT_AUTHENTICATION — \
-                     SMP failed or stale bond on phone vs device"
+                    "writeValue rejected with INSUFFICIENT_AUTHENTICATION — SMP failed or stale bond on phone vs device"
                 )
                 pendingWriteContinuation.resume(throwing: CoreBluetoothRouteSyncError.pairingDenied)
             } else {

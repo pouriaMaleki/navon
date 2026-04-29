@@ -1,6 +1,10 @@
 import { observer } from "mobx-react-lite";
-import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { HomeView } from "../features/home/HomeView.js";
+import { WebTtsService } from "../integrations/audio/WebTtsService.js";
+import { startRoutingActivityCoordinator } from "../integrations/cues/RoutingActivityCoordinator.js";
+import { LiveNotificationService } from "../integrations/notifications/LiveNotificationService.js";
+import { WakeLockService } from "../integrations/screen/WakeLockService.js";
 import type { RootStore } from "./RootStore.js";
 
 const SettingsHubView = lazy(() =>
@@ -48,6 +52,29 @@ export const AppShell = observer(({ store }: Props) => {
       window.removeEventListener("drop", handleDrop);
     };
   }, [handleDragOver, handleDragLeave, handleDrop]);
+
+  const servicesRef = useRef<{
+    wakeLock: WakeLockService;
+    tts: WebTtsService;
+    liveNotification: LiveNotificationService;
+  } | null>(null);
+  if (!servicesRef.current) {
+    servicesRef.current = {
+      wakeLock: new WakeLockService(),
+      tts: new WebTtsService(),
+      liveNotification: new LiveNotificationService(),
+    };
+  }
+  useEffect(() => {
+    const services = servicesRef.current;
+    if (!services) return;
+    const dispose = startRoutingActivityCoordinator(store, services);
+    return () => {
+      dispose();
+      services.wakeLock.dispose();
+      services.liveNotification.stop();
+    };
+  }, [store]);
 
   return (
     <div className="app-shell">

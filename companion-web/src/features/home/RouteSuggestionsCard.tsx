@@ -63,7 +63,13 @@ export const RouteSuggestionsCard = observer(({ store }: Props) => {
           >
             <div style={{ textAlign: "left" }}>
               <div className="list-row__title">{alt.title}</div>
-              <div className="list-row__subtitle">{alt.subtitle}</div>
+              {/* iOS parity: drop the redundant subtitle (now empty
+                  after the friendlyAlternativeLabel rename). The row
+                  collapses to title + km/min summary so it's a tight
+                  two-line block. */}
+              {alt.subtitle ? (
+                <div className="list-row__subtitle">{alt.subtitle}</div>
+              ) : null}
               <div className="list-row__subtitle">{summaryLine(alt.normalizedPackage)}</div>
             </div>
             {isSelected ? <span aria-hidden>✓</span> : null}
