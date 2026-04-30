@@ -72,7 +72,7 @@ export const AppShell = observer(({ store }: Props) => {
     return () => {
       dispose();
       services.wakeLock.dispose();
-      services.liveNotification.stop();
+      services.liveNotification.dispose();
     };
   }, [store]);
 

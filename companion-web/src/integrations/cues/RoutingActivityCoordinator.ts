@@ -66,7 +66,11 @@ export function startRoutingActivityCoordinator(
       isRouting && settings.liveActivityEnabled && settings.allowBackgroundGps;
     if (liveActivityActive) {
       const title = guidance.activeNavigationTitle || "Riding";
-      const body = guidance.nextInstructionLine ?? guidance.guidanceSubtitleLine ?? "On route";
+      // Body is direction-only on purpose — distance/time would shift on
+      // every GPS tick and cause the platform Notification to re-chime
+      // every few seconds. Only the upcoming maneuver itself drives a
+      // re-post; LiveNotificationService dedupes identical bodies.
+      const body = guidance.nextTurnDescriptionForNotification;
       if (!lastLiveActivityActive) {
         void services.liveNotification.start({ title, body });
       } else {

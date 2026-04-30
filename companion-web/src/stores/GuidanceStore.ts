@@ -234,6 +234,29 @@ export class GuidanceStore {
     return address && address.length > 0 ? `${km} km to ${address}` : `${km} km`;
   }
 
+  /**
+   * Direction-only description of the next maneuver, with no distance
+   * or time, used as the lock-screen Notification body. Stable between
+   * GPS ticks (only changes when the upcoming maneuver itself changes),
+   * so notifications don't re-chime every few seconds while the rider
+   * approaches a turn.
+   */
+  get nextTurnDescriptionForNotification(): string {
+    const alert = this.upcomingTurnAlert;
+    if (alert) {
+      return alert.instructionText ?? turnAlertLabel(alert.kind);
+    }
+    const route = this.guidanceRoute;
+    if (!route) return "On route";
+    for (const m of route.maneuvers) {
+      if (m.maneuverType === "depart" || m.maneuverType === "arrive") continue;
+      const remaining = m.distanceFromStartMeters - this.progressDistanceM;
+      if (remaining < 0) continue;
+      return m.instructionText ?? "Continue";
+    }
+    return "Arrive";
+  }
+
   /** iOS-parity routing top card line 3: "16 min remaining". */
   get minutesRemainingLine(): string {
     const seconds =
