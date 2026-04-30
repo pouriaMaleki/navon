@@ -1,9 +1,55 @@
+# Build context for emulator/web/Dockerfile.
+# Everything excluded here is either a build output, a vendored dep, or
+# IDE / editor noise — none of it belongs in the wasm-builder,
+# emulator-builder, or companion-builder stages.
+
+# Version control + CI metadata.
 .git
 .github
-.xtask
-target
-emulator/web/node_modules
-emulator/web/dist
-emulator/web/wasm-pkg
-npm-debug.log
 
+# Rust target dirs (root workspace + the per-crate firmware target).
+**/target
+.embuild
+
+# Node module trees + JS build outputs. The npm-installing stages run
+# `npm ci` against package-lock.json, so any host-side node_modules
+# would just be wasted COPY bytes (and risk platform-mismatched binaries
+# on Linux).
+**/node_modules
+**/dist
+**/.next
+**/.cache
+**/playwright-report
+**/test-results
+companion-web/e2e-results.json
+
+# Android Gradle / IDE artifacts.
+**/build
+companion-android/.gradle
+companion-android/.idea
+companion-android/local.properties
+companion-android/captures
+
+# iOS Xcode / DerivedData / user-specific xcuserdata.
+companion-ios/DerivedData
+**/xcuserdata
+**/*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+
+# Firmware-side artifacts the wasm build doesn't need.
+firmware/managed_components
+firmware/dependencies.lock
+firmware/sdkconfig.old
+
+# Emulator-web outputs.
+emulator/web/wasm-pkg
+
+# OS / editor noise.
+.DS_Store
+.vscode
+.idea
+*.swp
+npm-debug.log
+yarn-error.log
+
+# Plans + transient notes.
+.xtask

@@ -14,7 +14,34 @@ RUN rustup target add wasm32-unknown-unknown \
   && curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
 
 WORKDIR /work
-COPY . .
+
+# Surgical copies — pulling only the Rust workspace bits wasm-pack needs
+# instead of `COPY . .`. Without this the build context dragged in
+# companion-web/node_modules (~200 MB), companion-android/build, Xcode
+# DerivedData, etc., even though wasm-pack only consumes ~2 MB of
+# workspace source. Layers are also cache-friendly per-crate now.
+COPY Cargo.toml Cargo.lock rust-toolchain.toml ./
+COPY .cargo ./.cargo
+
+# Crates render-core-wasm pulls (transitively) at build time.
+COPY render-core ./render-core
+COPY render-core-wasm ./render-core-wasm
+COPY runtime-core ./runtime-core
+COPY map-runtime ./map-runtime
+COPY route-import-gpx ./route-import-gpx
+
+# `map-runtime` embeds a city map via `include_bytes!("../../map-data/...")`,
+# so the directory must be present at compile time even when the file is
+# the empty placeholder shipped in the repo.
+COPY map-data ./map-data
+
+# Workspace members not in the wasm dependency graph but required for
+# `cargo` to parse the workspace manifest. Their sources are tiny and
+# never compiled here (wasm-pack targets render-core-wasm specifically).
+COPY firmware ./firmware
+COPY parity-fixtures ./parity-fixtures
+COPY map-vector-cli ./map-vector-cli
+COPY xtask ./xtask
 
 RUN wasm-pack build render-core-wasm --target web --out-dir /tmp/wasm-pkg --out-name render_core_wasm
 
