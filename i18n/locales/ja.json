@@ -1,0 +1,798 @@
+{
+  "locale": "ja",
+  "entries": {
+    "common.cancel": {
+      "value": "キャンセル",
+      "description": "Generic cancel-action button label.",
+      "sourceHash": "sha256:8ffa67935350c592",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "common.close": {
+      "value": "閉じる",
+      "description": "Generic close-dialog button label.",
+      "sourceHash": "sha256:9d158eafe84d52ff",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "common.ok": {
+      "value": "OK",
+      "description": "Generic confirm-acknowledgement button label.",
+      "sourceHash": "sha256:1fdbcf5fbb3b3984",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.arrived": {
+      "value": "目的地に到着しました",
+      "description": "Voice cue spoken on arrival at the destination.",
+      "sourceHash": "sha256:4d5b91395158b585",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.arrivingInM": {
+      "value": "目的地まで{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です",
+      "description": "Voice cue announcing imminent arrival at the destination.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:8c486e90b2539fbb",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.nextTurnInAbout.generic": {
+      "value": "次の案内まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です",
+      "description": "Voice cue announcing a generic upcoming maneuver.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:f2d883da09f36145",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.nextTurnInAbout.left": {
+      "value": "次の左折まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です",
+      "description": "Voice cue announcing the upcoming left turn distance ahead.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:ea9da9e88c5c66a8",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.nextTurnInAbout.right": {
+      "value": "次の右折まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です",
+      "description": "Voice cue announcing the upcoming right turn distance ahead.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:dfdd2abff056fd52",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.nextTurnInAbout.uturn": {
+      "value": "次のUターンまで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です",
+      "description": "Voice cue announcing an upcoming U-turn.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:336b2b21e459801f",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.offTrack": {
+      "value": "進路を外れています",
+      "description": "Voice cue when the rider strays from the route.",
+      "sourceHash": "sha256:6cd633fda240ee1b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.onTrack": {
+      "value": "進路に戻りました",
+      "description": "Voice cue confirming the rider has returned to the route.",
+      "sourceHash": "sha256:3e53476dc78de40a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.rerouting": {
+      "value": "ルートを再計算しています",
+      "description": "Voice cue while the app calculates a new route after going off track.",
+      "sourceHash": "sha256:ea2b84caa2ebf48e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.routeStarted": {
+      "value": "ルートを開始します",
+      "description": "Voice cue spoken once when the rider begins following a route.",
+      "sourceHash": "sha256:c6082e7c42d50aef",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn10m.exitLeft": {
+      "value": "左の出口へ",
+      "description": "Imperative voice cue at a left exit.",
+      "sourceHash": "sha256:882a832adef21cf2",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn10m.exitRight": {
+      "value": "右の出口へ",
+      "description": "Imperative voice cue at a right exit.",
+      "sourceHash": "sha256:1b3dfe7a1332c7f9",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn10m.generic": {
+      "value": "ルートに従ってください",
+      "description": "Imperative voice cue for a generic maneuver.",
+      "sourceHash": "sha256:1a2971d1492343c1",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn10m.keepLeft": {
+      "value": "左側を進んでください",
+      "description": "Imperative voice cue at a keep-left bifurcation.",
+      "sourceHash": "sha256:a65991e67c29e674",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn10m.keepRight": {
+      "value": "右側を進んでください",
+      "description": "Imperative voice cue at a keep-right bifurcation.",
+      "sourceHash": "sha256:dd0541838c082adf",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn10m.left": {
+      "value": "左折してください",
+      "description": "Imperative voice cue at the moment of a left turn (within ~10m).",
+      "sourceHash": "sha256:88f7cc75091b897e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn10m.right": {
+      "value": "右折してください",
+      "description": "Imperative voice cue at the moment of a right turn.",
+      "sourceHash": "sha256:478caebf59dd7fd0",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn10m.uturn": {
+      "value": "Uターンしてください",
+      "description": "Imperative voice cue at a U-turn maneuver.",
+      "sourceHash": "sha256:e7a265ac3bbc088e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn50m.exitLeft": {
+      "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左の出口へ",
+      "description": "Voice cue ~50m before a left exit ramp / off-ramp.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:aca8d998620365ae",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn50m.exitRight": {
+      "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右の出口へ",
+      "description": "Voice cue ~50m before a right exit ramp / off-ramp.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:1413c7b0f8c835a8",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn50m.generic": {
+      "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でルートに従ってください",
+      "description": "Voice cue ~50m before a generic maneuver that doesn't fit the directional categories.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:b11857fd72f35992",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn50m.keepLeft": {
+      "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左側を進んでください",
+      "description": "Voice cue ~50m before a keep-left maneuver at a bifurcation.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:78459bf37b50c9ac",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn50m.keepRight": {
+      "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右側を進んでください",
+      "description": "Voice cue ~50m before a keep-right maneuver at a bifurcation.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:ea21476752eb35e3",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn50m.left": {
+      "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左折してください",
+      "description": "Voice cue ~50m before a left turn. {distance} is the rounded distance to the maneuver.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:a527a059214cb118",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn50m.right": {
+      "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右折してください",
+      "description": "Voice cue ~50m before a right turn.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:43900e5a2a6e01b1",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn50m.uturn": {
+      "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でUターンしてください",
+      "description": "Voice cue ~50m before a U-turn maneuver.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:5349129f31138c4e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "guidance.distanceToDestination": {
+      "value": "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} 先の{destination}",
+      "description": "Active guidance card subtitle showing remaining distance and destination name.",
+      "placeholders": {
+        "destination": "string",
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:965005d37409932e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.importedRoute": {
+      "value": "インポートしたルート",
+      "description": "Header above the route alternatives card when a single route was imported from a GPX file or share-extension link.",
+      "sourceHash": "sha256:ae0929596c0f8438",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.noSuggestions": {
+      "value": "候補はまだありません…",
+      "description": "Empty-state placeholder shown in the where-to dropdown when the typeahead has no results yet.",
+      "sourceHash": "sha256:09ec8b32baaad716",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.openSettings": {
+      "value": "設定",
+      "description": "Toolbar / button label that opens the Settings hub.",
+      "sourceHash": "sha256:560c2cec24240223",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.platformHint.locationDefault": {
+      "value": "ブラウザが位置情報の許可を求めます。ページがバックグラウンドの間も、現在地の追跡を続けるために許可してください。",
+      "description": "Hint shown under the 'Allow GPS in background' setting on every browser except Safari/iOS.",
+      "sourceHash": "sha256:6aad2a2f6367be07",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.platformHint.locationSafariIos": {
+      "value": "iPhoneのSafariは、真のバックグラウンドGPSを提供しません。タブを開いたまま、画面を点けた状態で走ってください。位置情報の更新が続きます。",
+      "description": "Hint shown under the 'Allow GPS in background' setting when the browser is Safari on iOS.",
+      "sourceHash": "sha256:d739522e29c7ef00",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.recenter": {
+      "value": "現在地に戻す",
+      "description": "Map button to recenter on the rider's current location.",
+      "sourceHash": "sha256:a443e2e7ba006d8a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.routeOptions": {
+      "value": "ルートの候補",
+      "description": "Header on the route suggestions card listing alternative routes.",
+      "sourceHash": "sha256:7fceb78e1875e486",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.start": {
+      "value": "開始",
+      "description": "Primary button on the route suggestions card that begins the selected route.",
+      "sourceHash": "sha256:59d3cac4142d28b7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.startOnDevice": {
+      "value": "デバイスで開始",
+      "description": "Primary route-start button label when an ESP32 device is paired and connected — the route will be sent to the device instead of started on the phone.",
+      "sourceHash": "sha256:236747ff41044c24",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.startRoute": {
+      "value": "ルートを開始",
+      "description": "Primary button to begin riding the planned route.",
+      "sourceHash": "sha256:bfbaae6b67adc4c6",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.startingOnDevice": {
+      "value": "デバイスで開始中…",
+      "description": "Transient state on the start button while the route is being transferred to a paired ESP32 device.",
+      "sourceHash": "sha256:803bd0a685953942",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.stop": {
+      "value": "停止",
+      "description": "Short label on the floating Stop button on the active-guidance card. Distinct from `home.stopRoute` because the floating CTA only has room for one word.",
+      "sourceHash": "sha256:13fd3f0673030344",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.stopRoute": {
+      "value": "ルートを停止",
+      "description": "Button to end the active route session.",
+      "sourceHash": "sha256:f5d4480d30167efb",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.suggestedRoutes": {
+      "value": "おすすめルート",
+      "description": "Header above the route alternatives card when the planner has computed multiple route options.",
+      "sourceHash": "sha256:f41f69d2fe9b024a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.whereTo": {
+      "value": "どこへ？",
+      "description": "Search bar placeholder on the home screen.",
+      "sourceHash": "sha256:e02c3c5972e07bbb",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.workingOnRoute": {
+      "value": "ルートを作成中",
+      "description": "Status label shown while the planner is computing the route.",
+      "sourceHash": "sha256:82a46fa5744b6571",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "planning.cyclingAlternatives": {
+      "value": "BRouter + OSRM による自転車ルートの代替案",
+      "description": "Notice on the route alternatives card when all OSM cycling sources succeeded. BRouter and OSRM are tool/brand names and must not be translated.",
+      "sourceHash": "sha256:d99f034a9748a203",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "planning.cyclingAlternativesWithFailures": {
+      "value": "自転車ルートの代替案 — {failedCount, number} {failedCount, select, one {source} other {sources}} が利用できません",
+      "description": "Notice on the route alternatives card when one or more OSM cycling sources timed out or errored. {failedCount} is the number of failed sources.",
+      "placeholders": {
+        "failedCount": "number"
+      },
+      "sourceHash": "sha256:ea1aff4c4b47291e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "planning.mixedRoutesFromHslAndOsm": {
+      "value": "HSL と OSM からの混在ルート",
+      "description": "Notice shown above the route alternatives card when results combine HSL Digitransit and OSM-derived providers. HSL and OSM are brand names — do not translate.",
+      "sourceHash": "sha256:46369a74d3f389bf",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.activity.allowBackgroundGps.subtitle": {
+      "value": "音声案内とライブアクティビティに必要です",
+      "description": "Toggle subtitle for the background-GPS setting.",
+      "sourceHash": "sha256:d95a2c3bb00b371e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.activity.allowBackgroundGps.title": {
+      "value": "バックグラウンドでGPSを許可",
+      "description": "Toggle title: enables background GPS, gating audio cues and live activity.",
+      "sourceHash": "sha256:e1830fc6b7a1d4dd",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.activity.audioCues.subtitle": {
+      "value": "ルーティング中にターンバイターンの案内を読み上げます",
+      "description": "Toggle subtitle for the audio-cues setting.",
+      "sourceHash": "sha256:61f5d0f11873ddc2",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.activity.audioCues.title": {
+      "value": "音声案内",
+      "description": "Toggle title: enable spoken turn-by-turn cues during routing.",
+      "sourceHash": "sha256:b800cd4f426b7e49",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.activity.audioCuesOnlyInBackground.subtitle": {
+      "value": "オフの場合、アプリを開いている間も案内が流れます",
+      "description": "Toggle subtitle for the audio-cues-only-in-background setting.",
+      "sourceHash": "sha256:03ad38e164fb8e57",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.activity.audioCuesOnlyInBackground.title": {
+      "value": "アプリがバックグラウンドのときだけ音声案内",
+      "description": "Toggle title: when on, cues only play after the user switches away from the app or locks the screen — not while the map is visible on-screen.",
+      "sourceHash": "sha256:ecb1b14eae4de659",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.activity.keepScreenOn.subtitle": {
+      "value": "ルート実行中、画面を常に点灯します",
+      "description": "Toggle subtitle for the keep-screen-on setting.",
+      "sourceHash": "sha256:15ac9e3c3285d416",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.activity.keepScreenOn.title": {
+      "value": "画面が消えないようにする",
+      "description": "Toggle title: keep the device screen awake while a route is active.",
+      "sourceHash": "sha256:6eec2d0f9ce92009",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.activity.liveActivity.subtitle": {
+      "value": "ロック画面に次の案内を表示",
+      "description": "Toggle subtitle for the live-activity setting.",
+      "sourceHash": "sha256:aae828de760f3433",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.activity.liveActivity.title": {
+      "value": "ロック画面のライブアクティビティ",
+      "description": "Toggle title: show the next turn on the lock screen via Live Activity.",
+      "sourceHash": "sha256:3a3a39dedc36ad66",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.activity.title": {
+      "value": "アクティビティ設定",
+      "description": "Section header for activity-related toggles on the Settings hub.",
+      "sourceHash": "sha256:f271fbbf4d057dc4",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.distanceUnit.imperial": {
+      "value": "ヤード・マイル",
+      "description": "Distance-unit picker option: feet and miles.",
+      "sourceHash": "sha256:ced23c724b8ec384",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.distanceUnit.metric": {
+      "value": "メートル・キロメートル",
+      "description": "Distance-unit picker option: meters and kilometers.",
+      "sourceHash": "sha256:32e07b5fbc2df0cb",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.distanceUnit.system": {
+      "value": "端末の計測システムに従う",
+      "description": "Distance-unit picker option meaning 'follow the device system measurement system'.",
+      "sourceHash": "sha256:a8fdb2f205632450",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.distanceUnit.title": {
+      "value": "距離の単位",
+      "description": "Section header / row label for the distance-unit picker.",
+      "sourceHash": "sha256:a44393fce0d20f77",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.hub.device": {
+      "value": "デバイス",
+      "description": "Settings hub row: navigates to ESP32 device pairing/management.",
+      "sourceHash": "sha256:3de02b1fa84f6a0f",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.hub.importDiagnostics": {
+      "value": "インポート診断",
+      "description": "Settings hub row: navigates to GPX import diagnostics.",
+      "sourceHash": "sha256:8cf35ca9b215d0b6",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.hub.importDiagnostics.subtitle": {
+      "value": "失敗した共有インポート",
+      "description": "Subtitle under the 'Import Diagnostics' row on the Settings hub.",
+      "sourceHash": "sha256:a10748dd41261bc3",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.hub.routePlanner": {
+      "value": "ルートプランナー",
+      "description": "Settings hub row: navigates to route-planning preferences.",
+      "sourceHash": "sha256:d5eca3f58f0766e5",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.hub.routePlanner.subtitle": {
+      "value": "デフォルトの出発地、候補、HSLキー",
+      "description": "Subtitle under the 'Route Planner' row on the Settings hub. HSL is a brand name and must not be translated.",
+      "sourceHash": "sha256:cf3dfe1aef92ec5b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.hub.routes": {
+      "value": "ルート",
+      "description": "Settings hub row: navigates to saved-routes management.",
+      "sourceHash": "sha256:9c8c19da0afb6d1f",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.hub.routes.subtitle": {
+      "value": "最近のルートとGPXインポート",
+      "description": "Subtitle under the 'Routes' row on the Settings hub.",
+      "sourceHash": "sha256:a89e913d5e54bcbd",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.hub.title": {
+      "value": "設定",
+      "description": "Title of the Settings hub screen.",
+      "sourceHash": "sha256:42ae8a538de4881b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.language.en": {
+      "value": "English",
+      "description": "Native name of the English language, shown as a Language picker option.",
+      "sourceHash": "sha256:435f08e780b867d0",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.language.fi": {
+      "value": "Suomi",
+      "description": "Native name of the Finnish language (Suomi), shown as a Language picker option. Always presented in the language's own native form, not translated.",
+      "sourceHash": "sha256:973f747f49652134",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.language.noVoiceFallback": {
+      "value": "{language} の音声がブラウザにインストールされていません。音声の合図は英語で再生されます。",
+      "description": "Warning shown under the Language picker when the active locale has no matching TTS voice. {language} is the native name of the picked language.",
+      "placeholders": {
+        "language": "string"
+      },
+      "sourceHash": "sha256:c86474383e612c70",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.language.subtitle": {
+      "value": "アプリの言語を選択",
+      "description": "Subtitle under the Language picker.",
+      "sourceHash": "sha256:b531c7a560cb2bc1",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.language.system": {
+      "value": "端末の言語に従う",
+      "description": "Language picker option meaning 'follow the device system language'.",
+      "sourceHash": "sha256:c03499565f39ebfd",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.language.title": {
+      "value": "言語",
+      "description": "Section header / row label for the app-language picker.",
+      "sourceHash": "sha256:b16a734e866804e1",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.restartRequired.message": {
+      "value": "アプリを終了して再度開き、新しい言語を適用してください。",
+      "description": "Body of an alert shown after switching app language on iOS.",
+      "sourceHash": "sha256:10c24aa42f7a4f27",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.restartRequired.title": {
+      "value": "再起動が必要です",
+      "description": "Title of an alert shown after switching app language on iOS.",
+      "sourceHash": "sha256:d1bb33a4a65936b1",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.speedUnit.title": {
+      "value": "速度の単位",
+      "description": "Section header / row label for the speed-unit picker.",
+      "sourceHash": "sha256:86e3f40512e1dec4",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.voiceNotInstalled": {
+      "value": "{language} の音声がインストールされていません。システムの設定を開いてインストールしてください。",
+      "description": "Hint shown in Settings when no TTS voice is available for the active locale.",
+      "placeholders": {
+        "language": "string"
+      },
+      "sourceHash": "sha256:530a574bd1bce73a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "units.distance.ft": {
+      "value": "{distance, number} ft",
+      "description": "Distance value in feet, used in UI labels.",
+      "placeholders": {
+        "distance": "number"
+      },
+      "sourceHash": "sha256:8b8cd0ede98afab4",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "units.distance.km": {
+      "value": "{distance, number} km",
+      "description": "Distance value in kilometers, used in UI labels (not voice cues).",
+      "placeholders": {
+        "distance": "number"
+      },
+      "sourceHash": "sha256:fedc0bfc61d1a52a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "units.distance.m": {
+      "value": "{distance, number} m",
+      "description": "Distance value in meters, used in UI labels (not voice cues).",
+      "placeholders": {
+        "distance": "number"
+      },
+      "sourceHash": "sha256:54fb0c93b67b417f",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "units.distance.mi": {
+      "value": "{distance, number} mi",
+      "description": "Distance value in miles, used in UI labels.",
+      "placeholders": {
+        "distance": "number"
+      },
+      "sourceHash": "sha256:3588353ba9acebdb",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "units.duration.min": {
+      "value": "{minutes, number} 分",
+      "description": "Duration label in minutes, used in UI route summaries.",
+      "placeholders": {
+        "minutes": "number"
+      },
+      "sourceHash": "sha256:08f20b75ce9ef149",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "units.speed.kph": {
+      "value": "km/h",
+      "description": "Speed unit label: kilometers per hour.",
+      "sourceHash": "sha256:100c2d3034c7245c",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "units.speed.mph": {
+      "value": "mph",
+      "description": "Speed unit label: miles per hour.",
+      "sourceHash": "sha256:3a086c822b6029cd",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    }
+  }
+}

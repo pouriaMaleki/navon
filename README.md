@@ -65,7 +65,7 @@ Companion apps ship on three platforms with the same product surface and shared 
 - `companion-android/` — Jetpack Compose + Google Maps, FusedLocationProvider, Android BLE/GATT.
 - `companion-web/` — React + MobX + MapLibre on OpenStreetMap tiles, browser Geolocation. Phone-guidance only (no device/BLE).
 
-See [`docs/companion-app-architecture.md`](./docs/companion-app-architecture.md) for the shared architecture and platform rules.
+See [`docs/companion-app-architecture.md`](./docs/companion-app-architecture.md) for the shared architecture and platform rules, and [`docs/i18n.md`](./docs/i18n.md) for the localization system (catalog, translation sync, adding a new language).
 
 Current companion checkpoint:
 - Rider position comes from real device GPS on all three apps via a shared `LocationService` abstraction; the locate/recenter slot shows a spinner until the first fix arrives, with a persisted last-known fallback when permission is denied.

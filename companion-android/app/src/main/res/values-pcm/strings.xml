@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_cancel" formatted="false">Cancel</string>
+    <string name="common_close" formatted="false">Close</string>
+    <string name="common_ok" formatted="false">OK</string>
+    <string name="cue_arrived" formatted="false">Wetin you reach your destination</string>
+    <string name="cue_arrivingInM" formatted="false">You go reach your destination for {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_generic" formatted="false">Next turn for ahead for like {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_left" formatted="false">Turn left for ahead for like {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_right" formatted="false">Turn right for ahead for like {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_uturn" formatted="false">Do U-turn for ahead for like {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_offTrack" formatted="false">You don go off road</string>
+    <string name="cue_onTrack" formatted="false">You don return to road</string>
+    <string name="cue_rerouting" formatted="false">Dem dey calculate new route</string>
+    <string name="cue_routeStarted" formatted="false">Route don start</string>
+    <string name="cue_turn10m_exitLeft" formatted="false">Take the left exit</string>
+    <string name="cue_turn10m_exitRight" formatted="false">Take the right exit</string>
+    <string name="cue_turn10m_generic" formatted="false">Follow the route</string>
+    <string name="cue_turn10m_keepLeft" formatted="false">Keep left</string>
+    <string name="cue_turn10m_keepRight" formatted="false">Keep right</string>
+    <string name="cue_turn10m_left" formatted="false">Turn left</string>
+    <string name="cue_turn10m_right" formatted="false">Turn right</string>
+    <string name="cue_turn10m_uturn" formatted="false">Make a U-turn</string>
+    <string name="cue_turn50m_exitLeft" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the left exit</string>
+    <string name="cue_turn50m_exitRight" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the right exit</string>
+    <string name="cue_turn50m_generic" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, follow the route</string>
+    <string name="cue_turn50m_keepLeft" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, keep left</string>
+    <string name="cue_turn50m_keepRight" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, keep right</string>
+    <string name="cue_turn50m_left" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn left</string>
+    <string name="cue_turn50m_right" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn right</string>
+    <string name="cue_turn50m_uturn" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, make a U-turn</string>
+    <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} to {destination}</string>
+    <string name="home_importedRoute" formatted="false">Route wey don import</string>
+    <string name="home_noSuggestions" formatted="false">No suggestions yet…</string>
+    <string name="home_openSettings" formatted="false">Settings</string>
+    <string name="home_platformHint_locationDefault" formatted="false">Your browser go ask for location permission. Allow am make guidance fit keep tracking your position while page dey background.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">Safari for iPhone no dey deliver true background GPS. Keep the tab active and make screen stay on so location updates go continue while you dey ride.</string>
+    <string name="home_recenter" formatted="false">Recenter</string>
+    <string name="home_routeOptions" formatted="false">Route options</string>
+    <string name="home_start" formatted="false">Start</string>
+    <string name="home_startOnDevice" formatted="false">Start on device</string>
+    <string name="home_startRoute" formatted="false">Start route</string>
+    <string name="home_startingOnDevice" formatted="false">Starting on device…</string>
+    <string name="home_stop" formatted="false">Stop</string>
+    <string name="home_stopRoute" formatted="false">Stop route</string>
+    <string name="home_suggestedRoutes" formatted="false">Suggested routes</string>
+    <string name="home_whereTo" formatted="false">Where to?</string>
+    <string name="home_workingOnRoute" formatted="false">Working on route</string>
+    <string name="planning_cyclingAlternatives" formatted="false">Cycling alternatives via BRouter + OSRM</string>
+    <string name="planning_cyclingAlternativesWithFailures" formatted="false">Cycling alternatives — {failedCount, number} {failedCount, select, one {source} other {sources}} no dey available</string>
+    <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">Mixed routes from HSL and OSM</string>
+    <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">Required for audio cues and live activity</string>
+    <string name="settings_activity_allowBackgroundGps_title" formatted="false">Allow GPS in background</string>
+    <string name="settings_activity_audioCues_subtitle" formatted="false">Speak turn-by-turn directions during routing</string>
+    <string name="settings_activity_audioCues_title" formatted="false">Audio cues</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_subtitle" formatted="false">When off, cues go still play while you open the app</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_title" formatted="false">Audio cues only when app don go background</string>
+    <string name="settings_activity_keepScreenOn_subtitle" formatted="false">Keep the display awake while route dey active</string>
+    <string name="settings_activity_keepScreenOn_title" formatted="false">Prevent screen from turning off</string>
+    <string name="settings_activity_liveActivity_subtitle" formatted="false">Show next turn for lock screen</string>
+    <string name="settings_activity_liveActivity_title" formatted="false">Lock-screen live activity</string>
+    <string name="settings_activity_title" formatted="false">Activity Settings</string>
+    <string name="settings_distanceUnit_imperial" formatted="false">Feet &amp; miles</string>
+    <string name="settings_distanceUnit_metric" formatted="false">Meters &amp; kilometers</string>
+    <string name="settings_distanceUnit_system" formatted="false">Follow system measurement</string>
+    <string name="settings_distanceUnit_title" formatted="false">Distance units</string>
+    <string name="settings_hub_device" formatted="false">Device</string>
+    <string name="settings_hub_importDiagnostics" formatted="false">Import Diagnostics</string>
+    <string name="settings_hub_importDiagnostics_subtitle" formatted="false">Failed shared imports</string>
+    <string name="settings_hub_routePlanner" formatted="false">Route Planner</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">Default source, suggestions, HSL key</string>
+    <string name="settings_hub_routes" formatted="false">Routes</string>
+    <string name="settings_hub_routes_subtitle" formatted="false">Recent routes and GPX import</string>
+    <string name="settings_hub_title" formatted="false">Settings</string>
+    <string name="settings_language_en" formatted="false">English</string>
+    <string name="settings_language_fi" formatted="false">Suomi</string>
+    <string name="settings_language_noVoiceFallback" formatted="false">Your browser no get voice for {language}. Audio cues go play for English.</string>
+    <string name="settings_language_subtitle" formatted="false">Choose app language</string>
+    <string name="settings_language_system" formatted="false">System</string>
+    <string name="settings_language_title" formatted="false">Language</string>
+    <string name="settings_restartRequired_message" formatted="false">Close am make you open the app back so new language fit work.</string>
+    <string name="settings_restartRequired_title" formatted="false">Restart required</string>
+    <string name="settings_speedUnit_title" formatted="false">Speed unit</string>
+    <string name="settings_voiceNotInstalled" formatted="false">Voice for {language} no dey installed. Open system Settings make you install am.</string>
+    <string name="units_distance_ft" formatted="false">{distance, number} ft</string>
+    <string name="units_distance_km" formatted="false">{distance, number} km</string>
+    <string name="units_distance_m" formatted="false">{distance, number} m</string>
+    <string name="units_distance_mi" formatted="false">{distance, number} mi</string>
+    <string name="units_duration_min" formatted="false">{minutes, number} min</string>
+    <string name="units_speed_kph" formatted="false">km/h</string>
+    <string name="units_speed_mph" formatted="false">mph</string>
+</resources>

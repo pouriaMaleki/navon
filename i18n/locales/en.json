@@ -261,6 +261,11 @@
       "description": "Subtitle under the Language picker.",
       "placeholders": {}
     },
+    "settings.language.noVoiceFallback": {
+      "value": "Your browser has no voice installed for {language}. Audio cues will play in English.",
+      "description": "Warning shown under the Language picker when the active locale has no matching TTS voice. {language} is the native name of the picked language.",
+      "placeholders": { "language": "string" }
+    },
     "settings.language.system": {
       "value": "System",
       "description": "Language picker option meaning 'follow the device system language'.",
@@ -330,6 +335,51 @@
       "value": "Stop route",
       "description": "Button to end the active route session.",
       "placeholders": {}
+    },
+    "home.stop": {
+      "value": "Stop",
+      "description": "Short label on the floating Stop button on the active-guidance card. Distinct from `home.stopRoute` because the floating CTA only has room for one word.",
+      "placeholders": {}
+    },
+    "home.noSuggestions": {
+      "value": "No suggestions yet…",
+      "description": "Empty-state placeholder shown in the where-to dropdown when the typeahead has no results yet.",
+      "placeholders": {}
+    },
+    "home.platformHint.locationDefault": {
+      "value": "Your browser will ask for location permission. Allow it so guidance keeps tracking your position while the page is in the background.",
+      "description": "Hint shown under the 'Allow GPS in background' setting on every browser except Safari/iOS.",
+      "placeholders": {}
+    },
+    "home.platformHint.locationSafariIos": {
+      "value": "Safari on iPhone does not deliver true background GPS. Keep the tab active and the screen on so location updates continue while you ride.",
+      "description": "Hint shown under the 'Allow GPS in background' setting when the browser is Safari on iOS.",
+      "placeholders": {}
+    },
+    "settings.hub.routes.subtitle": {
+      "value": "Recent routes and GPX import",
+      "description": "Subtitle under the 'Routes' row on the Settings hub.",
+      "placeholders": {}
+    },
+    "settings.hub.routePlanner.subtitle": {
+      "value": "Default source, suggestions, HSL key",
+      "description": "Subtitle under the 'Route Planner' row on the Settings hub. HSL is a brand name and must not be translated.",
+      "placeholders": {}
+    },
+    "settings.hub.importDiagnostics.subtitle": {
+      "value": "Failed shared imports",
+      "description": "Subtitle under the 'Import Diagnostics' row on the Settings hub.",
+      "placeholders": {}
+    },
+    "planning.cyclingAlternatives": {
+      "value": "Cycling alternatives via BRouter + OSRM",
+      "description": "Notice on the route alternatives card when all OSM cycling sources succeeded. BRouter and OSRM are tool/brand names and must not be translated.",
+      "placeholders": {}
+    },
+    "planning.cyclingAlternativesWithFailures": {
+      "value": "Cycling alternatives — {failedCount, number} {failedCount, select, one {source} other {sources}} unavailable",
+      "description": "Notice on the route alternatives card when one or more OSM cycling sources timed out or errored. {failedCount} is the number of failed sources.",
+      "placeholders": { "failedCount": "number" }
     },
     "home.recenter": {
       "value": "Recenter",

@@ -31,17 +31,23 @@
     <string name="cue_turn50m_uturn" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, make a U-turn</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} to {destination}</string>
     <string name="home_importedRoute" formatted="false">Imported route</string>
+    <string name="home_noSuggestions" formatted="false">No suggestions yet…</string>
     <string name="home_openSettings" formatted="false">Settings</string>
+    <string name="home_platformHint_locationDefault" formatted="false">Your browser will ask for location permission. Allow it so guidance keeps tracking your position while the page is in the background.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">Safari on iPhone does not deliver true background GPS. Keep the tab active and the screen on so location updates continue while you ride.</string>
     <string name="home_recenter" formatted="false">Recenter</string>
     <string name="home_routeOptions" formatted="false">Route options</string>
     <string name="home_start" formatted="false">Start</string>
     <string name="home_startOnDevice" formatted="false">Start on device</string>
     <string name="home_startRoute" formatted="false">Start route</string>
     <string name="home_startingOnDevice" formatted="false">Starting on device…</string>
+    <string name="home_stop" formatted="false">Stop</string>
     <string name="home_stopRoute" formatted="false">Stop route</string>
     <string name="home_suggestedRoutes" formatted="false">Suggested routes</string>
     <string name="home_whereTo" formatted="false">Where to?</string>
     <string name="home_workingOnRoute" formatted="false">Working on route</string>
+    <string name="planning_cyclingAlternatives" formatted="false">Cycling alternatives via BRouter + OSRM</string>
+    <string name="planning_cyclingAlternativesWithFailures" formatted="false">Cycling alternatives — {failedCount, number} {failedCount, select, one {source} other {sources}} unavailable</string>
     <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">Mixed routes from HSL and OSM</string>
     <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">Required for audio cues and live activity</string>
     <string name="settings_activity_allowBackgroundGps_title" formatted="false">Allow GPS in background</string>
@@ -60,11 +66,15 @@
     <string name="settings_distanceUnit_title" formatted="false">Distance units</string>
     <string name="settings_hub_device" formatted="false">Device</string>
     <string name="settings_hub_importDiagnostics" formatted="false">Import Diagnostics</string>
+    <string name="settings_hub_importDiagnostics_subtitle" formatted="false">Failed shared imports</string>
     <string name="settings_hub_routePlanner" formatted="false">Route Planner</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">Default source, suggestions, HSL key</string>
     <string name="settings_hub_routes" formatted="false">Routes</string>
+    <string name="settings_hub_routes_subtitle" formatted="false">Recent routes and GPX import</string>
     <string name="settings_hub_title" formatted="false">Settings</string>
     <string name="settings_language_en" formatted="false">English</string>
     <string name="settings_language_fi" formatted="false">Suomi</string>
+    <string name="settings_language_noVoiceFallback" formatted="false">Your browser has no voice installed for {language}. Audio cues will play in English.</string>
     <string name="settings_language_subtitle" formatted="false">Choose the app language</string>
     <string name="settings_language_system" formatted="false">System</string>
     <string name="settings_language_title" formatted="false">Language</string>

@@ -160,7 +160,10 @@ textarea {
   border: none;
   border-bottom: 1px solid var(--card-border);
   background: transparent;
-  text-align: left;
+  /* `start` follows the document direction: left in LTR, right in RTL.
+     Using `left` here would pin labels to the screen-left in Arabic /
+     Persian / Urdu, which makes the row read inside-out. */
+  text-align: start;
   color: inherit;
   font: inherit;
   cursor: pointer;
@@ -255,7 +258,12 @@ textarea {
 
 .danger-button--floating {
   width: auto;
-  align-self: flex-end;
+  /* `align-self: flex-end` would place the Stop button on the LEFT in
+     RTL because flex-end is the inline-end of the cross axis (which
+     flips with `dir`). Centering keeps the floating CTA in the same
+     visual spot in every locale, which matches rider muscle memory
+     better than letting it migrate corner-to-corner. */
+  align-self: center;
   min-width: 120px;
   border-radius: 999px;
   padding: 12px 22px;

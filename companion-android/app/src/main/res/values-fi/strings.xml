@@ -31,17 +31,23 @@
     <string name="cue_turn50m_uturn" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, tee U-käännös</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} kohteeseen {destination}</string>
     <string name="home_importedRoute" formatted="false">Tuotu reitti</string>
+    <string name="home_noSuggestions" formatted="false">Ei vielä ehdotuksia…</string>
     <string name="home_openSettings" formatted="false">Asetukset</string>
+    <string name="home_platformHint_locationDefault" formatted="false">Selain pyytää sijaintilupaa. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sivu on taustalla.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">iPhonen Safari ei tue oikeaa taustalla toimivaa GPS:ää. Pidä välilehti aktiivisena ja näyttö päällä, jotta sijaintipäivitykset jatkuvat ajon aikana.</string>
     <string name="home_recenter" formatted="false">Keskitä uudelleen</string>
     <string name="home_routeOptions" formatted="false">Reittivaihtoehdot</string>
     <string name="home_start" formatted="false">Aloita</string>
     <string name="home_startOnDevice" formatted="false">Aloita laitteella</string>
     <string name="home_startRoute" formatted="false">Aloita reitti</string>
     <string name="home_startingOnDevice" formatted="false">Aloitetaan laitteella…</string>
+    <string name="home_stop" formatted="false">Lopeta</string>
     <string name="home_stopRoute" formatted="false">Lopeta reitti</string>
     <string name="home_suggestedRoutes" formatted="false">Ehdotetut reitit</string>
     <string name="home_whereTo" formatted="false">Mihin?</string>
     <string name="home_workingOnRoute" formatted="false">Lasketaan reittiä</string>
+    <string name="planning_cyclingAlternatives" formatted="false">Pyöräilyvaihtoehdot BRouterin ja OSRM:n kautta</string>
+    <string name="planning_cyclingAlternativesWithFailures" formatted="false">Pyöräilyvaihtoehdot — {failedCount, number} {failedCount, select, one {lähde ei käytettävissä} other {lähdettä ei käytettävissä}}</string>
     <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">Sekareittejä HSL:stä ja OSM:stä</string>
     <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">Tarvitaan äänimerkeille ja live-toiminnolle</string>
     <string name="settings_activity_allowBackgroundGps_title" formatted="false">Salli GPS taustalla</string>
@@ -60,11 +66,15 @@
     <string name="settings_distanceUnit_title" formatted="false">Etäisyysyksiköt</string>
     <string name="settings_hub_device" formatted="false">Laite</string>
     <string name="settings_hub_importDiagnostics" formatted="false">Tuonnin diagnostiikka</string>
+    <string name="settings_hub_importDiagnostics_subtitle" formatted="false">Epäonnistuneet jaetut tuonnit</string>
     <string name="settings_hub_routePlanner" formatted="false">Reittisuunnittelija</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">Oletuslähde, ehdotukset, HSL-avain</string>
     <string name="settings_hub_routes" formatted="false">Reitit</string>
+    <string name="settings_hub_routes_subtitle" formatted="false">Viimeaikaiset reitit ja GPX-tuonti</string>
     <string name="settings_hub_title" formatted="false">Asetukset</string>
     <string name="settings_language_en" formatted="false">English</string>
     <string name="settings_language_fi" formatted="false">Suomi</string>
+    <string name="settings_language_noVoiceFallback" formatted="false">Selaimessasi ei ole asennettuna ääntä kielelle {language}. Ääniopastus puhuu englanniksi.</string>
     <string name="settings_language_subtitle" formatted="false">Valitse sovelluksen kieli</string>
     <string name="settings_language_system" formatted="false">Järjestelmä</string>
     <string name="settings_language_title" formatted="false">Kieli</string>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_cancel" formatted="false">إلغاء</string>
+    <string name="common_close" formatted="false">إغلاق</string>
+    <string name="common_ok" formatted="false">حسنًا</string>
+    <string name="cue_arrived" formatted="false">لقد وصلت إلى وجهتك</string>
+    <string name="cue_arrivingInM" formatted="false">ستصل إلى وجهتك خلال {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_generic" formatted="false">الانعطاف التالي أمامك بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_left" formatted="false">انعطف يسارًا بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_right" formatted="false">انعطف يمينًا بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_uturn" formatted="false">انعطف U بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_offTrack" formatted="false">خارج المسار</string>
+    <string name="cue_onTrack" formatted="false">على المسار</string>
+    <string name="cue_rerouting" formatted="false">إعادة توجيه</string>
+    <string name="cue_routeStarted" formatted="false">بدأ المسار</string>
+    <string name="cue_turn10m_exitLeft" formatted="false">خذ المخرج الأيسر</string>
+    <string name="cue_turn10m_exitRight" formatted="false">خذ المخرج الأيمن</string>
+    <string name="cue_turn10m_generic" formatted="false">اتبع المسار</string>
+    <string name="cue_turn10m_keepLeft" formatted="false">ابقَ يسارًا</string>
+    <string name="cue_turn10m_keepRight" formatted="false">ابقَ يمينًا</string>
+    <string name="cue_turn10m_left" formatted="false">انعطف يسارًا</string>
+    <string name="cue_turn10m_right" formatted="false">انعطف يمينًا</string>
+    <string name="cue_turn10m_uturn" formatted="false">قم بعمل انعطاف U</string>
+    <string name="cue_turn50m_exitLeft" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، خذ المخرج الأيسر</string>
+    <string name="cue_turn50m_exitRight" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، خذ المخرج الأيمن</string>
+    <string name="cue_turn50m_generic" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، اتبع المسار</string>
+    <string name="cue_turn50m_keepLeft" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، ابقَ يسارًا</string>
+    <string name="cue_turn50m_keepRight" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، ابقَ يمينًا</string>
+    <string name="cue_turn50m_left" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، انعطف يسارًا</string>
+    <string name="cue_turn50m_right" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، انعطف يمينًا</string>
+    <string name="cue_turn50m_uturn" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، قم بعمل انعطاف U</string>
+    <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} إلى {destination}</string>
+    <string name="home_importedRoute" formatted="false">تمت استيراد المسار</string>
+    <string name="home_noSuggestions" formatted="false">لا توجد اقتراحات بعد…</string>
+    <string name="home_openSettings" formatted="false">الإعدادات</string>
+    <string name="home_platformHint_locationDefault" formatted="false">سيطلب متصفحك إذن الموقع. اسمح بذلك حتى تستمر الإرشادات في تتبّع موقعك أثناء بقاء الصفحة في الخلفية.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">لا يوفّر Safari على iPhone تحديد GPS في الخلفية بشكل حقيقي. أبقِ علامة التبويب مفتوحة والشاشة قيد التشغيل حتى تستمر تحديثات الموقع أثناء ركوبك.</string>
+    <string name="home_recenter" formatted="false">أعد التمركز</string>
+    <string name="home_routeOptions" formatted="false">خيارات المسار</string>
+    <string name="home_start" formatted="false">ابدأ</string>
+    <string name="home_startOnDevice" formatted="false">ابدأ على الجهاز</string>
+    <string name="home_startRoute" formatted="false">ابدأ المسار</string>
+    <string name="home_startingOnDevice" formatted="false">جارٍ البدء على الجهاز…</string>
+    <string name="home_stop" formatted="false">أوقف</string>
+    <string name="home_stopRoute" formatted="false">أوقف المسار</string>
+    <string name="home_suggestedRoutes" formatted="false">مسارات مقترحة</string>
+    <string name="home_whereTo" formatted="false">إلى أين؟</string>
+    <string name="home_workingOnRoute" formatted="false">جارٍ العمل على المسار</string>
+    <string name="planning_cyclingAlternatives" formatted="false">بدائل ركوب الدراجات عبر BRouter + OSRM</string>
+    <string name="planning_cyclingAlternativesWithFailures" formatted="false">بدائل ركوب الدراجات — {failedCount, number} {failedCount, select, one {source} other {sources}} غير متاح</string>
+    <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">مسارات مختلطة من HSL وOSM</string>
+    <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">مطلوب لإشارات الصوت والأنشطة المباشرة</string>
+    <string name="settings_activity_allowBackgroundGps_title" formatted="false">السماح بـ GPS في الخلفية</string>
+    <string name="settings_activity_audioCues_subtitle" formatted="false">انطق تعليمات المنعطفات خطوة بخطوة أثناء التوجيه</string>
+    <string name="settings_activity_audioCues_title" formatted="false">إشارات الصوت</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_subtitle" formatted="false">عند الإيقاف، تُشغَّل الإشارات أيضًا عندما يكون التطبيق مفتوحًا</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_title" formatted="false">إشارات الصوت فقط عندما يكون التطبيق في الخلفية</string>
+    <string name="settings_activity_keepScreenOn_subtitle" formatted="false">يحافظ على تنبيه الشاشة أثناء تفعيل مسار</string>
+    <string name="settings_activity_keepScreenOn_title" formatted="false">منع إيقاف تشغيل الشاشة</string>
+    <string name="settings_activity_liveActivity_subtitle" formatted="false">اعرض المنعطف التالي على شاشة القفل</string>
+    <string name="settings_activity_liveActivity_title" formatted="false">نشاط مباشر على شاشة القفل</string>
+    <string name="settings_activity_title" formatted="false">إعدادات النشاط</string>
+    <string name="settings_distanceUnit_imperial" formatted="false">إمبراطوري</string>
+    <string name="settings_distanceUnit_metric" formatted="false">متري</string>
+    <string name="settings_distanceUnit_system" formatted="false">النظام</string>
+    <string name="settings_distanceUnit_title" formatted="false">وحدات المسافة</string>
+    <string name="settings_hub_device" formatted="false">الجهاز</string>
+    <string name="settings_hub_importDiagnostics" formatted="false">تشخيصات الاستيراد</string>
+    <string name="settings_hub_importDiagnostics_subtitle" formatted="false">عمليات الاستيراد المشتركة الفاشلة</string>
+    <string name="settings_hub_routePlanner" formatted="false">مخطط المسار</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">المصدر الافتراضي، الاقتراحات، مفتاح HSL</string>
+    <string name="settings_hub_routes" formatted="false">المسارات</string>
+    <string name="settings_hub_routes_subtitle" formatted="false">المسارات الأخيرة واستيراد GPX</string>
+    <string name="settings_hub_title" formatted="false">الإعدادات</string>
+    <string name="settings_language_en" formatted="false">English</string>
+    <string name="settings_language_fi" formatted="false">Suomi</string>
+    <string name="settings_language_noVoiceFallback" formatted="false">لا يحتوي متصفحك على صوت مثبت لـ {language}. ستُشغَّل الإشارات الصوتية باللغة الإنجليزية.</string>
+    <string name="settings_language_subtitle" formatted="false">اختر لغة التطبيق</string>
+    <string name="settings_language_system" formatted="false">النظام</string>
+    <string name="settings_language_title" formatted="false">اللغة</string>
+    <string name="settings_restartRequired_message" formatted="false">أغلق التطبيق وأعد فتحه لتطبيق اللغة الجديدة.</string>
+    <string name="settings_restartRequired_title" formatted="false">يلزم إعادة التشغيل</string>
+    <string name="settings_speedUnit_title" formatted="false">وحدة السرعة</string>
+    <string name="settings_voiceNotInstalled" formatted="false">لم يتم تثبيت صوت {language}. افتح إعدادات النظام لتثبيته.</string>
+    <string name="units_distance_ft" formatted="false">{distance, number} قدم</string>
+    <string name="units_distance_km" formatted="false">{distance, number} كم</string>
+    <string name="units_distance_m" formatted="false">{distance, number} م</string>
+    <string name="units_distance_mi" formatted="false">{distance, number} ميل</string>
+    <string name="units_duration_min" formatted="false">{minutes, number} دقيقة</string>
+    <string name="units_speed_kph" formatted="false">كم/س</string>
+    <string name="units_speed_mph" formatted="false">ميل/س</string>
+</resources>

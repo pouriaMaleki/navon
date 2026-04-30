@@ -370,6 +370,52 @@
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "home.stop": {
+      "value": "Lopeta",
+      "description": "Short label on the floating Stop button on the active-guidance card.",
+      "status": "reviewed"
+    },
+    "home.noSuggestions": {
+      "value": "Ei vielä ehdotuksia…",
+      "description": "Empty-state placeholder shown in the where-to dropdown when the typeahead has no results yet.",
+      "status": "reviewed"
+    },
+    "home.platformHint.locationDefault": {
+      "value": "Selain pyytää sijaintilupaa. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sivu on taustalla.",
+      "description": "Hint shown under the 'Allow GPS in background' setting on every browser except Safari/iOS.",
+      "status": "reviewed"
+    },
+    "home.platformHint.locationSafariIos": {
+      "value": "iPhonen Safari ei tue oikeaa taustalla toimivaa GPS:ää. Pidä välilehti aktiivisena ja näyttö päällä, jotta sijaintipäivitykset jatkuvat ajon aikana.",
+      "description": "Hint shown under the 'Allow GPS in background' setting when the browser is Safari on iOS.",
+      "status": "reviewed"
+    },
+    "settings.hub.routes.subtitle": {
+      "value": "Viimeaikaiset reitit ja GPX-tuonti",
+      "description": "Subtitle under the 'Routes' row on the Settings hub.",
+      "status": "reviewed"
+    },
+    "settings.hub.routePlanner.subtitle": {
+      "value": "Oletuslähde, ehdotukset, HSL-avain",
+      "description": "Subtitle under the 'Route Planner' row on the Settings hub.",
+      "status": "reviewed"
+    },
+    "settings.hub.importDiagnostics.subtitle": {
+      "value": "Epäonnistuneet jaetut tuonnit",
+      "description": "Subtitle under the 'Import Diagnostics' row on the Settings hub.",
+      "status": "reviewed"
+    },
+    "planning.cyclingAlternatives": {
+      "value": "Pyöräilyvaihtoehdot BRouterin ja OSRM:n kautta",
+      "description": "Notice on the route alternatives card when all OSM cycling sources succeeded.",
+      "status": "reviewed"
+    },
+    "planning.cyclingAlternativesWithFailures": {
+      "value": "Pyöräilyvaihtoehdot — {failedCount, number} {failedCount, select, one {lähde ei käytettävissä} other {lähdettä ei käytettävissä}}",
+      "description": "Notice on the route alternatives card when one or more OSM cycling sources timed out or errored.",
+      "placeholders": { "failedCount": "number" },
+      "status": "reviewed"
+    },
     "home.whereTo": {
       "value": "Mihin?",
       "description": "Search bar placeholder on the home screen.",
@@ -547,6 +593,12 @@
       "status": "ai-translated",
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.language.noVoiceFallback": {
+      "value": "Selaimessasi ei ole asennettuna ääntä kielelle {language}. Ääniopastus puhuu englanniksi.",
+      "description": "Warning shown under the Language picker when the active locale has no matching TTS voice. {language} is the native name of the picked language.",
+      "placeholders": { "language": "string" },
+      "status": "reviewed"
     },
     "settings.language.subtitle": {
       "value": "Valitse sovelluksen kieli",

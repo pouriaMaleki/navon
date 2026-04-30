@@ -9,9 +9,12 @@ export function detectSafariOnIOS(): boolean {
   return isIOS && isSafari;
 }
 
-export function platformGpsHint(): string {
-  if (detectSafariOnIOS()) {
-    return "Safari on iPhone does not deliver true background GPS. Keep the tab active and the screen on so location updates continue while you ride.";
-  }
-  return "Your browser will ask for location permission. Allow it so guidance keeps tracking your position while the page is in the background.";
+/** Returns a catalog key (not a translated string) so the caller can
+ *  resolve it against the active locale via `t(...)`. Keeping the
+ *  detection here decoupled from i18n means tests can stub navigator
+ *  without dragging in the catalog. */
+export function platformGpsHintKey(): string {
+  return detectSafariOnIOS()
+    ? "home.platformHint.locationSafariIos"
+    : "home.platformHint.locationDefault";
 }

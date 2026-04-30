@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_cancel" formatted="false">取消</string>
+    <string name="common_close" formatted="false">关闭</string>
+    <string name="common_ok" formatted="false">确定</string>
+    <string name="cue_arrived" formatted="false">已到达目的地</string>
+    <string name="cue_arrivingInM" formatted="false">将在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 抵达目的地</string>
+    <string name="cue_nextTurnInAbout_generic" formatted="false">前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 进行下一步操作</string>
+    <string name="cue_nextTurnInAbout_left" formatted="false">前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 左转</string>
+    <string name="cue_nextTurnInAbout_right" formatted="false">前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 右转</string>
+    <string name="cue_nextTurnInAbout_uturn" formatted="false">前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 掉头</string>
+    <string name="cue_offTrack" formatted="false">偏离路线</string>
+    <string name="cue_onTrack" formatted="false">已回到路线</string>
+    <string name="cue_rerouting" formatted="false">正在重新规划路线</string>
+    <string name="cue_routeStarted" formatted="false">路线已开始</string>
+    <string name="cue_turn10m_exitLeft" formatted="false">从左侧出口驶出</string>
+    <string name="cue_turn10m_exitRight" formatted="false">从右侧出口驶出</string>
+    <string name="cue_turn10m_generic" formatted="false">沿路线行驶</string>
+    <string name="cue_turn10m_keepLeft" formatted="false">靠左行驶</string>
+    <string name="cue_turn10m_keepRight" formatted="false">靠右行驶</string>
+    <string name="cue_turn10m_left" formatted="false">左转</string>
+    <string name="cue_turn10m_right" formatted="false">右转</string>
+    <string name="cue_turn10m_uturn" formatted="false">掉头</string>
+    <string name="cue_turn50m_exitLeft" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，从左侧出口驶出</string>
+    <string name="cue_turn50m_exitRight" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，从右侧出口驶出</string>
+    <string name="cue_turn50m_generic" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，沿路线行驶</string>
+    <string name="cue_turn50m_keepLeft" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，靠左行驶</string>
+    <string name="cue_turn50m_keepRight" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，靠右行驶</string>
+    <string name="cue_turn50m_left" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，左转</string>
+    <string name="cue_turn50m_right" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，右转</string>
+    <string name="cue_turn50m_uturn" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，掉头</string>
+    <string name="guidance_distanceToDestination" formatted="false">到 {destination} 还需 {distance, number} {distanceUnit, select, km {km} mi {mi} other {km}}</string>
+    <string name="home_importedRoute" formatted="false">已导入的路线</string>
+    <string name="home_noSuggestions" formatted="false">暂无建议…</string>
+    <string name="home_openSettings" formatted="false">设置</string>
+    <string name="home_platformHint_locationDefault" formatted="false">你的浏览器将请求定位权限。允许它，这样在页面处于后台时，导航仍会持续跟踪你的当前位置。</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">iPhone 上的 Safari 无法提供真正的后台 GPS。保持此标签页处于打开状态，并让屏幕保持亮起，以便你骑行时位置更新仍能继续。</string>
+    <string name="home_recenter" formatted="false">重新居中</string>
+    <string name="home_routeOptions" formatted="false">路线选项</string>
+    <string name="home_start" formatted="false">开始</string>
+    <string name="home_startOnDevice" formatted="false">在设备上开始</string>
+    <string name="home_startRoute" formatted="false">开始路线</string>
+    <string name="home_startingOnDevice" formatted="false">正在在设备上开始…</string>
+    <string name="home_stop" formatted="false">停止</string>
+    <string name="home_stopRoute" formatted="false">停止路线</string>
+    <string name="home_suggestedRoutes" formatted="false">推荐路线</string>
+    <string name="home_whereTo" formatted="false">去哪里？</string>
+    <string name="home_workingOnRoute" formatted="false">正在规划路线</string>
+    <string name="planning_cyclingAlternatives" formatted="false">通过 BRouter + OSRM 的骑行备选路线</string>
+    <string name="planning_cyclingAlternativesWithFailures" formatted="false">骑行备选路线 — {failedCount, number} {failedCount, select, one {source} other {sources}} 不可用</string>
+    <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">来自 HSL 和 OSM 的混合路线</string>
+    <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">音频提示和实时活动所需</string>
+    <string name="settings_activity_allowBackgroundGps_title" formatted="false">允许后台 GPS</string>
+    <string name="settings_activity_audioCues_subtitle" formatted="false">路线规划中逐向语音提示</string>
+    <string name="settings_activity_audioCues_title" formatted="false">音频提示</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_subtitle" formatted="false">关闭后：当你打开应用时也会播放提示</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_title" formatted="false">仅当应用在后台时播放音频提示</string>
+    <string name="settings_activity_keepScreenOn_subtitle" formatted="false">路线进行中保持屏幕常亮</string>
+    <string name="settings_activity_keepScreenOn_title" formatted="false">防止屏幕自动熄灭</string>
+    <string name="settings_activity_liveActivity_subtitle" formatted="false">在锁屏上显示下一步</string>
+    <string name="settings_activity_liveActivity_title" formatted="false">锁屏实时活动</string>
+    <string name="settings_activity_title" formatted="false">活动设置</string>
+    <string name="settings_distanceUnit_imperial" formatted="false">英制</string>
+    <string name="settings_distanceUnit_metric" formatted="false">公制</string>
+    <string name="settings_distanceUnit_system" formatted="false">跟随设备的度量系统</string>
+    <string name="settings_distanceUnit_title" formatted="false">距离单位</string>
+    <string name="settings_hub_device" formatted="false">设备</string>
+    <string name="settings_hub_importDiagnostics" formatted="false">导入诊断</string>
+    <string name="settings_hub_importDiagnostics_subtitle" formatted="false">失败的共享导入</string>
+    <string name="settings_hub_routePlanner" formatted="false">路线规划器</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">默认起点、建议、HSL 键</string>
+    <string name="settings_hub_routes" formatted="false">路线</string>
+    <string name="settings_hub_routes_subtitle" formatted="false">最近路线和 GPX 导入</string>
+    <string name="settings_hub_title" formatted="false">设置</string>
+    <string name="settings_language_en" formatted="false">English</string>
+    <string name="settings_language_fi" formatted="false">Suomi</string>
+    <string name="settings_language_noVoiceFallback" formatted="false">你的浏览器没有为 {language} 安装语音。音频提示将使用英语播放。</string>
+    <string name="settings_language_subtitle" formatted="false">选择应用语言</string>
+    <string name="settings_language_system" formatted="false">跟随设备系统语言</string>
+    <string name="settings_language_title" formatted="false">语言</string>
+    <string name="settings_restartRequired_message" formatted="false">退出并重新打开应用以应用新语言。</string>
+    <string name="settings_restartRequired_title" formatted="false">需要重启</string>
+    <string name="settings_speedUnit_title" formatted="false">速度单位</string>
+    <string name="settings_voiceNotInstalled" formatted="false">未安装 {language} 的语音。打开系统设置以安装。</string>
+    <string name="units_distance_ft" formatted="false">{distance, number} 英尺</string>
+    <string name="units_distance_km" formatted="false">{distance, number} 公里</string>
+    <string name="units_distance_m" formatted="false">{distance, number} 米</string>
+    <string name="units_distance_mi" formatted="false">{distance, number} 英里</string>
+    <string name="units_duration_min" formatted="false">{minutes, number} 分钟</string>
+    <string name="units_speed_kph" formatted="false">公里/小时</string>
+    <string name="units_speed_mph" formatted="false">英里/小时</string>
+</resources>

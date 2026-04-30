@@ -197,7 +197,14 @@ export type PendingHomePresentation = {
 };
 
 export type SpeedUnit = "kph" | "mph";
-export type AppLanguagePref = "system" | "en" | "fi";
+/** Mirror of `AppLanguage` in src/i18n/index.ts. Listed here too because
+ *  `models.ts` is the long-lived persisted-settings shape and shouldn't
+ *  import from the i18n runtime. Add new locales to BOTH unions plus
+ *  `i18n/catalog.config.json:locales`. */
+export type AppLanguagePref =
+  | "system"
+  | "ar" | "bn" | "de" | "en" | "es" | "fa" | "fi" | "fr"
+  | "hi" | "id" | "ja" | "mr" | "pcm" | "pt" | "ru" | "ur" | "zh";
 export type DistanceUnitPref = "system" | "metric" | "imperial";
 
 export type CompanionSettings = {

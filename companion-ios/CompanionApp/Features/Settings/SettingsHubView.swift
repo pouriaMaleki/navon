@@ -154,6 +154,8 @@ private struct LocaleSettingsSection: View {
     @EnvironmentObject private var appModel: AppModel
 
     var body: some View {
+        let resolvedLocale = T.resolveLocale(appModel.settings.language)
+        let hasVoice = SpeechService.hasVoice(forLocale: resolvedLocale.rawValue)
         VStack(alignment: .leading, spacing: 12) {
             Picker(selection: Binding(
                 get: { appModel.settings.language },
@@ -163,14 +165,28 @@ private struct LocaleSettingsSection: View {
                 }
             )) {
                 Text(T.string("settings.language.system")).tag(AppLanguage.system)
-                Text(T.string("settings.language.en")).tag(AppLanguage.en)
-                Text(T.string("settings.language.fi")).tag(AppLanguage.fi)
+                ForEach(AppLanguage.allCases.filter { $0 != .system }, id: \.self) { lang in
+                    // Native name regardless of active locale, matching
+                    // iOS Settings convention. SupportedLocale's rawValue
+                    // matches AppLanguage's for every concrete case.
+                    let native = SupportedLocale(rawValue: lang.rawValue)?.nativeName ?? lang.rawValue
+                    Text(native).tag(lang)
+                }
             } label: {
                 VStack(alignment: .leading) {
                     Text(T.string("settings.language.title"))
                     Text(T.string("settings.language.subtitle"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    if !hasVoice {
+                        Text(T.string(
+                            "settings.language.noVoiceFallback",
+                            ["language": .string(resolvedLocale.nativeName)]
+                        ))
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                        .accessibilityIdentifier("setting-language-no-voice-hint")
+                    }
                 }
             }
             .accessibilityIdentifier("setting-language")

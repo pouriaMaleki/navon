@@ -57,23 +57,23 @@ export const SettingsHubView = observer(({ store }: Props) => {
             <LocaleSettingsSection store={store} />
             <div className="settings-section">
               <button type="button" className="list-row" onClick={() => setScreen("routes")}>
-                <div style={{ flex: 1, textAlign: "left" }}>
+                <div style={{ flex: 1, textAlign: "start" }}>
                   <div className="list-row__title">{t("settings.hub.routes")}</div>
-                  <div className="list-row__subtitle">Recent routes and GPX import</div>
+                  <div className="list-row__subtitle">{t("settings.hub.routes.subtitle")}</div>
                 </div>
                 <span aria-hidden>›</span>
               </button>
               <button type="button" className="list-row" onClick={() => setScreen("planner")}>
-                <div style={{ flex: 1, textAlign: "left" }}>
+                <div style={{ flex: 1, textAlign: "start" }}>
                   <div className="list-row__title">{t("settings.hub.routePlanner")}</div>
-                  <div className="list-row__subtitle">Default source, suggestions, HSL key</div>
+                  <div className="list-row__subtitle">{t("settings.hub.routePlanner.subtitle")}</div>
                 </div>
                 <span aria-hidden>›</span>
               </button>
               <button type="button" className="list-row" onClick={() => setScreen("diagnostics")}>
-                <div style={{ flex: 1, textAlign: "left" }}>
+                <div style={{ flex: 1, textAlign: "start" }}>
                   <div className="list-row__title">{t("settings.hub.importDiagnostics")}</div>
-                  <div className="list-row__subtitle">Failed shared imports</div>
+                  <div className="list-row__subtitle">{t("settings.hub.importDiagnostics.subtitle")}</div>
                 </div>
                 <span aria-hidden>›</span>
               </button>

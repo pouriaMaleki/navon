@@ -37,6 +37,26 @@ pub struct CatalogConfig {
     pub locales: Vec<String>,
     pub openai: OpenAiConfig,
     pub outputs: OutputsConfig,
+    /// Per-locale options: writing-direction hint for layout helpers and
+    /// a free-text variant string fed to the translator so it produces
+    /// the most-used variant of a language (e.g. Brazilian Portuguese
+    /// for `pt`, Latin American Spanish for `es`). All fields optional;
+    /// missing locales fall back to LTR + no extra translator hint.
+    #[serde(rename = "localeOptions", default)]
+    pub locale_options: BTreeMap<String, LocaleOption>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+pub struct LocaleOption {
+    /// True for right-to-left scripts (Arabic, Persian, Hebrew, Urdu).
+    /// Surfaced in the catalog as documentation; each platform also
+    /// keeps its own RTL list (see e.g. `RTL_LOCALES` in
+    /// companion-web/src/i18n/index.ts) for runtime layout decisions.
+    #[allow(dead_code)]
+    #[serde(default)]
+    pub rtl: bool,
+    #[serde(rename = "translatorVariant", default)]
+    pub translator_variant: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -53,10 +73,11 @@ pub struct OutputsConfig {
     pub ios: String,
     #[serde(rename = "iosMessages")]
     pub ios_messages: String,
+    /// Source-locale Android values dir (e.g. `.../res/values`). For
+    /// non-source locales we append `-<locale>` automatically — no need
+    /// to enumerate every locale here.
     #[serde(rename = "androidValues")]
     pub android_values: String,
-    #[serde(rename = "androidValuesFi")]
-    pub android_values_fi: String,
     #[serde(rename = "androidRaw")]
     pub android_raw: String,
     #[serde(rename = "parityFixture")]
@@ -293,18 +314,21 @@ fn collect_outputs(
         outputs.push((path, format!("{}\n", serde_json::to_string_pretty(&flat).unwrap())));
     }
 
-    // Android: one strings.xml per locale. EN goes in `values/`, others in
-    // `values-<locale>/`.
+    // Android: one strings.xml per locale. Source locale → `values/`;
+    // every other locale → `values-<code>/` derived from the source dir.
+    let android_values_base = root.join(&config.outputs.android_values);
     for locale in &config.locales {
         let dir = if locale == &config.source_locale {
-            root.join(&config.outputs.android_values)
-        } else if locale == "fi" {
-            root.join(&config.outputs.android_values_fi)
+            android_values_base.clone()
         } else {
-            return Err(format!(
-                "no Android values dir configured for locale `{locale}`; \
-                 add an entry to catalog.config.json:outputs"
-            ));
+            // Strip a trailing path segment + replace with values-<locale>.
+            // We assume the configured path ends with `values` (the standard
+            // Android convention) so non-source locales sit alongside it
+            // as a sibling `values-<locale>` dir.
+            let parent = android_values_base
+                .parent()
+                .ok_or_else(|| format!("androidValues path has no parent: {}", android_values_base.display()))?;
+            parent.join(format!("values-{locale}"))
         };
         let path = dir.join("strings.xml");
         let cat = catalogs.get(locale).expect("locale must exist");
@@ -631,8 +655,12 @@ fn run_sync(args: &[String], root: &Path) -> Result<(), String> {
 
     let now = iso8601_now();
     let model_tag = format!("openai/{}", config.openai.model);
+    let locale_option = config.locale_options.get(&locale);
     for chunk in chunks {
-        let translated = translate_chunk(&config.openai, &api_key, &locale, &en, &chunk, &glossary)?;
+        let translated = translate_chunk(
+            &config.openai, &api_key, &locale, locale_option,
+            &en, &chunk, &glossary,
+        )?;
         for (key, value) in translated {
             let en_entry = en
                 .entries
@@ -692,6 +720,7 @@ fn translate_chunk(
     cfg: &OpenAiConfig,
     api_key: &str,
     locale: &str,
+    locale_option: Option<&LocaleOption>,
     en: &Catalog,
     keys: &[String],
     glossary: &Glossary,
@@ -706,6 +735,13 @@ Strict rules: \
 
     let mut user = String::new();
     user.push_str(&format!("Target locale: {locale}\n"));
+    if let Some(variant) = locale_option.and_then(|o| o.translator_variant.as_deref()) {
+        // For locales with multiple major variants (Spanish, Portuguese,
+        // Chinese, Arabic, …) the catalog uses the bare ISO 639-1 code,
+        // and this hint pins the variant we want — typically the most-
+        // spoken one. See `localeOptions` in catalog.config.json.
+        user.push_str(&format!("Variant: {variant}\n"));
+    }
     if !glossary.do_not_translate.is_empty() {
         user.push_str(&format!(
             "Glossary (do not translate): {}\n",

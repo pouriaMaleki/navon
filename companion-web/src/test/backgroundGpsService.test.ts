@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { detectSafariOnIOS, platformGpsHint } from "../features/settings/PlatformHints.js";
+import { detectSafariOnIOS, platformGpsHintKey } from "../features/settings/PlatformHints.js";
+import { tIn } from "../i18n/index.js";
 import { BackgroundGpsService } from "../integrations/permissions/BackgroundGpsService.js";
 
 describe("BackgroundGpsService", () => {
@@ -75,18 +76,22 @@ describe("PlatformHints", () => {
     expect(detectSafariOnIOS()).toBe(false);
   });
 
-  it("returns an iOS-specific hint string when on iOS Safari", () => {
+  it("returns an iOS-specific hint key when on iOS Safari", () => {
     setUserAgent(
       "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 Version/17.5 Mobile/15E148 Safari/604.1",
     );
-    const hint = platformGpsHint();
-    expect(hint).toMatch(/Safari/i);
-    expect(hint).toMatch(/background/i);
+    const key = platformGpsHintKey();
+    expect(key).toBe("home.platformHint.locationSafariIos");
+    // Sanity-check that the catalog has a non-empty EN translation for it.
+    const en = tIn("en", key);
+    expect(en).toMatch(/Safari/i);
+    expect(en).toMatch(/background/i);
   });
 
-  it("returns a generic browser hint on non-iOS", () => {
+  it("returns a generic browser hint key on non-iOS", () => {
     setUserAgent("Mozilla/5.0 (Macintosh) Chrome/120 Safari/537.36");
-    const hint = platformGpsHint();
-    expect(hint).not.toMatch(/Safari/i);
+    const key = platformGpsHintKey();
+    expect(key).toBe("home.platformHint.locationDefault");
+    expect(tIn("en", key)).not.toMatch(/Safari/i);
   });
 });

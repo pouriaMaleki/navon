@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_cancel" formatted="false">रद्द करा</string>
+    <string name="common_close" formatted="false">बंद करा</string>
+    <string name="common_ok" formatted="false">ठीक आहे</string>
+    <string name="cue_arrived" formatted="false">तुम्ही तुमच्या गंतव्यस्थानी पोहोचलात</string>
+    <string name="cue_arrivingInM" formatted="false">तुमच्या गंतव्यस्थानी {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये पोहोचत आहात</string>
+    <string name="cue_nextTurnInAbout_generic" formatted="false">पुढचा वळण अंदाजे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये</string>
+    <string name="cue_nextTurnInAbout_left" formatted="false">पुढचा डावीकडे वळण अंदाजे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये</string>
+    <string name="cue_nextTurnInAbout_right" formatted="false">पुढचा उजवीकडे वळण अंदाजे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये</string>
+    <string name="cue_nextTurnInAbout_uturn" formatted="false">पुढचा U-turn अंदाजे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये</string>
+    <string name="cue_offTrack" formatted="false">मार्गाबाहेर</string>
+    <string name="cue_onTrack" formatted="false">मार्गावर</string>
+    <string name="cue_rerouting" formatted="false">नवीन मार्ग मोजत आहोत</string>
+    <string name="cue_routeStarted" formatted="false">मार्ग सुरू झाला</string>
+    <string name="cue_turn10m_exitLeft" formatted="false">डाव्या एक्झिटकडे जा</string>
+    <string name="cue_turn10m_exitRight" formatted="false">उजव्या एक्झिटकडे जा</string>
+    <string name="cue_turn10m_generic" formatted="false">मार्गाचे अनुसरण करा</string>
+    <string name="cue_turn10m_keepLeft" formatted="false">डावीकडे ठेवा</string>
+    <string name="cue_turn10m_keepRight" formatted="false">उजवीकडे ठेवा</string>
+    <string name="cue_turn10m_left" formatted="false">डावीकडे वळा</string>
+    <string name="cue_turn10m_right" formatted="false">उजवीकडे वळा</string>
+    <string name="cue_turn10m_uturn" formatted="false">U-turn करा</string>
+    <string name="cue_turn50m_exitLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, डाव्या एक्झिटकडे जा</string>
+    <string name="cue_turn50m_exitRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, उजव्या एक्झिटकडे जा</string>
+    <string name="cue_turn50m_generic" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, मार्गाचे अनुसरण करा</string>
+    <string name="cue_turn50m_keepLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, डावीकडे ठेवा</string>
+    <string name="cue_turn50m_keepRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, उजवीकडे ठेवा</string>
+    <string name="cue_turn50m_left" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, डावीकडे वळा</string>
+    <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, उजवीकडे वळा</string>
+    <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, U-turn करा</string>
+    <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} ते {destination}</string>
+    <string name="home_importedRoute" formatted="false">आयात केलेला मार्ग</string>
+    <string name="home_noSuggestions" formatted="false">अजून सूचना नाहीत…</string>
+    <string name="home_openSettings" formatted="false">सेटिंग्ज</string>
+    <string name="home_platformHint_locationDefault" formatted="false">तुमचा ब्राउझर स्थानासाठी परवानगी मागेल. मार्गदर्शन तुमचे स्थान पार्श्वभूमीत असतानाही ट्रॅक करत राहण्यासाठी ते परवानगी द्या.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">iPhone वरील Safari खरे पार्श्वभूमी GPS देत नाही. तुम्ही राइड करत असताना स्थान अपडेट्स सुरू राहण्यासाठी टॅब सक्रिय ठेवा आणि स्क्रीन चालू ठेवा.</string>
+    <string name="home_recenter" formatted="false">पुन्हा मध्यावर आणा</string>
+    <string name="home_routeOptions" formatted="false">मार्ग पर्याय</string>
+    <string name="home_start" formatted="false">प्रारंभ</string>
+    <string name="home_startOnDevice" formatted="false">डिव्हाइसवर प्रारंभ</string>
+    <string name="home_startRoute" formatted="false">मार्ग सुरू करा</string>
+    <string name="home_startingOnDevice" formatted="false">डिव्हाइसवर सुरू करत आहोत…</string>
+    <string name="home_stop" formatted="false">थांबा</string>
+    <string name="home_stopRoute" formatted="false">मार्ग थांबवा</string>
+    <string name="home_suggestedRoutes" formatted="false">सुचवलेले मार्ग</string>
+    <string name="home_whereTo" formatted="false">कुठे जायचे?</string>
+    <string name="home_workingOnRoute" formatted="false">मार्ग तयार होत आहे</string>
+    <string name="planning_cyclingAlternatives" formatted="false">BRouter + OSRM द्वारे सायकलिंग पर्याय</string>
+    <string name="planning_cyclingAlternativesWithFailures" formatted="false">सायकलिंग पर्याय — {failedCount, number} {failedCount, select, one {source} other {sources}} उपलब्ध नाहीत</string>
+    <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">HSL आणि OSM मधून मिश्र मार्ग</string>
+    <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">ऑडिओ संकेत आणि लाईव्ह अ‍ॅक्टिव्हिटीसाठी आवश्यक</string>
+    <string name="settings_activity_allowBackgroundGps_title" formatted="false">पार्श्वभूमीत GPS ला परवानगी द्या</string>
+    <string name="settings_activity_audioCues_subtitle" formatted="false">रूटिंग दरम्यान टर्न-बाय-टर्न दिशा बोला</string>
+    <string name="settings_activity_audioCues_title" formatted="false">ऑडिओ संकेत</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_subtitle" formatted="false">बंद असल्यास, अ‍ॅप उघडे असतानाही संकेत वाजतात</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_title" formatted="false">अ‍ॅप पार्श्वभूमीत असताना/स्क्रीन लॉक झाल्यावरच ऑडिओ संकेत</string>
+    <string name="settings_activity_keepScreenOn_subtitle" formatted="false">मार्ग सक्रिय असताना डिस्प्ले जागा ठेवतो</string>
+    <string name="settings_activity_keepScreenOn_title" formatted="false">स्क्रीन बंद होऊ देऊ नका</string>
+    <string name="settings_activity_liveActivity_subtitle" formatted="false">लॉक स्क्रीनवर पुढचा टर्न दाखवा</string>
+    <string name="settings_activity_liveActivity_title" formatted="false">लॉक-स्क्रीन लाईव्ह अ‍ॅक्टिव्हिटी</string>
+    <string name="settings_activity_title" formatted="false">अ‍ॅक्टिव्हिटी सेटिंग्ज</string>
+    <string name="settings_distanceUnit_imperial" formatted="false">इम्पीरियल</string>
+    <string name="settings_distanceUnit_metric" formatted="false">मेट्रिक</string>
+    <string name="settings_distanceUnit_system" formatted="false">सिस्टम</string>
+    <string name="settings_distanceUnit_title" formatted="false">अंतराचे एकक</string>
+    <string name="settings_hub_device" formatted="false">डिव्हाइस</string>
+    <string name="settings_hub_importDiagnostics" formatted="false">इम्पोर्ट डायग्नॉस्टिक्स</string>
+    <string name="settings_hub_importDiagnostics_subtitle" formatted="false">अयशस्वी शेअर्ड इम्पोर्ट्स</string>
+    <string name="settings_hub_routePlanner" formatted="false">रूट प्लॅनर</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">डीफॉल्ट स्रोत, सूचना, HSL की</string>
+    <string name="settings_hub_routes" formatted="false">रूट्स</string>
+    <string name="settings_hub_routes_subtitle" formatted="false">अलीकडील रूट्स आणि GPX इम्पोर्ट</string>
+    <string name="settings_hub_title" formatted="false">सेटिंग्ज</string>
+    <string name="settings_language_en" formatted="false">English</string>
+    <string name="settings_language_fi" formatted="false">Suomi</string>
+    <string name="settings_language_noVoiceFallback" formatted="false">तुमच्या ब्राउझरमध्ये {language} साठी आवाज स्थापित नाही. ऑडिओ संकेत इंग्रजीमध्ये वाजतील.</string>
+    <string name="settings_language_subtitle" formatted="false">अॅपची भाषा निवडा</string>
+    <string name="settings_language_system" formatted="false">सिस्टम</string>
+    <string name="settings_language_title" formatted="false">भाषा</string>
+    <string name="settings_restartRequired_message" formatted="false">नवीन भाषा लागू करण्यासाठी अॅप बंद करून पुन्हा उघडा.</string>
+    <string name="settings_restartRequired_title" formatted="false">रीस्टार्ट आवश्यक</string>
+    <string name="settings_speedUnit_title" formatted="false">वेगाचे एकक</string>
+    <string name="settings_voiceNotInstalled" formatted="false">{language} साठीचा आवाज स्थापित नाही. तो स्थापित करण्यासाठी सिस्टम सेटिंग्ज उघडा.</string>
+    <string name="units_distance_ft" formatted="false">{distance, number} ft</string>
+    <string name="units_distance_km" formatted="false">{distance, number} km</string>
+    <string name="units_distance_m" formatted="false">{distance, number} m</string>
+    <string name="units_distance_mi" formatted="false">{distance, number} mi</string>
+    <string name="units_duration_min" formatted="false">{minutes, number} मिनिटे</string>
+    <string name="units_speed_kph" formatted="false">किमी/ता</string>
+    <string name="units_speed_mph" formatted="false">मैल/ता</string>
+</resources>

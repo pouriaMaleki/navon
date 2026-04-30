@@ -9,6 +9,16 @@ struct ESP32MapCompanionApp: App {
         WindowGroup {
             CompanionRootView(homeViewModel: HomeViewModel(appModel: appModel))
                 .environmentObject(appModel)
+                // RTL support. SwiftUI flips horizontal stacks, paddings,
+                // chevrons, etc. once `layoutDirection` is set on the
+                // root view. Keying off `appModel.settings.language`
+                // (an @Published property) makes the whole tree re-lay
+                // when the rider switches between an LTR locale (English,
+                // Finnish, …) and an RTL one (Arabic, Persian, Urdu).
+                .environment(
+                    \.layoutDirection,
+                    T.resolveLocale(appModel.settings.language).isRtl ? .rightToLeft : .leftToRight
+                )
                 .task {
                     await appModel.consumePendingSharedImports()
                 }

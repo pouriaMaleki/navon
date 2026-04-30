@@ -15,8 +15,8 @@ import os.log
 
 enum AppLanguage: String, Codable, CaseIterable {
     case system
-    case en
-    case fi
+    case ar, bn, de, en, es, fa, fi, fr
+    case hi, id, ja, mr, pcm, pt, ru, ur, zh
 }
 
 enum DistanceUnitPref: String, Codable, CaseIterable {
@@ -26,10 +26,43 @@ enum DistanceUnitPref: String, Codable, CaseIterable {
 }
 
 enum SupportedLocale: String, CaseIterable {
-    case en
-    case fi
+    case ar, bn, de, en, es, fa, fi, fr
+    case hi, id, ja, mr, pcm, pt, ru, ur, zh
 
     static let source: SupportedLocale = .en
+
+    /// Native-language picker label. Always presented in the language's
+    /// own native form regardless of active locale, matching how iOS
+    /// Settings shows language names.
+    var nativeName: String {
+        switch self {
+        case .ar: return "العربية"
+        case .bn: return "বাংলা"
+        case .de: return "Deutsch"
+        case .en: return "English"
+        case .es: return "Español"
+        case .fa: return "فارسی"
+        case .fi: return "Suomi"
+        case .fr: return "Français"
+        case .hi: return "हिन्दी"
+        case .id: return "Bahasa Indonesia"
+        case .ja: return "日本語"
+        case .mr: return "मराठी"
+        case .pcm: return "Naijá"
+        case .pt: return "Português"
+        case .ru: return "Русский"
+        case .ur: return "اردو"
+        case .zh: return "中文"
+        }
+    }
+
+    /// Right-to-left script. Mirror of catalog.config.json:localeOptions.
+    var isRtl: Bool {
+        switch self {
+        case .ar, .fa, .ur: return true
+        default: return false
+        }
+    }
 }
 
 /// Translation namespace. Use `T.string("key")` everywhere user-visible
@@ -46,12 +79,14 @@ enum T {
     static var activeLocale: SupportedLocale { active }
 
     /// BCP-47 tag of the active locale — fed to AVSpeechSynthesisVoice.
-    static var activeBcp47: String {
-        switch active {
-        case .en: return "en"
-        case .fi: return "fi"
-        }
-    }
+    static var activeBcp47: String { active.rawValue }
+
+    /// True when the active locale is right-to-left. Driven into
+    /// SwiftUI via `.environment(\.layoutDirection, T.activeLayoutDirection)`
+    /// at the root view; SwiftUI flips horizontal stacks, paddings,
+    /// chevrons and so on automatically once that environment value is
+    /// set.
+    static var isRtl: Bool { active.isRtl }
 
     static func setActiveLocale(_ locale: SupportedLocale) {
         active = locale
@@ -59,16 +94,18 @@ enum T {
 
     /// Resolve a user preference to a shipped locale.
     static func resolveLocale(_ preference: AppLanguage) -> SupportedLocale {
-        switch preference {
-        case .en: return .en
-        case .fi: return .fi
-        case .system:
+        if preference == .system {
             for tag in Bundle.main.preferredLocalizations {
                 let primary = tag.lowercased().split(separator: "-").first.map(String.init) ?? ""
                 if let match = SupportedLocale(rawValue: primary) { return match }
             }
             return .source
         }
+        // AppLanguage and SupportedLocale share the same raw values for
+        // every concrete case, so the rawValue lookup never returns nil
+        // here — but fall back to source defensively if the unions ever
+        // drift apart.
+        return SupportedLocale(rawValue: preference.rawValue) ?? .source
     }
 
     /// Resolve the distance-unit preference. `.system` maps en-US/en-LR/my

@@ -11,6 +11,7 @@ import {
   type RouteProviderID,
 } from "../../domain/models.js";
 import type { RoutingProvider } from "../../domain/providers.js";
+import { t } from "../../i18n/index.js";
 import { newAlternativeId, normalizedFromPreview } from "../routePackage.js";
 import { buildSamplePreview } from "../sample/SampleRoutingAdapter.js";
 import { type BrouterProfile, fetchBrouter } from "./brouter/BrouterClient.js";
@@ -117,8 +118,10 @@ export class OsmCyclingRoutingAdapter implements RoutingProvider {
       routeRevision: deduped[0].alt.normalizedPackage.revision,
       planningNotice:
         failedCount === 0
-          ? "Cycling alternatives via BRouter + OSRM"
-          : `Cycling alternatives — ${failedCount} source${failedCount === 1 ? "" : "s"} unavailable`,
+          ? t("planning.cyclingAlternatives")
+          : t("planning.cyclingAlternativesWithFailures", {
+              failedCount,
+            }),
     };
   }
 

@@ -5,6 +5,21 @@
   surface a per-app Language entry in system Settings → Apps.
 -->
 <locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="ar"/>
+    <locale android:name="bn"/>
+    <locale android:name="de"/>
     <locale android:name="en"/>
+    <locale android:name="es"/>
+    <locale android:name="fa"/>
     <locale android:name="fi"/>
+    <locale android:name="fr"/>
+    <locale android:name="hi"/>
+    <locale android:name="id"/>
+    <locale android:name="ja"/>
+    <locale android:name="mr"/>
+    <locale android:name="pcm"/>
+    <locale android:name="pt"/>
+    <locale android:name="ru"/>
+    <locale android:name="ur"/>
+    <locale android:name="zh"/>
 </locale-config>

@@ -63,7 +63,7 @@ export const RouteSuggestionsCard = observer(({ store }: Props) => {
             className={`alternative${isSelected ? " alternative--selected" : ""}`}
             onClick={() => planning.selectAlternative(alt.id)}
           >
-            <div style={{ textAlign: "left" }}>
+            <div style={{ textAlign: "start" }}>
               <div className="list-row__title">{alt.title}</div>
               {/* iOS parity: drop the redundant subtitle (now empty
                   after the friendlyAlternativeLabel rename). The row

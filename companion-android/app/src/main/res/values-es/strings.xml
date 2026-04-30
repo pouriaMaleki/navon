@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_cancel" formatted="false">Cancelar</string>
+    <string name="common_close" formatted="false">Cerrar</string>
+    <string name="common_ok" formatted="false">OK</string>
+    <string name="cue_arrived" formatted="false">Has llegado a tu destino</string>
+    <string name="cue_arrivingInM" formatted="false">Llegas a tu destino en {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_generic" formatted="false">Siguiente giro en unos {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_left" formatted="false">Gira a la izquierda en unos {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_right" formatted="false">Gira a la derecha en unos {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_uturn" formatted="false">Haz un U-turn en unos {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_offTrack" formatted="false">Fuera de la ruta</string>
+    <string name="cue_onTrack" formatted="false">En la ruta</string>
+    <string name="cue_rerouting" formatted="false">Recalculando la ruta</string>
+    <string name="cue_routeStarted" formatted="false">Ruta iniciada</string>
+    <string name="cue_turn10m_exitLeft" formatted="false">Toma la salida izquierda</string>
+    <string name="cue_turn10m_exitRight" formatted="false">Toma la salida derecha</string>
+    <string name="cue_turn10m_generic" formatted="false">Sigue la ruta</string>
+    <string name="cue_turn10m_keepLeft" formatted="false">Mantente a la izquierda</string>
+    <string name="cue_turn10m_keepRight" formatted="false">Mantente a la derecha</string>
+    <string name="cue_turn10m_left" formatted="false">Gira a la izquierda</string>
+    <string name="cue_turn10m_right" formatted="false">Gira a la derecha</string>
+    <string name="cue_turn10m_uturn" formatted="false">Haz un U-turn</string>
+    <string name="cue_turn50m_exitLeft" formatted="false">En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, toma la salida izquierda</string>
+    <string name="cue_turn50m_exitRight" formatted="false">En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, toma la salida derecha</string>
+    <string name="cue_turn50m_generic" formatted="false">En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, sigue la ruta</string>
+    <string name="cue_turn50m_keepLeft" formatted="false">En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, mantente a la izquierda</string>
+    <string name="cue_turn50m_keepRight" formatted="false">En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, mantente a la derecha</string>
+    <string name="cue_turn50m_left" formatted="false">En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, gira a la izquierda</string>
+    <string name="cue_turn50m_right" formatted="false">En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, gira a la derecha</string>
+    <string name="cue_turn50m_uturn" formatted="false">En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, haz un U-turn</string>
+    <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} hasta {destination}</string>
+    <string name="home_importedRoute" formatted="false">Ruta importada</string>
+    <string name="home_noSuggestions" formatted="false">Aún no hay sugerencias…</string>
+    <string name="home_openSettings" formatted="false">Configuración</string>
+    <string name="home_platformHint_locationDefault" formatted="false">Tu navegador te pedirá permiso de ubicación. Permítelo para que la guía siga rastreando tu posición mientras la página está en segundo plano.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">Safari en iPhone no entrega GPS real en segundo plano. Mantén la pestaña activa y la pantalla encendida para que las actualizaciones de ubicación continúen mientras pedaleas.</string>
+    <string name="home_recenter" formatted="false">Centrar</string>
+    <string name="home_routeOptions" formatted="false">Opciones de ruta</string>
+    <string name="home_start" formatted="false">Iniciar</string>
+    <string name="home_startOnDevice" formatted="false">Iniciar en el dispositivo</string>
+    <string name="home_startRoute" formatted="false">Iniciar ruta</string>
+    <string name="home_startingOnDevice" formatted="false">Iniciando en el dispositivo…</string>
+    <string name="home_stop" formatted="false">Detener</string>
+    <string name="home_stopRoute" formatted="false">Detener ruta</string>
+    <string name="home_suggestedRoutes" formatted="false">Rutas sugeridas</string>
+    <string name="home_whereTo" formatted="false">¿A dónde? </string>
+    <string name="home_workingOnRoute" formatted="false">Calculando ruta</string>
+    <string name="planning_cyclingAlternatives" formatted="false">Alternativas de ciclismo vía BRouter + OSRM</string>
+    <string name="planning_cyclingAlternativesWithFailures" formatted="false">Alternativas de ciclismo — {failedCount, number} {failedCount, select, one {source} other {sources}} no disponible(s)</string>
+    <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">Rutas combinadas de HSL y OSM</string>
+    <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">Requerido para avisos de audio y actividad en vivo</string>
+    <string name="settings_activity_allowBackgroundGps_title" formatted="false">Permitir GPS en segundo plano</string>
+    <string name="settings_activity_audioCues_subtitle" formatted="false">Habla las indicaciones paso a paso durante la ruta</string>
+    <string name="settings_activity_audioCues_title" formatted="false">Avisos de audio</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_subtitle" formatted="false">Cuando está desactivado, los avisos también se reproducen mientras tienes la app abierta</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_title" formatted="false">Avisos de audio solo cuando la app está en segundo plano</string>
+    <string name="settings_activity_keepScreenOn_subtitle" formatted="false">Mantiene la pantalla encendida mientras hay una ruta activa</string>
+    <string name="settings_activity_keepScreenOn_title" formatted="false">Evitar que la pantalla se apague</string>
+    <string name="settings_activity_liveActivity_subtitle" formatted="false">Muestra el siguiente giro en la pantalla de bloqueo</string>
+    <string name="settings_activity_liveActivity_title" formatted="false">Actividad en vivo en la pantalla de bloqueo</string>
+    <string name="settings_activity_title" formatted="false">Configuración de actividad</string>
+    <string name="settings_distanceUnit_imperial" formatted="false">Imperial</string>
+    <string name="settings_distanceUnit_metric" formatted="false">Métrico</string>
+    <string name="settings_distanceUnit_system" formatted="false">Sistema</string>
+    <string name="settings_distanceUnit_title" formatted="false">Unidades de distancia</string>
+    <string name="settings_hub_device" formatted="false">Dispositivo</string>
+    <string name="settings_hub_importDiagnostics" formatted="false">Diagnósticos de importación</string>
+    <string name="settings_hub_importDiagnostics_subtitle" formatted="false">Importaciones compartidas fallidas</string>
+    <string name="settings_hub_routePlanner" formatted="false">Planificador de ruta</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">Origen predeterminado, sugerencias, HSL</string>
+    <string name="settings_hub_routes" formatted="false">Rutas</string>
+    <string name="settings_hub_routes_subtitle" formatted="false">Rutas recientes e importación de GPX</string>
+    <string name="settings_hub_title" formatted="false">Ajustes</string>
+    <string name="settings_language_en" formatted="false">English</string>
+    <string name="settings_language_fi" formatted="false">Suomi</string>
+    <string name="settings_language_noVoiceFallback" formatted="false">Tu navegador no tiene una voz instalada para {language}. Las indicaciones de audio se reproducirán en inglés.</string>
+    <string name="settings_language_subtitle" formatted="false">Elige el idioma de la app</string>
+    <string name="settings_language_system" formatted="false">Sistema</string>
+    <string name="settings_language_title" formatted="false">Idioma</string>
+    <string name="settings_restartRequired_message" formatted="false">Cierra y vuelve a abrir la app para aplicar el nuevo idioma.</string>
+    <string name="settings_restartRequired_title" formatted="false">Se requiere reinicio</string>
+    <string name="settings_speedUnit_title" formatted="false">Unidad de velocidad</string>
+    <string name="settings_voiceNotInstalled" formatted="false">No se instaló la voz para {language}. Abre los Ajustes del sistema para instalarla.</string>
+    <string name="units_distance_ft" formatted="false">{distance, number} ft</string>
+    <string name="units_distance_km" formatted="false">{distance, number} km</string>
+    <string name="units_distance_m" formatted="false">{distance, number} m</string>
+    <string name="units_distance_mi" formatted="false">{distance, number} mi</string>
+    <string name="units_duration_min" formatted="false">{minutes, number} min</string>
+    <string name="units_speed_kph" formatted="false">km/h</string>
+    <string name="units_speed_mph" formatted="false">mph</string>
+</resources>

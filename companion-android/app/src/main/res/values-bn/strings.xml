@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_cancel" formatted="false">বাতিল করুন</string>
+    <string name="common_close" formatted="false">বন্ধ করুন</string>
+    <string name="common_ok" formatted="false">ঠিক আছে</string>
+    <string name="cue_arrived" formatted="false">আপনি গন্তব্যে পৌঁছেছেন</string>
+    <string name="cue_arrivingInM" formatted="false">আপনার গন্তব্যে পৌঁছাতে আর {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_generic" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর পরবর্তী মোড়</string>
+    <string name="cue_nextTurnInAbout_left" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে মোড়</string>
+    <string name="cue_nextTurnInAbout_right" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে মোড়</string>
+    <string name="cue_nextTurnInAbout_uturn" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর U-টার্ন</string>
+    <string name="cue_offTrack" formatted="false">পথের বাইরে</string>
+    <string name="cue_onTrack" formatted="false">পথে ফিরে এসেছেন</string>
+    <string name="cue_rerouting" formatted="false">পুনরায় রুট নির্ধারণ করা হচ্ছে</string>
+    <string name="cue_routeStarted" formatted="false">রুট শুরু হয়েছে</string>
+    <string name="cue_turn10m_exitLeft" formatted="false">বাম দিকের এক্সিট নিন</string>
+    <string name="cue_turn10m_exitRight" formatted="false">ডান দিকের এক্সিট নিন</string>
+    <string name="cue_turn10m_generic" formatted="false">রুট অনুসরণ করুন</string>
+    <string name="cue_turn10m_keepLeft" formatted="false">বামে থাকুন</string>
+    <string name="cue_turn10m_keepRight" formatted="false">ডানে থাকুন</string>
+    <string name="cue_turn10m_left" formatted="false">বামে ঘুরুন</string>
+    <string name="cue_turn10m_right" formatted="false">ডানে ঘুরুন</string>
+    <string name="cue_turn10m_uturn" formatted="false">U-টার্ন করুন</string>
+    <string name="cue_turn50m_exitLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বাম দিকের এক্সিট নিন</string>
+    <string name="cue_turn50m_exitRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডান দিকের এক্সিট নিন</string>
+    <string name="cue_turn50m_generic" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর রুট অনুসরণ করুন</string>
+    <string name="cue_turn50m_keepLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে থাকুন</string>
+    <string name="cue_turn50m_keepRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে থাকুন</string>
+    <string name="cue_turn50m_left" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে ঘুরুন</string>
+    <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে ঘুরুন</string>
+    <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর U-টার্ন করুন</string>
+    <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} থেকে {destination}</string>
+    <string name="home_importedRoute" formatted="false">ইমপোর্ট করা রুট</string>
+    <string name="home_noSuggestions" formatted="false">এখনও কোনো পরামর্শ নেই…</string>
+    <string name="home_openSettings" formatted="false">সেটিংস</string>
+    <string name="home_platformHint_locationDefault" formatted="false">আপনার ব্রাউজার অবস্থানের অনুমতি চাইবে। অনুমতি দিন যাতে পেজটি ব্যাকগ্রাউন্ডে থাকলেও নির্দেশনা আপনার অবস্থান অনুসরণ করতে থাকে।</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">iPhone-এর Safari আসল ব্যাকগ্রাউন্ড GPS দেয় না। আপনি যাত্রা করার সময় অবস্থান আপডেট চালু রাখতে ট্যাবটি খোলা রাখুন এবং স্ক্রিন অন রাখুন।</string>
+    <string name="home_recenter" formatted="false">আবার কেন্দ্র করুন</string>
+    <string name="home_routeOptions" formatted="false">রুটের বিকল্পসমূহ</string>
+    <string name="home_start" formatted="false">শুরু করুন</string>
+    <string name="home_startOnDevice" formatted="false">ডিভাইসে শুরু করুন</string>
+    <string name="home_startRoute" formatted="false">রুট শুরু করুন</string>
+    <string name="home_startingOnDevice" formatted="false">ডিভাইসে শুরু হচ্ছে…</string>
+    <string name="home_stop" formatted="false">থামুন</string>
+    <string name="home_stopRoute" formatted="false">রুট থামান</string>
+    <string name="home_suggestedRoutes" formatted="false">প্রস্তাবিত রুটসমূহ</string>
+    <string name="home_whereTo" formatted="false">কোথায় যাবেন?</string>
+    <string name="home_workingOnRoute" formatted="false">রুট তৈরি হচ্ছে</string>
+    <string name="planning_cyclingAlternatives" formatted="false">BRouter + OSRM দিয়ে সাইক্লিং বিকল্প</string>
+    <string name="planning_cyclingAlternativesWithFailures" formatted="false">সাইক্লিং বিকল্প — {failedCount, number} {failedCount, select, one {source} other {sources}} অনুপলব্ধ</string>
+    <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">HSL এবং OSM থেকে মিশ্র রুট</string>
+    <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">অডিও সংকেত এবং লাইভ অ্যাক্টিভিটির জন্য প্রয়োজন</string>
+    <string name="settings_activity_allowBackgroundGps_title" formatted="false">ব্যাকগ্রাউন্ডে GPS অনুমতি দিন</string>
+    <string name="settings_activity_audioCues_subtitle" formatted="false">রাউটিংয়ের সময় ধাপে ধাপে দিকনির্দেশ বলুন</string>
+    <string name="settings_activity_audioCues_title" formatted="false">অডিও সংকেত</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_subtitle" formatted="false">বন্ধ থাকলে, অ্যাপ খোলা থাকলেও সংকেতগুলো বাজে</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_title" formatted="false">অ্যাপ ব্যাকগ্রাউন্ডে থাকলে তবেই অডিও সংকেত</string>
+    <string name="settings_activity_keepScreenOn_subtitle" formatted="false">রুট সক্রিয় থাকাকালীন ডিসপ্লে জাগিয়ে রাখে</string>
+    <string name="settings_activity_keepScreenOn_title" formatted="false">স্ক্রিন বন্ধ হওয়া ঠেকান</string>
+    <string name="settings_activity_liveActivity_subtitle" formatted="false">লক স্ক্রিনে পরের টার্ন দেখান</string>
+    <string name="settings_activity_liveActivity_title" formatted="false">লক-স্ক্রিন লাইভ অ্যাক্টিভিটি</string>
+    <string name="settings_activity_title" formatted="false">অ্যাক্টিভিটি সেটিংস</string>
+    <string name="settings_distanceUnit_imperial" formatted="false">ইম্পেরিয়াল</string>
+    <string name="settings_distanceUnit_metric" formatted="false">মেট্রিক</string>
+    <string name="settings_distanceUnit_system" formatted="false">ডিভাইসের পরিমাপ পদ্ধতি অনুসরণ করুন</string>
+    <string name="settings_distanceUnit_title" formatted="false">দূরত্বের একক</string>
+    <string name="settings_hub_device" formatted="false">ডিভাইস</string>
+    <string name="settings_hub_importDiagnostics" formatted="false">ইম্পোর্ট ডায়াগনস্টিকস</string>
+    <string name="settings_hub_importDiagnostics_subtitle" formatted="false">ব্যর্থ শেয়ার্ড ইম্পোর্ট</string>
+    <string name="settings_hub_routePlanner" formatted="false">রুট প্ল্যানার</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">ডিফল্ট সোর্স, সাজেশন, HSL কী</string>
+    <string name="settings_hub_routes" formatted="false">রুটস</string>
+    <string name="settings_hub_routes_subtitle" formatted="false">সাম্প্রতিক রুট এবং GPX ইম্পোর্ট</string>
+    <string name="settings_hub_title" formatted="false">সেটিংস</string>
+    <string name="settings_language_en" formatted="false">English</string>
+    <string name="settings_language_fi" formatted="false">Suomi</string>
+    <string name="settings_language_noVoiceFallback" formatted="false">আপনার ব্রাউজারে {language}–এর জন্য কোনো ভয়েস ইনস্টল করা নেই। অডিও সংকেত ইংরেজিতে বাজবে।</string>
+    <string name="settings_language_subtitle" formatted="false">অ্যাপের ভাষা নির্বাচন করুন</string>
+    <string name="settings_language_system" formatted="false">সিস্টেম</string>
+    <string name="settings_language_title" formatted="false">ভাষা</string>
+    <string name="settings_restartRequired_message" formatted="false">নতুন ভাষা প্রয়োগ করতে অ্যাপটি বন্ধ করে আবার খুলুন।</string>
+    <string name="settings_restartRequired_title" formatted="false">রিস্টার্ট প্রয়োজন</string>
+    <string name="settings_speedUnit_title" formatted="false">গতি একক</string>
+    <string name="settings_voiceNotInstalled" formatted="false">{language}-এর জন্য ভয়েস ইনস্টল করা নেই। ইনস্টল করতে সিস্টেম সেটিংস খুলুন।</string>
+    <string name="units_distance_ft" formatted="false">{distance, number} ft</string>
+    <string name="units_distance_km" formatted="false">{distance, number} km</string>
+    <string name="units_distance_m" formatted="false">{distance, number} m</string>
+    <string name="units_distance_mi" formatted="false">{distance, number} mi</string>
+    <string name="units_duration_min" formatted="false">{minutes, number} মিনিট</string>
+    <string name="units_speed_kph" formatted="false">কিমি/ঘণ্টা</string>
+    <string name="units_speed_mph" formatted="false">মাইল/ঘণ্টা</string>
+</resources>

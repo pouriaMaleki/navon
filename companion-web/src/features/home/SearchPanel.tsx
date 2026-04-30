@@ -1,10 +1,12 @@
 import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
 import type { RootStore } from "../../app/RootStore.js";
+import { useT } from "../../i18n/useT.js";
 
 type Props = { store: RootStore };
 
 export const SearchPanel = observer(({ store }: Props) => {
+  const t = useT(store);
   const planning = store.planningStore;
   const showRecents = planning.query.trim().length === 0;
   const recents = store.historyStore.routeHistoryItems.slice(0, planning.visibleRecentCount);
@@ -59,7 +61,7 @@ export const SearchPanel = observer(({ store }: Props) => {
               className="list-row"
               onClick={() => void store.activateRouteHistoryItem(item, false)}
             >
-              <div style={{ flex: 1, textAlign: "left" }}>
+              <div style={{ flex: 1, textAlign: "start" }}>
                 <div className="list-row__title">{item.title}</div>
                 {item.subtitle ? <div className="list-row__subtitle">{item.subtitle}</div> : null}
                 <div className="list-row__subtitle" style={{ opacity: 0.6 }}>
@@ -70,7 +72,7 @@ export const SearchPanel = observer(({ store }: Props) => {
           ))
         )
       ) : suggestions.length === 0 ? (
-        <div className="empty-state">No suggestions yet…</div>
+        <div className="empty-state">{t("home.noSuggestions")}</div>
       ) : (
         suggestions.map((suggestion, idx) => (
           <button
@@ -87,7 +89,7 @@ export const SearchPanel = observer(({ store }: Props) => {
               }
             }}
           >
-            <div style={{ flex: 1, textAlign: "left" }}>
+            <div style={{ flex: 1, textAlign: "start" }}>
               <div className="list-row__title">{suggestion.title}</div>
               {suggestion.subtitle ? (
                 <div className="list-row__subtitle">{suggestion.subtitle}</div>

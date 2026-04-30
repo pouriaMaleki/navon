@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_cancel" formatted="false">Batal</string>
+    <string name="common_close" formatted="false">Tutup</string>
+    <string name="common_ok" formatted="false">OK</string>
+    <string name="cue_arrived" formatted="false">Anda telah tiba di tujuan Anda</string>
+    <string name="cue_arrivingInM" formatted="false">Tiba di tujuan Anda dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_generic" formatted="false">Belok berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_left" formatted="false">Belok kiri berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_right" formatted="false">Belok kanan berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_uturn" formatted="false">Belok U berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_offTrack" formatted="false">Keluar jalur</string>
+    <string name="cue_onTrack" formatted="false">Kembali ke jalur</string>
+    <string name="cue_rerouting" formatted="false">Menghitung ulang rute</string>
+    <string name="cue_routeStarted" formatted="false">Rute dimulai</string>
+    <string name="cue_turn10m_exitLeft" formatted="false">Ambil pintu keluar kiri</string>
+    <string name="cue_turn10m_exitRight" formatted="false">Ambil pintu keluar kanan</string>
+    <string name="cue_turn10m_generic" formatted="false">Ikuti rute</string>
+    <string name="cue_turn10m_keepLeft" formatted="false">Tetap di kiri</string>
+    <string name="cue_turn10m_keepRight" formatted="false">Tetap di kanan</string>
+    <string name="cue_turn10m_left" formatted="false">Belok kiri</string>
+    <string name="cue_turn10m_right" formatted="false">Belok kanan</string>
+    <string name="cue_turn10m_uturn" formatted="false">Putar balik (U-turn)</string>
+    <string name="cue_turn50m_exitLeft" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ambil pintu keluar kiri</string>
+    <string name="cue_turn50m_exitRight" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ambil pintu keluar kanan</string>
+    <string name="cue_turn50m_generic" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ikuti rute</string>
+    <string name="cue_turn50m_keepLeft" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, tetap di kiri</string>
+    <string name="cue_turn50m_keepRight" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, tetap di kanan</string>
+    <string name="cue_turn50m_left" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kiri</string>
+    <string name="cue_turn50m_right" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kanan</string>
+    <string name="cue_turn50m_uturn" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, putar balik (U-turn)</string>
+    <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} menuju {destination}</string>
+    <string name="home_importedRoute" formatted="false">Rute yang diimpor</string>
+    <string name="home_noSuggestions" formatted="false">Belum ada saran…</string>
+    <string name="home_openSettings" formatted="false">Pengaturan</string>
+    <string name="home_platformHint_locationDefault" formatted="false">Browser Anda akan meminta izin lokasi. Izinkan agar panduan tetap melacak posisi Anda saat halaman berada di latar belakang.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">Safari di iPhone tidak memberikan GPS latar belakang yang benar. Tetap aktifkan tab dan nyalakan layar agar pembaruan lokasi terus berlanjut saat Anda bersepeda.</string>
+    <string name="home_recenter" formatted="false">Pusatkan ulang</string>
+    <string name="home_routeOptions" formatted="false">Opsi rute</string>
+    <string name="home_start" formatted="false">Mulai</string>
+    <string name="home_startOnDevice" formatted="false">Mulai di perangkat</string>
+    <string name="home_startRoute" formatted="false">Mulai rute</string>
+    <string name="home_startingOnDevice" formatted="false">Memulai di perangkat…</string>
+    <string name="home_stop" formatted="false">Berhenti</string>
+    <string name="home_stopRoute" formatted="false">Hentikan rute</string>
+    <string name="home_suggestedRoutes" formatted="false">Rute yang disarankan</string>
+    <string name="home_whereTo" formatted="false">Tujuan?</string>
+    <string name="home_workingOnRoute" formatted="false">Menyusun rute</string>
+    <string name="planning_cyclingAlternatives" formatted="false">Alternatif bersepeda via BRouter + OSRM</string>
+    <string name="planning_cyclingAlternativesWithFailures" formatted="false">Alternatif bersepeda — {failedCount, number} {failedCount, select, one {source} other {sources}} tidak tersedia</string>
+    <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">Rute campuran dari HSL dan OSM</string>
+    <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">Diperlukan untuk isyarat audio dan aktivitas langsung</string>
+    <string name="settings_activity_allowBackgroundGps_title" formatted="false">Izinkan GPS di latar belakang</string>
+    <string name="settings_activity_audioCues_subtitle" formatted="false">Ucapkan petunjuk belok demi belok saat perutean</string>
+    <string name="settings_activity_audioCues_title" formatted="false">Isyarat audio</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_subtitle" formatted="false">Saat mati, isyarat juga diputar saat Anda membuka aplikasi</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_title" formatted="false">Isyarat audio hanya saat aplikasi berada di latar belakang</string>
+    <string name="settings_activity_keepScreenOn_subtitle" formatted="false">Membuat layar tetap menyala saat rute aktif</string>
+    <string name="settings_activity_keepScreenOn_title" formatted="false">Cegah layar mati</string>
+    <string name="settings_activity_liveActivity_subtitle" formatted="false">Tampilkan belokan berikutnya di layar kunci</string>
+    <string name="settings_activity_liveActivity_title" formatted="false">Aktivitas langsung di layar kunci</string>
+    <string name="settings_activity_title" formatted="false">Pengaturan Aktivitas</string>
+    <string name="settings_distanceUnit_imperial" formatted="false">Imperial</string>
+    <string name="settings_distanceUnit_metric" formatted="false">Metrik</string>
+    <string name="settings_distanceUnit_system" formatted="false">Sistem</string>
+    <string name="settings_distanceUnit_title" formatted="false">Satuan jarak</string>
+    <string name="settings_hub_device" formatted="false">Perangkat</string>
+    <string name="settings_hub_importDiagnostics" formatted="false">Diagnostik impor</string>
+    <string name="settings_hub_importDiagnostics_subtitle" formatted="false">Gagal impor bersama</string>
+    <string name="settings_hub_routePlanner" formatted="false">Perencana Rute</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">Sumber default, saran, kunci HSL</string>
+    <string name="settings_hub_routes" formatted="false">Rute</string>
+    <string name="settings_hub_routes_subtitle" formatted="false">Rute terbaru dan impor GPX</string>
+    <string name="settings_hub_title" formatted="false">Pengaturan</string>
+    <string name="settings_language_en" formatted="false">English</string>
+    <string name="settings_language_fi" formatted="false">Suomi</string>
+    <string name="settings_language_noVoiceFallback" formatted="false">Browser Anda tidak memiliki suara untuk {language}. Isyarat audio akan diputar dalam Bahasa Inggris.</string>
+    <string name="settings_language_subtitle" formatted="false">Pilih bahasa aplikasi</string>
+    <string name="settings_language_system" formatted="false">Sistem</string>
+    <string name="settings_language_title" formatted="false">Bahasa</string>
+    <string name="settings_restartRequired_message" formatted="false">Keluar dan buka kembali aplikasi untuk menerapkan bahasa baru.</string>
+    <string name="settings_restartRequired_title" formatted="false">Perlu memulai ulang</string>
+    <string name="settings_speedUnit_title" formatted="false">Satuan kecepatan</string>
+    <string name="settings_voiceNotInstalled" formatted="false">Suara untuk {language} belum terpasang. Buka Pengaturan sistem untuk menginstalnya.</string>
+    <string name="units_distance_ft" formatted="false">{distance, number} ft</string>
+    <string name="units_distance_km" formatted="false">{distance, number} km</string>
+    <string name="units_distance_m" formatted="false">{distance, number} m</string>
+    <string name="units_distance_mi" formatted="false">{distance, number} mi</string>
+    <string name="units_duration_min" formatted="false">{minutes, number} mnt</string>
+    <string name="units_speed_kph" formatted="false">km/jam</string>
+    <string name="units_speed_mph" formatted="false">mph</string>
+</resources>

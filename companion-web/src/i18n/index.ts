@@ -8,19 +8,75 @@
 // Components subscribe through MobX-aware helpers so locale changes
 // re-render the UI.
 
+import arMessages from "./messages/ar.json";
+import bnMessages from "./messages/bn.json";
+import deMessages from "./messages/de.json";
 import enMessages from "./messages/en.json";
+import esMessages from "./messages/es.json";
+import faMessages from "./messages/fa.json";
 import fiMessages from "./messages/fi.json";
+import frMessages from "./messages/fr.json";
+import hiMessages from "./messages/hi.json";
+import idMessages from "./messages/id.json";
+import jaMessages from "./messages/ja.json";
+import mrMessages from "./messages/mr.json";
+import pcmMessages from "./messages/pcm.json";
+import ptMessages from "./messages/pt.json";
+import ruMessages from "./messages/ru.json";
+import urMessages from "./messages/ur.json";
+import zhMessages from "./messages/zh.json";
 import { formatMessage, type MessageValues } from "./messageFormat.js";
 
-export type AppLanguage = "system" | "en" | "fi";
+export type AppLanguage =
+  | "system"
+  | "ar" | "bn" | "de" | "en" | "es" | "fa" | "fi" | "fr"
+  | "hi" | "id" | "ja" | "mr" | "pcm" | "pt" | "ru" | "ur" | "zh";
 export type DistanceUnit = "system" | "metric" | "imperial";
 
-export const SUPPORTED_LOCALES = ["en", "fi"] as const;
+export const SUPPORTED_LOCALES = [
+  "ar", "bn", "de", "en", "es", "fa", "fi", "fr",
+  "hi", "id", "ja", "mr", "pcm", "pt", "ru", "ur", "zh",
+] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 
 const CATALOGS: Record<Locale, Record<string, string>> = {
-  en: enMessages as Record<string, string>,
-  fi: fiMessages as Record<string, string>,
+  ar: arMessages, bn: bnMessages, de: deMessages, en: enMessages,
+  es: esMessages, fa: faMessages, fi: fiMessages, fr: frMessages,
+  hi: hiMessages, id: idMessages, ja: jaMessages, mr: mrMessages,
+  pcm: pcmMessages, pt: ptMessages, ru: ruMessages, ur: urMessages,
+  zh: zhMessages,
+} as Record<Locale, Record<string, string>>;
+
+/** Right-to-left scripts. Mirror in catalog.config.json:localeOptions.
+ *  Drives `<html dir="rtl">` and any layout helpers. */
+const RTL_LOCALES: ReadonlySet<Locale> = new Set<Locale>(["ar", "fa", "ur"]);
+
+export function isRtlLocale(locale: Locale): boolean {
+  return RTL_LOCALES.has(locale);
+}
+
+/** Native-language picker labels. Always presented in the language's own
+ *  native form regardless of the active locale, matching iOS/Android
+ *  system-language pickers. Not put in the catalog because translating
+ *  these would defeat the convention. */
+export const NATIVE_LANGUAGE_NAMES: Record<Locale, string> = {
+  ar: "العربية",
+  bn: "বাংলা",
+  de: "Deutsch",
+  en: "English",
+  es: "Español",
+  fa: "فارسی",
+  fi: "Suomi",
+  fr: "Français",
+  hi: "हिन्दी",
+  id: "Bahasa Indonesia",
+  ja: "日本語",
+  mr: "मराठी",
+  pcm: "Naijá",
+  pt: "Português",
+  ru: "Русский",
+  ur: "اردو",
+  zh: "中文",
 };
 
 let activeLocale: Locale = "en";
@@ -31,6 +87,15 @@ export function getActiveLocale(): Locale {
 
 export function setActiveLocale(locale: Locale): void {
   activeLocale = locale;
+  applyDocumentDirection(locale);
+}
+
+/** Apply `<html dir="rtl|ltr">` so CSS logical properties (margin-inline-start,
+ *  padding-inline-end, etc.) flip correctly for RTL languages. SSR-safe. */
+function applyDocumentDirection(locale: Locale): void {
+  if (typeof document === "undefined") return;
+  document.documentElement.dir = isRtlLocale(locale) ? "rtl" : "ltr";
+  document.documentElement.lang = locale;
 }
 
 /**
@@ -38,7 +103,7 @@ export function setActiveLocale(locale: Locale): void {
  * shipped locale that matches; falls back to `en`.
  */
 export function resolveLocale(language: AppLanguage): Locale {
-  if (language === "en" || language === "fi") return language;
+  if (language !== "system") return language;
   const candidates =
     typeof navigator !== "undefined"
       ? (navigator.languages ?? [navigator.language ?? "en"])

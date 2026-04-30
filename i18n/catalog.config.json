@@ -1,18 +1,38 @@
 {
   "version": 1,
   "sourceLocale": "en",
-  "locales": ["en", "fi"],
+  "locales": [
+    "en", "ar", "bn", "de", "es", "fa", "fi", "fr", "hi",
+    "id", "ja", "mr", "pcm", "pt", "ru", "ur", "zh"
+  ],
   "openai": {
     "model": "gpt-5.4-nano",
     "endpoint": "https://api.openai.com/v1/chat/completions",
     "maxKeysPerRequest": 30
+  },
+  "localeOptions": {
+    "ar": { "rtl": true,  "translatorVariant": "Modern Standard Arabic (MSA)" },
+    "bn": { "rtl": false, "translatorVariant": "Standard Bengali (Bangladesh / West Bengal)" },
+    "de": { "rtl": false, "translatorVariant": "Standard High German" },
+    "es": { "rtl": false, "translatorVariant": "Latin American Spanish (neutral, avoiding regionalisms)" },
+    "fa": { "rtl": true,  "translatorVariant": "Iranian Persian (Farsi)" },
+    "fi": { "rtl": false, "translatorVariant": "Standard Finnish" },
+    "fr": { "rtl": false, "translatorVariant": "Metropolitan French" },
+    "hi": { "rtl": false, "translatorVariant": "Standard Hindi (Devanagari script)" },
+    "id": { "rtl": false, "translatorVariant": "Standard Indonesian (Bahasa Indonesia)" },
+    "ja": { "rtl": false, "translatorVariant": "Standard Japanese (modern, polite ですます form)" },
+    "mr": { "rtl": false, "translatorVariant": "Standard Marathi (Devanagari script)" },
+    "pcm": { "rtl": false, "translatorVariant": "Nigerian Pidgin English (Naijá)" },
+    "pt": { "rtl": false, "translatorVariant": "Brazilian Portuguese" },
+    "ru": { "rtl": false, "translatorVariant": "Standard Russian" },
+    "ur": { "rtl": true,  "translatorVariant": "Standard Urdu (Nastaʿlīq script)" },
+    "zh": { "rtl": false, "translatorVariant": "Simplified Mandarin Chinese (Mainland China)" }
   },
   "outputs": {
     "web": "companion-web/src/i18n/messages",
     "ios": "companion-ios/CompanionApp/Resources/Localizable.xcstrings",
     "iosMessages": "companion-ios/CompanionApp/Resources/Messages",
     "androidValues": "companion-android/app/src/main/res/values",
-    "androidValuesFi": "companion-android/app/src/main/res/values-fi",
     "androidRaw": "companion-android/app/src/main/res/raw",
     "parityFixture": "i18n/parity/cue-en-snapshots.json"
   }

@@ -1,5 +1,6 @@
 import { observer } from "mobx-react-lite";
 import type { RootStore } from "../../app/RootStore.js";
+import { useT } from "../../i18n/useT.js";
 
 type Props = { store: RootStore };
 
@@ -7,6 +8,7 @@ type Props = { store: RootStore };
 // `guidanceSubtitleLine`). The bottom slot is intentionally minimal: an
 // optional off-route alert pill stacked above a single floating Stop button.
 export const ActiveGuidanceCard = observer(({ store }: Props) => {
+  const t = useT(store);
   const guidance = store.guidanceStore;
   const route = guidance.guidanceRoute;
   if (!route) return null;
@@ -36,7 +38,7 @@ export const ActiveGuidanceCard = observer(({ store }: Props) => {
         className="danger-button danger-button--floating"
         onClick={() => guidance.stopGuidance()}
       >
-        Stop
+        {t("home.stop")}
       </button>
     </div>
   );

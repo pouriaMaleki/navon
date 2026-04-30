@@ -101,6 +101,14 @@ class MainActivity : ComponentActivity() {
     private var androidTtsService: me.fiksu.esp32map.companion.integration.audio.AndroidTtsService? = null
     private var routingCoordinator: me.fiksu.esp32map.companion.integration.cues.RoutingActivityCoordinator? = null
 
+    companion object {
+        /// File-level handle so `LocaleSettingsSection` can query voice
+        /// availability without threading the TTS port through several
+        /// layers of @Composable signatures. Set in `onCreate`, cleared
+        /// on teardown.
+        internal var ttsPortRef: me.fiksu.esp32map.companion.integration.audio.TtsPort? = null
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -114,6 +122,7 @@ class MainActivity : ComponentActivity() {
         keepScreenOnController = me.fiksu.esp32map.companion.integration.screen.KeepScreenOnController(this)
         val tts = me.fiksu.esp32map.companion.integration.audio.AndroidTtsService(this)
         androidTtsService = tts
+        ttsPortRef = tts
         routingCoordinator = me.fiksu.esp32map.companion.integration.cues.RoutingActivityCoordinator(keepScreenOnController, tts)
         setContent {
             MaterialTheme {
@@ -137,6 +146,7 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         androidTtsService?.shutdown()
+        ttsPortRef = null
     }
 
     private fun syncRoutingActivityServices() {
@@ -921,21 +931,52 @@ private fun LocaleSettingsSection(appState: CompanionAppState) {
             me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.language.title"),
             fontWeight = FontWeight.SemiBold,
         )
-        Row(
+        // No-voice hint: probe the active TTS engine for an installed
+        // voice for the resolved locale; if missing, warn the rider that
+        // audio cues will play in English. Mirrors the web behaviour.
+        run {
+            val resolved = me.fiksu.esp32map.companion.integration.i18n.Strings
+                .resolveLocale(settings.language)
+            val hasVoice = MainActivity.ttsPortRef?.hasVoice(resolved.tag) ?: true
+            if (!hasVoice) {
+                Text(
+                    text = me.fiksu.esp32map.companion.integration.i18n.Strings.t(
+                        "settings.language.noVoiceFallback",
+                        mapOf("language" to resolved.nativeName),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = androidx.compose.ui.graphics.Color(0xFFC98A00),
+                    modifier = Modifier.testTag("setting-language-no-voice-hint"),
+                )
+            }
+        }
+        // Vertical list — at 17 supported locales the prior horizontal Row
+        // didn't fit. The "System" option uses a translated label; every
+        // concrete locale uses its native-language name (English, Suomi,
+        // العربية, …) regardless of the active locale, matching the iOS
+        // and Android system Settings convention.
+        Column(
             modifier = Modifier.fillMaxWidth().testTag("setting-language"),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             for (option in me.fiksu.esp32map.companion.integration.i18n.AppLanguagePref.entries) {
-                val labelKey = "settings.language.${option.name.lowercase()}"
+                val label = if (option == me.fiksu.esp32map.companion.integration.i18n.AppLanguagePref.SYSTEM) {
+                    me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.language.system")
+                } else {
+                    me.fiksu.esp32map.companion.integration.i18n.SupportedLocale
+                        .fromTag(option.name.lowercase())
+                        ?.nativeName
+                        ?: option.name
+                }
                 Button(
                     onClick = {
                         appState.settings = appState.settings.copy(language = option)
                         appState.persistSettings()
                     },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     enabled = settings.language != option,
                 ) {
-                    Text(me.fiksu.esp32map.companion.integration.i18n.Strings.t(labelKey))
+                    Text(label)
                 }
             }
         }

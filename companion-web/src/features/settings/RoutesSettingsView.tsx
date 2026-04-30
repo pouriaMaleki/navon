@@ -49,7 +49,7 @@ export const RoutesSettingsView = observer(({ store, onOpenDetail }: Props) => {
             <div key={item.id} className="settings-row">
               <button
                 type="button"
-                style={{ flex: 1, textAlign: "left" }}
+                style={{ flex: 1, textAlign: "start" }}
                 onClick={() => void store.activateRouteHistoryItem(item, false)}
               >
                 <div className="settings-row__label">{item.title}</div>

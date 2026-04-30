@@ -18,13 +18,32 @@ import java.util.Locale
  * Mirrors the TS/Swift runtimes so every platform's `cueMessage(event, …)`
  * resolves to the same text.
  */
-enum class AppLanguagePref { SYSTEM, EN, FI }
+enum class AppLanguagePref {
+    SYSTEM,
+    AR, BN, DE, EN, ES, FA, FI, FR,
+    HI, ID, JA, MR, PCM, PT, RU, UR, ZH,
+}
 enum class DistanceUnitPref { SYSTEM, METRIC, IMPERIAL }
 enum class DistanceMode { METRIC, IMPERIAL }
 
-enum class SupportedLocale(val tag: String) {
-    EN("en"),
-    FI("fi");
+enum class SupportedLocale(val tag: String, val nativeName: String, val isRtl: Boolean = false) {
+    AR("ar", "العربية", isRtl = true),
+    BN("bn", "বাংলা"),
+    DE("de", "Deutsch"),
+    EN("en", "English"),
+    ES("es", "Español"),
+    FA("fa", "فارسی", isRtl = true),
+    FI("fi", "Suomi"),
+    FR("fr", "Français"),
+    HI("hi", "हिन्दी"),
+    ID("id", "Bahasa Indonesia"),
+    JA("ja", "日本語"),
+    MR("mr", "मराठी"),
+    PCM("pcm", "Naijá"),
+    PT("pt", "Português"),
+    RU("ru", "Русский"),
+    UR("ur", "اردو", isRtl = true),
+    ZH("zh", "中文");
 
     companion object {
         val source = EN
@@ -77,13 +96,15 @@ object Strings {
         active = locale
     }
 
-    fun resolveLocale(preference: AppLanguagePref): SupportedLocale = when (preference) {
-        AppLanguagePref.EN -> SupportedLocale.EN
-        AppLanguagePref.FI -> SupportedLocale.FI
-        AppLanguagePref.SYSTEM -> {
+    fun resolveLocale(preference: AppLanguagePref): SupportedLocale {
+        if (preference == AppLanguagePref.SYSTEM) {
             val tag = Locale.getDefault().language
-            SupportedLocale.fromTag(tag) ?: SupportedLocale.source
+            return SupportedLocale.fromTag(tag) ?: SupportedLocale.source
         }
+        // AppLanguagePref.<X> rawName matches SupportedLocale.<X> for every
+        // concrete case; fall back defensively if the unions ever drift.
+        return SupportedLocale.fromTag(preference.name.lowercase())
+            ?: SupportedLocale.source
     }
 
     fun resolveDistanceUnit(preference: DistanceUnitPref): DistanceMode = when (preference) {

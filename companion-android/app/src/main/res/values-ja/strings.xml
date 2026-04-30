@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_cancel" formatted="false">キャンセル</string>
+    <string name="common_close" formatted="false">閉じる</string>
+    <string name="common_ok" formatted="false">OK</string>
+    <string name="cue_arrived" formatted="false">目的地に到着しました</string>
+    <string name="cue_arrivingInM" formatted="false">目的地まで{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です</string>
+    <string name="cue_nextTurnInAbout_generic" formatted="false">次の案内まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です</string>
+    <string name="cue_nextTurnInAbout_left" formatted="false">次の左折まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です</string>
+    <string name="cue_nextTurnInAbout_right" formatted="false">次の右折まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です</string>
+    <string name="cue_nextTurnInAbout_uturn" formatted="false">次のUターンまで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です</string>
+    <string name="cue_offTrack" formatted="false">進路を外れています</string>
+    <string name="cue_onTrack" formatted="false">進路に戻りました</string>
+    <string name="cue_rerouting" formatted="false">ルートを再計算しています</string>
+    <string name="cue_routeStarted" formatted="false">ルートを開始します</string>
+    <string name="cue_turn10m_exitLeft" formatted="false">左の出口へ</string>
+    <string name="cue_turn10m_exitRight" formatted="false">右の出口へ</string>
+    <string name="cue_turn10m_generic" formatted="false">ルートに従ってください</string>
+    <string name="cue_turn10m_keepLeft" formatted="false">左側を進んでください</string>
+    <string name="cue_turn10m_keepRight" formatted="false">右側を進んでください</string>
+    <string name="cue_turn10m_left" formatted="false">左折してください</string>
+    <string name="cue_turn10m_right" formatted="false">右折してください</string>
+    <string name="cue_turn10m_uturn" formatted="false">Uターンしてください</string>
+    <string name="cue_turn50m_exitLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左の出口へ</string>
+    <string name="cue_turn50m_exitRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右の出口へ</string>
+    <string name="cue_turn50m_generic" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でルートに従ってください</string>
+    <string name="cue_turn50m_keepLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左側を進んでください</string>
+    <string name="cue_turn50m_keepRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右側を進んでください</string>
+    <string name="cue_turn50m_left" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左折してください</string>
+    <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右折してください</string>
+    <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でUターンしてください</string>
+    <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} 先の{destination}</string>
+    <string name="home_importedRoute" formatted="false">インポートしたルート</string>
+    <string name="home_noSuggestions" formatted="false">候補はまだありません…</string>
+    <string name="home_openSettings" formatted="false">設定</string>
+    <string name="home_platformHint_locationDefault" formatted="false">ブラウザが位置情報の許可を求めます。ページがバックグラウンドの間も、現在地の追跡を続けるために許可してください。</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">iPhoneのSafariは、真のバックグラウンドGPSを提供しません。タブを開いたまま、画面を点けた状態で走ってください。位置情報の更新が続きます。</string>
+    <string name="home_recenter" formatted="false">現在地に戻す</string>
+    <string name="home_routeOptions" formatted="false">ルートの候補</string>
+    <string name="home_start" formatted="false">開始</string>
+    <string name="home_startOnDevice" formatted="false">デバイスで開始</string>
+    <string name="home_startRoute" formatted="false">ルートを開始</string>
+    <string name="home_startingOnDevice" formatted="false">デバイスで開始中…</string>
+    <string name="home_stop" formatted="false">停止</string>
+    <string name="home_stopRoute" formatted="false">ルートを停止</string>
+    <string name="home_suggestedRoutes" formatted="false">おすすめルート</string>
+    <string name="home_whereTo" formatted="false">どこへ？</string>
+    <string name="home_workingOnRoute" formatted="false">ルートを作成中</string>
+    <string name="planning_cyclingAlternatives" formatted="false">BRouter + OSRM による自転車ルートの代替案</string>
+    <string name="planning_cyclingAlternativesWithFailures" formatted="false">自転車ルートの代替案 — {failedCount, number} {failedCount, select, one {source} other {sources}} が利用できません</string>
+    <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">HSL と OSM からの混在ルート</string>
+    <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">音声案内とライブアクティビティに必要です</string>
+    <string name="settings_activity_allowBackgroundGps_title" formatted="false">バックグラウンドでGPSを許可</string>
+    <string name="settings_activity_audioCues_subtitle" formatted="false">ルーティング中にターンバイターンの案内を読み上げます</string>
+    <string name="settings_activity_audioCues_title" formatted="false">音声案内</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_subtitle" formatted="false">オフの場合、アプリを開いている間も案内が流れます</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_title" formatted="false">アプリがバックグラウンドのときだけ音声案内</string>
+    <string name="settings_activity_keepScreenOn_subtitle" formatted="false">ルート実行中、画面を常に点灯します</string>
+    <string name="settings_activity_keepScreenOn_title" formatted="false">画面が消えないようにする</string>
+    <string name="settings_activity_liveActivity_subtitle" formatted="false">ロック画面に次の案内を表示</string>
+    <string name="settings_activity_liveActivity_title" formatted="false">ロック画面のライブアクティビティ</string>
+    <string name="settings_activity_title" formatted="false">アクティビティ設定</string>
+    <string name="settings_distanceUnit_imperial" formatted="false">ヤード・マイル</string>
+    <string name="settings_distanceUnit_metric" formatted="false">メートル・キロメートル</string>
+    <string name="settings_distanceUnit_system" formatted="false">端末の計測システムに従う</string>
+    <string name="settings_distanceUnit_title" formatted="false">距離の単位</string>
+    <string name="settings_hub_device" formatted="false">デバイス</string>
+    <string name="settings_hub_importDiagnostics" formatted="false">インポート診断</string>
+    <string name="settings_hub_importDiagnostics_subtitle" formatted="false">失敗した共有インポート</string>
+    <string name="settings_hub_routePlanner" formatted="false">ルートプランナー</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">デフォルトの出発地、候補、HSLキー</string>
+    <string name="settings_hub_routes" formatted="false">ルート</string>
+    <string name="settings_hub_routes_subtitle" formatted="false">最近のルートとGPXインポート</string>
+    <string name="settings_hub_title" formatted="false">設定</string>
+    <string name="settings_language_en" formatted="false">English</string>
+    <string name="settings_language_fi" formatted="false">Suomi</string>
+    <string name="settings_language_noVoiceFallback" formatted="false">{language} の音声がブラウザにインストールされていません。音声の合図は英語で再生されます。</string>
+    <string name="settings_language_subtitle" formatted="false">アプリの言語を選択</string>
+    <string name="settings_language_system" formatted="false">端末の言語に従う</string>
+    <string name="settings_language_title" formatted="false">言語</string>
+    <string name="settings_restartRequired_message" formatted="false">アプリを終了して再度開き、新しい言語を適用してください。</string>
+    <string name="settings_restartRequired_title" formatted="false">再起動が必要です</string>
+    <string name="settings_speedUnit_title" formatted="false">速度の単位</string>
+    <string name="settings_voiceNotInstalled" formatted="false">{language} の音声がインストールされていません。システムの設定を開いてインストールしてください。</string>
+    <string name="units_distance_ft" formatted="false">{distance, number} ft</string>
+    <string name="units_distance_km" formatted="false">{distance, number} km</string>
+    <string name="units_distance_m" formatted="false">{distance, number} m</string>
+    <string name="units_distance_mi" formatted="false">{distance, number} mi</string>
+    <string name="units_duration_min" formatted="false">{minutes, number} 分</string>
+    <string name="units_speed_kph" formatted="false">km/h</string>
+    <string name="units_speed_mph" formatted="false">mph</string>
+</resources>
