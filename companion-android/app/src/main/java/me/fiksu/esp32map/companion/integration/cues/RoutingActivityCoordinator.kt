@@ -66,11 +66,13 @@ class RoutingActivityCoordinator(
         snapshot: CueSnapshot,
         settings: CompanionSettings,
         isRouting: Boolean,
+        isAppInBackground: Boolean = false,
     ) {
         val cuesActive = isRouting &&
             settings.audioCuesEnabled &&
             settings.allowBackgroundGps &&
-            !snapshot.pairedWithDevice
+            !snapshot.pairedWithDevice &&
+            (!settings.audioCuesOnlyInBackground || isAppInBackground)
         if (!cuesActive) return
         val result = CueEngine.tick(snapshot, cueState)
         cueState = result.nextState

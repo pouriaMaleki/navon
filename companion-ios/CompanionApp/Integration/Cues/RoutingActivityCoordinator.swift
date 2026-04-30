@@ -67,14 +67,16 @@ final class RoutingActivityCoordinator {
         snapshot: CueSnapshot,
         settings: CompanionSettings,
         isRouting: Bool,
+        isAppInBackground: Bool = false,
         liveActivityContent: RoutingLiveActivityContent? = nil
     ) {
         let cuesActive = isRouting &&
             settings.audioCuesEnabled &&
             settings.allowBackgroundGps &&
-            !snapshot.pairedWithDevice
+            !snapshot.pairedWithDevice &&
+            (!settings.audioCuesOnlyInBackground || isAppInBackground)
         Self.log.debug(
-            "onGuidanceTick — isRouting=\(isRouting) audioCues=\(settings.audioCuesEnabled) bgGps=\(settings.allowBackgroundGps) paired=\(snapshot.pairedWithDevice) → cuesActive=\(cuesActive) progressM=\(snapshot.progressDistanceM, privacy: .public) routeId=\(snapshot.routeId ?? "nil", privacy: .public)"
+            "onGuidanceTick — isRouting=\(isRouting) audioCues=\(settings.audioCuesEnabled) bgGps=\(settings.allowBackgroundGps) paired=\(snapshot.pairedWithDevice) onlyBg=\(settings.audioCuesOnlyInBackground) bg=\(isAppInBackground) → cuesActive=\(cuesActive) progressM=\(snapshot.progressDistanceM, privacy: .public) routeId=\(snapshot.routeId ?? "nil", privacy: .public)"
         )
         if cuesActive {
             let result = CueEngine.tick(snapshot: snapshot, state: cueState)

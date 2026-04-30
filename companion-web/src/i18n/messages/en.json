@@ -46,6 +46,8 @@
   "settings.activity.allowBackgroundGps.title": "Allow GPS in background",
   "settings.activity.audioCues.subtitle": "Speak turn-by-turn directions during routing",
   "settings.activity.audioCues.title": "Audio cues",
+  "settings.activity.audioCuesOnlyInBackground.subtitle": "When off, cues also play while you have the app open",
+  "settings.activity.audioCuesOnlyInBackground.title": "Audio cues only when app is in background",
   "settings.activity.keepScreenOn.subtitle": "Keeps the display awake while a route is active",
   "settings.activity.keepScreenOn.title": "Prevent screen from turning off",
   "settings.activity.liveActivity.subtitle": "Show next turn on the lock screen",

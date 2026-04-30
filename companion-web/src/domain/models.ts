@@ -238,6 +238,14 @@ export type CompanionSettings = {
    */
   audioCuesEnabled: boolean;
   /**
+   * Spec line 144: when true (the default), audio cues are suppressed
+   * while the rider has the app foregrounded — their map is already
+   * visible — and only fire once the page goes hidden (tab switch /
+   * screen lock). Toggle this off to hear cues even when the app is
+   * open.
+   */
+  audioCuesOnlyInBackground: boolean;
+  /**
    * Lock-screen live activity. On web this surfaces a single self-updating
    * Notification. Disabled in the UI until allowBackgroundGps is on.
    */
@@ -265,6 +273,7 @@ export const DEFAULT_COMPANION_SETTINGS: CompanionSettings = {
   keepScreenOn: false,
   allowBackgroundGps: false,
   audioCuesEnabled: true,
+  audioCuesOnlyInBackground: true,
   liveActivityEnabled: false,
   language: "system",
   distanceUnit: "system",

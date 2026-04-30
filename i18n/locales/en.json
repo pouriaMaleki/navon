@@ -231,6 +231,16 @@
       "description": "Toggle subtitle for the audio-cues setting.",
       "placeholders": {}
     },
+    "settings.activity.audioCuesOnlyInBackground.title": {
+      "value": "Audio cues only when app is in background",
+      "description": "Toggle title: when on, cues only play after the user switches away from the app or locks the screen — not while the map is visible on-screen.",
+      "placeholders": {}
+    },
+    "settings.activity.audioCuesOnlyInBackground.subtitle": {
+      "value": "When off, cues also play while you have the app open",
+      "description": "Toggle subtitle for the audio-cues-only-in-background setting.",
+      "placeholders": {}
+    },
     "settings.activity.liveActivity.title": {
       "value": "Lock-screen live activity",
       "description": "Toggle title: show the next turn on the lock screen via Live Activity.",

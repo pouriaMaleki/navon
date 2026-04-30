@@ -107,6 +107,23 @@ private struct ActivitySettingsSection: View {
             .accessibilityIdentifier("setting-audioCuesEnabled")
 
             Toggle(isOn: Binding(
+                get: { appModel.settings.audioCuesOnlyInBackground },
+                set: { newValue in
+                    appModel.settings.audioCuesOnlyInBackground = newValue
+                    appModel.persistSettings()
+                }
+            )) {
+                VStack(alignment: .leading) {
+                    Text(T.string("settings.activity.audioCuesOnlyInBackground.title"))
+                    Text(T.string("settings.activity.audioCuesOnlyInBackground.subtitle"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .disabled(!gpsOn || !appModel.settings.audioCuesEnabled)
+            .accessibilityIdentifier("setting-audioCuesOnlyInBackground")
+
+            Toggle(isOn: Binding(
                 get: { appModel.settings.liveActivityEnabled },
                 set: { newValue in
                     appModel.settings.liveActivityEnabled = newValue

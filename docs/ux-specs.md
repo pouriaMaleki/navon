@@ -141,5 +141,6 @@ Tests should cover these ux cases as end to end tests (or if they suite for inte
         - if user went offtrack, say "offtrack"
         - if user is offtrack and app reroutes, say "rerouting" then as soon as new route is ready give the new audio cues
         - if rerouting and being off track continued more than twice, say "off track" and stop audio cues until user is back on the route and you are confident they are on track again say "on track"
+    - setting to enable audio cues only when app is in background and enabled by default
     - there is a settings to enable live actions and map on phone lock screen, right in the top of settings page. it only activates to enable when user selected allow gps in background. it mentions as a sub that when this is enabled user needs to allow gps use in background.
       - in different os it might require specific implementation and permission but at least on web, it can only be one notification that updates. on ios it can even show a map, as apple maps does that too. check latest features of android for same behaviour.

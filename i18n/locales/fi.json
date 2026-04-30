@@ -394,6 +394,16 @@
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "settings.activity.audioCuesOnlyInBackground.title": {
+      "value": "Äänimerkit vain taustalla",
+      "description": "Toggle title: when on, cues only play after the user switches away from the app or locks the screen — not while the map is visible on-screen.",
+      "status": "reviewed"
+    },
+    "settings.activity.audioCuesOnlyInBackground.subtitle": {
+      "value": "Kun pois käytöstä, äänimerkit kuuluvat myös kun sovellus on avoinna",
+      "description": "Toggle subtitle for the audio-cues-only-in-background setting.",
+      "status": "reviewed"
+    },
     "settings.activity.audioCues.subtitle": {
       "value": "Puhu käännös käännökseltä -ohjeet reitityksen aikana",
       "description": "Toggle subtitle for the audio-cues setting.",

@@ -1009,6 +1009,17 @@ private fun ActivitySettingsSection(appState: CompanionAppState) {
             },
         )
         SettingToggleRow(
+            testTag = "setting-audioCuesOnlyInBackground",
+            title = me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.activity.audioCuesOnlyInBackground.title"),
+            subtitle = me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.activity.audioCuesOnlyInBackground.subtitle"),
+            checked = settings.audioCuesOnlyInBackground,
+            enabled = gpsOn && settings.audioCuesEnabled,
+            onChange = { next ->
+                appState.settings = appState.settings.copy(audioCuesOnlyInBackground = next)
+                appState.persistSettings()
+            },
+        )
+        SettingToggleRow(
             testTag = "setting-liveActivityEnabled",
             title = me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.activity.liveActivity.title"),
             subtitle = if (gpsOn) me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.activity.liveActivity.subtitle")

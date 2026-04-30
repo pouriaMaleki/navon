@@ -57,6 +57,14 @@ export const ActivitySettingsSection = observer(({ store }: Props) => {
         onChange={(v) => store.settingsStore.updateSettings({ audioCuesEnabled: v })}
       />
       <ToggleRow
+        testId="setting-audioCuesOnlyInBackground"
+        title={t("settings.activity.audioCuesOnlyInBackground.title")}
+        subtitle={t("settings.activity.audioCuesOnlyInBackground.subtitle")}
+        checked={settings.audioCuesOnlyInBackground}
+        disabled={!gpsOn || !settings.audioCuesEnabled}
+        onChange={(v) => store.settingsStore.updateSettings({ audioCuesOnlyInBackground: v })}
+      />
+      <ToggleRow
         testId="setting-liveActivityEnabled"
         title={t("settings.activity.liveActivity.title")}
         subtitle={

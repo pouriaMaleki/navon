@@ -47,6 +47,8 @@
     <string name="settings_activity_allowBackgroundGps_title" formatted="false">Allow GPS in background</string>
     <string name="settings_activity_audioCues_subtitle" formatted="false">Speak turn-by-turn directions during routing</string>
     <string name="settings_activity_audioCues_title" formatted="false">Audio cues</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_subtitle" formatted="false">When off, cues also play while you have the app open</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_title" formatted="false">Audio cues only when app is in background</string>
     <string name="settings_activity_keepScreenOn_subtitle" formatted="false">Keeps the display awake while a route is active</string>
     <string name="settings_activity_keepScreenOn_title" formatted="false">Prevent screen from turning off</string>
     <string name="settings_activity_liveActivity_subtitle" formatted="false">Show next turn on the lock screen</string>

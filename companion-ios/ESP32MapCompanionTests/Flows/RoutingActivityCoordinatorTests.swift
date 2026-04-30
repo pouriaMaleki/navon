@@ -74,6 +74,52 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
         XCTAssertTrue(speech.spoken.contains("Route started"))
     }
 
+    // Spec line 144: "setting to enable audio cues only when app is in
+    // background and enabled by default". The default behaviour is to
+    // suppress cues while the rider has the app open (their phone screen
+    // shows the map already), and only speak once the screen locks /
+    // they switch apps.
+
+    func test_cuesAreSilentInForegroundWhenOnlyInBackgroundIsOn() {
+        let (coordinator, speech, _) = makeCoordinator()
+        var s = defaultSettings(allowBackgroundGps: true, audioCuesEnabled: true)
+        s.audioCuesOnlyInBackground = true
+        coordinator.onGuidanceTick(
+            snapshot: snapshot(), settings: s,
+            isRouting: true, isAppInBackground: false
+        )
+        XCTAssertEqual(speech.spoken, [])
+    }
+
+    func test_cuesFireInBackgroundWhenOnlyInBackgroundIsOn() {
+        let (coordinator, speech, _) = makeCoordinator()
+        var s = defaultSettings(allowBackgroundGps: true, audioCuesEnabled: true)
+        s.audioCuesOnlyInBackground = true
+        coordinator.onGuidanceTick(
+            snapshot: snapshot(), settings: s,
+            isRouting: true, isAppInBackground: true
+        )
+        XCTAssertTrue(speech.spoken.contains("Route started"))
+    }
+
+    func test_cuesFireInForegroundWhenOnlyInBackgroundIsOff() {
+        let (coordinator, speech, _) = makeCoordinator()
+        var s = defaultSettings(allowBackgroundGps: true, audioCuesEnabled: true)
+        s.audioCuesOnlyInBackground = false
+        coordinator.onGuidanceTick(
+            snapshot: snapshot(), settings: s,
+            isRouting: true, isAppInBackground: false
+        )
+        XCTAssertTrue(speech.spoken.contains("Route started"))
+    }
+
+    func test_audioCuesOnlyInBackgroundIsOnByDefault() {
+        XCTAssertTrue(
+            CompanionSettings.defaults.audioCuesOnlyInBackground,
+            "spec line 144: enabled by default"
+        )
+    }
+
     func test_liveActivity_startsAndEndsOnRoutingTransitions() {
         let (coordinator, _, live) = makeCoordinator()
         let onSettings = defaultSettings(allowBackgroundGps: true, liveActivityEnabled: true)

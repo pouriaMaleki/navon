@@ -46,6 +46,8 @@
   "settings.activity.allowBackgroundGps.title": "Salli GPS taustalla",
   "settings.activity.audioCues.subtitle": "Puhu käännös käännökseltä -ohjeet reitityksen aikana",
   "settings.activity.audioCues.title": "Äänimerkit",
+  "settings.activity.audioCuesOnlyInBackground.subtitle": "Kun pois käytöstä, äänimerkit kuuluvat myös kun sovellus on avoinna",
+  "settings.activity.audioCuesOnlyInBackground.title": "Äänimerkit vain taustalla",
   "settings.activity.keepScreenOn.subtitle": "Pitää näytön päällä reitin ollessa aktiivinen",
   "settings.activity.keepScreenOn.title": "Estä näytön sammuminen",
   "settings.activity.liveActivity.subtitle": "Näytä seuraava käännös lukitusnäytöllä",

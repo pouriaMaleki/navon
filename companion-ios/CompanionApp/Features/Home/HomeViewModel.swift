@@ -1224,6 +1224,7 @@ final class HomeViewModel: ObservableObject {
             snapshot: snapshot,
             settings: appModel.settings,
             isRouting: appModel.isRoutingInProgress,
+            isAppInBackground: appModel.isAppInBackground,
             liveActivityContent: liveContent
         )
     }

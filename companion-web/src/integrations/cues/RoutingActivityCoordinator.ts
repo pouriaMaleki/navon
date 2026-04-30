@@ -1,4 +1,4 @@
-import { autorun, type IReactionDisposer } from "mobx";
+import { autorun, observable, runInAction, type IReactionDisposer } from "mobx";
 import type { RootStore } from "../../app/RootStore.js";
 import {
   resolveDistanceUnit,
@@ -18,6 +18,26 @@ import {
   type ManeuverKind,
   tickCueEngine,
 } from "./CueEngine.js";
+import { shouldDispatchCues } from "./cueGating.js";
+
+/**
+ * Observable bridge over the Page Visibility API. The autorun below
+ * reads this so MobX re-runs the cue dispatch when the user switches
+ * tab / locks the screen / re-focuses the app. SSR-safe via the typeof
+ * checks; the box stays `false` (treated as "foregrounded") when there
+ * is no `document` in scope.
+ */
+const isAppInBackgroundBox = observable.box(
+  typeof document !== "undefined" && document.visibilityState === "hidden",
+);
+
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    runInAction(() => {
+      isAppInBackgroundBox.set(document.visibilityState === "hidden");
+    });
+  });
+}
 
 /**
  * Bridges MobX state (settings + GuidanceStore) to the four routing-time
@@ -42,6 +62,16 @@ export function startRoutingActivityCoordinator(
 ): IReactionDisposer {
   let cueState: CueEngineState = initialCueEngineState();
   let lastLiveActivityActive = false;
+  // Tracks the previous tick's gating decision so we can detect a
+  // false→true transition mid-route (e.g. rider unchecks "audio cues
+  // only when in background" while the app is foregrounded). Without
+  // this, all per-route latches would already be set from earlier
+  // ticks and the rider would hear nothing until the next maneuver
+  // crossing — looks like the toggle didn't apply, when really cues
+  // are event-driven and there was just no event to fire. Resetting
+  // `routeStartedAnnounced` on the transition gives an immediate
+  // audible confirmation by re-announcing "Route started".
+  let prevCuesActive = false;
 
   return autorun(() => {
     const settings = store.settingsStore.settings;
@@ -62,10 +92,22 @@ export function startRoutingActivityCoordinator(
       isRouting,
     });
 
-    const cuesActive =
-      isRouting && settings.audioCuesEnabled && settings.allowBackgroundGps && !pairedWithDevice;
+    const cuesActive = shouldDispatchCues({
+      isRouting,
+      audioCuesEnabled: settings.audioCuesEnabled,
+      allowBackgroundGps: settings.allowBackgroundGps,
+      pairedWithDevice,
+      audioCuesOnlyInBackground: settings.audioCuesOnlyInBackground,
+      isAppInBackground: isAppInBackgroundBox.get(),
+    });
 
     if (cuesActive) {
+      // Mid-route transition false→true: re-arm the route-started latch
+      // so the next tick emits a confirmation cue. See the prevCuesActive
+      // declaration above for the full rationale.
+      if (!prevCuesActive && isRouting) {
+        cueState = { ...cueState, routeStartedAnnounced: false };
+      }
       const snapshot = buildCueSnapshot(store, pairedWithDevice);
       const result = tickCueEngine(snapshot, cueState);
       cueState = result.nextState;
@@ -76,6 +118,7 @@ export function startRoutingActivityCoordinator(
     } else if (!isRouting) {
       cueState = initialCueEngineState();
     }
+    prevCuesActive = cuesActive;
 
     const liveActivityActive =
       isRouting && settings.liveActivityEnabled && settings.allowBackgroundGps;

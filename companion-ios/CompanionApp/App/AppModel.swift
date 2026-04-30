@@ -345,10 +345,17 @@ final class AppModel: ObservableObject {
     }
 
     /// Called by `ESP32MapCompanionApp` when the app enters the background.
+    /// True when the app is currently in `.background` scene phase. Set
+    /// by ESP32MapCompanionApp's scenePhase observer; consumed by the
+    /// cue dispatch path to honour the `audioCuesOnlyInBackground`
+    /// setting (spec line 144).
+    @Published var isAppInBackground: Bool = false
+
     /// If no route is in progress we stop GPS to preserve battery — the
     /// "Allow GPS in background" permission is for routing only, not for
     /// keeping a planning-mode location feed alive while the user is away.
     func handleApplicationLifecycleEnteredBackground() {
+        isAppInBackground = true
         if !isRoutingInProgress {
             locationService.stop()
         }
@@ -357,6 +364,7 @@ final class AppModel: ObservableObject {
     /// Resumes GPS when the app comes back to the foreground (so the
     /// where-to bar and the recenter button work again).
     func handleApplicationLifecycleEnteredForeground() {
+        isAppInBackground = false
         locationService.start()
     }
 

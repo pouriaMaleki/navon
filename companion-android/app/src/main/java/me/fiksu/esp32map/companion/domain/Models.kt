@@ -195,6 +195,14 @@ data class CompanionSettings(
      */
     val audioCuesEnabled: Boolean = true,
     /**
+     * Spec line 144: when true (the default), audio cues are suppressed
+     * while the rider has the app foregrounded — the phone screen is
+     * already showing the map — and only fire after the screen locks or
+     * the user switches apps. Toggle off to hear cues even when the app
+     * is open.
+     */
+    val audioCuesOnlyInBackground: Boolean = true,
+    /**
      * Lock-screen live activity. Posts a foreground/ongoing notification with
      * route status. Gated on `allowBackgroundGps`.
      */

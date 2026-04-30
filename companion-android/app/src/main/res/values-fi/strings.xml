@@ -47,6 +47,8 @@
     <string name="settings_activity_allowBackgroundGps_title" formatted="false">Salli GPS taustalla</string>
     <string name="settings_activity_audioCues_subtitle" formatted="false">Puhu käännös käännökseltä -ohjeet reitityksen aikana</string>
     <string name="settings_activity_audioCues_title" formatted="false">Äänimerkit</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_subtitle" formatted="false">Kun pois käytöstä, äänimerkit kuuluvat myös kun sovellus on avoinna</string>
+    <string name="settings_activity_audioCuesOnlyInBackground_title" formatted="false">Äänimerkit vain taustalla</string>
     <string name="settings_activity_keepScreenOn_subtitle" formatted="false">Pitää näytön päällä reitin ollessa aktiivinen</string>
     <string name="settings_activity_keepScreenOn_title" formatted="false">Estä näytön sammuminen</string>
     <string name="settings_activity_liveActivity_subtitle" formatted="false">Näytä seuraava käännös lukitusnäytöllä</string>

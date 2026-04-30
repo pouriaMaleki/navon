@@ -246,6 +246,12 @@ struct CompanionSettings: Equatable, Codable {
     /// Audio cues during routing. Default true (spec: "on by default")
     /// but gated on `allowBackgroundGps` at the UI and runtime layer.
     var audioCuesEnabled: Bool
+    /// Spec line 144: when true (the default), audio cues are suppressed
+    /// while the rider has the app foregrounded — their phone screen is
+    /// already showing the map — and only fire after the screen locks
+    /// or they switch apps. Toggle off to hear cues even when the app
+    /// is open.
+    var audioCuesOnlyInBackground: Bool
     /// Lock-screen Live Activity (ActivityKit). Gated on `allowBackgroundGps`.
     var liveActivityEnabled: Bool
     /// App language preference. `.system` follows
@@ -267,6 +273,7 @@ struct CompanionSettings: Equatable, Codable {
         keepScreenOn: false,
         allowBackgroundGps: false,
         audioCuesEnabled: true,
+        audioCuesOnlyInBackground: true,
         liveActivityEnabled: false,
         language: .system,
         distanceUnit: .system
@@ -294,6 +301,8 @@ struct CompanionSettings: Equatable, Codable {
             ?? Self.defaults.allowBackgroundGps
         self.audioCuesEnabled = try container.decodeIfPresent(Bool.self, forKey: .audioCuesEnabled)
             ?? Self.defaults.audioCuesEnabled
+        self.audioCuesOnlyInBackground = try container.decodeIfPresent(Bool.self, forKey: .audioCuesOnlyInBackground)
+            ?? Self.defaults.audioCuesOnlyInBackground
         self.liveActivityEnabled = try container.decodeIfPresent(Bool.self, forKey: .liveActivityEnabled)
             ?? Self.defaults.liveActivityEnabled
         self.language = try container.decodeIfPresent(AppLanguage.self, forKey: .language)
@@ -312,6 +321,7 @@ struct CompanionSettings: Equatable, Codable {
         keepScreenOn: Bool = false,
         allowBackgroundGps: Bool = false,
         audioCuesEnabled: Bool = true,
+        audioCuesOnlyInBackground: Bool = true,
         liveActivityEnabled: Bool = false,
         language: AppLanguage = .system,
         distanceUnit: DistanceUnitPref = .system
@@ -325,6 +335,7 @@ struct CompanionSettings: Equatable, Codable {
         self.keepScreenOn = keepScreenOn
         self.allowBackgroundGps = allowBackgroundGps
         self.audioCuesEnabled = audioCuesEnabled
+        self.audioCuesOnlyInBackground = audioCuesOnlyInBackground
         self.liveActivityEnabled = liveActivityEnabled
         self.language = language
         self.distanceUnit = distanceUnit
@@ -340,6 +351,7 @@ struct CompanionSettings: Equatable, Codable {
         case keepScreenOn
         case allowBackgroundGps
         case audioCuesEnabled
+        case audioCuesOnlyInBackground
         case liveActivityEnabled
         case language
         case distanceUnit
