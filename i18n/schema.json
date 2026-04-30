@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Companion locale catalog",
+  "type": "object",
+  "required": ["locale", "entries"],
+  "properties": {
+    "locale": { "type": "string", "pattern": "^[a-z]{2}(-[A-Z]{2})?$" },
+    "entries": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["value"],
+        "properties": {
+          "value": { "type": "string" },
+          "description": { "type": "string" },
+          "placeholders": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          },
+          "sourceHash": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["missing", "ai-translated", "reviewed", "locked"]
+          },
+          "translatedAt": { "type": "string" },
+          "translatedBy": { "type": "string" }
+        }
+      }
+    }
+  }
+}

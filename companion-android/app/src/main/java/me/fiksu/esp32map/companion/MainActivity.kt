@@ -104,6 +104,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Initialise the i18n runtime before any UI render; subsequent
+        // settings.language changes call Strings.setActiveLocale(...) via
+        // the routing coordinator's autorun-equivalent.
+        me.fiksu.esp32map.companion.integration.i18n.Strings.bootstrap(this)
+        me.fiksu.esp32map.companion.integration.i18n.Strings.setActiveLocale(
+            me.fiksu.esp32map.companion.integration.i18n.Strings.resolveLocale(appState.settings.language)
+        )
         keepScreenOnController = me.fiksu.esp32map.companion.integration.screen.KeepScreenOnController(this)
         val tts = me.fiksu.esp32map.companion.integration.audio.AndroidTtsService(this)
         androidTtsService = tts
@@ -868,17 +875,92 @@ private fun SettingsRootScreen(
 ) {
     ScreenColumn(PaddingValues(0.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Settings", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
-            Button(onClick = onDismiss) { Text("Done") }
+            Text(
+                me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.hub.title"),
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.weight(1f),
+            )
+            Button(onClick = onDismiss) {
+                Text(me.fiksu.esp32map.companion.integration.i18n.Strings.t("common.close"))
+            }
         }
         // UX spec lines 128-145: prevent screen off, allow GPS in background,
         // audio cues, and live activity must appear at the TOP of the
         // settings page in this exact order.
         ActivitySettingsSection(appState)
-        Button(onClick = onRoutes, modifier = Modifier.fillMaxWidth()) { Text("Routes") }
+        LocaleSettingsSection(appState)
+        Button(onClick = onRoutes, modifier = Modifier.fillMaxWidth()) {
+            Text(me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.hub.routes"))
+        }
         Button(onClick = onDevice, modifier = Modifier.fillMaxWidth()) { Text("Device") }
-        Button(onClick = onRoutePlanner, modifier = Modifier.fillMaxWidth()) { Text("Route Planner") }
-        Button(onClick = onImportDiagnostics, modifier = Modifier.fillMaxWidth()) { Text("Import Diagnostics") }
+        Button(onClick = onRoutePlanner, modifier = Modifier.fillMaxWidth()) {
+            Text(me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.hub.routePlanner"))
+        }
+        Button(onClick = onImportDiagnostics, modifier = Modifier.fillMaxWidth()) {
+            Text(me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.hub.importDiagnostics"))
+        }
+    }
+}
+
+/**
+ * Language + Distance Units pickers. Persists to CompanionSettings; the
+ * RoutingActivityCoordinator picks up the change on the next
+ * onSettingsOrRoutingChange call. Android 13+ also surfaces a per-app
+ * Language entry in system Settings via the locale_config.xml manifest.
+ */
+@Composable
+private fun LocaleSettingsSection(appState: CompanionAppState) {
+    val settings = appState.settings
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("locale-settings"),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.language.title"),
+            fontWeight = FontWeight.SemiBold,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().testTag("setting-language"),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            for (option in me.fiksu.esp32map.companion.integration.i18n.AppLanguagePref.entries) {
+                val labelKey = "settings.language.${option.name.lowercase()}"
+                Button(
+                    onClick = {
+                        appState.settings = appState.settings.copy(language = option)
+                        appState.persistSettings()
+                    },
+                    modifier = Modifier.weight(1f),
+                    enabled = settings.language != option,
+                ) {
+                    Text(me.fiksu.esp32map.companion.integration.i18n.Strings.t(labelKey))
+                }
+            }
+        }
+        Text(
+            me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.distanceUnit.title"),
+            fontWeight = FontWeight.SemiBold,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().testTag("setting-distanceUnit"),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            for (option in me.fiksu.esp32map.companion.integration.i18n.DistanceUnitPref.entries) {
+                val labelKey = "settings.distanceUnit.${option.name.lowercase()}"
+                Button(
+                    onClick = {
+                        appState.settings = appState.settings.copy(distanceUnit = option)
+                        appState.persistSettings()
+                    },
+                    modifier = Modifier.weight(1f),
+                    enabled = settings.distanceUnit != option,
+                ) {
+                    Text(me.fiksu.esp32map.companion.integration.i18n.Strings.t(labelKey))
+                }
+            }
+        }
     }
 }
 
@@ -894,8 +976,8 @@ private fun ActivitySettingsSection(appState: CompanionAppState) {
     ) {
         SettingToggleRow(
             testTag = "setting-keepScreenOn",
-            title = "Prevent screen from turning off",
-            subtitle = "Keeps the display awake while a route is active.",
+            title = me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.activity.keepScreenOn.title"),
+            subtitle = me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.activity.keepScreenOn.subtitle"),
             checked = settings.keepScreenOn,
             enabled = true,
             onChange = { next ->
@@ -905,8 +987,8 @@ private fun ActivitySettingsSection(appState: CompanionAppState) {
         )
         SettingToggleRow(
             testTag = "setting-allowBackgroundGps",
-            title = "Allow GPS in background",
-            subtitle = "Required for audio cues and lock-screen route status. Grant 'Allow all the time' when prompted.",
+            title = me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.activity.allowBackgroundGps.title"),
+            subtitle = me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.activity.allowBackgroundGps.subtitle"),
             checked = settings.allowBackgroundGps,
             enabled = true,
             onChange = { next ->
@@ -916,8 +998,8 @@ private fun ActivitySettingsSection(appState: CompanionAppState) {
         )
         SettingToggleRow(
             testTag = "setting-audioCuesEnabled",
-            title = "Audio cues",
-            subtitle = if (gpsOn) "Spoken turn-by-turn while you ride."
+            title = me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.activity.audioCues.title"),
+            subtitle = if (gpsOn) me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.activity.audioCues.subtitle")
             else "Requires GPS in background. Turn that on first.",
             checked = settings.audioCuesEnabled,
             enabled = gpsOn,
@@ -928,8 +1010,8 @@ private fun ActivitySettingsSection(appState: CompanionAppState) {
         )
         SettingToggleRow(
             testTag = "setting-liveActivityEnabled",
-            title = "Lock-screen live activity",
-            subtitle = if (gpsOn) "Show route status and next turn on your lock screen."
+            title = me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.activity.liveActivity.title"),
+            subtitle = if (gpsOn) me.fiksu.esp32map.companion.integration.i18n.Strings.t("settings.activity.liveActivity.subtitle")
             else "Requires GPS in background. Turn that on first.",
             checked = settings.liveActivityEnabled,
             enabled = gpsOn,

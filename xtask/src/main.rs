@@ -4,6 +4,8 @@ use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Stdio};
 
+mod i18n;
+
 fn main() {
     if let Err(error) = run(env::args().skip(1).collect()) {
         eprintln!("xtask error: {error}");
@@ -19,8 +21,9 @@ fn run(args: Vec<String>) -> Result<(), String> {
         Cli::DeployDevice { port, release } => run_deploy_device(&workspace, &port, release),
         Cli::CheckEspHalP4 => run_check_esp_hal_p4(),
         Cli::BuildC6Slave => run_build_c6_slave(&workspace),
+        Cli::I18n { args } => i18n::run(&args, &workspace.root),
         Cli::Stub { command } => Err(format!(
-            "{command} is not implemented yet; available commands: prepare-map, emu, bundle-device, deploy-device, check-esp-hal-p4, build-c6-slave"
+            "{command} is not implemented yet; available commands: prepare-map, emu, bundle-device, deploy-device, check-esp-hal-p4, build-c6-slave, i18n-gen, i18n-sync"
         )),
         Cli::Help => {
             print_help();
@@ -218,7 +221,10 @@ xtask commands:
   cargo xtask bundle-device [--debug]
   cargo xtask deploy-device --port <PORT> [--debug]
   cargo xtask build-c6-slave       # builds esp_hosted slave fw for the on-board ESP32-C6
-  cargo xtask check-esp-hal-p4     # checks whether esp-hal ecosystem has P4 support yet"
+  cargo xtask check-esp-hal-p4     # checks whether esp-hal ecosystem has P4 support yet
+  cargo xtask i18n-gen [--check]   # regenerate per-platform localization outputs
+  cargo xtask i18n-sync --locale <code> [--dry-run] [--budget-usd <N>]
+                                   # call OpenAI to fill missing translations"
     );
 }
 
@@ -484,6 +490,7 @@ enum Cli {
     DeployDevice { port: String, release: bool },
     CheckEspHalP4,
     BuildC6Slave,
+    I18n { args: Vec<String> },
     Stub { command: String },
     Help,
 }
@@ -499,12 +506,14 @@ fn parse_cli(args: &[String]) -> Result<Cli, String> {
         "deploy-device" => parse_deploy_device_args(&args[1..]),
         "check-esp-hal-p4" => Ok(Cli::CheckEspHalP4),
         "build-c6-slave" => Ok(Cli::BuildC6Slave),
+        // i18n-gen / i18n-sync / i18n-extract — dispatch into the i18n module.
+        c if c.starts_with("i18n-") => Ok(Cli::I18n { args: args.to_vec() }),
         "prepare-map" => Ok(Cli::Stub {
             command: command.clone(),
         }),
         "help" | "--help" | "-h" => Ok(Cli::Help),
         other => Err(format!(
-            "unknown command `{other}`; supported commands are prepare-map, emu, bundle-device, deploy-device"
+            "unknown command `{other}`; supported commands are prepare-map, emu, bundle-device, deploy-device, i18n-gen, i18n-sync"
         )),
     }
 }

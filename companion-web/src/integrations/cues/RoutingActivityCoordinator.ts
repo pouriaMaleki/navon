@@ -1,13 +1,19 @@
 import { autorun, type IReactionDisposer } from "mobx";
 import type { RootStore } from "../../app/RootStore.js";
+import {
+  resolveDistanceUnit,
+  resolveLocale,
+  setActiveLocale,
+  t,
+} from "../../i18n/index.js";
 import type { WebTtsService } from "../audio/WebTtsService.js";
 import type { LiveNotificationService } from "../notifications/LiveNotificationService.js";
 import type { WakeLockService } from "../screen/WakeLockService.js";
 import {
+  cueMessage,
   type CueEngineState,
   type CueManeuver,
   type CueSnapshot,
-  formatCueEvent,
   initialCueEngineState,
   type ManeuverKind,
   tickCueEngine,
@@ -43,6 +49,14 @@ export function startRoutingActivityCoordinator(
     const isRouting = guidance.homeMode === "phoneGuidance";
     const pairedWithDevice = false;
 
+    // Apply the user's language + distance preferences to the runtime so
+    // every `t(...)` call below renders correctly. resolveLocale falls
+    // back to navigator.languages when preference is "system".
+    const locale = resolveLocale(settings.language);
+    setActiveLocale(locale);
+    services.tts.setLang(locale);
+    const distanceMode = resolveDistanceUnit(settings.distanceUnit, locale);
+
     void services.wakeLock.update({
       keepScreenOn: settings.keepScreenOn,
       isRouting,
@@ -56,7 +70,8 @@ export function startRoutingActivityCoordinator(
       const result = tickCueEngine(snapshot, cueState);
       cueState = result.nextState;
       for (const event of result.events) {
-        services.tts.speak(formatCueEvent(event));
+        const msg = cueMessage(event, distanceMode);
+        services.tts.speak(t(msg.key, msg.values));
       }
     } else if (!isRouting) {
       cueState = initialCueEngineState();

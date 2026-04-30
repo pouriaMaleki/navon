@@ -14,24 +14,27 @@ struct SettingsHubView: View {
                     ActivitySettingsSection()
                 }
                 Section {
-                    NavigationLink("Routes") {
+                    LocaleSettingsSection()
+                }
+                Section {
+                    NavigationLink(T.string("settings.hub.routes")) {
                         RoutesSettingsView()
                     }
                     NavigationLink("Device") {
                         DeviceSettingsView()
                     }
-                    NavigationLink("Route Planner") {
+                    NavigationLink(T.string("settings.hub.routePlanner")) {
                         RoutePlannerSettingsView()
                     }
-                    NavigationLink("Import Diagnostics") {
+                    NavigationLink(T.string("settings.hub.importDiagnostics")) {
                         ImportDiagnosticsView()
                     }
                 }
             }
-            .navigationTitle("Settings")
+            .navigationTitle(T.string("settings.hub.title"))
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Done") { dismiss() }
+                    Button(T.string("common.close")) { dismiss() }
                 }
             }
         }
@@ -52,8 +55,8 @@ private struct ActivitySettingsSection: View {
                 }
             )) {
                 VStack(alignment: .leading) {
-                    Text("Prevent screen from turning off")
-                    Text("Keeps the display awake while a route is active.")
+                    Text(T.string("settings.activity.keepScreenOn.title"))
+                    Text(T.string("settings.activity.keepScreenOn.subtitle"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -71,8 +74,8 @@ private struct ActivitySettingsSection: View {
                 }
             )) {
                 VStack(alignment: .leading) {
-                    Text("Allow GPS in background")
-                    Text("Required for audio cues and lock-screen route status. Pick \"Always\" when prompted.")
+                    Text(T.string("settings.activity.allowBackgroundGps.title"))
+                    Text(T.string("settings.activity.allowBackgroundGps.subtitle"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     if appModel.locationManualSettingsHint {
@@ -92,9 +95,9 @@ private struct ActivitySettingsSection: View {
                 }
             )) {
                 VStack(alignment: .leading) {
-                    Text("Audio cues")
+                    Text(T.string("settings.activity.audioCues.title"))
                     Text(gpsOn
-                         ? "Spoken turn-by-turn while you ride."
+                         ? T.string("settings.activity.audioCues.subtitle")
                          : "Requires GPS in background. Turn that on first.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -111,9 +114,9 @@ private struct ActivitySettingsSection: View {
                 }
             )) {
                 VStack(alignment: .leading) {
-                    Text("Lock-screen live activity")
+                    Text(T.string("settings.activity.liveActivity.title"))
                     Text(gpsOn
-                         ? "Show route status and next turn on your lock screen."
+                         ? T.string("settings.activity.liveActivity.subtitle")
                          : "Requires GPS in background. Turn that on first.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -123,5 +126,52 @@ private struct ActivitySettingsSection: View {
             .accessibilityIdentifier("setting-liveActivityEnabled")
         }
         .accessibilityIdentifier("activity-settings")
+    }
+}
+
+/// Language + Distance Units pickers. iOS 17 picks them up automatically
+/// from system Settings (Per-App Language Preferences) given the
+/// CFBundleLocalizations + CFBundleAllowMixedLocalizations entries in
+/// Info.plist; this in-app picker writes the same preference.
+private struct LocaleSettingsSection: View {
+    @EnvironmentObject private var appModel: AppModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Picker(selection: Binding(
+                get: { appModel.settings.language },
+                set: { newValue in
+                    appModel.settings.language = newValue
+                    appModel.persistSettings()
+                }
+            )) {
+                Text(T.string("settings.language.system")).tag(AppLanguage.system)
+                Text(T.string("settings.language.en")).tag(AppLanguage.en)
+                Text(T.string("settings.language.fi")).tag(AppLanguage.fi)
+            } label: {
+                VStack(alignment: .leading) {
+                    Text(T.string("settings.language.title"))
+                    Text(T.string("settings.language.subtitle"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .accessibilityIdentifier("setting-language")
+
+            Picker(selection: Binding(
+                get: { appModel.settings.distanceUnit },
+                set: { newValue in
+                    appModel.settings.distanceUnit = newValue
+                    appModel.persistSettings()
+                }
+            )) {
+                Text(T.string("settings.distanceUnit.system")).tag(DistanceUnitPref.system)
+                Text(T.string("settings.distanceUnit.metric")).tag(DistanceUnitPref.metric)
+                Text(T.string("settings.distanceUnit.imperial")).tag(DistanceUnitPref.imperial)
+            } label: {
+                Text(T.string("settings.distanceUnit.title"))
+            }
+            .accessibilityIdentifier("setting-distanceUnit")
+        }
     }
 }

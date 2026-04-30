@@ -523,7 +523,7 @@ struct CompanionHomeView: View {
             HStack(spacing: 12) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
-                TextField("Where to?", text: Binding(
+                TextField(T.string("home.whereTo"), text: Binding(
                     get: { viewModel.query },
                     set: { newValue in
                         viewModel.openSearch()
@@ -723,7 +723,7 @@ struct CompanionHomeView: View {
             HStack(spacing: 12) {
                 ProgressView()
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Working on route")
+                    Text(T.string("home.workingOnRoute"))
                         .font(.headline)
                     Text(viewModel.planningStatus ?? appModel.importActivityStatus ?? "Planning route…")
                         .font(.subheadline)
@@ -745,7 +745,7 @@ struct CompanionHomeView: View {
                 Text(viewModel.routeSuggestionsTitle)
                     .font(.headline)
                 Spacer()
-                Button("Close") {
+                Button(T.string("common.close")) {
                     isSearchFieldFocused = false
                     viewModel.clearPreview()
                 }

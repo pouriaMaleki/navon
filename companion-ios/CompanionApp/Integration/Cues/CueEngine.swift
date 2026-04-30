@@ -189,58 +189,103 @@ enum CueEngine {
         return Result(events: events, nextState: s)
     }
 
-    static func format(_ event: CueEvent) -> String {
+    /// Locale-agnostic structured cue: a catalog key + ICU placeholder
+    /// values. Wiring layers feed this to `T.string(key, args)` against
+    /// the active locale; parity tests render via `T.stringIn(.en, ...)`.
+    struct CueMessage: Equatable {
+        let key: String
+        let args: [String: String]
+        let numericArgs: [String: Double]
+
+        /// Convert to the `[String: MessageValue]` map consumed by `T.string`.
+        var values: [String: MessageValue] {
+            var out: [String: MessageValue] = [:]
+            for (k, v) in args { out[k] = .string(v) }
+            for (k, v) in numericArgs { out[k] = .number(v) }
+            return out
+        }
+    }
+
+    /// Map a `CueEvent` to its (key, values) tuple. `distanceMode`
+    /// chooses metric vs imperial for spoken distance values.
+    static func cueMessage(_ event: CueEvent, distanceMode: DistanceMode = .metric) -> CueMessage {
         switch event {
-        case .routeStarted: return "Route started"
-        case .turn50m(let k): return "In 50 meters, \(turnVerb(k))"
-        case .turn10m(let k): return turnImperative(k)
+        case .routeStarted:
+            return CueMessage(key: "cue.routeStarted", args: [:], numericArgs: [:])
+        case .turn50m(let k):
+            let pair = distanceCueValues(50, mode: distanceMode)
+            return CueMessage(
+                key: "cue.turn50m.\(maneuverSlug(k))",
+                args: ["distanceUnit": pair.unit],
+                numericArgs: ["distance": pair.distance]
+            )
+        case .turn10m(let k):
+            return CueMessage(key: "cue.turn10m.\(maneuverSlug(k))", args: [:], numericArgs: [:])
         case .nextTurnInAbout(let k, let d):
-            return "Next turn \(turnDirectionWord(k)) in about \(roundTo10(d)) meters"
+            let pair = distanceCueValues(d, mode: distanceMode)
+            return CueMessage(
+                key: "cue.nextTurnInAbout.\(nextTurnDirection(k))",
+                args: ["distanceUnit": pair.unit],
+                numericArgs: ["distance": pair.distance]
+            )
         case .arrivingInM(let d):
-            return "Arriving at your destination in \(roundTo10(d)) meters"
-        case .arrived: return "You have arrived at your destination"
-        case .offTrack, .repeatedOffTrackSilence: return "Off track"
-        case .rerouting: return "Rerouting"
-        case .onTrack: return "On track"
+            let pair = distanceCueValues(d, mode: distanceMode)
+            return CueMessage(
+                key: "cue.arrivingInM",
+                args: ["distanceUnit": pair.unit],
+                numericArgs: ["distance": pair.distance]
+            )
+        case .arrived:
+            return CueMessage(key: "cue.arrived", args: [:], numericArgs: [:])
+        case .offTrack, .repeatedOffTrackSilence:
+            return CueMessage(key: "cue.offTrack", args: [:], numericArgs: [:])
+        case .rerouting:
+            return CueMessage(key: "cue.rerouting", args: [:], numericArgs: [:])
+        case .onTrack:
+            return CueMessage(key: "cue.onTrack", args: [:], numericArgs: [:])
         }
     }
 
-    private static func turnVerb(_ k: ManeuverKind) -> String {
+    /// Legacy English formatter — kept as the exact-byte path that
+    /// existing tests assert against. New call sites should go through
+    /// `cueMessage(_:)` + `T.string(_:_:)` instead.
+    static func format(_ event: CueEvent) -> String {
+        let msg = cueMessage(event, distanceMode: .metric)
+        return T.stringIn(.en, msg.key, msg.values)
+    }
+
+    private static func maneuverSlug(_ k: ManeuverKind) -> String {
         switch k {
-        case .left: return "turn left"
-        case .right: return "turn right"
-        case .keepLeft: return "keep left"
-        case .keepRight: return "keep right"
-        case .exitLeft: return "take the left exit"
-        case .exitRight: return "take the right exit"
-        case .uturn: return "make a U-turn"
-        case .generic: return "follow the route"
+        case .left: return "left"
+        case .right: return "right"
+        case .keepLeft: return "keepLeft"
+        case .keepRight: return "keepRight"
+        case .exitLeft: return "exitLeft"
+        case .exitRight: return "exitRight"
+        case .uturn: return "uturn"
+        case .generic: return "generic"
         }
     }
 
-    private static func turnImperative(_ k: ManeuverKind) -> String {
-        switch k {
-        case .left: return "Turn left"
-        case .right: return "Turn right"
-        case .keepLeft: return "Keep left"
-        case .keepRight: return "Keep right"
-        case .exitLeft: return "Take the left exit"
-        case .exitRight: return "Take the right exit"
-        case .uturn: return "Make a U-turn"
-        case .generic: return "Follow the route"
-        }
-    }
-
-    private static func turnDirectionWord(_ k: ManeuverKind) -> String {
+    /// Collapse 8 maneuver kinds into the 4 directions the
+    /// `cue.nextTurnInAbout.*` catalog supports.
+    private static func nextTurnDirection(_ k: ManeuverKind) -> String {
         switch k {
         case .left, .keepLeft, .exitLeft: return "left"
         case .right, .keepRight, .exitRight: return "right"
-        case .uturn: return "u-turn"
-        case .generic: return "ahead"
+        case .uturn: return "uturn"
+        case .generic: return "generic"
         }
     }
 
-    private static func roundTo10(_ meters: Double) -> Int {
-        Int((meters / 10.0).rounded()) * 10
+    private static func distanceCueValues(_ meters: Double, mode: DistanceMode) -> (distance: Double, unit: String) {
+        switch mode {
+        case .imperial:
+            let ft = Double(DistanceFormatter.roundTo10(meters * 3.280839895))
+            return (ft, "feet")
+        case .metric:
+            let m = Double(DistanceFormatter.roundTo10(meters))
+            return (m, "meters")
+        }
     }
 }

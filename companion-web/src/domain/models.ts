@@ -197,6 +197,8 @@ export type PendingHomePresentation = {
 };
 
 export type SpeedUnit = "kph" | "mph";
+export type AppLanguagePref = "system" | "en" | "fi";
+export type DistanceUnitPref = "system" | "metric" | "imperial";
 
 export type CompanionSettings = {
   preferLiveHslRouting: boolean;
@@ -240,6 +242,17 @@ export type CompanionSettings = {
    * Notification. Disabled in the UI until allowBackgroundGps is on.
    */
   liveActivityEnabled: boolean;
+  /**
+   * App language. `"system"` follows `navigator.languages`. Concrete values
+   * (`"en"`, `"fi"`) override the OS default. New shipped locales must be
+   * added to both this union and `i18n/catalog.config.json`.
+   */
+  language: AppLanguagePref;
+  /**
+   * Distance unit used for both UI labels and spoken voice cues. `"system"`
+   * derives from the resolved locale (en-US → imperial, otherwise metric).
+   */
+  distanceUnit: DistanceUnitPref;
 };
 
 export const DEFAULT_COMPANION_SETTINGS: CompanionSettings = {
@@ -253,6 +266,8 @@ export const DEFAULT_COMPANION_SETTINGS: CompanionSettings = {
   allowBackgroundGps: false,
   audioCuesEnabled: true,
   liveActivityEnabled: false,
+  language: "system",
+  distanceUnit: "system",
 };
 
 export type RoutePlannerPreferences = {

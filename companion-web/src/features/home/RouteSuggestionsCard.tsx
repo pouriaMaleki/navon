@@ -5,10 +5,12 @@ import {
   selectedAlternative,
   summaryLine,
 } from "../../domain/models.js";
+import { useT } from "../../i18n/useT.js";
 
 type Props = { store: RootStore };
 
 export const RouteSuggestionsCard = observer(({ store }: Props) => {
+  const t = useT(store);
   const planning = store.planningStore;
   const limit = store.settingsStore.plannerPreferences.suggestionMode === "bestOnly" ? 1 : 3;
   const alternatives = planning.preview.alternatives.slice(0, limit);
@@ -20,13 +22,13 @@ export const RouteSuggestionsCard = observer(({ store }: Props) => {
   return (
     <div className="card suggestions-card">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div className="list-row__title">Route options</div>
+        <div className="list-row__title">{t("home.routeOptions")}</div>
         <button
           type="button"
           onClick={() => planning.clearPreview()}
           style={{ color: "var(--fg-soft)", fontWeight: 600 }}
         >
-          Close
+          {t("common.close")}
         </button>
       </div>
       {planning.preview.planningNotice ? (
@@ -82,7 +84,7 @@ export const RouteSuggestionsCard = observer(({ store }: Props) => {
         onClick={() => store.guidanceStore.startSelectedRoute()}
         disabled={alternatives.length === 0}
       >
-        Start
+        {t("home.start")}
       </button>
     </div>
   );

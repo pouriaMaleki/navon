@@ -109,7 +109,17 @@ final class AppModel: ObservableObject {
         // never reopens the app to a "nothing is happening" home.
         liveActivityPort.endAllOutstanding()
 
-        settings = persistence.loadSettings()
+        let loadedSettings = persistence.loadSettings()
+        settings = loadedSettings
+        // Push the persisted language preference to the i18n runtime before
+        // any view renders. Without this, T.string(...) defaults to .en
+        // until the user opens routing (which is when
+        // RoutingActivityCoordinator first calls setActiveLocale), so the
+        // very first paint of every screen is English even when the user
+        // picked Suomi. Read from the local rather than `self.settings`
+        // because Swift won't let init access `self` until every stored
+        // property is initialized.
+        T.setActiveLocale(T.resolveLocale(loadedSettings.language))
         let preferences = persistence.loadRoutePlannerPreferences()
         currentSourceMode = preferences.defaultSourceMode
         if let storedSession = persistence.loadLastSession() {
@@ -286,6 +296,11 @@ final class AppModel: ObservableObject {
     }
 
     func persistSettings() {
+        // Apply the language preference to the i18n runtime synchronously so
+        // the next view repaint uses the new locale; otherwise the picker
+        // change wouldn't visibly update strings until the user kicked
+        // routing or relaunched.
+        T.setActiveLocale(T.resolveLocale(settings.language))
         persistence.saveSettings(settings)
         normalizeSourceModeForHslAvailability()
         syncRoutingActivityServices()
@@ -800,7 +815,7 @@ final class AppModel: ObservableObject {
         if effectivePreviews.count < previews.count {
             return "Showing live routes while sample fallback providers are hidden."
         }
-        return "Mixed routes from HSL and OSM"
+        return T.string("planning.mixedRoutesFromHslAndOsm")
     }
 
     private func mergeMixedAlternatives(_ alternatives: [RouteAlternative]) -> [RouteAlternative] {

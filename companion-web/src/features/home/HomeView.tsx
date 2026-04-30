@@ -2,6 +2,7 @@ import { reaction } from "mobx";
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef } from "react";
 import type { RootStore } from "../../app/RootStore.js";
+import { useT } from "../../i18n/useT.js";
 import { formatSpeedLabel } from "../../integrations/speed.js";
 import { ActiveGuidanceCard } from "./ActiveGuidanceCard.js";
 import { MapSurface } from "./MapSurface.js";
@@ -159,6 +160,7 @@ const LocationBanner = observer(({ store }: { store: RootStore }) => {
 });
 
 const TopOverlay = observer(({ store }: { store: RootStore }) => {
+  const t = useT(store);
   const planning = store.planningStore;
   const guidance = store.guidanceStore;
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -217,7 +219,7 @@ const TopOverlay = observer(({ store }: { store: RootStore }) => {
         <span aria-hidden>🔍</span>
         <input
           type="text"
-          placeholder="Where to?"
+          placeholder={t("home.whereTo")}
           value={planning.query}
           onChange={(event) => {
             planning.openSearch();

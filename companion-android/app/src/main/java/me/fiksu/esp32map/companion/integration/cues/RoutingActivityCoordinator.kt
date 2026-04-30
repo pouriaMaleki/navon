@@ -3,6 +3,7 @@ package me.fiksu.esp32map.companion.integration.cues
 import android.content.Context
 import me.fiksu.esp32map.companion.domain.CompanionSettings
 import me.fiksu.esp32map.companion.integration.audio.TtsPort
+import me.fiksu.esp32map.companion.integration.i18n.Strings
 import me.fiksu.esp32map.companion.integration.notifications.RoutingForegroundService
 import me.fiksu.esp32map.companion.integration.screen.KeepScreenOnController
 
@@ -34,6 +35,13 @@ class RoutingActivityCoordinator(
         title: String,
         body: String,
     ) {
+        // Push the user's language preference to the i18n runtime + TTS so
+        // subsequent `Strings.t(...)` calls and the next utterance render
+        // in the chosen locale.
+        val locale = Strings.resolveLocale(settings.language)
+        Strings.setActiveLocale(locale)
+        tts.setLanguage(locale.tag)
+
         keepScreenOn.update(settings.keepScreenOn && isRouting)
 
         val cuesActive = isRouting &&
@@ -66,8 +74,10 @@ class RoutingActivityCoordinator(
         if (!cuesActive) return
         val result = CueEngine.tick(snapshot, cueState)
         cueState = result.nextState
+        val distanceMode = Strings.resolveDistanceUnit(settings.distanceUnit)
         for (event in result.events) {
-            tts.speak(CueEngine.format(event))
+            val msg = CueEngine.cueMessage(event, distanceMode)
+            tts.speak(Strings.t(msg.key, msg.values))
         }
     }
 }

@@ -62,7 +62,13 @@ final class HomeViewModel: ObservableObject {
             return
         }
 
-        syncQueryFromCurrentPreview()
+        // Intentionally NOT calling syncQueryFromCurrentPreview() on cold
+        // launch: prefilling the "Where to?" field with the last persisted
+        // destination is confusing for riders who killed the app and just
+        // want to plan a new route. The function itself stays as a public
+        // utility for places where prefilling IS desired (none today, but
+        // the unit tests in HomeViewModelQueryInitTests still pin its
+        // behaviour for future reuse).
     }
 
     @Published var query = ""
@@ -276,7 +282,9 @@ final class HomeViewModel: ObservableObject {
     }
 
     var routeSuggestionsTitle: String {
-        isPreviewLockedToImportedRoute ? "Imported route" : "Suggested routes"
+        isPreviewLockedToImportedRoute
+            ? T.string("home.importedRoute")
+            : T.string("home.suggestedRoutes")
     }
 
     var isShowingActiveNavigation: Bool {
@@ -286,11 +294,13 @@ final class HomeViewModel: ObservableObject {
     var startButtonTitle: String {
         switch homeMode {
         case .sendingToDevice:
-            return "Starting on device…"
+            return T.string("home.startingOnDevice")
         case .planning:
-            return appModel.isDeviceConnected ? "Start on device" : "Start"
+            return appModel.isDeviceConnected
+                ? T.string("home.startOnDevice")
+                : T.string("home.start")
         case .phoneGuidance, .deviceOverview:
-            return "Start"
+            return T.string("home.start")
         }
     }
 

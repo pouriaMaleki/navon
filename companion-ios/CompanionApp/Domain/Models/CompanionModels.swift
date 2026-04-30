@@ -248,6 +248,14 @@ struct CompanionSettings: Equatable, Codable {
     var audioCuesEnabled: Bool
     /// Lock-screen Live Activity (ActivityKit). Gated on `allowBackgroundGps`.
     var liveActivityEnabled: Bool
+    /// App language preference. `.system` follows
+    /// `Bundle.main.preferredLocalizations`; concrete cases override it.
+    /// New shipped locales must be added to both `AppLanguage` and
+    /// `i18n/catalog.config.json:locales`.
+    var language: AppLanguage
+    /// Distance unit used for both UI labels and spoken voice cues.
+    /// `.system` resolves at format time from the user's locale.
+    var distanceUnit: DistanceUnitPref
 
     static let defaults = CompanionSettings(
         preferLiveHslRouting: false,
@@ -259,7 +267,9 @@ struct CompanionSettings: Equatable, Codable {
         keepScreenOn: false,
         allowBackgroundGps: false,
         audioCuesEnabled: true,
-        liveActivityEnabled: false
+        liveActivityEnabled: false,
+        language: .system,
+        distanceUnit: .system
     )
 
     /// Tolerant decode so existing on-disk settings (no `cyclingSpeedKph` /
@@ -286,6 +296,10 @@ struct CompanionSettings: Equatable, Codable {
             ?? Self.defaults.audioCuesEnabled
         self.liveActivityEnabled = try container.decodeIfPresent(Bool.self, forKey: .liveActivityEnabled)
             ?? Self.defaults.liveActivityEnabled
+        self.language = try container.decodeIfPresent(AppLanguage.self, forKey: .language)
+            ?? Self.defaults.language
+        self.distanceUnit = try container.decodeIfPresent(DistanceUnitPref.self, forKey: .distanceUnit)
+            ?? Self.defaults.distanceUnit
     }
 
     init(
@@ -298,7 +312,9 @@ struct CompanionSettings: Equatable, Codable {
         keepScreenOn: Bool = false,
         allowBackgroundGps: Bool = false,
         audioCuesEnabled: Bool = true,
-        liveActivityEnabled: Bool = false
+        liveActivityEnabled: Bool = false,
+        language: AppLanguage = .system,
+        distanceUnit: DistanceUnitPref = .system
     ) {
         self.preferLiveHslRouting = preferLiveHslRouting
         self.hslSubscriptionKey = hslSubscriptionKey
@@ -310,6 +326,8 @@ struct CompanionSettings: Equatable, Codable {
         self.allowBackgroundGps = allowBackgroundGps
         self.audioCuesEnabled = audioCuesEnabled
         self.liveActivityEnabled = liveActivityEnabled
+        self.language = language
+        self.distanceUnit = distanceUnit
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -323,6 +341,8 @@ struct CompanionSettings: Equatable, Codable {
         case allowBackgroundGps
         case audioCuesEnabled
         case liveActivityEnabled
+        case language
+        case distanceUnit
     }
 }
 

@@ -6,6 +6,7 @@ import os.log
 /// any other implementation) instead.
 protocol SpeechPort: AnyObject {
     func speak(_ text: String)
+    func setLanguage(_ bcp47: String)
     func shutdown()
 }
 
@@ -33,9 +34,19 @@ final class SpeechService: SpeechPort {
     /// this the synthesizer has a category but no active route, so it
     /// produces no sound on real hardware.
     private(set) var hasActivatedAudioSessionRouting: Bool = false
+    /// BCP-47 tag of the active locale. The wiring layer calls
+    /// `setLanguage(_:)` whenever the user's language preference changes.
+    /// Defaults to the device's TTS language so first-launch behaviour
+    /// matches the prior implementation.
+    private var activeLanguage: String = AVSpeechSynthesisVoice.currentLanguageCode()
 
     init() {
         Self.log.info("SpeechService.init — synthesizer + audio session deferred until first speak()")
+    }
+
+    func setLanguage(_ bcp47: String) {
+        Self.log.info("setLanguage(\(bcp47, privacy: .public))")
+        activeLanguage = bcp47
     }
 
     func speak(_ text: String) {
@@ -46,7 +57,11 @@ final class SpeechService: SpeechPort {
             synth.stopSpeaking(at: .immediate)
         }
         let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: AVSpeechSynthesisVoice.currentLanguageCode())
+        // Picks the OS's preferred voice for `activeLanguage`. If no voice
+        // is installed for that language, AVFoundation silently falls back
+        // to the default voice — the UI surfaces a hint when no matching
+        // voice exists (see Settings → voiceNotInstalled).
+        utterance.voice = AVSpeechSynthesisVoice(language: activeLanguage)
         synth.speak(utterance)
         #if os(iOS)
         let session = AVAudioSession.sharedInstance()

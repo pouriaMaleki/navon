@@ -5,6 +5,7 @@ import {
   DEFAULT_PLANNER_PREFERENCES,
   type RoutePlannerPreferences,
 } from "../domain/models.js";
+import { resolveLocale, setActiveLocale } from "../i18n/index.js";
 import type { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
 
 export class SettingsStore {
@@ -14,11 +15,17 @@ export class SettingsStore {
   constructor(private readonly persistence: LocalStoragePersistence) {
     this.settings = persistence.loadSettings();
     this.plannerPreferences = persistence.loadPlannerPreferences();
+    // Apply the persisted language preference to the i18n runtime before any
+    // components render, so the very first paint uses the right locale.
+    setActiveLocale(resolveLocale(this.settings.language));
     makeAutoObservable(this, { snapshotForAdapter: false }, { autoBind: true });
   }
 
   updateSettings(patch: Partial<CompanionSettings>): void {
     this.settings = { ...this.settings, ...patch };
+    if ("language" in patch) {
+      setActiveLocale(resolveLocale(this.settings.language));
+    }
     this.persistence.saveSettings(this.settings);
     // If HSL just became unavailable, normalize the default-source preference to OSM
     // (mixed/hsl only make sense when HSL is configured).

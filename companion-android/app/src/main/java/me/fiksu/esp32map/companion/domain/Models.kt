@@ -199,6 +199,20 @@ data class CompanionSettings(
      * route status. Gated on `allowBackgroundGps`.
      */
     val liveActivityEnabled: Boolean = false,
+    /**
+     * App language preference. SYSTEM follows `Locale.getDefault()`;
+     * concrete cases override. Mirrors web/iOS settings; new shipped
+     * locales must be added to `AppLanguagePref`, the `i18n/catalog.config.json`
+     * locales array, and the `res/xml/locale_config.xml` list.
+     */
+    val language: me.fiksu.esp32map.companion.integration.i18n.AppLanguagePref =
+        me.fiksu.esp32map.companion.integration.i18n.AppLanguagePref.SYSTEM,
+    /**
+     * Distance unit used for both UI labels and spoken voice cues.
+     * SYSTEM resolves at format time from the user's region.
+     */
+    val distanceUnit: me.fiksu.esp32map.companion.integration.i18n.DistanceUnitPref =
+        me.fiksu.esp32map.companion.integration.i18n.DistanceUnitPref.SYSTEM,
 )
 
 data class RouteAlternative(

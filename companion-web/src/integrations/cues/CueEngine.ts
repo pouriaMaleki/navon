@@ -239,73 +239,69 @@ export function tickCueEngine(
   };
 }
 
-export function formatCueEvent(event: CueEvent): string {
+import { distanceCueValues, type DistanceMode } from "../../i18n/formatDistance.js";
+import type { MessageValues } from "../../i18n/messageFormat.js";
+import { tIn } from "../../i18n/index.js";
+
+/** Structured cue: an i18n catalog key + ICU placeholder values. The wiring
+ *  layer feeds these to `t(key, values)` against the active locale; tests
+ *  can resolve them against any locale. */
+export type CueMessage = { key: string; values: MessageValues };
+
+/**
+ * Produce the structured (key, values) tuple for a `CueEvent`. This is the
+ * locale-agnostic seam: the cue engine emits events; this maps them to
+ * catalog keys + ICU placeholder bundles. The runtime renders via
+ * `t(msg.key, msg.values)`; parity tests render via `tIn("en", ...)`.
+ *
+ * `distanceMode` selects metric/imperial for spoken distance values.
+ */
+export function cueMessage(event: CueEvent, distanceMode: DistanceMode = "metric"): CueMessage {
   switch (event.kind) {
     case "routeStarted":
-      return "Route started";
+      return { key: "cue.routeStarted", values: {} };
     case "turn50m":
-      return `In 50 meters, ${turnVerbPhrase(event.turnKind)}`;
+      return {
+        key: `cue.turn50m.${event.turnKind}`,
+        values: distanceCueValues(50, distanceMode),
+      };
     case "turn10m":
-      return turnImperativePhrase(event.turnKind);
+      return { key: `cue.turn10m.${event.turnKind}`, values: {} };
     case "nextTurnInAbout":
-      return `Next turn ${turnDirectionWord(event.turnKind)} in about ${roundTo10(event.distanceM)} meters`;
+      return {
+        key: `cue.nextTurnInAbout.${nextTurnDirection(event.turnKind)}`,
+        values: distanceCueValues(event.distanceM, distanceMode),
+      };
     case "arrivingInM":
-      return `Arriving at your destination in ${roundTo10(event.distanceM)} meters`;
+      return {
+        key: "cue.arrivingInM",
+        values: distanceCueValues(event.distanceM, distanceMode),
+      };
     case "arrived":
-      return "You have arrived at your destination";
+      return { key: "cue.arrived", values: {} };
     case "offTrack":
     case "repeatedOffTrackSilence":
-      return "Off track";
+      return { key: "cue.offTrack", values: {} };
     case "rerouting":
-      return "Rerouting";
+      return { key: "cue.rerouting", values: {} };
     case "onTrack":
-      return "On track";
+      return { key: "cue.onTrack", values: {} };
   }
 }
 
-function turnVerbPhrase(kind: ManeuverKind): string {
-  switch (kind) {
-    case "left":
-      return "turn left";
-    case "right":
-      return "turn right";
-    case "keepLeft":
-      return "keep left";
-    case "keepRight":
-      return "keep right";
-    case "exitLeft":
-      return "take the left exit";
-    case "exitRight":
-      return "take the right exit";
-    case "uturn":
-      return "make a U-turn";
-    case "generic":
-      return "follow the route";
-  }
+/**
+ * Legacy English formatter — kept as the exact-byte path that existing
+ * cue-engine tests assert against. New call sites should go through
+ * `cueMessage(event)` + the active-locale `t(...)` instead.
+ */
+export function formatCueEvent(event: CueEvent): string {
+  const { key, values } = cueMessage(event, "metric");
+  return tIn("en", key, values);
 }
 
-function turnImperativePhrase(kind: ManeuverKind): string {
-  switch (kind) {
-    case "left":
-      return "Turn left";
-    case "right":
-      return "Turn right";
-    case "keepLeft":
-      return "Keep left";
-    case "keepRight":
-      return "Keep right";
-    case "exitLeft":
-      return "Take the left exit";
-    case "exitRight":
-      return "Take the right exit";
-    case "uturn":
-      return "Make a U-turn";
-    case "generic":
-      return "Follow the route";
-  }
-}
-
-function turnDirectionWord(kind: ManeuverKind): string {
+/** Collapse the 8 maneuver kinds into the 4 directions the
+ *  `cue.nextTurnInAbout.*` catalog supports. */
+function nextTurnDirection(kind: ManeuverKind): "left" | "right" | "uturn" | "generic" {
   switch (kind) {
     case "left":
     case "keepLeft":
@@ -316,12 +312,8 @@ function turnDirectionWord(kind: ManeuverKind): string {
     case "exitRight":
       return "right";
     case "uturn":
-      return "u-turn";
+      return "uturn";
     case "generic":
-      return "ahead";
+      return "generic";
   }
-}
-
-function roundTo10(meters: number): number {
-  return Math.round(meters / 10) * 10;
 }

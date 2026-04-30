@@ -7,7 +7,9 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
 
     final class SpeechSpy: SpeechPort {
         private(set) var spoken: [String] = []
+        private(set) var lang: String = "en"
         func speak(_ text: String) { spoken.append(text) }
+        func setLanguage(_ bcp47: String) { lang = bcp47 }
         func shutdown() {}
     }
 

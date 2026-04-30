@@ -199,48 +199,74 @@ object CueEngine {
         )
     }
 
-    fun format(event: CueEvent): String = when (event) {
-        is CueEvent.RouteStarted -> "Route started"
-        is CueEvent.Turn50m -> "In 50 meters, ${turnVerb(event.turnKind)}"
-        is CueEvent.Turn10m -> turnImperative(event.turnKind)
-        is CueEvent.NextTurnInAbout ->
-            "Next turn ${turnDirectionWord(event.turnKind)} in about ${roundTo10(event.distanceM)} meters"
-        is CueEvent.ArrivingInM ->
-            "Arriving at your destination in ${roundTo10(event.distanceM)} meters"
-        is CueEvent.Arrived -> "You have arrived at your destination"
-        is CueEvent.OffTrack, is CueEvent.RepeatedOffTrackSilence -> "Off track"
-        is CueEvent.Rerouting -> "Rerouting"
-        is CueEvent.OnTrack -> "On track"
+    /** Locale-agnostic structured cue: a catalog key + ICU placeholder
+     *  values. The wiring layer feeds this to `Strings.t(key, args)`
+     *  against the active locale; parity tests render via `Strings.tIn`. */
+    data class CueMessage(val key: String, val values: Map<String, Any>)
+
+    /** Map a `CueEvent` to its (key, values) tuple. `distanceMode` chooses
+     *  metric vs imperial for spoken distance values. */
+    fun cueMessage(
+        event: CueEvent,
+        distanceMode: me.fiksu.esp32map.companion.integration.i18n.DistanceMode =
+            me.fiksu.esp32map.companion.integration.i18n.DistanceMode.METRIC,
+    ): CueMessage = when (event) {
+        is CueEvent.RouteStarted -> CueMessage("cue.routeStarted", emptyMap())
+        is CueEvent.Turn50m -> CueMessage(
+            "cue.turn50m.${maneuverSlug(event.turnKind)}",
+            me.fiksu.esp32map.companion.integration.i18n.DistanceFormatter
+                .cueValues(50.0, distanceMode),
+        )
+        is CueEvent.Turn10m -> CueMessage(
+            "cue.turn10m.${maneuverSlug(event.turnKind)}",
+            emptyMap(),
+        )
+        is CueEvent.NextTurnInAbout -> CueMessage(
+            "cue.nextTurnInAbout.${nextTurnDirection(event.turnKind)}",
+            me.fiksu.esp32map.companion.integration.i18n.DistanceFormatter
+                .cueValues(event.distanceM, distanceMode),
+        )
+        is CueEvent.ArrivingInM -> CueMessage(
+            "cue.arrivingInM",
+            me.fiksu.esp32map.companion.integration.i18n.DistanceFormatter
+                .cueValues(event.distanceM, distanceMode),
+        )
+        is CueEvent.Arrived -> CueMessage("cue.arrived", emptyMap())
+        is CueEvent.OffTrack, is CueEvent.RepeatedOffTrackSilence ->
+            CueMessage("cue.offTrack", emptyMap())
+        is CueEvent.Rerouting -> CueMessage("cue.rerouting", emptyMap())
+        is CueEvent.OnTrack -> CueMessage("cue.onTrack", emptyMap())
     }
 
-    private fun turnVerb(kind: ManeuverKind): String = when (kind) {
-        ManeuverKind.LEFT -> "turn left"
-        ManeuverKind.RIGHT -> "turn right"
-        ManeuverKind.KEEP_LEFT -> "keep left"
-        ManeuverKind.KEEP_RIGHT -> "keep right"
-        ManeuverKind.EXIT_LEFT -> "take the left exit"
-        ManeuverKind.EXIT_RIGHT -> "take the right exit"
-        ManeuverKind.UTURN -> "make a U-turn"
-        ManeuverKind.GENERIC -> "follow the route"
+    /** Legacy English formatter — kept as the exact-byte path that
+     *  existing tests assert against. New call sites should go through
+     *  `cueMessage(event)` + `Strings.t(...)` instead. */
+    fun format(event: CueEvent): String {
+        val msg = cueMessage(event, me.fiksu.esp32map.companion.integration.i18n.DistanceMode.METRIC)
+        return me.fiksu.esp32map.companion.integration.i18n.Strings.tIn(
+            me.fiksu.esp32map.companion.integration.i18n.SupportedLocale.EN,
+            msg.key,
+            msg.values,
+        )
     }
 
-    private fun turnImperative(kind: ManeuverKind): String = when (kind) {
-        ManeuverKind.LEFT -> "Turn left"
-        ManeuverKind.RIGHT -> "Turn right"
-        ManeuverKind.KEEP_LEFT -> "Keep left"
-        ManeuverKind.KEEP_RIGHT -> "Keep right"
-        ManeuverKind.EXIT_LEFT -> "Take the left exit"
-        ManeuverKind.EXIT_RIGHT -> "Take the right exit"
-        ManeuverKind.UTURN -> "Make a U-turn"
-        ManeuverKind.GENERIC -> "Follow the route"
+    private fun maneuverSlug(kind: ManeuverKind): String = when (kind) {
+        ManeuverKind.LEFT -> "left"
+        ManeuverKind.RIGHT -> "right"
+        ManeuverKind.KEEP_LEFT -> "keepLeft"
+        ManeuverKind.KEEP_RIGHT -> "keepRight"
+        ManeuverKind.EXIT_LEFT -> "exitLeft"
+        ManeuverKind.EXIT_RIGHT -> "exitRight"
+        ManeuverKind.UTURN -> "uturn"
+        ManeuverKind.GENERIC -> "generic"
     }
 
-    private fun turnDirectionWord(kind: ManeuverKind): String = when (kind) {
+    /** Collapse 8 maneuver kinds into the 4 directions the
+     *  `cue.nextTurnInAbout.*` catalog supports. */
+    private fun nextTurnDirection(kind: ManeuverKind): String = when (kind) {
         ManeuverKind.LEFT, ManeuverKind.KEEP_LEFT, ManeuverKind.EXIT_LEFT -> "left"
         ManeuverKind.RIGHT, ManeuverKind.KEEP_RIGHT, ManeuverKind.EXIT_RIGHT -> "right"
-        ManeuverKind.UTURN -> "u-turn"
-        ManeuverKind.GENERIC -> "ahead"
+        ManeuverKind.UTURN -> "uturn"
+        ManeuverKind.GENERIC -> "generic"
     }
-
-    private fun roundTo10(meters: Double): Long = Math.round(meters / 10.0) * 10
 }

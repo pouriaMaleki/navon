@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_cancel" formatted="false">Peruuta</string>
+    <string name="common_close" formatted="false">Sulje</string>
+    <string name="common_ok" formatted="false">OK</string>
+    <string name="cue_arrived" formatted="false">Olet saapunut määränpäähäsi</string>
+    <string name="cue_arrivingInM" formatted="false">Saavut määränpäähäsi {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_generic" formatted="false">Seuraava käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_left" formatted="false">Käänny vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_right" formatted="false">Käänny oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_uturn" formatted="false">Tee U-käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_offTrack" formatted="false">Reitiltä pois</string>
+    <string name="cue_onTrack" formatted="false">Reitillä</string>
+    <string name="cue_rerouting" formatted="false">Uudelleenreititys</string>
+    <string name="cue_routeStarted" formatted="false">Reitti aloitettu</string>
+    <string name="cue_turn10m_exitLeft" formatted="false">Ota vasen liittymä</string>
+    <string name="cue_turn10m_exitRight" formatted="false">Ota oikea liittymä</string>
+    <string name="cue_turn10m_generic" formatted="false">Noudata reittiä</string>
+    <string name="cue_turn10m_keepLeft" formatted="false">Pidä vasemmalla</string>
+    <string name="cue_turn10m_keepRight" formatted="false">Pidä oikealla</string>
+    <string name="cue_turn10m_left" formatted="false">Käänny vasemmalle</string>
+    <string name="cue_turn10m_right" formatted="false">Käänny oikealle</string>
+    <string name="cue_turn10m_uturn" formatted="false">Tee U-käännös</string>
+    <string name="cue_turn50m_exitLeft" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, ota vasen liittymä</string>
+    <string name="cue_turn50m_exitRight" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, ota oikea liittymä</string>
+    <string name="cue_turn50m_generic" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, noudata reittiä</string>
+    <string name="cue_turn50m_keepLeft" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, pidä vasemmalla</string>
+    <string name="cue_turn50m_keepRight" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, pidä oikealla</string>
+    <string name="cue_turn50m_left" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny vasemmalle</string>
+    <string name="cue_turn50m_right" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny oikealle</string>
+    <string name="cue_turn50m_uturn" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, tee U-käännös</string>
+    <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} kohteeseen {destination}</string>
+    <string name="home_importedRoute" formatted="false">Tuotu reitti</string>
+    <string name="home_openSettings" formatted="false">Asetukset</string>
+    <string name="home_recenter" formatted="false">Keskitä uudelleen</string>
+    <string name="home_routeOptions" formatted="false">Reittivaihtoehdot</string>
+    <string name="home_start" formatted="false">Aloita</string>
+    <string name="home_startOnDevice" formatted="false">Aloita laitteella</string>
+    <string name="home_startRoute" formatted="false">Aloita reitti</string>
+    <string name="home_startingOnDevice" formatted="false">Aloitetaan laitteella…</string>
+    <string name="home_stopRoute" formatted="false">Lopeta reitti</string>
+    <string name="home_suggestedRoutes" formatted="false">Ehdotetut reitit</string>
+    <string name="home_whereTo" formatted="false">Mihin?</string>
+    <string name="home_workingOnRoute" formatted="false">Lasketaan reittiä</string>
+    <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">Sekareittejä HSL:stä ja OSM:stä</string>
+    <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">Tarvitaan äänimerkeille ja live-toiminnolle</string>
+    <string name="settings_activity_allowBackgroundGps_title" formatted="false">Salli GPS taustalla</string>
+    <string name="settings_activity_audioCues_subtitle" formatted="false">Puhu käännös käännökseltä -ohjeet reitityksen aikana</string>
+    <string name="settings_activity_audioCues_title" formatted="false">Äänimerkit</string>
+    <string name="settings_activity_keepScreenOn_subtitle" formatted="false">Pitää näytön päällä reitin ollessa aktiivinen</string>
+    <string name="settings_activity_keepScreenOn_title" formatted="false">Estä näytön sammuminen</string>
+    <string name="settings_activity_liveActivity_subtitle" formatted="false">Näytä seuraava käännös lukitusnäytöllä</string>
+    <string name="settings_activity_liveActivity_title" formatted="false">Lukitusnäytön live-toiminto</string>
+    <string name="settings_activity_title" formatted="false">Toiminta-asetukset</string>
+    <string name="settings_distanceUnit_imperial" formatted="false">Imperial</string>
+    <string name="settings_distanceUnit_metric" formatted="false">Metrinen</string>
+    <string name="settings_distanceUnit_system" formatted="false">Järjestelmä</string>
+    <string name="settings_distanceUnit_title" formatted="false">Etäisyysyksiköt</string>
+    <string name="settings_hub_device" formatted="false">Laite</string>
+    <string name="settings_hub_importDiagnostics" formatted="false">Tuonnin diagnostiikka</string>
+    <string name="settings_hub_routePlanner" formatted="false">Reittisuunnittelija</string>
+    <string name="settings_hub_routes" formatted="false">Reitit</string>
+    <string name="settings_hub_title" formatted="false">Asetukset</string>
+    <string name="settings_language_en" formatted="false">English</string>
+    <string name="settings_language_fi" formatted="false">Suomi</string>
+    <string name="settings_language_subtitle" formatted="false">Valitse sovelluksen kieli</string>
+    <string name="settings_language_system" formatted="false">Järjestelmä</string>
+    <string name="settings_language_title" formatted="false">Kieli</string>
+    <string name="settings_restartRequired_message" formatted="false">Lopeta ja avaa sovellus uudelleen ottaaksesi uuden kielen käyttöön.</string>
+    <string name="settings_restartRequired_title" formatted="false">Uudelleenkäynnistys vaaditaan</string>
+    <string name="settings_speedUnit_title" formatted="false">Nopeusyksikkö</string>
+    <string name="settings_voiceNotInstalled" formatted="false">Puhe {language} ei ole asennettu. Avaa järjestelmäasetukset ja asenna se.</string>
+    <string name="units_distance_ft" formatted="false">{distance, number} ft</string>
+    <string name="units_distance_km" formatted="false">{distance, number} km</string>
+    <string name="units_distance_m" formatted="false">{distance, number} m</string>
+    <string name="units_distance_mi" formatted="false">{distance, number} mi</string>
+    <string name="units_duration_min" formatted="false">{minutes, number} min</string>
+    <string name="units_speed_kph" formatted="false">km/h</string>
+    <string name="units_speed_mph" formatted="false">mph</string>
+</resources>

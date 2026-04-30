@@ -1,0 +1,1491 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%@ kph" : {
+
+    },
+    "Active route: %@" : {
+
+    },
+    "Align the QR code in the frame" : {
+
+    },
+    "Camera access is required to scan the pairing code." : {
+
+    },
+    "Center the QR code in the frame and hold steady." : {
+
+    },
+    "common.cancel" : {
+      "comment" : "Generic cancel-action button label.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peruuta"
+          }
+        }
+      }
+    },
+    "common.close" : {
+      "comment" : "Generic close-dialog button label.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sulje"
+          }
+        }
+      }
+    },
+    "common.ok" : {
+      "comment" : "Generic confirm-acknowledgement button label.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "Companion import diagnostics" : {
+
+    },
+    "Couldn't open that link" : {
+
+    },
+    "cue.arrived" : {
+      "comment" : "Voice cue spoken on arrival at the destination.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have arrived at your destination"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Olet saapunut määränpäähäsi"
+          }
+        }
+      }
+    },
+    "cue.arrivingInM" : {
+      "comment" : "Voice cue announcing imminent arrival at the destination.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arriving at your destination in {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saavut määränpäähäsi {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        }
+      }
+    },
+    "cue.nextTurnInAbout.generic" : {
+      "comment" : "Voice cue announcing a generic upcoming maneuver.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next turn ahead in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seuraava käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        }
+      }
+    },
+    "cue.nextTurnInAbout.left" : {
+      "comment" : "Voice cue announcing the upcoming left turn distance ahead.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next turn left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Käänny vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        }
+      }
+    },
+    "cue.nextTurnInAbout.right" : {
+      "comment" : "Voice cue announcing the upcoming right turn distance ahead.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next turn right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Käänny oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        }
+      }
+    },
+    "cue.nextTurnInAbout.uturn" : {
+      "comment" : "Voice cue announcing an upcoming U-turn.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next turn u-turn in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tee U-käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        }
+      }
+    },
+    "cue.offTrack" : {
+      "comment" : "Voice cue when the rider strays from the route.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off track"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reitiltä pois"
+          }
+        }
+      }
+    },
+    "cue.onTrack" : {
+      "comment" : "Voice cue confirming the rider has returned to the route.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On track"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reitillä"
+          }
+        }
+      }
+    },
+    "cue.rerouting" : {
+      "comment" : "Voice cue while the app calculates a new route after going off track.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rerouting"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uudelleenreititys"
+          }
+        }
+      }
+    },
+    "cue.routeStarted" : {
+      "comment" : "Voice cue spoken once when the rider begins following a route.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Route started"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reitti aloitettu"
+          }
+        }
+      }
+    },
+    "cue.turn10m.exitLeft" : {
+      "comment" : "Imperative voice cue at a left exit.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take the left exit"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ota vasen liittymä"
+          }
+        }
+      }
+    },
+    "cue.turn10m.exitRight" : {
+      "comment" : "Imperative voice cue at a right exit.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take the right exit"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ota oikea liittymä"
+          }
+        }
+      }
+    },
+    "cue.turn10m.generic" : {
+      "comment" : "Imperative voice cue for a generic maneuver.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Follow the route"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noudata reittiä"
+          }
+        }
+      }
+    },
+    "cue.turn10m.keepLeft" : {
+      "comment" : "Imperative voice cue at a keep-left bifurcation.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep left"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pidä vasemmalla"
+          }
+        }
+      }
+    },
+    "cue.turn10m.keepRight" : {
+      "comment" : "Imperative voice cue at a keep-right bifurcation.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep right"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pidä oikealla"
+          }
+        }
+      }
+    },
+    "cue.turn10m.left" : {
+      "comment" : "Imperative voice cue at the moment of a left turn (within ~10m).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn left"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Käänny vasemmalle"
+          }
+        }
+      }
+    },
+    "cue.turn10m.right" : {
+      "comment" : "Imperative voice cue at the moment of a right turn.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn right"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Käänny oikealle"
+          }
+        }
+      }
+    },
+    "cue.turn10m.uturn" : {
+      "comment" : "Imperative voice cue at a U-turn maneuver.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Make a U-turn"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tee U-käännös"
+          }
+        }
+      }
+    },
+    "cue.turn50m.exitLeft" : {
+      "comment" : "Voice cue ~50m before a left exit ramp / off-ramp.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the left exit"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, ota vasen liittymä"
+          }
+        }
+      }
+    },
+    "cue.turn50m.exitRight" : {
+      "comment" : "Voice cue ~50m before a right exit ramp / off-ramp.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the right exit"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, ota oikea liittymä"
+          }
+        }
+      }
+    },
+    "cue.turn50m.generic" : {
+      "comment" : "Voice cue ~50m before a generic maneuver that doesn't fit the directional categories.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, follow the route"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, noudata reittiä"
+          }
+        }
+      }
+    },
+    "cue.turn50m.keepLeft" : {
+      "comment" : "Voice cue ~50m before a keep-left maneuver at a bifurcation.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, keep left"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, pidä vasemmalla"
+          }
+        }
+      }
+    },
+    "cue.turn50m.keepRight" : {
+      "comment" : "Voice cue ~50m before a keep-right maneuver at a bifurcation.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, keep right"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, pidä oikealla"
+          }
+        }
+      }
+    },
+    "cue.turn50m.left" : {
+      "comment" : "Voice cue ~50m before a left turn. {distance} is the rounded distance to the maneuver.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn left"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny vasemmalle"
+          }
+        }
+      }
+    },
+    "cue.turn50m.right" : {
+      "comment" : "Voice cue ~50m before a right turn.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn right"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny oikealle"
+          }
+        }
+      }
+    },
+    "cue.turn50m.uturn" : {
+      "comment" : "Voice cue ~50m before a U-turn maneuver.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, make a U-turn"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, tee U-käännös"
+          }
+        }
+      }
+    },
+    "Cycling speed" : {
+
+    },
+    "Cycling speed overrides HSL ETAs (Digitransit defaults to a slow bike speed). Speed unit is how the live-speed badge is shown on the map." : {
+
+    },
+    "Following the URL to a destination. This can take a couple of seconds." : {
+
+    },
+    "Geometry points: %@" : {
+
+    },
+    "guidance.distanceToDestination" : {
+      "comment" : "Active guidance card subtitle showing remaining distance and destination name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} to {destination}"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} kohteeseen {destination}"
+          }
+        }
+      }
+    },
+    "Hold your phone so the device's screen is in frame, then tap Start when you see the QR code." : {
+
+    },
+    "home.importedRoute" : {
+      "comment" : "Header above the route alternatives card when a single route was imported from a GPX file or share-extension link.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imported route"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuotu reitti"
+          }
+        }
+      }
+    },
+    "home.openSettings" : {
+      "comment" : "Toolbar / button label that opens the Settings hub.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asetukset"
+          }
+        }
+      }
+    },
+    "home.recenter" : {
+      "comment" : "Map button to recenter on the rider's current location.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recenter"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keskitä uudelleen"
+          }
+        }
+      }
+    },
+    "home.routeOptions" : {
+      "comment" : "Header on the route suggestions card listing alternative routes.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Route options"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reittivaihtoehdot"
+          }
+        }
+      }
+    },
+    "home.start" : {
+      "comment" : "Primary button on the route suggestions card that begins the selected route.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aloita"
+          }
+        }
+      }
+    },
+    "home.startingOnDevice" : {
+      "comment" : "Transient state on the start button while the route is being transferred to a paired ESP32 device.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting on device…"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aloitetaan laitteella…"
+          }
+        }
+      }
+    },
+    "home.startOnDevice" : {
+      "comment" : "Primary route-start button label when an ESP32 device is paired and connected — the route will be sent to the device instead of started on the phone.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start on device"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aloita laitteella"
+          }
+        }
+      }
+    },
+    "home.startRoute" : {
+      "comment" : "Primary button to begin riding the planned route.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start route"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aloita reitti"
+          }
+        }
+      }
+    },
+    "home.stopRoute" : {
+      "comment" : "Button to end the active route session.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop route"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lopeta reitti"
+          }
+        }
+      }
+    },
+    "home.suggestedRoutes" : {
+      "comment" : "Header above the route alternatives card when the planner has computed multiple route options.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suggested routes"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ehdotetut reitit"
+          }
+        }
+      }
+    },
+    "home.whereTo" : {
+      "comment" : "Search bar placeholder on the home screen.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Where to?"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mihin?"
+          }
+        }
+      }
+    },
+    "home.workingOnRoute" : {
+      "comment" : "Status label shown while the planner is computing the route.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Working on route"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lasketaan reittiä"
+          }
+        }
+      }
+    },
+    "HSL Digitransit" : {
+
+    },
+    "HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across the Helsinki metro area. The key is free — sign in at the portal, register an app, and copy the subscription key into the field above. Outside the Helsinki area, leave HSL off and the planner uses OSM routing globally." : {
+
+    },
+    "Last device: %@" : {
+
+    },
+    "Last paired: %@" : {
+
+    },
+    "Last sync: %@" : {
+
+    },
+    "Maneuvers: %@" : {
+
+    },
+    "No recent routes or destinations yet." : {
+
+    },
+    "No unsupported shared items yet." : {
+
+    },
+    "Open iOS Settings → Privacy → Location to switch this app to \"Always\"." : {
+
+    },
+    "Pair a device" : {
+
+    },
+    "Pending route: %@" : {
+
+    },
+    "planning.mixedRoutesFromHslAndOsm" : {
+      "comment" : "Notice shown above the route alternatives card when results combine HSL Digitransit and OSM-derived providers. HSL and OSM are brand names — do not translate.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mixed routes from HSL and OSM"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sekareittejä HSL:stä ja OSM:stä"
+          }
+        }
+      }
+    },
+    "Resolving link…" : {
+
+    },
+    "Riding" : {
+
+    },
+    "Routing finished. Tap a destination to plan again." : {
+
+    },
+    "Sending %@%%" : {
+
+    },
+    "settings.activity.allowBackgroundGps.subtitle" : {
+      "comment" : "Toggle subtitle for the background-GPS setting.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Required for audio cues and live activity"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tarvitaan äänimerkeille ja live-toiminnolle"
+          }
+        }
+      }
+    },
+    "settings.activity.allowBackgroundGps.title" : {
+      "comment" : "Toggle title: enables background GPS, gating audio cues and live activity.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow GPS in background"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salli GPS taustalla"
+          }
+        }
+      }
+    },
+    "settings.activity.audioCues.subtitle" : {
+      "comment" : "Toggle subtitle for the audio-cues setting.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speak turn-by-turn directions during routing"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puhu käännös käännökseltä -ohjeet reitityksen aikana"
+          }
+        }
+      }
+    },
+    "settings.activity.audioCues.title" : {
+      "comment" : "Toggle title: enable spoken turn-by-turn cues during routing.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio cues"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Äänimerkit"
+          }
+        }
+      }
+    },
+    "settings.activity.keepScreenOn.subtitle" : {
+      "comment" : "Toggle subtitle for the keep-screen-on setting.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keeps the display awake while a route is active"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pitää näytön päällä reitin ollessa aktiivinen"
+          }
+        }
+      }
+    },
+    "settings.activity.keepScreenOn.title" : {
+      "comment" : "Toggle title: keep the device screen awake while a route is active.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prevent screen from turning off"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estä näytön sammuminen"
+          }
+        }
+      }
+    },
+    "settings.activity.liveActivity.subtitle" : {
+      "comment" : "Toggle subtitle for the live-activity setting.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show next turn on the lock screen"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Näytä seuraava käännös lukitusnäytöllä"
+          }
+        }
+      }
+    },
+    "settings.activity.liveActivity.title" : {
+      "comment" : "Toggle title: show the next turn on the lock screen via Live Activity.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lock-screen live activity"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lukitusnäytön live-toiminto"
+          }
+        }
+      }
+    },
+    "settings.activity.title" : {
+      "comment" : "Section header for activity-related toggles on the Settings hub.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activity Settings"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toiminta-asetukset"
+          }
+        }
+      }
+    },
+    "settings.distanceUnit.imperial" : {
+      "comment" : "Distance-unit picker option: feet and miles.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imperial"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imperial"
+          }
+        }
+      }
+    },
+    "settings.distanceUnit.metric" : {
+      "comment" : "Distance-unit picker option: meters and kilometers.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Metric"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Metrinen"
+          }
+        }
+      }
+    },
+    "settings.distanceUnit.system" : {
+      "comment" : "Distance-unit picker option meaning 'follow the device system measurement system'.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Järjestelmä"
+          }
+        }
+      }
+    },
+    "settings.distanceUnit.title" : {
+      "comment" : "Section header / row label for the distance-unit picker.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Distance units"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etäisyysyksiköt"
+          }
+        }
+      }
+    },
+    "settings.hub.device" : {
+      "comment" : "Settings hub row: navigates to ESP32 device pairing/management.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laite"
+          }
+        }
+      }
+    },
+    "settings.hub.importDiagnostics" : {
+      "comment" : "Settings hub row: navigates to GPX import diagnostics.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Diagnostics"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuonnin diagnostiikka"
+          }
+        }
+      }
+    },
+    "settings.hub.routePlanner" : {
+      "comment" : "Settings hub row: navigates to route-planning preferences.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Route Planner"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reittisuunnittelija"
+          }
+        }
+      }
+    },
+    "settings.hub.routes" : {
+      "comment" : "Settings hub row: navigates to saved-routes management.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Routes"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reitit"
+          }
+        }
+      }
+    },
+    "settings.hub.title" : {
+      "comment" : "Title of the Settings hub screen.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asetukset"
+          }
+        }
+      }
+    },
+    "settings.language.en" : {
+      "comment" : "Native name of the English language, shown as a Language picker option.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English"
+          }
+        }
+      }
+    },
+    "settings.language.fi" : {
+      "comment" : "Native name of the Finnish language (Suomi), shown as a Language picker option. Always presented in the language's own native form, not translated.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suomi"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suomi"
+          }
+        }
+      }
+    },
+    "settings.language.subtitle" : {
+      "comment" : "Subtitle under the Language picker.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the app language"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valitse sovelluksen kieli"
+          }
+        }
+      }
+    },
+    "settings.language.system" : {
+      "comment" : "Language picker option meaning 'follow the device system language'.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Järjestelmä"
+          }
+        }
+      }
+    },
+    "settings.language.title" : {
+      "comment" : "Section header / row label for the app-language picker.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kieli"
+          }
+        }
+      }
+    },
+    "settings.restartRequired.message" : {
+      "comment" : "Body of an alert shown after switching app language on iOS.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit and reopen the app to apply the new language."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lopeta ja avaa sovellus uudelleen ottaaksesi uuden kielen käyttöön."
+          }
+        }
+      }
+    },
+    "settings.restartRequired.title" : {
+      "comment" : "Title of an alert shown after switching app language on iOS.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart required"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uudelleenkäynnistys vaaditaan"
+          }
+        }
+      }
+    },
+    "settings.speedUnit.title" : {
+      "comment" : "Section header / row label for the speed-unit picker.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speed unit"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nopeusyksikkö"
+          }
+        }
+      }
+    },
+    "settings.voiceNotInstalled" : {
+      "comment" : "Hint shown in Settings when no TTS voice is available for the active locale.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voice for {language} is not installed. Open system Settings to install it."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puhe {language} ei ole asennettu. Avaa järjestelmäasetukset ja asenna se."
+          }
+        }
+      }
+    },
+    "Share debug package" : {
+
+    },
+    "State: %@" : {
+
+    },
+    "Status: %@" : {
+
+    },
+    "Stop" : {
+
+    },
+    "Sync: %@" : {
+
+    },
+    "units.distance.ft" : {
+      "comment" : "Distance value in feet, used in UI labels.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} ft"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} ft"
+          }
+        }
+      }
+    },
+    "units.distance.km" : {
+      "comment" : "Distance value in kilometers, used in UI labels (not voice cues).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} km"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} km"
+          }
+        }
+      }
+    },
+    "units.distance.m" : {
+      "comment" : "Distance value in meters, used in UI labels (not voice cues).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} m"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} m"
+          }
+        }
+      }
+    },
+    "units.distance.mi" : {
+      "comment" : "Distance value in miles, used in UI labels.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} mi"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} mi"
+          }
+        }
+      }
+    },
+    "units.duration.min" : {
+      "comment" : "Duration label in minutes, used in UI route summaries.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{minutes, number} min"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{minutes, number} min"
+          }
+        }
+      }
+    },
+    "units.speed.kph" : {
+      "comment" : "Speed unit label: kilometers per hour.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "km/h"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "km/h"
+          }
+        }
+      }
+    },
+    "units.speed.mph" : {
+      "comment" : "Speed unit label: miles per hour.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mph"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mph"
+          }
+        }
+      }
+    },
+    "You'll need to scan the pairing code again to use it. Your route history stays." : {
+
+    }
+  },
+  "version" : "1.0"
+}

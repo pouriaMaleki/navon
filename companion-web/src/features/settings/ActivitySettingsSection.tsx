@@ -1,5 +1,6 @@
 import { observer } from "mobx-react-lite";
 import type { RootStore } from "../../app/RootStore.js";
+import { useT } from "../../i18n/useT.js";
 import { BackgroundGpsService } from "../../integrations/permissions/BackgroundGpsService.js";
 import { platformGpsHint } from "./PlatformHints.js";
 
@@ -16,6 +17,7 @@ const backgroundGpsService = new BackgroundGpsService();
  *   4. Live actions / map on lock screen (gated on #2)
  */
 export const ActivitySettingsSection = observer(({ store }: Props) => {
+  const t = useT(store);
   const settings = store.settingsStore.settings;
   const gpsOn = settings.allowBackgroundGps;
 
@@ -30,24 +32,24 @@ export const ActivitySettingsSection = observer(({ store }: Props) => {
     <div className="settings-section" data-testid="activity-settings">
       <ToggleRow
         testId="setting-keepScreenOn"
-        title="Prevent screen from turning off"
-        subtitle="Keeps the display awake while a route is active."
+        title={t("settings.activity.keepScreenOn.title")}
+        subtitle={t("settings.activity.keepScreenOn.subtitle")}
         checked={settings.keepScreenOn}
         onChange={(v) => store.settingsStore.updateSettings({ keepScreenOn: v })}
       />
       <ToggleRow
         testId="setting-allowBackgroundGps"
-        title="Allow GPS in background"
+        title={t("settings.activity.allowBackgroundGps.title")}
         subtitle={platformGpsHint()}
         checked={settings.allowBackgroundGps}
         onChange={onToggleBackgroundGps}
       />
       <ToggleRow
         testId="setting-audioCuesEnabled"
-        title="Audio cues"
+        title={t("settings.activity.audioCues.title")}
         subtitle={
           gpsOn
-            ? "Spoken turn-by-turn while you ride."
+            ? t("settings.activity.audioCues.subtitle")
             : "Requires GPS in background. Turn that on first."
         }
         checked={settings.audioCuesEnabled}
@@ -56,10 +58,10 @@ export const ActivitySettingsSection = observer(({ store }: Props) => {
       />
       <ToggleRow
         testId="setting-liveActivityEnabled"
-        title="Lock-screen live activity"
+        title={t("settings.activity.liveActivity.title")}
         subtitle={
           gpsOn
-            ? "Show route status and next turn on your lock screen."
+            ? t("settings.activity.liveActivity.subtitle")
             : "Requires GPS in background. Turn that on first."
         }
         checked={settings.liveActivityEnabled}

@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "sourceLocale": "en",
+  "locales": ["en", "fi"],
+  "openai": {
+    "model": "gpt-5.4-nano",
+    "endpoint": "https://api.openai.com/v1/chat/completions",
+    "maxKeysPerRequest": 30
+  },
+  "outputs": {
+    "web": "companion-web/src/i18n/messages",
+    "ios": "companion-ios/CompanionApp/Resources/Localizable.xcstrings",
+    "iosMessages": "companion-ios/CompanionApp/Resources/Messages",
+    "androidValues": "companion-android/app/src/main/res/values",
+    "androidValuesFi": "companion-android/app/src/main/res/values-fi",
+    "androidRaw": "companion-android/app/src/main/res/raw",
+    "parityFixture": "i18n/parity/cue-en-snapshots.json"
+  }
+}

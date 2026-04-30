@@ -1,0 +1,14 @@
+{
+  "doNotTranslate": [
+    "ESP32",
+    "ESP32MapCompanion",
+    "HSL",
+    "Digitransit",
+    "BLE",
+    "GPS",
+    "GPX",
+    "OSM",
+    "OpenStreetMap",
+    "U-turn"
+  ]
+}

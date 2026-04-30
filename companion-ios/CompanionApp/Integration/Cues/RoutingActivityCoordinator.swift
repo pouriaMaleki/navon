@@ -47,6 +47,13 @@ final class RoutingActivityCoordinator {
         pairedWithDevice: Bool,
         liveActivityContent: RoutingLiveActivityContent?
     ) {
+        // Push the user's language preference to the i18n runtime + TTS so
+        // the next `T.string(...)` call and the next `speech.speak(...)`
+        // both render in the chosen locale.
+        let locale = T.resolveLocale(settings.language)
+        T.setActiveLocale(locale)
+        speech.setLanguage(locale.rawValue)
+
         idleTimer.update(settings.keepScreenOn && isRouting)
         if !isRouting { cueState = CueEngineState() }
         applyLiveActivity(
@@ -75,8 +82,10 @@ final class RoutingActivityCoordinator {
             if !result.events.isEmpty {
                 Self.log.info("CueEngine emitted \(result.events.count) event(s) on this tick")
             }
+            let distanceMode = T.resolveDistanceUnit(settings.distanceUnit)
             for event in result.events {
-                let phrase = CueEngine.format(event)
+                let msg = CueEngine.cueMessage(event, distanceMode: distanceMode)
+                let phrase = T.string(msg.key, msg.values)
                 Self.log.info("→ speak \"\(phrase, privacy: .public)\"")
                 speech.speak(phrase)
             }

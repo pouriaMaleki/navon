@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Generated alongside the i18n catalog: every locale here must also appear
+  in `i18n/catalog.config.json:locales`. Android 13+ uses this list to
+  surface a per-app Language entry in system Settings → Apps.
+-->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en"/>
+    <locale android:name="fi"/>
+</locale-config>
