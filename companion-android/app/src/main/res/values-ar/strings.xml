@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="common_cancel" formatted="false">إلغاء</string>
-    <string name="common_cancel_role" formatted="false">Cancel</string>
+    <string name="common_cancel_role" formatted="false">إلغاء</string>
     <string name="common_close" formatted="false">إغلاق</string>
-    <string name="common_forget" formatted="false">Forget</string>
+    <string name="common_forget" formatted="false">نسيان</string>
     <string name="common_ok" formatted="false">حسنًا</string>
     <string name="cue_arrived" formatted="false">لقد وصلت إلى وجهتك</string>
     <string name="cue_arrivingInM" formatted="false">ستصل إلى وجهتك خلال {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
@@ -35,7 +35,7 @@
     <string name="home_importedRoute" formatted="false">تمت استيراد المسار</string>
     <string name="home_noSuggestions" formatted="false">لا توجد اقتراحات بعد…</string>
     <string name="home_openSettings" formatted="false">الإعدادات</string>
-    <string name="home_platformHint_locationDefault" formatted="false">سيطلب متصفحك إذن الموقع. اسمح بذلك حتى تستمر الإرشادات في تتبّع موقعك أثناء بقاء الصفحة في الخلفية.</string>
+    <string name="home_platformHint_locationDefault" formatted="false">سيُطلب منك إذن الموقع. اسمح بذلك حتى تستمر الإرشادات في تتبّع موقعك أثناء بقاء التطبيق في الخلفية.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">لا يوفّر Safari على iPhone تحديد GPS في الخلفية بشكل حقيقي. أبقِ علامة التبويب مفتوحة والشاشة قيد التشغيل حتى تستمر تحديثات الموقع أثناء ركوبك.</string>
     <string name="home_recenter" formatted="false">أعد التمركز</string>
     <string name="home_routeOptions" formatted="false">خيارات المسار</string>
@@ -62,16 +62,16 @@
     <string name="settings_activity_liveActivity_subtitle" formatted="false">اعرض المنعطف التالي على شاشة القفل</string>
     <string name="settings_activity_liveActivity_title" formatted="false">نشاط مباشر على شاشة القفل</string>
     <string name="settings_activity_title" formatted="false">إعدادات النشاط</string>
-    <string name="settings_device_connect" formatted="false">Connect</string>
-    <string name="settings_device_disconnect" formatted="false">Disconnect</string>
-    <string name="settings_device_forget" formatted="false">Forget paired device</string>
-    <string name="settings_device_forget_confirmMessage" formatted="false">You\'ll need to scan the pairing code again to use it. Your route history stays.</string>
-    <string name="settings_device_forget_confirmTitle" formatted="false">Forget this device?</string>
-    <string name="settings_device_lastPaired" formatted="false">Last paired: {date}</string>
-    <string name="settings_device_pairNew" formatted="false">Pair a new device</string>
-    <string name="settings_device_pairedDevice_section" formatted="false">Paired device</string>
-    <string name="settings_device_reconnecting" formatted="false">Reconnecting…</string>
-    <string name="settings_device_title" formatted="false">Device</string>
+    <string name="settings_device_connect" formatted="false">اتصال</string>
+    <string name="settings_device_disconnect" formatted="false">قطع الاتصال</string>
+    <string name="settings_device_forget" formatted="false">نسيان الجهاز المقترن</string>
+    <string name="settings_device_forget_confirmMessage" formatted="false">ستحتاج إلى مسح رمز الاقتران مرة أخرى لاستخدامه. تبقى سجلات مسارك.</string>
+    <string name="settings_device_forget_confirmTitle" formatted="false">نسيان هذا الجهاز؟</string>
+    <string name="settings_device_lastPaired" formatted="false">آخر اقتران: {date}</string>
+    <string name="settings_device_pairNew" formatted="false">اقتران جهاز جديد</string>
+    <string name="settings_device_pairedDevice_section" formatted="false">الجهاز المقترن</string>
+    <string name="settings_device_reconnecting" formatted="false">إعادة الاتصال…</string>
+    <string name="settings_device_title" formatted="false">الجهاز</string>
     <string name="settings_distanceUnit_imperial" formatted="false">إمبراطوري</string>
     <string name="settings_distanceUnit_metric" formatted="false">متري</string>
     <string name="settings_distanceUnit_system" formatted="false">النظام</string>
@@ -84,19 +84,19 @@
     <string name="settings_hub_routes" formatted="false">المسارات</string>
     <string name="settings_hub_routes_subtitle" formatted="false">المسارات الأخيرة واستيراد GPX</string>
     <string name="settings_hub_title" formatted="false">الإعدادات</string>
-    <string name="settings_importDiagnostics_empty" formatted="false">No failed imports recorded</string>
-    <string name="settings_importDiagnostics_title" formatted="false">Import Diagnostics</string>
+    <string name="settings_importDiagnostics_empty" formatted="false">لم يتم تسجيل أي عمليات استيراد فاشلة</string>
+    <string name="settings_importDiagnostics_title" formatted="false">تشخيصات الاستيراد</string>
     <string name="settings_language_en" formatted="false">English</string>
     <string name="settings_language_fi" formatted="false">Suomi</string>
-    <string name="settings_language_noVoiceFallback" formatted="false">لا يحتوي متصفحك على صوت مثبت لـ {language}. ستُشغَّل الإشارات الصوتية باللغة الإنجليزية.</string>
+    <string name="settings_language_noVoiceFallback" formatted="false">لا يتوفر على جهازك صوت لـ {language}. سيتم تشغيل الإشارات الصوتية باللغة الإنجليزية.</string>
     <string name="settings_language_subtitle" formatted="false">اختر لغة التطبيق</string>
     <string name="settings_language_system" formatted="false">النظام</string>
     <string name="settings_language_title" formatted="false">اللغة</string>
     <string name="settings_restartRequired_message" formatted="false">أغلق التطبيق وأعد فتحه لتطبيق اللغة الجديدة.</string>
     <string name="settings_restartRequired_title" formatted="false">يلزم إعادة التشغيل</string>
-    <string name="settings_routePlanner_title" formatted="false">Route Planner</string>
-    <string name="settings_routes_empty" formatted="false">No saved routes yet</string>
-    <string name="settings_routes_title" formatted="false">Routes</string>
+    <string name="settings_routePlanner_title" formatted="false">مخطط المسار</string>
+    <string name="settings_routes_empty" formatted="false">لا توجد مسارات محفوظة بعد</string>
+    <string name="settings_routes_title" formatted="false">المسارات</string>
     <string name="settings_speedUnit_title" formatted="false">وحدة السرعة</string>
     <string name="settings_voiceNotInstalled" formatted="false">لم يتم تثبيت صوت {language}. افتح إعدادات النظام لتثبيته.</string>
     <string name="units_distance_ft" formatted="false">{distance, number} قدم</string>

@@ -432,8 +432,8 @@
       "placeholders": {}
     },
     "home.platformHint.locationDefault": {
-      "value": "Your browser will ask for location permission. Allow it so guidance keeps tracking your position while the page is in the background.",
-      "description": "Hint shown under the 'Allow GPS in background' setting on every browser except Safari/iOS.",
+      "value": "You'll be asked for location permission. Allow it so guidance keeps tracking your position when the app is in the background.",
+      "description": "Hint shown under the 'Allow GPS in background' setting on every browser except Safari/iOS. Phrased platform-neutrally (no 'browser' / 'page') so it can be reused on iOS and Android in future without sounding off.",
       "placeholders": {}
     },
     "home.platformHint.locationSafariIos": {

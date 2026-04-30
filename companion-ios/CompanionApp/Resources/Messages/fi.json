@@ -34,7 +34,7 @@
   "home.importedRoute": "Tuotu reitti",
   "home.noSuggestions": "Ei vielä ehdotuksia…",
   "home.openSettings": "Asetukset",
-  "home.platformHint.locationDefault": "Selain pyytää sijaintilupaa. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sivu on taustalla.",
+  "home.platformHint.locationDefault": "Sijaintilupaa pyydetään. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sovellus on taustalla.",
   "home.platformHint.locationSafariIos": "iPhonen Safari ei tue oikeaa taustalla toimivaa GPS:ää. Pidä välilehti aktiivisena ja näyttö päällä, jotta sijaintipäivitykset jatkuvat ajon aikana.",
   "home.recenter": "Keskitä uudelleen",
   "home.routeOptions": "Reittivaihtoehdot",

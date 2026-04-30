@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="common_cancel" formatted="false">منسوخ کریں</string>
-    <string name="common_cancel_role" formatted="false">Cancel</string>
+    <string name="common_cancel_role" formatted="false">منسوخ کریں</string>
     <string name="common_close" formatted="false">بند کریں</string>
-    <string name="common_forget" formatted="false">Forget</string>
+    <string name="common_forget" formatted="false">بھول جائیں</string>
     <string name="common_ok" formatted="false">ٹھیک ہے</string>
     <string name="cue_arrived" formatted="false">آپ اپنے منزل پر پہنچ گئے ہیں</string>
     <string name="cue_arrivingInM" formatted="false">آپ اپنی منزل پر {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں پہنچ رہے ہیں</string>
@@ -35,7 +35,7 @@
     <string name="home_importedRoute" formatted="false">درآمد شدہ راستہ</string>
     <string name="home_noSuggestions" formatted="false">ابھی تک کوئی تجاویز نہیں…</string>
     <string name="home_openSettings" formatted="false">ترتیبات</string>
-    <string name="home_platformHint_locationDefault" formatted="false">آپ کا براؤزر مقام کی اجازت مانگے گا۔ اسے اجازت دیں تاکہ رہنمائی صفحہ پسِ منظر میں ہونے پر بھی آپ کی موجودہ پوزیشن کو ٹریک کرتی رہے۔</string>
+    <string name="home_platformHint_locationDefault" formatted="false">آپ سے مقام کی اجازت مانگی جائے گی۔ اسے اجازت دیں تاکہ ایپ پسِ منظر میں ہونے پر بھی رہنمائی آپ کی موجودہ پوزیشن کو ٹریک کرتی رہے۔</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">آئی فون پر Safari حقیقی پسِ منظر GPS نہیں دیتا۔ ٹیب کو فعال رکھیں اور اسکرین آن رکھیں تاکہ سواری کے دوران مقام کی اپڈیٹس جاری رہیں۔</string>
     <string name="home_recenter" formatted="false">دوبارہ مرکز کریں</string>
     <string name="home_routeOptions" formatted="false">راستے کے اختیارات</string>
@@ -62,16 +62,16 @@
     <string name="settings_activity_liveActivity_subtitle" formatted="false">لاک اسکرین پر اگلا موڑ دکھائیں</string>
     <string name="settings_activity_liveActivity_title" formatted="false">لاک اسکرین لائیو ایکٹیویٹی</string>
     <string name="settings_activity_title" formatted="false">ایکٹیویٹی کی ترتیبات</string>
-    <string name="settings_device_connect" formatted="false">Connect</string>
-    <string name="settings_device_disconnect" formatted="false">Disconnect</string>
-    <string name="settings_device_forget" formatted="false">Forget paired device</string>
-    <string name="settings_device_forget_confirmMessage" formatted="false">You\'ll need to scan the pairing code again to use it. Your route history stays.</string>
-    <string name="settings_device_forget_confirmTitle" formatted="false">Forget this device?</string>
-    <string name="settings_device_lastPaired" formatted="false">Last paired: {date}</string>
-    <string name="settings_device_pairNew" formatted="false">Pair a new device</string>
-    <string name="settings_device_pairedDevice_section" formatted="false">Paired device</string>
-    <string name="settings_device_reconnecting" formatted="false">Reconnecting…</string>
-    <string name="settings_device_title" formatted="false">Device</string>
+    <string name="settings_device_connect" formatted="false">کنیکٹ کریں</string>
+    <string name="settings_device_disconnect" formatted="false">ڈسکنیکٹ کریں</string>
+    <string name="settings_device_forget" formatted="false">جوڑا ہوا ڈیوائس بھول جائیں</string>
+    <string name="settings_device_forget_confirmMessage" formatted="false">اسے دوبارہ استعمال کرنے کے لیے آپ کو جوڑی بنانے کا کوڈ دوبارہ اسکین کرنا ہوگا۔ آپ کی روٹ ہسٹری برقرار رہے گی۔</string>
+    <string name="settings_device_forget_confirmTitle" formatted="false">یہ ڈیوائس بھول جائیں؟</string>
+    <string name="settings_device_lastPaired" formatted="false">آخری بار جوڑا گیا: {date}</string>
+    <string name="settings_device_pairNew" formatted="false">نیا ڈیوائس جوڑیں</string>
+    <string name="settings_device_pairedDevice_section" formatted="false">جوڑا ہوا ڈیوائس</string>
+    <string name="settings_device_reconnecting" formatted="false">دوبارہ کنیکٹ ہو رہا ہے…</string>
+    <string name="settings_device_title" formatted="false">ڈیوائس</string>
     <string name="settings_distanceUnit_imperial" formatted="false">امپیریل</string>
     <string name="settings_distanceUnit_metric" formatted="false">میٹرک</string>
     <string name="settings_distanceUnit_system" formatted="false">سسٹم</string>
@@ -84,19 +84,19 @@
     <string name="settings_hub_routes" formatted="false">روٹس</string>
     <string name="settings_hub_routes_subtitle" formatted="false">حالیہ روٹس اور GPX امپورٹ</string>
     <string name="settings_hub_title" formatted="false">سیٹنگز</string>
-    <string name="settings_importDiagnostics_empty" formatted="false">No failed imports recorded</string>
-    <string name="settings_importDiagnostics_title" formatted="false">Import Diagnostics</string>
+    <string name="settings_importDiagnostics_empty" formatted="false">کوئی ناکام امپورٹ ریکارڈ نہیں</string>
+    <string name="settings_importDiagnostics_title" formatted="false">امپورٹ ڈائیگناسٹکس</string>
     <string name="settings_language_en" formatted="false">English</string>
     <string name="settings_language_fi" formatted="false">Suomi</string>
-    <string name="settings_language_noVoiceFallback" formatted="false">آپ کے براؤزر میں {language} کے لیے آواز نصب نہیں ہے۔ آڈیو اشارے انگریزی میں چلیں گے۔</string>
+    <string name="settings_language_noVoiceFallback" formatted="false">آپ کے آلے میں {language} کے لیے کوئی آواز نصب نہیں ہے۔ آڈیو اشارے انگریزی میں چلیں گے۔</string>
     <string name="settings_language_subtitle" formatted="false">ایپ کی زبان منتخب کریں</string>
     <string name="settings_language_system" formatted="false">سسٹم</string>
     <string name="settings_language_title" formatted="false">زبان</string>
     <string name="settings_restartRequired_message" formatted="false">ایپ بند کریں اور دوبارہ کھولیں تاکہ نئی زبان لاگو ہو جائے۔</string>
     <string name="settings_restartRequired_title" formatted="false">دوبارہ شروع کرنا ضروری ہے</string>
-    <string name="settings_routePlanner_title" formatted="false">Route Planner</string>
-    <string name="settings_routes_empty" formatted="false">No saved routes yet</string>
-    <string name="settings_routes_title" formatted="false">Routes</string>
+    <string name="settings_routePlanner_title" formatted="false">روٹ پلانر</string>
+    <string name="settings_routes_empty" formatted="false">ابھی تک کوئی محفوظ روٹس نہیں</string>
+    <string name="settings_routes_title" formatted="false">روٹس</string>
     <string name="settings_speedUnit_title" formatted="false">رفتار یونٹ</string>
     <string name="settings_voiceNotInstalled" formatted="false">{language} کے لیے آواز نصب نہیں ہے۔ اسے نصب کرنے کے لیے سسٹم سیٹنگز کھولیں۔</string>
     <string name="units_distance_ft" formatted="false">{distance, number} ft</string>

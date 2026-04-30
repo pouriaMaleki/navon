@@ -9,12 +9,28 @@
       "translatedAt": "2026-04-30T11:58:12Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "common.cancel.role": {
+      "value": "বাতিল করুন",
+      "description": "Cancel button used in destructive-action confirmation alerts.",
+      "sourceHash": "sha256:8e7336bcc37db109",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "common.close": {
       "value": "বন্ধ করুন",
       "description": "Generic close-dialog button label.",
       "sourceHash": "sha256:9d158eafe84d52ff",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T11:58:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "common.forget": {
+      "value": "ভুলে যান",
+      "description": "Destructive confirm-action button label paired with a 'Forget …?' alert.",
+      "sourceHash": "sha256:7de309df9c77be9c",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "common.ok": {
@@ -323,12 +339,9 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.platformHint.locationDefault": {
-      "value": "আপনার ব্রাউজার অবস্থানের অনুমতি চাইবে। অনুমতি দিন যাতে পেজটি ব্যাকগ্রাউন্ডে থাকলেও নির্দেশনা আপনার অবস্থান অনুসরণ করতে থাকে।",
-      "description": "Hint shown under the 'Allow GPS in background' setting on every browser except Safari/iOS.",
-      "sourceHash": "sha256:6aad2a2f6367be07",
-      "status": "ai-translated",
-      "translatedAt": "2026-04-30T11:58:12Z",
-      "translatedBy": "openai/gpt-5.4-nano"
+      "value": "আপনার অবস্থানের অনুমতি চাওয়া হবে। অনুমতি দিন যাতে অ্যাপটি ব্যাকগ্রাউন্ডে থাকলেও নির্দেশনা আপনার অবস্থান অনুসরণ করতে থাকে।",
+      "description": "Hint shown under the 'Allow GPS in background' setting on every browser except Safari/iOS. Phrased platform-neutrally (no 'browser' / 'page') so it can be reused on iOS and Android in future without sounding off.",
+      "status": "reviewed"
     },
     "home.platformHint.locationSafariIos": {
       "value": "iPhone-এর Safari আসল ব্যাকগ্রাউন্ড GPS দেয় না। আপনি যাত্রা করার সময় অবস্থান আপডেট চালু রাখতে ট্যাবটি খোলা রাখুন এবং স্ক্রিন অন রাখুন।",
@@ -541,6 +554,89 @@
       "translatedAt": "2026-04-30T11:58:12Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "settings.device.connect": {
+      "value": "সংযোগ করুন",
+      "description": "Button to (re)connect to the paired device.",
+      "sourceHash": "sha256:da04aa6cd7d497bd",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.disconnect": {
+      "value": "সংযোগ বিচ্ছিন্ন করুন",
+      "description": "Button to disconnect from the currently-connected device.",
+      "sourceHash": "sha256:7cd2fbb3bc498ab2",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.forget": {
+      "value": "জোড়া লাগানো ডিভাইস ভুলে যান",
+      "description": "Destructive button that removes the paired-peripheral record so the rider can pair a different device.",
+      "sourceHash": "sha256:9c6f7613431035e0",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.forget.confirmMessage": {
+      "value": "এটি ব্যবহার করতে আপনাকে আবার জোড়ার কোড স্ক্যান করতে হবে। আপনার রুটের ইতিহাস অপরিবর্তিত থাকবে।",
+      "description": "Body of the 'Forget this device?' confirmation alert.",
+      "sourceHash": "sha256:4bd77d4dfc56afbe",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.forget.confirmTitle": {
+      "value": "এই ডিভাইসটি ভুলে যাবেন?",
+      "description": "Title of the confirmation alert shown when the rider taps 'Forget paired device'.",
+      "sourceHash": "sha256:f8766f33bfd25e76",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.lastPaired": {
+      "value": "শেষবার জোড়া লাগানো: {date}",
+      "description": "Footnote under a paired device's name showing when it was paired. {date} is a localised short-date string.",
+      "placeholders": {
+        "date": "string"
+      },
+      "sourceHash": "sha256:ef39e949ffe2a611",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.pairNew": {
+      "value": "নতুন ডিভাইস জোড়া লাগান",
+      "description": "Call-to-action button when no device is paired yet.",
+      "sourceHash": "sha256:04ba0d30ec691209",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.pairedDevice.section": {
+      "value": "জোড়া লাগানো ডিভাইস",
+      "description": "Section header on the Device page for the paired-peripheral details.",
+      "sourceHash": "sha256:ff4f7454986c153d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.reconnecting": {
+      "value": "আবার সংযোগ হচ্ছে…",
+      "description": "Transient label on the Connect button while a connection attempt is in flight.",
+      "sourceHash": "sha256:1908ba02fcd5a3e3",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.title": {
+      "value": "ডিভাইস",
+      "description": "Navigation title of the Device settings page (paired ESP32 management).",
+      "sourceHash": "sha256:da8810f3f85d575c",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "settings.distanceUnit.imperial": {
       "value": "ইম্পেরিয়াল",
       "description": "Distance-unit picker option: feet and miles.",
@@ -637,6 +733,22 @@
       "translatedAt": "2026-04-30T11:58:12Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "settings.importDiagnostics.empty": {
+      "value": "কোনো ব্যর্থ ইমপোর্ট রেকর্ড করা হয়নি",
+      "description": "Empty-state shown on the Import Diagnostics page when nothing has failed.",
+      "sourceHash": "sha256:a11d26a057ed6e77",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.importDiagnostics.title": {
+      "value": "ইমপোর্ট ডায়াগনস্টিকস",
+      "description": "Navigation title of the Import Diagnostics settings page (failed GPX/share-extension imports).",
+      "sourceHash": "sha256:823d2b2a25543537",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "settings.language.en": {
       "value": "English",
       "description": "Native name of the English language, shown as a Language picker option.",
@@ -654,14 +766,14 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.language.noVoiceFallback": {
-      "value": "আপনার ব্রাউজারে {language}–এর জন্য কোনো ভয়েস ইনস্টল করা নেই। অডিও সংকেত ইংরেজিতে বাজবে।",
-      "description": "Warning shown under the Language picker when the active locale has no matching TTS voice. {language} is the native name of the picked language.",
+      "value": "আপনার ডিভাইসে {language}-এর জন্য কোনো ভয়েস ইনস্টল করা নেই। অডিও সংকেত ইংরেজিতে বাজবে।",
+      "description": "Warning shown under the Language picker when the active locale has no matching TTS voice. {language} is the native name of the picked language. Used on web (browser), iOS, and Android — keep the wording platform-neutral.",
       "placeholders": {
         "language": "string"
       },
-      "sourceHash": "sha256:c86474383e612c70",
+      "sourceHash": "sha256:8b279eaab3c2f7b1",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:05:56Z",
+      "translatedAt": "2026-04-30T12:54:00Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.language.subtitle": {
@@ -702,6 +814,30 @@
       "sourceHash": "sha256:d1bb33a4a65936b1",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T11:58:12Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.title": {
+      "value": "রুট প্ল্যানার",
+      "description": "Navigation title of the Route Planner settings page.",
+      "sourceHash": "sha256:6455e6369cfb0021",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.empty": {
+      "value": "এখনও কোনো সংরক্ষিত রুট নেই",
+      "description": "Empty-state shown on the Routes page when the rider has no history.",
+      "sourceHash": "sha256:f19af0a8b06aebc0",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.title": {
+      "value": "রুটস",
+      "description": "Navigation title of the Routes settings page (route history + GPX import).",
+      "sourceHash": "sha256:b933a3f9ee58b672",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:54:00Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.speedUnit.title": {

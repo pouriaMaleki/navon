@@ -116,19 +116,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "إلغاء"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "বাতিল করুন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "Abbrechen"
           }
         },
         "en": {
@@ -140,13 +140,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "Cancelar"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "لغو"
           }
         },
         "fi": {
@@ -158,61 +158,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "Annuler"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "रद्द करें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "Batal"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "キャンセル"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "रद्द करा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "Kànṣélì"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "Cancelar"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "Отмена"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "منسوخ کریں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "取消"
           }
         }
       }
@@ -332,19 +332,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "نسيان"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "ভুলে যান"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "Vergessen"
           }
         },
         "en": {
@@ -356,13 +356,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "Olvidar"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "فراموش کن"
           }
         },
         "fi": {
@@ -374,61 +374,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "Oublier"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "भूलें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "Lupakan"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "忘れる"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "विसरा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "Bàgbé"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "Esquecer"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "Забыть"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "بھول جائیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget"
+            "value": "忘记"
           }
         }
       }
@@ -3782,109 +3782,109 @@
       }
     },
     "home.platformHint.locationDefault": {
-      "comment": "Hint shown under the 'Allow GPS in background' setting on every browser except Safari/iOS.",
+      "comment": "Hint shown under the 'Allow GPS in background' setting on every browser except Safari/iOS. Phrased platform-neutrally (no 'browser' / 'page') so it can be reused on iOS and Android in future without sounding off.",
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "سيطلب متصفحك إذن الموقع. اسمح بذلك حتى تستمر الإرشادات في تتبّع موقعك أثناء بقاء الصفحة في الخلفية."
+            "value": "سيُطلب منك إذن الموقع. اسمح بذلك حتى تستمر الإرشادات في تتبّع موقعك أثناء بقاء التطبيق في الخلفية."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আপনার ব্রাউজার অবস্থানের অনুমতি চাইবে। অনুমতি দিন যাতে পেজটি ব্যাকগ্রাউন্ডে থাকলেও নির্দেশনা আপনার অবস্থান অনুসরণ করতে থাকে।"
+            "value": "আপনার অবস্থানের অনুমতি চাওয়া হবে। অনুমতি দিন যাতে অ্যাপটি ব্যাকগ্রাউন্ডে থাকলেও নির্দেশনা আপনার অবস্থান অনুসরণ করতে থাকে।"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihr Browser fragt nach einer Standortberechtigung. Erlauben Sie sie, damit die Navigation Ihre Position weiter verfolgt, während die Seite im Hintergrund ist."
+            "value": "Sie werden nach einer Standortberechtigung gefragt. Erlauben Sie sie, damit die Navigation Ihre Position weiter verfolgt, während die App im Hintergrund ist."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your browser will ask for location permission. Allow it so guidance keeps tracking your position while the page is in the background."
+            "value": "You'll be asked for location permission. Allow it so guidance keeps tracking your position when the app is in the background."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tu navegador te pedirá permiso de ubicación. Permítelo para que la guía siga rastreando tu posición mientras la página está en segundo plano."
+            "value": "Se te pedirá permiso de ubicación. Permítelo para que la guía siga rastreando tu posición mientras la app está en segundo plano."
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "مرورگر شما اجازهٔ موقعیت مکانی می‌خواهد. آن را مجاز کنید تا راهنمایی هنگام پس‌زمینه بودن صفحه، همچنان موقعیت شما را دنبال کند."
+            "value": "اجازهٔ موقعیت مکانی از شما خواسته می‌شود. آن را مجاز کنید تا راهنمایی هنگام پس‌زمینه بودن برنامه، همچنان موقعیت شما را دنبال کند."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Selain pyytää sijaintilupaa. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sivu on taustalla."
+            "value": "Sijaintilupaa pyydetään. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sovellus on taustalla."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre navigateur vous demandera l’autorisation de localisation. Acceptez-la pour que l’orientation continue de suivre votre position pendant que la page est en arrière-plan."
+            "value": "Une autorisation de localisation vous sera demandée. Acceptez-la pour que l’orientation continue de suivre votre position lorsque l’application est en arrière-plan."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "आपका ब्राउज़र लोकेशन अनुमति मांगेगा। इसे अनुमति दें ताकि पेज बैकग्राउंड में होने पर भी मार्गदर्शन आपकी स्थिति को ट्रैक करता रहे।"
+            "value": "आपसे लोकेशन की अनुमति मांगी जाएगी। इसे अनुमति दें ताकि ऐप बैकग्राउंड में होने पर भी मार्गदर्शन आपकी स्थिति को ट्रैक करता रहे।"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Browser Anda akan meminta izin lokasi. Izinkan agar panduan tetap melacak posisi Anda saat halaman berada di latar belakang."
+            "value": "Anda akan diminta memberikan izin lokasi. Izinkan agar panduan tetap melacak posisi Anda saat aplikasi berada di latar belakang."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ブラウザが位置情報の許可を求めます。ページがバックグラウンドの間も、現在地の追跡を続けるために許可してください。"
+            "value": "位置情報の許可を求められます。アプリがバックグラウンドの間も、現在地の追跡を続けるために許可してください。"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "तुमचा ब्राउझर स्थानासाठी परवानगी मागेल. मार्गदर्शन तुमचे स्थान पार्श्वभूमीत असतानाही ट्रॅक करत राहण्यासाठी ते परवानगी द्या."
+            "value": "तुमच्याकडून स्थानासाठी परवानगी मागितली जाईल. मार्गदर्शन तुमचे स्थान ॲप पार्श्वभूमीत असतानाही ट्रॅक करत राहण्यासाठी ते परवानगी द्या."
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your browser go ask for location permission. Allow am make guidance fit keep tracking your position while page dey background."
+            "value": "Dem go ask you for location permission. Allow am make guidance fit keep tracking your position when the app dey background."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seu navegador vai pedir permissão de localização. Permita para que as orientações continuem acompanhando sua posição enquanto a página estiver em segundo plano."
+            "value": "Será pedida permissão de localização. Permita para que as orientações continuem acompanhando sua posição enquanto o app estiver em segundo plano."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Браузер запросит разрешение на определение местоположения. Разрешите, чтобы навигация продолжала отслеживать вашу позицию, пока страница работает в фоне."
+            "value": "У вас запросят разрешение на определение местоположения. Разрешите, чтобы навигация продолжала отслеживать вашу позицию, пока приложение работает в фоне."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "آپ کا براؤزر مقام کی اجازت مانگے گا۔ اسے اجازت دیں تاکہ رہنمائی صفحہ پسِ منظر میں ہونے پر بھی آپ کی موجودہ پوزیشن کو ٹریک کرتی رہے۔"
+            "value": "آپ سے مقام کی اجازت مانگی جائے گی۔ اسے اجازت دیں تاکہ ایپ پسِ منظر میں ہونے پر بھی رہنمائی آپ کی موجودہ پوزیشن کو ٹریک کرتی رہے۔"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的浏览器将请求定位权限。允许它，这样在页面处于后台时，导航仍会持续跟踪你的当前位置。"
+            "value": "系统会请求定位权限。允许它，这样在应用处于后台时，导航仍会持续跟踪你的当前位置。"
           }
         }
       }
@@ -6704,19 +6704,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "اتصال"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "সংযোগ করুন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "Verbinden"
           }
         },
         "en": {
@@ -6728,13 +6728,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "Conectar"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "اتصال"
           }
         },
         "fi": {
@@ -6746,61 +6746,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "Connecter"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "कनेक्ट करें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "Hubungkan"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "接続する"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "जोडा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "So pọ"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "Conectar"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "Подключить"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "کنیکٹ کریں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connect"
+            "value": "连接"
           }
         }
       }
@@ -6812,19 +6812,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "قطع الاتصال"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "সংযোগ বিচ্ছিন্ন করুন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "Trennen"
           }
         },
         "en": {
@@ -6836,13 +6836,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "Desconectar"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "قطع اتصال"
           }
         },
         "fi": {
@@ -6854,61 +6854,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "Déconnecter"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "डिसकनेक्ट करें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "Putuskan"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "切断する"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "तोडा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "Yọ̀ sílẹ̀"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "Desconectar"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "Отключить"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "ڈسکنیکٹ کریں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disconnect"
+            "value": "断开连接"
           }
         }
       }
@@ -6920,19 +6920,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "نسيان الجهاز المقترن"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "জোড়া লাগানো ডিভাইস ভুলে যান"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "Gepaartes Gerät vergessen"
           }
         },
         "en": {
@@ -6944,13 +6944,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "Olvidar dispositivo emparejado"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "فراموش کردن دستگاه جفت‌شده"
           }
         },
         "fi": {
@@ -6962,61 +6962,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "Oublier l’appareil couplé"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "पेयर किया हुआ डिवाइस भूलें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "Lupakan perangkat yang dipasangkan"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "ペア設定を解除する（端末）"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "जोडलेले डिव्हाइस विसरा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "Bàgbé ẹrọ tí wọ́n so pọ̀"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "Esquecer dispositivo pareado"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "Забыть сопряжённое устройство"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "جوڑا ہوا ڈیوائس بھول جائیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget paired device"
+            "value": "忘记已配对的设备"
           }
         }
       }
@@ -7028,19 +7028,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "ستحتاج إلى مسح رمز الاقتران مرة أخرى لاستخدامه. تبقى سجلات مسارك."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "এটি ব্যবহার করতে আপনাকে আবার জোড়ার কোড স্ক্যান করতে হবে। আপনার রুটের ইতিহাস অপরিবর্তিত থাকবে।"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "Du musst den Kopplungscode erneut scannen, um ihn zu verwenden. Deine Routenhistorie bleibt."
           }
         },
         "en": {
@@ -7052,13 +7052,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "Necesitarás volver a escanear el código de emparejamiento para usarlo. Tu historial de rutas se mantiene."
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "برای استفاده دوباره باید کد جفت‌سازی را اسکن کنید. تاریخچه مسیر شما باقی می‌ماند."
           }
         },
         "fi": {
@@ -7070,61 +7070,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "Vous devrez à nouveau scanner le code de couplage pour l’utiliser. Votre historique d’itinéraires reste."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "इसे फिर से उपयोग करने के लिए आपको पेयरिंग कोड फिर से स्कैन करना होगा। आपका रूट इतिहास बना रहेगा।"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "Anda perlu memindai kode pasangan lagi untuk menggunakannya. Riwayat rute Anda tetap ada."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "再度ペアリングコードを読み取って使用する必要があります。ルート履歴は保持されます。"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "ते वापरण्यासाठी तुम्हाला पुन्हा पेअरिंग कोड स्कॅन करावा लागेल. तुमचा रूट इतिहास तसाच राहील."
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "Bí o bá fẹ́ lo amúlò rẹ̀ lẹ́ẹ̀kansi, o ní láti scan kòdù pẹ̀lú ìbámu náà mọ́. Ìtàn ọ̀nà rẹ̀ kì yí padà."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "Você precisará escanear o código de pareamento novamente para usá-lo. Seu histórico de rotas permanece."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "Вам нужно будет снова отсканировать код сопряжения, чтобы использовать его. История маршрутов сохранится."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "اسے دوبارہ استعمال کرنے کے لیے آپ کو جوڑی بنانے کا کوڈ دوبارہ اسکین کرنا ہوگا۔ آپ کی روٹ ہسٹری برقرار رہے گی۔"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "You'll need to scan the pairing code again to use it. Your route history stays."
+            "value": "要再次使用它，你需要重新扫描配对码。你的路线历史会保留。"
           }
         }
       }
@@ -7136,19 +7136,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "نسيان هذا الجهاز؟"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "এই ডিভাইসটি ভুলে যাবেন?"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "Dieses Gerät vergessen?"
           }
         },
         "en": {
@@ -7160,13 +7160,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "¿Olvidar este dispositivo?"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "این دستگاه را فراموش کنم؟"
           }
         },
         "fi": {
@@ -7178,61 +7178,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "Oublier cet appareil ?"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "यह डिवाइस भूलें?"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "Lupakan perangkat ini?"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "このデバイスを忘れますか？"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "हे डिव्हाइस विसरायचे?"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "Bàgbé ẹrọ yìí?"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "Esquecer este dispositivo?"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "Забыть это устройство?"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "یہ ڈیوائس بھول جائیں؟"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forget this device?"
+            "value": "忘记此设备？"
           }
         }
       }
@@ -7244,19 +7244,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "آخر اقتران: {date}"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "শেষবার জোড়া লাগানো: {date}"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "Zuletzt gekoppelt: {date}"
           }
         },
         "en": {
@@ -7268,13 +7268,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "Último emparejamiento: {date}"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "آخرین جفت‌سازی: {date}"
           }
         },
         "fi": {
@@ -7286,61 +7286,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "Dernier couplage : {date}"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "अंतिम बार पेयर किया गया: {date}"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "Terakhir dipasangkan: {date}"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "最終ペア設定: {date}"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "शेवटचे पेअर केले: {date}"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "Tí wọ́n so pọ̀ kẹ́yìn: {date}"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "Último pareamento: {date}"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "Последнее сопряжение: {date}"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "آخری بار جوڑا گیا: {date}"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last paired: {date}"
+            "value": "上次配对：{date}"
           }
         }
       }
@@ -7352,19 +7352,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "اقتران جهاز جديد"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "নতুন ডিভাইস জোড়া লাগান"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "Neues Gerät koppeln"
           }
         },
         "en": {
@@ -7376,13 +7376,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "Emparejar un dispositivo nuevo"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "جفت‌کردن یک دستگاه جدید"
           }
         },
         "fi": {
@@ -7394,61 +7394,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "Coupler un nouvel appareil"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "नया डिवाइस पेयर करें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "Pasangkan perangkat baru"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "新しいデバイスをペア設定する"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "नवीन डिव्हाइस पेअर करा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "So ẹrọ tuntun pọ̀"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "Parear um novo dispositivo"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "Сопрячь новое устройство"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "نیا ڈیوائس جوڑیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair a new device"
+            "value": "配对新设备"
           }
         }
       }
@@ -7460,19 +7460,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "الجهاز المقترن"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "জোড়া লাগানো ডিভাইস"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "Gekoppeltes Gerät"
           }
         },
         "en": {
@@ -7484,13 +7484,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "Dispositivo emparejado"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "دستگاه جفت‌شده"
           }
         },
         "fi": {
@@ -7502,61 +7502,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "Appareil couplé"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "पेयर किया हुआ डिवाइस"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "Perangkat yang dipasangkan"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "ペア設定済みのデバイス"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "जोडलेले डिव्हाइस"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "Ẹrọ tí wọ́n so pọ̀"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "Dispositivo pareado"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "Сопряжённое устройство"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "جوڑا ہوا ڈیوائس"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paired device"
+            "value": "已配对的设备"
           }
         }
       }
@@ -7568,19 +7568,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "إعادة الاتصال…"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "আবার সংযোগ হচ্ছে…"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "Erneut verbinden…"
           }
         },
         "en": {
@@ -7592,13 +7592,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "Reconectando…"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "در حال اتصال مجدد…"
           }
         },
         "fi": {
@@ -7610,61 +7610,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "Reconnexion…"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "फिर से कनेक्ट हो रहा है…"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "Menyambungkan kembali…"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "再接続中…"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "पुन्हा कनेक्ट करत आहोत…"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "N ń tún so pọ̀…"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "Reconectando…"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "Повторное подключение…"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "دوبارہ کنیکٹ ہو رہا ہے…"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reconnecting…"
+            "value": "正在重新连接…"
           }
         }
       }
@@ -7676,19 +7676,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "الجهاز"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "ডিভাইস"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "Gerät"
           }
         },
         "en": {
@@ -7700,13 +7700,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "Dispositivo"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "دستگاه"
           }
         },
         "fi": {
@@ -7718,61 +7718,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "Appareil"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "डिवाइस"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "Perangkat"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "デバイス"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "डिव्हाइस"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "Ẹrọ"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "Dispositivo"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "Устройство"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "ڈیوائس"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Device"
+            "value": "设备"
           }
         }
       }
@@ -9080,19 +9080,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "لم يتم تسجيل أي عمليات استيراد فاشلة"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "কোনো ব্যর্থ ইমপোর্ট রেকর্ড করা হয়নি"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "Keine fehlgeschlagenen Importe erfasst"
           }
         },
         "en": {
@@ -9104,13 +9104,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "No se registraron importaciones fallidas"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "هیچ واردسازیِ ناموفق ثبت نشده است"
           }
         },
         "fi": {
@@ -9122,61 +9122,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "Aucune importation échouée enregistrée"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "कोई असफल इम्पोर्ट रिकॉर्ड नहीं"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "Tidak ada impor yang gagal tercatat"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "失敗したインポートは記録されていません"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "नोंदवलेले कोणतेही अपयशी इम्पोर्ट नाहीत"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "Kò sí import tí ó ṣubú tí a gbasilẹ"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "Nenhuma importação com falha registrada"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "Не зафиксировано неудачных импортов"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "کوئی ناکام امپورٹ ریکارڈ نہیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "No failed imports recorded"
+            "value": "未记录失败的导入"
           }
         }
       }
@@ -9188,19 +9188,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import Diagnostics"
+            "value": "تشخيصات الاستيراد"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import Diagnostics"
+            "value": "ইমপোর্ট ডায়াগনস্টিকস"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import Diagnostics"
+            "value": "Import-Diagnose"
           }
         },
         "en": {
@@ -9218,7 +9218,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import Diagnostics"
+            "value": "عیب‌یابی واردسازی"
           }
         },
         "fi": {
@@ -9230,31 +9230,31 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import Diagnostics"
+            "value": "Diagnostics d’importation"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import Diagnostics"
+            "value": "इम्पोर्ट डायग्नॉस्टिक्स"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import Diagnostics"
+            "value": "Diagnostik Impor"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import Diagnostics"
+            "value": "インポート診断"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import Diagnostics"
+            "value": "इम्पोर्ट डायग्नॉस्टिक्स"
           }
         },
         "pcm": {
@@ -9272,19 +9272,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import Diagnostics"
+            "value": "Диагностика импорта"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import Diagnostics"
+            "value": "امپورٹ ڈائیگناسٹکس"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import Diagnostics"
+            "value": "导入诊断"
           }
         }
       }
@@ -9512,19 +9512,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا يحتوي متصفحك على صوت مثبت لـ {language}. ستُشغَّل الإشارات الصوتية باللغة الإنجليزية."
+            "value": "لا يتوفر على جهازك صوت لـ {language}. سيتم تشغيل الإشارات الصوتية باللغة الإنجليزية."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আপনার ব্রাউজারে {language}–এর জন্য কোনো ভয়েস ইনস্টল করা নেই। অডিও সংকেত ইংরেজিতে বাজবে।"
+            "value": "আপনার ডিভাইসে {language}-এর জন্য কোনো ভয়েস ইনস্টল করা নেই। অডিও সংকেত ইংরেজিতে বাজবে।"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihr Browser hat keine Sprachstimme für {language} installiert. Audiohinweise werden auf Englisch abgespielt."
+            "value": "Für {language} ist keine Stimme auf deinem Gerät installiert. Audiohinweise werden auf Englisch abgespielt."
           }
         },
         "en": {
@@ -9536,13 +9536,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tu navegador no tiene una voz instalada para {language}. Las indicaciones de audio se reproducirán en inglés."
+            "value": "No hay una voz instalada en tu dispositivo para {language}. Las señales de audio se reproducirán en inglés."
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "مرورگر شما برای {language} صدای گفتاری ندارد. نشانه‌های صوتی به انگلیسی پخش می‌شوند."
+            "value": "برای {language} صدایی روی دستگاه شما نصب نشده است. نشانه‌های صوتی به انگلیسی پخش می‌شوند."
           }
         },
         "fi": {
@@ -9554,61 +9554,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre navigateur n’a aucune voix installée pour {language}. Les indications audio seront lues en anglais."
+            "value": "Aucune voix installée sur votre appareil pour {language}. Les indications audio seront en anglais."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "आपके ब्राउज़र में {language} के लिए कोई आवाज़ (voice) इंस्टॉल नहीं है। ऑडियो संकेत अंग्रेज़ी में चलेंगे।"
+            "value": "आपके डिवाइस में {language} के लिए कोई वॉइस इंस्टॉल नहीं है। ऑडियो संकेत अंग्रेज़ी में चलेंगे।"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Browser Anda tidak memiliki suara untuk {language}. Isyarat audio akan diputar dalam Bahasa Inggris."
+            "value": "Perangkat Anda tidak memiliki suara yang terpasang untuk {language}. Isyarat audio akan diputar dalam bahasa Inggris."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{language} の音声がブラウザにインストールされていません。音声の合図は英語で再生されます。"
+            "value": "このデバイスには {language} の音声がインストールされていません。音声案内は英語で再生されます。"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "तुमच्या ब्राउझरमध्ये {language} साठी आवाज स्थापित नाही. ऑडिओ संकेत इंग्रजीमध्ये वाजतील."
+            "value": "तुमच्या डिव्हाइसवर {language} साठी आवाज स्थापित नाही. ऑडिओ संकेत इंग्रजीत वाजतील."
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your browser no get voice for {language}. Audio cues go play for English."
+            "value": "Kò sí ohùn tí a fi sílẹ̀ fún {language} nínú ẹrọ rẹ. A ó máa gbọ́ ohun ní Gẹ̀ẹ́sì."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seu navegador não tem uma voz instalada para {language}. As dicas de áudio serão reproduzidas em inglês."
+            "value": "Seu dispositivo não tem uma voz instalada para {language}. Os avisos de áudio serão reproduzidos em inglês."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "В вашем браузере нет голоса для {language}. Звуковые подсказки будут на английском."
+            "value": "На вашем устройстве нет установленного голоса для {language}. Звуковые подсказки будут воспроизводиться на английском."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "آپ کے براؤزر میں {language} کے لیے آواز نصب نہیں ہے۔ آڈیو اشارے انگریزی میں چلیں گے۔"
+            "value": "آپ کے آلے میں {language} کے لیے کوئی آواز نصب نہیں ہے۔ آڈیو اشارے انگریزی میں چلیں گے۔"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的浏览器没有为 {language} 安装语音。音频提示将使用英语播放。"
+            "value": "你的设备未为 {language} 安装语音。音频提示将以英语播放。"
           }
         }
       }
@@ -10160,19 +10160,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route Planner"
+            "value": "مخطط المسار"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route Planner"
+            "value": "রুট প্ল্যানার"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route Planner"
+            "value": "Routenplaner"
           }
         },
         "en": {
@@ -10184,13 +10184,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route Planner"
+            "value": "Planificador de rutas"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route Planner"
+            "value": "برنامه‌ریز مسیر"
           }
         },
         "fi": {
@@ -10202,31 +10202,31 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route Planner"
+            "value": "Planificateur d’itinéraires"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route Planner"
+            "value": "रूट प्लानर"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route Planner"
+            "value": "Perencana Rute"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route Planner"
+            "value": "ルートプランナー"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route Planner"
+            "value": "रूट प्लॅनर"
           }
         },
         "pcm": {
@@ -10238,25 +10238,25 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route Planner"
+            "value": "Planejador de Rotas"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route Planner"
+            "value": "Планировщик маршрута"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route Planner"
+            "value": "روٹ پلانر"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route Planner"
+            "value": "路线规划"
           }
         }
       }
@@ -10268,19 +10268,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "لا توجد مسارات محفوظة بعد"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "এখনও কোনো সংরক্ষিত রুট নেই"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "Noch keine gespeicherten Routen"
           }
         },
         "en": {
@@ -10292,13 +10292,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "Aún no hay rutas guardadas"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "هنوز هیچ مسیری ذخیره نشده است"
           }
         },
         "fi": {
@@ -10310,61 +10310,61 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "Aucun itinéraire enregistré pour le moment"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "अभी तक कोई सेव्ड रूट नहीं"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "Belum ada rute yang tersimpan"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "保存済みのルートはまだありません"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "अजून कोणतेही सेव्ह केलेले रूट नाहीत"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "Kò sí àwọn route tí a ti fipamọ́ sí i títí yìí"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "Ainda não há rotas salvas"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "Пока нет сохранённых маршрутов"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "ابھی تک کوئی محفوظ روٹس نہیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "No saved routes yet"
+            "value": "尚无已保存的路线"
           }
         }
       }
@@ -10376,19 +10376,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "المسارات"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "রুটস"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "Routen"
           }
         },
         "en": {
@@ -10400,13 +10400,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "Rutas"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "مسیرها"
           }
         },
         "fi": {
@@ -10418,31 +10418,31 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "Itinéraires"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "रूट्स"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "Rute"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "ルート"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "रूट्स"
           }
         },
         "pcm": {
@@ -10454,25 +10454,25 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "Rotas"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "Маршруты"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "روٹس"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Routes"
+            "value": "路线"
           }
         }
       }

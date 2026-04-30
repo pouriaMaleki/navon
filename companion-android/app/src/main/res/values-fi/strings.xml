@@ -35,7 +35,7 @@
     <string name="home_importedRoute" formatted="false">Tuotu reitti</string>
     <string name="home_noSuggestions" formatted="false">Ei vielä ehdotuksia…</string>
     <string name="home_openSettings" formatted="false">Asetukset</string>
-    <string name="home_platformHint_locationDefault" formatted="false">Selain pyytää sijaintilupaa. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sivu on taustalla.</string>
+    <string name="home_platformHint_locationDefault" formatted="false">Sijaintilupaa pyydetään. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sovellus on taustalla.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">iPhonen Safari ei tue oikeaa taustalla toimivaa GPS:ää. Pidä välilehti aktiivisena ja näyttö päällä, jotta sijaintipäivitykset jatkuvat ajon aikana.</string>
     <string name="home_recenter" formatted="false">Keskitä uudelleen</string>
     <string name="home_routeOptions" formatted="false">Reittivaihtoehdot</string>

@@ -381,8 +381,8 @@
       "status": "reviewed"
     },
     "home.platformHint.locationDefault": {
-      "value": "Selain pyytää sijaintilupaa. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sivu on taustalla.",
-      "description": "Hint shown under the 'Allow GPS in background' setting on every browser except Safari/iOS.",
+      "value": "Sijaintilupaa pyydetään. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sovellus on taustalla.",
+      "description": "Hint shown under the 'Allow GPS in background' setting on every browser except Safari/iOS. Phrased platform-neutrally (no 'browser' / 'page') so it can be reused on iOS and Android in future without sounding off.",
       "status": "reviewed"
     },
     "home.platformHint.locationSafariIos": {
@@ -413,7 +413,9 @@
     "planning.cyclingAlternativesWithFailures": {
       "value": "Pyöräilyvaihtoehdot — {failedCount, number} {failedCount, select, one {lähde ei käytettävissä} other {lähdettä ei käytettävissä}}",
       "description": "Notice on the route alternatives card when one or more OSM cycling sources timed out or errored.",
-      "placeholders": { "failedCount": "number" },
+      "placeholders": {
+        "failedCount": "number"
+      },
       "status": "reviewed"
     },
     "home.whereTo": {
@@ -597,7 +599,9 @@
     "settings.language.noVoiceFallback": {
       "value": "Laitteellesi ei ole asennettu ääntä kielelle {language}. Ääniopastus puhuu englanniksi.",
       "description": "Warning shown under the Language picker when the active locale has no matching TTS voice. {language} is the native name of the picked language. Used on web (browser), iOS, and Android — keep the wording platform-neutral.",
-      "placeholders": { "language": "string" },
+      "placeholders": {
+        "language": "string"
+      },
       "status": "reviewed"
     },
     "settings.device.title": {
@@ -648,7 +652,9 @@
     "settings.device.lastPaired": {
       "value": "Paritettu viimeksi: {date}",
       "description": "Footnote under paired device name.",
-      "placeholders": { "date": "string" },
+      "placeholders": {
+        "date": "string"
+      },
       "status": "reviewed"
     },
     "settings.routePlanner.title": {

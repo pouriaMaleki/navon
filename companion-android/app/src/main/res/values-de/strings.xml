@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="common_cancel" formatted="false">Abbrechen</string>
-    <string name="common_cancel_role" formatted="false">Cancel</string>
+    <string name="common_cancel_role" formatted="false">Abbrechen</string>
     <string name="common_close" formatted="false">Schließen</string>
-    <string name="common_forget" formatted="false">Forget</string>
+    <string name="common_forget" formatted="false">Vergessen</string>
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">Sie sind an Ihrem Ziel angekommen</string>
     <string name="cue_arrivingInM" formatted="false">Ankunft an Ihrem Ziel in {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
@@ -35,7 +35,7 @@
     <string name="home_importedRoute" formatted="false">Importierte Route</string>
     <string name="home_noSuggestions" formatted="false">Noch keine Vorschläge…</string>
     <string name="home_openSettings" formatted="false">Einstellungen</string>
-    <string name="home_platformHint_locationDefault" formatted="false">Ihr Browser fragt nach einer Standortberechtigung. Erlauben Sie sie, damit die Navigation Ihre Position weiter verfolgt, während die Seite im Hintergrund ist.</string>
+    <string name="home_platformHint_locationDefault" formatted="false">Sie werden nach einer Standortberechtigung gefragt. Erlauben Sie sie, damit die Navigation Ihre Position weiter verfolgt, während die App im Hintergrund ist.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">Safari auf dem iPhone liefert kein echtes GPS im Hintergrund. Halten Sie den Tab aktiv und den Bildschirm eingeschaltet, damit Standortaktualisierungen während der Fahrt weiter erfolgen.</string>
     <string name="home_recenter" formatted="false">Zentrieren</string>
     <string name="home_routeOptions" formatted="false">Routenoptionen</string>
@@ -62,16 +62,16 @@
     <string name="settings_activity_liveActivity_subtitle" formatted="false">Nächste Abbiegung auf dem Sperrbildschirm anzeigen</string>
     <string name="settings_activity_liveActivity_title" formatted="false">Live-Aktivität auf dem Sperrbildschirm</string>
     <string name="settings_activity_title" formatted="false">Aktivitäts-Einstellungen</string>
-    <string name="settings_device_connect" formatted="false">Connect</string>
-    <string name="settings_device_disconnect" formatted="false">Disconnect</string>
-    <string name="settings_device_forget" formatted="false">Forget paired device</string>
-    <string name="settings_device_forget_confirmMessage" formatted="false">You\'ll need to scan the pairing code again to use it. Your route history stays.</string>
-    <string name="settings_device_forget_confirmTitle" formatted="false">Forget this device?</string>
-    <string name="settings_device_lastPaired" formatted="false">Last paired: {date}</string>
-    <string name="settings_device_pairNew" formatted="false">Pair a new device</string>
-    <string name="settings_device_pairedDevice_section" formatted="false">Paired device</string>
-    <string name="settings_device_reconnecting" formatted="false">Reconnecting…</string>
-    <string name="settings_device_title" formatted="false">Device</string>
+    <string name="settings_device_connect" formatted="false">Verbinden</string>
+    <string name="settings_device_disconnect" formatted="false">Trennen</string>
+    <string name="settings_device_forget" formatted="false">Gepaartes Gerät vergessen</string>
+    <string name="settings_device_forget_confirmMessage" formatted="false">Du musst den Kopplungscode erneut scannen, um ihn zu verwenden. Deine Routenhistorie bleibt.</string>
+    <string name="settings_device_forget_confirmTitle" formatted="false">Dieses Gerät vergessen?</string>
+    <string name="settings_device_lastPaired" formatted="false">Zuletzt gekoppelt: {date}</string>
+    <string name="settings_device_pairNew" formatted="false">Neues Gerät koppeln</string>
+    <string name="settings_device_pairedDevice_section" formatted="false">Gekoppeltes Gerät</string>
+    <string name="settings_device_reconnecting" formatted="false">Erneut verbinden…</string>
+    <string name="settings_device_title" formatted="false">Gerät</string>
     <string name="settings_distanceUnit_imperial" formatted="false">Imperial</string>
     <string name="settings_distanceUnit_metric" formatted="false">Metrisch</string>
     <string name="settings_distanceUnit_system" formatted="false">System</string>
@@ -84,19 +84,19 @@
     <string name="settings_hub_routes" formatted="false">Routen</string>
     <string name="settings_hub_routes_subtitle" formatted="false">Letzte Routen und GPX-Import</string>
     <string name="settings_hub_title" formatted="false">Einstellungen</string>
-    <string name="settings_importDiagnostics_empty" formatted="false">No failed imports recorded</string>
-    <string name="settings_importDiagnostics_title" formatted="false">Import Diagnostics</string>
+    <string name="settings_importDiagnostics_empty" formatted="false">Keine fehlgeschlagenen Importe erfasst</string>
+    <string name="settings_importDiagnostics_title" formatted="false">Import-Diagnose</string>
     <string name="settings_language_en" formatted="false">Englisch</string>
     <string name="settings_language_fi" formatted="false">Suomi</string>
-    <string name="settings_language_noVoiceFallback" formatted="false">Ihr Browser hat keine Sprachstimme für {language} installiert. Audiohinweise werden auf Englisch abgespielt.</string>
+    <string name="settings_language_noVoiceFallback" formatted="false">Für {language} ist keine Stimme auf deinem Gerät installiert. Audiohinweise werden auf Englisch abgespielt.</string>
     <string name="settings_language_subtitle" formatted="false">Wähle die Sprache der App</string>
     <string name="settings_language_system" formatted="false">System</string>
     <string name="settings_language_title" formatted="false">Sprache</string>
     <string name="settings_restartRequired_message" formatted="false">Beende die App und öffne sie erneut, um die neue Sprache zu übernehmen.</string>
     <string name="settings_restartRequired_title" formatted="false">Neustart erforderlich</string>
-    <string name="settings_routePlanner_title" formatted="false">Route Planner</string>
-    <string name="settings_routes_empty" formatted="false">No saved routes yet</string>
-    <string name="settings_routes_title" formatted="false">Routes</string>
+    <string name="settings_routePlanner_title" formatted="false">Routenplaner</string>
+    <string name="settings_routes_empty" formatted="false">Noch keine gespeicherten Routen</string>
+    <string name="settings_routes_title" formatted="false">Routen</string>
     <string name="settings_speedUnit_title" formatted="false">Geschwindigkeitseinheit</string>
     <string name="settings_voiceNotInstalled" formatted="false">Die Stimme für {language} ist nicht installiert. Öffne die Systemeinstellungen, um sie zu installieren.</string>
     <string name="units_distance_ft" formatted="false">{distance, number} ft</string>

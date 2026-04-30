@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="common_cancel" formatted="false">रद्द करें</string>
-    <string name="common_cancel_role" formatted="false">Cancel</string>
+    <string name="common_cancel_role" formatted="false">रद्द करें</string>
     <string name="common_close" formatted="false">बंद करें</string>
-    <string name="common_forget" formatted="false">Forget</string>
+    <string name="common_forget" formatted="false">भूलें</string>
     <string name="common_ok" formatted="false">ठीक है</string>
     <string name="cue_arrived" formatted="false">आप अपने गंतव्य पर पहुँच गए हैं</string>
     <string name="cue_arrivingInM" formatted="false">अपने गंतव्य पर {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में पहुँच रहे हैं</string>
@@ -35,7 +35,7 @@
     <string name="home_importedRoute" formatted="false">आयातित मार्ग</string>
     <string name="home_noSuggestions" formatted="false">अभी कोई सुझाव नहीं…</string>
     <string name="home_openSettings" formatted="false">सेटिंग्स</string>
-    <string name="home_platformHint_locationDefault" formatted="false">आपका ब्राउज़र लोकेशन अनुमति मांगेगा। इसे अनुमति दें ताकि पेज बैकग्राउंड में होने पर भी मार्गदर्शन आपकी स्थिति को ट्रैक करता रहे।</string>
+    <string name="home_platformHint_locationDefault" formatted="false">आपसे लोकेशन की अनुमति मांगी जाएगी। इसे अनुमति दें ताकि ऐप बैकग्राउंड में होने पर भी मार्गदर्शन आपकी स्थिति को ट्रैक करता रहे।</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">iPhone पर Safari असली बैकग्राउंड GPS नहीं देता। टैब को सक्रिय रखें और स्क्रीन ऑन रखें ताकि आप सवारी करते समय लोकेशन अपडेट जारी रहें।</string>
     <string name="home_recenter" formatted="false">फिर से केंद्रित करें</string>
     <string name="home_routeOptions" formatted="false">मार्ग विकल्प</string>
@@ -62,16 +62,16 @@
     <string name="settings_activity_liveActivity_subtitle" formatted="false">लॉक स्क्रीन पर अगला टर्न दिखाएँ</string>
     <string name="settings_activity_liveActivity_title" formatted="false">लॉक-स्क्रीन लाइव गतिविधि</string>
     <string name="settings_activity_title" formatted="false">गतिविधि सेटिंग्स</string>
-    <string name="settings_device_connect" formatted="false">Connect</string>
-    <string name="settings_device_disconnect" formatted="false">Disconnect</string>
-    <string name="settings_device_forget" formatted="false">Forget paired device</string>
-    <string name="settings_device_forget_confirmMessage" formatted="false">You\'ll need to scan the pairing code again to use it. Your route history stays.</string>
-    <string name="settings_device_forget_confirmTitle" formatted="false">Forget this device?</string>
-    <string name="settings_device_lastPaired" formatted="false">Last paired: {date}</string>
-    <string name="settings_device_pairNew" formatted="false">Pair a new device</string>
-    <string name="settings_device_pairedDevice_section" formatted="false">Paired device</string>
-    <string name="settings_device_reconnecting" formatted="false">Reconnecting…</string>
-    <string name="settings_device_title" formatted="false">Device</string>
+    <string name="settings_device_connect" formatted="false">कनेक्ट करें</string>
+    <string name="settings_device_disconnect" formatted="false">डिसकनेक्ट करें</string>
+    <string name="settings_device_forget" formatted="false">पेयर किया हुआ डिवाइस भूलें</string>
+    <string name="settings_device_forget_confirmMessage" formatted="false">इसे फिर से उपयोग करने के लिए आपको पेयरिंग कोड फिर से स्कैन करना होगा। आपका रूट इतिहास बना रहेगा।</string>
+    <string name="settings_device_forget_confirmTitle" formatted="false">यह डिवाइस भूलें?</string>
+    <string name="settings_device_lastPaired" formatted="false">अंतिम बार पेयर किया गया: {date}</string>
+    <string name="settings_device_pairNew" formatted="false">नया डिवाइस पेयर करें</string>
+    <string name="settings_device_pairedDevice_section" formatted="false">पेयर किया हुआ डिवाइस</string>
+    <string name="settings_device_reconnecting" formatted="false">फिर से कनेक्ट हो रहा है…</string>
+    <string name="settings_device_title" formatted="false">डिवाइस</string>
     <string name="settings_distanceUnit_imperial" formatted="false">इम्पीरियल</string>
     <string name="settings_distanceUnit_metric" formatted="false">मेट्रिक</string>
     <string name="settings_distanceUnit_system" formatted="false">डिवाइस की माप प्रणाली का पालन करें</string>
@@ -84,19 +84,19 @@
     <string name="settings_hub_routes" formatted="false">रूट्स</string>
     <string name="settings_hub_routes_subtitle" formatted="false">हाल के रूट्स और GPX इम्पोर्ट</string>
     <string name="settings_hub_title" formatted="false">सेटिंग्स</string>
-    <string name="settings_importDiagnostics_empty" formatted="false">No failed imports recorded</string>
-    <string name="settings_importDiagnostics_title" formatted="false">Import Diagnostics</string>
+    <string name="settings_importDiagnostics_empty" formatted="false">कोई असफल इम्पोर्ट रिकॉर्ड नहीं</string>
+    <string name="settings_importDiagnostics_title" formatted="false">इम्पोर्ट डायग्नॉस्टिक्स</string>
     <string name="settings_language_en" formatted="false">English</string>
     <string name="settings_language_fi" formatted="false">Suomi</string>
-    <string name="settings_language_noVoiceFallback" formatted="false">आपके ब्राउज़र में {language} के लिए कोई आवाज़ (voice) इंस्टॉल नहीं है। ऑडियो संकेत अंग्रेज़ी में चलेंगे।</string>
+    <string name="settings_language_noVoiceFallback" formatted="false">आपके डिवाइस में {language} के लिए कोई वॉइस इंस्टॉल नहीं है। ऑडियो संकेत अंग्रेज़ी में चलेंगे।</string>
     <string name="settings_language_subtitle" formatted="false">ऐप की भाषा चुनें</string>
     <string name="settings_language_system" formatted="false">सिस्टम</string>
     <string name="settings_language_title" formatted="false">भाषा</string>
     <string name="settings_restartRequired_message" formatted="false">नई भाषा लागू करने के लिए ऐप बंद करें और फिर से खोलें।</string>
     <string name="settings_restartRequired_title" formatted="false">रीस्टार्ट आवश्यक</string>
-    <string name="settings_routePlanner_title" formatted="false">Route Planner</string>
-    <string name="settings_routes_empty" formatted="false">No saved routes yet</string>
-    <string name="settings_routes_title" formatted="false">Routes</string>
+    <string name="settings_routePlanner_title" formatted="false">रूट प्लानर</string>
+    <string name="settings_routes_empty" formatted="false">अभी तक कोई सेव्ड रूट नहीं</string>
+    <string name="settings_routes_title" formatted="false">रूट्स</string>
     <string name="settings_speedUnit_title" formatted="false">गति की इकाई</string>
     <string name="settings_voiceNotInstalled" formatted="false">{language} के लिए आवाज़ इंस्टॉल नहीं है। इंस्टॉल करने के लिए सिस्टम सेटिंग्स खोलें।</string>
     <string name="units_distance_ft" formatted="false">{distance, number} ft</string>

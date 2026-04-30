@@ -34,7 +34,7 @@
   "home.importedRoute": "Imported route",
   "home.noSuggestions": "No suggestions yet…",
   "home.openSettings": "Settings",
-  "home.platformHint.locationDefault": "Your browser will ask for location permission. Allow it so guidance keeps tracking your position while the page is in the background.",
+  "home.platformHint.locationDefault": "You'll be asked for location permission. Allow it so guidance keeps tracking your position when the app is in the background.",
   "home.platformHint.locationSafariIos": "Safari on iPhone does not deliver true background GPS. Keep the tab active and the screen on so location updates continue while you ride.",
   "home.recenter": "Recenter",
   "home.routeOptions": "Route options",

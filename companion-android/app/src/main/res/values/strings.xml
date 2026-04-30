@@ -35,7 +35,7 @@
     <string name="home_importedRoute" formatted="false">Imported route</string>
     <string name="home_noSuggestions" formatted="false">No suggestions yet…</string>
     <string name="home_openSettings" formatted="false">Settings</string>
-    <string name="home_platformHint_locationDefault" formatted="false">Your browser will ask for location permission. Allow it so guidance keeps tracking your position while the page is in the background.</string>
+    <string name="home_platformHint_locationDefault" formatted="false">You\'ll be asked for location permission. Allow it so guidance keeps tracking your position when the app is in the background.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">Safari on iPhone does not deliver true background GPS. Keep the tab active and the screen on so location updates continue while you ride.</string>
     <string name="home_recenter" formatted="false">Recenter</string>
     <string name="home_routeOptions" formatted="false">Route options</string>
