@@ -31,6 +31,7 @@
   "cue.turn50m.left": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny vasemmalle",
   "cue.turn50m.right": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny oikealle",
   "cue.turn50m.uturn": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, tee U-käännös",
+  "cue.turn50mCombined": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, {first, select, left {käänny vasemmalle} right {käänny oikealle} keepLeft {pidä vasemmalla} keepRight {pidä oikealla} exitLeft {ota vasen liittymä} exitRight {ota oikea liittymä} uturn {tee U-käännös} other {noudata reittiä}} ja heti perään {second, select, left {vasemmalle} right {oikealle} keepLeft {pidä vasemmalla} keepRight {pidä oikealla} exitLeft {vasen liittymä} exitRight {oikea liittymä} uturn {U-käännös} other {suoraan}}",
   "guidance.distanceToDestination": "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} kohteeseen {destination}",
   "home.a11y.clearDestination": "Tyhjennä määränpää",
   "home.a11y.currentSpeed": "Nykyinen nopeus",

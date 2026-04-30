@@ -309,6 +309,16 @@
       "translatedAt": "2026-04-30T12:08:22Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "cue.turn50mCombined": {
+      "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，{first, select, left {左转} right {右转} keepLeft {靠左行驶} keepRight {靠右行驶} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} other {沿路线行驶}}，紧接着{second, select, left {左转} right {右转} keepLeft {靠左} keepRight {靠右} exitLeft {左侧出口} exitRight {右侧出口} uturn {掉头} other {直行}}",
+      "description": "Voice cue for back-to-back turns within ~80m: replaces two overlapping cues with one combined phrase.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select",
+        "first": "select",
+        "second": "select"
+      }
+    },
     "guidance.distanceToDestination": {
       "value": "到 {destination} 还需 {distance, number} {distanceUnit, select, km {km} mi {mi} other {km}}",
       "description": "Active guidance card subtitle showing remaining distance and destination name.",
@@ -424,7 +434,7 @@
       "status": "reviewed"
     },
     "home.platformHint.locationSafariIos": {
-      "value": "iPhone 上的 Safari 无法提供真正的后台 GPS。保持此标签页处于打开状态，并让屏幕保持亮起，以便你骑行时位置更新仍能继续。",
+      "value": "标签页隐藏时，iPhone 上的 Safari 无法提供后台 GPS、锁屏导航提示或语音提醒。如需真正的后台路线导航，请安装原生 iOS 应用。",
       "description": "Hint shown under the 'Allow GPS in background' setting when the browser is Safari on iOS.",
       "sourceHash": "sha256:d739522e29c7ef00",
       "status": "ai-translated",

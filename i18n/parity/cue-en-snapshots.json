@@ -17,22 +17,6 @@
     {
       "event": {
         "kind": "turn50m",
-        "turnKind": "right",
-        "followUpKind": "left"
-      },
-      "expected": {
-        "key": "cue.turn50mCombined",
-        "values": {
-          "distance": 50,
-          "distanceUnit": "meters",
-          "first": "right",
-          "second": "left"
-        }
-      }
-    },
-    {
-      "event": {
-        "kind": "turn50m",
         "turnKind": "right"
       },
       "expected": {
@@ -118,6 +102,22 @@
         "values": {
           "distance": 50,
           "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "followUpKind": "left",
+        "kind": "turn50m",
+        "turnKind": "right"
+      },
+      "expected": {
+        "key": "cue.turn50mCombined",
+        "values": {
+          "distance": 50,
+          "distanceUnit": "meters",
+          "first": "right",
+          "second": "left"
         }
       }
     },

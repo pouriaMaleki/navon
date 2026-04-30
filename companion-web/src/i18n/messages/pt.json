@@ -31,6 +31,7 @@
   "cue.turn50m.left": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, vire à esquerda",
   "cue.turn50m.right": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, vire à direita",
   "cue.turn50m.uturn": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, faça uma conversão em U",
+  "cue.turn50mCombined": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {vire à esquerda} right {vire à direita} keepLeft {mantenha-se à esquerda} keepRight {mantenha-se à direita} exitLeft {pegue a saída à esquerda} exitRight {pegue a saída à direita} uturn {faça uma conversão em U} other {siga a rota}} e logo em seguida {second, select, left {à esquerda} right {à direita} keepLeft {mantenha-se à esquerda} keepRight {mantenha-se à direita} exitLeft {saída à esquerda} exitRight {saída à direita} uturn {conversão em U} other {em frente}}",
   "guidance.distanceToDestination": "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} até {destination}",
   "home.a11y.clearDestination": "Limpar destino",
   "home.a11y.currentSpeed": "Velocidade atual",

@@ -32,6 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn left</string>
     <string name="cue_turn50m_right" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn right</string>
     <string name="cue_turn50m_uturn" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, make a U-turn</string>
+    <string name="cue_turn50mCombined" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {turn left} right {turn right} keepLeft {keep left} keepRight {keep right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} other {follow the route}} sharp sharp {second, select, left {left} right {right} keepLeft {keep left} keepRight {keep right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} other {straight}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} to {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Sọ ibi tí o ń lọ di ofo</string>
     <string name="home_a11y_currentSpeed" formatted="false">Ìyára lọwọlọwọ</string>
@@ -46,7 +47,7 @@
     <string name="home_noSuggestions" formatted="false">No suggestions yet…</string>
     <string name="home_openSettings" formatted="false">Settings</string>
     <string name="home_platformHint_locationDefault" formatted="false">Dem go ask you for location permission. Allow am make guidance fit keep tracking your position when the app dey background.</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">Safari for iPhone no dey deliver true background GPS. Keep the tab active and make screen stay on so location updates go continue while you dey ride.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">Safari for iPhone no fit deliver background GPS, lock-screen direction, or audio cue when the tab dey hidden. If you want real background routing, install the native iOS app.</string>
     <string name="home_recenter" formatted="false">Recenter</string>
     <string name="home_resolvingLink" formatted="false">Mo ń ṣàwárí link…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Mo ń tẹ̀lé link náà kí n wá ibi tí e ń lọ. E fitẹ́ gba ìṣẹ́jú díẹ̀.</string>

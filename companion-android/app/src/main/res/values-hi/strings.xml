@@ -32,6 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, बाएँ मुड़ें</string>
     <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, दाएँ मुड़ें</string>
     <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, U-turn करें</string>
+    <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, {first, select, left {बाएँ मुड़ें} right {दाएँ मुड़ें} keepLeft {बाएँ रखें} keepRight {दाएँ रखें} exitLeft {बाएँ निकास लें} exitRight {दाएँ निकास लें} uturn {U-turn करें} other {मार्ग का पालन करें}}, फिर तुरंत {second, select, left {बाएँ} right {दाएँ} keepLeft {बाएँ रखें} keepRight {दाएँ रखें} exitLeft {बायाँ निकास} exitRight {दायाँ निकास} uturn {U-turn} other {सीधे}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} से {destination} तक</string>
     <string name="home_a11y_clearDestination" formatted="false">गंतव्य साफ़ करें</string>
     <string name="home_a11y_currentSpeed" formatted="false">वर्तमान गति</string>
@@ -46,7 +47,7 @@
     <string name="home_noSuggestions" formatted="false">अभी कोई सुझाव नहीं…</string>
     <string name="home_openSettings" formatted="false">सेटिंग्स</string>
     <string name="home_platformHint_locationDefault" formatted="false">आपसे लोकेशन की अनुमति मांगी जाएगी। इसे अनुमति दें ताकि ऐप बैकग्राउंड में होने पर भी मार्गदर्शन आपकी स्थिति को ट्रैक करता रहे।</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">iPhone पर Safari असली बैकग्राउंड GPS नहीं देता। टैब को सक्रिय रखें और स्क्रीन ऑन रखें ताकि आप सवारी करते समय लोकेशन अपडेट जारी रहें।</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">जब टैब छिपा हो, तो iPhone पर Safari न तो बैकग्राउंड GPS दे सकता है, न लॉक-स्क्रीन निर्देश और न ही ऑडियो संकेत। असली बैकग्राउंड रूटिंग के लिए नेटिव iOS ऐप इंस्टॉल करें।</string>
     <string name="home_recenter" formatted="false">फिर से केंद्रित करें</string>
     <string name="home_resolvingLink" formatted="false">लिंक सुलझाया जा रहा है…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">गंतव्य के लिए URL फॉलो किया जा रहा है। इसमें कुछ सेकंड लग सकते हैं।</string>

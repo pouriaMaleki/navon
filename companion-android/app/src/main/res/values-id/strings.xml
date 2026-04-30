@@ -32,6 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kiri</string>
     <string name="cue_turn50m_right" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kanan</string>
     <string name="cue_turn50m_uturn" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, putar balik (U-turn)</string>
+    <string name="cue_turn50mCombined" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {belok kiri} right {belok kanan} keepLeft {tetap di kiri} keepRight {tetap di kanan} exitLeft {ambil pintu keluar kiri} exitRight {ambil pintu keluar kanan} uturn {putar balik (U-turn)} other {ikuti rute}} lalu segera {second, select, left {kiri} right {kanan} keepLeft {tetap di kiri} keepRight {tetap di kanan} exitLeft {pintu keluar kiri} exitRight {pintu keluar kanan} uturn {putar balik} other {lurus}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} menuju {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Hapus tujuan</string>
     <string name="home_a11y_currentSpeed" formatted="false">Kecepatan saat ini</string>
@@ -46,7 +47,7 @@
     <string name="home_noSuggestions" formatted="false">Belum ada saran…</string>
     <string name="home_openSettings" formatted="false">Pengaturan</string>
     <string name="home_platformHint_locationDefault" formatted="false">Anda akan diminta memberikan izin lokasi. Izinkan agar panduan tetap melacak posisi Anda saat aplikasi berada di latar belakang.</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">Safari di iPhone tidak memberikan GPS latar belakang yang benar. Tetap aktifkan tab dan nyalakan layar agar pembaruan lokasi terus berlanjut saat Anda bersepeda.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">Safari di iPhone tidak dapat menyediakan GPS latar belakang, panduan layar terkunci, atau isyarat audio saat tab disembunyikan. Untuk navigasi latar belakang yang sesungguhnya, pasang aplikasi iOS native.</string>
     <string name="home_recenter" formatted="false">Pusatkan ulang</string>
     <string name="home_resolvingLink" formatted="false">Menyelesaikan tautan…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Mengikuti URL menuju tujuan. Ini bisa memakan waktu beberapa detik.</string>

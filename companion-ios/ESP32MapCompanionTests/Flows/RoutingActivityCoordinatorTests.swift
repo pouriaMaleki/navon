@@ -46,7 +46,11 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
             routeId: "r1",
             pairedWithDevice: pairedWithDevice,
             progressDistanceM: 0,
-            maneuvers: [],
+            // A single upcoming maneuver gives the first-tick cue
+            // (`nextTurnInAbout`) something concrete to announce — without
+            // it, the engine would emit nothing on tick 1 and these "cues
+            // fire" assertions would all read empty.
+            maneuvers: [CueManeuver(id: "m1", kind: .left, distanceFromStartM: 300)],
             offRoute: false,
             rerouting: false,
             arrived: false,
@@ -71,9 +75,13 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
 
     func test_cuesFireWhenAllGatesAreOpen() {
         let (coordinator, speech, _) = makeCoordinator()
-        let s = defaultSettings(allowBackgroundGps: true, audioCuesEnabled: true)
+        var s = defaultSettings(allowBackgroundGps: true, audioCuesEnabled: true)
+        // The catch-all "all gates open" gate also requires the
+        // audioCuesOnlyInBackground gate to be off, since this synchronous
+        // test does not drive scenePhase.
+        s.audioCuesOnlyInBackground = false
         coordinator.onGuidanceTick(snapshot: snapshot(), settings: s, isRouting: true)
-        XCTAssertTrue(speech.spoken.contains("Route started"))
+        XCTAssertFalse(speech.spoken.isEmpty, "expected first-tick cue; got \(speech.spoken)")
     }
 
     // Spec line 144: "setting to enable audio cues only when app is in
@@ -101,7 +109,7 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
             snapshot: snapshot(), settings: s,
             isRouting: true, isAppInBackground: true
         )
-        XCTAssertTrue(speech.spoken.contains("Route started"))
+        XCTAssertFalse(speech.spoken.isEmpty, "expected first-tick cue; got \(speech.spoken)")
     }
 
     func test_cuesFireInForegroundWhenOnlyInBackgroundIsOff() {
@@ -112,7 +120,7 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
             snapshot: snapshot(), settings: s,
             isRouting: true, isAppInBackground: false
         )
-        XCTAssertTrue(speech.spoken.contains("Route started"))
+        XCTAssertFalse(speech.spoken.isEmpty, "expected first-tick cue; got \(speech.spoken)")
     }
 
     func test_audioCuesOnlyInBackgroundIsOnByDefault() {
@@ -138,8 +146,9 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
         )
         XCTAssertEqual(speech.lang, "en", "TTS should fall back to English when no Persian voice is installed")
         coordinator.onGuidanceTick(snapshot: snapshot(), settings: s, isRouting: true)
+        XCTAssertFalse(speech.spoken.isEmpty, "expected at least one cue to be spoken; got \(speech.spoken)")
         XCTAssertTrue(
-            speech.spoken.contains("Route started"),
+            speech.spoken.allSatisfy { $0.lowercased().contains("turn") || $0.lowercased().contains("arriv") },
             "cue text should be rendered in English to match the EN voice; got \(speech.spoken)"
         )
     }

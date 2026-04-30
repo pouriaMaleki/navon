@@ -32,6 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, links abbiegen</string>
     <string name="cue_turn50m_right" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, rechts abbiegen</string>
     <string name="cue_turn50m_uturn" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, mach einen U-Turn</string>
+    <string name="cue_turn50mCombined" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {links abbiegen} right {rechts abbiegen} keepLeft {links halten} keepRight {rechts halten} exitLeft {nimm die linke Ausfahrt} exitRight {nimm die rechte Ausfahrt} uturn {mach einen U-Turn} other {folge der Route}} dann schnell {second, select, left {links} right {rechts} keepLeft {links halten} keepRight {rechts halten} exitLeft {linke Ausfahrt} exitRight {rechte Ausfahrt} uturn {U-Turn} other {geradeaus}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} bis {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Ziel löschen</string>
     <string name="home_a11y_currentSpeed" formatted="false">Aktuelle Geschwindigkeit</string>
@@ -46,7 +47,7 @@
     <string name="home_noSuggestions" formatted="false">Noch keine Vorschläge…</string>
     <string name="home_openSettings" formatted="false">Einstellungen</string>
     <string name="home_platformHint_locationDefault" formatted="false">Sie werden nach einer Standortberechtigung gefragt. Erlauben Sie sie, damit die Navigation Ihre Position weiter verfolgt, während die App im Hintergrund ist.</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">Safari auf dem iPhone liefert kein echtes GPS im Hintergrund. Halten Sie den Tab aktiv und den Bildschirm eingeschaltet, damit Standortaktualisierungen während der Fahrt weiter erfolgen.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">Safari auf dem iPhone kann weder GPS im Hintergrund noch Hinweise auf dem Sperrbildschirm oder Audiosignale liefern, solange der Tab ausgeblendet ist. Für echtes Routing im Hintergrund installieren Sie die native iOS-App.</string>
     <string name="home_recenter" formatted="false">Zentrieren</string>
     <string name="home_resolvingLink" formatted="false">Link wird aufgelöst…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Der Link zu einem Ziel wird verfolgt. Das kann ein paar Sekunden dauern.</string>

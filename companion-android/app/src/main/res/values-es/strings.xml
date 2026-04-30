@@ -32,6 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, gira a la izquierda</string>
     <string name="cue_turn50m_right" formatted="false">En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, gira a la derecha</string>
     <string name="cue_turn50m_uturn" formatted="false">En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, haz un U-turn</string>
+    <string name="cue_turn50mCombined" formatted="false">En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {gira a la izquierda} right {gira a la derecha} keepLeft {mantente a la izquierda} keepRight {mantente a la derecha} exitLeft {toma la salida izquierda} exitRight {toma la salida derecha} uturn {haz un U-turn} other {sigue la ruta}} luego rápidamente {second, select, left {izquierda} right {derecha} keepLeft {mantente a la izquierda} keepRight {mantente a la derecha} exitLeft {salida izquierda} exitRight {salida derecha} uturn {U-turn} other {recto}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} hasta {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Borrar destino</string>
     <string name="home_a11y_currentSpeed" formatted="false">Velocidad actual</string>
@@ -46,7 +47,7 @@
     <string name="home_noSuggestions" formatted="false">Aún no hay sugerencias…</string>
     <string name="home_openSettings" formatted="false">Configuración</string>
     <string name="home_platformHint_locationDefault" formatted="false">Se te pedirá permiso de ubicación. Permítelo para que la guía siga rastreando tu posición mientras la app está en segundo plano.</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">Safari en iPhone no entrega GPS real en segundo plano. Mantén la pestaña activa y la pantalla encendida para que las actualizaciones de ubicación continúen mientras pedaleas.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">Safari en iPhone no puede ofrecer GPS en segundo plano, indicaciones en la pantalla de bloqueo ni avisos de audio mientras la pestaña está oculta. Para una navegación real en segundo plano, instala la app nativa de iOS.</string>
     <string name="home_recenter" formatted="false">Centrar</string>
     <string name="home_resolvingLink" formatted="false">Resolviendo enlace…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Siguiendo el enlace a un destino. Esto puede tardar un par de segundos.</string>

@@ -14,6 +14,10 @@ final class CueDeviceGatingTests: XCTestCase {
         let metersPerDegLat = 111_320.0
         let start = CoordinatePoint(latitude: 60.17, longitude: 24.94)
         let mid = CoordinatePoint(
+            latitude: 60.17 + 200.0 / metersPerDegLat,
+            longitude: 24.94
+        )
+        let end = CoordinatePoint(
             latitude: 60.17 + 400.0 / metersPerDegLat,
             longitude: 24.94
         )
@@ -21,11 +25,15 @@ final class CueDeviceGatingTests: XCTestCase {
             version: RoutePackageVersion.current,
             routeIdentifier: "device-gate",
             revision: 1,
-            geometry: [start, mid],
+            geometry: [start, mid, end],
             maneuvers: [
                 RouteManeuver(id: "depart", maneuverType: .depart, location: start,
-                              distanceFromStartMeters: 0, distanceToNextMeters: 400, instructionText: nil),
-                RouteManeuver(id: "arrive", maneuverType: .arrive, location: mid,
+                              distanceFromStartMeters: 0, distanceToNextMeters: 200, instructionText: nil),
+                // A real left turn at 200m so the first-tick cue
+                // (nextTurnInAbout) has something concrete to announce.
+                RouteManeuver(id: "left", maneuverType: .left, location: mid,
+                              distanceFromStartMeters: 200, distanceToNextMeters: 200, instructionText: "Turn left"),
+                RouteManeuver(id: "arrive", maneuverType: .arrive, location: end,
                               distanceFromStartMeters: 400, distanceToNextMeters: nil, instructionText: nil),
             ],
             summary: RouteSummary(totalDistanceMeters: 400, estimatedDurationSeconds: 120,
@@ -47,6 +55,7 @@ final class CueDeviceGatingTests: XCTestCase {
         var s = app.settings
         s.audioCuesEnabled = true
         s.allowBackgroundGps = true
+        s.audioCuesOnlyInBackground = false
         app.settings = s
 
         let vm = HomeViewModel(appModel: app)
@@ -61,8 +70,8 @@ final class CueDeviceGatingTests: XCTestCase {
         await vm.startSelectedRoute()
         vm.ingestRiderLocationFix(pkg.geometry[0], timestampMs: 1_000)
 
-        XCTAssertTrue(
-            speech.spoken.contains("Route started"),
+        XCTAssertFalse(
+            speech.spoken.isEmpty,
             "Paired-but-disconnected must not suppress cues — got \(speech.spoken)"
         )
     }
@@ -81,6 +90,7 @@ final class CueDeviceGatingTests: XCTestCase {
         var s = app.settings
         s.audioCuesEnabled = true
         s.allowBackgroundGps = true
+        s.audioCuesOnlyInBackground = false
         app.settings = s
 
         let vm = HomeViewModel(appModel: app)

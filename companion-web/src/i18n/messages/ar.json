@@ -31,6 +31,7 @@
   "cue.turn50m.left": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، انعطف يسارًا",
   "cue.turn50m.right": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، انعطف يمينًا",
   "cue.turn50m.uturn": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، قم بعمل انعطاف U",
+  "cue.turn50mCombined": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، {first, select, left {انعطف يسارًا} right {انعطف يمينًا} keepLeft {ابقَ يسارًا} keepRight {ابقَ يمينًا} exitLeft {خذ المخرج الأيسر} exitRight {خذ المخرج الأيمن} uturn {قم بعمل انعطاف U} other {اتبع المسار}} ثم بسرعة {second, select, left {يسارًا} right {يمينًا} keepLeft {ابقَ يسارًا} keepRight {ابقَ يمينًا} exitLeft {المخرج الأيسر} exitRight {المخرج الأيمن} uturn {انعطاف U} other {إلى الأمام}}",
   "guidance.distanceToDestination": "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} إلى {destination}",
   "home.a11y.clearDestination": "مسح الوجهة",
   "home.a11y.currentSpeed": "السرعة الحالية",

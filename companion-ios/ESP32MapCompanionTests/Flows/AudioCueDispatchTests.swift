@@ -70,11 +70,18 @@ final class AudioCueDispatchTests: XCTestCase {
         var s = app.settings
         s.audioCuesEnabled = true
         s.allowBackgroundGps = true
+        // Spec line 144 default is "only in background", but these tests
+        // assert cues fire on a synchronous tick — they don't drive the
+        // scene phase. Disable the gate so the cue path is exercised.
+        s.audioCuesOnlyInBackground = false
         app.settings = s
         return app
     }
 
-    func test_routeStarted_announced_onFirstTickOfRouting() async {
+    func test_firstTickAnnouncesNextTurn_replacingRouteStarted() async {
+        // Per user feedback: "Route started" was useless padding. The first
+        // sound the rider hears must be the actual next-turn announcement
+        // (kind + distance), so they have something to plan for.
         let speech = SpeechSpy()
         let app = makeApp(speech: speech)
         let vm = HomeViewModel(appModel: app)
@@ -87,11 +94,16 @@ final class AudioCueDispatchTests: XCTestCase {
             selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
         )
         await vm.startSelectedRoute()
-        // Feed a single fix at the start so a guidance tick fires.
         vm.ingestRiderLocationFix(pkg.geometry[0], timestampMs: 1_000)
-        XCTAssertTrue(
+        XCTAssertFalse(
             speech.spoken.contains("Route started"),
-            "Audio cue 'Route started' must be spoken on the first guidance tick — got \(speech.spoken)"
+            "the legacy 'Route started' cue must not be spoken any more"
+        )
+        XCTAssertTrue(
+            speech.spoken.contains(where: {
+                $0.lowercased().contains("next turn") && $0.lowercased().contains("right")
+            }),
+            "first tick must announce the next turn (right) and a distance — got \(speech.spoken)"
         )
     }
 

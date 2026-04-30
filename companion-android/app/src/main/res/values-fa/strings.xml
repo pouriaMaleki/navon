@@ -32,6 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، به چپ بپیچید</string>
     <string name="cue_turn50m_right" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، به راست بپیچید</string>
     <string name="cue_turn50m_uturn" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، یک دور U بزنید</string>
+    <string name="cue_turn50mCombined" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، {first, select, left {به چپ بپیچید} right {به راست بپیچید} keepLeft {به چپ بروید} keepRight {به راست بروید} exitLeft {خروجیِ چپ را بگیرید} exitRight {خروجیِ راست را بگیرید} uturn {یک دور U بزنید} other {مسیر را دنبال کنید}} سپس به‌سرعت {second, select, left {به چپ} right {به راست} keepLeft {به چپ بروید} keepRight {به راست بروید} exitLeft {خروجیِ چپ} exitRight {خروجیِ راست} uturn {دور U} other {مستقیم}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} تا {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">پاک کردن مقصد</string>
     <string name="home_a11y_currentSpeed" formatted="false">سرعت فعلی</string>
@@ -46,7 +47,7 @@
     <string name="home_noSuggestions" formatted="false">هنوز پیشنهادی وجود ندارد…</string>
     <string name="home_openSettings" formatted="false">تنظیمات</string>
     <string name="home_platformHint_locationDefault" formatted="false">اجازهٔ موقعیت مکانی از شما خواسته می‌شود. آن را مجاز کنید تا راهنمایی هنگام پس‌زمینه بودن برنامه، همچنان موقعیت شما را دنبال کند.</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">سافاری روی آیفون GPS واقعیِ پس‌زمینه را ارسال نمی‌کند. تب را باز نگه دارید و صفحه روشن باشد تا به‌روزرسانی‌های موقعیت هنگام رکاب‌زنی ادامه پیدا کند.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">سافاری روی آیفون نمی‌تواند هنگام پنهان بودن تب، GPS پس‌زمینه، راهنمای صفحه‌قفل یا هشدار صوتی ارائه دهد. برای مسیریابی واقعیِ پس‌زمینه، اپلیکیشن بومی iOS را نصب کنید.</string>
     <string name="home_recenter" formatted="false">مرکزگیری مجدد</string>
     <string name="home_resolvingLink" formatted="false">در حال حل لینک…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">در حال دنبال کردن لینک برای رسیدن به مقصد. ممکن است چند ثانیه طول بکشد.</string>

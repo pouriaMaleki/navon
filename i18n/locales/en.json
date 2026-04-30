@@ -191,6 +191,16 @@
         "distanceUnit": "select"
       }
     },
+    "cue.turn50mCombined": {
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {turn left} right {turn right} keepLeft {keep left} keepRight {keep right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} other {follow the route}} then quickly {second, select, left {left} right {right} keepLeft {keep left} keepRight {keep right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} other {ahead}}",
+      "description": "Voice cue for back-to-back turns within ~80m: replaces two overlapping cues with one combined phrase.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select",
+        "first": "select",
+        "second": "select"
+      }
+    },
     "cue.turn50m.uturn": {
       "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, make a U-turn",
       "description": "Voice cue ~50m before a U-turn maneuver.",
@@ -265,7 +275,7 @@
       "placeholders": {}
     },
     "home.platformHint.locationSafariIos": {
-      "value": "Safari on iPhone does not deliver true background GPS. Keep the tab active and the screen on so location updates continue while you ride.",
+      "value": "Safari on iPhone cannot deliver background GPS, lock-screen guidance, or audio cues while the tab is hidden. For real background routing, install the native iOS app.",
       "description": "Hint shown under the 'Allow GPS in background' setting when the browser is Safari on iOS.",
       "placeholders": {}
     },

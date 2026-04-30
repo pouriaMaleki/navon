@@ -31,6 +31,7 @@
   "cue.turn50m.left": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните налево",
   "cue.turn50m.right": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните направо",
   "cue.turn50m.uturn": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сделайте разворот",
+  "cue.turn50mCombined": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} {first, select, left {поверните налево} right {поверните направо} keepLeft {держитесь левее} keepRight {держитесь правее} exitLeft {сверните налево} exitRight {сверните направо} uturn {сделайте разворот} other {следуйте по маршруту}}, затем сразу {second, select, left {налево} right {направо} keepLeft {держитесь левее} keepRight {держитесь правее} exitLeft {левый съезд} exitRight {правый съезд} uturn {разворот} other {прямо}}",
   "guidance.distanceToDestination": "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} до {destination}",
   "home.a11y.clearDestination": "Очистить пункт назначения",
   "home.a11y.currentSpeed": "Текущая скорость",

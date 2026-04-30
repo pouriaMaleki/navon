@@ -31,6 +31,7 @@
   "cue.turn50m.left": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে ঘুরুন",
   "cue.turn50m.right": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে ঘুরুন",
   "cue.turn50m.uturn": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর U-টার্ন করুন",
+  "cue.turn50mCombined": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর {first, select, left {বামে ঘুরুন} right {ডানে ঘুরুন} keepLeft {বামে থাকুন} keepRight {ডানে থাকুন} exitLeft {বাম দিকের এক্সিট নিন} exitRight {ডান দিকের এক্সিট নিন} uturn {U-টার্ন করুন} other {রুট অনুসরণ করুন}}, তারপর দ্রুত {second, select, left {বামে} right {ডানে} keepLeft {বামে থাকুন} keepRight {ডানে থাকুন} exitLeft {বাম এক্সিট} exitRight {ডান এক্সিট} uturn {U-টার্ন} other {সামনে}}",
   "guidance.distanceToDestination": "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} থেকে {destination}",
   "home.a11y.clearDestination": "গন্তব্য মুছুন",
   "home.a11y.currentSpeed": "বর্তমান গতি",

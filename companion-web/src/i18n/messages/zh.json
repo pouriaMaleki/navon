@@ -31,6 +31,7 @@
   "cue.turn50m.left": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，左转",
   "cue.turn50m.right": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，右转",
   "cue.turn50m.uturn": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，掉头",
+  "cue.turn50mCombined": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，{first, select, left {左转} right {右转} keepLeft {靠左行驶} keepRight {靠右行驶} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} other {沿路线行驶}}，紧接着{second, select, left {左转} right {右转} keepLeft {靠左} keepRight {靠右} exitLeft {左侧出口} exitRight {右侧出口} uturn {掉头} other {直行}}",
   "guidance.distanceToDestination": "到 {destination} 还需 {distance, number} {distanceUnit, select, km {km} mi {mi} other {km}}",
   "home.a11y.clearDestination": "清除目的地",
   "home.a11y.currentSpeed": "当前速度",

@@ -390,7 +390,19 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var offRoute: Bool = false
     @Published private(set) var rerouteRequested: Bool = false
     private var offRouteDurationMs: Double = 0
-    private var lastAdvanceTimestampMs: Int64 = 0
+    /// Sentinel `-1` means "no fix yet seen" — distinguishes a fresh
+    /// session from `timestampMs == 0`. Using `0` collides with
+    /// timestamps that legitimately start at zero (e.g. unit tests).
+    private var lastAdvanceTimestampMs: Int64 = -1
+
+    /// Latch so a single off-route episode kicks at most one auto-reroute.
+    /// Reset to `false` when the rider returns into the route corridor.
+    private var autoReroutePending: Bool = false
+
+    /// The most recently dispatched auto-reroute task. Tests await this
+    /// to observe the asynchronous `AppModel.rerouteActiveSession`
+    /// completing; production code does not need to read it.
+    private(set) var pendingAutoRerouteTask: Task<Void, Never>?
 
     /// Single off-route label for the top guidance card. Returns "Rerouting…"
     /// once the off-route dwell threshold trips, "Off route" while in the
@@ -799,7 +811,10 @@ final class HomeViewModel: ObservableObject {
         offRouteDistanceM = 0
         offRouteDurationMs = 0
         rerouteRequested = false
-        lastAdvanceTimestampMs = 0
+        lastAdvanceTimestampMs = -1
+        autoReroutePending = false
+        pendingAutoRerouteTask?.cancel()
+        pendingAutoRerouteTask = nil
         if appModel.isDeviceConnected {
             homeMode = .sendingToDevice
             let success = await appModel.sendSelectedRoute()
@@ -1118,7 +1133,7 @@ final class HomeViewModel: ObservableObject {
     func ingestRiderLocationFix(_ point: CoordinatePoint, timestampMs: Int64) {
         headingTrail.recordFix(point, timestampMs: timestampMs)
         if homeMode == .phoneGuidance {
-            advanceProgress(rider: point)
+            advanceProgress(rider: point, nowMs: timestampMs)
         }
     }
 
@@ -1136,20 +1151,20 @@ final class HomeViewModel: ObservableObject {
     /// perpendicular distance to the route crosses the enter/exit
     /// thresholds, latch / unlatch the off-route flag and accumulate dwell
     /// time toward the reroute-request signal.
-    private func advanceProgress(rider: CoordinatePoint) {
+    private func advanceProgress(rider: CoordinatePoint, nowMs: Int64) {
         guard let geometry = guidanceRoute?.geometry, geometry.count >= 2 else { return }
         let projection = projectProgressWithDistance(onto: geometry, rider: rider)
         let bounded = min(routeTotalDistanceM > 0 ? routeTotalDistanceM : projection.progress, projection.progress)
         progressDistanceM = max(progressDistanceM, bounded)
         offRouteDistanceM = projection.distanceToRouteM
 
-        let nowMs = Int64(Date().timeIntervalSince1970 * 1000)
-        let dt = lastAdvanceTimestampMs > 0 ? Double(nowMs - lastAdvanceTimestampMs) : 0
+        let dt = lastAdvanceTimestampMs >= 0 ? Double(nowMs - lastAdvanceTimestampMs) : 0
         lastAdvanceTimestampMs = nowMs
 
         // Off-route latch with hysteresis (35 m enter, 22 m exit) — same
         // bands as runtime-core / companion-web.
         let wasOffRoute = offRoute
+        let prevRerouteRequested = rerouteRequested
         if offRoute {
             if projection.distanceToRouteM <= Self.offRouteExitDistanceM {
                 offRoute = false
@@ -1165,6 +1180,22 @@ final class HomeViewModel: ObservableObject {
         } else {
             offRouteDurationMs = 0
             rerouteRequested = false
+            // Returning to the corridor re-arms auto-reroute for the
+            // next off-route episode. Without this, only the first
+            // departure of a session would ever re-fetch a route.
+            autoReroutePending = false
+        }
+
+        // Rising edge of `rerouteRequested` (false → true) is the only
+        // moment we kick the routing provider. Subsequent ticks while
+        // the rider stays off-route hold the latch so we don't spam
+        // requests.
+        if rerouteRequested && !prevRerouteRequested && !autoReroutePending {
+            autoReroutePending = true
+            let model = appModel
+            pendingAutoRerouteTask = Task { @MainActor in
+                await model.rerouteActiveSession(from: rider, reason: "Off-route")
+            }
         }
 
         // Spec: when the rider arrives at the destination, end routing.

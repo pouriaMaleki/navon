@@ -309,6 +309,16 @@
       "translatedAt": "2026-04-30T12:06:31Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "cue.turn50mCombined": {
+      "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, {first, select, left {डावीकडे वळा} right {उजवीकडे वळा} keepLeft {डावीकडे ठेवा} keepRight {उजवीकडे ठेवा} exitLeft {डाव्या एक्झिटकडे जा} exitRight {उजव्या एक्झिटकडे जा} uturn {U-turn करा} other {मार्गाचे अनुसरण करा}}, नंतर लगेच {second, select, left {डावीकडे} right {उजवीकडे} keepLeft {डावीकडे ठेवा} keepRight {उजवीकडे ठेवा} exitLeft {डावी एक्झिट} exitRight {उजवी एक्झिट} uturn {U-turn} other {सरळ}}",
+      "description": "Voice cue for back-to-back turns within ~80m: replaces two overlapping cues with one combined phrase.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select",
+        "first": "select",
+        "second": "select"
+      }
+    },
     "guidance.distanceToDestination": {
       "value": "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} ते {destination}",
       "description": "Active guidance card subtitle showing remaining distance and destination name.",
@@ -424,7 +434,7 @@
       "status": "reviewed"
     },
     "home.platformHint.locationSafariIos": {
-      "value": "iPhone वरील Safari खरे पार्श्वभूमी GPS देत नाही. तुम्ही राइड करत असताना स्थान अपडेट्स सुरू राहण्यासाठी टॅब सक्रिय ठेवा आणि स्क्रीन चालू ठेवा.",
+      "value": "टॅब लपलेला असताना iPhone वरील Safari पार्श्वभूमी GPS, लॉक-स्क्रीन मार्गदर्शन किंवा ऑडिओ सूचना देऊ शकत नाही. खऱ्या पार्श्वभूमी रूटिंगसाठी नेटिव्ह iOS अ‍ॅप इन्स्टॉल करा.",
       "description": "Hint shown under the 'Allow GPS in background' setting when the browser is Safari on iOS.",
       "sourceHash": "sha256:d739522e29c7ef00",
       "status": "ai-translated",

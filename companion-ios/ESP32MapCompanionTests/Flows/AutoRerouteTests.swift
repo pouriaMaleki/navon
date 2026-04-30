@@ -1,0 +1,124 @@
+import XCTest
+@testable import ESP32MapCompanion
+
+/// User-reported bug: on iOS, rerouting "appears to work" — the rider
+/// hears the rerouting cue and sees the rerouting banner — but no
+/// new route is actually fetched. The audio plays and then guidance
+/// stays stuck on the stale path.
+///
+/// Root cause: `HomeViewModel` flips `rerouteRequested = true` after
+/// the rider dwells off-route past `rerouteRequestDelayMs`, but no
+/// observer turns that flag into a call to
+/// `AppModel.rerouteActiveSession(...)`. The web app already has this
+/// wiring via a MobX `when()` reaction; iOS needs the equivalent.
+///
+/// This file pins the behaviour: when the rider drifts off-route long
+/// enough for the request signal to fire, AppModel must record an
+/// auto-reroute attempt.
+@MainActor
+final class AutoRerouteTests: XCTestCase {
+
+    private func offset(_ base: CoordinatePoint, eastM: Double, northM: Double) -> CoordinatePoint {
+        let metersPerDegLat = 111_320.0
+        let meanLat = base.latitude * .pi / 180.0
+        return CoordinatePoint(
+            latitude: base.latitude + northM / metersPerDegLat,
+            longitude: base.longitude + eastM / (metersPerDegLat * cos(meanLat))
+        )
+    }
+
+    /// Straight 800 m route heading north — easy to drift sideways
+    /// for a clean perpendicular off-route condition.
+    private func straightRoute() -> NormalizedRoutePackage {
+        let metersPerDegLat = 111_320.0
+        let start = CoordinatePoint(latitude: 60.17, longitude: 24.94)
+        let end = CoordinatePoint(
+            latitude: 60.17 + 800.0 / metersPerDegLat,
+            longitude: 24.94
+        )
+        return NormalizedRoutePackage(
+            version: RoutePackageVersion.current,
+            routeIdentifier: "straight",
+            revision: 1,
+            geometry: [start, end],
+            maneuvers: [
+                RouteManeuver(id: "m1", maneuverType: .depart, location: start,
+                              distanceFromStartMeters: 0, distanceToNextMeters: 800, instructionText: nil),
+                RouteManeuver(id: "m2", maneuverType: .arrive, location: end,
+                              distanceFromStartMeters: 800, distanceToNextMeters: nil, instructionText: nil),
+            ],
+            summary: RouteSummary(totalDistanceMeters: 800, estimatedDurationSeconds: 240,
+                                  startLabel: nil, destinationLabel: nil),
+            provenance: RouteProvenance(providerID: .osm, sourceReference: nil, generatedAtUnixMs: 0)
+        )
+    }
+
+    private func startRoute(_ pkg: NormalizedRoutePackage) async -> (AppModel, HomeViewModel) {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        app.preview = RoutePreviewModel(
+            alternatives: [RouteAlternative(
+                id: UUID(), title: "Straight", subtitle: "",
+                distanceMeters: 800, durationSeconds: 240, normalizedPackage: pkg
+            )],
+            selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        // The auto-reroute path uses `activeSession.destinationCoordinate`
+        // to know where to plan toward; populate it as `startSelectedRoute`
+        // would, plus stash the destination on the routeRequest so the
+        // test doesn't depend on a real destination search.
+        await vm.startSelectedRoute()
+        app.activeSession.destinationCoordinate = pkg.geometry.last
+        return (app, vm)
+    }
+
+    func test_offRouteDwellTriggersAutoReroute() async {
+        let pkg = straightRoute()
+        let (app, vm) = await startRoute(pkg)
+
+        let start = pkg.geometry[0]
+        let drifted = offset(start, eastM: 50, northM: 0)
+        // Spec: 35 m enter / 22 m exit hysteresis, then 2000 ms dwell
+        // before `rerouteRequested` flips. Tick from t=0 to t=3000 ms
+        // with a constant 50 m off-route position.
+        vm.ingestRiderLocationFix(drifted, timestampMs: 0)
+        vm.ingestRiderLocationFix(drifted, timestampMs: 1500)
+        vm.ingestRiderLocationFix(drifted, timestampMs: 3000)
+
+        // Auto-reroute is dispatched as a Task — wait for it.
+        await vm.pendingAutoRerouteTask?.value
+
+        XCTAssertNotNil(
+            app.activeSession.lastRerouteReason,
+            "off-route dwell should have triggered AppModel.rerouteActiveSession, but lastRerouteReason was nil — only the audio cue plays today"
+        )
+        XCTAssertNotNil(
+            app.activeSession.lastRerouteTimestamp,
+            "auto-reroute must record a timestamp so subsequent off-route episodes don't double-fire"
+        )
+    }
+
+    func test_autoRerouteFiresOnceWhileFlagStaysTrue() async {
+        // Avoid spamming the routing provider while the rider remains
+        // off-route. The flag stays `true` for as long as the rider is
+        // away from the corridor; the dispatch should latch and wait
+        // for the next rising edge.
+        let pkg = straightRoute()
+        let (app, vm) = await startRoute(pkg)
+
+        let drifted = offset(pkg.geometry[0], eastM: 50, northM: 0)
+        vm.ingestRiderLocationFix(drifted, timestampMs: 0)
+        vm.ingestRiderLocationFix(drifted, timestampMs: 3000)
+        await vm.pendingAutoRerouteTask?.value
+        let firstStamp = app.activeSession.lastRerouteTimestamp
+
+        // Subsequent off-route ticks must not kick another reroute.
+        vm.ingestRiderLocationFix(drifted, timestampMs: 4500)
+        vm.ingestRiderLocationFix(drifted, timestampMs: 6000)
+        await vm.pendingAutoRerouteTask?.value
+        XCTAssertEqual(
+            app.activeSession.lastRerouteTimestamp, firstStamp,
+            "while off-route flag stays true, no new auto-reroute should fire"
+        )
+    }
+}

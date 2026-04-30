@@ -31,6 +31,7 @@
   "cue.turn50m.left": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, डावीकडे वळा",
   "cue.turn50m.right": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, उजवीकडे वळा",
   "cue.turn50m.uturn": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, U-turn करा",
+  "cue.turn50mCombined": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, {first, select, left {डावीकडे वळा} right {उजवीकडे वळा} keepLeft {डावीकडे ठेवा} keepRight {उजवीकडे ठेवा} exitLeft {डाव्या एक्झिटकडे जा} exitRight {उजव्या एक्झिटकडे जा} uturn {U-turn करा} other {मार्गाचे अनुसरण करा}}, नंतर लगेच {second, select, left {डावीकडे} right {उजवीकडे} keepLeft {डावीकडे ठेवा} keepRight {उजवीकडे ठेवा} exitLeft {डावी एक्झिट} exitRight {उजवी एक्झिट} uturn {U-turn} other {सरळ}}",
   "guidance.distanceToDestination": "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} ते {destination}",
   "home.a11y.clearDestination": "गंतव्य साफ करा",
   "home.a11y.currentSpeed": "सध्याचा वेग",

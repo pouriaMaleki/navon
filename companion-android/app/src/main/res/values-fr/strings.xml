@@ -32,6 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, tournez à gauche</string>
     <string name="cue_turn50m_right" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, tournez à droite</string>
     <string name="cue_turn50m_uturn" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, faites un demi-tour</string>
+    <string name="cue_turn50mCombined" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {tournez à gauche} right {tournez à droite} keepLeft {restez à gauche} keepRight {restez à droite} exitLeft {prenez la sortie à gauche} exitRight {prenez la sortie à droite} uturn {faites un demi-tour} other {suivez l’itinéraire}} puis rapidement {second, select, left {à gauche} right {à droite} keepLeft {restez à gauche} keepRight {restez à droite} exitLeft {sortie à gauche} exitRight {sortie à droite} uturn {demi-tour} other {tout droit}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} jusqu’à {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Effacer la destination</string>
     <string name="home_a11y_currentSpeed" formatted="false">Vitesse actuelle</string>
@@ -46,7 +47,7 @@
     <string name="home_noSuggestions" formatted="false">Aucune suggestion pour l’instant…</string>
     <string name="home_openSettings" formatted="false">Paramètres</string>
     <string name="home_platformHint_locationDefault" formatted="false">Une autorisation de localisation vous sera demandée. Acceptez-la pour que l’orientation continue de suivre votre position lorsque l’application est en arrière-plan.</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">Safari sur iPhone ne fournit pas une localisation GPS réellement en arrière-plan. Gardez l’onglet actif et l’écran allumé pour que les mises à jour de localisation continuent pendant que vous roulez.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">Safari sur iPhone ne peut pas fournir de GPS en arrière-plan, d’indications sur l’écran verrouillé ni de signaux audio lorsque l’onglet est masqué. Pour un véritable guidage en arrière-plan, installez l’application iOS native.</string>
     <string name="home_recenter" formatted="false">Recentrer</string>
     <string name="home_resolvingLink" formatted="false">Ouverture du lien…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Suivi de l’URL vers une destination. Cela peut prendre quelques secondes.</string>

@@ -112,6 +112,12 @@ final class GuidanceLayoutTests: XCTestCase {
             longitude: dest.longitude
         )
         vm.ingestRiderLocationFix(arrivalPoint, timestampMs: 1000)
+        // `declareArrival()` calls `stopActiveNavigation()` which wraps its
+        // body in `Task { ... }`. Yield the main actor a few times so that
+        // task gets to run before we read `homeMode`.
+        for _ in 0..<5 where vm.homeMode != .planning {
+            await Task.yield()
+        }
         XCTAssertEqual(vm.homeMode, .planning)
         XCTAssertEqual(vm.arrivalNotice, "Arrived at destination")
     }

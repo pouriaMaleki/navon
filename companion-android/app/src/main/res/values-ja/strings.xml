@@ -32,6 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左折してください</string>
     <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右折してください</string>
     <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でUターンしてください</string>
+    <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で{first, select, left {左折してください} right {右折してください} keepLeft {左側を進んでください} keepRight {右側を進んでください} exitLeft {左の出口へ} exitRight {右の出口へ} uturn {Uターンしてください} other {ルートに従ってください}}、その後すぐに{second, select, left {左へ} right {右へ} keepLeft {左側へ} keepRight {右側へ} exitLeft {左の出口} exitRight {右の出口} uturn {Uターン} other {直進}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} 先の{destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">目的地をクリア</string>
     <string name="home_a11y_currentSpeed" formatted="false">現在の速度</string>
@@ -46,7 +47,7 @@
     <string name="home_noSuggestions" formatted="false">候補はまだありません…</string>
     <string name="home_openSettings" formatted="false">設定</string>
     <string name="home_platformHint_locationDefault" formatted="false">位置情報の許可を求められます。アプリがバックグラウンドの間も、現在地の追跡を続けるために許可してください。</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">iPhoneのSafariは、真のバックグラウンドGPSを提供しません。タブを開いたまま、画面を点けた状態で走ってください。位置情報の更新が続きます。</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">iPhoneのSafariでは、タブが非表示のあいだバックグラウンドGPS、ロック画面の案内、音声ガイドを利用できません。本格的なバックグラウンドルート案内には、ネイティブのiOSアプリをインストールしてください。</string>
     <string name="home_recenter" formatted="false">現在地に戻す</string>
     <string name="home_resolvingLink" formatted="false">リンクを解決中…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">目的地のURLをたどっています。数秒かかる場合があります。</string>

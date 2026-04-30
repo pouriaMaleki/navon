@@ -31,6 +31,7 @@
   "cue.turn50m.left": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں مڑیں",
   "cue.turn50m.right": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں مڑیں",
   "cue.turn50m.uturn": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں یو ٹرن کریں",
+  "cue.turn50mCombined": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں {first, select, left {بائیں مڑیں} right {دائیں مڑیں} keepLeft {بائیں رہیں} keepRight {دائیں رہیں} exitLeft {بائیں ایگزٹ لیں} exitRight {دائیں ایگزٹ لیں} uturn {یو ٹرن کریں} other {راستے پر چلیں}}، پھر فوراً {second, select, left {بائیں} right {دائیں} keepLeft {بائیں رہیں} keepRight {دائیں رہیں} exitLeft {بائیں ایگزٹ} exitRight {دائیں ایگزٹ} uturn {یو ٹرن} other {سیدھا}}",
   "guidance.distanceToDestination": "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} میں {destination} تک",
   "home.a11y.clearDestination": "مقام صاف کریں",
   "home.a11y.currentSpeed": "موجودہ رفتار",

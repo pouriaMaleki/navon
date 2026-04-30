@@ -472,10 +472,6 @@ fn build_parity_fixture() -> String {
     let maneuvers_next = ["left", "right", "uturn", "generic"];
 
     let mut rows = Vec::new();
-    rows.push(serde_json::json!({
-        "event": { "kind": "routeStarted" },
-        "expected": { "key": "cue.routeStarted", "values": {} }
-    }));
     for k in maneuvers_50 {
         rows.push(serde_json::json!({
             "event": { "kind": "turn50m", "turnKind": k },
@@ -485,6 +481,22 @@ fn build_parity_fixture() -> String {
             }
         }));
     }
+    // Combined back-to-back cue: when a follow-up maneuver lies within
+    // ~80 m of the upcoming one, both platforms must coalesce into a
+    // single ICU `cue.turn50mCombined` phrase rather than queueing two
+    // overlapping cues.
+    rows.push(serde_json::json!({
+        "event": { "kind": "turn50m", "turnKind": "right", "followUpKind": "left" },
+        "expected": {
+            "key": "cue.turn50mCombined",
+            "values": {
+                "distance": 50,
+                "distanceUnit": "meters",
+                "first": "right",
+                "second": "left"
+            }
+        }
+    }));
     for k in maneuvers_10 {
         rows.push(serde_json::json!({
             "event": { "kind": "turn10m", "turnKind": k },

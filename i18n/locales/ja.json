@@ -309,6 +309,16 @@
       "translatedAt": "2026-04-30T12:06:12Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "cue.turn50mCombined": {
+      "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で{first, select, left {左折してください} right {右折してください} keepLeft {左側を進んでください} keepRight {右側を進んでください} exitLeft {左の出口へ} exitRight {右の出口へ} uturn {Uターンしてください} other {ルートに従ってください}}、その後すぐに{second, select, left {左へ} right {右へ} keepLeft {左側へ} keepRight {右側へ} exitLeft {左の出口} exitRight {右の出口} uturn {Uターン} other {直進}}",
+      "description": "Voice cue for back-to-back turns within ~80m: replaces two overlapping cues with one combined phrase.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select",
+        "first": "select",
+        "second": "select"
+      }
+    },
     "guidance.distanceToDestination": {
       "value": "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} 先の{destination}",
       "description": "Active guidance card subtitle showing remaining distance and destination name.",
@@ -424,7 +434,7 @@
       "status": "reviewed"
     },
     "home.platformHint.locationSafariIos": {
-      "value": "iPhoneのSafariは、真のバックグラウンドGPSを提供しません。タブを開いたまま、画面を点けた状態で走ってください。位置情報の更新が続きます。",
+      "value": "iPhoneのSafariでは、タブが非表示のあいだバックグラウンドGPS、ロック画面の案内、音声ガイドを利用できません。本格的なバックグラウンドルート案内には、ネイティブのiOSアプリをインストールしてください。",
       "description": "Hint shown under the 'Allow GPS in background' setting when the browser is Safari on iOS.",
       "sourceHash": "sha256:d739522e29c7ef00",
       "status": "ai-translated",

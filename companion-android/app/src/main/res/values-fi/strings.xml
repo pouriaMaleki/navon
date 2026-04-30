@@ -32,6 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny vasemmalle</string>
     <string name="cue_turn50m_right" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny oikealle</string>
     <string name="cue_turn50m_uturn" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, tee U-käännös</string>
+    <string name="cue_turn50mCombined" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, {first, select, left {käänny vasemmalle} right {käänny oikealle} keepLeft {pidä vasemmalla} keepRight {pidä oikealla} exitLeft {ota vasen liittymä} exitRight {ota oikea liittymä} uturn {tee U-käännös} other {noudata reittiä}} ja heti perään {second, select, left {vasemmalle} right {oikealle} keepLeft {pidä vasemmalla} keepRight {pidä oikealla} exitLeft {vasen liittymä} exitRight {oikea liittymä} uturn {U-käännös} other {suoraan}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} kohteeseen {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Tyhjennä määränpää</string>
     <string name="home_a11y_currentSpeed" formatted="false">Nykyinen nopeus</string>
@@ -46,7 +47,7 @@
     <string name="home_noSuggestions" formatted="false">Ei vielä ehdotuksia…</string>
     <string name="home_openSettings" formatted="false">Asetukset</string>
     <string name="home_platformHint_locationDefault" formatted="false">Sijaintilupaa pyydetään. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sovellus on taustalla.</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">iPhonen Safari ei tue oikeaa taustalla toimivaa GPS:ää. Pidä välilehti aktiivisena ja näyttö päällä, jotta sijaintipäivitykset jatkuvat ajon aikana.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">iPhonen Safari ei pysty välittämään taustalla GPS-sijaintia, lukitusnäytön ohjeita tai ääniopastusta, kun välilehti on piilossa. Aitoa taustareititystä varten asenna natiivi iOS-sovellus.</string>
     <string name="home_recenter" formatted="false">Keskitä uudelleen</string>
     <string name="home_resolvingLink" formatted="false">Selvitetään linkkiä…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Seurataan linkkiä määränpäähän. Tämä voi kestää muutaman sekunnin.</string>

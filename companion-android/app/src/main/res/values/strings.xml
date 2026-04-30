@@ -32,6 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn left</string>
     <string name="cue_turn50m_right" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn right</string>
     <string name="cue_turn50m_uturn" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, make a U-turn</string>
+    <string name="cue_turn50mCombined" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {turn left} right {turn right} keepLeft {keep left} keepRight {keep right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} other {follow the route}} then quickly {second, select, left {left} right {right} keepLeft {keep left} keepRight {keep right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} other {ahead}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} to {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Clear destination</string>
     <string name="home_a11y_currentSpeed" formatted="false">Current speed</string>
@@ -46,7 +47,7 @@
     <string name="home_noSuggestions" formatted="false">No suggestions yet…</string>
     <string name="home_openSettings" formatted="false">Settings</string>
     <string name="home_platformHint_locationDefault" formatted="false">You\'ll be asked for location permission. Allow it so guidance keeps tracking your position when the app is in the background.</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">Safari on iPhone does not deliver true background GPS. Keep the tab active and the screen on so location updates continue while you ride.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">Safari on iPhone cannot deliver background GPS, lock-screen guidance, or audio cues while the tab is hidden. For real background routing, install the native iOS app.</string>
     <string name="home_recenter" formatted="false">Recenter</string>
     <string name="home_resolvingLink" formatted="false">Resolving link…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Following the URL to a destination. This can take a couple of seconds.</string>
