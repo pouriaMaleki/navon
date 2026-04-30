@@ -20,7 +20,7 @@ extension DeviceSettingsSectionDescriptor {
         connectionState: DeviceConnectionState
     ) -> DeviceSettingsSectionDescriptor {
         guard let record else {
-            return .callToAction("Pair a new device")
+            return .callToAction(T.string("settings.device.pairNew"))
         }
         let primary: PrimaryAction = (connectionState == .connected) ? .disconnect : .connect
         return .detail(name: record.friendlyName, lastPairedAt: record.pairedAt, primaryAction: primary)
@@ -39,14 +39,14 @@ struct DeviceSettingsView: View {
             transferSection
             diagnosticsSection
         }
-        .navigationTitle("Device")
-        .alert("Forget this device?", isPresented: $showForgetAlert) {
-            Button("Cancel", role: .cancel) {}
-            Button("Forget", role: .destructive) {
+        .navigationTitle(T.string("settings.device.title"))
+        .alert(T.string("settings.device.forget.confirmTitle"), isPresented: $showForgetAlert) {
+            Button(T.string("common.cancel.role"), role: .cancel) {}
+            Button(T.string("common.forget"), role: .destructive) {
                 appModel.forgetPairedDevice()
             }
         } message: {
-            Text("You'll need to scan the pairing code again to use it. Your route history stays.")
+            Text(T.string("settings.device.forget.confirmMessage"))
         }
         // The pairing flow is initiated from this screen; the sheet must
         // also live here. Settings is presented as a `fullScreenCover` over
@@ -70,7 +70,7 @@ struct DeviceSettingsView: View {
     }
 
     private var pairedDeviceSection: some View {
-        Section("Paired device") {
+        Section(T.string("settings.device.pairedDevice.section")) {
             switch DeviceSettingsSectionDescriptor.from(
                 record: appModel.pairedPeripheral,
                 connectionState: appModel.bleService.sessionState.connectionState
@@ -81,7 +81,10 @@ struct DeviceSettingsView: View {
                 }
             case .detail(let name, let lastPairedAt, let primary):
                 Text(name).font(.headline)
-                Text("Last paired: \(lastPairedAt.formatted(date: .abbreviated, time: .shortened))")
+                Text(T.string(
+                    "settings.device.lastPaired",
+                    ["date": .string(lastPairedAt.formatted(date: .abbreviated, time: .shortened))]
+                ))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 Button(primaryActionLabel(for: primary)) {
@@ -101,7 +104,7 @@ struct DeviceSettingsView: View {
                     }
                 }
                 .disabled(isConnecting)
-                Button("Forget paired device", role: .destructive) {
+                Button(T.string("settings.device.forget"), role: .destructive) {
                     showForgetAlert = true
                 }
             }
@@ -110,8 +113,8 @@ struct DeviceSettingsView: View {
 
     private func primaryActionLabel(for action: DeviceSettingsSectionDescriptor.PrimaryAction) -> String {
         switch action {
-        case .connect: return isConnecting ? "Reconnecting…" : "Connect"
-        case .disconnect: return "Disconnect"
+        case .connect: return T.string(isConnecting ? "settings.device.reconnecting" : "settings.device.connect")
+        case .disconnect: return T.string("settings.device.disconnect")
         }
     }
 

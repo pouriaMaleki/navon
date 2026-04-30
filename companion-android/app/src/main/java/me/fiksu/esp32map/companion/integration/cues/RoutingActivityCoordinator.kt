@@ -85,10 +85,18 @@ class RoutingActivityCoordinator(
         val result = CueEngine.tick(snapshot, cueState)
         cueState = result.nextState
         val distanceMode = Strings.resolveDistanceUnit(settings.distanceUnit)
-        // If we fell back to English audio because the active locale has
-        // no installed voice, render the cue text in English too so it
-        // matches what the speech engine is actually pronouncing.
-        val renderInFallback = ttsBcp47 != Strings.activeLocale.tag
+        // Recompute every tick — `onSettingsOrRoutingChange` is the only
+        // other place that touches `ttsBcp47`, but on a cold launch the
+        // first guidance tick can arrive before any settings transition,
+        // so the field would still be its "en" default and the rider
+        // would hear English even with Suomi configured.
+        val activeLocale = Strings.resolveLocale(settings.language)
+        val resolvedTtsTag = if (tts.hasVoice(activeLocale.tag)) activeLocale.tag else "en"
+        if (resolvedTtsTag != ttsBcp47) {
+            ttsBcp47 = resolvedTtsTag
+            tts.setLanguage(resolvedTtsTag)
+        }
+        val renderInFallback = ttsBcp47 != activeLocale.tag
         for (event in result.events) {
             val msg = CueEngine.cueMessage(event, distanceMode)
             val phrase = if (renderInFallback) {

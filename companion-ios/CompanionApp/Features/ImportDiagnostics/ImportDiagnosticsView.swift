@@ -7,7 +7,7 @@ struct ImportDiagnosticsView: View {
     var body: some View {
         List {
             if appModel.importDiagnosticsEntries.isEmpty {
-                Text("No unsupported shared items yet.")
+                Text(T.string("settings.importDiagnostics.empty"))
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(appModel.importDiagnosticsEntries) { entry in
@@ -40,6 +40,6 @@ struct ImportDiagnosticsView: View {
                 }
             }
         }
-        .navigationTitle("Import Diagnostics")
+        .navigationTitle(T.string("settings.importDiagnostics.title"))
     }
 }

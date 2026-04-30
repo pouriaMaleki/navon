@@ -84,7 +84,7 @@ struct RoutePlannerSettingsView: View {
                 .padding(.top, 4)
             }
         }
-        .navigationTitle("Route Planner")
+        .navigationTitle(T.string("settings.routePlanner.title"))
         .onChange(of: appModel.settings) { _, _ in
             appModel.persistSettings()
         }

@@ -830,7 +830,7 @@ struct CompanionHomeView: View {
         // minimal: a floating Stop button (and the speed badge sits next
         // to it via the surrounding overlay).
         Button(role: .destructive, action: viewModel.stopActiveNavigation) {
-            Text("Stop")
+            Text(T.string("home.stop"))
                 .font(.headline)
                 .padding(.horizontal, 24)
         }
@@ -854,7 +854,7 @@ struct CompanionHomeView: View {
                     .foregroundStyle(.secondary)
             }
             Button(role: .destructive, action: viewModel.stopActiveNavigation) {
-                Text("Stop")
+                Text(T.string("home.stop"))
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)

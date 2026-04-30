@@ -96,10 +96,22 @@ final class RoutingActivityCoordinator {
                 Self.log.info("CueEngine emitted \(result.events.count) event(s) on this tick")
             }
             let distanceMode = T.resolveDistanceUnit(settings.distanceUnit)
-            // If the active locale has no installed voice, render the cue
-            // text in English so it lines up with the EN voice the speech
-            // engine was switched to in `onSettingsOrRoutingChange`.
-            let renderInFallback = ttsBcp47 != T.activeBcp47
+            // Recompute every tick. `onSettingsOrRoutingChange` only fires
+            // on settings or routing transitions, so on a cold launch the
+            // first guidance tick can arrive before the coordinator has
+            // ever been told about the user's locale — `ttsBcp47` would
+            // still be its `"en"` default and the rider would hear English
+            // even with Suomi (or whatever) configured. Computing fresh
+            // here also handles the rare case of a voice being installed
+            // mid-session via the OS settings.
+            let activeLocale = T.resolveLocale(settings.language)
+            let activeTag = activeLocale.rawValue
+            let resolvedTtsTag = speech.hasVoice(forLocale: activeTag) ? activeTag : "en"
+            if resolvedTtsTag != ttsBcp47 {
+                ttsBcp47 = resolvedTtsTag
+                speech.setLanguage(resolvedTtsTag)
+            }
+            let renderInFallback = ttsBcp47 != activeTag
             for event in result.events {
                 let msg = CueEngine.cueMessage(event, distanceMode: distanceMode)
                 let phrase = renderInFallback

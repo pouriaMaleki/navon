@@ -595,9 +595,95 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.language.noVoiceFallback": {
-      "value": "Selaimessasi ei ole asennettuna ääntä kielelle {language}. Ääniopastus puhuu englanniksi.",
-      "description": "Warning shown under the Language picker when the active locale has no matching TTS voice. {language} is the native name of the picked language.",
+      "value": "Laitteellesi ei ole asennettu ääntä kielelle {language}. Ääniopastus puhuu englanniksi.",
+      "description": "Warning shown under the Language picker when the active locale has no matching TTS voice. {language} is the native name of the picked language. Used on web (browser), iOS, and Android — keep the wording platform-neutral.",
       "placeholders": { "language": "string" },
+      "status": "reviewed"
+    },
+    "settings.device.title": {
+      "value": "Laite",
+      "description": "Navigation title of the Device settings page.",
+      "status": "reviewed"
+    },
+    "settings.device.pairedDevice.section": {
+      "value": "Paritettu laite",
+      "description": "Section header on the Device page.",
+      "status": "reviewed"
+    },
+    "settings.device.pairNew": {
+      "value": "Parita uusi laite",
+      "description": "Call-to-action when no device is paired.",
+      "status": "reviewed"
+    },
+    "settings.device.connect": {
+      "value": "Yhdistä",
+      "description": "Connect to paired device.",
+      "status": "reviewed"
+    },
+    "settings.device.reconnecting": {
+      "value": "Yhdistetään…",
+      "description": "Transient label while connecting.",
+      "status": "reviewed"
+    },
+    "settings.device.disconnect": {
+      "value": "Katkaise yhteys",
+      "description": "Disconnect button.",
+      "status": "reviewed"
+    },
+    "settings.device.forget": {
+      "value": "Unohda paritettu laite",
+      "description": "Forget paired device.",
+      "status": "reviewed"
+    },
+    "settings.device.forget.confirmTitle": {
+      "value": "Unohdetaanko tämä laite?",
+      "description": "Forget confirmation title.",
+      "status": "reviewed"
+    },
+    "settings.device.forget.confirmMessage": {
+      "value": "Sinun täytyy skannata paritus-QR uudelleen käyttääksesi sitä. Reittihistoriasi säilyy.",
+      "description": "Forget confirmation body.",
+      "status": "reviewed"
+    },
+    "settings.device.lastPaired": {
+      "value": "Paritettu viimeksi: {date}",
+      "description": "Footnote under paired device name.",
+      "placeholders": { "date": "string" },
+      "status": "reviewed"
+    },
+    "settings.routePlanner.title": {
+      "value": "Reittisuunnittelu",
+      "description": "Navigation title of the Route Planner page.",
+      "status": "reviewed"
+    },
+    "settings.routes.title": {
+      "value": "Reitit",
+      "description": "Navigation title of the Routes page.",
+      "status": "reviewed"
+    },
+    "settings.routes.empty": {
+      "value": "Ei tallennettuja reittejä",
+      "description": "Empty state on the Routes page.",
+      "status": "reviewed"
+    },
+    "settings.importDiagnostics.title": {
+      "value": "Tuontidiagnostiikka",
+      "description": "Navigation title of the Import Diagnostics page.",
+      "status": "reviewed"
+    },
+    "settings.importDiagnostics.empty": {
+      "value": "Ei epäonnistuneita tuonteja",
+      "description": "Empty state on the Import Diagnostics page.",
+      "status": "reviewed"
+    },
+    "common.cancel.role": {
+      "value": "Peruuta",
+      "description": "Cancel button in destructive alerts.",
+      "status": "reviewed"
+    },
+    "common.forget": {
+      "value": "Unohda",
+      "description": "Forget confirm-action button.",
       "status": "reviewed"
     },
     "settings.language.subtitle": {

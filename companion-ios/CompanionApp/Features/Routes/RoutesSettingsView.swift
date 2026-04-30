@@ -51,7 +51,7 @@ struct RoutesSettingsView: View {
                 }
             }
         }
-        .navigationTitle("Routes")
+        .navigationTitle(T.string("settings.routes.title"))
         .navigationDestination(for: String.self) { itemID in
             if let item = appModel.routeHistoryItems.first(where: { $0.id == itemID }) {
                 RouteDetailView(

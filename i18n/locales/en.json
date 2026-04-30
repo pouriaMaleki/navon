@@ -186,6 +186,91 @@
       "description": "Settings hub row: navigates to ESP32 device pairing/management.",
       "placeholders": {}
     },
+    "settings.device.title": {
+      "value": "Device",
+      "description": "Navigation title of the Device settings page (paired ESP32 management).",
+      "placeholders": {}
+    },
+    "settings.device.pairedDevice.section": {
+      "value": "Paired device",
+      "description": "Section header on the Device page for the paired-peripheral details.",
+      "placeholders": {}
+    },
+    "settings.device.pairNew": {
+      "value": "Pair a new device",
+      "description": "Call-to-action button when no device is paired yet.",
+      "placeholders": {}
+    },
+    "settings.device.connect": {
+      "value": "Connect",
+      "description": "Button to (re)connect to the paired device.",
+      "placeholders": {}
+    },
+    "settings.device.reconnecting": {
+      "value": "Reconnecting…",
+      "description": "Transient label on the Connect button while a connection attempt is in flight.",
+      "placeholders": {}
+    },
+    "settings.device.disconnect": {
+      "value": "Disconnect",
+      "description": "Button to disconnect from the currently-connected device.",
+      "placeholders": {}
+    },
+    "settings.device.forget": {
+      "value": "Forget paired device",
+      "description": "Destructive button that removes the paired-peripheral record so the rider can pair a different device.",
+      "placeholders": {}
+    },
+    "settings.device.forget.confirmTitle": {
+      "value": "Forget this device?",
+      "description": "Title of the confirmation alert shown when the rider taps 'Forget paired device'.",
+      "placeholders": {}
+    },
+    "settings.device.forget.confirmMessage": {
+      "value": "You'll need to scan the pairing code again to use it. Your route history stays.",
+      "description": "Body of the 'Forget this device?' confirmation alert.",
+      "placeholders": {}
+    },
+    "settings.device.lastPaired": {
+      "value": "Last paired: {date}",
+      "description": "Footnote under a paired device's name showing when it was paired. {date} is a localised short-date string.",
+      "placeholders": { "date": "string" }
+    },
+    "settings.routePlanner.title": {
+      "value": "Route Planner",
+      "description": "Navigation title of the Route Planner settings page.",
+      "placeholders": {}
+    },
+    "settings.routes.title": {
+      "value": "Routes",
+      "description": "Navigation title of the Routes settings page (route history + GPX import).",
+      "placeholders": {}
+    },
+    "settings.routes.empty": {
+      "value": "No saved routes yet",
+      "description": "Empty-state shown on the Routes page when the rider has no history.",
+      "placeholders": {}
+    },
+    "settings.importDiagnostics.title": {
+      "value": "Import Diagnostics",
+      "description": "Navigation title of the Import Diagnostics settings page (failed GPX/share-extension imports).",
+      "placeholders": {}
+    },
+    "settings.importDiagnostics.empty": {
+      "value": "No failed imports recorded",
+      "description": "Empty-state shown on the Import Diagnostics page when nothing has failed.",
+      "placeholders": {}
+    },
+    "common.cancel.role": {
+      "value": "Cancel",
+      "description": "Cancel button used in destructive-action confirmation alerts.",
+      "placeholders": {}
+    },
+    "common.forget": {
+      "value": "Forget",
+      "description": "Destructive confirm-action button label paired with a 'Forget …?' alert.",
+      "placeholders": {}
+    },
     "settings.hub.routePlanner": {
       "value": "Route Planner",
       "description": "Settings hub row: navigates to route-planning preferences.",
@@ -262,8 +347,8 @@
       "placeholders": {}
     },
     "settings.language.noVoiceFallback": {
-      "value": "Your browser has no voice installed for {language}. Audio cues will play in English.",
-      "description": "Warning shown under the Language picker when the active locale has no matching TTS voice. {language} is the native name of the picked language.",
+      "value": "Your device has no voice installed for {language}. Audio cues will play in English.",
+      "description": "Warning shown under the Language picker when the active locale has no matching TTS voice. {language} is the native name of the picked language. Used on web (browser), iOS, and Android — keep the wording platform-neutral.",
       "placeholders": { "language": "string" }
     },
     "settings.language.system": {

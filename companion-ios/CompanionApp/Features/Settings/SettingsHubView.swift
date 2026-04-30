@@ -20,7 +20,7 @@ struct SettingsHubView: View {
                     NavigationLink(T.string("settings.hub.routes")) {
                         RoutesSettingsView()
                     }
-                    NavigationLink("Device") {
+                    NavigationLink(T.string("settings.hub.device")) {
                         DeviceSettingsView()
                     }
                     NavigationLink(T.string("settings.hub.routePlanner")) {
