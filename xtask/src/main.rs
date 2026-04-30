@@ -224,7 +224,9 @@ xtask commands:
   cargo xtask check-esp-hal-p4     # checks whether esp-hal ecosystem has P4 support yet
   cargo xtask i18n-gen [--check]   # regenerate per-platform localization outputs
   cargo xtask i18n-sync --locale <code> [--dry-run] [--budget-usd <N>]
-                                   # call OpenAI to fill missing translations"
+                                   # call OpenAI to fill missing translations
+  cargo xtask i18n-sync-all [--dry-run] [--budget-usd <N>]
+                                   # sync every non-source locale + regenerate"
     );
 }
 

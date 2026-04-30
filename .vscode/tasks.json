@@ -154,6 +154,36 @@
       },
       "problemMatcher": [],
       "detail": "Drops companion-android/build and companion-android/app/build."
+    },
+    {
+      "label": "i18n: sync all translations",
+      "type": "shell",
+      "command": "cargo xtask i18n-sync-all",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "detail": "Calls OpenAI to fill missing translations for every non-source locale in i18n/catalog.config.json, then regenerates the per-platform JSON / xcstrings / strings.xml outputs. Reads OPENAI_API_KEY from the env or from .env at the workspace root (copy .env.example to start)."
+    },
+    {
+      "label": "i18n: sync all translations (dry run)",
+      "type": "shell",
+      "command": "cargo xtask i18n-sync-all --dry-run",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "detail": "Shows which keys would be sent to OpenAI without making any API calls. Use this before the real run to estimate cost or verify the catalog diff."
+    },
+    {
+      "label": "i18n: regenerate platform outputs",
+      "type": "shell",
+      "command": "cargo xtask i18n-gen",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "detail": "Refreshes companion-web JSON, iOS xcstrings + Resources/Messages JSON, Android strings.xml + raw JSON, and the cue parity fixture from i18n/locales/*.json. Run after editing any locale file by hand."
     }
   ],
   "inputs": [

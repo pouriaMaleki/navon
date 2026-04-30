@@ -110,6 +110,7 @@ pub fn run(args: &[String], workspace_root: &Path) -> Result<(), String> {
     match subcommand.as_str() {
         "i18n-gen" => run_gen(rest, workspace_root),
         "i18n-sync" => run_sync(rest, workspace_root),
+        "i18n-sync-all" => run_sync_all(rest, workspace_root),
         "i18n-extract" => Err(
             "i18n-extract is not implemented yet; hand-author keys in i18n/locales/en.json"
                 .to_owned(),
@@ -118,10 +119,71 @@ pub fn run(args: &[String], workspace_root: &Path) -> Result<(), String> {
     }
 }
 
+/// Convenience wrapper: run `i18n-sync` for every non-source locale in
+/// catalog.config.json, then refresh platform outputs. Same flag set as
+/// `i18n-sync` minus `--locale` (the locales are read from the config).
+/// Designed to be invoked from a VSCode task or a one-key keybinding.
+fn run_sync_all(args: &[String], root: &Path) -> Result<(), String> {
+    let mut dry_run = false;
+    let mut budget_usd: Option<f64> = None;
+    let mut iter = args.iter();
+    while let Some(arg) = iter.next() {
+        match arg.as_str() {
+            "--dry-run" => dry_run = true,
+            "--budget-usd" => {
+                budget_usd = Some(
+                    iter.next()
+                        .ok_or_else(|| "`--budget-usd` requires a value".to_owned())?
+                        .parse()
+                        .map_err(|e| format!("invalid --budget-usd: {e}"))?,
+                );
+            }
+            other => return Err(format!("unsupported `i18n-sync-all` argument `{other}`")),
+        }
+    }
+
+    let config = load_config(root)?;
+    let targets: Vec<&String> = config
+        .locales
+        .iter()
+        .filter(|l| **l != config.source_locale)
+        .collect();
+    if targets.is_empty() {
+        println!("no non-source locales configured — nothing to sync.");
+        return Ok(());
+    }
+    println!(
+        "i18n-sync-all: syncing {} locale(s){}",
+        targets.len(),
+        if dry_run { " (dry run)" } else { "" }
+    );
+
+    for locale in targets {
+        println!("\n— locale: {locale} —");
+        let mut sub_args: Vec<String> = vec!["--locale".into(), locale.clone()];
+        if dry_run {
+            sub_args.push("--dry-run".into());
+        }
+        if let Some(b) = budget_usd {
+            sub_args.push("--budget-usd".into());
+            sub_args.push(format!("{b}"));
+        }
+        run_sync(&sub_args, root)?;
+    }
+
+    if !dry_run {
+        // One final codegen pass so the platform-bundled JSON / xcstrings /
+        // strings.xml files reflect every locale's freshly-translated keys.
+        run_gen(&[], root)?;
+    }
+    Ok(())
+}
+
 fn help_text() -> String {
     "i18n subcommands:\n  \
      cargo xtask i18n-gen [--check]\n  \
-     cargo xtask i18n-sync --locale <code> [--dry-run] [--budget-usd <N>]"
+     cargo xtask i18n-sync --locale <code> [--dry-run] [--budget-usd <N>]\n  \
+     cargo xtask i18n-sync-all [--dry-run] [--budget-usd <N>]"
         .to_owned()
 }
 
@@ -504,9 +566,22 @@ fn run_sync(args: &[String], root: &Path) -> Result<(), String> {
             Some(t) => {
                 let status = t.status.unwrap_or(EntryStatus::AiTranslated);
                 match status {
+                    // Locked: never re-translate. The user has frozen this
+                    // entry intentionally and wants to maintain it by hand.
                     EntryStatus::Locked => false,
-                    EntryStatus::Reviewed if t.source_hash == en_hash => false,
-                    _ => t.source_hash != en_hash || status == EntryStatus::AiTranslated,
+                    // Reviewed: sticky. If the user wrote a sourceHash,
+                    // honour drift detection (re-translate when EN
+                    // changes); if not (hand-curated entry), trust that
+                    // the user's translation applies to the current
+                    // source. To force re-translation, clear the entry.
+                    EntryStatus::Reviewed => {
+                        !t.source_hash.is_empty() && t.source_hash != en_hash
+                    }
+                    // AiTranslated (or missing status): sticky as long as
+                    // the recorded source hash matches. EN drift triggers
+                    // a re-translation. Empty hash = legacy entry from a
+                    // pre-hash sync; treat as drifted to refresh.
+                    _ => t.source_hash != en_hash,
                 }
             }
         };
