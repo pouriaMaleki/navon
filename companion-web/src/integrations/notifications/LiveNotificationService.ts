@@ -22,6 +22,12 @@ const TAG = "esp32-routing";
 export type NotificationContent = {
   title: string;
   body: string;
+  /** Set to `true` only when there is an upcoming turn the rider is
+   *  close enough to need to act on (≤ ~500m). The service uses this to
+   *  gate platform Notification posts so the lock screen doesn't chime
+   *  every few seconds while the rider is mid-segment. Defaults to true
+   *  for back-compat with call sites that don't yet pass it. */
+  closeUpcomingTurn?: boolean;
 };
 
 export class LiveNotificationService {
@@ -113,6 +119,15 @@ export class LiveNotificationService {
     const content = this.latest;
     if (!content) return;
     if (this.lastPermission !== "granted") return;
+    // Notification gate: post only when there's an upcoming turn the
+    // rider is close enough to need to act on. When the rider drops
+    // out of the close window, close any existing notification —
+    // staying on screen with stale "Continue" copy is just noise.
+    const closeEnough = content.closeUpcomingTurn ?? true;
+    if (!closeEnough) {
+      this.closeCurrent();
+      return;
+    }
     // Dedupe: skip if the body is unchanged from the last successful post.
     if (this.current && this.postedBody === content.body) return;
     this.post(content);

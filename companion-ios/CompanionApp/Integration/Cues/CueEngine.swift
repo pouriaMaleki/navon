@@ -34,8 +34,7 @@ struct CueSnapshot {
 }
 
 enum CueEvent: Equatable {
-    case routeStarted
-    case turn50m(ManeuverKind)
+    case turn50m(ManeuverKind, followUpKind: ManeuverKind? = nil)
     case turn10m(ManeuverKind)
     case nextTurnInAbout(turnKind: ManeuverKind, distanceM: Double)
     case arrivingInM(distanceM: Double)
@@ -69,6 +68,9 @@ enum CueEngine {
     private static let onTrackConfirmSamples = 5
     private static let onTrackCorridorM = 22.0
     private static let repeatOffTrackSilenceThreshold = 2
+    /// Two maneuvers separated by less than this fold into a single
+    /// "turn X then quickly Y" cue. Mirrors web's BACK_TO_BACK_THRESHOLD_M.
+    private static let backToBackThresholdM = 80.0
 
     struct Result {
         let events: [CueEvent]
@@ -89,8 +91,17 @@ enum CueEngine {
 
         var events: [CueEvent] = []
 
-        if let _ = snapshot.routeId, !s.routeStartedAnnounced {
-            events.append(.routeStarted)
+        // First-tick announcement (replaces "Route started"). User-feedback:
+        // "Route started" was useless — replace with the actual next-turn
+        // announcement so the first sound the rider hears is what they need
+        // to plan for.
+        if snapshot.routeId != nil, !s.routeStartedAnnounced {
+            if let firstNonDepart = snapshot.maneuvers.first(where: {
+                $0.distanceFromStartM - snapshot.progressDistanceM >= 0
+            }) {
+                let distanceM = firstNonDepart.distanceFromStartM - snapshot.progressDistanceM
+                events.append(.nextTurnInAbout(turnKind: firstNonDepart.kind, distanceM: distanceM))
+            }
             s.routeStartedAnnounced = true
         }
 
@@ -138,8 +149,20 @@ enum CueEngine {
 
             if let m = upcoming, let d = upcomingDistance,
                d <= Self.approach50M, d > Self.approach10M, !announced50m.contains(m.id) {
-                events.append(.turn50m(m.kind))
-                announced50m.insert(m.id)
+                let upcomingIdx = snapshot.maneuvers.firstIndex(where: { $0.id == m.id }) ?? -1
+                let followUp = (upcomingIdx >= 0 && upcomingIdx + 1 < snapshot.maneuvers.count)
+                    ? snapshot.maneuvers[upcomingIdx + 1] : nil
+                let gapToFollowUp = followUp.map { $0.distanceFromStartM - m.distanceFromStartM } ?? .infinity
+                if let followUp = followUp, gapToFollowUp <= Self.backToBackThresholdM {
+                    events.append(.turn50m(m.kind, followUpKind: followUp.kind))
+                    announced50m.insert(m.id)
+                    announced50m.insert(followUp.id)
+                    announced10m.insert(followUp.id)
+                    announcedNextTurnAfter.insert(m.id)
+                } else {
+                    events.append(.turn50m(m.kind, followUpKind: nil))
+                    announced50m.insert(m.id)
+                }
             }
             if let m = upcoming, let d = upcomingDistance,
                d <= Self.approach10M, !announced10m.contains(m.id) {
@@ -210,10 +233,19 @@ enum CueEngine {
     /// chooses metric vs imperial for spoken distance values.
     static func cueMessage(_ event: CueEvent, distanceMode: DistanceMode = .metric) -> CueMessage {
         switch event {
-        case .routeStarted:
-            return CueMessage(key: "cue.routeStarted", args: [:], numericArgs: [:])
-        case .turn50m(let k):
+        case .turn50m(let k, let followUp):
             let pair = distanceCueValues(50, mode: distanceMode)
+            if let followUp = followUp {
+                return CueMessage(
+                    key: "cue.turn50mCombined",
+                    args: [
+                        "distanceUnit": pair.unit,
+                        "first": maneuverSlug(k),
+                        "second": maneuverSlug(followUp),
+                    ],
+                    numericArgs: ["distance": pair.distance]
+                )
+            }
             return CueMessage(
                 key: "cue.turn50m.\(maneuverSlug(k))",
                 args: ["distanceUnit": pair.unit],

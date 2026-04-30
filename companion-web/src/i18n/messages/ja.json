@@ -45,7 +45,7 @@
   "home.noSuggestions": "候補はまだありません…",
   "home.openSettings": "設定",
   "home.platformHint.locationDefault": "位置情報の許可を求められます。アプリがバックグラウンドの間も、現在地の追跡を続けるために許可してください。",
-  "home.platformHint.locationSafariIos": "iPhoneのSafariは、真のバックグラウンドGPSを提供しません。タブを開いたまま、画面を点けた状態で走ってください。位置情報の更新が続きます。",
+  "home.platformHint.locationSafariIos": "iPhoneのSafariでは、タブが非表示のあいだバックグラウンドGPS、ロック画面の案内、音声ガイドを利用できません。本格的なバックグラウンドルート案内には、ネイティブのiOSアプリをインストールしてください。",
   "home.recenter": "現在地に戻す",
   "home.resolvingLink": "リンクを解決中…",
   "home.resolvingLinkSubtitle": "目的地のURLをたどっています。数秒かかる場合があります。",

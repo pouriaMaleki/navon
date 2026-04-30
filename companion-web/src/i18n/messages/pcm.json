@@ -45,7 +45,7 @@
   "home.noSuggestions": "No suggestions yet…",
   "home.openSettings": "Settings",
   "home.platformHint.locationDefault": "Dem go ask you for location permission. Allow am make guidance fit keep tracking your position when the app dey background.",
-  "home.platformHint.locationSafariIos": "Safari for iPhone no dey deliver true background GPS. Keep the tab active and make screen stay on so location updates go continue while you dey ride.",
+  "home.platformHint.locationSafariIos": "Safari for iPhone no fit deliver background GPS, lock-screen direction, or audio cue when the tab dey hidden. If you want real background routing, install the native iOS app.",
   "home.recenter": "Recenter",
   "home.resolvingLink": "Mo ń ṣàwárí link…",
   "home.resolvingLinkSubtitle": "Mo ń tẹ̀lé link náà kí n wá ibi tí e ń lọ. E fitẹ́ gba ìṣẹ́jú díẹ̀.",

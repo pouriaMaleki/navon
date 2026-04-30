@@ -147,6 +147,34 @@ describe("LiveNotificationService", () => {
     service.dispose();
   });
 
+  it("only posts when an upcoming turn is close (≤ 500m), not when the rider is far away", async () => {
+    // User-reported: lock-screen card refreshed every few seconds with the
+    // same "Continue" copy. Notifications should be sparse — only fire when
+    // there's an actual upcoming turn the rider is close enough to need to
+    // act on. Coordinator passes a `closeUpcomingTurn` flag; service uses
+    // it to gate posts even while the page is hidden.
+    const handle = installFakeNotification();
+    const service = new LiveNotificationService();
+    setVisibility("hidden");
+    await service.start({ title: "Riding", body: "Continue", closeUpcomingTurn: false });
+    expect(handle.created).toHaveLength(0);
+    await service.update({ title: "Riding", body: "Turn left", closeUpcomingTurn: true });
+    expect(handle.created).toHaveLength(1);
+    expect(handle.created[0].body).toBe("Turn left");
+    service.dispose();
+  });
+
+  it("closes an existing notification when the upcoming turn falls back to far-away", async () => {
+    const handle = installFakeNotification();
+    const service = new LiveNotificationService();
+    setVisibility("hidden");
+    await service.start({ title: "Riding", body: "Turn left", closeUpcomingTurn: true });
+    expect(handle.created).toHaveLength(1);
+    await service.update({ title: "Riding", body: "Continue", closeUpcomingTurn: false });
+    expect(handle.created.at(-1)?.closed).toBe(true);
+    service.dispose();
+  });
+
   it("is a no-op when the user denies notification permission", async () => {
     const handle = installFakeNotification("denied" as NotificationPermission);
     const service = new LiveNotificationService();

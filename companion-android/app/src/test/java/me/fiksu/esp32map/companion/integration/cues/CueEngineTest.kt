@@ -26,17 +26,26 @@ class CueEngineTest {
         offRoute, rerouting, arrived, distanceFromRouteM, routeTotalDistanceM,
     )
 
+    // First-tick announcement (replaces "Route started"). User-feedback:
+    // hearing "Route started" on every Start was useless padding; the
+    // rider needs the next-turn announcement instead.
+
     @Test
-    fun emitsRouteStartedOnFirstTick() {
+    fun firstTickAnnouncesNextTurnInsteadOfRouteStarted() {
         val r = CueEngine.tick(base(), CueEngineState())
-        assertTrue(r.events.any { it is CueEvent.RouteStarted })
+        val firstTick = r.events.firstOrNull { it is CueEvent.NextTurnInAbout } as? CueEvent.NextTurnInAbout
+        assertNotNull(firstTick)
+        assertEquals(ManeuverKind.LEFT, firstTick!!.turnKind)
+        assertEquals(200.0, firstTick.distanceM, 0.5)
     }
 
     @Test
-    fun doesNotEmitRouteStartedTwiceForSameRoute() {
+    fun firstTickAnnouncementDoesNotRepeatAfterBackgroundGap() {
+        // Coming back from a long backgrounded period must not re-fire
+        // the start cue: the rider has been on the route for a while.
         val s1 = CueEngine.tick(base(), CueEngineState()).nextState
         val s2 = CueEngine.tick(base(progressDistanceM = 5.0), s1)
-        assertTrue(s2.events.none { it is CueEvent.RouteStarted })
+        assertNull(s2.events.firstOrNull { it is CueEvent.NextTurnInAbout })
     }
 
     @Test
@@ -155,13 +164,31 @@ class CueEngineTest {
     fun resetsLatchesOnRouteIdChange() {
         val s1 = CueEngine.tick(base(progressDistanceM = 155.0), CueEngineState()).nextState
         val s2 = CueEngine.tick(base(routeId = "r2", progressDistanceM = 155.0), s1)
-        assertNotNull(s2.events.firstOrNull { it is CueEvent.RouteStarted })
-        assertNotNull(s2.events.firstOrNull { it is CueEvent.Turn50m })
+        assertNotNull(s2.events.firstOrNull { it is CueEvent.NextTurnInAbout })
+    }
+
+    @Test
+    fun back2backTurnsCoalesceIntoCombinedCue() {
+        val m1 = CueManeuver("m1", ManeuverKind.RIGHT, 200.0)
+        val m2 = CueManeuver("m2", ManeuverKind.LEFT, 230.0)
+        val s1 = CueEngine.tick(
+            base(progressDistanceM = 100.0, maneuvers = listOf(m1, m2)),
+            CueEngineState(),
+        ).nextState
+        val s2 = CueEngine.tick(
+            base(progressDistanceM = 155.0, maneuvers = listOf(m1, m2)),
+            s1,
+        )
+        val combined = s2.events.firstOrNull {
+            it is CueEvent.Turn50m && it.followUpKind != null
+        } as? CueEvent.Turn50m
+        assertNotNull(combined)
+        assertEquals(ManeuverKind.RIGHT, combined!!.turnKind)
+        assertEquals(ManeuverKind.LEFT, combined.followUpKind)
     }
 
     @Test
     fun formatsSpecPhrases() {
-        assertEquals("Route started", CueEngine.format(CueEvent.RouteStarted))
         assertEquals("In 50 meters, turn left", CueEngine.format(CueEvent.Turn50m(ManeuverKind.LEFT)))
         assertEquals("In 50 meters, keep right", CueEngine.format(CueEvent.Turn50m(ManeuverKind.KEEP_RIGHT)))
         assertEquals("In 50 meters, take the left exit", CueEngine.format(CueEvent.Turn50m(ManeuverKind.EXIT_LEFT)))

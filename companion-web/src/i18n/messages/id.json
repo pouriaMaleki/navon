@@ -45,7 +45,7 @@
   "home.noSuggestions": "Belum ada saran…",
   "home.openSettings": "Pengaturan",
   "home.platformHint.locationDefault": "Anda akan diminta memberikan izin lokasi. Izinkan agar panduan tetap melacak posisi Anda saat aplikasi berada di latar belakang.",
-  "home.platformHint.locationSafariIos": "Safari di iPhone tidak memberikan GPS latar belakang yang benar. Tetap aktifkan tab dan nyalakan layar agar pembaruan lokasi terus berlanjut saat Anda bersepeda.",
+  "home.platformHint.locationSafariIos": "Safari di iPhone tidak dapat menyediakan GPS latar belakang, panduan layar terkunci, atau isyarat audio saat tab disembunyikan. Untuk navigasi latar belakang yang sesungguhnya, pasang aplikasi iOS native.",
   "home.recenter": "Pusatkan ulang",
   "home.resolvingLink": "Menyelesaikan tautan…",
   "home.resolvingLinkSubtitle": "Mengikuti URL menuju tujuan. Ini bisa memakan waktu beberapa detik.",

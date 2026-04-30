@@ -45,7 +45,7 @@
   "home.noSuggestions": "Sem sugestões ainda…",
   "home.openSettings": "Configurações",
   "home.platformHint.locationDefault": "Será pedida permissão de localização. Permita para que as orientações continuem acompanhando sua posição enquanto o app estiver em segundo plano.",
-  "home.platformHint.locationSafariIos": "O Safari no iPhone não fornece GPS verdadeiro em segundo plano. Mantenha a aba ativa e a tela ligada para que as atualizações de localização continuem enquanto você pedala.",
+  "home.platformHint.locationSafariIos": "O Safari no iPhone não consegue fornecer GPS em segundo plano, orientações na tela de bloqueio nem avisos de áudio enquanto a aba estiver oculta. Para um roteamento real em segundo plano, instale o app nativo de iOS.",
   "home.recenter": "Centralizar novamente",
   "home.resolvingLink": "Resolvendo link…",
   "home.resolvingLinkSubtitle": "Seguindo o link para um destino. Isso pode levar alguns segundos.",

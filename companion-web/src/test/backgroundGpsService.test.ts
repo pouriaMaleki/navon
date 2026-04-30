@@ -86,6 +86,10 @@ describe("PlatformHints", () => {
     const en = tIn("en", key);
     expect(en).toMatch(/Safari/i);
     expect(en).toMatch(/background/i);
+    // iOS Safari has no real path to background GPS / lock-screen activity.
+    // Per user feedback, the hint must steer the rider toward the native iOS
+    // app instead of suggesting they keep the tab open as a workaround.
+    expect(en).toMatch(/iOS app|native app|App Store/i);
   });
 
   it("returns a generic browser hint key on non-iOS", () => {

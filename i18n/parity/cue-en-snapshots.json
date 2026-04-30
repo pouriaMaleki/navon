@@ -3,15 +3,6 @@
   "rows": [
     {
       "event": {
-        "kind": "routeStarted"
-      },
-      "expected": {
-        "key": "cue.routeStarted",
-        "values": {}
-      }
-    },
-    {
-      "event": {
         "kind": "turn50m",
         "turnKind": "left"
       },
@@ -20,6 +11,22 @@
         "values": {
           "distance": 50,
           "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn50m",
+        "turnKind": "right",
+        "followUpKind": "left"
+      },
+      "expected": {
+        "key": "cue.turn50mCombined",
+        "values": {
+          "distance": 50,
+          "distanceUnit": "meters",
+          "first": "right",
+          "second": "left"
         }
       }
     },

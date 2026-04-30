@@ -144,10 +144,18 @@ export function startRoutingActivityCoordinator(
       // every few seconds. Only the upcoming maneuver itself drives a
       // re-post; LiveNotificationService dedupes identical bodies.
       const body = guidance.nextTurnDescriptionForNotification;
+      // Notification gate (user-feedback): only fire the platform card
+      // when there's an upcoming turn within ~500m. Outside that window
+      // the rider is mid-segment with nothing to act on, and a stale
+      // "Continue" notification is just noise.
+      const upcoming = guidance.upcomingTurnAlert;
+      const closeUpcomingTurn =
+        upcoming !== undefined && upcoming.distanceRemainingM <= 500;
+      const content = { title, body, closeUpcomingTurn };
       if (!lastLiveActivityActive) {
-        void services.liveNotification.start({ title, body });
+        void services.liveNotification.start(content);
       } else {
-        void services.liveNotification.update({ title, body });
+        void services.liveNotification.update(content);
       }
     } else if (lastLiveActivityActive) {
       services.liveNotification.stop();

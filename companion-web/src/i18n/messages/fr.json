@@ -45,7 +45,7 @@
   "home.noSuggestions": "Aucune suggestion pour l’instant…",
   "home.openSettings": "Paramètres",
   "home.platformHint.locationDefault": "Une autorisation de localisation vous sera demandée. Acceptez-la pour que l’orientation continue de suivre votre position lorsque l’application est en arrière-plan.",
-  "home.platformHint.locationSafariIos": "Safari sur iPhone ne fournit pas une localisation GPS réellement en arrière-plan. Gardez l’onglet actif et l’écran allumé pour que les mises à jour de localisation continuent pendant que vous roulez.",
+  "home.platformHint.locationSafariIos": "Safari sur iPhone ne peut pas fournir de GPS en arrière-plan, d’indications sur l’écran verrouillé ni de signaux audio lorsque l’onglet est masqué. Pour un véritable guidage en arrière-plan, installez l’application iOS native.",
   "home.recenter": "Recentrer",
   "home.resolvingLink": "Ouverture du lien…",
   "home.resolvingLinkSubtitle": "Suivi de l’URL vers une destination. Cela peut prendre quelques secondes.",

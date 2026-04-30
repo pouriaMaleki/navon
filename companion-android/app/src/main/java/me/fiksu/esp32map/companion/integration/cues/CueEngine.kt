@@ -39,8 +39,14 @@ data class CueSnapshot(
 )
 
 sealed class CueEvent {
-    object RouteStarted : CueEvent()
-    data class Turn50m(val turnKind: ManeuverKind) : CueEvent()
+    /** 50m before a turn. When the next maneuver is within 80m,
+     *  `followUpKind` carries that maneuver's direction so the engine
+     *  emits a single combined cue ("In 50 meters, turn right then
+     *  quickly left") instead of overlapping audio. */
+    data class Turn50m(
+        val turnKind: ManeuverKind,
+        val followUpKind: ManeuverKind? = null,
+    ) : CueEvent()
     data class Turn10m(val turnKind: ManeuverKind) : CueEvent()
     data class NextTurnInAbout(val turnKind: ManeuverKind, val distanceM: Double) : CueEvent()
     data class ArrivingInM(val distanceM: Double) : CueEvent()
@@ -74,6 +80,9 @@ object CueEngine {
     private const val ON_TRACK_CONFIRM_SAMPLES = 5
     private const val ON_TRACK_CORRIDOR_M = 22.0
     private const val REPEAT_OFFTRACK_SILENCE_THRESHOLD = 2
+    /** Two maneuvers separated by less than this fold into a single
+     *  "turn X then quickly Y" cue. Mirrors web's BACK_TO_BACK_THRESHOLD_M. */
+    private const val BACK_TO_BACK_THRESHOLD_M = 80.0
 
     data class Result(val events: List<CueEvent>, val nextState: CueEngineState)
 
@@ -86,8 +95,22 @@ object CueEngine {
 
         val events = mutableListOf<CueEvent>()
 
+        // First-tick announcement (replaces "Route started"). User-feedback:
+        // "Route started" was useless padding. Replace with the actual
+        // next-turn announcement so the rider hears something immediately
+        // useful on Start.
         if (snapshot.routeId != null && !s.routeStartedAnnounced) {
-            events.add(CueEvent.RouteStarted)
+            val firstNonDepart = snapshot.maneuvers.firstOrNull {
+                it.distanceFromStartM - snapshot.progressDistanceM >= 0
+            }
+            if (firstNonDepart != null) {
+                events.add(
+                    CueEvent.NextTurnInAbout(
+                        turnKind = firstNonDepart.kind,
+                        distanceM = firstNonDepart.distanceFromStartM - snapshot.progressDistanceM,
+                    ),
+                )
+            }
             s = s.copy(routeStartedAnnounced = true)
         }
 
@@ -139,8 +162,20 @@ object CueEngine {
                 upcomingDistance <= APPROACH_50_M && upcomingDistance > APPROACH_10_M &&
                 !announced50m.contains(upcoming.id)
             ) {
-                events.add(CueEvent.Turn50m(upcoming.kind))
-                announced50m.add(upcoming.id)
+                val upcomingIdx = snapshot.maneuvers.indexOfFirst { it.id == upcoming.id }
+                val followUp = snapshot.maneuvers.getOrNull(upcomingIdx + 1)
+                val gap = followUp?.let { it.distanceFromStartM - upcoming.distanceFromStartM }
+                    ?: Double.POSITIVE_INFINITY
+                if (followUp != null && gap <= BACK_TO_BACK_THRESHOLD_M) {
+                    events.add(CueEvent.Turn50m(upcoming.kind, followUpKind = followUp.kind))
+                    announced50m.add(upcoming.id)
+                    announced50m.add(followUp.id)
+                    announced10m.add(followUp.id)
+                    announcedNextTurnAfter.add(upcoming.id)
+                } else {
+                    events.add(CueEvent.Turn50m(upcoming.kind, followUpKind = null))
+                    announced50m.add(upcoming.id)
+                }
             }
             if (upcoming != null && upcomingDistance != null &&
                 upcomingDistance <= APPROACH_10_M && !announced10m.contains(upcoming.id)
@@ -211,12 +246,25 @@ object CueEngine {
         distanceMode: me.fiksu.esp32map.companion.integration.i18n.DistanceMode =
             me.fiksu.esp32map.companion.integration.i18n.DistanceMode.METRIC,
     ): CueMessage = when (event) {
-        is CueEvent.RouteStarted -> CueMessage("cue.routeStarted", emptyMap())
-        is CueEvent.Turn50m -> CueMessage(
-            "cue.turn50m.${maneuverSlug(event.turnKind)}",
-            me.fiksu.esp32map.companion.integration.i18n.DistanceFormatter
-                .cueValues(50.0, distanceMode),
-        )
+        is CueEvent.Turn50m -> {
+            val baseValues = me.fiksu.esp32map.companion.integration.i18n.DistanceFormatter
+                .cueValues(50.0, distanceMode)
+            val followUp = event.followUpKind
+            if (followUp != null) {
+                CueMessage(
+                    "cue.turn50mCombined",
+                    baseValues + mapOf(
+                        "first" to maneuverSlug(event.turnKind),
+                        "second" to maneuverSlug(followUp),
+                    ),
+                )
+            } else {
+                CueMessage(
+                    "cue.turn50m.${maneuverSlug(event.turnKind)}",
+                    baseValues,
+                )
+            }
+        }
         is CueEvent.Turn10m -> CueMessage(
             "cue.turn10m.${maneuverSlug(event.turnKind)}",
             emptyMap(),

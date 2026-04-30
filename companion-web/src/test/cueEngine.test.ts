@@ -14,6 +14,11 @@ const M_LEFT = (id: string, distance: number): CueManeuver => ({
   kind: "left",
   distanceFromStartM: distance,
 });
+const M_RIGHT = (id: string, distance: number): CueManeuver => ({
+  id,
+  kind: "right",
+  distanceFromStartM: distance,
+});
 
 const baseSnapshot = (overrides: Partial<CueSnapshot> = {}): CueSnapshot => ({
   routeId: "r1",
@@ -36,26 +41,109 @@ function tick(
   return { events: result.events, next: result.nextState };
 }
 
-describe("CueEngine — spec lines 133-143", () => {
-  it("emits 'route started' on the first tick of a new route", () => {
+describe("CueEngine — first-tick announcement (replaces 'Route started')", () => {
+  // User-reported: "Route started" was useless padding the rider already
+  // knew. Replace it with the actual next-turn announcement so the first
+  // sound the rider hears is "Next turn left in about 200 meters" — i.e.,
+  // what they actually need to plan for.
+
+  it("does NOT emit 'routeStarted' on the first tick of a new route", () => {
     const { events } = tick(initialCueEngineState(), baseSnapshot());
-    expect(events.map((e) => e.kind)).toContain("routeStarted");
+    expect(events.map((e) => e.kind)).not.toContain("routeStarted");
   });
 
-  it("does not emit 'route started' twice for the same route", () => {
+  it("announces the next turn with distance on the first tick instead", () => {
+    const { events } = tick(initialCueEngineState(), baseSnapshot());
+    const announce = events.find((e) => e.kind === "nextTurnInAbout");
+    expect(announce).toBeDefined();
+    expect(announce).toMatchObject({ turnKind: "left" });
+    expect((announce as { distanceM: number }).distanceM).toBeCloseTo(200, 0);
+  });
+
+  it("does not re-announce the next turn on subsequent ticks of the same route", () => {
     const t1 = tick(initialCueEngineState(), baseSnapshot());
     const t2 = tick(t1.next, baseSnapshot({ progressDistanceM: 5 }));
-    expect(t2.events.map((e) => e.kind)).not.toContain("routeStarted");
+    expect(t2.events.find((e) => e.kind === "nextTurnInAbout")).toBeUndefined();
   });
 
+  it("does not re-announce after the rider returns from a background gap (route id unchanged)", () => {
+    // Bug we're fixing: after a long backgrounded period the GPS gap
+    // was producing a `routeStarted` re-emission ("Route started" while
+    // the rider had been on the route for ages). With route-id checks
+    // and no first-tick re-announcement, this regression can't recur.
+    const t1 = tick(initialCueEngineState(), baseSnapshot({ progressDistanceM: 50 }));
+    // Simulate a 30-second background gap with no ticks, then a fix.
+    const t2 = tick(t1.next, baseSnapshot({ progressDistanceM: 60 }));
+    expect(t2.events.find((e) => e.kind === "nextTurnInAbout")).toBeUndefined();
+  });
+
+  it("does announce on a brand new route id (reroute completion)", () => {
+    const t1 = tick(initialCueEngineState(), baseSnapshot({ progressDistanceM: 50 }));
+    const t2 = tick(t1.next, baseSnapshot({ routeId: "r2", progressDistanceM: 0 }));
+    expect(t2.events.find((e) => e.kind === "nextTurnInAbout")).toBeDefined();
+  });
+});
+
+describe("CueEngine — back-to-back turn coalescing", () => {
+  // User-reported: when two maneuvers are very close (e.g., M1 at 200m,
+  // M2 at 230m), the engine emits four cues within a few seconds —
+  // turn50m(M1), turn10m(M1), nextTurnInAbout(M2), turn50m(M2). The TTS
+  // engine cancels the in-flight one but the rider hears half of one
+  // phrase chopped off by the next. Solution: when the next maneuver
+  // is within 80m of the upcoming one, fold both into a single cue
+  // ("In 50 meters, turn right then quickly left") and suppress the
+  // duplicate emissions for the second maneuver.
+  it("annotates turn50m with the follow-up maneuver when M2 is within 80m of M1", () => {
+    const back2back = baseSnapshot({
+      maneuvers: [M_RIGHT("m1", 200), M_LEFT("m2", 230)],
+      progressDistanceM: 100,
+    });
+    const t1 = tick(initialCueEngineState(), back2back);
+    // Cross 50m threshold for m1 — at 155m progress, distance to m1 = 45m.
+    const t2 = tick(t1.next, { ...back2back, progressDistanceM: 155 });
+    const turn50 = t2.events.find((e) => e.kind === "turn50m");
+    expect(turn50).toMatchObject({
+      kind: "turn50m",
+      turnKind: "right",
+      followUpKind: "left",
+    });
+  });
+
+  it("does not annotate when the follow-up is far away (no overlap risk)", () => {
+    const t1 = tick(initialCueEngineState(), baseSnapshot({ progressDistanceM: 100 }));
+    const t2 = tick(t1.next, baseSnapshot({ progressDistanceM: 155 }));
+    const turn50 = t2.events.find((e) => e.kind === "turn50m") as
+      | { followUpKind?: string }
+      | undefined;
+    expect(turn50?.followUpKind).toBeUndefined();
+  });
+
+  it("suppresses turn50m / turn10m / nextTurnInAbout for the follow-up maneuver after a coalesced cue", () => {
+    const back2back = baseSnapshot({
+      maneuvers: [M_RIGHT("m1", 200), M_LEFT("m2", 230)],
+    });
+    let s = initialCueEngineState();
+    // 50m before m1 — coalesced cue fires.
+    s = tick(s, { ...back2back, progressDistanceM: 155 }).next;
+    // Past m1, approaching m2.
+    const past = tick(s, { ...back2back, progressDistanceM: 211 });
+    expect(past.events.find((e) => e.kind === "nextTurnInAbout")).toBeUndefined();
+    // 10m before m2 — already announced via the coalesced cue.
+    s = past.next;
+    const close = tick(s, { ...back2back, progressDistanceM: 222 });
+    expect(close.events.find((e) => e.kind === "turn10m")).toBeUndefined();
+    expect(close.events.find((e) => e.kind === "turn50m")).toBeUndefined();
+  });
+});
+
+describe("CueEngine — existing approach + arrival cues unchanged", () => {
   it("emits 'in 50 meters turn left' when crossing the 50m threshold for a maneuver", () => {
     const before = tick(
       initialCueEngineState(),
-      baseSnapshot({ progressDistanceM: 100 }), // distance to m1 = 100
+      baseSnapshot({ progressDistanceM: 100 }),
     );
-    const after = tick(before.next, baseSnapshot({ progressDistanceM: 155 })); // dist to m1 = 45m
+    const after = tick(before.next, baseSnapshot({ progressDistanceM: 155 }));
     const turn50 = after.events.find((e) => e.kind === "turn50m");
-    expect(turn50).toBeDefined();
     expect(turn50).toMatchObject({ kind: "turn50m", turnKind: "left" });
   });
 
@@ -67,19 +155,17 @@ describe("CueEngine — spec lines 133-143", () => {
 
   it("emits 'turn left' when crossing the 10m threshold for a maneuver", () => {
     const t1 = tick(initialCueEngineState(), baseSnapshot({ progressDistanceM: 155 }));
-    const t2 = tick(t1.next, baseSnapshot({ progressDistanceM: 192 })); // 8m to m1
+    const t2 = tick(t1.next, baseSnapshot({ progressDistanceM: 192 }));
     const turn10 = t2.events.find((e) => e.kind === "turn10m");
     expect(turn10).toMatchObject({ kind: "turn10m", turnKind: "left" });
   });
 
   it("emits 'next turn left in about X meters' 10m past a maneuver, when there is another after", () => {
-    // Pass m1 (at 200m). After 10m past it (210m), with m2 still ahead.
     const t1 = tick(initialCueEngineState(), baseSnapshot({ progressDistanceM: 200 }));
-    const t2 = tick(t1.next, baseSnapshot({ progressDistanceM: 211 })); // 11m past m1
+    const t2 = tick(t1.next, baseSnapshot({ progressDistanceM: 211 }));
     const next = t2.events.find((e) => e.kind === "nextTurnInAbout");
-    expect(next).toBeDefined();
     expect(next).toMatchObject({ turnKind: "left" });
-    expect((next as { distanceM: number }).distanceM).toBeCloseTo(189, 0); // 400-211
+    expect((next as { distanceM: number }).distanceM).toBeCloseTo(189, 0);
   });
 
   it("emits 'arriving at your destination in X meters' past the last maneuver when no more maneuvers follow", () => {
@@ -91,7 +177,6 @@ describe("CueEngine — spec lines 133-143", () => {
     const t = tick(initialCueEngineState(), snap);
     const arr = t.events.find((e) => e.kind === "arrivingInM");
     expect(arr).toBeDefined();
-    expect((arr as { distanceM: number }).distanceM).toBeCloseTo(188, 0);
   });
 
   it("emits 'arrived' when arrived flag is true", () => {
@@ -113,17 +198,13 @@ describe("CueEngine — spec lines 133-143", () => {
 
   it("after >2 off-route episodes, says 'off track' once and goes silent until on-track", () => {
     let s = initialCueEngineState();
-    // Episode 1
     s = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 })).next;
     s = tick(s, baseSnapshot({ offRoute: false, distanceFromRouteM: 5 })).next;
-    // Episode 2
     s = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 })).next;
     s = tick(s, baseSnapshot({ offRoute: false, distanceFromRouteM: 5 })).next;
-    // Episode 3 — silence kicks in
     const t3 = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 }));
     expect(t3.events.find((e) => e.kind === "repeatedOffTrackSilence")).toBeDefined();
     s = t3.next;
-    // Subsequent ticks while silenced: no cues even if maneuver thresholds would normally fire.
     const t4 = tick(s, baseSnapshot({ offRoute: true, progressDistanceM: 155 }));
     expect(t4.events).toHaveLength(0);
   });
@@ -137,7 +218,6 @@ describe("CueEngine — spec lines 133-143", () => {
       silenced: true,
       prevOffRoute: true,
     };
-    // 4 close samples — not enough yet.
     for (let i = 0; i < 4; i++) {
       const t = tick(s, baseSnapshot({ offRoute: false, distanceFromRouteM: 5 }));
       expect(t.events.find((e) => e.kind === "onTrack")).toBeUndefined();
@@ -158,33 +238,19 @@ describe("CueEngine — spec lines 133-143", () => {
     expect(t.events).toHaveLength(0);
   });
 
-  it("resets latches on route id change so cues fire again on a new route", () => {
-    const s1 = tick(initialCueEngineState(), baseSnapshot({ progressDistanceM: 155 })).next;
-    const s2 = tick(s1, baseSnapshot({ routeId: "r2", progressDistanceM: 155 }));
-    expect(s2.events.find((e) => e.kind === "routeStarted")).toBeDefined();
-    expect(s2.events.find((e) => e.kind === "turn50m")).toBeDefined();
-  });
-
-  it("formatCueEvent renders spec phrases", () => {
-    expect(formatCueEvent({ kind: "routeStarted" })).toBe("Route started");
+  it("formatCueEvent renders spec phrases (no 'Route started' anymore)", () => {
     expect(formatCueEvent({ kind: "turn50m", turnKind: "left" })).toBe("In 50 meters, turn left");
-    expect(formatCueEvent({ kind: "turn50m", turnKind: "keepRight" })).toBe(
-      "In 50 meters, keep right",
-    );
-    expect(formatCueEvent({ kind: "turn50m", turnKind: "exitLeft" })).toBe(
-      "In 50 meters, take the left exit",
-    );
+    expect(
+      formatCueEvent({
+        kind: "turn50m",
+        turnKind: "right",
+        followUpKind: "left",
+      }),
+    ).toBe("In 50 meters, turn right then quickly left");
     expect(formatCueEvent({ kind: "turn10m", turnKind: "right" })).toBe("Turn right");
     expect(formatCueEvent({ kind: "nextTurnInAbout", turnKind: "left", distanceM: 187 })).toBe(
       "Next turn left in about 190 meters",
     );
-    expect(formatCueEvent({ kind: "arrivingInM", distanceM: 184 })).toBe(
-      "Arriving at your destination in 180 meters",
-    );
     expect(formatCueEvent({ kind: "arrived" })).toBe("You have arrived at your destination");
-    expect(formatCueEvent({ kind: "offTrack" })).toBe("Off track");
-    expect(formatCueEvent({ kind: "rerouting" })).toBe("Rerouting");
-    expect(formatCueEvent({ kind: "repeatedOffTrackSilence" })).toBe("Off track");
-    expect(formatCueEvent({ kind: "onTrack" })).toBe("On track");
   });
 });

@@ -45,7 +45,7 @@
   "home.noSuggestions": "Ei vielä ehdotuksia…",
   "home.openSettings": "Asetukset",
   "home.platformHint.locationDefault": "Sijaintilupaa pyydetään. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sovellus on taustalla.",
-  "home.platformHint.locationSafariIos": "iPhonen Safari ei tue oikeaa taustalla toimivaa GPS:ää. Pidä välilehti aktiivisena ja näyttö päällä, jotta sijaintipäivitykset jatkuvat ajon aikana.",
+  "home.platformHint.locationSafariIos": "iPhonen Safari ei pysty välittämään taustalla GPS-sijaintia, lukitusnäytön ohjeita tai ääniopastusta, kun välilehti on piilossa. Aitoa taustareititystä varten asenna natiivi iOS-sovellus.",
   "home.recenter": "Keskitä uudelleen",
   "home.resolvingLink": "Selvitetään linkkiä…",
   "home.resolvingLinkSubtitle": "Seurataan linkkiä määränpäähän. Tämä voi kestää muutaman sekunnin.",

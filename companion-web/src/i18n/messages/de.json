@@ -45,7 +45,7 @@
   "home.noSuggestions": "Noch keine Vorschläge…",
   "home.openSettings": "Einstellungen",
   "home.platformHint.locationDefault": "Sie werden nach einer Standortberechtigung gefragt. Erlauben Sie sie, damit die Navigation Ihre Position weiter verfolgt, während die App im Hintergrund ist.",
-  "home.platformHint.locationSafariIos": "Safari auf dem iPhone liefert kein echtes GPS im Hintergrund. Halten Sie den Tab aktiv und den Bildschirm eingeschaltet, damit Standortaktualisierungen während der Fahrt weiter erfolgen.",
+  "home.platformHint.locationSafariIos": "Safari auf dem iPhone kann weder GPS im Hintergrund noch Hinweise auf dem Sperrbildschirm oder Audiosignale liefern, solange der Tab ausgeblendet ist. Für echtes Routing im Hintergrund installieren Sie die native iOS-App.",
   "home.recenter": "Zentrieren",
   "home.resolvingLink": "Link wird aufgelöst…",
   "home.resolvingLinkSubtitle": "Der Link zu einem Ziel wird verfolgt. Das kann ein paar Sekunden dauern.",

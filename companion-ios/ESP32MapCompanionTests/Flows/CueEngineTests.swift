@@ -31,21 +31,53 @@ final class CueEngineTests: XCTestCase {
         )
     }
 
-    func test_emitsRouteStartedOnFirstTick() {
+    func test_doesNotEmitRouteStartedOnFirstTick() {
+        // User-feedback: "Route started" was useless padding. Replace with
+        // first-tick `nextTurnInAbout` so the rider hears the actual next-
+        // turn announcement on Start.
         let r = CueEngine.tick(snapshot: base(), state: CueEngineState())
-        XCTAssertTrue(r.events.contains(.routeStarted))
+        let firstTickAnnounce = r.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        XCTAssertNotNil(firstTickAnnounce, "first tick must announce the next turn with distance")
+        if case .nextTurnInAbout(let kind, let distance) = firstTickAnnounce! {
+            XCTAssertEqual(kind, .left)
+            XCTAssertEqual(distance, 200, accuracy: 0.5)
+        }
     }
 
-    func test_doesNotEmitRouteStartedTwiceForSameRoute() {
+    func test_doesNotReAnnounceFirstTickAfterBackgroundGap() {
+        // Bug we're fixing: after a long backgrounded period the GPS gap
+        // produced a "Route started" re-emission once a fix arrived. With
+        // route-id checks and no first-tick re-announcement, this can't
+        // recur.
         let s1 = CueEngine.tick(snapshot: base(), state: CueEngineState()).nextState
         let r2 = CueEngine.tick(snapshot: base(progressDistanceM: 5), state: s1)
-        XCTAssertFalse(r2.events.contains(.routeStarted))
+        let again = r2.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        XCTAssertNil(again)
     }
 
     func test_emitsTurn50mWhenCrossingThreshold() {
         let s1 = CueEngine.tick(snapshot: base(progressDistanceM: 100), state: CueEngineState()).nextState
         let r2 = CueEngine.tick(snapshot: base(progressDistanceM: 155), state: s1)
         XCTAssertTrue(r2.events.contains(.turn50m(.left)))
+    }
+
+    func test_back2backTurnsCoalesceIntoCombinedCue() {
+        let m1 = CueManeuver(id: "m1", kind: .right, distanceFromStartM: 200)
+        let m2 = CueManeuver(id: "m2", kind: .left, distanceFromStartM: 230)
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: [m1, m2]),
+            state: CueEngineState()
+        ).nextState
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 155, maneuvers: [m1, m2]),
+            state: s1
+        )
+        let combined = r2.events.first { if case .turn50m(_, let f) = $0 { return f != nil } else { return false } }
+        XCTAssertNotNil(combined, "back-to-back turns must coalesce into a single turn50m with followUp")
+        if case .turn50m(let k, let f) = combined! {
+            XCTAssertEqual(k, .right)
+            XCTAssertEqual(f, .left)
+        }
     }
 
     func test_doesNotReEmit50mForSameManeuver() {
@@ -141,15 +173,18 @@ final class CueEngineTests: XCTestCase {
     func test_resetsLatchesOnRouteIdChange() {
         let s1 = CueEngine.tick(snapshot: base(progressDistanceM: 155), state: CueEngineState()).nextState
         let r2 = CueEngine.tick(snapshot: base(routeId: "r2", progressDistanceM: 155), state: s1)
-        XCTAssertTrue(r2.events.contains(.routeStarted))
-        XCTAssertTrue(r2.events.contains(.turn50m(.left)))
+        let firstTick = r2.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        XCTAssertNotNil(firstTick, "new route id should re-announce next turn on first tick")
     }
 
     func test_formatsSpecPhrases() {
-        XCTAssertEqual(CueEngine.format(.routeStarted), "Route started")
         XCTAssertEqual(CueEngine.format(.turn50m(.left)), "In 50 meters, turn left")
         XCTAssertEqual(CueEngine.format(.turn50m(.keepRight)), "In 50 meters, keep right")
         XCTAssertEqual(CueEngine.format(.turn50m(.exitLeft)), "In 50 meters, take the left exit")
+        XCTAssertEqual(
+            CueEngine.format(.turn50m(.right, followUpKind: .left)),
+            "In 50 meters, turn right then quickly left"
+        )
         XCTAssertEqual(CueEngine.format(.turn10m(.right)), "Turn right")
         XCTAssertEqual(
             CueEngine.format(.nextTurnInAbout(turnKind: .left, distanceM: 187)),

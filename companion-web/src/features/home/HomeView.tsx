@@ -16,19 +16,45 @@ export const HomeView = observer(({ store }: Props) => {
   const lastPreviewTickRef = useRef(0);
   const lastStartTickRef = useRef(0);
 
-  // Camera follow for PLANNING transitions only (picking a different
-  // alternative / first GPS fix). During phoneGuidance the GuidanceStore's
-  // emit path owns the camera (spec line 101 requires the route-segment
-  // bearing, which this reaction used to overwrite with GPS heading).
+  // Camera-follow trigger for PLANNING transitions ONLY. User-reported:
+  // depending on `currentLocation` here meant every GPS tick re-centred
+  // the map even after the user panned, so they couldn't pan freely
+  // while stationary. It also caused the first-fix to "jump" the camera
+  // into a riding-mode-looking zoom because that was the first time
+  // refreshCameraForCurrentMode had run with non-default state.
+  //
+  // Now: refresh only when mode / selected alternative / route revision
+  // changes. Free-pan in stationary mode is preserved (spec line 87 —
+  // "stays where user moved to until target user location icon is
+  // pressed"), and there's a separate one-shot first-fix recenter below.
   useEffect(() => {
     return reaction(
       () => ({
         homeMode: store.guidanceStore.homeMode,
         selectedId: store.planningStore.preview.selectedAlternativeID,
         revision: store.planningStore.preview.routeRevision,
-        location: store.locationStore.currentLocation,
       }),
       () => {
+        if (store.guidanceStore.homeMode === "phoneGuidance") return;
+        refreshCameraForCurrentMode(store);
+      },
+      { fireImmediately: true },
+    );
+  }, [store]);
+
+  // One-shot first-fix recenter (planning only). Mirrors the iOS
+  // `lastKnownLocation`-driven recenter on cold launch — the camera
+  // moves from the default Helsinki fallback to the rider's actual
+  // position the moment GPS lands a fix, but does NOT re-recenter on
+  // every subsequent fix (free-pan stays sticky).
+  const firstFixDoneRef = useRef(false);
+  useEffect(() => {
+    return reaction(
+      () => store.locationStore.currentLocation !== undefined,
+      (haveFix) => {
+        if (!haveFix) return;
+        if (firstFixDoneRef.current) return;
+        firstFixDoneRef.current = true;
         if (store.guidanceStore.homeMode === "phoneGuidance") return;
         refreshCameraForCurrentMode(store);
       },

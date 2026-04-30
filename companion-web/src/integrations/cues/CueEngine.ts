@@ -32,8 +32,12 @@ export type CueSnapshot = {
 };
 
 export type CueEvent =
-  | { kind: "routeStarted" }
-  | { kind: "turn50m"; turnKind: ManeuverKind }
+  /** 50m before a turn. When the next maneuver is within 80m of this one
+   *  (a back-to-back pair), `followUpKind` carries that maneuver's
+   *  direction so the engine emits a single combined cue ("In 50 meters,
+   *  turn right then quickly left") instead of overlapping audio for two
+   *  separate turn50m/turn10m chains. */
+  | { kind: "turn50m"; turnKind: ManeuverKind; followUpKind?: ManeuverKind }
   | { kind: "turn10m"; turnKind: ManeuverKind }
   | { kind: "nextTurnInAbout"; turnKind: ManeuverKind; distanceM: number }
   | { kind: "arrivingInM"; distanceM: number }
@@ -65,6 +69,11 @@ const PASSED_TURN_M = 10;
 const ON_TRACK_CONFIRM_SAMPLES = 5;
 const ON_TRACK_CORRIDOR_M = 22;
 const REPEAT_OFFTRACK_SILENCE_THRESHOLD = 2;
+/** Two maneuvers separated by less than this fold into a single
+ *  "turn X then quickly Y" cue. 80 m at 25 km/h ≈ 11 s — enough for the
+ *  rider to take both turns smoothly, not long enough for two
+ *  independent 50m/10m cue cycles to fit without colliding. */
+const BACK_TO_BACK_THRESHOLD_M = 80;
 
 export function initialCueEngineState(): CueEngineState {
   return {
@@ -101,9 +110,22 @@ export function tickCueEngine(
 
   const events: CueEvent[] = [];
 
-  // Cue 1: route started — first tick of a non-empty route id.
+  // First-tick announcement (replaces "Route started"). User-feedback:
+  // "Route started" was useless — replace with the actual next-turn
+  // announcement so the first sound the rider hears is what they need
+  // to plan for.
   if (snapshot.routeId && !s.routeStartedAnnounced) {
-    events.push({ kind: "routeStarted" });
+    const firstNonDepart = snapshot.maneuvers.find(
+      (m) => m.distanceFromStartM - snapshot.progressDistanceM >= 0,
+    );
+    if (firstNonDepart) {
+      const distanceM = firstNonDepart.distanceFromStartM - snapshot.progressDistanceM;
+      events.push({
+        kind: "nextTurnInAbout",
+        turnKind: firstNonDepart.kind,
+        distanceM,
+      });
+    }
     s = { ...s, routeStartedAnnounced: true };
   }
 
@@ -160,7 +182,11 @@ export function tickCueEngine(
       ? upcoming.distanceFromStartM - snapshot.progressDistanceM
       : undefined;
 
-    // Cue 2: 50m approach (latched per maneuver id).
+    // Cue 2: 50m approach (latched per maneuver id). When the maneuver
+    // immediately AFTER `upcoming` is within 80m, fold both into a
+    // single "turn X then quickly Y" cue and pre-latch the follow-up
+    // so its own 50m / 10m / nextTurnInAbout cues stay silent — the
+    // rider already heard about it.
     if (
       upcoming &&
       upcomingDistance !== undefined &&
@@ -168,8 +194,25 @@ export function tickCueEngine(
       upcomingDistance > APPROACH_10_M &&
       !announced50m.has(upcoming.id)
     ) {
-      events.push({ kind: "turn50m", turnKind: upcoming.kind });
-      announced50m.add(upcoming.id);
+      const upcomingIdx = snapshot.maneuvers.findIndex((m) => m.id === upcoming.id);
+      const followUp = snapshot.maneuvers[upcomingIdx + 1];
+      const gapToFollowUp = followUp
+        ? followUp.distanceFromStartM - upcoming.distanceFromStartM
+        : Number.POSITIVE_INFINITY;
+      if (followUp && gapToFollowUp <= BACK_TO_BACK_THRESHOLD_M) {
+        events.push({
+          kind: "turn50m",
+          turnKind: upcoming.kind,
+          followUpKind: followUp.kind,
+        });
+        announced50m.add(upcoming.id);
+        announced50m.add(followUp.id);
+        announced10m.add(followUp.id);
+        announcedNextTurnAfter.add(upcoming.id);
+      } else {
+        events.push({ kind: "turn50m", turnKind: upcoming.kind });
+        announced50m.add(upcoming.id);
+      }
     }
 
     // Cue 3: 10m approach (latched per maneuver id).
@@ -258,9 +301,17 @@ export type CueMessage = { key: string; values: MessageValues };
  */
 export function cueMessage(event: CueEvent, distanceMode: DistanceMode = "metric"): CueMessage {
   switch (event.kind) {
-    case "routeStarted":
-      return { key: "cue.routeStarted", values: {} };
     case "turn50m":
+      if (event.followUpKind) {
+        return {
+          key: "cue.turn50mCombined",
+          values: {
+            ...distanceCueValues(50, distanceMode),
+            first: event.turnKind,
+            second: event.followUpKind,
+          },
+        };
+      }
       return {
         key: `cue.turn50m.${event.turnKind}`,
         values: distanceCueValues(50, distanceMode),

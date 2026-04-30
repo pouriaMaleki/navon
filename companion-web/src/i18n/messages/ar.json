@@ -45,7 +45,7 @@
   "home.noSuggestions": "لا توجد اقتراحات بعد…",
   "home.openSettings": "الإعدادات",
   "home.platformHint.locationDefault": "سيُطلب منك إذن الموقع. اسمح بذلك حتى تستمر الإرشادات في تتبّع موقعك أثناء بقاء التطبيق في الخلفية.",
-  "home.platformHint.locationSafariIos": "لا يوفّر Safari على iPhone تحديد GPS في الخلفية بشكل حقيقي. أبقِ علامة التبويب مفتوحة والشاشة قيد التشغيل حتى تستمر تحديثات الموقع أثناء ركوبك.",
+  "home.platformHint.locationSafariIos": "لا يستطيع Safari على iPhone تقديم GPS في الخلفية أو إرشادات على شاشة القفل أو تنبيهات صوتية أثناء إخفاء علامة التبويب. للتوجيه الفعلي في الخلفية، ثبّت تطبيق iOS الأصلي.",
   "home.recenter": "أعد التمركز",
   "home.resolvingLink": "جارٍ حلّ الرابط…",
   "home.resolvingLinkSubtitle": "متابعة الرابط إلى وجهة. قد يستغرق ذلك بضع ثوانٍ.",

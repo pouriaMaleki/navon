@@ -45,7 +45,7 @@
   "home.noSuggestions": "Aún no hay sugerencias…",
   "home.openSettings": "Configuración",
   "home.platformHint.locationDefault": "Se te pedirá permiso de ubicación. Permítelo para que la guía siga rastreando tu posición mientras la app está en segundo plano.",
-  "home.platformHint.locationSafariIos": "Safari en iPhone no entrega GPS real en segundo plano. Mantén la pestaña activa y la pantalla encendida para que las actualizaciones de ubicación continúen mientras pedaleas.",
+  "home.platformHint.locationSafariIos": "Safari en iPhone no puede ofrecer GPS en segundo plano, indicaciones en la pantalla de bloqueo ni avisos de audio mientras la pestaña está oculta. Para una navegación real en segundo plano, instala la app nativa de iOS.",
   "home.recenter": "Centrar",
   "home.resolvingLink": "Resolviendo enlace…",
   "home.resolvingLinkSubtitle": "Siguiendo el enlace a un destino. Esto puede tardar un par de segundos.",
