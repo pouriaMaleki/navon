@@ -8,8 +8,10 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
     final class SpeechSpy: SpeechPort {
         private(set) var spoken: [String] = []
         private(set) var lang: String = "en"
+        var voiceAvailable: Bool = true
         func speak(_ text: String) { spoken.append(text) }
         func setLanguage(_ bcp47: String) { lang = bcp47 }
+        func hasVoice(forLocale locale: String) -> Bool { voiceAvailable }
         func shutdown() {}
     }
 
@@ -118,6 +120,41 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
             CompanionSettings.defaults.audioCuesOnlyInBackground,
             "spec line 144: enabled by default"
         )
+    }
+
+    // No-voice fallback (spec: macOS Firefox + Persian → no installed
+    // Persian voice → speak English audio so cues are intelligible
+    // instead of being letter-by-letter spelled by the default voice).
+
+    func test_speaksEnglishWhenActiveLocaleHasNoVoice() {
+        let (coordinator, speech, _) = makeCoordinator()
+        speech.voiceAvailable = false
+        var s = defaultSettings(allowBackgroundGps: true, audioCuesEnabled: true)
+        s.language = .fa
+        s.audioCuesOnlyInBackground = false
+        coordinator.onSettingsOrRoutingChange(
+            settings: s, isRouting: true, pairedWithDevice: false,
+            liveActivityContent: nil
+        )
+        XCTAssertEqual(speech.lang, "en", "TTS should fall back to English when no Persian voice is installed")
+        coordinator.onGuidanceTick(snapshot: snapshot(), settings: s, isRouting: true)
+        XCTAssertTrue(
+            speech.spoken.contains("Route started"),
+            "cue text should be rendered in English to match the EN voice; got \(speech.spoken)"
+        )
+    }
+
+    func test_speaksActiveLocaleWhenVoiceIsAvailable() {
+        let (coordinator, speech, _) = makeCoordinator()
+        speech.voiceAvailable = true
+        var s = defaultSettings(allowBackgroundGps: true, audioCuesEnabled: true)
+        s.language = .fa
+        s.audioCuesOnlyInBackground = false
+        coordinator.onSettingsOrRoutingChange(
+            settings: s, isRouting: true, pairedWithDevice: false,
+            liveActivityContent: nil
+        )
+        XCTAssertEqual(speech.lang, "fa", "TTS should use the active locale when a voice is installed")
     }
 
     func test_liveActivity_startsAndEndsOnRoutingTransitions() {

@@ -7,6 +7,12 @@ import os.log
 protocol SpeechPort: AnyObject {
     func speak(_ text: String)
     func setLanguage(_ bcp47: String)
+    /// True when the OS has at least one TTS voice installed for `locale`'s
+    /// primary language tag (e.g. `fa` matches "fa-IR"). Used by the cue
+    /// dispatcher to fall back to English audio when the rider's language
+    /// isn't installed — otherwise the OS spells Persian/Arabic glyphs
+    /// letter-by-letter via the default English voice.
+    func hasVoice(forLocale locale: String) -> Bool
     func shutdown()
 }
 
@@ -71,6 +77,25 @@ final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
     func setLanguage(_ bcp47: String) {
         Self.log.info("setLanguage(\(bcp47, privacy: .public))")
         activeLanguage = bcp47
+    }
+
+    func hasVoice(forLocale locale: String) -> Bool {
+        Self.hasVoice(forLocale: locale)
+    }
+
+    /// Static seam used by the Settings picker — we don't want the SwiftUI
+    /// view to reach into the routing coordinator just to query voice
+    /// availability.
+    static func hasVoice(forLocale locale: String) -> Bool {
+        let primary = locale
+            .split(separator: "-").first
+            .map(String.init)?.lowercased() ?? locale.lowercased()
+        return AVSpeechSynthesisVoice.speechVoices().contains { voice in
+            let voicePrimary = voice.language
+                .split(separator: "-").first
+                .map(String.init)?.lowercased() ?? voice.language.lowercased()
+            return voicePrimary == primary
+        }
     }
 
     func speak(_ text: String) {

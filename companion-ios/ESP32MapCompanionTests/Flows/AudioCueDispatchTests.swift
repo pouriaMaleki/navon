@@ -16,8 +16,10 @@ final class AudioCueDispatchTests: XCTestCase {
     final class SpeechSpy: SpeechPort {
         private(set) var spoken: [String] = []
         private(set) var lang: String = "en"
+        var voiceAvailable: Bool = true
         func speak(_ text: String) { spoken.append(text) }
         func setLanguage(_ bcp47: String) { lang = bcp47 }
+        func hasVoice(forLocale locale: String) -> Bool { voiceAvailable }
         func shutdown() {}
     }
 

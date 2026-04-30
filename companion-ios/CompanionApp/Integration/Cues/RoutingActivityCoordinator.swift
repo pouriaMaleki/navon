@@ -41,6 +41,12 @@ final class RoutingActivityCoordinator {
         self.liveActivity = liveActivity
     }
 
+    /// BCP-47 tag the speech engine is currently configured to speak. Equal
+    /// to `T.activeBcp47` when the OS has a voice for that locale; falls
+    /// back to "en" otherwise so cues are intelligible instead of being
+    /// spelled letter-by-letter.
+    private var ttsBcp47: String = "en"
+
     func onSettingsOrRoutingChange(
         settings: CompanionSettings,
         isRouting: Bool,
@@ -49,10 +55,15 @@ final class RoutingActivityCoordinator {
     ) {
         // Push the user's language preference to the i18n runtime + TTS so
         // the next `T.string(...)` call and the next `speech.speak(...)`
-        // both render in the chosen locale.
+        // both render in the chosen locale. If the OS has no voice for the
+        // active locale, fall back to English audio (`speech.speak(..)`
+        // uses the EN voice + cues are rendered via `T.stringIn(.en, ...)`)
+        // — otherwise iOS spells Persian/Arabic glyphs phonetically via
+        // the default English voice.
         let locale = T.resolveLocale(settings.language)
         T.setActiveLocale(locale)
-        speech.setLanguage(locale.rawValue)
+        ttsBcp47 = speech.hasVoice(forLocale: locale.rawValue) ? locale.rawValue : "en"
+        speech.setLanguage(ttsBcp47)
 
         idleTimer.update(settings.keepScreenOn && isRouting)
         if !isRouting { cueState = CueEngineState() }
@@ -85,9 +96,15 @@ final class RoutingActivityCoordinator {
                 Self.log.info("CueEngine emitted \(result.events.count) event(s) on this tick")
             }
             let distanceMode = T.resolveDistanceUnit(settings.distanceUnit)
+            // If the active locale has no installed voice, render the cue
+            // text in English so it lines up with the EN voice the speech
+            // engine was switched to in `onSettingsOrRoutingChange`.
+            let renderInFallback = ttsBcp47 != T.activeBcp47
             for event in result.events {
                 let msg = CueEngine.cueMessage(event, distanceMode: distanceMode)
-                let phrase = T.string(msg.key, msg.values)
+                let phrase = renderInFallback
+                    ? T.stringIn(.en, msg.key, msg.values)
+                    : T.string(msg.key, msg.values)
                 Self.log.info("→ speak \"\(phrase, privacy: .public)\"")
                 speech.speak(phrase)
             }

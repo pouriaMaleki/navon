@@ -29,8 +29,10 @@ class RoutingActivityCoordinatorBackgroundGateTest {
     private class FakeTts : TtsPort {
         val spoken = mutableListOf<String>()
         var lang: String = "en"
+        var voiceAvailable: Boolean = true
         override fun speak(text: String) { spoken += text }
         override fun setLanguage(bcp47: String) { lang = bcp47 }
+        override fun hasVoice(forLocale: String): Boolean = voiceAvailable
         override fun shutdown() {}
     }
 
@@ -114,5 +116,72 @@ class RoutingActivityCoordinatorBackgroundGateTest {
             isAppInBackground = false,
         )
         assertTrue("expected at least 'Route started' cue", tts.spoken.contains("Route started"))
+    }
+
+    // No-voice fallback. When the OS has no installed TTS voice for the
+    // active locale, the cue dispatcher should:
+    //   - configure the speech engine with `lang="en"` (so the EN voice
+    //     is selected instead of the default voice spelling foreign
+    //     glyphs phonetically), AND
+    //   - render the cue text in English so it lines up with the voice.
+
+    @Test
+    fun speaksEnglishWhenActiveLocaleHasNoVoice() {
+        val (coordinator, tts) = makeCoordinator()
+        tts.voiceAvailable = false
+        val settings = CompanionSettings(
+            allowBackgroundGps = true,
+            audioCuesEnabled = true,
+            audioCuesOnlyInBackground = false,
+            language = me.fiksu.esp32map.companion.integration.i18n.AppLanguagePref.FA,
+        )
+        coordinator.onSettingsOrRoutingChange(
+            context = ApplicationProvider.getApplicationContext<Context>(),
+            settings = settings,
+            isRouting = true,
+            pairedWithDevice = false,
+            title = "",
+            body = "",
+        )
+        assertEquals(
+            "TTS should fall back to English when no Persian voice is installed",
+            "en",
+            tts.lang,
+        )
+        coordinator.onGuidanceTick(
+            snapshot = snapshot(),
+            settings = settings,
+            isRouting = true,
+            isAppInBackground = false,
+        )
+        assertTrue(
+            "cue text should be rendered in English to match the EN voice; got ${tts.spoken}",
+            tts.spoken.contains("Route started"),
+        )
+    }
+
+    @Test
+    fun speaksActiveLocaleWhenVoiceIsAvailable() {
+        val (coordinator, tts) = makeCoordinator()
+        tts.voiceAvailable = true
+        val settings = CompanionSettings(
+            allowBackgroundGps = true,
+            audioCuesEnabled = true,
+            audioCuesOnlyInBackground = false,
+            language = me.fiksu.esp32map.companion.integration.i18n.AppLanguagePref.FA,
+        )
+        coordinator.onSettingsOrRoutingChange(
+            context = ApplicationProvider.getApplicationContext<Context>(),
+            settings = settings,
+            isRouting = true,
+            pairedWithDevice = false,
+            title = "",
+            body = "",
+        )
+        assertEquals(
+            "TTS should use the active locale when a voice is installed",
+            "fa",
+            tts.lang,
+        )
     }
 }

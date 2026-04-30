@@ -26,6 +26,11 @@ class RoutingActivityCoordinator(
 ) {
     private var cueState: CueEngineState = CueEngineState()
     private var foregroundServiceRunning = false
+    /** BCP-47 tag the speech engine is currently configured with. Equals
+     *  the active locale's tag when Android has a voice for it, otherwise
+     *  "en" — the rider gets intelligible English audio instead of the
+     *  default voice spelling foreign glyphs letter-by-letter. */
+    private var ttsBcp47: String = "en"
 
     fun onSettingsOrRoutingChange(
         context: Context,
@@ -37,10 +42,13 @@ class RoutingActivityCoordinator(
     ) {
         // Push the user's language preference to the i18n runtime + TTS so
         // subsequent `Strings.t(...)` calls and the next utterance render
-        // in the chosen locale.
+        // in the chosen locale. If Android has no voice for that locale,
+        // fall back to English audio so cues are intelligible — the UI
+        // still renders in the chosen language.
         val locale = Strings.resolveLocale(settings.language)
         Strings.setActiveLocale(locale)
-        tts.setLanguage(locale.tag)
+        ttsBcp47 = if (tts.hasVoice(locale.tag)) locale.tag else "en"
+        tts.setLanguage(ttsBcp47)
 
         keepScreenOn.update(settings.keepScreenOn && isRouting)
 
@@ -77,9 +85,22 @@ class RoutingActivityCoordinator(
         val result = CueEngine.tick(snapshot, cueState)
         cueState = result.nextState
         val distanceMode = Strings.resolveDistanceUnit(settings.distanceUnit)
+        // If we fell back to English audio because the active locale has
+        // no installed voice, render the cue text in English too so it
+        // matches what the speech engine is actually pronouncing.
+        val renderInFallback = ttsBcp47 != Strings.activeLocale.tag
         for (event in result.events) {
             val msg = CueEngine.cueMessage(event, distanceMode)
-            tts.speak(Strings.t(msg.key, msg.values))
+            val phrase = if (renderInFallback) {
+                Strings.tIn(
+                    me.fiksu.esp32map.companion.integration.i18n.SupportedLocale.EN,
+                    msg.key,
+                    msg.values,
+                )
+            } else {
+                Strings.t(msg.key, msg.values)
+            }
+            tts.speak(phrase)
         }
     }
 }

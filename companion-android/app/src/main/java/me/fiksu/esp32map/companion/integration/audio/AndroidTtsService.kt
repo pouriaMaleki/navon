@@ -13,6 +13,12 @@ import java.util.Locale
 interface TtsPort {
     fun speak(text: String)
     fun setLanguage(bcp47: String)
+    /** True when Android has at least one TTS voice installed for the
+     *  primary language tag of `locale`. Used by the cue dispatcher to
+     *  fall back to English audio when the rider's language isn't
+     *  installed. Returns `true` while the engine is still initialising
+     *  (no false alarms during the first second of app launch). */
+    fun hasVoice(forLocale: String): Boolean
     fun shutdown()
 }
 
@@ -45,6 +51,20 @@ class AndroidTtsService(context: Context) : TtsPort {
         if (ready) {
             tts?.language = locale
         }
+    }
+
+    /** Returns `true` while the engine is still initialising (engine is
+     *  null) so the UI doesn't false-alarm during the first second of
+     *  app launch. After init, queries [TextToSpeech.isLanguageAvailable]
+     *  and returns true for `LANG_AVAILABLE` (0) and the more-specific
+     *  `LANG_COUNTRY_AVAILABLE` (1) / `LANG_COUNTRY_VAR_AVAILABLE` (2)
+     *  results. Treats `LANG_MISSING_DATA` (-1) and `LANG_NOT_SUPPORTED`
+     *  (-2) as "no voice". */
+    override fun hasVoice(forLocale: String): Boolean {
+        val engine = tts ?: return true
+        if (!ready) return true
+        val locale = Locale.forLanguageTag(forLocale)
+        return engine.isLanguageAvailable(locale) >= TextToSpeech.LANG_AVAILABLE
     }
 
     override fun shutdown() {

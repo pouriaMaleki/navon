@@ -5,7 +5,9 @@ import {
   resolveLocale,
   setActiveLocale,
   t,
+  tIn,
 } from "../../i18n/index.js";
+import { hasVoiceForLocale } from "../audio/voiceAvailability.js";
 import type { WebTtsService } from "../audio/WebTtsService.js";
 import type { LiveNotificationService } from "../notifications/LiveNotificationService.js";
 import type { WakeLockService } from "../screen/WakeLockService.js";
@@ -84,7 +86,14 @@ export function startRoutingActivityCoordinator(
     // back to navigator.languages when preference is "system".
     const locale = resolveLocale(settings.language);
     setActiveLocale(locale);
-    services.tts.setLang(locale);
+    // Audio fallback: if the OS has no TTS voice for the active locale
+    // (e.g. macOS Firefox + Persian), the synthesizer would otherwise
+    // spell glyphs letter-by-letter via the default English voice.
+    // Speak the EN-rendered cue under `lang=en` instead — at least the
+    // rider gets intelligible turn directions while the UI stays in
+    // their chosen language.
+    const ttsLocale = hasVoiceForLocale(locale) ? locale : "en";
+    services.tts.setLang(ttsLocale);
     const distanceMode = resolveDistanceUnit(settings.distanceUnit, locale);
 
     void services.wakeLock.update({
@@ -113,7 +122,13 @@ export function startRoutingActivityCoordinator(
       cueState = result.nextState;
       for (const event of result.events) {
         const msg = cueMessage(event, distanceMode);
-        services.tts.speak(t(msg.key, msg.values));
+        // Render the spoken text in whatever locale matches the picked
+        // TTS voice — `tIn("en", ...)` when we fell back to English so
+        // the voice and the text agree, otherwise the active locale.
+        const text = ttsLocale === locale
+          ? t(msg.key, msg.values)
+          : tIn(ttsLocale, msg.key, msg.values);
+        services.tts.speak(text);
       }
     } else if (!isRouting) {
       cueState = initialCueEngineState();
