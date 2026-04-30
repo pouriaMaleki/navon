@@ -537,8 +537,17 @@ fn run_sync(args: &[String], root: &Path) -> Result<(), String> {
         return Ok(());
     }
 
+    // Auto-load `.env` at the workspace root so users don't have to remember
+    // `set -a; source .env; set +a` every session. Existing env vars take
+    // precedence so an explicit shell export still wins.
+    load_dotenv(root);
     let api_key = std::env::var("OPENAI_API_KEY")
-        .map_err(|_| "OPENAI_API_KEY env var is required for `i18n-sync`".to_owned())?;
+        .map_err(|_| {
+            "OPENAI_API_KEY env var is required for `i18n-sync`. \
+             Either `export OPENAI_API_KEY=...` or copy `.env.example` to \
+             `.env` at the workspace root and fill in your key."
+                .to_owned()
+        })?;
 
     let chunks: Vec<Vec<String>> = to_translate
         .chunks(config.openai.max_keys_per_request)
@@ -743,6 +752,49 @@ fn extract_placeholder_names(input: &str) -> Vec<String> {
 // -----------------------------------------------------------------------------
 // loading / saving
 // -----------------------------------------------------------------------------
+
+/// Tolerant `.env` loader. Reads `<root>/.env` line-by-line and sets each
+/// `KEY=value` pair via `std::env::set_var`, but only if the variable is
+/// not already present in the environment — so an explicit shell export
+/// always wins over the file. Silently no-ops when the file is absent;
+/// the goal is convenience, not enforcement.
+///
+/// Supports a deliberately tiny dialect: ignores blank lines and
+/// comments (`#`), strips matching surrounding single or double quotes
+/// from the value, and tolerates `export KEY=value` for users coming
+/// from shell-style files. Anything fancier (multi-line values, variable
+/// interpolation) is intentionally not supported.
+fn load_dotenv(root: &Path) {
+    let path = root.join(".env");
+    let Ok(text) = fs::read_to_string(&path) else {
+        return;
+    };
+    for raw in text.lines() {
+        let line = raw.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let line = line.strip_prefix("export ").unwrap_or(line);
+        let Some((key, value)) = line.split_once('=') else {
+            continue;
+        };
+        let key = key.trim();
+        let mut value = value.trim();
+        if (value.starts_with('"') && value.ends_with('"') && value.len() >= 2)
+            || (value.starts_with('\'') && value.ends_with('\'') && value.len() >= 2)
+        {
+            value = &value[1..value.len() - 1];
+        }
+        if std::env::var_os(key).is_none() {
+            // Safe in this CLI: we run before any threads spawn (ureq's
+            // blocking client uses the calling thread), so the
+            // historically-unsafe-for-multithreaded `set_var` is benign
+            // here. If we ever switch to async/tokio, move this to a
+            // proper crate.
+            unsafe { std::env::set_var(key, value) };
+        }
+    }
+}
 
 fn load_config(root: &Path) -> Result<CatalogConfig, String> {
     let path = root.join(CATALOG_CONFIG);
