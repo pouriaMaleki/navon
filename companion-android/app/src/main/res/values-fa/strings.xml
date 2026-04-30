@@ -3,6 +3,7 @@
     <string name="common_cancel" formatted="false">لغو</string>
     <string name="common_cancel_role" formatted="false">لغو</string>
     <string name="common_close" formatted="false">بستن</string>
+    <string name="common_dismiss" formatted="false">رد کردن</string>
     <string name="common_forget" formatted="false">فراموش کن</string>
     <string name="common_ok" formatted="false">باشه</string>
     <string name="cue_arrived" formatted="false">به مقصد رسیدید</string>
@@ -32,13 +33,27 @@
     <string name="cue_turn50m_right" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، به راست بپیچید</string>
     <string name="cue_turn50m_uturn" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، یک دور U بزنید</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} تا {destination}</string>
+    <string name="home_a11y_clearDestination" formatted="false">پاک کردن مقصد</string>
+    <string name="home_a11y_currentSpeed" formatted="false">سرعت فعلی</string>
+    <string name="home_a11y_findAlternates" formatted="false">یافتن مسیرهای جایگزین</string>
+    <string name="home_a11y_locating" formatted="false">موقعیت شما را پیدا می‌کنم</string>
+    <string name="home_a11y_locationBlocked" formatted="false">موقعیت مسدود است</string>
+    <string name="home_a11y_recenterMap" formatted="false">بازمرکز کردن نقشه</string>
+    <string name="home_a11y_settings" formatted="false">تنظیمات</string>
     <string name="home_importedRoute" formatted="false">مسیر واردشده</string>
+    <string name="home_iosLocationHint" formatted="false">برای تغییر این برنامه به «همیشه»، تنظیمات iOS را باز کنید: Privacy → Location.</string>
+    <string name="home_linkFailed" formatted="false">باز کردن این لینک ممکن نشد</string>
     <string name="home_noSuggestions" formatted="false">هنوز پیشنهادی وجود ندارد…</string>
     <string name="home_openSettings" formatted="false">تنظیمات</string>
     <string name="home_platformHint_locationDefault" formatted="false">اجازهٔ موقعیت مکانی از شما خواسته می‌شود. آن را مجاز کنید تا راهنمایی هنگام پس‌زمینه بودن برنامه، همچنان موقعیت شما را دنبال کند.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">سافاری روی آیفون GPS واقعیِ پس‌زمینه را ارسال نمی‌کند. تب را باز نگه دارید و صفحه روشن باشد تا به‌روزرسانی‌های موقعیت هنگام رکاب‌زنی ادامه پیدا کند.</string>
     <string name="home_recenter" formatted="false">مرکزگیری مجدد</string>
+    <string name="home_resolvingLink" formatted="false">در حال حل لینک…</string>
+    <string name="home_resolvingLinkSubtitle" formatted="false">در حال دنبال کردن لینک برای رسیدن به مقصد. ممکن است چند ثانیه طول بکشد.</string>
+    <string name="home_routeActiveOnDevice" formatted="false">مسیر روی دستگاه فعال است</string>
     <string name="home_routeOptions" formatted="false">گزینه‌های مسیر</string>
+    <string name="home_routingFinished" formatted="false">مسیر تمام شد. برای برنامه‌ریزی دوباره، یک مقصد را لمس کنید.</string>
+    <string name="home_sendingPercent" formatted="false">در حال ارسال {percent, number}%</string>
     <string name="home_start" formatted="false">شروع</string>
     <string name="home_startOnDevice" formatted="false">شروع روی دستگاه</string>
     <string name="home_startRoute" formatted="false">شروع مسیر</string>
@@ -48,9 +63,29 @@
     <string name="home_suggestedRoutes" formatted="false">مسیرهای پیشنهادی</string>
     <string name="home_whereTo" formatted="false">کجا بریم؟</string>
     <string name="home_workingOnRoute" formatted="false">در حال محاسبه مسیر</string>
+    <string name="importDiagnostics_copyDebugInfo" formatted="false">کپی اطلاعات دیباگ</string>
+    <string name="importDiagnostics_retry" formatted="false">تلاش دوباره برای وارد کردن</string>
+    <string name="importDiagnostics_sharePackage" formatted="false">اشتراک‌گذاری بسته دیباگ</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">تشخیص وارد کردن Companion</string>
+    <string name="pairing_alignQr" formatted="false">کد QR را داخل کادر هم‌راستا کنید</string>
+    <string name="pairing_cameraDenied" formatted="false">برای اسکن کد جفت‌سازی، دسترسی به دوربین لازم است.</string>
+    <string name="pairing_cancel" formatted="false">لغو</string>
+    <string name="pairing_failed" formatted="false">جفت‌سازی انجام نشد</string>
+    <string name="pairing_intro" formatted="false">گوشی‌تان را طوری نگه دارید که صفحه‌نمایش دستگاه داخل کادر باشد، سپس وقتی کد QR را دیدید روی Start بزنید.</string>
+    <string name="pairing_openSettings" formatted="false">باز کردن تنظیمات</string>
+    <string name="pairing_paired" formatted="false">جفت شد</string>
+    <string name="pairing_scanInstruction" formatted="false">کد QR را در مرکز کادر قرار دهید و ثابت نگه دارید.</string>
+    <string name="pairing_start" formatted="false">شروع</string>
+    <string name="pairing_title" formatted="false">یک دستگاه را جفت کنید</string>
     <string name="planning_cyclingAlternatives" formatted="false">گزینه‌های مسیر دوچرخه‌سواری از طریق BRouter + OSRM</string>
     <string name="planning_cyclingAlternativesWithFailures" formatted="false">گزینه‌های مسیر دوچرخه‌سواری — {failedCount, number} {failedCount, select, one {source} other {sources}} در دسترس نیست</string>
     <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">مسیرهای ترکیبی از HSL و OSM</string>
+    <string name="routeDetail_geometryPoints" formatted="false">نقاط هندسی: {count, number}</string>
+    <string name="routeDetail_maneuverCount" formatted="false">مانورها: {count, number}</string>
+    <string name="routeDetail_open" formatted="false">باز کردن</string>
+    <string name="routeDetail_section_actions" formatted="false">اقدامات</string>
+    <string name="routeDetail_section_route" formatted="false">مسیر</string>
+    <string name="routeDetail_title" formatted="false">مسیر</string>
     <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">لازم برای نشانه‌های صوتی و فعالیت زنده</string>
     <string name="settings_activity_allowBackgroundGps_title" formatted="false">اجازه GPS در پس‌زمینه</string>
     <string name="settings_activity_audioCues_subtitle" formatted="false">راهنمایی‌های صوتی مرحله‌به‌مرحله در حین مسیریابی</string>
@@ -63,6 +98,16 @@
     <string name="settings_activity_liveActivity_title" formatted="false">فعالیت زنده صفحه‌قفل</string>
     <string name="settings_activity_title" formatted="false">تنظیمات فعالیت</string>
     <string name="settings_device_connect" formatted="false">اتصال</string>
+    <string name="settings_device_connection_lastDevice" formatted="false">آخرین دستگاه: {name}</string>
+    <string name="settings_device_connection_section" formatted="false">اتصال</string>
+    <string name="settings_device_connection_state" formatted="false">وضعیت: {state}</string>
+    <string name="settings_device_connection_status" formatted="false">وضعیت: {status}</string>
+    <string name="settings_device_connection_sync" formatted="false">همگام‌سازی: {state}</string>
+    <string name="settings_device_diagnostics_armDisconnect" formatted="false">قطع اتصال بعد از نوشتنِ بخش بعدی</string>
+    <string name="settings_device_diagnostics_armDropStatus" formatted="false">حذف وضعیتِ دریافتیِ بعدی</string>
+    <string name="settings_device_diagnostics_armRetryable" formatted="false">قطعِ قابل‌تلاشِ بعدی را فعال کن</string>
+    <string name="settings_device_diagnostics_armWriteFailure" formatted="false">خطای نوشتنِ بعدی را فعال کن</string>
+    <string name="settings_device_diagnostics_section" formatted="false">عیب‌یابی</string>
     <string name="settings_device_disconnect" formatted="false">قطع اتصال</string>
     <string name="settings_device_forget" formatted="false">فراموش کردن دستگاه جفت‌شده</string>
     <string name="settings_device_forget_confirmMessage" formatted="false">برای استفاده دوباره باید کد جفت‌سازی را اسکن کنید. تاریخچه مسیر شما باقی می‌ماند.</string>
@@ -72,6 +117,12 @@
     <string name="settings_device_pairedDevice_section" formatted="false">دستگاه جفت‌شده</string>
     <string name="settings_device_reconnecting" formatted="false">در حال اتصال مجدد…</string>
     <string name="settings_device_title" formatted="false">دستگاه</string>
+    <string name="settings_device_transfer_activeRoute" formatted="false">مسیر فعال: {id}</string>
+    <string name="settings_device_transfer_clearActive" formatted="false">پاک کردن مسیر فعال</string>
+    <string name="settings_device_transfer_lastSync" formatted="false">آخرین همگام‌سازی: {result}</string>
+    <string name="settings_device_transfer_pendingRoute" formatted="false">مسیر در انتظار: {id}</string>
+    <string name="settings_device_transfer_resume" formatted="false">ادامه انتقالِ در انتظار</string>
+    <string name="settings_device_transfer_section" formatted="false">انتقال</string>
     <string name="settings_distanceUnit_imperial" formatted="false">امپریال</string>
     <string name="settings_distanceUnit_metric" formatted="false">متریک</string>
     <string name="settings_distanceUnit_system" formatted="false">سیستم</string>
@@ -94,8 +145,19 @@
     <string name="settings_language_title" formatted="false">زبان</string>
     <string name="settings_restartRequired_message" formatted="false">برنامه را ببندید و دوباره باز کنید تا زبان جدید اعمال شود.</string>
     <string name="settings_restartRequired_title" formatted="false">نیاز به راه‌اندازی مجدد</string>
+    <string name="settings_routePlanner_cyclingSpeed" formatted="false">سرعت دوچرخه‌سواری</string>
+    <string name="settings_routePlanner_defaults_section" formatted="false">پیش‌فرض‌ها</string>
+    <string name="settings_routePlanner_hsl_description" formatted="false">HSL سازمان حمل‌ونقل منطقه هلسینکی است. Digitransit API آن‌ها مسیریابی باکیفیت برای دوچرخه در سراسر منطقه مترو هلسینکی ارائه می‌دهد. کلید رایگان است—در پورتال وارد شوید، یک اپ ثبت کنید و کلید اشتراک را در فیلد بالا کپی کنید. خارج از محدوده هلسینکی، HSL را خاموش بگذارید و برنامه‌ریز از مسیریابی OSM به‌صورت سراسری استفاده می‌کند.</string>
+    <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
+    <string name="settings_routePlanner_riding_footnote" formatted="false">سرعت دوچرخه‌سواری، ETAهای HSL را بازنویسی می‌کند (به‌صورت پیش‌فرض Digitransit سرعت دوچرخه کندتری در نظر می‌گیرد). واحد سرعت مشخص می‌کند که نشانگر سرعتِ زنده روی نقشه چگونه نمایش داده می‌شود.</string>
+    <string name="settings_routePlanner_riding_section" formatted="false">دوچرخه‌سواری</string>
     <string name="settings_routePlanner_title" formatted="false">برنامه‌ریز مسیر</string>
     <string name="settings_routes_empty" formatted="false">هنوز هیچ مسیری ذخیره نشده است</string>
+    <string name="settings_routes_import_gpx" formatted="false">وارد کردن GPX</string>
+    <string name="settings_routes_import_section" formatted="false">وارد کردن</string>
+    <string name="settings_routes_recent_empty" formatted="false">هنوز هیچ مسیر یا مقصد اخیر وجود ندارد.</string>
+    <string name="settings_routes_recent_section" formatted="false">مسیرهای اخیر</string>
+    <string name="settings_routes_routeDetailsA11y" formatted="false">جزئیات مسیر</string>
     <string name="settings_routes_title" formatted="false">مسیرها</string>
     <string name="settings_speedUnit_title" formatted="false">واحد سرعت</string>
     <string name="settings_voiceNotInstalled" formatted="false">صدا برای {language} نصب نشده است. تنظیمات سیستم را باز کنید تا آن را نصب کنید.</string>

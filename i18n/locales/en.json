@@ -1,69 +1,98 @@
 {
   "locale": "en",
   "entries": {
+    "common.cancel": {
+      "value": "Cancel",
+      "description": "Generic cancel-action button label.",
+      "placeholders": {}
+    },
+    "common.cancel.role": {
+      "value": "Cancel",
+      "description": "Cancel button used in destructive-action confirmation alerts.",
+      "placeholders": {}
+    },
+    "common.close": {
+      "value": "Close",
+      "description": "Generic close-dialog button label.",
+      "placeholders": {}
+    },
+    "common.dismiss": {
+      "value": "Dismiss",
+      "description": "Generic destructive 'Dismiss' button label."
+    },
+    "common.forget": {
+      "value": "Forget",
+      "description": "Destructive confirm-action button label paired with a 'Forget …?' alert.",
+      "placeholders": {}
+    },
+    "common.ok": {
+      "value": "OK",
+      "description": "Generic confirm-acknowledgement button label.",
+      "placeholders": {}
+    },
+    "cue.arrived": {
+      "value": "You have arrived at your destination",
+      "description": "Voice cue spoken on arrival at the destination.",
+      "placeholders": {}
+    },
+    "cue.arrivingInM": {
+      "value": "Arriving at your destination in {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue announcing imminent arrival at the destination.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.nextTurnInAbout.generic": {
+      "value": "Next turn ahead in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue announcing a generic upcoming maneuver.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.nextTurnInAbout.left": {
+      "value": "Next turn left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue announcing the upcoming left turn distance ahead.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.nextTurnInAbout.right": {
+      "value": "Next turn right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue announcing the upcoming right turn distance ahead.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.nextTurnInAbout.uturn": {
+      "value": "Next turn u-turn in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue announcing an upcoming U-turn.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.offTrack": {
+      "value": "Off track",
+      "description": "Voice cue when the rider strays from the route.",
+      "placeholders": {}
+    },
+    "cue.onTrack": {
+      "value": "On track",
+      "description": "Voice cue confirming the rider has returned to the route.",
+      "placeholders": {}
+    },
+    "cue.rerouting": {
+      "value": "Rerouting",
+      "description": "Voice cue while the app calculates a new route after going off track.",
+      "placeholders": {}
+    },
     "cue.routeStarted": {
       "value": "Route started",
       "description": "Voice cue spoken once when the rider begins following a route.",
-      "placeholders": {}
-    },
-    "cue.turn50m.left": {
-      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn left",
-      "description": "Voice cue ~50m before a left turn. {distance} is the rounded distance to the maneuver.",
-      "placeholders": { "distance": "number", "distanceUnit": "select" }
-    },
-    "cue.turn50m.right": {
-      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn right",
-      "description": "Voice cue ~50m before a right turn.",
-      "placeholders": { "distance": "number", "distanceUnit": "select" }
-    },
-    "cue.turn50m.keepLeft": {
-      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, keep left",
-      "description": "Voice cue ~50m before a keep-left maneuver at a bifurcation.",
-      "placeholders": { "distance": "number", "distanceUnit": "select" }
-    },
-    "cue.turn50m.keepRight": {
-      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, keep right",
-      "description": "Voice cue ~50m before a keep-right maneuver at a bifurcation.",
-      "placeholders": { "distance": "number", "distanceUnit": "select" }
-    },
-    "cue.turn50m.exitLeft": {
-      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the left exit",
-      "description": "Voice cue ~50m before a left exit ramp / off-ramp.",
-      "placeholders": { "distance": "number", "distanceUnit": "select" }
-    },
-    "cue.turn50m.exitRight": {
-      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the right exit",
-      "description": "Voice cue ~50m before a right exit ramp / off-ramp.",
-      "placeholders": { "distance": "number", "distanceUnit": "select" }
-    },
-    "cue.turn50m.uturn": {
-      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, make a U-turn",
-      "description": "Voice cue ~50m before a U-turn maneuver.",
-      "placeholders": { "distance": "number", "distanceUnit": "select" }
-    },
-    "cue.turn50m.generic": {
-      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, follow the route",
-      "description": "Voice cue ~50m before a generic maneuver that doesn't fit the directional categories.",
-      "placeholders": { "distance": "number", "distanceUnit": "select" }
-    },
-    "cue.turn10m.left": {
-      "value": "Turn left",
-      "description": "Imperative voice cue at the moment of a left turn (within ~10m).",
-      "placeholders": {}
-    },
-    "cue.turn10m.right": {
-      "value": "Turn right",
-      "description": "Imperative voice cue at the moment of a right turn.",
-      "placeholders": {}
-    },
-    "cue.turn10m.keepLeft": {
-      "value": "Keep left",
-      "description": "Imperative voice cue at a keep-left bifurcation.",
-      "placeholders": {}
-    },
-    "cue.turn10m.keepRight": {
-      "value": "Keep right",
-      "description": "Imperative voice cue at a keep-right bifurcation.",
       "placeholders": {}
     },
     "cue.turn10m.exitLeft": {
@@ -76,359 +105,158 @@
       "description": "Imperative voice cue at a right exit.",
       "placeholders": {}
     },
-    "cue.turn10m.uturn": {
-      "value": "Make a U-turn",
-      "description": "Imperative voice cue at a U-turn maneuver.",
-      "placeholders": {}
-    },
     "cue.turn10m.generic": {
       "value": "Follow the route",
       "description": "Imperative voice cue for a generic maneuver.",
       "placeholders": {}
     },
-    "cue.nextTurnInAbout.left": {
-      "value": "Next turn left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-      "description": "Voice cue announcing the upcoming left turn distance ahead.",
-      "placeholders": { "distance": "number", "distanceUnit": "select" }
-    },
-    "cue.nextTurnInAbout.right": {
-      "value": "Next turn right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-      "description": "Voice cue announcing the upcoming right turn distance ahead.",
-      "placeholders": { "distance": "number", "distanceUnit": "select" }
-    },
-    "cue.nextTurnInAbout.uturn": {
-      "value": "Next turn u-turn in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-      "description": "Voice cue announcing an upcoming U-turn.",
-      "placeholders": { "distance": "number", "distanceUnit": "select" }
-    },
-    "cue.nextTurnInAbout.generic": {
-      "value": "Next turn ahead in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-      "description": "Voice cue announcing a generic upcoming maneuver.",
-      "placeholders": { "distance": "number", "distanceUnit": "select" }
-    },
-    "cue.arrivingInM": {
-      "value": "Arriving at your destination in {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-      "description": "Voice cue announcing imminent arrival at the destination.",
-      "placeholders": { "distance": "number", "distanceUnit": "select" }
-    },
-    "cue.arrived": {
-      "value": "You have arrived at your destination",
-      "description": "Voice cue spoken on arrival at the destination.",
+    "cue.turn10m.keepLeft": {
+      "value": "Keep left",
+      "description": "Imperative voice cue at a keep-left bifurcation.",
       "placeholders": {}
     },
-    "cue.offTrack": {
-      "value": "Off track",
-      "description": "Voice cue when the rider strays from the route.",
+    "cue.turn10m.keepRight": {
+      "value": "Keep right",
+      "description": "Imperative voice cue at a keep-right bifurcation.",
       "placeholders": {}
     },
-    "cue.rerouting": {
-      "value": "Rerouting",
-      "description": "Voice cue while the app calculates a new route after going off track.",
+    "cue.turn10m.left": {
+      "value": "Turn left",
+      "description": "Imperative voice cue at the moment of a left turn (within ~10m).",
       "placeholders": {}
     },
-    "cue.onTrack": {
-      "value": "On track",
-      "description": "Voice cue confirming the rider has returned to the route.",
+    "cue.turn10m.right": {
+      "value": "Turn right",
+      "description": "Imperative voice cue at the moment of a right turn.",
       "placeholders": {}
     },
-    "units.distance.km": {
-      "value": "{distance, number} km",
-      "description": "Distance value in kilometers, used in UI labels (not voice cues).",
-      "placeholders": { "distance": "number" }
-    },
-    "units.distance.m": {
-      "value": "{distance, number} m",
-      "description": "Distance value in meters, used in UI labels (not voice cues).",
-      "placeholders": { "distance": "number" }
-    },
-    "units.distance.mi": {
-      "value": "{distance, number} mi",
-      "description": "Distance value in miles, used in UI labels.",
-      "placeholders": { "distance": "number" }
-    },
-    "units.distance.ft": {
-      "value": "{distance, number} ft",
-      "description": "Distance value in feet, used in UI labels.",
-      "placeholders": { "distance": "number" }
-    },
-    "units.speed.kph": {
-      "value": "km/h",
-      "description": "Speed unit label: kilometers per hour.",
+    "cue.turn10m.uturn": {
+      "value": "Make a U-turn",
+      "description": "Imperative voice cue at a U-turn maneuver.",
       "placeholders": {}
     },
-    "units.speed.mph": {
-      "value": "mph",
-      "description": "Speed unit label: miles per hour.",
-      "placeholders": {}
+    "cue.turn50m.exitLeft": {
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the left exit",
+      "description": "Voice cue ~50m before a left exit ramp / off-ramp.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
     },
-    "units.duration.min": {
-      "value": "{minutes, number} min",
-      "description": "Duration label in minutes, used in UI route summaries.",
-      "placeholders": { "minutes": "number" }
+    "cue.turn50m.exitRight": {
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the right exit",
+      "description": "Voice cue ~50m before a right exit ramp / off-ramp.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.turn50m.generic": {
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, follow the route",
+      "description": "Voice cue ~50m before a generic maneuver that doesn't fit the directional categories.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.turn50m.keepLeft": {
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, keep left",
+      "description": "Voice cue ~50m before a keep-left maneuver at a bifurcation.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.turn50m.keepRight": {
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, keep right",
+      "description": "Voice cue ~50m before a keep-right maneuver at a bifurcation.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.turn50m.left": {
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn left",
+      "description": "Voice cue ~50m before a left turn. {distance} is the rounded distance to the maneuver.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.turn50m.right": {
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn right",
+      "description": "Voice cue ~50m before a right turn.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.turn50m.uturn": {
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, make a U-turn",
+      "description": "Voice cue ~50m before a U-turn maneuver.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
     },
     "guidance.distanceToDestination": {
       "value": "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} to {destination}",
       "description": "Active guidance card subtitle showing remaining distance and destination name.",
-      "placeholders": { "distance": "number", "distanceUnit": "select", "destination": "string" }
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select",
+        "destination": "string"
+      }
     },
-    "settings.hub.title": {
+    "home.a11y.clearDestination": {
+      "value": "Clear destination",
+      "description": "Accessibility label for the X button next to the search bar."
+    },
+    "home.a11y.currentSpeed": {
+      "value": "Current speed",
+      "description": "Accessibility label for the speed badge."
+    },
+    "home.a11y.findAlternates": {
+      "value": "Find alternate routes",
+      "description": "Accessibility label for the alternates / refresh-routes button."
+    },
+    "home.a11y.locating": {
+      "value": "Locating you",
+      "description": "Accessibility label shown while the GPS spinner is active."
+    },
+    "home.a11y.locationBlocked": {
+      "value": "Location is blocked",
+      "description": "Accessibility label shown when the OS denied location permission."
+    },
+    "home.a11y.recenterMap": {
+      "value": "Recenter map",
+      "description": "Accessibility label for the map recenter button."
+    },
+    "home.a11y.settings": {
       "value": "Settings",
-      "description": "Title of the Settings hub screen.",
+      "description": "Accessibility label for the Settings cog button."
+    },
+    "home.importedRoute": {
+      "value": "Imported route",
+      "description": "Header above the route alternatives card when a single route was imported from a GPX file or share-extension link.",
       "placeholders": {}
     },
-    "settings.hub.routes": {
-      "value": "Routes",
-      "description": "Settings hub row: navigates to saved-routes management.",
-      "placeholders": {}
+    "home.iosLocationHint": {
+      "value": "Open iOS Settings → Privacy → Location to switch this app to \"Always\".",
+      "description": "Hint shown under 'Allow GPS in background' on iOS when the OS authorisation is still 'When in use'."
     },
-    "settings.hub.device": {
-      "value": "Device",
-      "description": "Settings hub row: navigates to ESP32 device pairing/management.",
-      "placeholders": {}
-    },
-    "settings.device.title": {
-      "value": "Device",
-      "description": "Navigation title of the Device settings page (paired ESP32 management).",
-      "placeholders": {}
-    },
-    "settings.device.pairedDevice.section": {
-      "value": "Paired device",
-      "description": "Section header on the Device page for the paired-peripheral details.",
-      "placeholders": {}
-    },
-    "settings.device.pairNew": {
-      "value": "Pair a new device",
-      "description": "Call-to-action button when no device is paired yet.",
-      "placeholders": {}
-    },
-    "settings.device.connect": {
-      "value": "Connect",
-      "description": "Button to (re)connect to the paired device.",
-      "placeholders": {}
-    },
-    "settings.device.reconnecting": {
-      "value": "Reconnecting…",
-      "description": "Transient label on the Connect button while a connection attempt is in flight.",
-      "placeholders": {}
-    },
-    "settings.device.disconnect": {
-      "value": "Disconnect",
-      "description": "Button to disconnect from the currently-connected device.",
-      "placeholders": {}
-    },
-    "settings.device.forget": {
-      "value": "Forget paired device",
-      "description": "Destructive button that removes the paired-peripheral record so the rider can pair a different device.",
-      "placeholders": {}
-    },
-    "settings.device.forget.confirmTitle": {
-      "value": "Forget this device?",
-      "description": "Title of the confirmation alert shown when the rider taps 'Forget paired device'.",
-      "placeholders": {}
-    },
-    "settings.device.forget.confirmMessage": {
-      "value": "You'll need to scan the pairing code again to use it. Your route history stays.",
-      "description": "Body of the 'Forget this device?' confirmation alert.",
-      "placeholders": {}
-    },
-    "settings.device.lastPaired": {
-      "value": "Last paired: {date}",
-      "description": "Footnote under a paired device's name showing when it was paired. {date} is a localised short-date string.",
-      "placeholders": { "date": "string" }
-    },
-    "settings.routePlanner.title": {
-      "value": "Route Planner",
-      "description": "Navigation title of the Route Planner settings page.",
-      "placeholders": {}
-    },
-    "settings.routes.title": {
-      "value": "Routes",
-      "description": "Navigation title of the Routes settings page (route history + GPX import).",
-      "placeholders": {}
-    },
-    "settings.routes.empty": {
-      "value": "No saved routes yet",
-      "description": "Empty-state shown on the Routes page when the rider has no history.",
-      "placeholders": {}
-    },
-    "settings.importDiagnostics.title": {
-      "value": "Import Diagnostics",
-      "description": "Navigation title of the Import Diagnostics settings page (failed GPX/share-extension imports).",
-      "placeholders": {}
-    },
-    "settings.importDiagnostics.empty": {
-      "value": "No failed imports recorded",
-      "description": "Empty-state shown on the Import Diagnostics page when nothing has failed.",
-      "placeholders": {}
-    },
-    "common.cancel.role": {
-      "value": "Cancel",
-      "description": "Cancel button used in destructive-action confirmation alerts.",
-      "placeholders": {}
-    },
-    "common.forget": {
-      "value": "Forget",
-      "description": "Destructive confirm-action button label paired with a 'Forget …?' alert.",
-      "placeholders": {}
-    },
-    "settings.hub.routePlanner": {
-      "value": "Route Planner",
-      "description": "Settings hub row: navigates to route-planning preferences.",
-      "placeholders": {}
-    },
-    "settings.hub.importDiagnostics": {
-      "value": "Import Diagnostics",
-      "description": "Settings hub row: navigates to GPX import diagnostics.",
-      "placeholders": {}
-    },
-    "settings.activity.title": {
-      "value": "Activity Settings",
-      "description": "Section header for activity-related toggles on the Settings hub.",
-      "placeholders": {}
-    },
-    "settings.activity.keepScreenOn.title": {
-      "value": "Prevent screen from turning off",
-      "description": "Toggle title: keep the device screen awake while a route is active.",
-      "placeholders": {}
-    },
-    "settings.activity.keepScreenOn.subtitle": {
-      "value": "Keeps the display awake while a route is active",
-      "description": "Toggle subtitle for the keep-screen-on setting.",
-      "placeholders": {}
-    },
-    "settings.activity.allowBackgroundGps.title": {
-      "value": "Allow GPS in background",
-      "description": "Toggle title: enables background GPS, gating audio cues and live activity.",
-      "placeholders": {}
-    },
-    "settings.activity.allowBackgroundGps.subtitle": {
-      "value": "Required for audio cues and live activity",
-      "description": "Toggle subtitle for the background-GPS setting.",
-      "placeholders": {}
-    },
-    "settings.activity.audioCues.title": {
-      "value": "Audio cues",
-      "description": "Toggle title: enable spoken turn-by-turn cues during routing.",
-      "placeholders": {}
-    },
-    "settings.activity.audioCues.subtitle": {
-      "value": "Speak turn-by-turn directions during routing",
-      "description": "Toggle subtitle for the audio-cues setting.",
-      "placeholders": {}
-    },
-    "settings.activity.audioCuesOnlyInBackground.title": {
-      "value": "Audio cues only when app is in background",
-      "description": "Toggle title: when on, cues only play after the user switches away from the app or locks the screen — not while the map is visible on-screen.",
-      "placeholders": {}
-    },
-    "settings.activity.audioCuesOnlyInBackground.subtitle": {
-      "value": "When off, cues also play while you have the app open",
-      "description": "Toggle subtitle for the audio-cues-only-in-background setting.",
-      "placeholders": {}
-    },
-    "settings.activity.liveActivity.title": {
-      "value": "Lock-screen live activity",
-      "description": "Toggle title: show the next turn on the lock screen via Live Activity.",
-      "placeholders": {}
-    },
-    "settings.activity.liveActivity.subtitle": {
-      "value": "Show next turn on the lock screen",
-      "description": "Toggle subtitle for the live-activity setting.",
-      "placeholders": {}
-    },
-    "settings.language.title": {
-      "value": "Language",
-      "description": "Section header / row label for the app-language picker.",
-      "placeholders": {}
-    },
-    "settings.language.subtitle": {
-      "value": "Choose the app language",
-      "description": "Subtitle under the Language picker.",
-      "placeholders": {}
-    },
-    "settings.language.noVoiceFallback": {
-      "value": "Your device has no voice installed for {language}. Audio cues will play in English.",
-      "description": "Warning shown under the Language picker when the active locale has no matching TTS voice. {language} is the native name of the picked language. Used on web (browser), iOS, and Android — keep the wording platform-neutral.",
-      "placeholders": { "language": "string" }
-    },
-    "settings.language.system": {
-      "value": "System",
-      "description": "Language picker option meaning 'follow the device system language'.",
-      "placeholders": {}
-    },
-    "settings.language.en": {
-      "value": "English",
-      "description": "Native name of the English language, shown as a Language picker option.",
-      "placeholders": {}
-    },
-    "settings.language.fi": {
-      "value": "Suomi",
-      "description": "Native name of the Finnish language (Suomi), shown as a Language picker option. Always presented in the language's own native form, not translated.",
-      "placeholders": {}
-    },
-    "settings.distanceUnit.title": {
-      "value": "Distance units",
-      "description": "Section header / row label for the distance-unit picker.",
-      "placeholders": {}
-    },
-    "settings.distanceUnit.system": {
-      "value": "System",
-      "description": "Distance-unit picker option meaning 'follow the device system measurement system'.",
-      "placeholders": {}
-    },
-    "settings.distanceUnit.metric": {
-      "value": "Metric",
-      "description": "Distance-unit picker option: meters and kilometers.",
-      "placeholders": {}
-    },
-    "settings.distanceUnit.imperial": {
-      "value": "Imperial",
-      "description": "Distance-unit picker option: feet and miles.",
-      "placeholders": {}
-    },
-    "settings.speedUnit.title": {
-      "value": "Speed unit",
-      "description": "Section header / row label for the speed-unit picker.",
-      "placeholders": {}
-    },
-    "settings.restartRequired.title": {
-      "value": "Restart required",
-      "description": "Title of an alert shown after switching app language on iOS.",
-      "placeholders": {}
-    },
-    "settings.restartRequired.message": {
-      "value": "Quit and reopen the app to apply the new language.",
-      "description": "Body of an alert shown after switching app language on iOS.",
-      "placeholders": {}
-    },
-    "settings.voiceNotInstalled": {
-      "value": "Voice for {language} is not installed. Open system Settings to install it.",
-      "description": "Hint shown in Settings when no TTS voice is available for the active locale.",
-      "placeholders": { "language": "string" }
-    },
-    "home.whereTo": {
-      "value": "Where to?",
-      "description": "Search bar placeholder on the home screen.",
-      "placeholders": {}
-    },
-    "home.startRoute": {
-      "value": "Start route",
-      "description": "Primary button to begin riding the planned route.",
-      "placeholders": {}
-    },
-    "home.stopRoute": {
-      "value": "Stop route",
-      "description": "Button to end the active route session.",
-      "placeholders": {}
-    },
-    "home.stop": {
-      "value": "Stop",
-      "description": "Short label on the floating Stop button on the active-guidance card. Distinct from `home.stopRoute` because the floating CTA only has room for one word.",
-      "placeholders": {}
+    "home.linkFailed": {
+      "value": "Couldn't open that link",
+      "description": "Error banner shown when a shared URL can't be resolved into a destination."
     },
     "home.noSuggestions": {
       "value": "No suggestions yet…",
       "description": "Empty-state placeholder shown in the where-to dropdown when the typeahead has no results yet.",
+      "placeholders": {}
+    },
+    "home.openSettings": {
+      "value": "Settings",
+      "description": "Toolbar / button label that opens the Settings hub.",
       "placeholders": {}
     },
     "home.platformHint.locationDefault": {
@@ -441,45 +269,38 @@
       "description": "Hint shown under the 'Allow GPS in background' setting when the browser is Safari on iOS.",
       "placeholders": {}
     },
-    "settings.hub.routes.subtitle": {
-      "value": "Recent routes and GPX import",
-      "description": "Subtitle under the 'Routes' row on the Settings hub.",
-      "placeholders": {}
-    },
-    "settings.hub.routePlanner.subtitle": {
-      "value": "Default source, suggestions, HSL key",
-      "description": "Subtitle under the 'Route Planner' row on the Settings hub. HSL is a brand name and must not be translated.",
-      "placeholders": {}
-    },
-    "settings.hub.importDiagnostics.subtitle": {
-      "value": "Failed shared imports",
-      "description": "Subtitle under the 'Import Diagnostics' row on the Settings hub.",
-      "placeholders": {}
-    },
-    "planning.cyclingAlternatives": {
-      "value": "Cycling alternatives via BRouter + OSRM",
-      "description": "Notice on the route alternatives card when all OSM cycling sources succeeded. BRouter and OSRM are tool/brand names and must not be translated.",
-      "placeholders": {}
-    },
-    "planning.cyclingAlternativesWithFailures": {
-      "value": "Cycling alternatives — {failedCount, number} {failedCount, select, one {source} other {sources}} unavailable",
-      "description": "Notice on the route alternatives card when one or more OSM cycling sources timed out or errored. {failedCount} is the number of failed sources.",
-      "placeholders": { "failedCount": "number" }
-    },
     "home.recenter": {
       "value": "Recenter",
       "description": "Map button to recenter on the rider's current location.",
       "placeholders": {}
     },
-    "home.openSettings": {
-      "value": "Settings",
-      "description": "Toolbar / button label that opens the Settings hub.",
-      "placeholders": {}
+    "home.resolvingLink": {
+      "value": "Resolving link…",
+      "description": "Inline status shown while the share-extension URL is being followed."
+    },
+    "home.resolvingLinkSubtitle": {
+      "value": "Following the URL to a destination. This can take a couple of seconds.",
+      "description": "Subtitle under the 'Resolving link' status."
+    },
+    "home.routeActiveOnDevice": {
+      "value": "Route active on device",
+      "description": "Headline shown on the device-overview card when no destination label is available."
     },
     "home.routeOptions": {
       "value": "Route options",
       "description": "Header on the route suggestions card listing alternative routes.",
       "placeholders": {}
+    },
+    "home.routingFinished": {
+      "value": "Routing finished. Tap a destination to plan again.",
+      "description": "Banner shown after a route ends, prompting the rider to plan another."
+    },
+    "home.sendingPercent": {
+      "value": "Sending {percent, number}%",
+      "description": "Transfer-progress label on the device-overview card. {percent} is the integer 0..100.",
+      "placeholders": {
+        "percent": "number"
+      }
     },
     "home.start": {
       "value": "Start",
@@ -491,9 +312,24 @@
       "description": "Primary route-start button label when an ESP32 device is paired and connected — the route will be sent to the device instead of started on the phone.",
       "placeholders": {}
     },
+    "home.startRoute": {
+      "value": "Start route",
+      "description": "Primary button to begin riding the planned route.",
+      "placeholders": {}
+    },
     "home.startingOnDevice": {
       "value": "Starting on device…",
       "description": "Transient state on the start button while the route is being transferred to a paired ESP32 device.",
+      "placeholders": {}
+    },
+    "home.stop": {
+      "value": "Stop",
+      "description": "Short label on the floating Stop button on the active-guidance card. Distinct from `home.stopRoute` because the floating CTA only has room for one word.",
+      "placeholders": {}
+    },
+    "home.stopRoute": {
+      "value": "Stop route",
+      "description": "Button to end the active route session.",
       "placeholders": {}
     },
     "home.suggestedRoutes": {
@@ -501,9 +337,9 @@
       "description": "Header above the route alternatives card when the planner has computed multiple route options.",
       "placeholders": {}
     },
-    "home.importedRoute": {
-      "value": "Imported route",
-      "description": "Header above the route alternatives card when a single route was imported from a GPX file or share-extension link.",
+    "home.whereTo": {
+      "value": "Where to?",
+      "description": "Search bar placeholder on the home screen.",
       "placeholders": {}
     },
     "home.workingOnRoute": {
@@ -511,24 +347,527 @@
       "description": "Status label shown while the planner is computing the route.",
       "placeholders": {}
     },
+    "importDiagnostics.copyDebugInfo": {
+      "value": "Copy debug info",
+      "description": "Button that copies a per-entry debug bundle to the clipboard."
+    },
+    "importDiagnostics.retry": {
+      "value": "Retry import",
+      "description": "Button that retries an import that previously failed."
+    },
+    "importDiagnostics.sharePackage": {
+      "value": "Share debug package",
+      "description": "Button that shares the per-entry debug bundle."
+    },
+    "importDiagnostics.shareSubject": {
+      "value": "Companion import diagnostics",
+      "description": "Subject of the share sheet when sharing a debug package."
+    },
+    "pairing.alignQr": {
+      "value": "Align the QR code in the frame",
+      "description": "Hint label shown over the camera viewfinder."
+    },
+    "pairing.cameraDenied": {
+      "value": "Camera access is required to scan the pairing code.",
+      "description": "Hint shown when the OS has denied camera permission for pairing."
+    },
+    "pairing.cancel": {
+      "value": "Cancel",
+      "description": "Cancel button used throughout the pairing flow."
+    },
+    "pairing.failed": {
+      "value": "Pairing failed",
+      "description": "Failure label when pairing didn't complete."
+    },
+    "pairing.intro": {
+      "value": "Hold your phone so the device's screen is in frame, then tap Start when you see the QR code.",
+      "description": "Body text on the pairing intro screen."
+    },
+    "pairing.openSettings": {
+      "value": "Open Settings",
+      "description": "Button that opens the OS Settings app to grant camera permission."
+    },
+    "pairing.paired": {
+      "value": "Paired",
+      "description": "Success label after the pairing handshake completes."
+    },
+    "pairing.scanInstruction": {
+      "value": "Center the QR code in the frame and hold steady.",
+      "description": "Instruction shown above the camera viewfinder during pairing."
+    },
+    "pairing.start": {
+      "value": "Start",
+      "description": "Primary button on the pairing intro screen — begins the QR scan."
+    },
+    "pairing.title": {
+      "value": "Pair a device",
+      "description": "Headline of the pairing intro screen."
+    },
+    "planning.cyclingAlternatives": {
+      "value": "Cycling alternatives via BRouter + OSRM",
+      "description": "Notice on the route alternatives card when all OSM cycling sources succeeded. BRouter and OSRM are tool/brand names and must not be translated.",
+      "placeholders": {}
+    },
+    "planning.cyclingAlternativesWithFailures": {
+      "value": "Cycling alternatives — {failedCount, number} {failedCount, select, one {source} other {sources}} unavailable",
+      "description": "Notice on the route alternatives card when one or more OSM cycling sources timed out or errored. {failedCount} is the number of failed sources.",
+      "placeholders": {
+        "failedCount": "number"
+      }
+    },
     "planning.mixedRoutesFromHslAndOsm": {
       "value": "Mixed routes from HSL and OSM",
       "description": "Notice shown above the route alternatives card when results combine HSL Digitransit and OSM-derived providers. HSL and OSM are brand names — do not translate.",
       "placeholders": {}
     },
-    "common.cancel": {
-      "value": "Cancel",
-      "description": "Generic cancel-action button label.",
+    "routeDetail.geometryPoints": {
+      "value": "Geometry points: {count, number}",
+      "description": "Polyline geometry-point count.",
+      "placeholders": {
+        "count": "number"
+      }
+    },
+    "routeDetail.maneuverCount": {
+      "value": "Maneuvers: {count, number}",
+      "description": "Maneuver count line on the Route Detail screen.",
+      "placeholders": {
+        "count": "number"
+      }
+    },
+    "routeDetail.open": {
+      "value": "Open",
+      "description": "Button to open the route in the home view as a preview."
+    },
+    "routeDetail.section.actions": {
+      "value": "Actions",
+      "description": "Section header for the Route Detail action buttons."
+    },
+    "routeDetail.section.route": {
+      "value": "Route",
+      "description": "Section header on the Route Detail screen."
+    },
+    "routeDetail.title": {
+      "value": "Route",
+      "description": "Navigation title of the Route Detail screen."
+    },
+    "settings.activity.allowBackgroundGps.subtitle": {
+      "value": "Required for audio cues and live activity",
+      "description": "Toggle subtitle for the background-GPS setting.",
       "placeholders": {}
     },
-    "common.ok": {
-      "value": "OK",
-      "description": "Generic confirm-acknowledgement button label.",
+    "settings.activity.allowBackgroundGps.title": {
+      "value": "Allow GPS in background",
+      "description": "Toggle title: enables background GPS, gating audio cues and live activity.",
       "placeholders": {}
     },
-    "common.close": {
-      "value": "Close",
-      "description": "Generic close-dialog button label.",
+    "settings.activity.audioCues.subtitle": {
+      "value": "Speak turn-by-turn directions during routing",
+      "description": "Toggle subtitle for the audio-cues setting.",
+      "placeholders": {}
+    },
+    "settings.activity.audioCues.title": {
+      "value": "Audio cues",
+      "description": "Toggle title: enable spoken turn-by-turn cues during routing.",
+      "placeholders": {}
+    },
+    "settings.activity.audioCuesOnlyInBackground.subtitle": {
+      "value": "When off, cues also play while you have the app open",
+      "description": "Toggle subtitle for the audio-cues-only-in-background setting.",
+      "placeholders": {}
+    },
+    "settings.activity.audioCuesOnlyInBackground.title": {
+      "value": "Audio cues only when app is in background",
+      "description": "Toggle title: when on, cues only play after the user switches away from the app or locks the screen — not while the map is visible on-screen.",
+      "placeholders": {}
+    },
+    "settings.activity.keepScreenOn.subtitle": {
+      "value": "Keeps the display awake while a route is active",
+      "description": "Toggle subtitle for the keep-screen-on setting.",
+      "placeholders": {}
+    },
+    "settings.activity.keepScreenOn.title": {
+      "value": "Prevent screen from turning off",
+      "description": "Toggle title: keep the device screen awake while a route is active.",
+      "placeholders": {}
+    },
+    "settings.activity.liveActivity.subtitle": {
+      "value": "Show next turn on the lock screen",
+      "description": "Toggle subtitle for the live-activity setting.",
+      "placeholders": {}
+    },
+    "settings.activity.liveActivity.title": {
+      "value": "Lock-screen live activity",
+      "description": "Toggle title: show the next turn on the lock screen via Live Activity.",
+      "placeholders": {}
+    },
+    "settings.activity.title": {
+      "value": "Activity Settings",
+      "description": "Section header for activity-related toggles on the Settings hub.",
+      "placeholders": {}
+    },
+    "settings.device.connect": {
+      "value": "Connect",
+      "description": "Button to (re)connect to the paired device.",
+      "placeholders": {}
+    },
+    "settings.device.connection.lastDevice": {
+      "value": "Last device: {name}",
+      "description": "Last connected device name. {name} can be 'None'.",
+      "placeholders": {
+        "name": "string"
+      }
+    },
+    "settings.device.connection.section": {
+      "value": "Connection",
+      "description": "Section header in Device → connection details."
+    },
+    "settings.device.connection.state": {
+      "value": "State: {state}",
+      "description": "BLE connection state line. {state} is a raw enum string (do not translate).",
+      "placeholders": {
+        "state": "string"
+      }
+    },
+    "settings.device.connection.status": {
+      "value": "Status: {status}",
+      "description": "Last sync result line.",
+      "placeholders": {
+        "status": "string"
+      }
+    },
+    "settings.device.connection.sync": {
+      "value": "Sync: {state}",
+      "description": "Route-sync state line. {state} is a raw enum string.",
+      "placeholders": {
+        "state": "string"
+      }
+    },
+    "settings.device.diagnostics.armDisconnect": {
+      "value": "Arm disconnect after chunk",
+      "description": "Developer tool: disconnect after the next chunk write."
+    },
+    "settings.device.diagnostics.armDropStatus": {
+      "value": "Arm drop next inbound status",
+      "description": "Developer tool: drop the next inbound BLE status frame."
+    },
+    "settings.device.diagnostics.armRetryable": {
+      "value": "Arm retryable interruption",
+      "description": "Developer tool: arm a retryable interruption on next BLE transfer."
+    },
+    "settings.device.diagnostics.armWriteFailure": {
+      "value": "Arm write failure",
+      "description": "Developer tool: arm a write failure on next BLE transfer."
+    },
+    "settings.device.diagnostics.section": {
+      "value": "Diagnostics",
+      "description": "Section header for the Device → developer diagnostics tools."
+    },
+    "settings.device.disconnect": {
+      "value": "Disconnect",
+      "description": "Button to disconnect from the currently-connected device.",
+      "placeholders": {}
+    },
+    "settings.device.forget": {
+      "value": "Forget paired device",
+      "description": "Destructive button that removes the paired-peripheral record so the rider can pair a different device.",
+      "placeholders": {}
+    },
+    "settings.device.forget.confirmMessage": {
+      "value": "You'll need to scan the pairing code again to use it. Your route history stays.",
+      "description": "Body of the 'Forget this device?' confirmation alert.",
+      "placeholders": {}
+    },
+    "settings.device.forget.confirmTitle": {
+      "value": "Forget this device?",
+      "description": "Title of the confirmation alert shown when the rider taps 'Forget paired device'.",
+      "placeholders": {}
+    },
+    "settings.device.lastPaired": {
+      "value": "Last paired: {date}",
+      "description": "Footnote under a paired device's name showing when it was paired. {date} is a localised short-date string.",
+      "placeholders": {
+        "date": "string"
+      }
+    },
+    "settings.device.pairNew": {
+      "value": "Pair a new device",
+      "description": "Call-to-action button when no device is paired yet.",
+      "placeholders": {}
+    },
+    "settings.device.pairedDevice.section": {
+      "value": "Paired device",
+      "description": "Section header on the Device page for the paired-peripheral details.",
+      "placeholders": {}
+    },
+    "settings.device.reconnecting": {
+      "value": "Reconnecting…",
+      "description": "Transient label on the Connect button while a connection attempt is in flight.",
+      "placeholders": {}
+    },
+    "settings.device.title": {
+      "value": "Device",
+      "description": "Navigation title of the Device settings page (paired ESP32 management).",
+      "placeholders": {}
+    },
+    "settings.device.transfer.activeRoute": {
+      "value": "Active route: {id}",
+      "description": "Active route identifier line.",
+      "placeholders": {
+        "id": "string"
+      }
+    },
+    "settings.device.transfer.clearActive": {
+      "value": "Clear active route",
+      "description": "Destructive action to clear the active route on the device."
+    },
+    "settings.device.transfer.lastSync": {
+      "value": "Last sync: {result}",
+      "description": "Last transfer-sync result line.",
+      "placeholders": {
+        "result": "string"
+      }
+    },
+    "settings.device.transfer.pendingRoute": {
+      "value": "Pending route: {id}",
+      "description": "Pending route identifier line.",
+      "placeholders": {
+        "id": "string"
+      }
+    },
+    "settings.device.transfer.resume": {
+      "value": "Resume pending transfer",
+      "description": "Resume the pending transfer button."
+    },
+    "settings.device.transfer.section": {
+      "value": "Transfer",
+      "description": "Section header in Device → transfer details."
+    },
+    "settings.distanceUnit.imperial": {
+      "value": "Imperial",
+      "description": "Distance-unit picker option: feet and miles.",
+      "placeholders": {}
+    },
+    "settings.distanceUnit.metric": {
+      "value": "Metric",
+      "description": "Distance-unit picker option: meters and kilometers.",
+      "placeholders": {}
+    },
+    "settings.distanceUnit.system": {
+      "value": "System",
+      "description": "Distance-unit picker option meaning 'follow the device system measurement system'.",
+      "placeholders": {}
+    },
+    "settings.distanceUnit.title": {
+      "value": "Distance units",
+      "description": "Section header / row label for the distance-unit picker.",
+      "placeholders": {}
+    },
+    "settings.hub.device": {
+      "value": "Device",
+      "description": "Settings hub row: navigates to ESP32 device pairing/management.",
+      "placeholders": {}
+    },
+    "settings.hub.importDiagnostics": {
+      "value": "Import Diagnostics",
+      "description": "Settings hub row: navigates to GPX import diagnostics.",
+      "placeholders": {}
+    },
+    "settings.hub.importDiagnostics.subtitle": {
+      "value": "Failed shared imports",
+      "description": "Subtitle under the 'Import Diagnostics' row on the Settings hub.",
+      "placeholders": {}
+    },
+    "settings.hub.routePlanner": {
+      "value": "Route Planner",
+      "description": "Settings hub row: navigates to route-planning preferences.",
+      "placeholders": {}
+    },
+    "settings.hub.routePlanner.subtitle": {
+      "value": "Default source, suggestions, HSL key",
+      "description": "Subtitle under the 'Route Planner' row on the Settings hub. HSL is a brand name and must not be translated.",
+      "placeholders": {}
+    },
+    "settings.hub.routes": {
+      "value": "Routes",
+      "description": "Settings hub row: navigates to saved-routes management.",
+      "placeholders": {}
+    },
+    "settings.hub.routes.subtitle": {
+      "value": "Recent routes and GPX import",
+      "description": "Subtitle under the 'Routes' row on the Settings hub.",
+      "placeholders": {}
+    },
+    "settings.hub.title": {
+      "value": "Settings",
+      "description": "Title of the Settings hub screen.",
+      "placeholders": {}
+    },
+    "settings.importDiagnostics.empty": {
+      "value": "No failed imports recorded",
+      "description": "Empty-state shown on the Import Diagnostics page when nothing has failed.",
+      "placeholders": {}
+    },
+    "settings.importDiagnostics.title": {
+      "value": "Import Diagnostics",
+      "description": "Navigation title of the Import Diagnostics settings page (failed GPX/share-extension imports).",
+      "placeholders": {}
+    },
+    "settings.language.en": {
+      "value": "English",
+      "description": "Native name of the English language, shown as a Language picker option.",
+      "placeholders": {}
+    },
+    "settings.language.fi": {
+      "value": "Suomi",
+      "description": "Native name of the Finnish language (Suomi), shown as a Language picker option. Always presented in the language's own native form, not translated.",
+      "placeholders": {}
+    },
+    "settings.language.noVoiceFallback": {
+      "value": "Your device has no voice installed for {language}. Audio cues will play in English.",
+      "description": "Warning shown under the Language picker when the active locale has no matching TTS voice. {language} is the native name of the picked language. Used on web (browser), iOS, and Android — keep the wording platform-neutral.",
+      "placeholders": {
+        "language": "string"
+      }
+    },
+    "settings.language.subtitle": {
+      "value": "Choose the app language",
+      "description": "Subtitle under the Language picker.",
+      "placeholders": {}
+    },
+    "settings.language.system": {
+      "value": "System",
+      "description": "Language picker option meaning 'follow the device system language'.",
+      "placeholders": {}
+    },
+    "settings.language.title": {
+      "value": "Language",
+      "description": "Section header / row label for the app-language picker.",
+      "placeholders": {}
+    },
+    "settings.restartRequired.message": {
+      "value": "Quit and reopen the app to apply the new language.",
+      "description": "Body of an alert shown after switching app language on iOS.",
+      "placeholders": {}
+    },
+    "settings.restartRequired.title": {
+      "value": "Restart required",
+      "description": "Title of an alert shown after switching app language on iOS.",
+      "placeholders": {}
+    },
+    "settings.routePlanner.cyclingSpeed": {
+      "value": "Cycling speed",
+      "description": "Stepper label for the rider's planning speed in km/h."
+    },
+    "settings.routePlanner.defaults.section": {
+      "value": "Defaults",
+      "description": "Section header on the Route Planner page for defaults."
+    },
+    "settings.routePlanner.hsl.description": {
+      "value": "HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across the Helsinki metro area. The key is free — sign in at the portal, register an app, and copy the subscription key into the field above. Outside the Helsinki area, leave HSL off and the planner uses OSM routing globally.",
+      "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names."
+    },
+    "settings.routePlanner.hsl.section": {
+      "value": "HSL Digitransit",
+      "description": "Section header for HSL Digitransit settings. HSL and Digitransit are brand names — do not translate."
+    },
+    "settings.routePlanner.riding.footnote": {
+      "value": "Cycling speed overrides HSL ETAs (Digitransit defaults to a slow bike speed). Speed unit is how the live-speed badge is shown on the map.",
+      "description": "Footnote under the Riding section explaining cycling-speed override."
+    },
+    "settings.routePlanner.riding.section": {
+      "value": "Riding",
+      "description": "Section header on the Route Planner page for ride-related defaults."
+    },
+    "settings.routePlanner.title": {
+      "value": "Route Planner",
+      "description": "Navigation title of the Route Planner settings page.",
+      "placeholders": {}
+    },
+    "settings.routes.empty": {
+      "value": "No saved routes yet",
+      "description": "Empty-state shown on the Routes page when the rider has no history.",
+      "placeholders": {}
+    },
+    "settings.routes.import.gpx": {
+      "value": "Import GPX",
+      "description": "Button that opens the document picker to import a GPX file."
+    },
+    "settings.routes.import.section": {
+      "value": "Import",
+      "description": "Section header on the Routes page for the GPX import button."
+    },
+    "settings.routes.recent.empty": {
+      "value": "No recent routes or destinations yet.",
+      "description": "Empty state for the Recent section on the Routes page."
+    },
+    "settings.routes.recent.section": {
+      "value": "Recent",
+      "description": "Section header for the recent routes list."
+    },
+    "settings.routes.routeDetailsA11y": {
+      "value": "Route details",
+      "description": "Accessibility label for the chevron that opens a route's detail."
+    },
+    "settings.routes.title": {
+      "value": "Routes",
+      "description": "Navigation title of the Routes settings page (route history + GPX import).",
+      "placeholders": {}
+    },
+    "settings.speedUnit.title": {
+      "value": "Speed unit",
+      "description": "Section header / row label for the speed-unit picker.",
+      "placeholders": {}
+    },
+    "settings.voiceNotInstalled": {
+      "value": "Voice for {language} is not installed. Open system Settings to install it.",
+      "description": "Hint shown in Settings when no TTS voice is available for the active locale.",
+      "placeholders": {
+        "language": "string"
+      }
+    },
+    "units.distance.ft": {
+      "value": "{distance, number} ft",
+      "description": "Distance value in feet, used in UI labels.",
+      "placeholders": {
+        "distance": "number"
+      }
+    },
+    "units.distance.km": {
+      "value": "{distance, number} km",
+      "description": "Distance value in kilometers, used in UI labels (not voice cues).",
+      "placeholders": {
+        "distance": "number"
+      }
+    },
+    "units.distance.m": {
+      "value": "{distance, number} m",
+      "description": "Distance value in meters, used in UI labels (not voice cues).",
+      "placeholders": {
+        "distance": "number"
+      }
+    },
+    "units.distance.mi": {
+      "value": "{distance, number} mi",
+      "description": "Distance value in miles, used in UI labels.",
+      "placeholders": {
+        "distance": "number"
+      }
+    },
+    "units.duration.min": {
+      "value": "{minutes, number} min",
+      "description": "Duration label in minutes, used in UI route summaries.",
+      "placeholders": {
+        "minutes": "number"
+      }
+    },
+    "units.speed.kph": {
+      "value": "km/h",
+      "description": "Speed unit label: kilometers per hour.",
+      "placeholders": {}
+    },
+    "units.speed.mph": {
+      "value": "mph",
+      "description": "Speed unit label: miles per hour.",
       "placeholders": {}
     }
   }

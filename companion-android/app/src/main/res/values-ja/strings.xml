@@ -3,6 +3,7 @@
     <string name="common_cancel" formatted="false">キャンセル</string>
     <string name="common_cancel_role" formatted="false">キャンセル</string>
     <string name="common_close" formatted="false">閉じる</string>
+    <string name="common_dismiss" formatted="false">閉じる</string>
     <string name="common_forget" formatted="false">忘れる</string>
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">目的地に到着しました</string>
@@ -32,13 +33,27 @@
     <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右折してください</string>
     <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でUターンしてください</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} 先の{destination}</string>
+    <string name="home_a11y_clearDestination" formatted="false">目的地をクリア</string>
+    <string name="home_a11y_currentSpeed" formatted="false">現在の速度</string>
+    <string name="home_a11y_findAlternates" formatted="false">別ルートを探す</string>
+    <string name="home_a11y_locating" formatted="false">位置を特定中</string>
+    <string name="home_a11y_locationBlocked" formatted="false">位置情報がブロックされています</string>
+    <string name="home_a11y_recenterMap" formatted="false">地図を中央に戻す</string>
+    <string name="home_a11y_settings" formatted="false">設定</string>
     <string name="home_importedRoute" formatted="false">インポートしたルート</string>
+    <string name="home_iosLocationHint" formatted="false">iOSの設定を開く → プライバシー → 位置情報で、このアプリを「常に」に切り替えてください。</string>
+    <string name="home_linkFailed" formatted="false">このリンクを開けませんでした</string>
     <string name="home_noSuggestions" formatted="false">候補はまだありません…</string>
     <string name="home_openSettings" formatted="false">設定</string>
     <string name="home_platformHint_locationDefault" formatted="false">位置情報の許可を求められます。アプリがバックグラウンドの間も、現在地の追跡を続けるために許可してください。</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">iPhoneのSafariは、真のバックグラウンドGPSを提供しません。タブを開いたまま、画面を点けた状態で走ってください。位置情報の更新が続きます。</string>
     <string name="home_recenter" formatted="false">現在地に戻す</string>
+    <string name="home_resolvingLink" formatted="false">リンクを解決中…</string>
+    <string name="home_resolvingLinkSubtitle" formatted="false">目的地のURLをたどっています。数秒かかる場合があります。</string>
+    <string name="home_routeActiveOnDevice" formatted="false">端末でルートを有効にしています</string>
     <string name="home_routeOptions" formatted="false">ルートの候補</string>
+    <string name="home_routingFinished" formatted="false">ルート案内が完了しました。目的地をタップしてもう一度計画してください。</string>
+    <string name="home_sendingPercent" formatted="false">送信中 {percent, number}%</string>
     <string name="home_start" formatted="false">開始</string>
     <string name="home_startOnDevice" formatted="false">デバイスで開始</string>
     <string name="home_startRoute" formatted="false">ルートを開始</string>
@@ -48,9 +63,29 @@
     <string name="home_suggestedRoutes" formatted="false">おすすめルート</string>
     <string name="home_whereTo" formatted="false">どこへ？</string>
     <string name="home_workingOnRoute" formatted="false">ルートを作成中</string>
+    <string name="importDiagnostics_copyDebugInfo" formatted="false">デバッグ情報をコピー</string>
+    <string name="importDiagnostics_retry" formatted="false">再試行して取り込み</string>
+    <string name="importDiagnostics_sharePackage" formatted="false">デバッグパッケージを共有</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Companion の取り込み診断</string>
+    <string name="pairing_alignQr" formatted="false">フレーム内でQRコードを合わせてください</string>
+    <string name="pairing_cameraDenied" formatted="false">ペアリングコードを読み取るにはカメラアクセスが必要です</string>
+    <string name="pairing_cancel" formatted="false">キャンセル</string>
+    <string name="pairing_failed" formatted="false">ペアリングに失敗しました</string>
+    <string name="pairing_intro" formatted="false">端末の画面がフレーム内に入るようにスマホを構え、QRコードが見えたら「開始」をタップしてください。</string>
+    <string name="pairing_openSettings" formatted="false">設定を開く</string>
+    <string name="pairing_paired" formatted="false">ペアリング完了</string>
+    <string name="pairing_scanInstruction" formatted="false">フレーム内でQRコードを中央に合わせ、動かさずに保持してください。</string>
+    <string name="pairing_start" formatted="false">開始</string>
+    <string name="pairing_title" formatted="false">端末をペアリング</string>
     <string name="planning_cyclingAlternatives" formatted="false">BRouter + OSRM による自転車ルートの代替案</string>
     <string name="planning_cyclingAlternativesWithFailures" formatted="false">自転車ルートの代替案 — {failedCount, number} {failedCount, select, one {source} other {sources}} が利用できません</string>
     <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">HSL と OSM からの混在ルート</string>
+    <string name="routeDetail_geometryPoints" formatted="false">ジオメトリのポイント数：{count, number}</string>
+    <string name="routeDetail_maneuverCount" formatted="false">指示: {count, number}</string>
+    <string name="routeDetail_open" formatted="false">開く</string>
+    <string name="routeDetail_section_actions" formatted="false">操作</string>
+    <string name="routeDetail_section_route" formatted="false">ルート</string>
+    <string name="routeDetail_title" formatted="false">ルート</string>
     <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">音声案内とライブアクティビティに必要です</string>
     <string name="settings_activity_allowBackgroundGps_title" formatted="false">バックグラウンドでGPSを許可</string>
     <string name="settings_activity_audioCues_subtitle" formatted="false">ルーティング中にターンバイターンの案内を読み上げます</string>
@@ -63,6 +98,16 @@
     <string name="settings_activity_liveActivity_title" formatted="false">ロック画面のライブアクティビティ</string>
     <string name="settings_activity_title" formatted="false">アクティビティ設定</string>
     <string name="settings_device_connect" formatted="false">接続する</string>
+    <string name="settings_device_connection_lastDevice" formatted="false">最終デバイス: {name}</string>
+    <string name="settings_device_connection_section" formatted="false">接続</string>
+    <string name="settings_device_connection_state" formatted="false">状態: {state}</string>
+    <string name="settings_device_connection_status" formatted="false">ステータス: {status}</string>
+    <string name="settings_device_connection_sync" formatted="false">同期: {state}</string>
+    <string name="settings_device_diagnostics_armDisconnect" formatted="false">次のチャンク書き込み後に切断</string>
+    <string name="settings_device_diagnostics_armDropStatus" formatted="false">次の受信BLEステータスフレームを破棄</string>
+    <string name="settings_device_diagnostics_armRetryable" formatted="false">次のBLE転送でリトライ可能な中断を発生させる</string>
+    <string name="settings_device_diagnostics_armWriteFailure" formatted="false">次のBLE転送で書き込み失敗を発生させる</string>
+    <string name="settings_device_diagnostics_section" formatted="false">診断</string>
     <string name="settings_device_disconnect" formatted="false">切断する</string>
     <string name="settings_device_forget" formatted="false">ペア設定を解除する（端末）</string>
     <string name="settings_device_forget_confirmMessage" formatted="false">再度ペアリングコードを読み取って使用する必要があります。ルート履歴は保持されます。</string>
@@ -72,6 +117,12 @@
     <string name="settings_device_pairedDevice_section" formatted="false">ペア設定済みのデバイス</string>
     <string name="settings_device_reconnecting" formatted="false">再接続中…</string>
     <string name="settings_device_title" formatted="false">デバイス</string>
+    <string name="settings_device_transfer_activeRoute" formatted="false">アクティブルート: {id}</string>
+    <string name="settings_device_transfer_clearActive" formatted="false">アクティブルートをクリア</string>
+    <string name="settings_device_transfer_lastSync" formatted="false">最終同期: {result}</string>
+    <string name="settings_device_transfer_pendingRoute" formatted="false">保留ルート: {id}</string>
+    <string name="settings_device_transfer_resume" formatted="false">保留の転送を再開</string>
+    <string name="settings_device_transfer_section" formatted="false">転送</string>
     <string name="settings_distanceUnit_imperial" formatted="false">ヤード・マイル</string>
     <string name="settings_distanceUnit_metric" formatted="false">メートル・キロメートル</string>
     <string name="settings_distanceUnit_system" formatted="false">端末の計測システムに従う</string>
@@ -94,8 +145,19 @@
     <string name="settings_language_title" formatted="false">言語</string>
     <string name="settings_restartRequired_message" formatted="false">アプリを終了して再度開き、新しい言語を適用してください。</string>
     <string name="settings_restartRequired_title" formatted="false">再起動が必要です</string>
+    <string name="settings_routePlanner_cyclingSpeed" formatted="false">自転車速度</string>
+    <string name="settings_routePlanner_defaults_section" formatted="false">デフォルト</string>
+    <string name="settings_routePlanner_hsl_description" formatted="false">HSLはヘルシンキ地域交通当局です。DigitransitのAPIは、ヘルシンキ都市圏で高品質な自転車ルーティングを提供します。キーは無料です。ポータルでサインインし、アプリを登録して、サブスクリプションキーを上の欄に貼り付けてください。ヘルシンキ圏外ではHSLをオフにし、プランナーはOSMのルーティングをグローバルに使用します。</string>
+    <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
+    <string name="settings_routePlanner_riding_footnote" formatted="false">自転車速度の上書きにより、HSLのETAを調整します（Digitransitは遅めの自転車速度をデフォルトにします）。速度の単位は、地図上でライブ速度バッジを表示する方法です。</string>
+    <string name="settings_routePlanner_riding_section" formatted="false">走行</string>
     <string name="settings_routePlanner_title" formatted="false">ルートプランナー</string>
     <string name="settings_routes_empty" formatted="false">保存済みのルートはまだありません</string>
+    <string name="settings_routes_import_gpx" formatted="false">GPXを取り込む</string>
+    <string name="settings_routes_import_section" formatted="false">取り込み</string>
+    <string name="settings_routes_recent_empty" formatted="false">最近のルートまたは目的地はまだありません。</string>
+    <string name="settings_routes_recent_section" formatted="false">最近のルート</string>
+    <string name="settings_routes_routeDetailsA11y" formatted="false">ルートの詳細</string>
     <string name="settings_routes_title" formatted="false">ルート</string>
     <string name="settings_speedUnit_title" formatted="false">速度の単位</string>
     <string name="settings_voiceNotInstalled" formatted="false">{language} の音声がインストールされていません。システムの設定を開いてインストールしてください。</string>

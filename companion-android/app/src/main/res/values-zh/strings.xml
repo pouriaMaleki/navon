@@ -3,6 +3,7 @@
     <string name="common_cancel" formatted="false">取消</string>
     <string name="common_cancel_role" formatted="false">取消</string>
     <string name="common_close" formatted="false">关闭</string>
+    <string name="common_dismiss" formatted="false">关闭</string>
     <string name="common_forget" formatted="false">忘记</string>
     <string name="common_ok" formatted="false">确定</string>
     <string name="cue_arrived" formatted="false">已到达目的地</string>
@@ -32,13 +33,27 @@
     <string name="cue_turn50m_right" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，右转</string>
     <string name="cue_turn50m_uturn" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，掉头</string>
     <string name="guidance_distanceToDestination" formatted="false">到 {destination} 还需 {distance, number} {distanceUnit, select, km {km} mi {mi} other {km}}</string>
+    <string name="home_a11y_clearDestination" formatted="false">清除目的地</string>
+    <string name="home_a11y_currentSpeed" formatted="false">当前速度</string>
+    <string name="home_a11y_findAlternates" formatted="false">查找备选路线</string>
+    <string name="home_a11y_locating" formatted="false">正在定位你</string>
+    <string name="home_a11y_locationBlocked" formatted="false">位置已被阻止</string>
+    <string name="home_a11y_recenterMap" formatted="false">重新定位地图</string>
+    <string name="home_a11y_settings" formatted="false">设置</string>
     <string name="home_importedRoute" formatted="false">已导入的路线</string>
+    <string name="home_iosLocationHint" formatted="false">打开 iOS 设置 → 隐私 → 位置，将此应用切换为“始终”。</string>
+    <string name="home_linkFailed" formatted="false">无法打开该链接</string>
     <string name="home_noSuggestions" formatted="false">暂无建议…</string>
     <string name="home_openSettings" formatted="false">设置</string>
     <string name="home_platformHint_locationDefault" formatted="false">系统会请求定位权限。允许它，这样在应用处于后台时，导航仍会持续跟踪你的当前位置。</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">iPhone 上的 Safari 无法提供真正的后台 GPS。保持此标签页处于打开状态，并让屏幕保持亮起，以便你骑行时位置更新仍能继续。</string>
     <string name="home_recenter" formatted="false">重新居中</string>
+    <string name="home_resolvingLink" formatted="false">正在解析链接…</string>
+    <string name="home_resolvingLinkSubtitle" formatted="false">正在跟随该链接到目的地。可能需要几秒钟。</string>
+    <string name="home_routeActiveOnDevice" formatted="false">设备上已启用路线</string>
     <string name="home_routeOptions" formatted="false">路线选项</string>
+    <string name="home_routingFinished" formatted="false">路线已结束。点击目的地以再次规划。</string>
+    <string name="home_sendingPercent" formatted="false">正在发送 {percent, number}%</string>
     <string name="home_start" formatted="false">开始</string>
     <string name="home_startOnDevice" formatted="false">在设备上开始</string>
     <string name="home_startRoute" formatted="false">开始路线</string>
@@ -48,9 +63,29 @@
     <string name="home_suggestedRoutes" formatted="false">推荐路线</string>
     <string name="home_whereTo" formatted="false">去哪里？</string>
     <string name="home_workingOnRoute" formatted="false">正在规划路线</string>
+    <string name="importDiagnostics_copyDebugInfo" formatted="false">复制调试信息</string>
+    <string name="importDiagnostics_retry" formatted="false">重试导入</string>
+    <string name="importDiagnostics_sharePackage" formatted="false">分享调试包</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">伴侣导入诊断</string>
+    <string name="pairing_alignQr" formatted="false">将二维码对准画面</string>
+    <string name="pairing_cameraDenied" formatted="false">需要相机权限才能扫描配对代码。</string>
+    <string name="pairing_cancel" formatted="false">取消</string>
+    <string name="pairing_failed" formatted="false">配对失败</string>
+    <string name="pairing_intro" formatted="false">将手机对准设备屏幕，使其出现在画面中，然后在看到二维码时点击“开始”。</string>
+    <string name="pairing_openSettings" formatted="false">打开设置</string>
+    <string name="pairing_paired" formatted="false">已配对</string>
+    <string name="pairing_scanInstruction" formatted="false">将二维码置于画面中央并保持稳定。</string>
+    <string name="pairing_start" formatted="false">开始</string>
+    <string name="pairing_title" formatted="false">为设备配对</string>
     <string name="planning_cyclingAlternatives" formatted="false">通过 BRouter + OSRM 的骑行备选路线</string>
     <string name="planning_cyclingAlternativesWithFailures" formatted="false">骑行备选路线 — {failedCount, number} {failedCount, select, one {source} other {sources}} 不可用</string>
     <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">来自 HSL 和 OSM 的混合路线</string>
+    <string name="routeDetail_geometryPoints" formatted="false">几何点：{count, number}</string>
+    <string name="routeDetail_maneuverCount" formatted="false">路线操作：{count, number} </string>
+    <string name="routeDetail_open" formatted="false">打开</string>
+    <string name="routeDetail_section_actions" formatted="false">操作</string>
+    <string name="routeDetail_section_route" formatted="false">路线</string>
+    <string name="routeDetail_title" formatted="false">路线</string>
     <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">音频提示和实时活动所需</string>
     <string name="settings_activity_allowBackgroundGps_title" formatted="false">允许后台 GPS</string>
     <string name="settings_activity_audioCues_subtitle" formatted="false">路线规划中逐向语音提示</string>
@@ -63,6 +98,16 @@
     <string name="settings_activity_liveActivity_title" formatted="false">锁屏实时活动</string>
     <string name="settings_activity_title" formatted="false">活动设置</string>
     <string name="settings_device_connect" formatted="false">连接</string>
+    <string name="settings_device_connection_lastDevice" formatted="false">上次设备：{name}</string>
+    <string name="settings_device_connection_section" formatted="false">连接</string>
+    <string name="settings_device_connection_state" formatted="false">状态：{state}</string>
+    <string name="settings_device_connection_status" formatted="false">状态：{status}</string>
+    <string name="settings_device_connection_sync" formatted="false">同步：{state}</string>
+    <string name="settings_device_diagnostics_armDisconnect" formatted="false">断开：下一块数据后</string>
+    <string name="settings_device_diagnostics_armDropStatus" formatted="false">丢弃：下一条入站 BLE 状态帧</string>
+    <string name="settings_device_diagnostics_armRetryable" formatted="false">触发：可重试的中断</string>
+    <string name="settings_device_diagnostics_armWriteFailure" formatted="false">触发：下一次写入失败</string>
+    <string name="settings_device_diagnostics_section" formatted="false">诊断</string>
     <string name="settings_device_disconnect" formatted="false">断开连接</string>
     <string name="settings_device_forget" formatted="false">忘记已配对的设备</string>
     <string name="settings_device_forget_confirmMessage" formatted="false">要再次使用它，你需要重新扫描配对码。你的路线历史会保留。</string>
@@ -72,6 +117,12 @@
     <string name="settings_device_pairedDevice_section" formatted="false">已配对的设备</string>
     <string name="settings_device_reconnecting" formatted="false">正在重新连接…</string>
     <string name="settings_device_title" formatted="false">设备</string>
+    <string name="settings_device_transfer_activeRoute" formatted="false">当前路线：{id}</string>
+    <string name="settings_device_transfer_clearActive" formatted="false">清除当前路线</string>
+    <string name="settings_device_transfer_lastSync" formatted="false">上次同步：{result}</string>
+    <string name="settings_device_transfer_pendingRoute" formatted="false">待传路线：{id}</string>
+    <string name="settings_device_transfer_resume" formatted="false">继续待传</string>
+    <string name="settings_device_transfer_section" formatted="false">传输</string>
     <string name="settings_distanceUnit_imperial" formatted="false">英制</string>
     <string name="settings_distanceUnit_metric" formatted="false">公制</string>
     <string name="settings_distanceUnit_system" formatted="false">跟随设备的度量系统</string>
@@ -94,8 +145,19 @@
     <string name="settings_language_title" formatted="false">语言</string>
     <string name="settings_restartRequired_message" formatted="false">退出并重新打开应用以应用新语言。</string>
     <string name="settings_restartRequired_title" formatted="false">需要重启</string>
+    <string name="settings_routePlanner_cyclingSpeed" formatted="false">骑行速度</string>
+    <string name="settings_routePlanner_defaults_section" formatted="false">默认值</string>
+    <string name="settings_routePlanner_hsl_description" formatted="false">HSL 是赫尔辛基地区交通管理机构。他们的 Digitransit API 可在赫尔辛基地铁周边提供高质量的自行车路线规划。密钥是免费的——在门户登录、注册应用，然后将订阅密钥复制到上方的输入框中。在赫尔辛基地区之外，请关闭 HSL，规划器将使用 OSM 在全球范围内进行路线规划。</string>
+    <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
+    <string name="settings_routePlanner_riding_footnote" formatted="false">骑行速度用于覆盖 HSL 的预计到达时间（ETAs）（Digitransit 默认使用较慢的骑行速度）。速度单位用于在地图上显示实时速度徽章。</string>
+    <string name="settings_routePlanner_riding_section" formatted="false">骑行</string>
     <string name="settings_routePlanner_title" formatted="false">路线规划</string>
     <string name="settings_routes_empty" formatted="false">尚无已保存的路线</string>
+    <string name="settings_routes_import_gpx" formatted="false">导入 GPX</string>
+    <string name="settings_routes_import_section" formatted="false">导入</string>
+    <string name="settings_routes_recent_empty" formatted="false">尚无最近路线或目的地。</string>
+    <string name="settings_routes_recent_section" formatted="false">最近路线</string>
+    <string name="settings_routes_routeDetailsA11y" formatted="false">路线详情</string>
     <string name="settings_routes_title" formatted="false">路线</string>
     <string name="settings_speedUnit_title" formatted="false">速度单位</string>
     <string name="settings_voiceNotInstalled" formatted="false">未安装 {language} 的语音。打开系统设置以安装。</string>

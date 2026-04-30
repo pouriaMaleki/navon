@@ -9,6 +9,11 @@
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "common.cancel.role": {
+      "value": "Peruuta",
+      "description": "Cancel button in destructive alerts.",
+      "status": "reviewed"
+    },
     "common.close": {
       "value": "Sulje",
       "description": "Generic close-dialog button label.",
@@ -16,6 +21,19 @@
       "status": "ai-translated",
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "common.dismiss": {
+      "value": "Sulje",
+      "description": "Generic destructive 'Dismiss' button label.",
+      "sourceHash": "sha256:5d865cfefd9af2cf",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "common.forget": {
+      "value": "Unohda",
+      "description": "Forget confirm-action button.",
+      "status": "reviewed"
     },
     "common.ok": {
       "value": "OK",
@@ -298,6 +316,88 @@
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "home.a11y.clearDestination": {
+      "value": "Tyhjennä määränpää",
+      "description": "Accessibility label for the X button next to the search bar.",
+      "sourceHash": "sha256:07be8d9dada21836",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.currentSpeed": {
+      "value": "Nykyinen nopeus",
+      "description": "Accessibility label for the speed badge.",
+      "sourceHash": "sha256:bdb4f22cabc74adb",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.findAlternates": {
+      "value": "Etsi vaihtoehtoisia reittejä",
+      "description": "Accessibility label for the alternates / refresh-routes button.",
+      "sourceHash": "sha256:6e50bb8e836c6c62",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.locating": {
+      "value": "Paikannetaan sinua",
+      "description": "Accessibility label shown while the GPS spinner is active.",
+      "sourceHash": "sha256:86fa8ca7241581f3",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.locationBlocked": {
+      "value": "Sijainti on estetty",
+      "description": "Accessibility label shown when the OS denied location permission.",
+      "sourceHash": "sha256:37a3a0c80ab82070",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.recenterMap": {
+      "value": "Keskitä kartta uudelleen",
+      "description": "Accessibility label for the map recenter button.",
+      "sourceHash": "sha256:54eeeb1bd0613759",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.settings": {
+      "value": "Asetukset",
+      "description": "Accessibility label for the Settings cog button.",
+      "sourceHash": "sha256:a9be9ad668c9801d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.importedRoute": {
+      "value": "Tuotu reitti",
+      "description": "Header above the route alternatives card when a single route was imported from a GPX file or share-extension link.",
+      "status": "reviewed"
+    },
+    "home.iosLocationHint": {
+      "value": "Avaa iOS-asetukset → Yksityisyys → Sijainti ja vaihda tämän sovelluksen asetukseksi \"Aina\".",
+      "description": "Hint shown under 'Allow GPS in background' on iOS when the OS authorisation is still 'When in use'.",
+      "sourceHash": "sha256:10b42374ade66b4b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.linkFailed": {
+      "value": "Linkkiä ei voitu avata",
+      "description": "Error banner shown when a shared URL can't be resolved into a destination.",
+      "sourceHash": "sha256:5f1917a8e8bc57f6",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.noSuggestions": {
+      "value": "Ei vielä ehdotuksia…",
+      "description": "Empty-state placeholder shown in the where-to dropdown when the typeahead has no results yet.",
+      "status": "reviewed"
+    },
     "home.openSettings": {
       "value": "Asetukset",
       "description": "Toolbar / button label that opens the Settings hub.",
@@ -305,80 +405,6 @@
       "status": "ai-translated",
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
-    },
-    "home.recenter": {
-      "value": "Keskitä uudelleen",
-      "description": "Map button to recenter on the rider's current location.",
-      "sourceHash": "sha256:a443e2e7ba006d8a",
-      "status": "ai-translated",
-      "translatedAt": "2026-04-30T10:05:18Z",
-      "translatedBy": "openai/gpt-5.4-nano"
-    },
-    "home.routeOptions": {
-      "value": "Reittivaihtoehdot",
-      "description": "Header on the route suggestions card listing alternative routes.",
-      "status": "reviewed"
-    },
-    "home.start": {
-      "value": "Aloita",
-      "description": "Primary button on the route suggestions card that begins the selected route.",
-      "status": "reviewed"
-    },
-    "home.startOnDevice": {
-      "value": "Aloita laitteella",
-      "description": "Primary route-start button label when an ESP32 device is paired and connected — the route will be sent to the device instead of started on the phone.",
-      "status": "reviewed"
-    },
-    "home.startingOnDevice": {
-      "value": "Aloitetaan laitteella…",
-      "description": "Transient state on the start button while the route is being transferred to a paired ESP32 device.",
-      "status": "reviewed"
-    },
-    "home.suggestedRoutes": {
-      "value": "Ehdotetut reitit",
-      "description": "Header above the route alternatives card when the planner has computed multiple route options.",
-      "status": "reviewed"
-    },
-    "home.importedRoute": {
-      "value": "Tuotu reitti",
-      "description": "Header above the route alternatives card when a single route was imported from a GPX file or share-extension link.",
-      "status": "reviewed"
-    },
-    "home.workingOnRoute": {
-      "value": "Lasketaan reittiä",
-      "description": "Status label shown while the planner is computing the route.",
-      "status": "reviewed"
-    },
-    "planning.mixedRoutesFromHslAndOsm": {
-      "value": "Sekareittejä HSL:stä ja OSM:stä",
-      "description": "Notice shown above the route alternatives card when results combine HSL Digitransit and OSM-derived providers. HSL and OSM are brand names — do not translate.",
-      "status": "reviewed"
-    },
-    "home.startRoute": {
-      "value": "Aloita reitti",
-      "description": "Primary button to begin riding the planned route.",
-      "sourceHash": "sha256:bfbaae6b67adc4c6",
-      "status": "ai-translated",
-      "translatedAt": "2026-04-30T10:05:18Z",
-      "translatedBy": "openai/gpt-5.4-nano"
-    },
-    "home.stopRoute": {
-      "value": "Lopeta reitti",
-      "description": "Button to end the active route session.",
-      "sourceHash": "sha256:f5d4480d30167efb",
-      "status": "ai-translated",
-      "translatedAt": "2026-04-30T10:05:18Z",
-      "translatedBy": "openai/gpt-5.4-nano"
-    },
-    "home.stop": {
-      "value": "Lopeta",
-      "description": "Short label on the floating Stop button on the active-guidance card.",
-      "status": "reviewed"
-    },
-    "home.noSuggestions": {
-      "value": "Ei vielä ehdotuksia…",
-      "description": "Empty-state placeholder shown in the where-to dropdown when the typeahead has no results yet.",
-      "status": "reviewed"
     },
     "home.platformHint.locationDefault": {
       "value": "Sijaintilupaa pyydetään. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sovellus on taustalla.",
@@ -390,20 +416,227 @@
       "description": "Hint shown under the 'Allow GPS in background' setting when the browser is Safari on iOS.",
       "status": "reviewed"
     },
-    "settings.hub.routes.subtitle": {
-      "value": "Viimeaikaiset reitit ja GPX-tuonti",
-      "description": "Subtitle under the 'Routes' row on the Settings hub.",
+    "home.recenter": {
+      "value": "Keskitä uudelleen",
+      "description": "Map button to recenter on the rider's current location.",
+      "sourceHash": "sha256:a443e2e7ba006d8a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T10:05:18Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.resolvingLink": {
+      "value": "Selvitetään linkkiä…",
+      "description": "Inline status shown while the share-extension URL is being followed.",
+      "sourceHash": "sha256:c95dba96653f4202",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.resolvingLinkSubtitle": {
+      "value": "Seurataan linkkiä määränpäähän. Tämä voi kestää muutaman sekunnin.",
+      "description": "Subtitle under the 'Resolving link' status.",
+      "sourceHash": "sha256:0fa748b4b587c20b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.routeActiveOnDevice": {
+      "value": "Reitti aktiivinen laitteella",
+      "description": "Headline shown on the device-overview card when no destination label is available.",
+      "sourceHash": "sha256:847599de96284ba9",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.routeOptions": {
+      "value": "Reittivaihtoehdot",
+      "description": "Header on the route suggestions card listing alternative routes.",
       "status": "reviewed"
     },
-    "settings.hub.routePlanner.subtitle": {
-      "value": "Oletuslähde, ehdotukset, HSL-avain",
-      "description": "Subtitle under the 'Route Planner' row on the Settings hub.",
+    "home.routingFinished": {
+      "value": "Reititys valmis. Suunnittele uudelleen napauttamalla määränpäätä.",
+      "description": "Banner shown after a route ends, prompting the rider to plan another.",
+      "sourceHash": "sha256:872986997f4a3425",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.sendingPercent": {
+      "value": "Lähetetään {percent, number}%",
+      "description": "Transfer-progress label on the device-overview card. {percent} is the integer 0..100.",
+      "placeholders": {
+        "percent": "number"
+      },
+      "sourceHash": "sha256:652b5021d499a7c8",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.start": {
+      "value": "Aloita",
+      "description": "Primary button on the route suggestions card that begins the selected route.",
       "status": "reviewed"
     },
-    "settings.hub.importDiagnostics.subtitle": {
-      "value": "Epäonnistuneet jaetut tuonnit",
-      "description": "Subtitle under the 'Import Diagnostics' row on the Settings hub.",
+    "home.startOnDevice": {
+      "value": "Aloita laitteella",
+      "description": "Primary route-start button label when an ESP32 device is paired and connected — the route will be sent to the device instead of started on the phone.",
       "status": "reviewed"
+    },
+    "home.startRoute": {
+      "value": "Aloita reitti",
+      "description": "Primary button to begin riding the planned route.",
+      "sourceHash": "sha256:bfbaae6b67adc4c6",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T10:05:18Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.startingOnDevice": {
+      "value": "Aloitetaan laitteella…",
+      "description": "Transient state on the start button while the route is being transferred to a paired ESP32 device.",
+      "status": "reviewed"
+    },
+    "home.stop": {
+      "value": "Lopeta",
+      "description": "Short label on the floating Stop button on the active-guidance card.",
+      "status": "reviewed"
+    },
+    "home.stopRoute": {
+      "value": "Lopeta reitti",
+      "description": "Button to end the active route session.",
+      "sourceHash": "sha256:f5d4480d30167efb",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T10:05:18Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.suggestedRoutes": {
+      "value": "Ehdotetut reitit",
+      "description": "Header above the route alternatives card when the planner has computed multiple route options.",
+      "status": "reviewed"
+    },
+    "home.whereTo": {
+      "value": "Mihin?",
+      "description": "Search bar placeholder on the home screen.",
+      "sourceHash": "sha256:e02c3c5972e07bbb",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T10:05:18Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.workingOnRoute": {
+      "value": "Lasketaan reittiä",
+      "description": "Status label shown while the planner is computing the route.",
+      "status": "reviewed"
+    },
+    "importDiagnostics.copyDebugInfo": {
+      "value": "Kopioi vianmääritystiedot",
+      "description": "Button that copies a per-entry debug bundle to the clipboard.",
+      "sourceHash": "sha256:9df44c1f4e7b8854",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "importDiagnostics.retry": {
+      "value": "Yritä tuonti uudelleen",
+      "description": "Button that retries an import that previously failed.",
+      "sourceHash": "sha256:7f5f67a387f7581a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "importDiagnostics.sharePackage": {
+      "value": "Jaa vianmäärityspaketti",
+      "description": "Button that shares the per-entry debug bundle.",
+      "sourceHash": "sha256:db5c5951b61e1713",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "importDiagnostics.shareSubject": {
+      "value": "Kumppanin tuonnin vianmääritys",
+      "description": "Subject of the share sheet when sharing a debug package.",
+      "sourceHash": "sha256:8888ea0458fd0d03",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.alignQr": {
+      "value": "Kohdista QR-koodi kuvan sisällä",
+      "description": "Hint label shown over the camera viewfinder.",
+      "sourceHash": "sha256:419ab58c05dbc85d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.cameraDenied": {
+      "value": "Kameran käyttöoikeus tarvitaan parinmuodostuskoodin skannaamiseen.",
+      "description": "Hint shown when the OS has denied camera permission for pairing.",
+      "sourceHash": "sha256:9442e480a891dc6f",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.cancel": {
+      "value": "Peruuta",
+      "description": "Cancel button used throughout the pairing flow.",
+      "sourceHash": "sha256:671203b30681a298",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.failed": {
+      "value": "Parinmuodostus epäonnistui",
+      "description": "Failure label when pairing didn't complete.",
+      "sourceHash": "sha256:d3057525ee1035d6",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.intro": {
+      "value": "Pidä puhelinta niin, että laitteen näyttö on kuvassa, ja napauta sitten Aloita, kun näet QR-koodin.",
+      "description": "Body text on the pairing intro screen.",
+      "sourceHash": "sha256:cae0775f4e68226a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.openSettings": {
+      "value": "Avaa asetukset",
+      "description": "Button that opens the OS Settings app to grant camera permission.",
+      "sourceHash": "sha256:42f7251ffc0617bf",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.paired": {
+      "value": "Paritettu",
+      "description": "Success label after the pairing handshake completes.",
+      "sourceHash": "sha256:0fa2fdb3d4e2656e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.scanInstruction": {
+      "value": "Kohdista QR-koodi kuvan keskelle ja pidä se paikallaan.",
+      "description": "Instruction shown above the camera viewfinder during pairing.",
+      "sourceHash": "sha256:349588df3dc42fc4",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.start": {
+      "value": "Aloita",
+      "description": "Primary button on the pairing intro screen — begins the QR scan.",
+      "sourceHash": "sha256:c01e80fc65d682c9",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.title": {
+      "value": "Parita laite",
+      "description": "Headline of the pairing intro screen.",
+      "sourceHash": "sha256:1ba0272cbe542fd0",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
     },
     "planning.cyclingAlternatives": {
       "value": "Pyöräilyvaihtoehdot BRouterin ja OSRM:n kautta",
@@ -418,12 +651,63 @@
       },
       "status": "reviewed"
     },
-    "home.whereTo": {
-      "value": "Mihin?",
-      "description": "Search bar placeholder on the home screen.",
-      "sourceHash": "sha256:e02c3c5972e07bbb",
+    "planning.mixedRoutesFromHslAndOsm": {
+      "value": "Sekareittejä HSL:stä ja OSM:stä",
+      "description": "Notice shown above the route alternatives card when results combine HSL Digitransit and OSM-derived providers. HSL and OSM are brand names — do not translate.",
+      "status": "reviewed"
+    },
+    "routeDetail.geometryPoints": {
+      "value": "Geometriapisteet: {count, number}",
+      "description": "Polyline geometry-point count.",
+      "placeholders": {
+        "count": "number"
+      },
+      "sourceHash": "sha256:2a69ff465217cb6d",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T10:05:18Z",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.maneuverCount": {
+      "value": "Käännöksiä: {count, number}",
+      "description": "Maneuver count line on the Route Detail screen.",
+      "placeholders": {
+        "count": "number"
+      },
+      "sourceHash": "sha256:c3f897ca868e34c7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.open": {
+      "value": "Avaa",
+      "description": "Button to open the route in the home view as a preview.",
+      "sourceHash": "sha256:1d28d10029a308d7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.section.actions": {
+      "value": "Toiminnot",
+      "description": "Section header for the Route Detail action buttons.",
+      "sourceHash": "sha256:fb4446568cc2c163",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.section.route": {
+      "value": "Reitti",
+      "description": "Section header on the Route Detail screen.",
+      "sourceHash": "sha256:75f94fcff4081078",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.title": {
+      "value": "Reitti",
+      "description": "Navigation title of the Route Detail screen.",
+      "sourceHash": "sha256:d3c097006c34ee46",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.activity.allowBackgroundGps.subtitle": {
@@ -442,16 +726,6 @@
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
-    "settings.activity.audioCuesOnlyInBackground.title": {
-      "value": "Äänimerkit vain taustalla",
-      "description": "Toggle title: when on, cues only play after the user switches away from the app or locks the screen — not while the map is visible on-screen.",
-      "status": "reviewed"
-    },
-    "settings.activity.audioCuesOnlyInBackground.subtitle": {
-      "value": "Kun pois käytöstä, äänimerkit kuuluvat myös kun sovellus on avoinna",
-      "description": "Toggle subtitle for the audio-cues-only-in-background setting.",
-      "status": "reviewed"
-    },
     "settings.activity.audioCues.subtitle": {
       "value": "Puhu käännös käännökseltä -ohjeet reitityksen aikana",
       "description": "Toggle subtitle for the audio-cues setting.",
@@ -467,6 +741,16 @@
       "status": "ai-translated",
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.activity.audioCuesOnlyInBackground.subtitle": {
+      "value": "Kun pois käytöstä, äänimerkit kuuluvat myös kun sovellus on avoinna",
+      "description": "Toggle subtitle for the audio-cues-only-in-background setting.",
+      "status": "reviewed"
+    },
+    "settings.activity.audioCuesOnlyInBackground.title": {
+      "value": "Äänimerkit vain taustalla",
+      "description": "Toggle title: when on, cues only play after the user switches away from the app or locks the screen — not while the map is visible on-screen.",
+      "status": "reviewed"
     },
     "settings.activity.keepScreenOn.subtitle": {
       "value": "Pitää näytön päällä reitin ollessa aktiivinen",
@@ -506,6 +790,208 @@
       "sourceHash": "sha256:f271fbbf4d057dc4",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T10:05:18Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connect": {
+      "value": "Yhdistä",
+      "description": "Connect to paired device.",
+      "status": "reviewed"
+    },
+    "settings.device.connection.lastDevice": {
+      "value": "Viimeisin laite: {name}",
+      "description": "Last connected device name. {name} can be 'None'.",
+      "placeholders": {
+        "name": "string"
+      },
+      "sourceHash": "sha256:85cb7812250dba14",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.section": {
+      "value": "Yhteys",
+      "description": "Section header in Device → connection details.",
+      "sourceHash": "sha256:52663cc0ec225e64",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.state": {
+      "value": "Tila: {state}",
+      "description": "BLE connection state line. {state} is a raw enum string (do not translate).",
+      "placeholders": {
+        "state": "string"
+      },
+      "sourceHash": "sha256:712415c388e3de0d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.status": {
+      "value": "Tila: {status}",
+      "description": "Last sync result line.",
+      "placeholders": {
+        "status": "string"
+      },
+      "sourceHash": "sha256:7450e10971de36f0",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.sync": {
+      "value": "Synkronointi: {state}",
+      "description": "Route-sync state line. {state} is a raw enum string.",
+      "placeholders": {
+        "state": "string"
+      },
+      "sourceHash": "sha256:b5b5d2cc76deb5e9",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armDisconnect": {
+      "value": "Katkaise yhteys seuraavan chunkin jälkeen",
+      "description": "Developer tool: disconnect after the next chunk write.",
+      "sourceHash": "sha256:0d09b64d290c71b7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armDropStatus": {
+      "value": "Pudota seuraava saapuva BLE-tilakehys",
+      "description": "Developer tool: drop the next inbound BLE status frame.",
+      "sourceHash": "sha256:585e1c7b44762d0d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armRetryable": {
+      "value": "Aseta uudelleenyrityskelpoinen keskeytys seuraavaan BLE-siirtoon",
+      "description": "Developer tool: arm a retryable interruption on next BLE transfer.",
+      "sourceHash": "sha256:f70eee8b93507c1b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armWriteFailure": {
+      "value": "Aseta kirjoitusvirhe seuraavaan BLE-siirtoon",
+      "description": "Developer tool: arm a write failure on next BLE transfer.",
+      "sourceHash": "sha256:4eebac44525eabb5",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.section": {
+      "value": "Diagnostiikka",
+      "description": "Section header for the Device → developer diagnostics tools.",
+      "sourceHash": "sha256:970f7ee42bcb3142",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.disconnect": {
+      "value": "Katkaise yhteys",
+      "description": "Disconnect button.",
+      "status": "reviewed"
+    },
+    "settings.device.forget": {
+      "value": "Unohda paritettu laite",
+      "description": "Forget paired device.",
+      "status": "reviewed"
+    },
+    "settings.device.forget.confirmMessage": {
+      "value": "Sinun täytyy skannata paritus-QR uudelleen käyttääksesi sitä. Reittihistoriasi säilyy.",
+      "description": "Forget confirmation body.",
+      "status": "reviewed"
+    },
+    "settings.device.forget.confirmTitle": {
+      "value": "Unohdetaanko tämä laite?",
+      "description": "Forget confirmation title.",
+      "status": "reviewed"
+    },
+    "settings.device.lastPaired": {
+      "value": "Paritettu viimeksi: {date}",
+      "description": "Footnote under paired device name.",
+      "placeholders": {
+        "date": "string"
+      },
+      "status": "reviewed"
+    },
+    "settings.device.pairNew": {
+      "value": "Parita uusi laite",
+      "description": "Call-to-action when no device is paired.",
+      "status": "reviewed"
+    },
+    "settings.device.pairedDevice.section": {
+      "value": "Paritettu laite",
+      "description": "Section header on the Device page.",
+      "status": "reviewed"
+    },
+    "settings.device.reconnecting": {
+      "value": "Yhdistetään…",
+      "description": "Transient label while connecting.",
+      "status": "reviewed"
+    },
+    "settings.device.title": {
+      "value": "Laite",
+      "description": "Navigation title of the Device settings page.",
+      "status": "reviewed"
+    },
+    "settings.device.transfer.activeRoute": {
+      "value": "Aktiivinen reitti: {id}",
+      "description": "Active route identifier line.",
+      "placeholders": {
+        "id": "string"
+      },
+      "sourceHash": "sha256:3911ff05b3f55ef5",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.clearActive": {
+      "value": "Tyhjennä aktiivinen reitti",
+      "description": "Destructive action to clear the active route on the device.",
+      "sourceHash": "sha256:42e9bf016d8c5faa",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.lastSync": {
+      "value": "Viimeisin synkronointi: {result}",
+      "description": "Last transfer-sync result line.",
+      "placeholders": {
+        "result": "string"
+      },
+      "sourceHash": "sha256:ee99fbe402633bb1",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.pendingRoute": {
+      "value": "Odottaa reittiä: {id}",
+      "description": "Pending route identifier line.",
+      "placeholders": {
+        "id": "string"
+      },
+      "sourceHash": "sha256:ab833cdc192ff7f5",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.resume": {
+      "value": "Jatka odottavaa siirtoa",
+      "description": "Resume the pending transfer button.",
+      "sourceHash": "sha256:915ee89c77029a67",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.section": {
+      "value": "Siirto",
+      "description": "Section header in Device → transfer details.",
+      "sourceHash": "sha256:79fc3b4f704d4133",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.distanceUnit.imperial": {
@@ -556,6 +1042,11 @@
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "settings.hub.importDiagnostics.subtitle": {
+      "value": "Epäonnistuneet jaetut tuonnit",
+      "description": "Subtitle under the 'Import Diagnostics' row on the Settings hub.",
+      "status": "reviewed"
+    },
     "settings.hub.routePlanner": {
       "value": "Reittisuunnittelija",
       "description": "Settings hub row: navigates to route-planning preferences.",
@@ -563,6 +1054,11 @@
       "status": "ai-translated",
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.hub.routePlanner.subtitle": {
+      "value": "Oletuslähde, ehdotukset, HSL-avain",
+      "description": "Subtitle under the 'Route Planner' row on the Settings hub.",
+      "status": "reviewed"
     },
     "settings.hub.routes": {
       "value": "Reitit",
@@ -572,6 +1068,11 @@
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "settings.hub.routes.subtitle": {
+      "value": "Viimeaikaiset reitit ja GPX-tuonti",
+      "description": "Subtitle under the 'Routes' row on the Settings hub.",
+      "status": "reviewed"
+    },
     "settings.hub.title": {
       "value": "Asetukset",
       "description": "Title of the Settings hub screen.",
@@ -579,6 +1080,16 @@
       "status": "ai-translated",
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.importDiagnostics.empty": {
+      "value": "Ei epäonnistuneita tuonteja",
+      "description": "Empty state on the Import Diagnostics page.",
+      "status": "reviewed"
+    },
+    "settings.importDiagnostics.title": {
+      "value": "Tuontidiagnostiikka",
+      "description": "Navigation title of the Import Diagnostics page.",
+      "status": "reviewed"
     },
     "settings.language.en": {
       "value": "English",
@@ -602,94 +1113,6 @@
       "placeholders": {
         "language": "string"
       },
-      "status": "reviewed"
-    },
-    "settings.device.title": {
-      "value": "Laite",
-      "description": "Navigation title of the Device settings page.",
-      "status": "reviewed"
-    },
-    "settings.device.pairedDevice.section": {
-      "value": "Paritettu laite",
-      "description": "Section header on the Device page.",
-      "status": "reviewed"
-    },
-    "settings.device.pairNew": {
-      "value": "Parita uusi laite",
-      "description": "Call-to-action when no device is paired.",
-      "status": "reviewed"
-    },
-    "settings.device.connect": {
-      "value": "Yhdistä",
-      "description": "Connect to paired device.",
-      "status": "reviewed"
-    },
-    "settings.device.reconnecting": {
-      "value": "Yhdistetään…",
-      "description": "Transient label while connecting.",
-      "status": "reviewed"
-    },
-    "settings.device.disconnect": {
-      "value": "Katkaise yhteys",
-      "description": "Disconnect button.",
-      "status": "reviewed"
-    },
-    "settings.device.forget": {
-      "value": "Unohda paritettu laite",
-      "description": "Forget paired device.",
-      "status": "reviewed"
-    },
-    "settings.device.forget.confirmTitle": {
-      "value": "Unohdetaanko tämä laite?",
-      "description": "Forget confirmation title.",
-      "status": "reviewed"
-    },
-    "settings.device.forget.confirmMessage": {
-      "value": "Sinun täytyy skannata paritus-QR uudelleen käyttääksesi sitä. Reittihistoriasi säilyy.",
-      "description": "Forget confirmation body.",
-      "status": "reviewed"
-    },
-    "settings.device.lastPaired": {
-      "value": "Paritettu viimeksi: {date}",
-      "description": "Footnote under paired device name.",
-      "placeholders": {
-        "date": "string"
-      },
-      "status": "reviewed"
-    },
-    "settings.routePlanner.title": {
-      "value": "Reittisuunnittelu",
-      "description": "Navigation title of the Route Planner page.",
-      "status": "reviewed"
-    },
-    "settings.routes.title": {
-      "value": "Reitit",
-      "description": "Navigation title of the Routes page.",
-      "status": "reviewed"
-    },
-    "settings.routes.empty": {
-      "value": "Ei tallennettuja reittejä",
-      "description": "Empty state on the Routes page.",
-      "status": "reviewed"
-    },
-    "settings.importDiagnostics.title": {
-      "value": "Tuontidiagnostiikka",
-      "description": "Navigation title of the Import Diagnostics page.",
-      "status": "reviewed"
-    },
-    "settings.importDiagnostics.empty": {
-      "value": "Ei epäonnistuneita tuonteja",
-      "description": "Empty state on the Import Diagnostics page.",
-      "status": "reviewed"
-    },
-    "common.cancel.role": {
-      "value": "Peruuta",
-      "description": "Cancel button in destructive alerts.",
-      "status": "reviewed"
-    },
-    "common.forget": {
-      "value": "Unohda",
-      "description": "Forget confirm-action button.",
       "status": "reviewed"
     },
     "settings.language.subtitle": {
@@ -731,6 +1154,109 @@
       "status": "ai-translated",
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.cyclingSpeed": {
+      "value": "Pyöräilyn nopeus",
+      "description": "Stepper label for the rider's planning speed in km/h.",
+      "sourceHash": "sha256:a40c1fc657cab83f",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.defaults.section": {
+      "value": "Oletukset",
+      "description": "Section header on the Route Planner page for defaults.",
+      "sourceHash": "sha256:f34661d1aca1bfca",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.hsl.description": {
+      "value": "HSL on Helsingin seudun liikenteen viranomainen. Heidän Digitransit API tarjoaa korkealaatuista pyöräreititystä koko Helsingin metropolialueella. Avain on ilmainen — kirjaudu portaalissa, rekisteröi sovellus ja kopioi tilausavain yllä olevaan kenttään. Helsingin alueen ulkopuolella jätä HSL pois ja reititin käyttää OSM-reititystä maailmanlaajuisesti.",
+      "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
+      "sourceHash": "sha256:c973b6517ed52a36",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.hsl.section": {
+      "value": "HSL Digitransit",
+      "description": "Section header for HSL Digitransit settings. HSL and Digitransit are brand names — do not translate.",
+      "sourceHash": "sha256:31385ebaa6108124",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.riding.footnote": {
+      "value": "Pyöräilyn nopeus ohittaa HSL:n ETA-arviot (Digitransit käyttää oletuksena hidasta pyöränopeutta). Nopeusyksikkö määrittää, miten reaaliaikaisen nopeuden tunniste näytetään kartalla.",
+      "description": "Footnote under the Riding section explaining cycling-speed override.",
+      "sourceHash": "sha256:960116f0c5ca12cd",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.riding.section": {
+      "value": "Pyöräily",
+      "description": "Section header on the Route Planner page for ride-related defaults.",
+      "sourceHash": "sha256:835b2500778a1a7b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.title": {
+      "value": "Reittisuunnittelu",
+      "description": "Navigation title of the Route Planner page.",
+      "status": "reviewed"
+    },
+    "settings.routes.empty": {
+      "value": "Ei tallennettuja reittejä",
+      "description": "Empty state on the Routes page.",
+      "status": "reviewed"
+    },
+    "settings.routes.import.gpx": {
+      "value": "Tuo GPX",
+      "description": "Button that opens the document picker to import a GPX file.",
+      "sourceHash": "sha256:fee4579d09a46708",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.import.section": {
+      "value": "Tuo",
+      "description": "Section header on the Routes page for the GPX import button.",
+      "sourceHash": "sha256:19567a673f930cab",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.recent.empty": {
+      "value": "Ei vielä viimeaikaisia reittejä tai kohteita.",
+      "description": "Empty state for the Recent section on the Routes page.",
+      "sourceHash": "sha256:34fd155d8ef9b7b7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.recent.section": {
+      "value": "Viimeisimmät",
+      "description": "Section header for the recent routes list.",
+      "sourceHash": "sha256:c78de402a1e9a86e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.routeDetailsA11y": {
+      "value": "Reitin tiedot",
+      "description": "Accessibility label for the chevron that opens a route's detail.",
+      "sourceHash": "sha256:4e64a7785e21506a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.title": {
+      "value": "Reitit",
+      "description": "Navigation title of the Routes page.",
+      "status": "reviewed"
     },
     "settings.speedUnit.title": {
       "value": "Nopeusyksikkö",

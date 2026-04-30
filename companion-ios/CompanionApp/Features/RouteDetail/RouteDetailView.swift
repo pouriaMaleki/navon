@@ -21,27 +21,33 @@ struct RouteDetailView: View {
             }
 
             if let route = item.routePackage {
-                Section("Route") {
+                Section(T.string("routeDetail.section.route")) {
                     Text(route.summaryLine)
-                    Text("Maneuvers: \(route.maneuverCount)")
-                    Text("Geometry points: \(route.geometryPointCount)")
+                    Text(T.string(
+                        "routeDetail.maneuverCount",
+                        ["count": .number(Double(route.maneuverCount))]
+                    ))
+                    Text(T.string(
+                        "routeDetail.geometryPoints",
+                        ["count": .number(Double(route.geometryPointCount))]
+                    ))
                 }
             }
 
-            Section("Actions") {
-                Button("Open") {
+            Section(T.string("routeDetail.section.actions")) {
+                Button(T.string("routeDetail.open")) {
                     onOpen()
                 }
-                Button("Start") {
+                Button(T.string("home.start")) {
                     onStart()
                 }
-                Button("Dismiss", role: .destructive) {
+                Button(T.string("common.dismiss"), role: .destructive) {
                     onDismiss()
                     dismiss()
                 }
             }
         }
-        .navigationTitle("Route")
+        .navigationTitle(T.string("routeDetail.title"))
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: appModel.homePreviewRequestID) { _, _ in
             dismiss()

@@ -7,15 +7,15 @@ struct RoutesSettingsView: View {
 
     var body: some View {
         List {
-            Section("Import") {
-                Button("Import GPX") {
+            Section(T.string("settings.routes.import.section")) {
+                Button(T.string("settings.routes.import.gpx")) {
                     showingImporter = true
                 }
             }
 
-            Section("Recent") {
+            Section(T.string("settings.routes.recent.section")) {
                 if appModel.routeHistoryItems.isEmpty {
-                    Text("No recent routes or destinations yet.")
+                    Text(T.string("settings.routes.recent.empty"))
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(appModel.routeHistoryItems) { item in
@@ -45,7 +45,7 @@ struct RoutesSettingsView: View {
                                     .font(.system(size: 18, weight: .semibold))
                                     .frame(width: 28, height: 28)
                             }
-                            .accessibilityLabel("Route details")
+                            .accessibilityLabel(T.string("settings.routes.routeDetailsA11y"))
                         }
                     }
                 }

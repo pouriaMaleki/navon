@@ -5,7 +5,7 @@ struct RoutePlannerSettingsView: View {
 
     var body: some View {
         Form {
-            Section("Defaults") {
+            Section(T.string("settings.routePlanner.defaults.section")) {
                 Picker("Default route source", selection: Binding(
                     get: { appModel.routePlannerPreferences.defaultSourceMode },
                     set: { newValue in
@@ -50,7 +50,7 @@ struct RoutePlannerSettingsView: View {
             Section {
                 Stepper(value: $appModel.settings.cyclingSpeedKph, in: 5...50, step: 1) {
                     HStack {
-                        Text("Cycling speed")
+                        Text(T.string("settings.routePlanner.cyclingSpeed"))
                         Spacer()
                         Text("\(Int(appModel.settings.cyclingSpeedKph.rounded())) kph")
                             .foregroundStyle(.secondary)
@@ -62,9 +62,9 @@ struct RoutePlannerSettingsView: View {
                     }
                 }
             } header: {
-                Text("Riding")
+                Text(T.string("settings.routePlanner.riding.section"))
             } footer: {
-                Text("Cycling speed overrides HSL ETAs (Digitransit defaults to a slow bike speed). Speed unit is how the live-speed badge is shown on the map.")
+                Text(T.string("settings.routePlanner.riding.footnote"))
                     .font(.footnote)
             }
 
@@ -74,10 +74,10 @@ struct RoutePlannerSettingsView: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
             } header: {
-                Text("HSL Digitransit")
+                Text(T.string("settings.routePlanner.hsl.section"))
             } footer: {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across the Helsinki metro area. The key is free — sign in at the portal, register an app, and copy the subscription key into the field above. Outside the Helsinki area, leave HSL off and the planner uses OSM routing globally.")
+                    Text(T.string("settings.routePlanner.hsl.description"))
                     Link("Open the Digitransit portal", destination: URL(string: "https://portal-api.digitransit.fi/")!)
                 }
                 .font(.footnote)

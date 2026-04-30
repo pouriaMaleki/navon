@@ -3,6 +3,7 @@
     <string name="common_cancel" formatted="false">Batal</string>
     <string name="common_cancel_role" formatted="false">Batal</string>
     <string name="common_close" formatted="false">Tutup</string>
+    <string name="common_dismiss" formatted="false">Tutup</string>
     <string name="common_forget" formatted="false">Lupakan</string>
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">Anda telah tiba di tujuan Anda</string>
@@ -32,13 +33,27 @@
     <string name="cue_turn50m_right" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kanan</string>
     <string name="cue_turn50m_uturn" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, putar balik (U-turn)</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} menuju {destination}</string>
+    <string name="home_a11y_clearDestination" formatted="false">Hapus tujuan</string>
+    <string name="home_a11y_currentSpeed" formatted="false">Kecepatan saat ini</string>
+    <string name="home_a11y_findAlternates" formatted="false">Cari rute alternatif</string>
+    <string name="home_a11y_locating" formatted="false">Sedang melacak Anda</string>
+    <string name="home_a11y_locationBlocked" formatted="false">Lokasi diblokir</string>
+    <string name="home_a11y_recenterMap" formatted="false">Pusatkan ulang peta</string>
+    <string name="home_a11y_settings" formatted="false">Pengaturan</string>
     <string name="home_importedRoute" formatted="false">Rute yang diimpor</string>
+    <string name="home_iosLocationHint" formatted="false">Buka Pengaturan iOS → Privasi → Lokasi untuk mengubah aplikasi ini menjadi \"Selalu\".</string>
+    <string name="home_linkFailed" formatted="false">Tidak dapat membuka tautan itu</string>
     <string name="home_noSuggestions" formatted="false">Belum ada saran…</string>
     <string name="home_openSettings" formatted="false">Pengaturan</string>
     <string name="home_platformHint_locationDefault" formatted="false">Anda akan diminta memberikan izin lokasi. Izinkan agar panduan tetap melacak posisi Anda saat aplikasi berada di latar belakang.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">Safari di iPhone tidak memberikan GPS latar belakang yang benar. Tetap aktifkan tab dan nyalakan layar agar pembaruan lokasi terus berlanjut saat Anda bersepeda.</string>
     <string name="home_recenter" formatted="false">Pusatkan ulang</string>
+    <string name="home_resolvingLink" formatted="false">Menyelesaikan tautan…</string>
+    <string name="home_resolvingLinkSubtitle" formatted="false">Mengikuti URL menuju tujuan. Ini bisa memakan waktu beberapa detik.</string>
+    <string name="home_routeActiveOnDevice" formatted="false">Rute aktif di perangkat</string>
     <string name="home_routeOptions" formatted="false">Opsi rute</string>
+    <string name="home_routingFinished" formatted="false">Perutean selesai. Ketuk tujuan untuk merencanakan lagi.</string>
+    <string name="home_sendingPercent" formatted="false">Mengirim {percent, number}%</string>
     <string name="home_start" formatted="false">Mulai</string>
     <string name="home_startOnDevice" formatted="false">Mulai di perangkat</string>
     <string name="home_startRoute" formatted="false">Mulai rute</string>
@@ -48,9 +63,29 @@
     <string name="home_suggestedRoutes" formatted="false">Rute yang disarankan</string>
     <string name="home_whereTo" formatted="false">Tujuan?</string>
     <string name="home_workingOnRoute" formatted="false">Menyusun rute</string>
+    <string name="importDiagnostics_copyDebugInfo" formatted="false">Salin info debug</string>
+    <string name="importDiagnostics_retry" formatted="false">Coba impor lagi</string>
+    <string name="importDiagnostics_sharePackage" formatted="false">Bagikan paket debug</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Diagnostik impor Companion</string>
+    <string name="pairing_alignQr" formatted="false">Sejajarkan kode QR di dalam bingkai</string>
+    <string name="pairing_cameraDenied" formatted="false">Akses kamera diperlukan untuk memindai kode pasangan.</string>
+    <string name="pairing_cancel" formatted="false">Batal</string>
+    <string name="pairing_failed" formatted="false">Gagal melakukan pairing</string>
+    <string name="pairing_intro" formatted="false">Pegang ponsel Anda agar layar perangkat terlihat dalam bingkai, lalu ketuk Mulai saat Anda melihat kode QR.</string>
+    <string name="pairing_openSettings" formatted="false">Buka Pengaturan</string>
+    <string name="pairing_paired" formatted="false">Berhasil dipasangkan</string>
+    <string name="pairing_scanInstruction" formatted="false">Pusatkan kode QR di dalam bingkai dan tahan dengan stabil.</string>
+    <string name="pairing_start" formatted="false">Mulai</string>
+    <string name="pairing_title" formatted="false">Pasangkan perangkat</string>
     <string name="planning_cyclingAlternatives" formatted="false">Alternatif bersepeda via BRouter + OSRM</string>
     <string name="planning_cyclingAlternativesWithFailures" formatted="false">Alternatif bersepeda — {failedCount, number} {failedCount, select, one {source} other {sources}} tidak tersedia</string>
     <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">Rute campuran dari HSL dan OSM</string>
+    <string name="routeDetail_geometryPoints" formatted="false">Titik geometri: {count, number}</string>
+    <string name="routeDetail_maneuverCount" formatted="false">Manuver: {count, number}</string>
+    <string name="routeDetail_open" formatted="false">Buka</string>
+    <string name="routeDetail_section_actions" formatted="false">Aksi</string>
+    <string name="routeDetail_section_route" formatted="false">Rute</string>
+    <string name="routeDetail_title" formatted="false">Rute</string>
     <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">Diperlukan untuk isyarat audio dan aktivitas langsung</string>
     <string name="settings_activity_allowBackgroundGps_title" formatted="false">Izinkan GPS di latar belakang</string>
     <string name="settings_activity_audioCues_subtitle" formatted="false">Ucapkan petunjuk belok demi belok saat perutean</string>
@@ -63,6 +98,16 @@
     <string name="settings_activity_liveActivity_title" formatted="false">Aktivitas langsung di layar kunci</string>
     <string name="settings_activity_title" formatted="false">Pengaturan Aktivitas</string>
     <string name="settings_device_connect" formatted="false">Hubungkan</string>
+    <string name="settings_device_connection_lastDevice" formatted="false">Perangkat terakhir: {name}</string>
+    <string name="settings_device_connection_section" formatted="false">Koneksi</string>
+    <string name="settings_device_connection_state" formatted="false">Status: {state}</string>
+    <string name="settings_device_connection_status" formatted="false">Status: {status}</string>
+    <string name="settings_device_connection_sync" formatted="false">Sinkronisasi: {state}</string>
+    <string name="settings_device_diagnostics_armDisconnect" formatted="false">Putuskan setelah penulisan chunk berikutnya</string>
+    <string name="settings_device_diagnostics_armDropStatus" formatted="false">Jatuhkan frame status masuk berikutnya</string>
+    <string name="settings_device_diagnostics_armRetryable" formatted="false">Atur gangguan yang dapat dicoba ulang</string>
+    <string name="settings_device_diagnostics_armWriteFailure" formatted="false">Atur kegagalan penulisan</string>
+    <string name="settings_device_diagnostics_section" formatted="false">Diagnostik</string>
     <string name="settings_device_disconnect" formatted="false">Putuskan</string>
     <string name="settings_device_forget" formatted="false">Lupakan perangkat yang dipasangkan</string>
     <string name="settings_device_forget_confirmMessage" formatted="false">Anda perlu memindai kode pasangan lagi untuk menggunakannya. Riwayat rute Anda tetap ada.</string>
@@ -72,6 +117,12 @@
     <string name="settings_device_pairedDevice_section" formatted="false">Perangkat yang dipasangkan</string>
     <string name="settings_device_reconnecting" formatted="false">Menyambungkan kembali…</string>
     <string name="settings_device_title" formatted="false">Perangkat</string>
+    <string name="settings_device_transfer_activeRoute" formatted="false">Rute aktif: {id}</string>
+    <string name="settings_device_transfer_clearActive" formatted="false">Hapus rute aktif</string>
+    <string name="settings_device_transfer_lastSync" formatted="false">Sinkronisasi terakhir: {result}</string>
+    <string name="settings_device_transfer_pendingRoute" formatted="false">Rute tertunda: {id}</string>
+    <string name="settings_device_transfer_resume" formatted="false">Lanjutkan transfer tertunda</string>
+    <string name="settings_device_transfer_section" formatted="false">Transfer</string>
     <string name="settings_distanceUnit_imperial" formatted="false">Imperial</string>
     <string name="settings_distanceUnit_metric" formatted="false">Metrik</string>
     <string name="settings_distanceUnit_system" formatted="false">Sistem</string>
@@ -94,8 +145,19 @@
     <string name="settings_language_title" formatted="false">Bahasa</string>
     <string name="settings_restartRequired_message" formatted="false">Keluar dan buka kembali aplikasi untuk menerapkan bahasa baru.</string>
     <string name="settings_restartRequired_title" formatted="false">Perlu memulai ulang</string>
+    <string name="settings_routePlanner_cyclingSpeed" formatted="false">Kecepatan bersepeda</string>
+    <string name="settings_routePlanner_defaults_section" formatted="false">Default</string>
+    <string name="settings_routePlanner_hsl_description" formatted="false">HSL adalah otoritas Transportasi Wilayah Helsinki. API Digitransit mereka menyediakan routing sepeda berkualitas tinggi di area metro Helsinki. Kuncinya gratis — masuk di portal, daftarkan aplikasi, lalu salin kunci langganan ke kolom di atas. Di luar area Helsinki, matikan HSL dan perencana menggunakan routing OSM secara global.</string>
+    <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
+    <string name="settings_routePlanner_riding_footnote" formatted="false">Kecepatan bersepeda menimpa Perkiraan Waktu Kedatangan (ETA) HSL (Digitransit default ke kecepatan sepeda yang lambat). Satuan kecepatan adalah cara lencana kecepatan langsung ditampilkan di peta.</string>
+    <string name="settings_routePlanner_riding_section" formatted="false">Bersepeda</string>
     <string name="settings_routePlanner_title" formatted="false">Perencana Rute</string>
     <string name="settings_routes_empty" formatted="false">Belum ada rute yang tersimpan</string>
+    <string name="settings_routes_import_gpx" formatted="false">Impor GPX</string>
+    <string name="settings_routes_import_section" formatted="false">Impor</string>
+    <string name="settings_routes_recent_empty" formatted="false">Belum ada rute atau tujuan terbaru.</string>
+    <string name="settings_routes_recent_section" formatted="false">Terbaru</string>
+    <string name="settings_routes_routeDetailsA11y" formatted="false">Detail rute</string>
     <string name="settings_routes_title" formatted="false">Rute</string>
     <string name="settings_speedUnit_title" formatted="false">Satuan kecepatan</string>
     <string name="settings_voiceNotInstalled" formatted="false">Suara untuk {language} belum terpasang. Buka Pengaturan sistem untuk menginstalnya.</string>

@@ -25,6 +25,14 @@
       "translatedAt": "2026-04-30T12:07:17Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "common.dismiss": {
+      "value": "Dispensar",
+      "description": "Generic destructive 'Dismiss' button label.",
+      "sourceHash": "sha256:5d865cfefd9af2cf",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "common.forget": {
       "value": "Esquecer",
       "description": "Destructive confirm-action button label paired with a 'Forget …?' alert.",
@@ -314,12 +322,84 @@
       "translatedAt": "2026-04-30T12:07:17Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "home.a11y.clearDestination": {
+      "value": "Limpar destino",
+      "description": "Accessibility label for the X button next to the search bar.",
+      "sourceHash": "sha256:07be8d9dada21836",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.currentSpeed": {
+      "value": "Velocidade atual",
+      "description": "Accessibility label for the speed badge.",
+      "sourceHash": "sha256:bdb4f22cabc74adb",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.findAlternates": {
+      "value": "Encontrar rotas alternativas",
+      "description": "Accessibility label for the alternates / refresh-routes button.",
+      "sourceHash": "sha256:6e50bb8e836c6c62",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.locating": {
+      "value": "Localizando você",
+      "description": "Accessibility label shown while the GPS spinner is active.",
+      "sourceHash": "sha256:86fa8ca7241581f3",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.locationBlocked": {
+      "value": "Localização bloqueada",
+      "description": "Accessibility label shown when the OS denied location permission.",
+      "sourceHash": "sha256:37a3a0c80ab82070",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.recenterMap": {
+      "value": "Centralizar mapa",
+      "description": "Accessibility label for the map recenter button.",
+      "sourceHash": "sha256:54eeeb1bd0613759",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.settings": {
+      "value": "Configurações",
+      "description": "Accessibility label for the Settings cog button.",
+      "sourceHash": "sha256:a9be9ad668c9801d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "home.importedRoute": {
       "value": "Rota importada",
       "description": "Header above the route alternatives card when a single route was imported from a GPX file or share-extension link.",
       "sourceHash": "sha256:ae0929596c0f8438",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.iosLocationHint": {
+      "value": "Abra as Configurações do iOS → Privacidade → Localização para mudar este app para \"Sempre\".",
+      "description": "Hint shown under 'Allow GPS in background' on iOS when the OS authorisation is still 'When in use'.",
+      "sourceHash": "sha256:10b42374ade66b4b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.linkFailed": {
+      "value": "Não foi possível abrir este link",
+      "description": "Error banner shown when a shared URL can't be resolved into a destination.",
+      "sourceHash": "sha256:5f1917a8e8bc57f6",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.noSuggestions": {
@@ -359,12 +439,55 @@
       "translatedAt": "2026-04-30T12:07:17Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "home.resolvingLink": {
+      "value": "Resolvendo link…",
+      "description": "Inline status shown while the share-extension URL is being followed.",
+      "sourceHash": "sha256:c95dba96653f4202",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.resolvingLinkSubtitle": {
+      "value": "Seguindo o link para um destino. Isso pode levar alguns segundos.",
+      "description": "Subtitle under the 'Resolving link' status.",
+      "sourceHash": "sha256:0fa748b4b587c20b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.routeActiveOnDevice": {
+      "value": "Rota ativa no dispositivo",
+      "description": "Headline shown on the device-overview card when no destination label is available.",
+      "sourceHash": "sha256:847599de96284ba9",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "home.routeOptions": {
       "value": "Opções de rota",
       "description": "Header on the route suggestions card listing alternative routes.",
       "sourceHash": "sha256:7fceb78e1875e486",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.routingFinished": {
+      "value": "Roteamento concluído. Toque em um destino para planejar novamente.",
+      "description": "Banner shown after a route ends, prompting the rider to plan another.",
+      "sourceHash": "sha256:872986997f4a3425",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.sendingPercent": {
+      "value": "Enviando {percent, number}%",
+      "description": "Transfer-progress label on the device-overview card. {percent} is the integer 0..100.",
+      "placeholders": {
+        "percent": "number"
+      },
+      "sourceHash": "sha256:652b5021d499a7c8",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.start": {
@@ -439,6 +562,118 @@
       "translatedAt": "2026-04-30T12:07:17Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "importDiagnostics.copyDebugInfo": {
+      "value": "Copiar informações de depuração",
+      "description": "Button that copies a per-entry debug bundle to the clipboard.",
+      "sourceHash": "sha256:9df44c1f4e7b8854",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "importDiagnostics.retry": {
+      "value": "Tentar importação novamente",
+      "description": "Button that retries an import that previously failed.",
+      "sourceHash": "sha256:7f5f67a387f7581a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "importDiagnostics.sharePackage": {
+      "value": "Compartilhar pacote de depuração",
+      "description": "Button that shares the per-entry debug bundle.",
+      "sourceHash": "sha256:db5c5951b61e1713",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "importDiagnostics.shareSubject": {
+      "value": "Diagnóstico da importação do Companion",
+      "description": "Subject of the share sheet when sharing a debug package.",
+      "sourceHash": "sha256:8888ea0458fd0d03",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.alignQr": {
+      "value": "Alinhe o código QR no quadro",
+      "description": "Hint label shown over the camera viewfinder.",
+      "sourceHash": "sha256:419ab58c05dbc85d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.cameraDenied": {
+      "value": "O acesso à câmera é necessário para escanear o código de pareamento.",
+      "description": "Hint shown when the OS has denied camera permission for pairing.",
+      "sourceHash": "sha256:9442e480a891dc6f",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.cancel": {
+      "value": "Cancelar",
+      "description": "Cancel button used throughout the pairing flow.",
+      "sourceHash": "sha256:671203b30681a298",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.failed": {
+      "value": "Falha no pareamento",
+      "description": "Failure label when pairing didn't complete.",
+      "sourceHash": "sha256:d3057525ee1035d6",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.intro": {
+      "value": "Segure o celular para que a tela do dispositivo fique no quadro e, em seguida, toque em Iniciar quando você vir o código QR.",
+      "description": "Body text on the pairing intro screen.",
+      "sourceHash": "sha256:cae0775f4e68226a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.openSettings": {
+      "value": "Abrir Configurações",
+      "description": "Button that opens the OS Settings app to grant camera permission.",
+      "sourceHash": "sha256:42f7251ffc0617bf",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.paired": {
+      "value": "Pareado",
+      "description": "Success label after the pairing handshake completes.",
+      "sourceHash": "sha256:0fa2fdb3d4e2656e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.scanInstruction": {
+      "value": "Centralize o código QR no quadro e mantenha-o estável.",
+      "description": "Instruction shown above the camera viewfinder during pairing.",
+      "sourceHash": "sha256:349588df3dc42fc4",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.start": {
+      "value": "Iniciar",
+      "description": "Primary button on the pairing intro screen — begins the QR scan.",
+      "sourceHash": "sha256:c01e80fc65d682c9",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.title": {
+      "value": "Parear um dispositivo",
+      "description": "Headline of the pairing intro screen.",
+      "sourceHash": "sha256:1ba0272cbe542fd0",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "planning.cyclingAlternatives": {
       "value": "Alternativas de ciclismo via BRouter + OSRM",
       "description": "Notice on the route alternatives card when all OSM cycling sources succeeded. BRouter and OSRM are tool/brand names and must not be translated.",
@@ -464,6 +699,60 @@
       "sourceHash": "sha256:46369a74d3f389bf",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.geometryPoints": {
+      "value": "Pontos de geometria: {count, number}",
+      "description": "Polyline geometry-point count.",
+      "placeholders": {
+        "count": "number"
+      },
+      "sourceHash": "sha256:2a69ff465217cb6d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.maneuverCount": {
+      "value": "Manobras: {count, number}",
+      "description": "Maneuver count line on the Route Detail screen.",
+      "placeholders": {
+        "count": "number"
+      },
+      "sourceHash": "sha256:c3f897ca868e34c7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.open": {
+      "value": "Abrir",
+      "description": "Button to open the route in the home view as a preview.",
+      "sourceHash": "sha256:1d28d10029a308d7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.section.actions": {
+      "value": "Ações",
+      "description": "Section header for the Route Detail action buttons.",
+      "sourceHash": "sha256:fb4446568cc2c163",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.section.route": {
+      "value": "Rota",
+      "description": "Section header on the Route Detail screen.",
+      "sourceHash": "sha256:75f94fcff4081078",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.title": {
+      "value": "Rota",
+      "description": "Navigation title of the Route Detail screen.",
+      "sourceHash": "sha256:d3c097006c34ee46",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.activity.allowBackgroundGps.subtitle": {
@@ -562,6 +851,98 @@
       "translatedAt": "2026-04-30T12:54:46Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "settings.device.connection.lastDevice": {
+      "value": "Último dispositivo: {name}",
+      "description": "Last connected device name. {name} can be 'None'.",
+      "placeholders": {
+        "name": "string"
+      },
+      "sourceHash": "sha256:85cb7812250dba14",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.section": {
+      "value": "Conexão",
+      "description": "Section header in Device → connection details.",
+      "sourceHash": "sha256:52663cc0ec225e64",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.state": {
+      "value": "Estado: {state}",
+      "description": "BLE connection state line. {state} is a raw enum string (do not translate).",
+      "placeholders": {
+        "state": "string"
+      },
+      "sourceHash": "sha256:712415c388e3de0d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.status": {
+      "value": "Status: {status}",
+      "description": "Last sync result line.",
+      "placeholders": {
+        "status": "string"
+      },
+      "sourceHash": "sha256:7450e10971de36f0",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.sync": {
+      "value": "Sincronizar: {state}",
+      "description": "Route-sync state line. {state} is a raw enum string.",
+      "placeholders": {
+        "state": "string"
+      },
+      "sourceHash": "sha256:b5b5d2cc76deb5e9",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armDisconnect": {
+      "value": "Desconectar após o próximo bloco",
+      "description": "Developer tool: disconnect after the next chunk write.",
+      "sourceHash": "sha256:0d09b64d290c71b7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armDropStatus": {
+      "value": "Descartar o próximo status BLE recebido",
+      "description": "Developer tool: drop the next inbound BLE status frame.",
+      "sourceHash": "sha256:585e1c7b44762d0d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armRetryable": {
+      "value": "Acionar interrupção reexecutável",
+      "description": "Developer tool: arm a retryable interruption on next BLE transfer.",
+      "sourceHash": "sha256:f70eee8b93507c1b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armWriteFailure": {
+      "value": "Falha na gravação",
+      "description": "Developer tool: arm a write failure on next BLE transfer.",
+      "sourceHash": "sha256:4eebac44525eabb5",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.section": {
+      "value": "Diagnósticos",
+      "description": "Section header for the Device → developer diagnostics tools.",
+      "sourceHash": "sha256:970f7ee42bcb3142",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "settings.device.disconnect": {
       "value": "Desconectar",
       "description": "Button to disconnect from the currently-connected device.",
@@ -635,6 +1016,63 @@
       "sourceHash": "sha256:da8810f3f85d575c",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:54:46Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.activeRoute": {
+      "value": "Rota ativa: {id}",
+      "description": "Active route identifier line.",
+      "placeholders": {
+        "id": "string"
+      },
+      "sourceHash": "sha256:3911ff05b3f55ef5",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.clearActive": {
+      "value": "Limpar rota ativa",
+      "description": "Destructive action to clear the active route on the device.",
+      "sourceHash": "sha256:42e9bf016d8c5faa",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.lastSync": {
+      "value": "Última sincronização: {result}",
+      "description": "Last transfer-sync result line.",
+      "placeholders": {
+        "result": "string"
+      },
+      "sourceHash": "sha256:ee99fbe402633bb1",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.pendingRoute": {
+      "value": "Rota pendente: {id}",
+      "description": "Pending route identifier line.",
+      "placeholders": {
+        "id": "string"
+      },
+      "sourceHash": "sha256:ab833cdc192ff7f5",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.resume": {
+      "value": "Retomar transferência pendente",
+      "description": "Resume the pending transfer button.",
+      "sourceHash": "sha256:915ee89c77029a67",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.section": {
+      "value": "Transferência",
+      "description": "Section header in Device → transfer details.",
+      "sourceHash": "sha256:79fc3b4f704d4133",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.distanceUnit.imperial": {
@@ -816,6 +1254,54 @@
       "translatedAt": "2026-04-30T12:07:17Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "settings.routePlanner.cyclingSpeed": {
+      "value": "Velocidade de ciclismo",
+      "description": "Stepper label for the rider's planning speed in km/h.",
+      "sourceHash": "sha256:a40c1fc657cab83f",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.defaults.section": {
+      "value": "Padrões",
+      "description": "Section header on the Route Planner page for defaults.",
+      "sourceHash": "sha256:f34661d1aca1bfca",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.hsl.description": {
+      "value": "HSL é a autoridade de transporte da Região de Helsinque. Sua API Digitransit fornece roteamento de bicicleta de alta qualidade em toda a área metropolitana de Helsinque. A chave é gratuita — faça login no portal, registre um aplicativo e copie a chave de assinatura no campo acima. Fora da área de Helsinque, deixe HSL desativado e o planejador usa roteamento OSM globalmente.",
+      "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
+      "sourceHash": "sha256:c973b6517ed52a36",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.hsl.section": {
+      "value": "HSL Digitransit",
+      "description": "Section header for HSL Digitransit settings. HSL and Digitransit are brand names — do not translate.",
+      "sourceHash": "sha256:31385ebaa6108124",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.riding.footnote": {
+      "value": "A velocidade de ciclismo substitui as estimativas de chegada da HSL (ETAs) (Digitransit usa uma velocidade de bicicleta lenta por padrão). A unidade de velocidade é como o crachá de velocidade em tempo real é exibido no mapa.",
+      "description": "Footnote under the Riding section explaining cycling-speed override.",
+      "sourceHash": "sha256:960116f0c5ca12cd",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.riding.section": {
+      "value": "Pedalar",
+      "description": "Section header on the Route Planner page for ride-related defaults.",
+      "sourceHash": "sha256:835b2500778a1a7b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "settings.routePlanner.title": {
       "value": "Planejador de Rotas",
       "description": "Navigation title of the Route Planner settings page.",
@@ -830,6 +1316,46 @@
       "sourceHash": "sha256:f19af0a8b06aebc0",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:54:46Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.import.gpx": {
+      "value": "Importar GPX",
+      "description": "Button that opens the document picker to import a GPX file.",
+      "sourceHash": "sha256:fee4579d09a46708",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.import.section": {
+      "value": "Importar",
+      "description": "Section header on the Routes page for the GPX import button.",
+      "sourceHash": "sha256:19567a673f930cab",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.recent.empty": {
+      "value": "Nenhuma rota ou destino recente ainda.",
+      "description": "Empty state for the Recent section on the Routes page.",
+      "sourceHash": "sha256:34fd155d8ef9b7b7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.recent.section": {
+      "value": "Recentes",
+      "description": "Section header for the recent routes list.",
+      "sourceHash": "sha256:c78de402a1e9a86e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.routeDetailsA11y": {
+      "value": "Detalhes da rota",
+      "description": "Accessibility label for the chevron that opens a route's detail.",
+      "sourceHash": "sha256:4e64a7785e21506a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:58Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routes.title": {

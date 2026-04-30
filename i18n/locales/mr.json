@@ -25,6 +25,14 @@
       "translatedAt": "2026-04-30T12:06:31Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "common.dismiss": {
+      "value": "बंद करा",
+      "description": "Generic destructive 'Dismiss' button label.",
+      "sourceHash": "sha256:5d865cfefd9af2cf",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "common.forget": {
       "value": "विसरा",
       "description": "Destructive confirm-action button label paired with a 'Forget …?' alert.",
@@ -314,12 +322,84 @@
       "translatedAt": "2026-04-30T12:06:31Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "home.a11y.clearDestination": {
+      "value": "गंतव्य साफ करा",
+      "description": "Accessibility label for the X button next to the search bar.",
+      "sourceHash": "sha256:07be8d9dada21836",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.currentSpeed": {
+      "value": "सध्याचा वेग",
+      "description": "Accessibility label for the speed badge.",
+      "sourceHash": "sha256:bdb4f22cabc74adb",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.findAlternates": {
+      "value": "पर्यायी मार्ग शोधा",
+      "description": "Accessibility label for the alternates / refresh-routes button.",
+      "sourceHash": "sha256:6e50bb8e836c6c62",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.locating": {
+      "value": "तुम्हाला शोधत आहे",
+      "description": "Accessibility label shown while the GPS spinner is active.",
+      "sourceHash": "sha256:86fa8ca7241581f3",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.locationBlocked": {
+      "value": "स्थान अवरोधित आहे",
+      "description": "Accessibility label shown when the OS denied location permission.",
+      "sourceHash": "sha256:37a3a0c80ab82070",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.recenterMap": {
+      "value": "नकाशा पुन्हा मध्यभागी आणा",
+      "description": "Accessibility label for the map recenter button.",
+      "sourceHash": "sha256:54eeeb1bd0613759",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.settings": {
+      "value": "सेटिंग्ज",
+      "description": "Accessibility label for the Settings cog button.",
+      "sourceHash": "sha256:a9be9ad668c9801d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "home.importedRoute": {
       "value": "आयात केलेला मार्ग",
       "description": "Header above the route alternatives card when a single route was imported from a GPX file or share-extension link.",
       "sourceHash": "sha256:ae0929596c0f8438",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:06:31Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.iosLocationHint": {
+      "value": "iOS सेटिंग्ज उघडा → गोपनीयता → स्थान, आणि हा अॅप “Always” (नेहमी) वर स्विच करा.",
+      "description": "Hint shown under 'Allow GPS in background' on iOS when the OS authorisation is still 'When in use'.",
+      "sourceHash": "sha256:10b42374ade66b4b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.linkFailed": {
+      "value": "हा दुवा उघडता आला नाही",
+      "description": "Error banner shown when a shared URL can't be resolved into a destination.",
+      "sourceHash": "sha256:5f1917a8e8bc57f6",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.noSuggestions": {
@@ -359,12 +439,55 @@
       "translatedAt": "2026-04-30T12:06:31Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "home.resolvingLink": {
+      "value": "दुवा शोधत आहे…",
+      "description": "Inline status shown while the share-extension URL is being followed.",
+      "sourceHash": "sha256:c95dba96653f4202",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.resolvingLinkSubtitle": {
+      "value": "गंतव्याकडे दुवा अनुसरत आहे. यास काही सेकंद लागू शकतात.",
+      "description": "Subtitle under the 'Resolving link' status.",
+      "sourceHash": "sha256:0fa748b4b587c20b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.routeActiveOnDevice": {
+      "value": "डिव्हाइसवर मार्ग सक्रिय",
+      "description": "Headline shown on the device-overview card when no destination label is available.",
+      "sourceHash": "sha256:847599de96284ba9",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "home.routeOptions": {
       "value": "मार्ग पर्याय",
       "description": "Header on the route suggestions card listing alternative routes.",
       "sourceHash": "sha256:7fceb78e1875e486",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:06:31Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.routingFinished": {
+      "value": "रूटिंग पूर्ण झाले. पुन्हा नियोजनासाठी गंतव्यावर टॅप करा.",
+      "description": "Banner shown after a route ends, prompting the rider to plan another.",
+      "sourceHash": "sha256:872986997f4a3425",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.sendingPercent": {
+      "value": "{percent, number}% पाठवत आहे",
+      "description": "Transfer-progress label on the device-overview card. {percent} is the integer 0..100.",
+      "placeholders": {
+        "percent": "number"
+      },
+      "sourceHash": "sha256:652b5021d499a7c8",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.start": {
@@ -439,6 +562,118 @@
       "translatedAt": "2026-04-30T12:06:31Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "importDiagnostics.copyDebugInfo": {
+      "value": "डिबग माहिती कॉपी करा",
+      "description": "Button that copies a per-entry debug bundle to the clipboard.",
+      "sourceHash": "sha256:9df44c1f4e7b8854",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "importDiagnostics.retry": {
+      "value": "पुन्हा आयात करा",
+      "description": "Button that retries an import that previously failed.",
+      "sourceHash": "sha256:7f5f67a387f7581a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "importDiagnostics.sharePackage": {
+      "value": "डिबग पॅकेज शेअर करा",
+      "description": "Button that shares the per-entry debug bundle.",
+      "sourceHash": "sha256:db5c5951b61e1713",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "importDiagnostics.shareSubject": {
+      "value": "कंपॅनियन आयात निदान",
+      "description": "Subject of the share sheet when sharing a debug package.",
+      "sourceHash": "sha256:8888ea0458fd0d03",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.alignQr": {
+      "value": "फ्रेममध्ये QR कोड सरळ करा",
+      "description": "Hint label shown over the camera viewfinder.",
+      "sourceHash": "sha256:419ab58c05dbc85d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.cameraDenied": {
+      "value": "जोडणी कोड स्कॅन करण्यासाठी कॅमेरा प्रवेश आवश्यक आहे.",
+      "description": "Hint shown when the OS has denied camera permission for pairing.",
+      "sourceHash": "sha256:9442e480a891dc6f",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.cancel": {
+      "value": "रद्द करा",
+      "description": "Cancel button used throughout the pairing flow.",
+      "sourceHash": "sha256:671203b30681a298",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.failed": {
+      "value": "जोडणी अयशस्वी",
+      "description": "Failure label when pairing didn't complete.",
+      "sourceHash": "sha256:d3057525ee1035d6",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.intro": {
+      "value": "फोन डिव्हाइसच्या स्क्रीनचा भाग फ्रेममध्ये येईल अशा प्रकारे धरा, आणि QR कोड दिसल्यावर Start वर टॅप करा.",
+      "description": "Body text on the pairing intro screen.",
+      "sourceHash": "sha256:cae0775f4e68226a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.openSettings": {
+      "value": "सेटिंग्ज उघडा",
+      "description": "Button that opens the OS Settings app to grant camera permission.",
+      "sourceHash": "sha256:42f7251ffc0617bf",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.paired": {
+      "value": "जोडले गेले",
+      "description": "Success label after the pairing handshake completes.",
+      "sourceHash": "sha256:0fa2fdb3d4e2656e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.scanInstruction": {
+      "value": "QR कोड फ्रेमच्या मध्यभागी ठेवा आणि स्थिर धरा.",
+      "description": "Instruction shown above the camera viewfinder during pairing.",
+      "sourceHash": "sha256:349588df3dc42fc4",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.start": {
+      "value": "Start",
+      "description": "Primary button on the pairing intro screen — begins the QR scan.",
+      "sourceHash": "sha256:c01e80fc65d682c9",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.title": {
+      "value": "डिव्हाइस जोडा",
+      "description": "Headline of the pairing intro screen.",
+      "sourceHash": "sha256:1ba0272cbe542fd0",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "planning.cyclingAlternatives": {
       "value": "BRouter + OSRM द्वारे सायकलिंग पर्याय",
       "description": "Notice on the route alternatives card when all OSM cycling sources succeeded. BRouter and OSRM are tool/brand names and must not be translated.",
@@ -464,6 +699,60 @@
       "sourceHash": "sha256:46369a74d3f389bf",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:06:31Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.geometryPoints": {
+      "value": "भूमिती बिंदू: {count, number}",
+      "description": "Polyline geometry-point count.",
+      "placeholders": {
+        "count": "number"
+      },
+      "sourceHash": "sha256:2a69ff465217cb6d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.maneuverCount": {
+      "value": "चाल: {count, number}",
+      "description": "Maneuver count line on the Route Detail screen.",
+      "placeholders": {
+        "count": "number"
+      },
+      "sourceHash": "sha256:c3f897ca868e34c7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.open": {
+      "value": "उघडा",
+      "description": "Button to open the route in the home view as a preview.",
+      "sourceHash": "sha256:1d28d10029a308d7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.section.actions": {
+      "value": "कृती",
+      "description": "Section header for the Route Detail action buttons.",
+      "sourceHash": "sha256:fb4446568cc2c163",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.section.route": {
+      "value": "मार्ग",
+      "description": "Section header on the Route Detail screen.",
+      "sourceHash": "sha256:75f94fcff4081078",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.title": {
+      "value": "मार्ग",
+      "description": "Navigation title of the Route Detail screen.",
+      "sourceHash": "sha256:d3c097006c34ee46",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.activity.allowBackgroundGps.subtitle": {
@@ -562,6 +851,98 @@
       "translatedAt": "2026-04-30T12:54:37Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "settings.device.connection.lastDevice": {
+      "value": "शेवटचे डिव्हाइस: {name}",
+      "description": "Last connected device name. {name} can be 'None'.",
+      "placeholders": {
+        "name": "string"
+      },
+      "sourceHash": "sha256:85cb7812250dba14",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.section": {
+      "value": "कनेक्शन",
+      "description": "Section header in Device → connection details.",
+      "sourceHash": "sha256:52663cc0ec225e64",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.state": {
+      "value": "स्थिती: {state}",
+      "description": "BLE connection state line. {state} is a raw enum string (do not translate).",
+      "placeholders": {
+        "state": "string"
+      },
+      "sourceHash": "sha256:712415c388e3de0d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.status": {
+      "value": "स्थिती: {status}",
+      "description": "Last sync result line.",
+      "placeholders": {
+        "status": "string"
+      },
+      "sourceHash": "sha256:7450e10971de36f0",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.sync": {
+      "value": "सिंक: {state}",
+      "description": "Route-sync state line. {state} is a raw enum string.",
+      "placeholders": {
+        "state": "string"
+      },
+      "sourceHash": "sha256:b5b5d2cc76deb5e9",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armDisconnect": {
+      "value": "चंक लिहिल्यानंतर डिसकनेक्ट करा",
+      "description": "Developer tool: disconnect after the next chunk write.",
+      "sourceHash": "sha256:0d09b64d290c71b7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armDropStatus": {
+      "value": "पुढील इनबाउंड BLE स्टेटस फ्रेम ड्रॉप करा",
+      "description": "Developer tool: drop the next inbound BLE status frame.",
+      "sourceHash": "sha256:585e1c7b44762d0d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armRetryable": {
+      "value": "पुढील BLE ट्रान्सफरवर रीट्राय-योग्य व्यत्यय द्या",
+      "description": "Developer tool: arm a retryable interruption on next BLE transfer.",
+      "sourceHash": "sha256:f70eee8b93507c1b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armWriteFailure": {
+      "value": "पुढील BLE ट्रान्सफरवर लेखन अपयश द्या",
+      "description": "Developer tool: arm a write failure on next BLE transfer.",
+      "sourceHash": "sha256:4eebac44525eabb5",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.section": {
+      "value": "डायग्नॉस्टिक्स",
+      "description": "Section header for the Device → developer diagnostics tools.",
+      "sourceHash": "sha256:970f7ee42bcb3142",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "settings.device.disconnect": {
       "value": "तोडा",
       "description": "Button to disconnect from the currently-connected device.",
@@ -635,6 +1016,63 @@
       "sourceHash": "sha256:da8810f3f85d575c",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:54:37Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.activeRoute": {
+      "value": "सक्रिय मार्ग: {id}",
+      "description": "Active route identifier line.",
+      "placeholders": {
+        "id": "string"
+      },
+      "sourceHash": "sha256:3911ff05b3f55ef5",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.clearActive": {
+      "value": "सक्रिय मार्ग साफ करा",
+      "description": "Destructive action to clear the active route on the device.",
+      "sourceHash": "sha256:42e9bf016d8c5faa",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.lastSync": {
+      "value": "शेवटचा सिंक: {result}",
+      "description": "Last transfer-sync result line.",
+      "placeholders": {
+        "result": "string"
+      },
+      "sourceHash": "sha256:ee99fbe402633bb1",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.pendingRoute": {
+      "value": "प्रलंबित मार्ग: {id}",
+      "description": "Pending route identifier line.",
+      "placeholders": {
+        "id": "string"
+      },
+      "sourceHash": "sha256:ab833cdc192ff7f5",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.resume": {
+      "value": "प्रलंबित ट्रान्सफर पुन्हा सुरू करा",
+      "description": "Resume the pending transfer button.",
+      "sourceHash": "sha256:915ee89c77029a67",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.section": {
+      "value": "ट्रान्सफर",
+      "description": "Section header in Device → transfer details.",
+      "sourceHash": "sha256:79fc3b4f704d4133",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.distanceUnit.imperial": {
@@ -816,6 +1254,54 @@
       "translatedAt": "2026-04-30T12:06:31Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "settings.routePlanner.cyclingSpeed": {
+      "value": "सायकलिंग वेग",
+      "description": "Stepper label for the rider's planning speed in km/h.",
+      "sourceHash": "sha256:a40c1fc657cab83f",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.defaults.section": {
+      "value": "डीफॉल्ट्स",
+      "description": "Section header on the Route Planner page for defaults.",
+      "sourceHash": "sha256:f34661d1aca1bfca",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.hsl.description": {
+      "value": "HSL हे हेलसिंकी प्रदेश परिवहन प्राधिकरण आहे. त्यांचे Digitransit API हेलसिंकी महानगर परिसरात उच्च-गुणवत्तेचे सायकल रूटिंग देते. की मोफत आहे — पोर्टलवर साइन इन करा, अॅप नोंदणी करा, आणि सबस्क्रिप्शन की वरच्या फील्डमध्ये कॉपी करा. हेलसिंकी क्षेत्राबाहेर HSL बंद ठेवा आणि प्लॅनर जागतिक स्तरावर OSM रूटिंग वापरेल.",
+      "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
+      "sourceHash": "sha256:c973b6517ed52a36",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.hsl.section": {
+      "value": "HSL Digitransit",
+      "description": "Section header for HSL Digitransit settings. HSL and Digitransit are brand names — do not translate.",
+      "sourceHash": "sha256:31385ebaa6108124",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.riding.footnote": {
+      "value": "सायकलिंग वेग HSL ETAs ओव्हरराईड करतो (Digitransit डीफॉल्टने धीम्या सायकल वेगावर सेट असते). वेगाचे युनिट म्हणजे नकाशावर लाइव्ह-वेग बॅज कसा दाखवला जातो ते.",
+      "description": "Footnote under the Riding section explaining cycling-speed override.",
+      "sourceHash": "sha256:960116f0c5ca12cd",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.riding.section": {
+      "value": "स्वारी",
+      "description": "Section header on the Route Planner page for ride-related defaults.",
+      "sourceHash": "sha256:835b2500778a1a7b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "settings.routePlanner.title": {
       "value": "रूट प्लॅनर",
       "description": "Navigation title of the Route Planner settings page.",
@@ -830,6 +1316,46 @@
       "sourceHash": "sha256:f19af0a8b06aebc0",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:54:37Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.import.gpx": {
+      "value": "GPX आयात करा",
+      "description": "Button that opens the document picker to import a GPX file.",
+      "sourceHash": "sha256:fee4579d09a46708",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.import.section": {
+      "value": "आयात",
+      "description": "Section header on the Routes page for the GPX import button.",
+      "sourceHash": "sha256:19567a673f930cab",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.recent.empty": {
+      "value": "अजून कोणतेही अलीकडचे मार्ग किंवा गंतव्य नाहीत.",
+      "description": "Empty state for the Recent section on the Routes page.",
+      "sourceHash": "sha256:34fd155d8ef9b7b7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.recent.section": {
+      "value": "अलीकडील",
+      "description": "Section header for the recent routes list.",
+      "sourceHash": "sha256:c78de402a1e9a86e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.routeDetailsA11y": {
+      "value": "मार्ग तपशील",
+      "description": "Accessibility label for the chevron that opens a route's detail.",
+      "sourceHash": "sha256:4e64a7785e21506a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:40:32Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routes.title": {

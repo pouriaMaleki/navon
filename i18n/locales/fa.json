@@ -25,6 +25,14 @@
       "translatedAt": "2026-04-30T11:43:09Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "common.dismiss": {
+      "value": "رد کردن",
+      "description": "Generic destructive 'Dismiss' button label.",
+      "sourceHash": "sha256:5d865cfefd9af2cf",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "common.forget": {
       "value": "فراموش کن",
       "description": "Destructive confirm-action button label paired with a 'Forget …?' alert.",
@@ -314,12 +322,84 @@
       "translatedAt": "2026-04-30T11:43:09Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "home.a11y.clearDestination": {
+      "value": "پاک کردن مقصد",
+      "description": "Accessibility label for the X button next to the search bar.",
+      "sourceHash": "sha256:07be8d9dada21836",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.currentSpeed": {
+      "value": "سرعت فعلی",
+      "description": "Accessibility label for the speed badge.",
+      "sourceHash": "sha256:bdb4f22cabc74adb",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.findAlternates": {
+      "value": "یافتن مسیرهای جایگزین",
+      "description": "Accessibility label for the alternates / refresh-routes button.",
+      "sourceHash": "sha256:6e50bb8e836c6c62",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.locating": {
+      "value": "موقعیت شما را پیدا می‌کنم",
+      "description": "Accessibility label shown while the GPS spinner is active.",
+      "sourceHash": "sha256:86fa8ca7241581f3",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.locationBlocked": {
+      "value": "موقعیت مسدود است",
+      "description": "Accessibility label shown when the OS denied location permission.",
+      "sourceHash": "sha256:37a3a0c80ab82070",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.recenterMap": {
+      "value": "بازمرکز کردن نقشه",
+      "description": "Accessibility label for the map recenter button.",
+      "sourceHash": "sha256:54eeeb1bd0613759",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.settings": {
+      "value": "تنظیمات",
+      "description": "Accessibility label for the Settings cog button.",
+      "sourceHash": "sha256:a9be9ad668c9801d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "home.importedRoute": {
       "value": "مسیر واردشده",
       "description": "Header above the route alternatives card when a single route was imported from a GPX file or share-extension link.",
       "sourceHash": "sha256:ae0929596c0f8438",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T11:43:09Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.iosLocationHint": {
+      "value": "برای تغییر این برنامه به «همیشه»، تنظیمات iOS را باز کنید: Privacy → Location.",
+      "description": "Hint shown under 'Allow GPS in background' on iOS when the OS authorisation is still 'When in use'.",
+      "sourceHash": "sha256:10b42374ade66b4b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.linkFailed": {
+      "value": "باز کردن این لینک ممکن نشد",
+      "description": "Error banner shown when a shared URL can't be resolved into a destination.",
+      "sourceHash": "sha256:5f1917a8e8bc57f6",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.noSuggestions": {
@@ -359,12 +439,55 @@
       "translatedAt": "2026-04-30T11:43:09Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "home.resolvingLink": {
+      "value": "در حال حل لینک…",
+      "description": "Inline status shown while the share-extension URL is being followed.",
+      "sourceHash": "sha256:c95dba96653f4202",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.resolvingLinkSubtitle": {
+      "value": "در حال دنبال کردن لینک برای رسیدن به مقصد. ممکن است چند ثانیه طول بکشد.",
+      "description": "Subtitle under the 'Resolving link' status.",
+      "sourceHash": "sha256:0fa748b4b587c20b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.routeActiveOnDevice": {
+      "value": "مسیر روی دستگاه فعال است",
+      "description": "Headline shown on the device-overview card when no destination label is available.",
+      "sourceHash": "sha256:847599de96284ba9",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "home.routeOptions": {
       "value": "گزینه‌های مسیر",
       "description": "Header on the route suggestions card listing alternative routes.",
       "sourceHash": "sha256:7fceb78e1875e486",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T11:43:09Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.routingFinished": {
+      "value": "مسیر تمام شد. برای برنامه‌ریزی دوباره، یک مقصد را لمس کنید.",
+      "description": "Banner shown after a route ends, prompting the rider to plan another.",
+      "sourceHash": "sha256:872986997f4a3425",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.sendingPercent": {
+      "value": "در حال ارسال {percent, number}%",
+      "description": "Transfer-progress label on the device-overview card. {percent} is the integer 0..100.",
+      "placeholders": {
+        "percent": "number"
+      },
+      "sourceHash": "sha256:652b5021d499a7c8",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.start": {
@@ -439,6 +562,118 @@
       "translatedAt": "2026-04-30T11:43:09Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "importDiagnostics.copyDebugInfo": {
+      "value": "کپی اطلاعات دیباگ",
+      "description": "Button that copies a per-entry debug bundle to the clipboard.",
+      "sourceHash": "sha256:9df44c1f4e7b8854",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "importDiagnostics.retry": {
+      "value": "تلاش دوباره برای وارد کردن",
+      "description": "Button that retries an import that previously failed.",
+      "sourceHash": "sha256:7f5f67a387f7581a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "importDiagnostics.sharePackage": {
+      "value": "اشتراک‌گذاری بسته دیباگ",
+      "description": "Button that shares the per-entry debug bundle.",
+      "sourceHash": "sha256:db5c5951b61e1713",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "importDiagnostics.shareSubject": {
+      "value": "تشخیص وارد کردن Companion",
+      "description": "Subject of the share sheet when sharing a debug package.",
+      "sourceHash": "sha256:8888ea0458fd0d03",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.alignQr": {
+      "value": "کد QR را داخل کادر هم‌راستا کنید",
+      "description": "Hint label shown over the camera viewfinder.",
+      "sourceHash": "sha256:419ab58c05dbc85d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.cameraDenied": {
+      "value": "برای اسکن کد جفت‌سازی، دسترسی به دوربین لازم است.",
+      "description": "Hint shown when the OS has denied camera permission for pairing.",
+      "sourceHash": "sha256:9442e480a891dc6f",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.cancel": {
+      "value": "لغو",
+      "description": "Cancel button used throughout the pairing flow.",
+      "sourceHash": "sha256:671203b30681a298",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.failed": {
+      "value": "جفت‌سازی انجام نشد",
+      "description": "Failure label when pairing didn't complete.",
+      "sourceHash": "sha256:d3057525ee1035d6",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.intro": {
+      "value": "گوشی‌تان را طوری نگه دارید که صفحه‌نمایش دستگاه داخل کادر باشد، سپس وقتی کد QR را دیدید روی Start بزنید.",
+      "description": "Body text on the pairing intro screen.",
+      "sourceHash": "sha256:cae0775f4e68226a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.openSettings": {
+      "value": "باز کردن تنظیمات",
+      "description": "Button that opens the OS Settings app to grant camera permission.",
+      "sourceHash": "sha256:42f7251ffc0617bf",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.paired": {
+      "value": "جفت شد",
+      "description": "Success label after the pairing handshake completes.",
+      "sourceHash": "sha256:0fa2fdb3d4e2656e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.scanInstruction": {
+      "value": "کد QR را در مرکز کادر قرار دهید و ثابت نگه دارید.",
+      "description": "Instruction shown above the camera viewfinder during pairing.",
+      "sourceHash": "sha256:349588df3dc42fc4",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.start": {
+      "value": "شروع",
+      "description": "Primary button on the pairing intro screen — begins the QR scan.",
+      "sourceHash": "sha256:c01e80fc65d682c9",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.title": {
+      "value": "یک دستگاه را جفت کنید",
+      "description": "Headline of the pairing intro screen.",
+      "sourceHash": "sha256:1ba0272cbe542fd0",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "planning.cyclingAlternatives": {
       "value": "گزینه‌های مسیر دوچرخه‌سواری از طریق BRouter + OSRM",
       "description": "Notice on the route alternatives card when all OSM cycling sources succeeded. BRouter and OSRM are tool/brand names and must not be translated.",
@@ -464,6 +699,60 @@
       "sourceHash": "sha256:46369a74d3f389bf",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T11:43:09Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.geometryPoints": {
+      "value": "نقاط هندسی: {count, number}",
+      "description": "Polyline geometry-point count.",
+      "placeholders": {
+        "count": "number"
+      },
+      "sourceHash": "sha256:2a69ff465217cb6d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.maneuverCount": {
+      "value": "مانورها: {count, number}",
+      "description": "Maneuver count line on the Route Detail screen.",
+      "placeholders": {
+        "count": "number"
+      },
+      "sourceHash": "sha256:c3f897ca868e34c7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.open": {
+      "value": "باز کردن",
+      "description": "Button to open the route in the home view as a preview.",
+      "sourceHash": "sha256:1d28d10029a308d7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.section.actions": {
+      "value": "اقدامات",
+      "description": "Section header for the Route Detail action buttons.",
+      "sourceHash": "sha256:fb4446568cc2c163",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.section.route": {
+      "value": "مسیر",
+      "description": "Section header on the Route Detail screen.",
+      "sourceHash": "sha256:75f94fcff4081078",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "routeDetail.title": {
+      "value": "مسیر",
+      "description": "Navigation title of the Route Detail screen.",
+      "sourceHash": "sha256:d3c097006c34ee46",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.activity.allowBackgroundGps.subtitle": {
@@ -562,6 +851,98 @@
       "translatedAt": "2026-04-30T12:54:13Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "settings.device.connection.lastDevice": {
+      "value": "آخرین دستگاه: {name}",
+      "description": "Last connected device name. {name} can be 'None'.",
+      "placeholders": {
+        "name": "string"
+      },
+      "sourceHash": "sha256:85cb7812250dba14",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.section": {
+      "value": "اتصال",
+      "description": "Section header in Device → connection details.",
+      "sourceHash": "sha256:52663cc0ec225e64",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.state": {
+      "value": "وضعیت: {state}",
+      "description": "BLE connection state line. {state} is a raw enum string (do not translate).",
+      "placeholders": {
+        "state": "string"
+      },
+      "sourceHash": "sha256:712415c388e3de0d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.status": {
+      "value": "وضعیت: {status}",
+      "description": "Last sync result line.",
+      "placeholders": {
+        "status": "string"
+      },
+      "sourceHash": "sha256:7450e10971de36f0",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.connection.sync": {
+      "value": "همگام‌سازی: {state}",
+      "description": "Route-sync state line. {state} is a raw enum string.",
+      "placeholders": {
+        "state": "string"
+      },
+      "sourceHash": "sha256:b5b5d2cc76deb5e9",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armDisconnect": {
+      "value": "قطع اتصال بعد از نوشتنِ بخش بعدی",
+      "description": "Developer tool: disconnect after the next chunk write.",
+      "sourceHash": "sha256:0d09b64d290c71b7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armDropStatus": {
+      "value": "حذف وضعیتِ دریافتیِ بعدی",
+      "description": "Developer tool: drop the next inbound BLE status frame.",
+      "sourceHash": "sha256:585e1c7b44762d0d",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armRetryable": {
+      "value": "قطعِ قابل‌تلاشِ بعدی را فعال کن",
+      "description": "Developer tool: arm a retryable interruption on next BLE transfer.",
+      "sourceHash": "sha256:f70eee8b93507c1b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.armWriteFailure": {
+      "value": "خطای نوشتنِ بعدی را فعال کن",
+      "description": "Developer tool: arm a write failure on next BLE transfer.",
+      "sourceHash": "sha256:4eebac44525eabb5",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.diagnostics.section": {
+      "value": "عیب‌یابی",
+      "description": "Section header for the Device → developer diagnostics tools.",
+      "sourceHash": "sha256:970f7ee42bcb3142",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "settings.device.disconnect": {
       "value": "قطع اتصال",
       "description": "Button to disconnect from the currently-connected device.",
@@ -635,6 +1016,63 @@
       "sourceHash": "sha256:da8810f3f85d575c",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:54:13Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.activeRoute": {
+      "value": "مسیر فعال: {id}",
+      "description": "Active route identifier line.",
+      "placeholders": {
+        "id": "string"
+      },
+      "sourceHash": "sha256:3911ff05b3f55ef5",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.clearActive": {
+      "value": "پاک کردن مسیر فعال",
+      "description": "Destructive action to clear the active route on the device.",
+      "sourceHash": "sha256:42e9bf016d8c5faa",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.lastSync": {
+      "value": "آخرین همگام‌سازی: {result}",
+      "description": "Last transfer-sync result line.",
+      "placeholders": {
+        "result": "string"
+      },
+      "sourceHash": "sha256:ee99fbe402633bb1",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.pendingRoute": {
+      "value": "مسیر در انتظار: {id}",
+      "description": "Pending route identifier line.",
+      "placeholders": {
+        "id": "string"
+      },
+      "sourceHash": "sha256:ab833cdc192ff7f5",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.resume": {
+      "value": "ادامه انتقالِ در انتظار",
+      "description": "Resume the pending transfer button.",
+      "sourceHash": "sha256:915ee89c77029a67",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.device.transfer.section": {
+      "value": "انتقال",
+      "description": "Section header in Device → transfer details.",
+      "sourceHash": "sha256:79fc3b4f704d4133",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.distanceUnit.imperial": {
@@ -816,6 +1254,54 @@
       "translatedAt": "2026-04-30T11:43:09Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "settings.routePlanner.cyclingSpeed": {
+      "value": "سرعت دوچرخه‌سواری",
+      "description": "Stepper label for the rider's planning speed in km/h.",
+      "sourceHash": "sha256:a40c1fc657cab83f",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.defaults.section": {
+      "value": "پیش‌فرض‌ها",
+      "description": "Section header on the Route Planner page for defaults.",
+      "sourceHash": "sha256:f34661d1aca1bfca",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.hsl.description": {
+      "value": "HSL سازمان حمل‌ونقل منطقه هلسینکی است. Digitransit API آن‌ها مسیریابی باکیفیت برای دوچرخه در سراسر منطقه مترو هلسینکی ارائه می‌دهد. کلید رایگان است—در پورتال وارد شوید، یک اپ ثبت کنید و کلید اشتراک را در فیلد بالا کپی کنید. خارج از محدوده هلسینکی، HSL را خاموش بگذارید و برنامه‌ریز از مسیریابی OSM به‌صورت سراسری استفاده می‌کند.",
+      "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
+      "sourceHash": "sha256:c973b6517ed52a36",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.hsl.section": {
+      "value": "HSL Digitransit",
+      "description": "Section header for HSL Digitransit settings. HSL and Digitransit are brand names — do not translate.",
+      "sourceHash": "sha256:31385ebaa6108124",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.riding.footnote": {
+      "value": "سرعت دوچرخه‌سواری، ETAهای HSL را بازنویسی می‌کند (به‌صورت پیش‌فرض Digitransit سرعت دوچرخه کندتری در نظر می‌گیرد). واحد سرعت مشخص می‌کند که نشانگر سرعتِ زنده روی نقشه چگونه نمایش داده می‌شود.",
+      "description": "Footnote under the Riding section explaining cycling-speed override.",
+      "sourceHash": "sha256:960116f0c5ca12cd",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routePlanner.riding.section": {
+      "value": "دوچرخه‌سواری",
+      "description": "Section header on the Route Planner page for ride-related defaults.",
+      "sourceHash": "sha256:835b2500778a1a7b",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "settings.routePlanner.title": {
       "value": "برنامه‌ریز مسیر",
       "description": "Navigation title of the Route Planner settings page.",
@@ -830,6 +1316,46 @@
       "sourceHash": "sha256:f19af0a8b06aebc0",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:54:13Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.import.gpx": {
+      "value": "وارد کردن GPX",
+      "description": "Button that opens the document picker to import a GPX file.",
+      "sourceHash": "sha256:fee4579d09a46708",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.import.section": {
+      "value": "وارد کردن",
+      "description": "Section header on the Routes page for the GPX import button.",
+      "sourceHash": "sha256:19567a673f930cab",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.recent.empty": {
+      "value": "هنوز هیچ مسیر یا مقصد اخیر وجود ندارد.",
+      "description": "Empty state for the Recent section on the Routes page.",
+      "sourceHash": "sha256:34fd155d8ef9b7b7",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.recent.section": {
+      "value": "مسیرهای اخیر",
+      "description": "Section header for the recent routes list.",
+      "sourceHash": "sha256:c78de402a1e9a86e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.routes.routeDetailsA11y": {
+      "value": "جزئیات مسیر",
+      "description": "Accessibility label for the chevron that opens a route's detail.",
+      "sourceHash": "sha256:4e64a7785e21506a",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T13:38:50Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routes.title": {

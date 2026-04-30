@@ -41,16 +41,16 @@ struct PairingFlowView: View {
 
     private var instructionsStep: some View {
         VStack(spacing: 16) {
-            Text("Pair a device")
+            Text(T.string("pairing.title"))
                 .font(.title2.weight(.semibold))
-            Text("Hold your phone so the device's screen is in frame, then tap Start when you see the QR code.")
+            Text(T.string("pairing.intro"))
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
-            Button("Start") {
+            Button(T.string("pairing.start")) {
                 Task { await viewModel.enterScanningStep() }
             }
             .buttonStyle(.borderedProminent)
-            Button("Cancel", role: .cancel) {
+            Button(T.string("pairing.cancel"), role: .cancel) {
                 viewModel.cancel()
             }
         }
@@ -70,11 +70,11 @@ struct PairingFlowView: View {
                     .foregroundStyle(.red)
             }
             if viewModel.scanGuidance == .centerOnQr {
-                Text("Center the QR code in the frame and hold steady.")
+                Text(T.string("pairing.scanInstruction"))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
-            Button("Cancel", role: .cancel) {
+            Button(T.string("pairing.cancel"), role: .cancel) {
                 viewModel.cancel()
             }
         }
@@ -105,7 +105,7 @@ struct PairingFlowView: View {
             }
             VStack {
                 Spacer()
-                Text("Align the QR code in the frame")
+                Text(T.string("pairing.alignQr"))
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(.white)
                     .padding(.horizontal, 12)
@@ -131,10 +131,10 @@ struct PairingFlowView: View {
             case .connecting:
                 ProgressView("Connecting…")
             case .succeeded:
-                Label("Paired", systemImage: "checkmark.seal.fill")
+                Label(T.string("pairing.paired"), systemImage: "checkmark.seal.fill")
                     .font(.title3.weight(.semibold))
             case .failed(let message):
-                Label("Pairing failed", systemImage: "xmark.octagon.fill")
+                Label(T.string("pairing.failed"), systemImage: "xmark.octagon.fill")
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(.red)
                 Text(message)
@@ -143,7 +143,7 @@ struct PairingFlowView: View {
             default:
                 EmptyView()
             }
-            Button("Cancel", role: .cancel) {
+            Button(T.string("pairing.cancel"), role: .cancel) {
                 viewModel.cancel()
             }
         }
@@ -153,9 +153,9 @@ struct PairingFlowView: View {
         VStack(spacing: 12) {
             Image(systemName: "camera.fill")
                 .font(.largeTitle)
-            Text("Camera access is required to scan the pairing code.")
+            Text(T.string("pairing.cameraDenied"))
                 .multilineTextAlignment(.center)
-            Button("Open Settings") {
+            Button(T.string("pairing.openSettings")) {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }

@@ -325,6 +325,114 @@
         }
       }
     },
+    "common.dismiss": {
+      "comment": "Generic destructive 'Dismiss' button label.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إخفاء"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাতিল করুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schließen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "رد کردن"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sulje"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "खारिज करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutup"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "閉じる"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बंद करा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jẹ́ kúrò"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispensar"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отклонить"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مسترد کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭"
+          }
+        }
+      }
+    },
     "common.forget": {
       "comment": "Destructive confirm-action button label paired with a 'Forget …?' alert.",
       "extractionState": "manual",
@@ -3457,6 +3565,762 @@
         }
       }
     },
+    "home.a11y.clearDestination": {
+      "comment": "Accessibility label for the X button next to the search bar.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مسح الوجهة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "গন্তব্য মুছুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ziel löschen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear destination"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar destino"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "پاک کردن مقصد"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tyhjennä määränpää"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer la destination"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "गंतव्य साफ़ करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hapus tujuan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目的地をクリア"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "गंतव्य साफ करा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sọ ibi tí o ń lọ di ofo"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar destino"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистить пункт назначения"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مقام صاف کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除目的地"
+          }
+        }
+      }
+    },
+    "home.a11y.currentSpeed": {
+      "comment": "Accessibility label for the speed badge.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "السرعة الحالية"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বর্তমান গতি"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuelle Geschwindigkeit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current speed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velocidad actual"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سرعت فعلی"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nykyinen nopeus"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vitesse actuelle"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वर्तमान गति"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kecepatan saat ini"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在の速度"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सध्याचा वेग"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ìyára lọwọlọwọ"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velocidade atual"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текущая скорость"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "موجودہ رفتار"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前速度"
+          }
+        }
+      }
+    },
+    "home.a11y.findAlternates": {
+      "comment": "Accessibility label for the alternates / refresh-routes button.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ابحث عن مسارات بديلة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বিকল্প রুট খুঁজুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alternative Routen finden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find alternate routes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar rutas alternas"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "یافتن مسیرهای جایگزین"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etsi vaihtoehtoisia reittejä"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trouver des itinéraires alternatifs"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वैकल्पिक मार्ग खोजें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cari rute alternatif"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "別ルートを探す"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पर्यायी मार्ग शोधा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wá ọ̀nà míì"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encontrar rotas alternativas"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Найти альтернативные маршруты"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "متبادل راستے تلاش کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查找备选路线"
+          }
+        }
+      }
+    },
+    "home.a11y.locating": {
+      "comment": "Accessibility label shown while the GPS spinner is active.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أحدد موقعك"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনাকে খুঁজে বের করা হচ্ছে"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Position wird ermittelt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locating you"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ubicándote"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "موقعیت شما را پیدا می‌کنم"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paikannetaan sinua"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Localisation en cours"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपका पता लगाया जा रहा है"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sedang melacak Anda"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置を特定中"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "तुम्हाला शोधत आहे"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mo ń wá ibi rẹ"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Localizando você"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Определяю ваше местоположение"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آپ کو تلاش کیا جا رہا ہے"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在定位你"
+          }
+        }
+      }
+    },
+    "home.a11y.locationBlocked": {
+      "comment": "Accessibility label shown when the OS denied location permission.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الموقع محجوب"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অবস্থান ব্লক করা আছে"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standort ist blockiert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location is blocked"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La ubicación está bloqueada"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "موقعیت مسدود است"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sijainti on estetty"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Localisation bloquée"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्थान अवरुद्ध है"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokasi diblokir"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置情報がブロックされています"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्थान अवरोधित आहे"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wọ́n ti dènà ibi rẹ"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Localização bloqueada"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Местоположение заблокировано"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مقام بند ہے"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置已被阻止"
+          }
+        }
+      }
+    },
+    "home.a11y.recenterMap": {
+      "comment": "Accessibility label for the map recenter button.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أعد توسيط الخريطة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মানচিত্র আবার কেন্দ্র করুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karte zentrieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recenter map"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Centrar el mapa"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بازمرکز کردن نقشه"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keskitä kartta uudelleen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recentrer la carte"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मानचित्र फिर से केंद्रित करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pusatkan ulang peta"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地図を中央に戻す"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "नकाशा पुन्हा मध्यभागी आणा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dá maapu padà sí àárín"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Centralizar mapa"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Центрировать карту"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نقشہ دوبارہ مرکز کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新定位地图"
+          }
+        }
+      }
+    },
+    "home.a11y.settings": {
+      "comment": "Accessibility label for the Settings cog button.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الإعدادات"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সেটিংস"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تنظیمات"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asetukset"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paramètres"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेटिंग्स"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pengaturan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेटिंग्ज"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ètò"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurações"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Настройки"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ترتیبات"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置"
+          }
+        }
+      }
+    },
     "home.importedRoute": {
       "comment": "Header above the route alternatives card when a single route was imported from a GPX file or share-extension link.",
       "extractionState": "manual",
@@ -3561,6 +4425,222 @@
           "stringUnit": {
             "state": "translated",
             "value": "已导入的路线"
+          }
+        }
+      }
+    },
+    "home.iosLocationHint": {
+      "comment": "Hint shown under 'Allow GPS in background' on iOS when the OS authorisation is still 'When in use'.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "افتح إعدادات iOS → الخصوصية → الموقع لتبديل هذا التطبيق إلى \"دائمًا\"."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS সেটিংস খুলুন → Privacy → Location, যাতে এই অ্যাপটি \"Always\" করা যায়।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffne iOS-Einstellungen → Datenschutz → Standort, um diese App auf „Immer“ umzustellen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open iOS Settings → Privacy → Location to switch this app to \"Always\"."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre Ajustes de iOS → Privacidad → Ubicación para cambiar esta app a \"Siempre\"."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "برای تغییر این برنامه به «همیشه»، تنظیمات iOS را باز کنید: Privacy → Location."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avaa iOS-asetukset → Yksityisyys → Sijainti ja vaihda tämän sovelluksen asetukseksi \"Aina\"."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrez les Réglages iOS → Confidentialité → Localisation pour passer cette application en « Toujours ». "
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS सेटिंग्स खोलें → Privacy → Location ताकि इस ऐप को \"Always\" पर स्विच किया जा सके।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buka Pengaturan iOS → Privasi → Lokasi untuk mengubah aplikasi ini menjadi \"Selalu\"."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOSの設定を開く → プライバシー → 位置情報で、このアプリを「常に」に切り替えてください。"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS सेटिंग्ज उघडा → गोपनीयता → स्थान, आणि हा अॅप “Always” (नेहमी) वर स्विच करा."
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ṣí iOS Settings → Privacy → Location kí o yí app yi sí \"Always\"."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abra as Configurações do iOS → Privacidade → Localização para mudar este app para \"Sempre\"."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Откройте iOS «Настройки» → «Конфиденциальность» → «Геолокация», чтобы переключить это приложение на «Всегда»."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS سیٹنگز کھولیں → پرائیویسی → لوکیشن تاکہ اس ایپ کو \"ہمیشہ\" پر سوئچ کیا جا سکے۔"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开 iOS 设置 → 隐私 → 位置，将此应用切换为“始终”。"
+          }
+        }
+      }
+    },
+    "home.linkFailed": {
+      "comment": "Error banner shown when a shared URL can't be resolved into a destination.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّر فتح هذا الرابط"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই লিংকটি খোলা যায়নি"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konnte diesen Link nicht öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't open that link"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo abrir ese enlace"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "باز کردن این لینک ممکن نشد"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Linkkiä ei voitu avata"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d’ouvrir ce lien"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस लिंक को नहीं खोल सका"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidak dapat membuka tautan itu"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このリンクを開けませんでした"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हा दुवा उघडता आला नाही"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mi ò lè ṣí link yẹn"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível abrir este link"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось открыть эту ссылку"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اس لنک کو نہیں کھولا جا سکا"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法打开该链接"
           }
         }
       }
@@ -4105,6 +5185,330 @@
         }
       }
     },
+    "home.resolvingLink": {
+      "comment": "Inline status shown while the share-extension URL is being followed.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جارٍ حلّ الرابط…"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "লিংক সমাধান করা হচ্ছে…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link wird aufgelöst…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolving link…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolviendo enlace…"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "در حال حل لینک…"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selvitetään linkkiä…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouverture du lien…"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लिंक सुलझाया जा रहा है…"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menyelesaikan tautan…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リンクを解決中…"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "दुवा शोधत आहे…"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mo ń ṣàwárí link…"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resolvendo link…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переход по ссылке…"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لنک حل ہو رہا ہے…"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在解析链接…"
+          }
+        }
+      }
+    },
+    "home.resolvingLinkSubtitle": {
+      "comment": "Subtitle under the 'Resolving link' status.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "متابعة الرابط إلى وجهة. قد يستغرق ذلك بضع ثوانٍ."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "গন্তব্যে যাওয়ার জন্য URL অনুসরণ করা হচ্ছে। এতে কয়েক সেকেন্ড লাগতে পারে।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Link zu einem Ziel wird verfolgt. Das kann ein paar Sekunden dauern."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Following the URL to a destination. This can take a couple of seconds."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siguiendo el enlace a un destino. Esto puede tardar un par de segundos."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "در حال دنبال کردن لینک برای رسیدن به مقصد. ممکن است چند ثانیه طول بکشد."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seurataan linkkiä määränpäähän. Tämä voi kestää muutaman sekunnin."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivi de l’URL vers une destination. Cela peut prendre quelques secondes."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "गंतव्य के लिए URL फॉलो किया जा रहा है। इसमें कुछ सेकंड लग सकते हैं।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mengikuti URL menuju tujuan. Ini bisa memakan waktu beberapa detik."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目的地のURLをたどっています。数秒かかる場合があります。"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "गंतव्याकडे दुवा अनुसरत आहे. यास काही सेकंद लागू शकतात."
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mo ń tẹ̀lé link náà kí n wá ibi tí e ń lọ. E fitẹ́ gba ìṣẹ́jú díẹ̀."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seguindo o link para um destino. Isso pode levar alguns segundos."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переходим по ссылке к пункту назначения. Это может занять пару секунд."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "منزل تک URL فالو کیا جا رہا ہے۔ اس میں چند سیکنڈ لگ سکتے ہیں۔"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在跟随该链接到目的地。可能需要几秒钟。"
+          }
+        }
+      }
+    },
+    "home.routeActiveOnDevice": {
+      "comment": "Headline shown on the device-overview card when no destination label is available.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المسار نشط على الجهاز"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ডিভাইসে রুট সক্রিয়"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route ist auf dem Gerät aktiv"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route active on device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ruta activa en el dispositivo"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مسیر روی دستگاه فعال است"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reitti aktiivinen laitteella"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Itinéraire actif sur l’appareil"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डिवाइस पर रूट सक्रिय"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rute aktif di perangkat"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "端末でルートを有効にしています"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डिव्हाइसवर मार्ग सक्रिय"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ọ̀nà ti ń ṣiṣẹ lórí ẹrọ"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rota ativa no dispositivo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Маршрут активен на устройстве"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ڈیوائس پر راستہ فعال"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备上已启用路线"
+          }
+        }
+      }
+    },
     "home.routeOptions": {
       "comment": "Header on the route suggestions card listing alternative routes.",
       "extractionState": "manual",
@@ -4209,6 +5613,222 @@
           "stringUnit": {
             "state": "translated",
             "value": "路线选项"
+          }
+        }
+      }
+    },
+    "home.routingFinished": {
+      "comment": "Banner shown after a route ends, prompting the rider to plan another.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اكتمل التوجيه. اضغط على وجهة للتخطيط مرة أخرى."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রাউটিং শেষ। আবার পরিকল্পনা করতে একটি গন্তব্যে ট্যাপ করুন।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Routenplanung abgeschlossen. Tippe auf ein Ziel, um erneut zu planen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Routing finished. Tap a destination to plan again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Planificación finalizada. Toca un destino para planificar de nuevo."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مسیر تمام شد. برای برنامه‌ریزی دوباره، یک مقصد را لمس کنید."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reititys valmis. Suunnittele uudelleen napauttamalla määränpäätä."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Itinéraire terminé. Touchez une destination pour planifier à nouveau."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रूट पूरा हुआ। फिर से योजना बनाने के लिए किसी गंतव्य पर टैप करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perutean selesai. Ketuk tujuan untuk merencanakan lagi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ルート案内が完了しました。目的地をタップしてもう一度計画してください。"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रूटिंग पूर्ण झाले. पुन्हा नियोजनासाठी गंतव्यावर टॅप करा."
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Routing ti parí. Tẹ ibi tí o fẹ́ lọ kí o tún gbero."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roteamento concluído. Toque em um destino para planejar novamente."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Маршрут завершён. Нажмите на пункт назначения, чтобы проложить снова."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "راستہ مکمل ہوا۔ دوبارہ منصوبہ بنانے کے لیے منزل پر ٹیپ کریں۔"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路线已结束。点击目的地以再次规划。"
+          }
+        }
+      }
+    },
+    "home.sendingPercent": {
+      "comment": "Transfer-progress label on the device-overview card. {percent} is the integer 0..100.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جارٍ الإرسال {percent, number}%"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পাঠানো হচ্ছে {percent, number}%"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sende {percent, number}%"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sending {percent, number}%"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviando {percent, number}%"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "در حال ارسال {percent, number}%"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lähetetään {percent, number}%"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoi de {percent, number}%"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{percent, number}% भेजा जा रहा है"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mengirim {percent, number}%"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信中 {percent, number}%"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{percent, number}% पाठवत आहे"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mo ń rán {percent, number}% "
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviando {percent, number}%"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отправка {percent, number}%"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بھیجا جا رہا ہے {percent, number}%"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在发送 {percent, number}%"
           }
         }
       }
@@ -5185,6 +6805,1518 @@
         }
       }
     },
+    "importDiagnostics.copyDebugInfo": {
+      "comment": "Button that copies a per-entry debug bundle to the clipboard.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نسخ معلومات التصحيح"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ডিবাগ তথ্য কপি করুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Debug-Infos kopieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy debug info"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar información de depuración"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کپی اطلاعات دیباگ"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopioi vianmääritystiedot"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier les infos de débogage"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डिबग जानकारी कॉपी करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salin info debug"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバッグ情報をコピー"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डिबग माहिती कॉपी करा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kọ debug info"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar informações de depuração"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопировать отладочную информацию"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ڈیبگ معلومات کاپی کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制调试信息"
+          }
+        }
+      }
+    },
+    "importDiagnostics.retry": {
+      "comment": "Button that retries an import that previously failed.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إعادة محاولة الاستيراد"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আবার চেষ্টা করুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import erneut versuchen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry import"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reintentar importación"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تلاش دوباره برای وارد کردن"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yritä tuonti uudelleen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer l’import"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इम्पोर्ट फिर से आज़माएँ"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coba impor lagi"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再試行して取り込み"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पुन्हा आयात करा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tún gbìyànjú import"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tentar importação novamente"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторить импорт"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "درآمد دوبارہ کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试导入"
+          }
+        }
+      }
+    },
+    "importDiagnostics.sharePackage": {
+      "comment": "Button that shares the per-entry debug bundle.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مشاركة حزمة التصحيح"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ডিবাগ প্যাকেজ শেয়ার করুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Debug-Paket teilen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share debug package"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir paquete de depuración"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اشتراک‌گذاری بسته دیباگ"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jaa vianmäärityspaketti"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partager le package de débogage"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डिबग पैकेज साझा करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bagikan paket debug"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバッグパッケージを共有"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डिबग पॅकेज शेअर करा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pín debug package"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartilhar pacote de depuração"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поделиться отладочным пакетом"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ڈیبگ پیکج شیئر کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享调试包"
+          }
+        }
+      }
+    },
+    "importDiagnostics.shareSubject": {
+      "comment": "Subject of the share sheet when sharing a debug package.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تشخيصات استيراد Companion"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কম্প্যানিয়ন ইমপোর্ট ডায়াগনস্টিকস"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importdiagnose des Begleiters"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion import diagnostics"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnósticos de importación del Companion"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تشخیص وارد کردن Companion"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kumppanin tuonnin vianmääritys"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics d’import du compagnon"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कंपैनियन इम्पोर्ट डायग्नोस्टिक्स"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostik impor Companion"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion の取り込み診断"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कंपॅनियन आयात निदान"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion import diagnostics"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnóstico da importação do Companion"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Диагностика импорта Companion"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کمپینین درآمد کی ڈیبگ معلومات"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "伴侣导入诊断"
+          }
+        }
+      }
+    },
+    "pairing.alignQr": {
+      "comment": "Hint label shown over the camera viewfinder.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قم بمحاذاة رمز QR داخل الإطار"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ফ্রেমের মধ্যে QR কোডটি ঠিক করুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richte den QR-Code im Bild aus"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Align the QR code in the frame"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alinea el código QR en el encuadre"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کد QR را داخل کادر هم‌راستا کنید"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kohdista QR-koodi kuvan sisällä"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alignez le code QR dans le cadre"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फ्रेम में QR कोड को संरेखित करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sejajarkan kode QR di dalam bingkai"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フレーム内でQRコードを合わせてください"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फ्रेममध्ये QR कोड सरळ करा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jẹ́ kí QR code wà dáadáa nínú fireemu"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alinhe o código QR no quadro"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выровняйте QR-код в кадре"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فریم میں QR کوڈ سیدھا کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将二维码对准画面"
+          }
+        }
+      }
+    },
+    "pairing.cameraDenied": {
+      "comment": "Hint shown when the OS has denied camera permission for pairing.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يُطلب الوصول إلى الكاميرا لمسح رمز الاقتران."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "জোড়া লাগানোর কোড স্ক্যান করতে ক্যামেরা অ্যাক্সেস প্রয়োজন।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamerazugriff ist erforderlich, um den Kopplungscode zu scannen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera access is required to scan the pairing code."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se requiere acceso a la cámara para escanear el código de emparejamiento."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "برای اسکن کد جفت‌سازی، دسترسی به دوربین لازم است."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kameran käyttöoikeus tarvitaan parinmuodostuskoodin skannaamiseen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’accès à la caméra est nécessaire pour scanner le code d’appairage."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पेयरिंग कोड स्कैन करने के लिए कैमरा एक्सेस आवश्यक है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akses kamera diperlukan untuk memindai kode pasangan."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペアリングコードを読み取るにはカメラアクセスが必要です"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जोडणी कोड स्कॅन करण्यासाठी कॅमेरा प्रवेश आवश्यक आहे."
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wọ́n nílò kí kamera lè ṣiṣẹ kí o lè ka kòdù pairing."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O acesso à câmera é necessário para escanear o código de pareamento."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для сканирования кода сопряжения требуется доступ к камере."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جوڑنے کے لیے کیمرہ تک رسائی ضروری ہے تاکہ جوڑنے والا کوڈ اسکین کیا جا سکے۔"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要相机权限才能扫描配对代码。"
+          }
+        }
+      }
+    },
+    "pairing.cancel": {
+      "comment": "Cancel button used throughout the pairing flow.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إلغاء"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বাতিল"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لغو"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peruuta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रद्द करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batal"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャンセル"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रद्द करा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fagilé"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отмена"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "منسوخ کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "pairing.failed": {
+      "comment": "Failure label when pairing didn't complete.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فشل الاقتران"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "জোড়া লাগানো ব্যর্থ হয়েছে"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopplung fehlgeschlagen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pairing failed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falló el emparejamiento"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جفت‌سازی انجام نشد"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parinmuodostus epäonnistui"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec de l’appairage"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पेयरिंग विफल रही"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gagal melakukan pairing"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペアリングに失敗しました"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जोडणी अयशस्वी"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pairing kò ṣeyọrí"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falha no pareamento"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сопряжение не удалось"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جوڑنا ناکام رہا"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配对失败"
+          }
+        }
+      }
+    },
+    "pairing.intro": {
+      "comment": "Body text on the pairing intro screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أبقِ هاتفك بحيث تكون شاشة الجهاز داخل الإطار، ثم اضغط على ابدأ عندما ترى رمز QR."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ডিভাইসটির স্ক্রিন ফ্রেমে আছে এমনভাবে আপনার ফোনটি ধরুন, তারপর QR কোড দেখলে Start-এ ট্যাপ করুন।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Halte dein Telefon so, dass der Bildschirm des Geräts im Bild ist, und tippe dann auf „Start“, wenn du den QR-Code siehst."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hold your phone so the device's screen is in frame, then tap Start when you see the QR code."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sostén el teléfono para que la pantalla del dispositivo esté dentro del encuadre y, luego, toca Iniciar cuando veas el código QR."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "گوشی‌تان را طوری نگه دارید که صفحه‌نمایش دستگاه داخل کادر باشد، سپس وقتی کد QR را دیدید روی Start بزنید."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pidä puhelinta niin, että laitteen näyttö on kuvassa, ja napauta sitten Aloita, kun näet QR-koodin."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tenez votre téléphone pour que l’écran de l’appareil soit dans le cadre, puis appuyez sur Démarrer lorsque vous voyez le code QR."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अपने फोन को ऐसे पकड़ें कि डिवाइस की स्क्रीन फ्रेम में रहे, फिर QR कोड दिखने पर Start पर टैप करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pegang ponsel Anda agar layar perangkat terlihat dalam bingkai, lalu ketuk Mulai saat Anda melihat kode QR."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "端末の画面がフレーム内に入るようにスマホを構え、QRコードが見えたら「開始」をタップしてください。"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फोन डिव्हाइसच्या स्क्रीनचा भाग फ्रेममध्ये येईल अशा प्रकारे धरा, आणि QR कोड दिसल्यावर Start वर टॅप करा."
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mu fón rẹ kí iboju ẹrọ náà wà nínú fireemu, lẹ́yìn náà tẹ Start nígbà tí o bá rí QR code náà."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segure o celular para que a tela do dispositivo fique no quadro e, em seguida, toque em Iniciar quando você vir o código QR."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поднесите телефон так, чтобы экран устройства был в кадре, затем нажмите «Начать», когда увидите QR-код."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اپنا فون اس طرح رکھیں کہ ڈیوائس کی اسکرین فریم میں ہو، پھر جب آپ کو QR کوڈ نظر آئے تو Start پر ٹیپ کریں۔"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将手机对准设备屏幕，使其出现在画面中，然后在看到二维码时点击“开始”。"
+          }
+        }
+      }
+    },
+    "pairing.openSettings": {
+      "comment": "Button that opens the OS Settings app to grant camera permission.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فتح الإعدادات"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সেটিংস খুলুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Ajustes"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "باز کردن تنظیمات"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avaa asetukset"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir les Réglages"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेटिंग्स खोलें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buka Pengaturan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定を開く"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेटिंग्ज उघडा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ṣí Settings"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Configurações"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть настройки"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سیٹنگز کھولیں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开设置"
+          }
+        }
+      }
+    },
+    "pairing.paired": {
+      "comment": "Success label after the pairing handshake completes.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم الاقتران"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "জোড়া লাগানো হয়েছে"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gekoppelt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paired"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emparejado"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جفت شد"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paritettu"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appairé"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पेयर हो गया"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berhasil dipasangkan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペアリング完了"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जोडले गेले"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ti pọ̀"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pareado"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сопряжено"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جوڑ دیا گیا"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已配对"
+          }
+        }
+      }
+    },
+    "pairing.scanInstruction": {
+      "comment": "Instruction shown above the camera viewfinder during pairing.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ضع رمز QR في مركز الإطار وابقِه ثابتًا."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ফ্রেমের মধ্যে QR কোডটি কেন্দ্র করুন এবং স্থিরভাবে ধরে রাখুন।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zentriere den QR-Code im Bild und halte ihn ruhig."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Center the QR code in the frame and hold steady."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Centra el código QR en el encuadre y mantén el dispositivo estable."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کد QR را در مرکز کادر قرار دهید و ثابت نگه دارید."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kohdista QR-koodi kuvan keskelle ja pidä se paikallaan."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Centrez le code QR dans le cadre et maintenez-le stable."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QR कोड को फ्रेम के बीच में रखें और स्थिर रखें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pusatkan kode QR di dalam bingkai dan tahan dengan stabil."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フレーム内でQRコードを中央に合わせ、動かさずに保持してください。"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QR कोड फ्रेमच्या मध्यभागी ठेवा आणि स्थिर धरा."
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gbé QR code náà sí àárín fireemu, kí o dúró ṣinṣin."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Centralize o código QR no quadro e mantenha-o estável."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Расположите QR-код по центру кадра и держите устройство неподвижно."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QR کوڈ کو فریم کے بیچ میں رکھیں اور مستحکم رکھیں۔"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将二维码置于画面中央并保持稳定。"
+          }
+        }
+      }
+    },
+    "pairing.start": {
+      "comment": "Primary button on the pairing intro screen — begins the QR scan.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ابدأ"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "شروع"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aloita"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Démarrer"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mulai"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開始"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bẹrẹ"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начать"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "شروع کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始"
+          }
+        }
+      }
+    },
+    "pairing.title": {
+      "comment": "Headline of the pairing intro screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اقتران جهاز"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "একটি ডিভাইস জোড়া লাগান"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerät koppeln"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pair a device"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emparejar un dispositivo"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "یک دستگاه را جفت کنید"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parita laite"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appairer un appareil"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एक डिवाइस पेयर करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pasangkan perangkat"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "端末をペアリング"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डिव्हाइस जोडा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "So ẹrọ pọ̀"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parear um dispositivo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сопряжение устройства"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ڈیوائس جوڑیں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为设备配对"
+          }
+        }
+      }
+    },
     "planning.cyclingAlternatives": {
       "comment": "Notice on the route alternatives card when all OSM cycling sources succeeded. BRouter and OSRM are tool/brand names and must not be translated.",
       "extractionState": "manual",
@@ -5505,6 +8637,654 @@
           "stringUnit": {
             "state": "translated",
             "value": "来自 HSL 和 OSM 的混合路线"
+          }
+        }
+      }
+    },
+    "routeDetail.geometryPoints": {
+      "comment": "Polyline geometry-point count.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نقاط الهندسة: {count, number}"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "জ্যামিতি পয়েন্ট: {count, number}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geometriepunkte: {count, number}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geometry points: {count, number}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puntos de geometría: {count, number}"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نقاط هندسی: {count, number}"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geometriapisteet: {count, number}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Points de géométrie : {count, number}"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ज्यामिति पॉइंट्स: {count, number}"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titik geometri: {count, number}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ジオメトリのポイント数：{count, number}"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "भूमिती बिंदू: {count, number}"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geometry points: {count, number}"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pontos de geometria: {count, number}"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Точки геометрии: {count, number}"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جیومیٹری پوائنٹس: {count, number}"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "几何点：{count, number}"
+          }
+        }
+      }
+    },
+    "routeDetail.maneuverCount": {
+      "comment": "Maneuver count line on the Route Detail screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المناورات: {count, number}"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মোট চালনা: {count, number}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manöver: {count, number}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maneuvers: {count, number}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maniobras: {count, number}"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مانورها: {count, number}"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Käännöksiä: {count, number}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manœuvres : {count, number}"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मोड़: {count, number}"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manuver: {count, number}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指示: {count, number}"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चाल: {count, number}"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maneuvers: {count, number}"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manobras: {count, number}"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Манёвры: {count, number}"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حرکات: {count, number}"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路线操作：{count, number} "
+          }
+        }
+      }
+    },
+    "routeDetail.open": {
+      "comment": "Button to open the route in the home view as a preview.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "افتح"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "খুলুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Öffnen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "باز کردن"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avaa"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "खोलें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buka"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開く"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "उघडा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کھولیں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开"
+          }
+        }
+      }
+    },
+    "routeDetail.section.actions": {
+      "comment": "Section header for the Route Detail action buttons.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الإجراءات"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কর্মসমূহ"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktionen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actions"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acciones"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اقدامات"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toiminnot"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actions"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "क्रियाएँ"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aksi"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कृती"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actions"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ações"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Действия"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اعمال"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作"
+          }
+        }
+      }
+    },
+    "routeDetail.section.route": {
+      "comment": "Section header on the Route Detail screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المسار"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পথ"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ruta"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مسیر"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reitti"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Itinéraire"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मार्ग"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rute"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ルート"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मार्ग"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rota"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Маршрут"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "راستہ"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路线"
+          }
+        }
+      }
+    },
+    "routeDetail.title": {
+      "comment": "Navigation title of the Route Detail screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المسار"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পথ"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ruta"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مسیر"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reitti"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Itinéraire"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मार्ग"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rute"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ルート"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मार्ग"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rota"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Маршрут"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "راستہ"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路线"
           }
         }
       }
@@ -6805,6 +10585,1086 @@
         }
       }
     },
+    "settings.device.connection.lastDevice": {
+      "comment": "Last connected device name. {name} can be 'None'.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آخر جهاز: {name}"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শেষ ডিভাইস: {name}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letztes Gerät: {name}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last device: {name}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último dispositivo: {name}"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آخرین دستگاه: {name}"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viimeisin laite: {name}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernier appareil : {name}"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अंतिम डिवाइस: {name}"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perangkat terakhir: {name}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最終デバイス: {name}"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शेवटचे डिव्हाइस: {name}"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last device: {name}"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último dispositivo: {name}"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последнее устройство: {name}"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آخری ڈیوائس: {name}"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次设备：{name}"
+          }
+        }
+      }
+    },
+    "settings.device.connection.section": {
+      "comment": "Section header in Device → connection details.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الاتصال"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সংযোগ"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conexión"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اتصال"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yhteys"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कनेक्शन"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koneksi"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कनेक्शन"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conexão"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подключение"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کنکشن"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接"
+          }
+        }
+      }
+    },
+    "settings.device.connection.state": {
+      "comment": "BLE connection state line. {state} is a raw enum string (do not translate).",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الحالة: {state}"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অবস্থা: {state}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: {state}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "State: {state}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estado: {state}"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "وضعیت: {state}"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tila: {state}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "État : {state}"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्थिति: {state}"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: {state}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状態: {state}"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्थिती: {state}"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "State: {state}"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estado: {state}"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Состояние: {state}"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حالت: {state}"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态：{state}"
+          }
+        }
+      }
+    },
+    "settings.device.connection.status": {
+      "comment": "Last sync result line.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الحالة: {status}"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্থিতি: {status}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: {status}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: {status}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estado: {status}"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "وضعیت: {status}"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tila: {status}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statut : {status}"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्थिति: {status}"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: {status}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ステータス: {status}"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्थिती: {status}"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: {status}"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: {status}"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Статус: {status}"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حیثیت: {status}"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态：{status}"
+          }
+        }
+      }
+    },
+    "settings.device.connection.sync": {
+      "comment": "Route-sync state line. {state} is a raw enum string.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المزامنة: {state}"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সিঙ্ক: {state}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync: {state}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync: {state}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronización: {state}"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "همگام‌سازی: {state}"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synkronointi: {state}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Synchronisation : {state}"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सिंक: {state}"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sinkronisasi: {state}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同期: {state}"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सिंक: {state}"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync: {state}"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizar: {state}"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синхронизация: {state}"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مطابقت: {state}"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同步：{state}"
+          }
+        }
+      }
+    },
+    "settings.device.diagnostics.armDisconnect": {
+      "comment": "Developer tool: disconnect after the next chunk write.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "افصل بعد كتابة الدفعة التالية"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরবর্তী চাঙ্ক লেখার পর সংযোগ বিচ্ছিন্ন করুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Chunk trennen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arm disconnect after chunk"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconectar después del siguiente bloque"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قطع اتصال بعد از نوشتنِ بخش بعدی"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Katkaise yhteys seuraavan chunkin jälkeen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déconnecter après le prochain bloc"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अगले चंक के बाद डिस्कनेक्ट करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Putuskan setelah penulisan chunk berikutnya"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次のチャンク書き込み後に切断"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "चंक लिहिल्यानंतर डिसकनेक्ट करा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arm disconnect after chunk"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconectar após o próximo bloco"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отключить после следующей записи чанка"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اگلے چنک کے لکھنے کے بعد منقطع کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "断开：下一块数据后"
+          }
+        }
+      }
+    },
+    "settings.device.diagnostics.armDropStatus": {
+      "comment": "Developer tool: drop the next inbound BLE status frame.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "أَسقط إطار حالة BLE التالي الوارد"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরবর্তী ইনবাউন্ড BLE স্ট্যাটাস ফ্রেম বাদ দিন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächsten eingehenden Status verwerfen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arm drop next inbound status"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descartar el siguiente estado BLE entrante"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حذف وضعیتِ دریافتیِ بعدی"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pudota seuraava saapuva BLE-tilakehys"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignorer le prochain statut BLE entrant"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अगला इनबाउंड BLE स्टेटस फ्रेम ड्रॉप करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jatuhkan frame status masuk berikutnya"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次の受信BLEステータスフレームを破棄"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पुढील इनबाउंड BLE स्टेटस फ्रेम ड्रॉप करा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arm drop next inbound status"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descartar o próximo status BLE recebido"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отбросить следующий входящий BLE-кадр состояния"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اگلی آنے والی BLE اسٹیٹس فریم چھوڑ دیں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "丢弃：下一条入站 BLE 状态帧"
+          }
+        }
+      }
+    },
+    "settings.device.diagnostics.armRetryable": {
+      "comment": "Developer tool: arm a retryable interruption on next BLE transfer.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فعّل مقاطعة قابلة لإعادة المحاولة في نقل BLE التالي"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরবর্তী BLE ট্রান্সফারে পুনরায় চেষ্টা-যোগ্য বাধা দিন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederholbare Unterbrechung auslösen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arm retryable interruption"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activar una interrupción reintentable"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قطعِ قابل‌تلاشِ بعدی را فعال کن"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aseta uudelleenyrityskelpoinen keskeytys seuraavaan BLE-siirtoon"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préparer une interruption réessayable"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अगले BLE ट्रांसफर पर रीट्राय योग्य रुकावट सेट करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atur gangguan yang dapat dicoba ulang"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次のBLE転送でリトライ可能な中断を発生させる"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पुढील BLE ट्रान्सफरवर रीट्राय-योग्य व्यत्यय द्या"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arm retryable interruption"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acionar interrupção reexecutável"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запланировать прерывание с возможностью повтора"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اگلی BLE منتقلی پر قابلِ دوبارہ کوشش رکاوٹ تیار کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "触发：可重试的中断"
+          }
+        }
+      }
+    },
+    "settings.device.diagnostics.armWriteFailure": {
+      "comment": "Developer tool: arm a write failure on next BLE transfer.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فعّل فشل الكتابة في نقل BLE التالي"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পরবর্তী BLE ট্রান্সফারে লেখার ব্যর্থতা দিন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schreibfehler auslösen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arm write failure"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activar fallo de escritura"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "خطای نوشتنِ بعدی را فعال کن"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aseta kirjoitusvirhe seuraavaan BLE-siirtoon"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Préparer un échec d’écriture"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अगले BLE ट्रांसफर पर राइट फेलियर सेट करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atur kegagalan penulisan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次のBLE転送で書き込み失敗を発生させる"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पुढील BLE ट्रान्सफरवर लेखन अपयश द्या"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arm write failure"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falha na gravação"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запланировать сбой записи"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اگلی BLE منتقلی پر لکھنے کی ناکامی تیار کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "触发：下一次写入失败"
+          }
+        }
+      }
+    },
+    "settings.device.diagnostics.section": {
+      "comment": "Section header for the Device → developer diagnostics tools.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "التشخيصات"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ডায়াগনস্টিকস"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnose"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnósticos"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عیب‌یابی"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostiikka"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डायग्नोस्टिक्स"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostik"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "診断"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डायग्नॉस्टिक्स"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnósticos"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Диагностика"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تشخیص"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "诊断"
+          }
+        }
+      }
+    },
     "settings.device.disconnect": {
       "comment": "Button to disconnect from the currently-connected device.",
       "extractionState": "manual",
@@ -7773,6 +12633,654 @@
           "stringUnit": {
             "state": "translated",
             "value": "设备"
+          }
+        }
+      }
+    },
+    "settings.device.transfer.activeRoute": {
+      "comment": "Active route identifier line.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المسار النشط: {id}"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সক্রিয় পথ: {id}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktive Route: {id}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active route: {id}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ruta activa: {id}"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مسیر فعال: {id}"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktiivinen reitti: {id}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Itinéraire actif : {id}"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सक्रिय मार्ग: {id}"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rute aktif: {id}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクティブルート: {id}"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सक्रिय मार्ग: {id}"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active route: {id}"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rota ativa: {id}"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Активный маршрут: {id}"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فعال راستہ: {id}"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前路线：{id}"
+          }
+        }
+      }
+    },
+    "settings.device.transfer.clearActive": {
+      "comment": "Destructive action to clear the active route on the device.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "امسح المسار النشط"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সক্রিয় পথ মুছুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktive Route löschen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear active route"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar ruta activa"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "پاک کردن مسیر فعال"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tyhjennä aktiivinen reitti"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer l’itinéraire actif"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सक्रिय मार्ग साफ़ करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hapus rute aktif"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクティブルートをクリア"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सक्रिय मार्ग साफ करा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear active route"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpar rota ativa"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Очистить активный маршрут"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فعال راستہ صاف کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除当前路线"
+          }
+        }
+      }
+    },
+    "settings.device.transfer.lastSync": {
+      "comment": "Last transfer-sync result line.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آخر مزامنة: {result}"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "শেষ সিঙ্ক: {result}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letzte Sync: {result}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last sync: {result}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última sincronización: {result}"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آخرین همگام‌سازی: {result}"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viimeisin synkronointi: {result}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernière synchronisation : {result}"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अंतिम सिंक: {result}"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sinkronisasi terakhir: {result}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最終同期: {result}"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "शेवटचा सिंक: {result}"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last sync: {result}"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última sincronização: {result}"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Последняя синхронизация: {result}"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آخری مطابقت: {result}"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次同步：{result}"
+          }
+        }
+      }
+    },
+    "settings.device.transfer.pendingRoute": {
+      "comment": "Pending route identifier line.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "المسار المعلّق: {id}"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মুলতুবি পথ: {id}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausstehende Route: {id}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending route: {id}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ruta pendiente: {id}"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مسیر در انتظار: {id}"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odottaa reittiä: {id}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Itinéraire en attente : {id}"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लंबित मार्ग: {id}"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rute tertunda: {id}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留ルート: {id}"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्रलंबित मार्ग: {id}"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending route: {id}"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rota pendente: {id}"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ожидающий маршрут: {id}"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "زیرِ التوا راستہ: {id}"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待传路线：{id}"
+          }
+        }
+      }
+    },
+    "settings.device.transfer.resume": {
+      "comment": "Resume the pending transfer button.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استأنف نقلًا معلّقًا"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "মুলতুবি ট্রান্সফার চালিয়ে যান"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausstehende Übertragung fortsetzen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume pending transfer"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reanudar transferencia pendiente"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ادامه انتقالِ در انتظار"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jatka odottavaa siirtoa"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reprendre le transfert en attente"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "लंबित ट्रांसफर फिर शुरू करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lanjutkan transfer tertunda"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留の転送を再開"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्रलंबित ट्रान्सफर पुन्हा सुरू करा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume pending transfer"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retomar transferência pendente"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Возобновить ожидающую передачу"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "زیرِ التوا منتقلی دوبارہ شروع کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续待传"
+          }
+        }
+      }
+    },
+    "settings.device.transfer.section": {
+      "comment": "Section header in Device → transfer details.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "النقل"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রান্সফার"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übertragung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transfer"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transferencia"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "انتقال"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siirto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transfert"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ट्रांसफर"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transfer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "転送"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ट्रान्सफर"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transfer"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transferência"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Передача"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "منتقلی"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "传输"
           }
         }
       }
@@ -10153,6 +15661,654 @@
         }
       }
     },
+    "settings.routePlanner.cyclingSpeed": {
+      "comment": "Stepper label for the rider's planning speed in km/h.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سرعة الدراجة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাইক্লিং গতি"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fahrgeschwindigkeit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycling speed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velocidad de ciclismo"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سرعت دوچرخه‌سواری"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pyöräilyn nopeus"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vitesse à vélo"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "साइक्लिंग गति"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kecepatan bersepeda"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自転車速度"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सायकलिंग वेग"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycling speed"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velocidade de ciclismo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скорость для езды"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سائیکلنگ رفتار"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "骑行速度"
+          }
+        }
+      }
+    },
+    "settings.routePlanner.defaults.section": {
+      "comment": "Section header on the Route Planner page for defaults.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الافتراضيات"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ডিফল্ট"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardwerte"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Defaults"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valores predeterminados"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "پیش‌فرض‌ها"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oletukset"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Par défaut"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डिफ़ॉल्ट"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デフォルト"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "डीफॉल्ट्स"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Defaults"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Padrões"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По умолчанию"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ڈیفالٹس"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认值"
+          }
+        }
+      }
+    },
+    "settings.routePlanner.hsl.description": {
+      "comment": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL هي هيئة النقل في منطقة هلسنكي. توفر واجهة Digitransit API الخاصة بهم توجيهًا عالي الجودة للدراجات عبر منطقة مترو هلسنكي. المفتاح مجاني — سجّل الدخول في البوابة، وسجّل تطبيقًا، ثم انسخ مفتاح الاشتراك إلى الحقل أعلاه. خارج منطقة هلسنكي، اترك HSL دون تفعيل وسيستخدم المخطط توجيه OSM عالميًا."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL হলো হেলসিঙ্কি অঞ্চল পরিবহন কর্তৃপক্ষ। তাদের Digitransit API হেলসিঙ্কি মেট্রো এলাকার জুড়ে উচ্চমানের সাইকেল রাউটিং দেয়। কীটি ফ্রি — পোর্টালে সাইন ইন করুন, একটি অ্যাপ রেজিস্টার করুন, এবং সাবস্ক্রিপশন কীটি উপরের ফিল্ডে কপি করুন। হেলসিঙ্কি এলাকার বাইরে HSL বন্ধ রাখুন এবং প্ল্যানার বিশ্বব্যাপী OSM রাউটিং ব্যবহার করবে।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL ist die Verkehrsbehörde der Region Helsinki. Ihre Digitransit-API bietet hochwertige Fahrrad-Routen über das gesamte Ballungsgebiet von Helsinki. Der Schlüssel ist kostenlos — melde dich im Portal an, registriere eine App und kopiere den Subscription Key in das Feld oben. Außerhalb des Gebiets von Helsinki HSL deaktivieren; der Planer nutzt dann OSM-Routing global."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across the Helsinki metro area. The key is free — sign in at the portal, register an app, and copy the subscription key into the field above. Outside the Helsinki area, leave HSL off and the planner uses OSM routing globally."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL es la autoridad de transporte del Área Metropolitana de Helsinki. Su API de Digitransit ofrece enrutamiento de alta calidad para bicicletas en toda el área metropolitana de Helsinki. La clave es gratuita: inicia sesión en el portal, registra una aplicación y copia la clave de suscripción en el campo de arriba. Fuera del área de Helsinki, deja HSL desactivado y el planificador usa enrutamiento con OSM a nivel global."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL سازمان حمل‌ونقل منطقه هلسینکی است. Digitransit API آن‌ها مسیریابی باکیفیت برای دوچرخه در سراسر منطقه مترو هلسینکی ارائه می‌دهد. کلید رایگان است—در پورتال وارد شوید، یک اپ ثبت کنید و کلید اشتراک را در فیلد بالا کپی کنید. خارج از محدوده هلسینکی، HSL را خاموش بگذارید و برنامه‌ریز از مسیریابی OSM به‌صورت سراسری استفاده می‌کند."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL on Helsingin seudun liikenteen viranomainen. Heidän Digitransit API tarjoaa korkealaatuista pyöräreititystä koko Helsingin metropolialueella. Avain on ilmainen — kirjaudu portaalissa, rekisteröi sovellus ja kopioi tilausavain yllä olevaan kenttään. Helsingin alueen ulkopuolella jätä HSL pois ja reititin käyttää OSM-reititystä maailmanlaajuisesti."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL est l’autorité des transports de la région de Helsinki. Leur API Digitransit fournit un routage vélo de haute qualité dans toute la zone métropolitaine de Helsinki. La clé est gratuite : connectez-vous sur le portail, enregistrez une application, puis copiez la clé d’abonnement dans le champ ci-dessus. En dehors de la zone de Helsinki, laissez HSL désactivé et le planificateur utilise le routage OSM à l’échelle mondiale."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL हेलसिंकी क्षेत्र परिवहन प्राधिकरण है। उनका Digitransit API हेलसिंकी मेट्रो क्षेत्र में उच्च-गुणवत्ता वाली बाइक रूटिंग देता है। कुंजी मुफ़्त है — पोर्टल पर साइन इन करें, एक ऐप रजिस्टर करें, और सब्सक्रिप्शन कुंजी को ऊपर वाले फ़ील्ड में कॉपी करें। हेलसिंकी क्षेत्र के बाहर HSL बंद रखें और प्लानर वैश्विक रूप से OSM रूटिंग का उपयोग करेगा।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL adalah otoritas Transportasi Wilayah Helsinki. API Digitransit mereka menyediakan routing sepeda berkualitas tinggi di area metro Helsinki. Kuncinya gratis — masuk di portal, daftarkan aplikasi, lalu salin kunci langganan ke kolom di atas. Di luar area Helsinki, matikan HSL dan perencana menggunakan routing OSM secara global."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSLはヘルシンキ地域交通当局です。DigitransitのAPIは、ヘルシンキ都市圏で高品質な自転車ルーティングを提供します。キーは無料です。ポータルでサインインし、アプリを登録して、サブスクリプションキーを上の欄に貼り付けてください。ヘルシンキ圏外ではHSLをオフにし、プランナーはOSMのルーティングをグローバルに使用します。"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL हे हेलसिंकी प्रदेश परिवहन प्राधिकरण आहे. त्यांचे Digitransit API हेलसिंकी महानगर परिसरात उच्च-गुणवत्तेचे सायकल रूटिंग देते. की मोफत आहे — पोर्टलवर साइन इन करा, अॅप नोंदणी करा, आणि सबस्क्रिप्शन की वरच्या फील्डमध्ये कॉपी करा. हेलसिंकी क्षेत्राबाहेर HSL बंद ठेवा आणि प्लॅनर जागतिक स्तरावर OSM रूटिंग वापरेल."
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL na authority for di Helsinki Region Transport. Dem Digitransit API na e dey give bike routing wey good well-well across di metro area for Helsinki. Key no cost — just sign in for portal, register app, then copy subscription key put for field wey dey above. For outside Helsinki area, leave HSL make e no work, planner go use OSM routing for everywhere."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL é a autoridade de transporte da Região de Helsinque. Sua API Digitransit fornece roteamento de bicicleta de alta qualidade em toda a área metropolitana de Helsinque. A chave é gratuita — faça login no portal, registre um aplicativo e copie a chave de assinatura no campo acima. Fora da área de Helsinque, deixe HSL desativado e o planejador usa roteamento OSM globalmente."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL — транспортное управление Хельсинкского региона. Их API Digitransit обеспечивает высококачественную маршрутизацию для велосипедов по району метро Хельсинки. Ключ бесплатный — войдите на портал, зарегистрируйте приложение и скопируйте ключ подписки в поле выше. За пределами Хельсинки отключите HSL, и планировщик будет использовать маршрутизацию OSM глобально."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL ہیلسنکی ریجن ٹرانسپورٹ اتھارٹی ہے۔ ان کی Digitransit API ہیلسنکی میٹرو کے علاقے میں اعلیٰ معیار کی بائیک روٹنگ فراہم کرتی ہے۔ کلید مفت ہے — پورٹل پر سائن اِن کریں، ایک ایپ رجسٹر کریں، اور سبسکرپشن کی کو اوپر والے فیلڈ میں کاپی کریں۔ ہیلسنکی کے علاقے سے باہر HSL بند رکھیں اور پلانر عالمی سطح پر OSM روٹنگ استعمال کرے گا۔"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL 是赫尔辛基地区交通管理机构。他们的 Digitransit API 可在赫尔辛基地铁周边提供高质量的自行车路线规划。密钥是免费的——在门户登录、注册应用，然后将订阅密钥复制到上方的输入框中。在赫尔辛基地区之外，请关闭 HSL，规划器将使用 OSM 在全球范围内进行路线规划。"
+          }
+        }
+      }
+    },
+    "settings.routePlanner.hsl.section": {
+      "comment": "Section header for HSL Digitransit settings. HSL and Digitransit are brand names — do not translate.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HSL Digitransit"
+          }
+        }
+      }
+    },
+    "settings.routePlanner.riding.footnote": {
+      "comment": "Footnote under the Riding section explaining cycling-speed override.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تتجاوز سرعة الدراجة تقديرات HSL ETAs (تكون افتراضات Digitransit لسرعة دراجة بطيئة). وحدة السرعة هي كيفية عرض شارة السرعة المباشرة على الخريطة."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাইক্লিং গতি HSL-এর ETA ওভাররাইড করে (Digitransit ডিফল্টভাবে ধীর সাইকেল গতি ধরে)। গতি একক হলো মানচিত্রে লাইভ-স্পিড ব্যাজ কীভাবে দেখানো হবে।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Fahrgeschwindigkeit überschreibt die HSL-ETAs (Digitransit verwendet standardmäßig eine langsame Fahrradgeschwindigkeit). Die Geschwindigkeitseinheit bestimmt, wie die Live-Geschwindigkeitsanzeige auf der Karte dargestellt wird."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycling speed overrides HSL ETAs (Digitransit defaults to a slow bike speed). Speed unit is how the live-speed badge is shown on the map."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La velocidad de ciclismo anula las ETA de HSL (Digitransit usa una velocidad de bicicleta lenta de forma predeterminada). La unidad de velocidad es cómo se muestra la insignia de velocidad en el mapa."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سرعت دوچرخه‌سواری، ETAهای HSL را بازنویسی می‌کند (به‌صورت پیش‌فرض Digitransit سرعت دوچرخه کندتری در نظر می‌گیرد). واحد سرعت مشخص می‌کند که نشانگر سرعتِ زنده روی نقشه چگونه نمایش داده می‌شود."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pyöräilyn nopeus ohittaa HSL:n ETA-arviot (Digitransit käyttää oletuksena hidasta pyöränopeutta). Nopeusyksikkö määrittää, miten reaaliaikaisen nopeuden tunniste näytetään kartalla."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La vitesse à vélo remplace les ETA HSL (Digitransit utilise une vitesse vélo lente par défaut). L’unité de vitesse sert à afficher le badge de vitesse en direct sur la carte."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "साइक्लिंग गति HSL ETAs को ओवरराइड करती है (Digitransit डिफ़ॉल्ट रूप से धीमी बाइक गति मानता है)। गति की इकाई यह तय करती है कि मैप पर लाइव-गति बैज कैसे दिखेगा।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kecepatan bersepeda menimpa Perkiraan Waktu Kedatangan (ETA) HSL (Digitransit default ke kecepatan sepeda yang lambat). Satuan kecepatan adalah cara lencana kecepatan langsung ditampilkan di peta."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自転車速度の上書きにより、HSLのETAを調整します（Digitransitは遅めの自転車速度をデフォルトにします）。速度の単位は、地図上でライブ速度バッジを表示する方法です。"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सायकलिंग वेग HSL ETAs ओव्हरराईड करतो (Digitransit डीफॉल्टने धीम्या सायकल वेगावर सेट असते). वेगाचे युनिट म्हणजे नकाशावर लाइव्ह-वेग बॅज कसा दाखवला जातो ते."
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycling speed overrides HSL ETAs (Digitransit default na slow bike speed). Speed unit na how dem go show live-speed badge for map."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A velocidade de ciclismo substitui as estimativas de chegada da HSL (ETAs) (Digitransit usa uma velocidade de bicicleta lenta por padrão). A unidade de velocidade é como o crachá de velocidade em tempo real é exibido no mapa."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скорость для езды переопределяет ETA HSL (по умолчанию Digitransit использует медленную скорость для велосипеда). Единица скорости — это то, как на карте отображается бейдж текущей скорости."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سائیکلنگ رفتار HSL کے ETA کو اوور رائیڈ کرتی ہے (Digitransit ڈیفالٹ طور پر سست بائیک رفتار استعمال کرتا ہے)۔ رفتار کی اکائی یہ ہے کہ نقشے پر لائیو رفتار بیج کیسے دکھایا جاتا ہے۔"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "骑行速度用于覆盖 HSL 的预计到达时间（ETAs）（Digitransit 默认使用较慢的骑行速度）。速度单位用于在地图上显示实时速度徽章。"
+          }
+        }
+      }
+    },
+    "settings.routePlanner.riding.section": {
+      "comment": "Section header on the Route Planner page for ride-related defaults.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الركوب"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রাইডিং"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fahren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riding"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ciclismo"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "دوچرخه‌سواری"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pyöräily"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En vélo"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सवारी"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bersepeda"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走行"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वारी"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riding"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pedalar"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Езда"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سفر"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "骑行"
+          }
+        }
+      }
+    },
     "settings.routePlanner.title": {
       "comment": "Navigation title of the Route Planner settings page.",
       "extractionState": "manual",
@@ -10365,6 +16521,546 @@
           "stringUnit": {
             "state": "translated",
             "value": "尚无已保存的路线"
+          }
+        }
+      }
+    },
+    "settings.routes.import.gpx": {
+      "comment": "Button that opens the document picker to import a GPX file.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استيراد GPX"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPX ইমপোর্ট করুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPX importieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import GPX"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importar GPX"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "وارد کردن GPX"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tuo GPX"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importer GPX"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPX इम्पोर्ट करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impor GPX"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPXを取り込む"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPX आयात करा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import GPX"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importar GPX"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Импортировать GPX"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPX درآمد کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入 GPX"
+          }
+        }
+      }
+    },
+    "settings.routes.import.section": {
+      "comment": "Section header on the Routes page for the GPX import button.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استيراد"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ইমপোর্ট"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importar"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "وارد کردن"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tuo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importer"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इम्पोर्ट"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impor"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取り込み"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आयात"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importar"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Импорт"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "درآمد"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入"
+          }
+        }
+      }
+    },
+    "settings.routes.recent.empty": {
+      "comment": "Empty state for the Recent section on the Routes page.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا توجد مسارات أو وجهات حديثة بعد."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এখনও কোনো সাম্প্রতিক পথ বা গন্তব্য নেই।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine kürzlichen Routen oder Ziele."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No recent routes or destinations yet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay rutas o destinos recientes."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هنوز هیچ مسیر یا مقصد اخیر وجود ندارد."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ei vielä viimeaikaisia reittejä tai kohteita."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun itinéraire ou destination récents pour le moment."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अभी तक कोई हालिया मार्ग या गंतव्य नहीं।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Belum ada rute atau tujuan terbaru."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近のルートまたは目的地はまだありません。"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अजून कोणतेही अलीकडचे मार्ग किंवा गंतव्य नाहीत."
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No recent routes or destinations yet."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma rota ou destino recente ainda."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пока нет недавних маршрутов или пунктов назначения."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ابھی تک کوئی حالیہ راستے یا منزلیں نہیں۔"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无最近路线或目的地。"
+          }
+        }
+      }
+    },
+    "settings.routes.recent.section": {
+      "comment": "Section header for the recent routes list.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الرحلات الأخيرة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সাম্প্রতিক"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuletzt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recientes"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مسیرهای اخیر"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viimeisimmät"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Récents"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हालिया"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terbaru"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近のルート"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अलीकडील"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ọ̀nà tó ṣẹ̀ṣẹ̀"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recentes"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Недавние"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حالیہ"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近路线"
+          }
+        }
+      }
+    },
+    "settings.routes.routeDetailsA11y": {
+      "comment": "Accessibility label for the chevron that opens a route's detail.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تفاصيل المسار"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রুটের বিস্তারিত"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Routeninformationen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route details"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detalles de la ruta"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جزئیات مسیر"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reitin tiedot"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Détails de l’itinéraire"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मार्ग विवरण"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detail rute"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ルートの詳細"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "मार्ग तपशील"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Àlàyé ọ̀nà"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detalhes da rota"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подробнее о маршруте"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "راستے کی تفصیل"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路线详情"
           }
         }
       }

@@ -119,40 +119,47 @@ struct DeviceSettingsView: View {
     }
 
     private var connectionDetailsSection: some View {
-        Section("Connection") {
-            Text("State: \(appModel.bleService.sessionState.connectionState.rawValue)")
-            Text("Sync: \(appModel.bleService.sessionState.routeSyncState.rawValue)")
-            Text("Last device: \(appModel.bleService.sessionState.lastDeviceName ?? "None")")
+        Section(T.string("settings.device.connection.section")) {
+            Text(T.string("settings.device.connection.state",
+                          ["state": .string(appModel.bleService.sessionState.connectionState.rawValue)]))
+            Text(T.string("settings.device.connection.sync",
+                          ["state": .string(appModel.bleService.sessionState.routeSyncState.rawValue)]))
+            Text(T.string("settings.device.connection.lastDevice",
+                          ["name": .string(appModel.bleService.sessionState.lastDeviceName ?? "—")]))
             // `lastSyncResult` carries the most recent transition string —
             // including BLE permission errors, scan timeouts, and connect
             // failures. Surfacing it here is what makes Reconnect feel
             // responsive when scans don't find the peripheral.
-            Text("Status: \(appModel.bleService.sessionState.lastSyncResult)")
+            Text(T.string("settings.device.connection.status",
+                          ["status": .string(appModel.bleService.sessionState.lastSyncResult)]))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
     }
 
     private var transferSection: some View {
-        Section("Transfer") {
-            Text("Pending route: \(appModel.bleService.sessionState.pendingRouteIdentifier ?? "None")")
-            Text("Active route: \(appModel.bleService.sessionState.activeRouteIdentifier ?? "None")")
-            Text("Last sync: \(appModel.bleService.sessionState.lastSyncResult)")
-            Button("Resume pending transfer") {
+        Section(T.string("settings.device.transfer.section")) {
+            Text(T.string("settings.device.transfer.pendingRoute",
+                          ["id": .string(appModel.bleService.sessionState.pendingRouteIdentifier ?? "—")]))
+            Text(T.string("settings.device.transfer.activeRoute",
+                          ["id": .string(appModel.bleService.sessionState.activeRouteIdentifier ?? "—")]))
+            Text(T.string("settings.device.transfer.lastSync",
+                          ["result": .string(appModel.bleService.sessionState.lastSyncResult)]))
+            Button(T.string("settings.device.transfer.resume")) {
                 Task { await appModel.resumePendingTransfer() }
             }
-            Button("Clear active route", role: .destructive) {
+            Button(T.string("settings.device.transfer.clearActive"), role: .destructive) {
                 Task { await appModel.clearActiveRoute() }
             }
         }
     }
 
     private var diagnosticsSection: some View {
-        Section("Diagnostics") {
-            Button("Arm retryable interruption") { appModel.armRetryableInterruptionOnNextTransfer() }
-            Button("Arm write failure") { appModel.armWriteFailureOnNextTransfer() }
-            Button("Arm disconnect after chunk") { appModel.armDisconnectAfterNextChunkWrite() }
-            Button("Arm drop next inbound status") { appModel.armDropNextInboundStatus() }
+        Section(T.string("settings.device.diagnostics.section")) {
+            Button(T.string("settings.device.diagnostics.armRetryable")) { appModel.armRetryableInterruptionOnNextTransfer() }
+            Button(T.string("settings.device.diagnostics.armWriteFailure")) { appModel.armWriteFailureOnNextTransfer() }
+            Button(T.string("settings.device.diagnostics.armDisconnect")) { appModel.armDisconnectAfterNextChunkWrite() }
+            Button(T.string("settings.device.diagnostics.armDropStatus")) { appModel.armDropNextInboundStatus() }
         }
     }
 }

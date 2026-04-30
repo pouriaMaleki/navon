@@ -3,6 +3,7 @@
     <string name="common_cancel" formatted="false">Cancelar</string>
     <string name="common_cancel_role" formatted="false">Cancelar</string>
     <string name="common_close" formatted="false">Cerrar</string>
+    <string name="common_dismiss" formatted="false">Cerrar</string>
     <string name="common_forget" formatted="false">Olvidar</string>
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">Has llegado a tu destino</string>
@@ -32,13 +33,27 @@
     <string name="cue_turn50m_right" formatted="false">En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, gira a la derecha</string>
     <string name="cue_turn50m_uturn" formatted="false">En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, haz un U-turn</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} hasta {destination}</string>
+    <string name="home_a11y_clearDestination" formatted="false">Borrar destino</string>
+    <string name="home_a11y_currentSpeed" formatted="false">Velocidad actual</string>
+    <string name="home_a11y_findAlternates" formatted="false">Buscar rutas alternas</string>
+    <string name="home_a11y_locating" formatted="false">Ubicándote</string>
+    <string name="home_a11y_locationBlocked" formatted="false">La ubicación está bloqueada</string>
+    <string name="home_a11y_recenterMap" formatted="false">Centrar el mapa</string>
+    <string name="home_a11y_settings" formatted="false">Ajustes</string>
     <string name="home_importedRoute" formatted="false">Ruta importada</string>
+    <string name="home_iosLocationHint" formatted="false">Abre Ajustes de iOS → Privacidad → Ubicación para cambiar esta app a \"Siempre\".</string>
+    <string name="home_linkFailed" formatted="false">No se pudo abrir ese enlace</string>
     <string name="home_noSuggestions" formatted="false">Aún no hay sugerencias…</string>
     <string name="home_openSettings" formatted="false">Configuración</string>
     <string name="home_platformHint_locationDefault" formatted="false">Se te pedirá permiso de ubicación. Permítelo para que la guía siga rastreando tu posición mientras la app está en segundo plano.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">Safari en iPhone no entrega GPS real en segundo plano. Mantén la pestaña activa y la pantalla encendida para que las actualizaciones de ubicación continúen mientras pedaleas.</string>
     <string name="home_recenter" formatted="false">Centrar</string>
+    <string name="home_resolvingLink" formatted="false">Resolviendo enlace…</string>
+    <string name="home_resolvingLinkSubtitle" formatted="false">Siguiendo el enlace a un destino. Esto puede tardar un par de segundos.</string>
+    <string name="home_routeActiveOnDevice" formatted="false">Ruta activa en el dispositivo</string>
     <string name="home_routeOptions" formatted="false">Opciones de ruta</string>
+    <string name="home_routingFinished" formatted="false">Planificación finalizada. Toca un destino para planificar de nuevo.</string>
+    <string name="home_sendingPercent" formatted="false">Enviando {percent, number}%</string>
     <string name="home_start" formatted="false">Iniciar</string>
     <string name="home_startOnDevice" formatted="false">Iniciar en el dispositivo</string>
     <string name="home_startRoute" formatted="false">Iniciar ruta</string>
@@ -48,9 +63,29 @@
     <string name="home_suggestedRoutes" formatted="false">Rutas sugeridas</string>
     <string name="home_whereTo" formatted="false">¿A dónde? </string>
     <string name="home_workingOnRoute" formatted="false">Calculando ruta</string>
+    <string name="importDiagnostics_copyDebugInfo" formatted="false">Copiar información de depuración</string>
+    <string name="importDiagnostics_retry" formatted="false">Reintentar importación</string>
+    <string name="importDiagnostics_sharePackage" formatted="false">Compartir paquete de depuración</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Diagnósticos de importación del Companion</string>
+    <string name="pairing_alignQr" formatted="false">Alinea el código QR en el encuadre</string>
+    <string name="pairing_cameraDenied" formatted="false">Se requiere acceso a la cámara para escanear el código de emparejamiento.</string>
+    <string name="pairing_cancel" formatted="false">Cancelar</string>
+    <string name="pairing_failed" formatted="false">Falló el emparejamiento</string>
+    <string name="pairing_intro" formatted="false">Sostén el teléfono para que la pantalla del dispositivo esté dentro del encuadre y, luego, toca Iniciar cuando veas el código QR.</string>
+    <string name="pairing_openSettings" formatted="false">Abrir Ajustes</string>
+    <string name="pairing_paired" formatted="false">Emparejado</string>
+    <string name="pairing_scanInstruction" formatted="false">Centra el código QR en el encuadre y mantén el dispositivo estable.</string>
+    <string name="pairing_start" formatted="false">Iniciar</string>
+    <string name="pairing_title" formatted="false">Emparejar un dispositivo</string>
     <string name="planning_cyclingAlternatives" formatted="false">Alternativas de ciclismo vía BRouter + OSRM</string>
     <string name="planning_cyclingAlternativesWithFailures" formatted="false">Alternativas de ciclismo — {failedCount, number} {failedCount, select, one {source} other {sources}} no disponible(s)</string>
     <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">Rutas combinadas de HSL y OSM</string>
+    <string name="routeDetail_geometryPoints" formatted="false">Puntos de geometría: {count, number}</string>
+    <string name="routeDetail_maneuverCount" formatted="false">Maniobras: {count, number}</string>
+    <string name="routeDetail_open" formatted="false">Abrir</string>
+    <string name="routeDetail_section_actions" formatted="false">Acciones</string>
+    <string name="routeDetail_section_route" formatted="false">Ruta</string>
+    <string name="routeDetail_title" formatted="false">Ruta</string>
     <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">Requerido para avisos de audio y actividad en vivo</string>
     <string name="settings_activity_allowBackgroundGps_title" formatted="false">Permitir GPS en segundo plano</string>
     <string name="settings_activity_audioCues_subtitle" formatted="false">Habla las indicaciones paso a paso durante la ruta</string>
@@ -63,6 +98,16 @@
     <string name="settings_activity_liveActivity_title" formatted="false">Actividad en vivo en la pantalla de bloqueo</string>
     <string name="settings_activity_title" formatted="false">Configuración de actividad</string>
     <string name="settings_device_connect" formatted="false">Conectar</string>
+    <string name="settings_device_connection_lastDevice" formatted="false">Último dispositivo: {name}</string>
+    <string name="settings_device_connection_section" formatted="false">Conexión</string>
+    <string name="settings_device_connection_state" formatted="false">Estado: {state}</string>
+    <string name="settings_device_connection_status" formatted="false">Estado: {status}</string>
+    <string name="settings_device_connection_sync" formatted="false">Sincronización: {state}</string>
+    <string name="settings_device_diagnostics_armDisconnect" formatted="false">Desconectar después del siguiente bloque</string>
+    <string name="settings_device_diagnostics_armDropStatus" formatted="false">Descartar el siguiente estado BLE entrante</string>
+    <string name="settings_device_diagnostics_armRetryable" formatted="false">Activar una interrupción reintentable</string>
+    <string name="settings_device_diagnostics_armWriteFailure" formatted="false">Activar fallo de escritura</string>
+    <string name="settings_device_diagnostics_section" formatted="false">Diagnósticos</string>
     <string name="settings_device_disconnect" formatted="false">Desconectar</string>
     <string name="settings_device_forget" formatted="false">Olvidar dispositivo emparejado</string>
     <string name="settings_device_forget_confirmMessage" formatted="false">Necesitarás volver a escanear el código de emparejamiento para usarlo. Tu historial de rutas se mantiene.</string>
@@ -72,6 +117,12 @@
     <string name="settings_device_pairedDevice_section" formatted="false">Dispositivo emparejado</string>
     <string name="settings_device_reconnecting" formatted="false">Reconectando…</string>
     <string name="settings_device_title" formatted="false">Dispositivo</string>
+    <string name="settings_device_transfer_activeRoute" formatted="false">Ruta activa: {id}</string>
+    <string name="settings_device_transfer_clearActive" formatted="false">Borrar ruta activa</string>
+    <string name="settings_device_transfer_lastSync" formatted="false">Última sincronización: {result}</string>
+    <string name="settings_device_transfer_pendingRoute" formatted="false">Ruta pendiente: {id}</string>
+    <string name="settings_device_transfer_resume" formatted="false">Reanudar transferencia pendiente</string>
+    <string name="settings_device_transfer_section" formatted="false">Transferencia</string>
     <string name="settings_distanceUnit_imperial" formatted="false">Imperial</string>
     <string name="settings_distanceUnit_metric" formatted="false">Métrico</string>
     <string name="settings_distanceUnit_system" formatted="false">Sistema</string>
@@ -94,8 +145,19 @@
     <string name="settings_language_title" formatted="false">Idioma</string>
     <string name="settings_restartRequired_message" formatted="false">Cierra y vuelve a abrir la app para aplicar el nuevo idioma.</string>
     <string name="settings_restartRequired_title" formatted="false">Se requiere reinicio</string>
+    <string name="settings_routePlanner_cyclingSpeed" formatted="false">Velocidad de ciclismo</string>
+    <string name="settings_routePlanner_defaults_section" formatted="false">Valores predeterminados</string>
+    <string name="settings_routePlanner_hsl_description" formatted="false">HSL es la autoridad de transporte del Área Metropolitana de Helsinki. Su API de Digitransit ofrece enrutamiento de alta calidad para bicicletas en toda el área metropolitana de Helsinki. La clave es gratuita: inicia sesión en el portal, registra una aplicación y copia la clave de suscripción en el campo de arriba. Fuera del área de Helsinki, deja HSL desactivado y el planificador usa enrutamiento con OSM a nivel global.</string>
+    <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
+    <string name="settings_routePlanner_riding_footnote" formatted="false">La velocidad de ciclismo anula las ETA de HSL (Digitransit usa una velocidad de bicicleta lenta de forma predeterminada). La unidad de velocidad es cómo se muestra la insignia de velocidad en el mapa.</string>
+    <string name="settings_routePlanner_riding_section" formatted="false">Ciclismo</string>
     <string name="settings_routePlanner_title" formatted="false">Planificador de rutas</string>
     <string name="settings_routes_empty" formatted="false">Aún no hay rutas guardadas</string>
+    <string name="settings_routes_import_gpx" formatted="false">Importar GPX</string>
+    <string name="settings_routes_import_section" formatted="false">Importar</string>
+    <string name="settings_routes_recent_empty" formatted="false">Aún no hay rutas o destinos recientes.</string>
+    <string name="settings_routes_recent_section" formatted="false">Recientes</string>
+    <string name="settings_routes_routeDetailsA11y" formatted="false">Detalles de la ruta</string>
     <string name="settings_routes_title" formatted="false">Rutas</string>
     <string name="settings_speedUnit_title" formatted="false">Unidad de velocidad</string>
     <string name="settings_voiceNotInstalled" formatted="false">No se instaló la voz para {language}. Abre los Ajustes del sistema para instalarla.</string>

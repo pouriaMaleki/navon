@@ -3,6 +3,7 @@
     <string name="common_cancel" formatted="false">إلغاء</string>
     <string name="common_cancel_role" formatted="false">إلغاء</string>
     <string name="common_close" formatted="false">إغلاق</string>
+    <string name="common_dismiss" formatted="false">إخفاء</string>
     <string name="common_forget" formatted="false">نسيان</string>
     <string name="common_ok" formatted="false">حسنًا</string>
     <string name="cue_arrived" formatted="false">لقد وصلت إلى وجهتك</string>
@@ -32,13 +33,27 @@
     <string name="cue_turn50m_right" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، انعطف يمينًا</string>
     <string name="cue_turn50m_uturn" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، قم بعمل انعطاف U</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} إلى {destination}</string>
+    <string name="home_a11y_clearDestination" formatted="false">مسح الوجهة</string>
+    <string name="home_a11y_currentSpeed" formatted="false">السرعة الحالية</string>
+    <string name="home_a11y_findAlternates" formatted="false">ابحث عن مسارات بديلة</string>
+    <string name="home_a11y_locating" formatted="false">أحدد موقعك</string>
+    <string name="home_a11y_locationBlocked" formatted="false">الموقع محجوب</string>
+    <string name="home_a11y_recenterMap" formatted="false">أعد توسيط الخريطة</string>
+    <string name="home_a11y_settings" formatted="false">الإعدادات</string>
     <string name="home_importedRoute" formatted="false">تمت استيراد المسار</string>
+    <string name="home_iosLocationHint" formatted="false">افتح إعدادات iOS → الخصوصية → الموقع لتبديل هذا التطبيق إلى \"دائمًا\".</string>
+    <string name="home_linkFailed" formatted="false">تعذّر فتح هذا الرابط</string>
     <string name="home_noSuggestions" formatted="false">لا توجد اقتراحات بعد…</string>
     <string name="home_openSettings" formatted="false">الإعدادات</string>
     <string name="home_platformHint_locationDefault" formatted="false">سيُطلب منك إذن الموقع. اسمح بذلك حتى تستمر الإرشادات في تتبّع موقعك أثناء بقاء التطبيق في الخلفية.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">لا يوفّر Safari على iPhone تحديد GPS في الخلفية بشكل حقيقي. أبقِ علامة التبويب مفتوحة والشاشة قيد التشغيل حتى تستمر تحديثات الموقع أثناء ركوبك.</string>
     <string name="home_recenter" formatted="false">أعد التمركز</string>
+    <string name="home_resolvingLink" formatted="false">جارٍ حلّ الرابط…</string>
+    <string name="home_resolvingLinkSubtitle" formatted="false">متابعة الرابط إلى وجهة. قد يستغرق ذلك بضع ثوانٍ.</string>
+    <string name="home_routeActiveOnDevice" formatted="false">المسار نشط على الجهاز</string>
     <string name="home_routeOptions" formatted="false">خيارات المسار</string>
+    <string name="home_routingFinished" formatted="false">اكتمل التوجيه. اضغط على وجهة للتخطيط مرة أخرى.</string>
+    <string name="home_sendingPercent" formatted="false">جارٍ الإرسال {percent, number}%</string>
     <string name="home_start" formatted="false">ابدأ</string>
     <string name="home_startOnDevice" formatted="false">ابدأ على الجهاز</string>
     <string name="home_startRoute" formatted="false">ابدأ المسار</string>
@@ -48,9 +63,29 @@
     <string name="home_suggestedRoutes" formatted="false">مسارات مقترحة</string>
     <string name="home_whereTo" formatted="false">إلى أين؟</string>
     <string name="home_workingOnRoute" formatted="false">جارٍ العمل على المسار</string>
+    <string name="importDiagnostics_copyDebugInfo" formatted="false">نسخ معلومات التصحيح</string>
+    <string name="importDiagnostics_retry" formatted="false">إعادة محاولة الاستيراد</string>
+    <string name="importDiagnostics_sharePackage" formatted="false">مشاركة حزمة التصحيح</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">تشخيصات استيراد Companion</string>
+    <string name="pairing_alignQr" formatted="false">قم بمحاذاة رمز QR داخل الإطار</string>
+    <string name="pairing_cameraDenied" formatted="false">يُطلب الوصول إلى الكاميرا لمسح رمز الاقتران.</string>
+    <string name="pairing_cancel" formatted="false">إلغاء</string>
+    <string name="pairing_failed" formatted="false">فشل الاقتران</string>
+    <string name="pairing_intro" formatted="false">أبقِ هاتفك بحيث تكون شاشة الجهاز داخل الإطار، ثم اضغط على ابدأ عندما ترى رمز QR.</string>
+    <string name="pairing_openSettings" formatted="false">فتح الإعدادات</string>
+    <string name="pairing_paired" formatted="false">تم الاقتران</string>
+    <string name="pairing_scanInstruction" formatted="false">ضع رمز QR في مركز الإطار وابقِه ثابتًا.</string>
+    <string name="pairing_start" formatted="false">ابدأ</string>
+    <string name="pairing_title" formatted="false">اقتران جهاز</string>
     <string name="planning_cyclingAlternatives" formatted="false">بدائل ركوب الدراجات عبر BRouter + OSRM</string>
     <string name="planning_cyclingAlternativesWithFailures" formatted="false">بدائل ركوب الدراجات — {failedCount, number} {failedCount, select, one {source} other {sources}} غير متاح</string>
     <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">مسارات مختلطة من HSL وOSM</string>
+    <string name="routeDetail_geometryPoints" formatted="false">نقاط الهندسة: {count, number}</string>
+    <string name="routeDetail_maneuverCount" formatted="false">المناورات: {count, number}</string>
+    <string name="routeDetail_open" formatted="false">افتح</string>
+    <string name="routeDetail_section_actions" formatted="false">الإجراءات</string>
+    <string name="routeDetail_section_route" formatted="false">المسار</string>
+    <string name="routeDetail_title" formatted="false">المسار</string>
     <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">مطلوب لإشارات الصوت والأنشطة المباشرة</string>
     <string name="settings_activity_allowBackgroundGps_title" formatted="false">السماح بـ GPS في الخلفية</string>
     <string name="settings_activity_audioCues_subtitle" formatted="false">انطق تعليمات المنعطفات خطوة بخطوة أثناء التوجيه</string>
@@ -63,6 +98,16 @@
     <string name="settings_activity_liveActivity_title" formatted="false">نشاط مباشر على شاشة القفل</string>
     <string name="settings_activity_title" formatted="false">إعدادات النشاط</string>
     <string name="settings_device_connect" formatted="false">اتصال</string>
+    <string name="settings_device_connection_lastDevice" formatted="false">آخر جهاز: {name}</string>
+    <string name="settings_device_connection_section" formatted="false">الاتصال</string>
+    <string name="settings_device_connection_state" formatted="false">الحالة: {state}</string>
+    <string name="settings_device_connection_status" formatted="false">الحالة: {status}</string>
+    <string name="settings_device_connection_sync" formatted="false">المزامنة: {state}</string>
+    <string name="settings_device_diagnostics_armDisconnect" formatted="false">افصل بعد كتابة الدفعة التالية</string>
+    <string name="settings_device_diagnostics_armDropStatus" formatted="false">أَسقط إطار حالة BLE التالي الوارد</string>
+    <string name="settings_device_diagnostics_armRetryable" formatted="false">فعّل مقاطعة قابلة لإعادة المحاولة في نقل BLE التالي</string>
+    <string name="settings_device_diagnostics_armWriteFailure" formatted="false">فعّل فشل الكتابة في نقل BLE التالي</string>
+    <string name="settings_device_diagnostics_section" formatted="false">التشخيصات</string>
     <string name="settings_device_disconnect" formatted="false">قطع الاتصال</string>
     <string name="settings_device_forget" formatted="false">نسيان الجهاز المقترن</string>
     <string name="settings_device_forget_confirmMessage" formatted="false">ستحتاج إلى مسح رمز الاقتران مرة أخرى لاستخدامه. تبقى سجلات مسارك.</string>
@@ -72,6 +117,12 @@
     <string name="settings_device_pairedDevice_section" formatted="false">الجهاز المقترن</string>
     <string name="settings_device_reconnecting" formatted="false">إعادة الاتصال…</string>
     <string name="settings_device_title" formatted="false">الجهاز</string>
+    <string name="settings_device_transfer_activeRoute" formatted="false">المسار النشط: {id}</string>
+    <string name="settings_device_transfer_clearActive" formatted="false">امسح المسار النشط</string>
+    <string name="settings_device_transfer_lastSync" formatted="false">آخر مزامنة: {result}</string>
+    <string name="settings_device_transfer_pendingRoute" formatted="false">المسار المعلّق: {id}</string>
+    <string name="settings_device_transfer_resume" formatted="false">استأنف نقلًا معلّقًا</string>
+    <string name="settings_device_transfer_section" formatted="false">النقل</string>
     <string name="settings_distanceUnit_imperial" formatted="false">إمبراطوري</string>
     <string name="settings_distanceUnit_metric" formatted="false">متري</string>
     <string name="settings_distanceUnit_system" formatted="false">النظام</string>
@@ -94,8 +145,19 @@
     <string name="settings_language_title" formatted="false">اللغة</string>
     <string name="settings_restartRequired_message" formatted="false">أغلق التطبيق وأعد فتحه لتطبيق اللغة الجديدة.</string>
     <string name="settings_restartRequired_title" formatted="false">يلزم إعادة التشغيل</string>
+    <string name="settings_routePlanner_cyclingSpeed" formatted="false">سرعة الدراجة</string>
+    <string name="settings_routePlanner_defaults_section" formatted="false">الافتراضيات</string>
+    <string name="settings_routePlanner_hsl_description" formatted="false">HSL هي هيئة النقل في منطقة هلسنكي. توفر واجهة Digitransit API الخاصة بهم توجيهًا عالي الجودة للدراجات عبر منطقة مترو هلسنكي. المفتاح مجاني — سجّل الدخول في البوابة، وسجّل تطبيقًا، ثم انسخ مفتاح الاشتراك إلى الحقل أعلاه. خارج منطقة هلسنكي، اترك HSL دون تفعيل وسيستخدم المخطط توجيه OSM عالميًا.</string>
+    <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
+    <string name="settings_routePlanner_riding_footnote" formatted="false">تتجاوز سرعة الدراجة تقديرات HSL ETAs (تكون افتراضات Digitransit لسرعة دراجة بطيئة). وحدة السرعة هي كيفية عرض شارة السرعة المباشرة على الخريطة.</string>
+    <string name="settings_routePlanner_riding_section" formatted="false">الركوب</string>
     <string name="settings_routePlanner_title" formatted="false">مخطط المسار</string>
     <string name="settings_routes_empty" formatted="false">لا توجد مسارات محفوظة بعد</string>
+    <string name="settings_routes_import_gpx" formatted="false">استيراد GPX</string>
+    <string name="settings_routes_import_section" formatted="false">استيراد</string>
+    <string name="settings_routes_recent_empty" formatted="false">لا توجد مسارات أو وجهات حديثة بعد.</string>
+    <string name="settings_routes_recent_section" formatted="false">الرحلات الأخيرة</string>
+    <string name="settings_routes_routeDetailsA11y" formatted="false">تفاصيل المسار</string>
     <string name="settings_routes_title" formatted="false">المسارات</string>
     <string name="settings_speedUnit_title" formatted="false">وحدة السرعة</string>
     <string name="settings_voiceNotInstalled" formatted="false">لم يتم تثبيت صوت {language}. افتح إعدادات النظام لتثبيته.</string>

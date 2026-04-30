@@ -3,6 +3,7 @@
     <string name="common_cancel" formatted="false">रद्द करा</string>
     <string name="common_cancel_role" formatted="false">रद्द करा</string>
     <string name="common_close" formatted="false">बंद करा</string>
+    <string name="common_dismiss" formatted="false">बंद करा</string>
     <string name="common_forget" formatted="false">विसरा</string>
     <string name="common_ok" formatted="false">ठीक आहे</string>
     <string name="cue_arrived" formatted="false">तुम्ही तुमच्या गंतव्यस्थानी पोहोचलात</string>
@@ -32,13 +33,27 @@
     <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, उजवीकडे वळा</string>
     <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, U-turn करा</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} ते {destination}</string>
+    <string name="home_a11y_clearDestination" formatted="false">गंतव्य साफ करा</string>
+    <string name="home_a11y_currentSpeed" formatted="false">सध्याचा वेग</string>
+    <string name="home_a11y_findAlternates" formatted="false">पर्यायी मार्ग शोधा</string>
+    <string name="home_a11y_locating" formatted="false">तुम्हाला शोधत आहे</string>
+    <string name="home_a11y_locationBlocked" formatted="false">स्थान अवरोधित आहे</string>
+    <string name="home_a11y_recenterMap" formatted="false">नकाशा पुन्हा मध्यभागी आणा</string>
+    <string name="home_a11y_settings" formatted="false">सेटिंग्ज</string>
     <string name="home_importedRoute" formatted="false">आयात केलेला मार्ग</string>
+    <string name="home_iosLocationHint" formatted="false">iOS सेटिंग्ज उघडा → गोपनीयता → स्थान, आणि हा अॅप “Always” (नेहमी) वर स्विच करा.</string>
+    <string name="home_linkFailed" formatted="false">हा दुवा उघडता आला नाही</string>
     <string name="home_noSuggestions" formatted="false">अजून सूचना नाहीत…</string>
     <string name="home_openSettings" formatted="false">सेटिंग्ज</string>
     <string name="home_platformHint_locationDefault" formatted="false">तुमच्याकडून स्थानासाठी परवानगी मागितली जाईल. मार्गदर्शन तुमचे स्थान ॲप पार्श्वभूमीत असतानाही ट्रॅक करत राहण्यासाठी ते परवानगी द्या.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">iPhone वरील Safari खरे पार्श्वभूमी GPS देत नाही. तुम्ही राइड करत असताना स्थान अपडेट्स सुरू राहण्यासाठी टॅब सक्रिय ठेवा आणि स्क्रीन चालू ठेवा.</string>
     <string name="home_recenter" formatted="false">पुन्हा मध्यावर आणा</string>
+    <string name="home_resolvingLink" formatted="false">दुवा शोधत आहे…</string>
+    <string name="home_resolvingLinkSubtitle" formatted="false">गंतव्याकडे दुवा अनुसरत आहे. यास काही सेकंद लागू शकतात.</string>
+    <string name="home_routeActiveOnDevice" formatted="false">डिव्हाइसवर मार्ग सक्रिय</string>
     <string name="home_routeOptions" formatted="false">मार्ग पर्याय</string>
+    <string name="home_routingFinished" formatted="false">रूटिंग पूर्ण झाले. पुन्हा नियोजनासाठी गंतव्यावर टॅप करा.</string>
+    <string name="home_sendingPercent" formatted="false">{percent, number}% पाठवत आहे</string>
     <string name="home_start" formatted="false">प्रारंभ</string>
     <string name="home_startOnDevice" formatted="false">डिव्हाइसवर प्रारंभ</string>
     <string name="home_startRoute" formatted="false">मार्ग सुरू करा</string>
@@ -48,9 +63,29 @@
     <string name="home_suggestedRoutes" formatted="false">सुचवलेले मार्ग</string>
     <string name="home_whereTo" formatted="false">कुठे जायचे?</string>
     <string name="home_workingOnRoute" formatted="false">मार्ग तयार होत आहे</string>
+    <string name="importDiagnostics_copyDebugInfo" formatted="false">डिबग माहिती कॉपी करा</string>
+    <string name="importDiagnostics_retry" formatted="false">पुन्हा आयात करा</string>
+    <string name="importDiagnostics_sharePackage" formatted="false">डिबग पॅकेज शेअर करा</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">कंपॅनियन आयात निदान</string>
+    <string name="pairing_alignQr" formatted="false">फ्रेममध्ये QR कोड सरळ करा</string>
+    <string name="pairing_cameraDenied" formatted="false">जोडणी कोड स्कॅन करण्यासाठी कॅमेरा प्रवेश आवश्यक आहे.</string>
+    <string name="pairing_cancel" formatted="false">रद्द करा</string>
+    <string name="pairing_failed" formatted="false">जोडणी अयशस्वी</string>
+    <string name="pairing_intro" formatted="false">फोन डिव्हाइसच्या स्क्रीनचा भाग फ्रेममध्ये येईल अशा प्रकारे धरा, आणि QR कोड दिसल्यावर Start वर टॅप करा.</string>
+    <string name="pairing_openSettings" formatted="false">सेटिंग्ज उघडा</string>
+    <string name="pairing_paired" formatted="false">जोडले गेले</string>
+    <string name="pairing_scanInstruction" formatted="false">QR कोड फ्रेमच्या मध्यभागी ठेवा आणि स्थिर धरा.</string>
+    <string name="pairing_start" formatted="false">Start</string>
+    <string name="pairing_title" formatted="false">डिव्हाइस जोडा</string>
     <string name="planning_cyclingAlternatives" formatted="false">BRouter + OSRM द्वारे सायकलिंग पर्याय</string>
     <string name="planning_cyclingAlternativesWithFailures" formatted="false">सायकलिंग पर्याय — {failedCount, number} {failedCount, select, one {source} other {sources}} उपलब्ध नाहीत</string>
     <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">HSL आणि OSM मधून मिश्र मार्ग</string>
+    <string name="routeDetail_geometryPoints" formatted="false">भूमिती बिंदू: {count, number}</string>
+    <string name="routeDetail_maneuverCount" formatted="false">चाल: {count, number}</string>
+    <string name="routeDetail_open" formatted="false">उघडा</string>
+    <string name="routeDetail_section_actions" formatted="false">कृती</string>
+    <string name="routeDetail_section_route" formatted="false">मार्ग</string>
+    <string name="routeDetail_title" formatted="false">मार्ग</string>
     <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">ऑडिओ संकेत आणि लाईव्ह अ‍ॅक्टिव्हिटीसाठी आवश्यक</string>
     <string name="settings_activity_allowBackgroundGps_title" formatted="false">पार्श्वभूमीत GPS ला परवानगी द्या</string>
     <string name="settings_activity_audioCues_subtitle" formatted="false">रूटिंग दरम्यान टर्न-बाय-टर्न दिशा बोला</string>
@@ -63,6 +98,16 @@
     <string name="settings_activity_liveActivity_title" formatted="false">लॉक-स्क्रीन लाईव्ह अ‍ॅक्टिव्हिटी</string>
     <string name="settings_activity_title" formatted="false">अ‍ॅक्टिव्हिटी सेटिंग्ज</string>
     <string name="settings_device_connect" formatted="false">जोडा</string>
+    <string name="settings_device_connection_lastDevice" formatted="false">शेवटचे डिव्हाइस: {name}</string>
+    <string name="settings_device_connection_section" formatted="false">कनेक्शन</string>
+    <string name="settings_device_connection_state" formatted="false">स्थिती: {state}</string>
+    <string name="settings_device_connection_status" formatted="false">स्थिती: {status}</string>
+    <string name="settings_device_connection_sync" formatted="false">सिंक: {state}</string>
+    <string name="settings_device_diagnostics_armDisconnect" formatted="false">चंक लिहिल्यानंतर डिसकनेक्ट करा</string>
+    <string name="settings_device_diagnostics_armDropStatus" formatted="false">पुढील इनबाउंड BLE स्टेटस फ्रेम ड्रॉप करा</string>
+    <string name="settings_device_diagnostics_armRetryable" formatted="false">पुढील BLE ट्रान्सफरवर रीट्राय-योग्य व्यत्यय द्या</string>
+    <string name="settings_device_diagnostics_armWriteFailure" formatted="false">पुढील BLE ट्रान्सफरवर लेखन अपयश द्या</string>
+    <string name="settings_device_diagnostics_section" formatted="false">डायग्नॉस्टिक्स</string>
     <string name="settings_device_disconnect" formatted="false">तोडा</string>
     <string name="settings_device_forget" formatted="false">जोडलेले डिव्हाइस विसरा</string>
     <string name="settings_device_forget_confirmMessage" formatted="false">ते वापरण्यासाठी तुम्हाला पुन्हा पेअरिंग कोड स्कॅन करावा लागेल. तुमचा रूट इतिहास तसाच राहील.</string>
@@ -72,6 +117,12 @@
     <string name="settings_device_pairedDevice_section" formatted="false">जोडलेले डिव्हाइस</string>
     <string name="settings_device_reconnecting" formatted="false">पुन्हा कनेक्ट करत आहोत…</string>
     <string name="settings_device_title" formatted="false">डिव्हाइस</string>
+    <string name="settings_device_transfer_activeRoute" formatted="false">सक्रिय मार्ग: {id}</string>
+    <string name="settings_device_transfer_clearActive" formatted="false">सक्रिय मार्ग साफ करा</string>
+    <string name="settings_device_transfer_lastSync" formatted="false">शेवटचा सिंक: {result}</string>
+    <string name="settings_device_transfer_pendingRoute" formatted="false">प्रलंबित मार्ग: {id}</string>
+    <string name="settings_device_transfer_resume" formatted="false">प्रलंबित ट्रान्सफर पुन्हा सुरू करा</string>
+    <string name="settings_device_transfer_section" formatted="false">ट्रान्सफर</string>
     <string name="settings_distanceUnit_imperial" formatted="false">इम्पीरियल</string>
     <string name="settings_distanceUnit_metric" formatted="false">मेट्रिक</string>
     <string name="settings_distanceUnit_system" formatted="false">सिस्टम</string>
@@ -94,8 +145,19 @@
     <string name="settings_language_title" formatted="false">भाषा</string>
     <string name="settings_restartRequired_message" formatted="false">नवीन भाषा लागू करण्यासाठी अॅप बंद करून पुन्हा उघडा.</string>
     <string name="settings_restartRequired_title" formatted="false">रीस्टार्ट आवश्यक</string>
+    <string name="settings_routePlanner_cyclingSpeed" formatted="false">सायकलिंग वेग</string>
+    <string name="settings_routePlanner_defaults_section" formatted="false">डीफॉल्ट्स</string>
+    <string name="settings_routePlanner_hsl_description" formatted="false">HSL हे हेलसिंकी प्रदेश परिवहन प्राधिकरण आहे. त्यांचे Digitransit API हेलसिंकी महानगर परिसरात उच्च-गुणवत्तेचे सायकल रूटिंग देते. की मोफत आहे — पोर्टलवर साइन इन करा, अॅप नोंदणी करा, आणि सबस्क्रिप्शन की वरच्या फील्डमध्ये कॉपी करा. हेलसिंकी क्षेत्राबाहेर HSL बंद ठेवा आणि प्लॅनर जागतिक स्तरावर OSM रूटिंग वापरेल.</string>
+    <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
+    <string name="settings_routePlanner_riding_footnote" formatted="false">सायकलिंग वेग HSL ETAs ओव्हरराईड करतो (Digitransit डीफॉल्टने धीम्या सायकल वेगावर सेट असते). वेगाचे युनिट म्हणजे नकाशावर लाइव्ह-वेग बॅज कसा दाखवला जातो ते.</string>
+    <string name="settings_routePlanner_riding_section" formatted="false">स्वारी</string>
     <string name="settings_routePlanner_title" formatted="false">रूट प्लॅनर</string>
     <string name="settings_routes_empty" formatted="false">अजून कोणतेही सेव्ह केलेले रूट नाहीत</string>
+    <string name="settings_routes_import_gpx" formatted="false">GPX आयात करा</string>
+    <string name="settings_routes_import_section" formatted="false">आयात</string>
+    <string name="settings_routes_recent_empty" formatted="false">अजून कोणतेही अलीकडचे मार्ग किंवा गंतव्य नाहीत.</string>
+    <string name="settings_routes_recent_section" formatted="false">अलीकडील</string>
+    <string name="settings_routes_routeDetailsA11y" formatted="false">मार्ग तपशील</string>
     <string name="settings_routes_title" formatted="false">रूट्स</string>
     <string name="settings_speedUnit_title" formatted="false">वेगाचे एकक</string>
     <string name="settings_voiceNotInstalled" formatted="false">{language} साठीचा आवाज स्थापित नाही. तो स्थापित करण्यासाठी सिस्टम सेटिंग्ज उघडा.</string>

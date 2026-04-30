@@ -79,7 +79,7 @@ private struct ActivitySettingsSection: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     if appModel.locationManualSettingsHint {
-                        Text("Open iOS Settings → Privacy → Location to switch this app to \"Always\".")
+                        Text(T.string("home.iosLocationHint"))
                             .font(.caption2)
                             .foregroundStyle(.orange)
                     }

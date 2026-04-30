@@ -22,18 +22,18 @@ struct ImportDiagnosticsView: View {
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
-                        Button("Copy debug info") {
+                        Button(T.string("importDiagnostics.copyDebugInfo")) {
                             UIPasteboard.general.string = entry.debugPackageText
                         }
-                        ShareLink(item: entry.debugPackageText, subject: Text("Companion import diagnostics")) {
-                            Text("Share debug package")
+                        ShareLink(item: entry.debugPackageText, subject: Text(T.string("importDiagnostics.shareSubject"))) {
+                            Text(T.string("importDiagnostics.sharePackage"))
                         }
-                        Button("Retry import") {
+                        Button(T.string("importDiagnostics.retry")) {
                             Task {
                                 await appModel.retrySharedImport(entry)
                             }
                         }
-                        Button("Dismiss", role: .destructive) {
+                        Button(T.string("common.dismiss"), role: .destructive) {
                             appModel.dismissImportDiagnosticsEntry(id: entry.id)
                         }
                     }

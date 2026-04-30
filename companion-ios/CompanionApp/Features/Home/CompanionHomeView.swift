@@ -200,7 +200,7 @@ struct CompanionHomeView: View {
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .padding(.leading, 16)
             .padding(.bottom, 32)
-            .accessibilityLabel("Current speed")
+            .accessibilityLabel(T.string("home.a11y.currentSpeed"))
         }
     }
 
@@ -277,7 +277,7 @@ struct CompanionHomeView: View {
                 railGlyph("gearshape.fill")
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Settings")
+            .accessibilityLabel(T.string("home.a11y.settings"))
         case .compass:
             // Single combined glyph: tap = recenter / show north-up,
             // double-tap (quick) = lock north-up. Replaces the previous
@@ -286,7 +286,7 @@ struct CompanionHomeView: View {
             railGlyph(viewModel.compassSymbolName)
                 .onTapGesture(count: 2) { viewModel.handleCompassDoubleTap() }
                 .onTapGesture { viewModel.handleCompassTap() }
-                .accessibilityLabel("Recenter map")
+                .accessibilityLabel(T.string("home.a11y.recenterMap"))
         case .deviceChip:
             if let chipState = viewModel.deviceChipState {
                 DeviceStatusChip(state: chipState) {
@@ -306,7 +306,7 @@ struct CompanionHomeView: View {
                 railGlyph("arrow.triangle.branch")
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Find alternate routes")
+            .accessibilityLabel(T.string("home.a11y.findAlternates"))
         case .zoomIn:
             zoomButton(symbol: "plus", label: "Zoom in") { applyZoom(direction: .zoomIn) }
         case .zoomOut:
@@ -428,7 +428,7 @@ struct CompanionHomeView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(message)
                 .font(.headline)
-            Text("Routing finished. Tap a destination to plan again.")
+            Text(T.string("home.routingFinished"))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -547,7 +547,7 @@ struct CompanionHomeView: View {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(.secondary)
                     }
-                    .accessibilityLabel("Clear destination")
+                    .accessibilityLabel(T.string("home.a11y.clearDestination"))
                 }
             }
             .padding(14)
@@ -585,9 +585,9 @@ struct CompanionHomeView: View {
                     HStack(alignment: .center, spacing: 12) {
                         ProgressView()
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Resolving link…")
+                            Text(T.string("home.resolvingLink"))
                                 .font(.headline)
-                            Text("Following the URL to a destination. This can take a couple of seconds.")
+                            Text(T.string("home.resolvingLinkSubtitle"))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -597,7 +597,7 @@ struct CompanionHomeView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 } else if let urlError = viewModel.urlResolveError {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Couldn't open that link")
+                        Text(T.string("home.linkFailed"))
                             .font(.headline)
                         Text(urlError)
                             .font(.caption)
@@ -675,7 +675,7 @@ struct CompanionHomeView: View {
                     .controlSize(.small)
                     .frame(width: 50, height: 50)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                    .accessibilityLabel("Locating you")
+                    .accessibilityLabel(T.string("home.a11y.locating"))
                     .padding(.trailing, 76)
                     .padding(.top, 72)
             } else if appModel.locationService.lastError == .denied {
@@ -683,7 +683,7 @@ struct CompanionHomeView: View {
                     .font(.system(size: 18, weight: .semibold))
                     .frame(width: 50, height: 50)
                     .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                    .accessibilityLabel("Location is blocked")
+                    .accessibilityLabel(T.string("home.a11y.locationBlocked"))
                     .padding(.trailing, 76)
                     .padding(.top, 72)
             }
@@ -843,13 +843,16 @@ struct CompanionHomeView: View {
 
     private func deviceOverviewCard(_ active: NormalizedRoutePackage) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(active.summary.destinationLabel ?? "Route active on device")
+            Text(active.summary.destinationLabel ?? T.string("home.routeActiveOnDevice"))
                 .font(.headline)
             Text(appModel.bleService.sessionState.lastSyncResult)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             if let transfer = appModel.bleService.sessionState.transferProgress {
-                Text("Sending \(transfer.percentComplete)%")
+                Text(T.string(
+                    "home.sendingPercent",
+                    ["percent": .number(Double(transfer.percentComplete))]
+                ))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

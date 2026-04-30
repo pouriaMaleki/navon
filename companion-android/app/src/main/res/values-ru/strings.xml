@@ -3,6 +3,7 @@
     <string name="common_cancel" formatted="false">Отмена</string>
     <string name="common_cancel_role" formatted="false">Отмена</string>
     <string name="common_close" formatted="false">Закрыть</string>
+    <string name="common_dismiss" formatted="false">Отклонить</string>
     <string name="common_forget" formatted="false">Забыть</string>
     <string name="common_ok" formatted="false">ОК</string>
     <string name="cue_arrived" formatted="false">Вы прибыли в пункт назначения</string>
@@ -32,13 +33,27 @@
     <string name="cue_turn50m_right" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните направо</string>
     <string name="cue_turn50m_uturn" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сделайте разворот</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} до {destination}</string>
+    <string name="home_a11y_clearDestination" formatted="false">Очистить пункт назначения</string>
+    <string name="home_a11y_currentSpeed" formatted="false">Текущая скорость</string>
+    <string name="home_a11y_findAlternates" formatted="false">Найти альтернативные маршруты</string>
+    <string name="home_a11y_locating" formatted="false">Определяю ваше местоположение</string>
+    <string name="home_a11y_locationBlocked" formatted="false">Местоположение заблокировано</string>
+    <string name="home_a11y_recenterMap" formatted="false">Центрировать карту</string>
+    <string name="home_a11y_settings" formatted="false">Настройки</string>
     <string name="home_importedRoute" formatted="false">Импортированный маршрут</string>
+    <string name="home_iosLocationHint" formatted="false">Откройте iOS «Настройки» → «Конфиденциальность» → «Геолокация», чтобы переключить это приложение на «Всегда».</string>
+    <string name="home_linkFailed" formatted="false">Не удалось открыть эту ссылку</string>
     <string name="home_noSuggestions" formatted="false">Пока нет подсказок…</string>
     <string name="home_openSettings" formatted="false">Настройки</string>
     <string name="home_platformHint_locationDefault" formatted="false">У вас запросят разрешение на определение местоположения. Разрешите, чтобы навигация продолжала отслеживать вашу позицию, пока приложение работает в фоне.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">Safari на iPhone не передаёт точные GPS-данные в фоне. Держите вкладку активной и экран включённым, чтобы обновления местоположения продолжались во время поездки.</string>
     <string name="home_recenter" formatted="false">В центр</string>
+    <string name="home_resolvingLink" formatted="false">Переход по ссылке…</string>
+    <string name="home_resolvingLinkSubtitle" formatted="false">Переходим по ссылке к пункту назначения. Это может занять пару секунд.</string>
+    <string name="home_routeActiveOnDevice" formatted="false">Маршрут активен на устройстве</string>
     <string name="home_routeOptions" formatted="false">Варианты маршрута</string>
+    <string name="home_routingFinished" formatted="false">Маршрут завершён. Нажмите на пункт назначения, чтобы проложить снова.</string>
+    <string name="home_sendingPercent" formatted="false">Отправка {percent, number}%</string>
     <string name="home_start" formatted="false">Старт</string>
     <string name="home_startOnDevice" formatted="false">Старт на устройстве</string>
     <string name="home_startRoute" formatted="false">Начать маршрут</string>
@@ -48,9 +63,29 @@
     <string name="home_suggestedRoutes" formatted="false">Предложенные маршруты</string>
     <string name="home_whereTo" formatted="false">Куда? </string>
     <string name="home_workingOnRoute" formatted="false">Маршрут рассчитывается</string>
+    <string name="importDiagnostics_copyDebugInfo" formatted="false">Скопировать отладочную информацию</string>
+    <string name="importDiagnostics_retry" formatted="false">Повторить импорт</string>
+    <string name="importDiagnostics_sharePackage" formatted="false">Поделиться отладочным пакетом</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Диагностика импорта Companion</string>
+    <string name="pairing_alignQr" formatted="false">Выровняйте QR-код в кадре</string>
+    <string name="pairing_cameraDenied" formatted="false">Для сканирования кода сопряжения требуется доступ к камере.</string>
+    <string name="pairing_cancel" formatted="false">Отмена</string>
+    <string name="pairing_failed" formatted="false">Сопряжение не удалось</string>
+    <string name="pairing_intro" formatted="false">Поднесите телефон так, чтобы экран устройства был в кадре, затем нажмите «Начать», когда увидите QR-код.</string>
+    <string name="pairing_openSettings" formatted="false">Открыть настройки</string>
+    <string name="pairing_paired" formatted="false">Сопряжено</string>
+    <string name="pairing_scanInstruction" formatted="false">Расположите QR-код по центру кадра и держите устройство неподвижно.</string>
+    <string name="pairing_start" formatted="false">Начать</string>
+    <string name="pairing_title" formatted="false">Сопряжение устройства</string>
     <string name="planning_cyclingAlternatives" formatted="false">Варианты веломаршрутов через BRouter + OSRM</string>
     <string name="planning_cyclingAlternativesWithFailures" formatted="false">Варианты веломаршрутов — {failedCount, number} {failedCount, select, one {source} other {sources}} недоступны</string>
     <string name="planning_mixedRoutesFromHslAndOsm" formatted="false">Смешанные маршруты из HSL и OSM</string>
+    <string name="routeDetail_geometryPoints" formatted="false">Точки геометрии: {count, number}</string>
+    <string name="routeDetail_maneuverCount" formatted="false">Манёвры: {count, number}</string>
+    <string name="routeDetail_open" formatted="false">Открыть</string>
+    <string name="routeDetail_section_actions" formatted="false">Действия</string>
+    <string name="routeDetail_section_route" formatted="false">Маршрут</string>
+    <string name="routeDetail_title" formatted="false">Маршрут</string>
     <string name="settings_activity_allowBackgroundGps_subtitle" formatted="false">Требуется для аудиоподсказок и живой активности</string>
     <string name="settings_activity_allowBackgroundGps_title" formatted="false">Разрешить GPS в фоне</string>
     <string name="settings_activity_audioCues_subtitle" formatted="false">Озвучивать поворот за поворотом во время маршрутизации</string>
@@ -63,6 +98,16 @@
     <string name="settings_activity_liveActivity_title" formatted="false">Живая активность на экране блокировки</string>
     <string name="settings_activity_title" formatted="false">Настройки активности</string>
     <string name="settings_device_connect" formatted="false">Подключить</string>
+    <string name="settings_device_connection_lastDevice" formatted="false">Последнее устройство: {name}</string>
+    <string name="settings_device_connection_section" formatted="false">Подключение</string>
+    <string name="settings_device_connection_state" formatted="false">Состояние: {state}</string>
+    <string name="settings_device_connection_status" formatted="false">Статус: {status}</string>
+    <string name="settings_device_connection_sync" formatted="false">Синхронизация: {state}</string>
+    <string name="settings_device_diagnostics_armDisconnect" formatted="false">Отключить после следующей записи чанка</string>
+    <string name="settings_device_diagnostics_armDropStatus" formatted="false">Отбросить следующий входящий BLE-кадр состояния</string>
+    <string name="settings_device_diagnostics_armRetryable" formatted="false">Запланировать прерывание с возможностью повтора</string>
+    <string name="settings_device_diagnostics_armWriteFailure" formatted="false">Запланировать сбой записи</string>
+    <string name="settings_device_diagnostics_section" formatted="false">Диагностика</string>
     <string name="settings_device_disconnect" formatted="false">Отключить</string>
     <string name="settings_device_forget" formatted="false">Забыть сопряжённое устройство</string>
     <string name="settings_device_forget_confirmMessage" formatted="false">Вам нужно будет снова отсканировать код сопряжения, чтобы использовать его. История маршрутов сохранится.</string>
@@ -72,6 +117,12 @@
     <string name="settings_device_pairedDevice_section" formatted="false">Сопряжённое устройство</string>
     <string name="settings_device_reconnecting" formatted="false">Повторное подключение…</string>
     <string name="settings_device_title" formatted="false">Устройство</string>
+    <string name="settings_device_transfer_activeRoute" formatted="false">Активный маршрут: {id}</string>
+    <string name="settings_device_transfer_clearActive" formatted="false">Очистить активный маршрут</string>
+    <string name="settings_device_transfer_lastSync" formatted="false">Последняя синхронизация: {result}</string>
+    <string name="settings_device_transfer_pendingRoute" formatted="false">Ожидающий маршрут: {id}</string>
+    <string name="settings_device_transfer_resume" formatted="false">Возобновить ожидающую передачу</string>
+    <string name="settings_device_transfer_section" formatted="false">Передача</string>
     <string name="settings_distanceUnit_imperial" formatted="false">Имперская</string>
     <string name="settings_distanceUnit_metric" formatted="false">Метрическая</string>
     <string name="settings_distanceUnit_system" formatted="false">Системная</string>
@@ -94,8 +145,19 @@
     <string name="settings_language_title" formatted="false">Язык</string>
     <string name="settings_restartRequired_message" formatted="false">Выйдите из приложения и откройте его заново, чтобы применить новый язык.</string>
     <string name="settings_restartRequired_title" formatted="false">Требуется перезапуск</string>
+    <string name="settings_routePlanner_cyclingSpeed" formatted="false">Скорость для езды</string>
+    <string name="settings_routePlanner_defaults_section" formatted="false">По умолчанию</string>
+    <string name="settings_routePlanner_hsl_description" formatted="false">HSL — транспортное управление Хельсинкского региона. Их API Digitransit обеспечивает высококачественную маршрутизацию для велосипедов по району метро Хельсинки. Ключ бесплатный — войдите на портал, зарегистрируйте приложение и скопируйте ключ подписки в поле выше. За пределами Хельсинки отключите HSL, и планировщик будет использовать маршрутизацию OSM глобально.</string>
+    <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
+    <string name="settings_routePlanner_riding_footnote" formatted="false">Скорость для езды переопределяет ETA HSL (по умолчанию Digitransit использует медленную скорость для велосипеда). Единица скорости — это то, как на карте отображается бейдж текущей скорости.</string>
+    <string name="settings_routePlanner_riding_section" formatted="false">Езда</string>
     <string name="settings_routePlanner_title" formatted="false">Планировщик маршрута</string>
     <string name="settings_routes_empty" formatted="false">Пока нет сохранённых маршрутов</string>
+    <string name="settings_routes_import_gpx" formatted="false">Импортировать GPX</string>
+    <string name="settings_routes_import_section" formatted="false">Импорт</string>
+    <string name="settings_routes_recent_empty" formatted="false">Пока нет недавних маршрутов или пунктов назначения.</string>
+    <string name="settings_routes_recent_section" formatted="false">Недавние</string>
+    <string name="settings_routes_routeDetailsA11y" formatted="false">Подробнее о маршруте</string>
     <string name="settings_routes_title" formatted="false">Маршруты</string>
     <string name="settings_speedUnit_title" formatted="false">Единицы скорости</string>
     <string name="settings_voiceNotInstalled" formatted="false">Голос для {language} не установлен. Откройте системные «Настройки», чтобы установить его.</string>
