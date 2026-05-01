@@ -15,7 +15,11 @@ final class CoreLocationService: NSObject, ObservableObject, LocationService {
     /// the iOS Settings app to flip the toggle manually.
     @Published private(set) var manualSettingsHint: Bool = false
 
-    private let manager: CLLocationManager
+    /// Internal access (not `private`) so unit tests in
+    /// `CoreLocationBackgroundConfigTests` can read the manager's
+    /// background-config flags. CLLocationManager itself is a thin wrapper
+    /// over an Apple-managed singleton so exposing the reference is safe.
+    let manager: CLLocationManager
     private let persistence: CompanionPersistence
     /// Visible to tests so the background-location gating contract can
     /// be checked without depending on simulator authorization state
@@ -30,6 +34,14 @@ final class CoreLocationService: NSObject, ObservableObject, LocationService {
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
         manager.distanceFilter = 10
+        // Background-readiness configuration. Without these flags iOS
+        // silently pauses GPS once its motion heuristics decide the
+        // rider has stopped — fatal for cycling, where coasting/headwind
+        // looks identical to a stationary phone. See
+        // CoreLocationBackgroundConfigTests for the contract.
+        manager.allowsBackgroundLocationUpdates = true
+        manager.pausesLocationUpdatesAutomatically = false
+        manager.activityType = .otherNavigation
         if let stored = persistence.loadLastKnownRider() {
             lastKnownLocation = stored
         }

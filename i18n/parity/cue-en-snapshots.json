@@ -3,6 +3,7 @@
   "rows": [
     {
       "event": {
+        "distanceM": 50,
         "kind": "turn50m",
         "turnKind": "left"
       },
@@ -16,6 +17,7 @@
     },
     {
       "event": {
+        "distanceM": 50,
         "kind": "turn50m",
         "turnKind": "right"
       },
@@ -29,6 +31,7 @@
     },
     {
       "event": {
+        "distanceM": 50,
         "kind": "turn50m",
         "turnKind": "keepLeft"
       },
@@ -42,6 +45,7 @@
     },
     {
       "event": {
+        "distanceM": 50,
         "kind": "turn50m",
         "turnKind": "keepRight"
       },
@@ -55,6 +59,7 @@
     },
     {
       "event": {
+        "distanceM": 50,
         "kind": "turn50m",
         "turnKind": "exitLeft"
       },
@@ -68,6 +73,7 @@
     },
     {
       "event": {
+        "distanceM": 50,
         "kind": "turn50m",
         "turnKind": "exitRight"
       },
@@ -81,6 +87,7 @@
     },
     {
       "event": {
+        "distanceM": 50,
         "kind": "turn50m",
         "turnKind": "uturn"
       },
@@ -94,6 +101,7 @@
     },
     {
       "event": {
+        "distanceM": 50,
         "kind": "turn50m",
         "turnKind": "generic"
       },
@@ -107,6 +115,7 @@
     },
     {
       "event": {
+        "distanceM": 50,
         "followUpKind": "left",
         "kind": "turn50m",
         "turnKind": "right"

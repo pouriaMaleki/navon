@@ -39,6 +39,8 @@ Performance principle:
 - iOS Home planning mode now shows an explicit in-flight progress card while shared-destination imports, dropped-pin resolution, or replanning are still computing route options, instead of staying visually idle until suggestions appear.
 - iOS Garmin course-link diagnostics now prove Garmin's anonymous GPX and JSON proxy endpoints return `200` without usable route data for tested public course links, so those links remain diagnostics-only for now unless a future authenticated Garmin integration or explicit file export path is added.
 - iOS import diagnostics packages now export a versioned wrapper with producer/handler bundle metadata plus explicit app-side phase/outcome stamps, so one shared JSON captures which target handled the import and where it failed.
+- iOS lock-screen Live Activity map snapshots now carry route-scoped version stamps, so toggling the lock-screen setting off/on during an active route reuses the already-written snapshot instead of restarting the widget in `v=0` text-only fallback.
+- iOS Live Activity attributes are compiled directly into both app and widget targets as `RoutingLiveActivityAttributesV3`, avoiding the dynamic-framework registration path where ActivityKit could start/update an activity but never invoke the widget body.
 
 ## Companion Expansion Direction (April 5, 2026)
 The companion app is planned to evolve beyond a device-support utility into a strong standalone navigation product.

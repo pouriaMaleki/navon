@@ -15,29 +15,25 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
         func shutdown() {}
     }
 
-    private func makeCoordinator() -> (RoutingActivityCoordinator, SpeechSpy, SpyLiveActivityPort) {
+    private func makeCoordinator() -> (RoutingActivityCoordinator, SpeechSpy) {
         let speech = SpeechSpy()
-        let liveActivity = SpyLiveActivityPort()
         let idleTimer = IdleTimerController(application: UIApplication.shared)
         let coordinator = RoutingActivityCoordinator(
             idleTimer: idleTimer,
-            speech: speech,
-            liveActivity: liveActivity
+            speech: speech
         )
-        return (coordinator, speech, liveActivity)
+        return (coordinator, speech)
     }
 
     private func defaultSettings(
         keepScreenOn: Bool = false,
         allowBackgroundGps: Bool = false,
-        audioCuesEnabled: Bool = true,
-        liveActivityEnabled: Bool = false
+        audioCuesEnabled: Bool = true
     ) -> CompanionSettings {
         var s = CompanionSettings.defaults
         s.keepScreenOn = keepScreenOn
         s.allowBackgroundGps = allowBackgroundGps
         s.audioCuesEnabled = audioCuesEnabled
-        s.liveActivityEnabled = liveActivityEnabled
         return s
     }
 
@@ -60,21 +56,21 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
     }
 
     func test_cuesAreSilentUntilBackgroundGpsIsOn() {
-        let (coordinator, speech, _) = makeCoordinator()
+        let (coordinator, speech) = makeCoordinator()
         let s = defaultSettings(allowBackgroundGps: false, audioCuesEnabled: true)
         coordinator.onGuidanceTick(snapshot: snapshot(), settings: s, isRouting: true)
         XCTAssertEqual(speech.spoken, [])
     }
 
     func test_cuesAreSilentWhenPairedWithDevice() {
-        let (coordinator, speech, _) = makeCoordinator()
+        let (coordinator, speech) = makeCoordinator()
         let s = defaultSettings(allowBackgroundGps: true, audioCuesEnabled: true)
         coordinator.onGuidanceTick(snapshot: snapshot(pairedWithDevice: true), settings: s, isRouting: true)
         XCTAssertEqual(speech.spoken, [])
     }
 
     func test_cuesFireWhenAllGatesAreOpen() {
-        let (coordinator, speech, _) = makeCoordinator()
+        let (coordinator, speech) = makeCoordinator()
         var s = defaultSettings(allowBackgroundGps: true, audioCuesEnabled: true)
         // The catch-all "all gates open" gate also requires the
         // audioCuesOnlyInBackground gate to be off, since this synchronous
@@ -91,7 +87,7 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
     // they switch apps.
 
     func test_cuesAreSilentInForegroundWhenOnlyInBackgroundIsOn() {
-        let (coordinator, speech, _) = makeCoordinator()
+        let (coordinator, speech) = makeCoordinator()
         var s = defaultSettings(allowBackgroundGps: true, audioCuesEnabled: true)
         s.audioCuesOnlyInBackground = true
         coordinator.onGuidanceTick(
@@ -102,7 +98,7 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
     }
 
     func test_cuesFireInBackgroundWhenOnlyInBackgroundIsOn() {
-        let (coordinator, speech, _) = makeCoordinator()
+        let (coordinator, speech) = makeCoordinator()
         var s = defaultSettings(allowBackgroundGps: true, audioCuesEnabled: true)
         s.audioCuesOnlyInBackground = true
         coordinator.onGuidanceTick(
@@ -113,7 +109,7 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
     }
 
     func test_cuesFireInForegroundWhenOnlyInBackgroundIsOff() {
-        let (coordinator, speech, _) = makeCoordinator()
+        let (coordinator, speech) = makeCoordinator()
         var s = defaultSettings(allowBackgroundGps: true, audioCuesEnabled: true)
         s.audioCuesOnlyInBackground = false
         coordinator.onGuidanceTick(
@@ -135,14 +131,13 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
     // instead of being letter-by-letter spelled by the default voice).
 
     func test_speaksEnglishWhenActiveLocaleHasNoVoice() {
-        let (coordinator, speech, _) = makeCoordinator()
+        let (coordinator, speech) = makeCoordinator()
         speech.voiceAvailable = false
         var s = defaultSettings(allowBackgroundGps: true, audioCuesEnabled: true)
         s.language = .fa
         s.audioCuesOnlyInBackground = false
         coordinator.onSettingsOrRoutingChange(
-            settings: s, isRouting: true, pairedWithDevice: false,
-            liveActivityContent: nil
+            settings: s, isRouting: true, pairedWithDevice: false
         )
         XCTAssertEqual(speech.lang, "en", "TTS should fall back to English when no Persian voice is installed")
         coordinator.onGuidanceTick(snapshot: snapshot(), settings: s, isRouting: true)
@@ -154,53 +149,15 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
     }
 
     func test_speaksActiveLocaleWhenVoiceIsAvailable() {
-        let (coordinator, speech, _) = makeCoordinator()
+        let (coordinator, speech) = makeCoordinator()
         speech.voiceAvailable = true
         var s = defaultSettings(allowBackgroundGps: true, audioCuesEnabled: true)
         s.language = .fa
         s.audioCuesOnlyInBackground = false
         coordinator.onSettingsOrRoutingChange(
-            settings: s, isRouting: true, pairedWithDevice: false,
-            liveActivityContent: nil
+            settings: s, isRouting: true, pairedWithDevice: false
         )
         XCTAssertEqual(speech.lang, "fa", "TTS should use the active locale when a voice is installed")
     }
 
-    func test_liveActivity_startsAndEndsOnRoutingTransitions() {
-        let (coordinator, _, live) = makeCoordinator()
-        let onSettings = defaultSettings(allowBackgroundGps: true, liveActivityEnabled: true)
-        let content = RoutingLiveActivityContent(
-            routeIdentifier: "r1",
-            destinationLabel: "Park",
-            nextInstruction: "Turn left in 200m",
-            etaMinutes: 7
-        )
-        coordinator.onSettingsOrRoutingChange(
-            settings: onSettings, isRouting: true, pairedWithDevice: false,
-            liveActivityContent: content
-        )
-        XCTAssertEqual(live.startedWith, content)
-
-        coordinator.onSettingsOrRoutingChange(
-            settings: onSettings, isRouting: false, pairedWithDevice: false,
-            liveActivityContent: nil
-        )
-        XCTAssertEqual(live.endedCount, 1)
-    }
-
-    func test_liveActivity_doesNotStartWhenBackgroundGpsIsOff() {
-        let (coordinator, _, live) = makeCoordinator()
-        let s = defaultSettings(allowBackgroundGps: false, liveActivityEnabled: true)
-        let content = RoutingLiveActivityContent(
-            routeIdentifier: "r1",
-            destinationLabel: "Park",
-            nextInstruction: "Turn left in 200m",
-            etaMinutes: 7
-        )
-        coordinator.onSettingsOrRoutingChange(
-            settings: s, isRouting: true, pairedWithDevice: false,
-            liveActivityContent: content
-        )
-        XCTAssertNil(live.startedWith)
-    }
 }

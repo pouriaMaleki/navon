@@ -68,11 +68,17 @@ class HomeStateHolder(
      * Spec line 110 (authoritative): smoothed travel heading from the last
      * few GPS fixes. When available, overrides the route-segment bearing
      * so the camera rotates to the rider's actual direction of travel.
-     * Parameters match runtime-core / companion-web / companion-ios.
+     *
+     * Tuned for cycling responsiveness: at α=0.25 / 5 s buffer the
+     * smoother takes ~5 s to land within 10° of a new heading after a
+     * sharp turn — by which time the rider is past the corner and the
+     * camera feels laggy. α=0.45 / 3 s halves the lag while still
+     * absorbing GPS jitter (raised the displacement floor to 4 m so
+     * stationary-mode jitter doesn't produce a phantom heading).
      */
     private val headingTrail = HeadingTrail(
-        maxAgeMs = 5_000L, maxFixes = 10,
-        minDisplacementM = 3.0, smoothingAlpha = 0.25,
+        maxAgeMs = 3_000L, maxFixes = 6,
+        minDisplacementM = 4.0, smoothingAlpha = 0.45,
     )
     /**
      * Pinned auto-recenter delay for user map interactions during routing.

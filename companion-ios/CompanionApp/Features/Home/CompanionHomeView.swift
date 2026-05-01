@@ -904,7 +904,10 @@ struct CompanionHomeView: View {
             let center = CLLocationCoordinate2D(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
             // Smooth motion (#2): without `withAnimation` MapKit hard-snaps on
             // each fix and the rider visually jumps before the map catches up.
-            withAnimation(.easeInOut(duration: 0.45)) {
+            // Duration was 0.45 s but felt laggy through tight turns — Apple
+            // Maps uses something closer to 0.2 s, which matches the natural
+            // cadence of GPS fixes (~1 s) without overshooting the next one.
+            withAnimation(.easeInOut(duration: 0.22)) {
                 cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: ridingCameraDistanceM, heading: trailHeading, pitch: 0))
             }
             lastProgrammaticCameraSetAt = Date()
@@ -956,7 +959,7 @@ struct CompanionHomeView: View {
         // autoFollow camera reads that same value here, which is what keeps
         // the rider's preferred zoom alive across compass cycles + every
         // GPS-fix-driven refresh.
-        withAnimation(.easeInOut(duration: 0.45)) {
+        withAnimation(.easeInOut(duration: 0.22)) {
             cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: ridingCameraDistanceM, heading: heading, pitch: 0))
         }
         lastProgrammaticCameraSetAt = Date()

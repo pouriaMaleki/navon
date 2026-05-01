@@ -40,7 +40,11 @@ export function dispatchCameraTarget(map: MaplibreMap, store: RootStore, mapRead
       center: [target.center.longitude, target.center.latitude],
       zoom: target.zoom,
       bearing: target.bearing,
-      duration: 350,
+      // Snappier per-fix camera step. The previous 350 ms felt laggy
+      // through tight turns at cycling speed: by the time the camera
+      // finished easing, the next GPS fix had already arrived. 220 ms
+      // matches the new iOS animation budget.
+      duration: 220,
     });
     return;
   }

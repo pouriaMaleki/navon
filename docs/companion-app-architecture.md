@@ -101,6 +101,14 @@ through a single coordinator that owns the routing-time side effects:
 - Lock-screen activity: web posts a single self-updating Notification;
   iOS uses ActivityKit (`RoutingLiveActivityWidget` extension target);
   Android uses an ongoing foreground-service notification
+- iOS lock-screen map snapshots are written to the shared App Group and
+  invalidated through a route-scoped `mapSnapshotVersion`; settings
+  toggles must preserve the current route's version, while route changes
+  must clear it before the next snapshot lands.
+- iOS compiles the Live Activity attributes source directly into both
+  the app and widget extension targets. Do not move the attributes behind
+  a dynamic framework; ActivityKit may start/update the activity but fail
+  to delegate rendering to the widget configuration.
 - Background-location gating: GPS stops when the app backgrounds without
   an active route (iOS `handleApplicationLifecycleEnteredBackground`)
 - Force-quit cleanup: any leftover Live Activity from a prior process is

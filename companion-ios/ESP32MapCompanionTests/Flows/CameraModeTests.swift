@@ -5,11 +5,28 @@ import XCTest
 @MainActor
 final class CameraModeTests: XCTestCase {
 
-    func test_handleCompassTap_outsideGuidance_isNoOp() {
+    func test_handleCompassTap_outsideGuidance_compassModeUnchanged() {
         let app = AppModel()
         let vm = HomeViewModel(appModel: app)
         vm.handleCompassTap()
         XCTAssertEqual(vm.compassMode, .autoFollow)
+    }
+
+    func test_handleCompassTap_inPlanningMode_stillBumpsRecenterRequest() {
+        // User-reported regression: tapping the recenter glyph while
+        // stationary with no route did nothing. Root cause was the
+        // `guard homeMode == .phoneGuidance else { return }` running
+        // BEFORE the recenter-id bump, so planning-mode taps were
+        // silently dropped. The recenter is mode-agnostic; only the
+        // compass-state toggle is routing-only.
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        let before = vm.mapRecenterRequestID
+        vm.handleCompassTap()
+        XCTAssertEqual(
+            vm.mapRecenterRequestID, before &+ 1,
+            "tapping the compass glyph in planning mode must still trigger a recenter"
+        )
     }
 
     func test_compassDoubleTapLocks_thenTapReturnsToAutoFollow() async {
@@ -353,6 +370,45 @@ final class CameraModeTests: XCTestCase {
         let heading = trail.travelHeadingDegrees ?? 0.0
         XCTAssertLessThan(abs(heading - 90.0), 8.0,
             "smoothed trail heading must stay tight to east under lateral jitter")
+    }
+
+    /// User-reported: "iOS camera is slow to turn when turning while riding."
+    /// Production config was tuned snappier (α=0.45 / maxAgeMs=3000 vs the
+    /// previous α=0.25 / maxAgeMs=5000). This test pins the improvement
+    /// by running the same fix sequence through both configs and asserting
+    /// the new one converges measurably faster on a sharp turn — neither
+    /// config will be at 0° after a single GPS turn (the buffer still holds
+    /// the previous east leg), but the new one must be at least 10° closer.
+    func test_headingTrailProductionConfig_isMeasurablySnapperOnSharpTurn() {
+        let oldConfig = HeadingTrail(maxAgeMs: 5_000, maxFixes: 10, minDisplacementM: 3.0, smoothingAlpha: 0.25)
+        let newConfig = HomeViewModel(appModel: AppModel()).headingTrailForTesting
+
+        let base = CoordinatePoint(latitude: 60.17, longitude: 24.94)
+        // 5 east fixes (the rider has been heading east for ~2 s).
+        for i in 0..<5 {
+            let p = offset(base, eastM: Double(i) * 5.0, northM: 0.0)
+            oldConfig.recordFix(p, timestampMs: Int64(i) * 500)
+            newConfig.recordFix(p, timestampMs: Int64(i) * 500)
+        }
+        // Sharp 90° turn — 4 north fixes from the pivot.
+        let pivot = offset(base, eastM: 25.0, northM: 0.0)
+        for i in 1...4 {
+            let p = offset(pivot, eastM: 0, northM: Double(i) * 5.0)
+            oldConfig.recordFix(p, timestampMs: 2_500 + Int64(i) * 500)
+            newConfig.recordFix(p, timestampMs: 2_500 + Int64(i) * 500)
+        }
+        let oldHeading = oldConfig.travelHeadingDegrees ?? 90.0
+        let newHeading = newConfig.travelHeadingDegrees ?? 90.0
+        // North is 0°/360° — compute shortest delta to that target.
+        func distToNorth(_ deg: Double) -> Double {
+            min(abs(deg - 0.0), abs(deg - 360.0))
+        }
+        let oldDist = distToNorth(oldHeading)
+        let newDist = distToNorth(newHeading)
+        XCTAssertLessThan(
+            newDist, oldDist - 10.0,
+            "new config (α=0.45, 3 s buffer) must close the gap to the new direction noticeably faster — old=\(oldHeading)° (\(oldDist)° from north), new=\(newHeading)° (\(newDist)° from north)"
+        )
     }
 
     func test_movingWithRoute_cameraBearingTracksTrailHeading_notRouteSegment() async {

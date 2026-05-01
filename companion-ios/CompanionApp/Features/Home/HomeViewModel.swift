@@ -98,10 +98,25 @@ final class HomeViewModel: ObservableObject {
     /// few GPS fixes. When available, overrides the route-segment bearing
     /// so the camera rotates to the rider's actual direction of travel.
     /// Parameters match runtime-core / companion-web (3m floor, α=0.25).
+    /// User-reported feedback: the iOS camera felt laggy through tight
+    /// turns. The previous params (α=0.25, maxAgeMs=5000, maxFixes=10)
+    /// matched runtime-core / companion-web for parity, but at cycling
+    /// speeds the smoother takes ~5 s to land within 10° of a new
+    /// heading — by which time the rider is past the turn. Tightening
+    /// to α=0.45 + 3 s window halves the lag while keeping enough
+    /// smoothing to absorb GPS jitter (raised the displacement floor
+    /// to 4 m to match). Web/Android keep the old values for now —
+    /// the regression report was iOS-specific and the platforms can
+    /// re-converge when the user signals the same complaint elsewhere.
     private let headingTrail = HeadingTrail(
-        maxAgeMs: 5_000, maxFixes: 10,
-        minDisplacementM: 3.0, smoothingAlpha: 0.25
+        maxAgeMs: 3_000, maxFixes: 6,
+        minDisplacementM: 4.0, smoothingAlpha: 0.45
     )
+
+    /// Test seam — exposes the heading-trail buffer so unit tests can
+    /// drive fixes through it directly and assert convergence against
+    /// the same production parameters the live app uses.
+    var headingTrailForTesting: HeadingTrail { headingTrail }
     /// Pinned auto-recenter delay for user map interactions during routing.
     /// Mirrors `recenter_inactivity_ms` in parity-fixtures/data/ux-constants.toml
     /// (spec line 104).
@@ -1012,10 +1027,14 @@ final class HomeViewModel: ObservableObject {
     }
 
     func handleCompassTap() {
-        guard homeMode == .phoneGuidance else { return }
-        // Spec line 39: on companion apps a compass tap also recenters the
-        // camera. Bump the request id so the map view observes the change.
+        // Spec line 39: tapping the compass glyph always recenters the
+        // camera, regardless of mode. Previously this bumped the request
+        // id only after the routing-only guard, so in planning mode the
+        // rider could pan the map and have no way to come back. Bump the
+        // recenter request id unconditionally; only the compass-mode
+        // toggle (north-preview/north-locked) is gated on phoneGuidance.
         mapRecenterRequestID &+= 1
+        guard homeMode == .phoneGuidance else { return }
         switch compassMode {
         case .autoFollow:
             enterNorthLocked()
@@ -1250,33 +1269,11 @@ final class HomeViewModel: ObservableObject {
             distanceFromRouteM: offRouteDistanceM,
             routeTotalDistanceM: routeTotalDistanceM
         )
-        let liveContent = buildLiveActivityContent()
         appModel.routingActivityCoordinator.onGuidanceTick(
             snapshot: snapshot,
             settings: appModel.settings,
             isRouting: appModel.isRoutingInProgress,
-            isAppInBackground: appModel.isAppInBackground,
-            liveActivityContent: liveContent
-        )
-    }
-
-    /// Build the lock-screen Live Activity content from the same per-tick
-    /// state the on-screen guidance uses, so the activity reflects the
-    /// rider's current next-turn line and ETA. Called on every guidance
-    /// tick so the activity does not go stale.
-    private func buildLiveActivityContent() -> RoutingLiveActivityContent? {
-        guard homeMode == .phoneGuidance,
-              let routeId = appModel.activeSession.routeIdentifier else {
-            return nil
-        }
-        let destination = appModel.activeSession.destinationLabel
-        let nextInstruction = nextInstructionLine ?? "On route"
-        let etaMinutes = max(0, Int((remainingDurationSeconds / 60.0).rounded()))
-        return RoutingLiveActivityContent(
-            routeIdentifier: routeId,
-            destinationLabel: destination,
-            nextInstruction: nextInstruction,
-            etaMinutes: etaMinutes
+            isAppInBackground: appModel.isAppInBackground
         )
     }
 

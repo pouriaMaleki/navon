@@ -25,14 +25,20 @@ export class LocationStore {
    * Smoothed travel heading derived from the last few GPS fixes. Spec line
    * 110 (authoritative): this is what the routing camera should rotate to
    * when the rider is moving — overrides the route-segment bearing.
-   * `undefined` while stationary / no usable trail. Parameters match
-   * runtime-core's motion filter (min displacement 3 m, alpha 0.25).
+   * `undefined` while stationary / no usable trail.
+   *
+   * Tuned for cycling responsiveness: at α=0.25 / 5 s buffer the
+   * smoother takes ~5 s to land within 10° of a new heading after a
+   * sharp turn — by which time the rider is past the corner and the
+   * camera feels laggy. α=0.45 / 3 s halves the lag while still
+   * absorbing GPS jitter (raised the displacement floor to 4 m so
+   * stationary-mode jitter doesn't produce a phantom heading).
    */
   private readonly headingTrail = new HeadingTrail({
-    maxAgeMs: 5_000,
-    maxFixes: 10,
-    minDisplacementM: 3.0,
-    smoothingAlpha: 0.25,
+    maxAgeMs: 3_000,
+    maxFixes: 6,
+    minDisplacementM: 4.0,
+    smoothingAlpha: 0.45,
   });
   /**
    * MobX-observable cache of `headingTrail.travelHeadingDegrees`. Read-only

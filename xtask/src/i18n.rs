@@ -474,7 +474,12 @@ fn build_parity_fixture() -> String {
     let mut rows = Vec::new();
     for k in maneuvers_50 {
         rows.push(serde_json::json!({
-            "event": { "kind": "turn50m", "turnKind": k },
+            // `distanceM: 50` represents the rider crossing the 50 m
+            // approach threshold from above (the typical case). The
+            // event now carries the actual distance so route-start
+            // edge cases ("d = 15 m at first tick") render with the
+            // real value instead of a hardcoded 50.
+            "event": { "kind": "turn50m", "turnKind": k, "distanceM": 50 },
             "expected": {
                 "key": format!("cue.turn50m.{k}"),
                 "values": { "distance": 50, "distanceUnit": "meters" }
@@ -482,11 +487,11 @@ fn build_parity_fixture() -> String {
         }));
     }
     // Combined back-to-back cue: when a follow-up maneuver lies within
-    // ~80 m of the upcoming one, both platforms must coalesce into a
+    // ~30 m of the upcoming one, both platforms must coalesce into a
     // single ICU `cue.turn50mCombined` phrase rather than queueing two
     // overlapping cues.
     rows.push(serde_json::json!({
-        "event": { "kind": "turn50m", "turnKind": "right", "followUpKind": "left" },
+        "event": { "kind": "turn50m", "turnKind": "right", "distanceM": 50, "followUpKind": "left" },
         "expected": {
             "key": "cue.turn50mCombined",
             "values": {

@@ -58,7 +58,9 @@ final class CueEngineTests: XCTestCase {
     func test_emitsTurn50mWhenCrossingThreshold() {
         let s1 = CueEngine.tick(snapshot: base(progressDistanceM: 100), state: CueEngineState()).nextState
         let r2 = CueEngine.tick(snapshot: base(progressDistanceM: 155), state: s1)
-        XCTAssertTrue(r2.events.contains(.turn50m(.left)))
+        let turn50 = r2.events.first { if case .turn50m = $0 { return true } else { return false } }
+        XCTAssertNotNil(turn50)
+        if case .turn50m(let k, _, _) = turn50! { XCTAssertEqual(k, .left) }
     }
 
     func test_back2backTurnsCoalesceIntoCombinedCue() {
@@ -72,11 +74,13 @@ final class CueEngineTests: XCTestCase {
             snapshot: base(progressDistanceM: 155, maneuvers: [m1, m2]),
             state: s1
         )
-        let combined = r2.events.first { if case .turn50m(_, let f) = $0 { return f != nil } else { return false } }
+        let combined = r2.events.first {
+            if case .turn50m(_, _, let f) = $0 { return f != nil } else { return false }
+        }
         XCTAssertNotNil(combined, "back-to-back turns must coalesce into a single turn50m with followUp")
-        if case .turn50m(let k, let f) = combined! {
-            XCTAssertEqual(k, .right)
-            XCTAssertEqual(f, .left)
+        if case .turn50m(let k, _, let f) = combined! {
+            XCTAssertEqual(k, ManeuverKind.right)
+            XCTAssertEqual(f, ManeuverKind.left)
         }
     }
 
@@ -171,19 +175,31 @@ final class CueEngineTests: XCTestCase {
     }
 
     func test_resetsLatchesOnRouteIdChange() {
-        let s1 = CueEngine.tick(snapshot: base(progressDistanceM: 155), state: CueEngineState()).nextState
-        let r2 = CueEngine.tick(snapshot: base(routeId: "r2", progressDistanceM: 155), state: s1)
+        // Use progressM=100 so distance-to-first-turn is 100 m — well
+        // outside the 50 m approach window, ensuring the first-tick
+        // `nextTurnInAbout` block is not suppressed by the imminent-cue
+        // skip rule (which exists to prevent route-start double-firing).
+        let s1 = CueEngine.tick(snapshot: base(progressDistanceM: 100), state: CueEngineState()).nextState
+        let r2 = CueEngine.tick(snapshot: base(routeId: "r2", progressDistanceM: 100), state: s1)
         let firstTick = r2.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
         XCTAssertNotNil(firstTick, "new route id should re-announce next turn on first tick")
     }
 
     func test_formatsSpecPhrases() {
-        XCTAssertEqual(CueEngine.format(.turn50m(.left)), "In 50 meters, turn left")
-        XCTAssertEqual(CueEngine.format(.turn50m(.keepRight)), "In 50 meters, keep right")
-        XCTAssertEqual(CueEngine.format(.turn50m(.exitLeft)), "In 50 meters, take the left exit")
+        XCTAssertEqual(CueEngine.format(.turn50m(.left, distanceM: 50)), "In 50 meters, turn left")
+        XCTAssertEqual(CueEngine.format(.turn50m(.keepRight, distanceM: 50)), "In 50 meters, keep right")
+        XCTAssertEqual(CueEngine.format(.turn50m(.exitLeft, distanceM: 50)), "In 50 meters, take the left exit")
         XCTAssertEqual(
-            CueEngine.format(.turn50m(.right, followUpKind: .left)),
+            CueEngine.format(.turn50m(.right, distanceM: 50, followUpKind: .left)),
             "In 50 meters, turn right then quickly left"
+        )
+        // Actual-distance rendering: route-start scenarios where the cue
+        // fires while the rider is already 15 m from the maneuver should
+        // speak "20 meters" (rounded to nearest 10), not the legacy
+        // hardcoded 50.
+        XCTAssertEqual(
+            CueEngine.format(.turn50m(.left, distanceM: 15)),
+            "In 20 meters, turn left"
         )
         XCTAssertEqual(CueEngine.format(.turn10m(.right)), "Turn right")
         XCTAssertEqual(

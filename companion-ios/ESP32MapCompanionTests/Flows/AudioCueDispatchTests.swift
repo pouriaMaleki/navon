@@ -126,10 +126,13 @@ final class AudioCueDispatchTests: XCTestCase {
         XCTAssertFalse(speech.spoken.contains("In 50 meters, turn right"),
                        "50m cue must not fire 300m from the maneuver")
         // Tick at 360m up — distance to m2 = 40m → 50m cue fires.
+        // The cue now carries the rider's actual distance (rounded to
+        // nearest 10), not a hardcoded "50 meters" — at d ≈ 40 m we
+        // expect the spoken phrase to read "In 40 meters, turn right".
         vm.ingestRiderLocationFix(offset(start, eastM: 0, northM: 360), timestampMs: 2_000)
         XCTAssertTrue(
-            speech.spoken.contains("In 50 meters, turn right"),
-            "Crossing the 50m threshold must speak the 50m cue — got \(speech.spoken)"
+            speech.spoken.contains("In 40 meters, turn right"),
+            "Crossing the 50m threshold must speak the 50m cue with actual distance — got \(speech.spoken)"
         )
     }
 

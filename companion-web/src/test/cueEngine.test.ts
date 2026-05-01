@@ -239,14 +239,23 @@ describe("CueEngine — existing approach + arrival cues unchanged", () => {
   });
 
   it("formatCueEvent renders spec phrases (no 'Route started' anymore)", () => {
-    expect(formatCueEvent({ kind: "turn50m", turnKind: "left" })).toBe("In 50 meters, turn left");
+    expect(formatCueEvent({ kind: "turn50m", turnKind: "left", distanceM: 50 })).toBe(
+      "In 50 meters, turn left",
+    );
     expect(
       formatCueEvent({
         kind: "turn50m",
         turnKind: "right",
+        distanceM: 50,
         followUpKind: "left",
       }),
     ).toBe("In 50 meters, turn right then quickly left");
+    // Actual-distance rendering: route-start scenarios where the cue
+    // fires while the rider is already 15 m from the maneuver should
+    // speak "20 meters" (rounded), not the legacy hardcoded "50".
+    expect(formatCueEvent({ kind: "turn50m", turnKind: "left", distanceM: 15 })).toBe(
+      "In 20 meters, turn left",
+    );
     expect(formatCueEvent({ kind: "turn10m", turnKind: "right" })).toBe("Turn right");
     expect(formatCueEvent({ kind: "nextTurnInAbout", turnKind: "left", distanceM: 187 })).toBe(
       "Next turn left in about 190 meters",

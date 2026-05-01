@@ -78,36 +78,10 @@ final class AppModel: ObservableObject {
         self.bleService = bleService ?? BleRouteSyncService()
         let locationService = CoreLocationService(persistence: persistence)
         self.locationService = locationService
-        // Production wiring: real idle timer + AVSpeechSynthesizer + ActivityKit
-        // Live Activity (when iOS ≥ 16.2). The widget target lives in
-        // `RoutingLiveActivityWidget/`. Tests can substitute a fake port
-        // via `makeForTestingWithLiveActivityPort(_:)`.
-        let liveActivityPort: LiveActivityPort
-        if let override = AppModel.liveActivityPortTestOverride {
-            liveActivityPort = override
-        } else {
-            #if canImport(ActivityKit)
-            if #available(iOS 16.2, *) {
-                liveActivityPort = ActivityKitLiveActivityService()
-            } else {
-                liveActivityPort = NoopLiveActivityPort()
-            }
-            #else
-            liveActivityPort = NoopLiveActivityPort()
-            #endif
-        }
         self.routingActivityCoordinator = RoutingActivityCoordinator(
             idleTimer: IdleTimerController(),
-            speech: SpeechService(),
-            liveActivity: liveActivityPort
+            speech: SpeechService()
         )
-        // Force-quit cleanup: a Live Activity started during the prior
-        // run remains visible on the lock screen until iOS dismisses it.
-        // On a fresh launch we know the rider is not currently routing
-        // (`isRoutingInProgress` is false), so any such activity is
-        // stale. End all of them here so tapping the lock-screen card
-        // never reopens the app to a "nothing is happening" home.
-        liveActivityPort.endAllOutstanding()
 
         let loadedSettings = persistence.loadSettings()
         settings = loadedSettings
@@ -309,24 +283,12 @@ final class AppModel: ObservableObject {
     /// Re-evaluates the routing activity coordinator's gating on every
     /// settings or active-session change. Per-tick cue dispatch happens
     /// from `HomeViewModel` where the per-tick guidance state lives.
-    /// Uses the explicit `isRoutingInProgress` flag so a stale
-    /// `activeSession.routeIdentifier` (loaded from disk on cold launch)
-    /// can't start the Live Activity outside of an actual ride.
     func syncRoutingActivityServices() {
         let pairedWithDevice = pairedPeripheral != nil
-        let liveActivityContent: RoutingLiveActivityContent? = isRoutingInProgress
-            ? RoutingLiveActivityContent(
-                routeIdentifier: activeSession.routeIdentifier ?? "",
-                destinationLabel: activeSession.destinationLabel,
-                nextInstruction: "On route",
-                etaMinutes: 0
-            )
-            : nil
         routingActivityCoordinator.onSettingsOrRoutingChange(
             settings: settings,
             isRouting: isRoutingInProgress,
-            pairedWithDevice: pairedWithDevice,
-            liveActivityContent: liveActivityContent
+            pairedWithDevice: pairedWithDevice
         )
     }
 
@@ -368,29 +330,13 @@ final class AppModel: ObservableObject {
         locationService.start()
     }
 
-    /// Test seam: builds an AppModel whose Live Activity port is fixed
-    /// to the supplied fake from the very first line of init(). Used to
-    /// assert behaviours that fire during init itself (notably
-    /// `endAllOutstanding()` for force-quit cleanup).
-    static func makeForTestingWithLiveActivityPort(_ port: LiveActivityPort) -> AppModel {
-        liveActivityPortTestOverride = port
-        defer { liveActivityPortTestOverride = nil }
-        return AppModel()
-    }
-
-    fileprivate static var liveActivityPortTestOverride: LiveActivityPort?
-
     /// Test seam: rebuilds the routing-activity coordinator with the given
     /// fakes so unit tests can assert that cues are dispatched without
-    /// invoking AVSpeechSynthesizer or ActivityKit.
-    func replaceRoutingActivityCoordinatorForTesting(
-        speech: SpeechPort,
-        liveActivity: LiveActivityPort = NoopLiveActivityPort()
-    ) {
+    /// invoking AVSpeechSynthesizer.
+    func replaceRoutingActivityCoordinatorForTesting(speech: SpeechPort) {
         routingActivityCoordinator = RoutingActivityCoordinator(
             idleTimer: IdleTimerController(),
-            speech: speech,
-            liveActivity: liveActivity
+            speech: speech
         )
     }
 

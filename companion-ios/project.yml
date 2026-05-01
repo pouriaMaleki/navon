@@ -15,11 +15,8 @@ targets:
     sources:
       - CompanionApp
       - CompanionSharedImport
-      - CompanionLiveActivityShared
     dependencies:
       - target: ESP32MapCompanionShare
-        embed: true
-      - target: RoutingLiveActivityWidget
         embed: true
     settings:
       base:
@@ -81,22 +78,4 @@ targets:
         SWIFT_VERSION: 5.10
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: CompanionShareExtension/CompanionShareExtension.entitlements
-        APPLICATION_EXTENSION_API_ONLY: YES
-  RoutingLiveActivityWidget:
-    type: app-extension
-    platform: iOS
-    deploymentTarget: "17.0"
-    configFiles:
-      Debug: Config/Signing.xcconfig
-      Release: Config/Signing.xcconfig
-    sources:
-      - RoutingLiveActivityWidget
-      - CompanionLiveActivityShared
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: me.fiksu.esp32map.companion.ios.liveactivity
-        PRODUCT_NAME: RoutingLiveActivityWidget
-        INFOPLIST_FILE: RoutingLiveActivityWidget/Info.plist
-        SWIFT_VERSION: 5.10
-        CODE_SIGN_STYLE: Automatic
         APPLICATION_EXTENSION_API_ONLY: YES

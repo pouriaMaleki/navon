@@ -39,12 +39,19 @@ data class CueSnapshot(
 )
 
 sealed class CueEvent {
-    /** 50m before a turn. When the next maneuver is within 80m,
-     *  `followUpKind` carries that maneuver's direction so the engine
-     *  emits a single combined cue ("In 50 meters, turn right then
-     *  quickly left") instead of overlapping audio. */
+    /** Approaching a turn (within ~50m). `distanceM` is the rider's
+     *  actual distance to the maneuver — the catalog uses it instead
+     *  of hardcoding "50 meters", because the rider can enter the
+     *  approach window with d much smaller (route starting close to
+     *  the turn) and "in 50 meters turn left" while actually 15 m
+     *  away is jarringly inaccurate. When the next maneuver is within
+     *  ~30 m of this one (a back-to-back pair), `followUpKind` carries
+     *  that maneuver's direction so the engine emits a single combined
+     *  cue ("In 20 meters, turn right then quickly left") instead of
+     *  two overlapping cue chains. */
     data class Turn50m(
         val turnKind: ManeuverKind,
+        val distanceM: Double,
         val followUpKind: ManeuverKind? = null,
     ) : CueEvent()
     data class Turn10m(val turnKind: ManeuverKind) : CueEvent()
@@ -81,8 +88,14 @@ object CueEngine {
     private const val ON_TRACK_CORRIDOR_M = 22.0
     private const val REPEAT_OFFTRACK_SILENCE_THRESHOLD = 2
     /** Two maneuvers separated by less than this fold into a single
-     *  "turn X then quickly Y" cue. Mirrors web's BACK_TO_BACK_THRESHOLD_M. */
-    private const val BACK_TO_BACK_THRESHOLD_M = 80.0
+     *  "turn X then quickly Y" cue. Mirrors web's BACK_TO_BACK_THRESHOLD_M.
+     *  30 m matches the spec phrase "then quickly" — at cycling speeds
+     *  that's ~4-7 s apart, the only window where coalescing two turns
+     *  into one cue actually feels natural. 50 m / 80 m both let
+     *  genuinely separate maneuvers ride along on a combined cue, which
+     *  the rider then misperceives as the routing engine inventing
+     *  turns that aren't really there. */
+    private const val BACK_TO_BACK_THRESHOLD_M = 30.0
 
     data class Result(val events: List<CueEvent>, val nextState: CueEngineState)
 
@@ -99,19 +112,55 @@ object CueEngine {
         // "Route started" was useless padding. Replace with the actual
         // next-turn announcement so the rider hears something immediately
         // useful on Start.
+        //
+        // Three sub-cases on this tick when the route just started:
+        //   A) First turn is FAR (> 50 m): emit `NextTurnInAbout` as an
+        //      orientation cue ("Next turn left in about 200 meters").
+        //   B) First turn is IMMINENT and stands alone (no back-to-back
+        //      follow-up within ~30 m): SKIP every announce; pre-latch
+        //      the 50 m cue so only the 10 m approach cue speaks when
+        //      the rider actually reaches the turn. User feedback: a
+        //      route starting 15 m from a turn used to fire next-turn
+        //      + 50 m + 10 m back-to-back — three cues for one turn,
+        //      with disagreeing distances.
+        //   C) First turn is IMMINENT and has a back-to-back companion
+        //      within ~30 m: skip the orientation cue, let the 50 m
+        //      block emit the combined "in X meters turn left then
+        //      quickly right" cue with the ACTUAL distance. That's the
+        //      only way to warn the rider about TWO close turns in one
+        //      breath, so it stays.
         if (snapshot.routeId != null && !s.routeStartedAnnounced) {
             val firstNonDepart = snapshot.maneuvers.firstOrNull {
                 it.distanceFromStartM - snapshot.progressDistanceM >= 0
             }
+            var nextAnnounced50m: Set<String> = s.announced50m
             if (firstNonDepart != null) {
-                events.add(
-                    CueEvent.NextTurnInAbout(
-                        turnKind = firstNonDepart.kind,
-                        distanceM = firstNonDepart.distanceFromStartM - snapshot.progressDistanceM,
-                    ),
-                )
+                val distanceM = firstNonDepart.distanceFromStartM - snapshot.progressDistanceM
+                if (distanceM > APPROACH_50_M) {
+                    // Case A.
+                    events.add(
+                        CueEvent.NextTurnInAbout(
+                            turnKind = firstNonDepart.kind,
+                            distanceM = distanceM,
+                        ),
+                    )
+                } else {
+                    // Case B vs. C — peek at the follow-up gap.
+                    val upcomingIdx = snapshot.maneuvers.indexOfFirst { it.id == firstNonDepart.id }
+                    val follow = snapshot.maneuvers.getOrNull(upcomingIdx + 1)
+                    val gap = follow?.let { it.distanceFromStartM - firstNonDepart.distanceFromStartM }
+                        ?: Double.POSITIVE_INFINITY
+                    if (follow == null || gap > BACK_TO_BACK_THRESHOLD_M) {
+                        // Case B: pre-latch the 50 m cue so only the
+                        // 10 m action cue fires for this maneuver.
+                        nextAnnounced50m = nextAnnounced50m + firstNonDepart.id
+                    }
+                    // Case C: do nothing here — the 50 m block in this
+                    // same tick will detect the back-to-back pair and
+                    // emit the combined cue with actual distance.
+                }
             }
-            s = s.copy(routeStartedAnnounced = true)
+            s = s.copy(routeStartedAnnounced = true, announced50m = nextAnnounced50m)
         }
 
         val offRouteRose = !s.prevOffRoute && snapshot.offRoute
@@ -167,13 +216,30 @@ object CueEngine {
                 val gap = followUp?.let { it.distanceFromStartM - upcoming.distanceFromStartM }
                     ?: Double.POSITIVE_INFINITY
                 if (followUp != null && gap <= BACK_TO_BACK_THRESHOLD_M) {
-                    events.add(CueEvent.Turn50m(upcoming.kind, followUpKind = followUp.kind))
+                    // Carry the rider's actual distance into the cue
+                    // instead of letting the catalog hardcode "50 m" —
+                    // at route start the rider can be 15 m from the
+                    // first maneuver, and "in 50 meters" is jarringly
+                    // inaccurate.
+                    events.add(
+                        CueEvent.Turn50m(
+                            turnKind = upcoming.kind,
+                            distanceM = upcomingDistance,
+                            followUpKind = followUp.kind,
+                        ),
+                    )
                     announced50m.add(upcoming.id)
                     announced50m.add(followUp.id)
                     announced10m.add(followUp.id)
                     announcedNextTurnAfter.add(upcoming.id)
                 } else {
-                    events.add(CueEvent.Turn50m(upcoming.kind, followUpKind = null))
+                    events.add(
+                        CueEvent.Turn50m(
+                            turnKind = upcoming.kind,
+                            distanceM = upcomingDistance,
+                            followUpKind = null,
+                        ),
+                    )
                     announced50m.add(upcoming.id)
                 }
             }
@@ -191,13 +257,23 @@ object CueEngine {
                 val indexOfLast = snapshot.maneuvers.indexOfFirst { it.id == lastPassed.id }
                 val nextAfter = snapshot.maneuvers.getOrNull(indexOfLast + 1)
                 if (nextAfter != null) {
+                    val distanceToNext = nextAfter.distanceFromStartM - snapshot.progressDistanceM
                     events.add(
                         CueEvent.NextTurnInAbout(
                             turnKind = nextAfter.kind,
-                            distanceM = nextAfter.distanceFromStartM - snapshot.progressDistanceM,
+                            distanceM = distanceToNext,
                         ),
                     )
                     announcedNextTurnAfter.add(lastPassed.id)
+                    // If the next maneuver is already within the 50 m
+                    // approach window when we announce it, suppress
+                    // the 50 m cue for it — the rider was just told.
+                    // Without this they'd hear "Next turn left in
+                    // about 30 m" and seconds later "In 50 m turn
+                    // left", which is repetitive and factually wrong.
+                    if (distanceToNext <= APPROACH_50_M) {
+                        announced50m.add(nextAfter.id)
+                    }
                 } else if (!s.approachingDestinationAnnounced) {
                     events.add(
                         CueEvent.ArrivingInM(
@@ -247,8 +323,12 @@ object CueEngine {
             me.fiksu.esp32map.companion.integration.i18n.DistanceMode.METRIC,
     ): CueMessage = when (event) {
         is CueEvent.Turn50m -> {
+            // Use the rider's actual distance to the maneuver, not a
+            // hardcoded 50 m — at route start the rider can be 15 m
+            // away when the cue first fires, and "in 50 meters turn
+            // left" while actually 15 m away is jarringly wrong.
             val baseValues = me.fiksu.esp32map.companion.integration.i18n.DistanceFormatter
-                .cueValues(50.0, distanceMode)
+                .cueValues(event.distanceM, distanceMode)
             val followUp = event.followUpKind
             if (followUp != null) {
                 CueMessage(

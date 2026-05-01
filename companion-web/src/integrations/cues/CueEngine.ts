@@ -32,12 +32,16 @@ export type CueSnapshot = {
 };
 
 export type CueEvent =
-  /** 50m before a turn. When the next maneuver is within 80m of this one
-   *  (a back-to-back pair), `followUpKind` carries that maneuver's
-   *  direction so the engine emits a single combined cue ("In 50 meters,
-   *  turn right then quickly left") instead of overlapping audio for two
-   *  separate turn50m/turn10m chains. */
-  | { kind: "turn50m"; turnKind: ManeuverKind; followUpKind?: ManeuverKind }
+  /** Approaching a turn (within ~50m). `distanceM` is the rider's actual
+   *  distance to the maneuver — the catalog uses it instead of hardcoding
+   *  "50 meters", because the rider can enter this window with d much
+   *  smaller (route starting close to the turn) and "in 50 meters turn
+   *  left" while actually 15 m away is jarringly inaccurate. When the
+   *  next maneuver is within ~30 m of this one (a back-to-back pair),
+   *  `followUpKind` carries that maneuver's direction so the engine emits
+   *  a single combined cue ("In 20 meters, turn right then quickly left")
+   *  instead of two overlapping cue chains. */
+  | { kind: "turn50m"; turnKind: ManeuverKind; distanceM: number; followUpKind?: ManeuverKind }
   | { kind: "turn10m"; turnKind: ManeuverKind }
   | { kind: "nextTurnInAbout"; turnKind: ManeuverKind; distanceM: number }
   | { kind: "arrivingInM"; distanceM: number }
@@ -73,7 +77,14 @@ const REPEAT_OFFTRACK_SILENCE_THRESHOLD = 2;
  *  "turn X then quickly Y" cue. 80 m at 25 km/h ≈ 11 s — enough for the
  *  rider to take both turns smoothly, not long enough for two
  *  independent 50m/10m cue cycles to fit without colliding. */
-const BACK_TO_BACK_THRESHOLD_M = 80;
+// Two maneuvers separated by less than this fold into a single "turn X
+// then quickly Y" cue. 30 m matches the spec phrase "then quickly" — at
+// cycling speeds that's ~4-7 s apart, the only window where coalescing
+// two turns into one cue actually feels natural. 50 m / 80 m both let
+// genuinely separate maneuvers ride along on a combined cue, which the
+// rider then misperceives as the routing engine inventing turns that
+// aren't really there.
+const BACK_TO_BACK_THRESHOLD_M = 30;
 
 export function initialCueEngineState(): CueEngineState {
   return {
@@ -114,19 +125,56 @@ export function tickCueEngine(
   // "Route started" was useless — replace with the actual next-turn
   // announcement so the first sound the rider hears is what they need
   // to plan for.
+  //
+  // Three sub-cases on this tick when the route just started:
+  //   A) First turn is FAR (> 50 m): emit `nextTurnInAbout` as an
+  //      orientation cue ("Next turn left in about 200 meters").
+  //   B) First turn is IMMINENT and stands alone (no back-to-back
+  //      follow-up within ~30 m): SKIP every announce; pre-latch the
+  //      50 m cue so only the 10 m approach cue speaks when the rider
+  //      actually reaches the turn. User feedback: a route starting
+  //      15 m from a turn used to fire next-turn + 50 m + 10 m
+  //      back-to-back — three cues for one turn, with disagreeing
+  //      distances.
+  //   C) First turn is IMMINENT and has a back-to-back companion
+  //      within ~30 m: skip the orientation cue, let the 50 m block
+  //      emit the combined "in X meters turn left then quickly right"
+  //      cue with the ACTUAL distance. That's the only way to warn
+  //      the rider about TWO close turns in one breath, so it stays.
   if (snapshot.routeId && !s.routeStartedAnnounced) {
     const firstNonDepart = snapshot.maneuvers.find(
       (m) => m.distanceFromStartM - snapshot.progressDistanceM >= 0,
     );
+    let nextAnnounced50m = s.announced50m;
     if (firstNonDepart) {
       const distanceM = firstNonDepart.distanceFromStartM - snapshot.progressDistanceM;
-      events.push({
-        kind: "nextTurnInAbout",
-        turnKind: firstNonDepart.kind,
-        distanceM,
-      });
+      if (distanceM > APPROACH_50_M) {
+        // Case A.
+        events.push({
+          kind: "nextTurnInAbout",
+          turnKind: firstNonDepart.kind,
+          distanceM,
+        });
+      } else {
+        // Case B vs. C — peek at the follow-up gap.
+        const upcomingIdx = snapshot.maneuvers.findIndex((m) => m.id === firstNonDepart.id);
+        const follow = snapshot.maneuvers[upcomingIdx + 1];
+        const gap = follow
+          ? follow.distanceFromStartM - firstNonDepart.distanceFromStartM
+          : Number.POSITIVE_INFINITY;
+        if (!follow || gap > BACK_TO_BACK_THRESHOLD_M) {
+          // Case B: pre-latch the 50 m cue so only the 10 m action
+          // cue fires for this maneuver.
+          const set = new Set(nextAnnounced50m);
+          set.add(firstNonDepart.id);
+          nextAnnounced50m = set;
+        }
+        // Case C: do nothing here — the 50 m block in this same tick
+        // will detect the back-to-back pair and emit the combined cue
+        // with actual distance.
+      }
     }
-    s = { ...s, routeStartedAnnounced: true };
+    s = { ...s, routeStartedAnnounced: true, announced50m: nextAnnounced50m };
   }
 
   // Off-route episode tracking.
@@ -203,6 +251,7 @@ export function tickCueEngine(
         events.push({
           kind: "turn50m",
           turnKind: upcoming.kind,
+          distanceM: upcomingDistance,
           followUpKind: followUp.kind,
         });
         announced50m.add(upcoming.id);
@@ -210,7 +259,11 @@ export function tickCueEngine(
         announced10m.add(followUp.id);
         announcedNextTurnAfter.add(upcoming.id);
       } else {
-        events.push({ kind: "turn50m", turnKind: upcoming.kind });
+        events.push({
+          kind: "turn50m",
+          turnKind: upcoming.kind,
+          distanceM: upcomingDistance,
+        });
         announced50m.add(upcoming.id);
       }
     }
@@ -237,12 +290,21 @@ export function tickCueEngine(
       const nextAfter = snapshot.maneuvers[indexOfLast + 1];
       if (nextAfter) {
         // Cue 4: there's another maneuver — announce next turn.
+        const distanceToNext = nextAfter.distanceFromStartM - snapshot.progressDistanceM;
         events.push({
           kind: "nextTurnInAbout",
           turnKind: nextAfter.kind,
-          distanceM: nextAfter.distanceFromStartM - snapshot.progressDistanceM,
+          distanceM: distanceToNext,
         });
         announcedNextTurnAfter.add(lastPassed.id);
+        // If the next maneuver is already within the 50 m approach
+        // window when we announce it, suppress the 50 m cue for it —
+        // the rider was just told. Without this they'd hear "Next
+        // turn left in about 30 m" and seconds later "In 50 m turn
+        // left", which is repetitive and factually wrong.
+        if (distanceToNext <= APPROACH_50_M) {
+          announced50m.add(nextAfter.id);
+        }
       } else if (!s.approachingDestinationAnnounced) {
         // Cue 5: no further maneuvers — arriving at destination.
         events.push({
@@ -302,11 +364,14 @@ export type CueMessage = { key: string; values: MessageValues };
 export function cueMessage(event: CueEvent, distanceMode: DistanceMode = "metric"): CueMessage {
   switch (event.kind) {
     case "turn50m":
+      // Use the rider's actual distance to the maneuver, not a hardcoded
+      // 50 m — at route start the rider can be 15 m away when the cue
+      // first fires, and "in 50 meters turn left" is jarringly wrong.
       if (event.followUpKind) {
         return {
           key: "cue.turn50mCombined",
           values: {
-            ...distanceCueValues(50, distanceMode),
+            ...distanceCueValues(event.distanceM, distanceMode),
             first: event.turnKind,
             second: event.followUpKind,
           },
@@ -314,7 +379,7 @@ export function cueMessage(event: CueEvent, distanceMode: DistanceMode = "metric
       }
       return {
         key: `cue.turn50m.${event.turnKind}`,
-        values: distanceCueValues(50, distanceMode),
+        values: distanceCueValues(event.distanceM, distanceMode),
       };
     case "turn10m":
       return { key: `cue.turn10m.${event.turnKind}`, values: {} };

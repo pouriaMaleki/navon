@@ -145,6 +145,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
   - `companion-android/` — Jetpack Compose, Google Maps, FusedLocationProvider, Android BLE/GATT.
   - `companion-web/` — React + MobX + MapLibre on OSM tiles, browser Geolocation, no BLE (phone-guidance only).
     All three share the same product surface, the same `companion.*` persistence keys, and the same RoutePackage contracts; see [`companion-app-architecture.md`](./companion-app-architecture.md) for the detailed architecture.
+- iOS phone-guidance Live Activities show route status plus a MapKit snapshot of the active route ahead. Snapshot version stamps are route-scoped so settings toggles can reuse a valid current snapshot, while route changes and route end clear stale map images.
 - Production deployment co-hosts `companion-web` and `emulator/web` in a single nginx container (companion at `/`, emulator at `/emulator/`) so edge routing remains a single service.
 
 ## Supporting References

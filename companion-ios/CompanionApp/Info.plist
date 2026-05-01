@@ -62,16 +62,14 @@
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>ESP32 Bike Companion uses your location to plan and follow routes from where you are.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>Allow background location so audio cues, lock-screen route status, and reroute detection keep working when your phone screen is off.</string>
+    <string>Allow background location so audio cues and reroute detection keep working when your phone screen is off.</string>
     <key>NSLocationAlwaysUsageDescription</key>
-    <string>Allow background location so audio cues and lock-screen route status keep working while you ride with the screen off.</string>
+    <string>Allow background location so audio cues keep working while you ride with the screen off.</string>
     <key>UIBackgroundModes</key>
     <array>
         <string>location</string>
         <string>audio</string>
     </array>
-    <key>NSSupportsLiveActivities</key>
-    <true/>
     <key>UIApplicationSceneManifest</key>
     <dict>
         <key>UIApplicationSupportsMultipleScenes</key>
