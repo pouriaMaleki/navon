@@ -98,6 +98,58 @@ final class AutoRerouteTests: XCTestCase {
         )
     }
 
+    func test_stopNavigation_clearsAllRoutingState() async {
+        // After stopActiveNavigation (manual stop OR arrival), every piece of
+        // routing state must be zeroed so the next ride starts clean and no
+        // stale @Published values linger in the UI.
+        let pkg = straightRoute()
+        let (app, vm) = await startRoute(pkg)
+
+        // Build up some mid-route state: advance the rider, trigger off-route.
+        let start = pkg.geometry[0]
+        let onRoute = start  // 0 m into route
+        let drifted = offset(start, eastM: 50, northM: 0)  // 50 m off-route
+        vm.ingestRiderLocationFix(onRoute, timestampMs: 0)
+        vm.ingestRiderLocationFix(drifted, timestampMs: 1_000)
+        // offRoute should be latched
+        XCTAssertTrue(vm.offRoute)
+        XCTAssertGreaterThan(vm.progressDistanceM, 0)
+
+        vm.stopActiveNavigation()
+        // Give the Task a chance to run.
+        await Task.yield()
+
+        XCTAssertFalse(app.isRoutingInProgress, "isRoutingInProgress must be false")
+        XCTAssertNil(app.activeSession.routeIdentifier, "routeIdentifier must be cleared")
+        XCTAssertFalse(vm.offRoute, "offRoute must be reset")
+        XCTAssertEqual(vm.offRouteDistanceM, 0, "offRouteDistanceM must be reset")
+        XCTAssertFalse(vm.rerouteRequested, "rerouteRequested must be reset")
+        XCTAssertEqual(vm.progressDistanceM, 0, "progressDistanceM must be reset")
+        XCTAssertNil(vm.arrivalNotice, "arrivalNotice must be cleared on stop")
+        XCTAssertNil(vm.pendingAutoRerouteTask, "in-flight reroute task must be cancelled")
+    }
+
+    func test_inFlightReroute_cancelledOnStop() async {
+        // If the rider goes off-route and immediately presses Stop before the
+        // reroute network call returns, the task must be cancelled and must
+        // not write back to activeSession after stop.
+        let pkg = straightRoute()
+        let (app, vm) = await startRoute(pkg)
+
+        // Trigger auto-reroute (dwell past threshold)
+        let drifted = offset(pkg.geometry[0], eastM: 50, northM: 0)
+        vm.ingestRiderLocationFix(drifted, timestampMs: 0)
+        vm.ingestRiderLocationFix(drifted, timestampMs: 3_000)
+        XCTAssertNotNil(vm.pendingAutoRerouteTask, "task should be pending before stop")
+
+        // Stop immediately without awaiting the reroute.
+        vm.stopActiveNavigation()
+        await Task.yield()
+
+        XCTAssertNil(vm.pendingAutoRerouteTask, "task must be nil after stop")
+        XCTAssertFalse(app.isRoutingInProgress)
+    }
+
     func test_autoRerouteFiresOnceWhileFlagStaysTrue() async {
         // Avoid spamming the routing provider while the rider remains
         // off-route. The flag stays `true` for as long as the rider is

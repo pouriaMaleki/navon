@@ -47,4 +47,7 @@ protocol LocationService: AnyObject {
     func start()
     /// Pause watching. Idempotent.
     func stop()
+    /// Switch between navigation-grade accuracy (`active = true`) and
+    /// planning-mode accuracy (`active = false`). Call when routing starts/stops.
+    func setNavigationAccuracy(_ active: Bool)
 }

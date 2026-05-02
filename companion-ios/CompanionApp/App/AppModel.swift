@@ -52,7 +52,12 @@ final class AppModel: ObservableObject {
     /// so a stale `activeSession.routeIdentifier` from disk can't trick
     /// the routing-activity coordinator into spinning up a Live Activity
     /// for a ride that isn't happening.
-    @Published var isRoutingInProgress: Bool = false
+    @Published var isRoutingInProgress: Bool = false {
+        didSet {
+            locationService.setNavigationAccuracy(isRoutingInProgress)
+            syncRoutingActivityServices()
+        }
+    }
     @Published var pairingState: PairingFlowState = .idle
 
     let diagnosticsStore = CompanionDiagnosticsStore()

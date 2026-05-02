@@ -26,6 +26,8 @@ final class FakeLocationService: ObservableObject, LocationService {
         isLocating = false
     }
 
+    func setNavigationAccuracy(_ active: Bool) {}
+
     func emitFix(latitude: Double, longitude: Double, speedMps: Double? = nil) {
         let point = CoordinatePoint(latitude: latitude, longitude: longitude)
         currentLocation = point

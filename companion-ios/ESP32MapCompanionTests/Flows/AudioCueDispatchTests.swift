@@ -136,6 +136,95 @@ final class AudioCueDispatchTests: XCTestCase {
         )
     }
 
+    func test_rerouteResetsProgress_soFirstCueDoesNotDuplicate() async {
+        // Bug: after a reroute, `progressDistanceM` from the old route was
+        // never reset. On the first tick with the new routeId the CueEngine
+        // saw stale progress and interpreted all new-route maneuvers as
+        // "already passed", firing an "arriving at destination" ghost cue
+        // instead of the correct orientation announcement. A second reroute
+        // introduced a third spurious cue, and so on (N+1 cues after N reroutes).
+        //
+        // Fix: `advanceProgress` detects a routeId change and resets
+        // progressDistanceM / routeTotalDistanceM before projecting.
+        let metersPerDegLat = 111_320.0
+        let speech = SpeechSpy()
+        let app = makeApp(speech: speech)
+        let vm = HomeViewModel(appModel: app)
+        let pkg = lShapeRoute()
+        app.preview = RoutePreviewModel(
+            alternatives: [RouteAlternative(
+                id: UUID(), title: "L", subtitle: "",
+                distanceMeters: 800, durationSeconds: 240, normalizedPackage: pkg
+            )],
+            selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        await vm.startSelectedRoute()
+
+        // Advance rider 300m along the original route so progressDistanceM ≈ 300.
+        let start = pkg.geometry[0]
+        let point300m = CoordinatePoint(
+            latitude: start.latitude + 300.0 / metersPerDegLat,
+            longitude: start.longitude
+        )
+        vm.ingestRiderLocationFix(point300m, timestampMs: 1_000)
+        speech.spoken.removeAll()
+
+        // Simulate a reroute completing: new 200m route starting at point300m
+        // with a right turn at 100m from the new start.
+        let turnPoint = CoordinatePoint(
+            latitude: point300m.latitude + 100.0 / metersPerDegLat,
+            longitude: point300m.longitude
+        )
+        let reroutedEnd = CoordinatePoint(
+            latitude: point300m.latitude + 200.0 / metersPerDegLat,
+            longitude: point300m.longitude
+        )
+        let reroutedPkg = NormalizedRoutePackage(
+            version: RoutePackageVersion.current,
+            routeIdentifier: "lshape-rerouted",
+            revision: 2,
+            geometry: [point300m, turnPoint, reroutedEnd],
+            maneuvers: [
+                RouteManeuver(id: "r-m1", maneuverType: .depart, location: point300m,
+                              distanceFromStartMeters: 0, distanceToNextMeters: 100, instructionText: nil),
+                RouteManeuver(id: "r-m2", maneuverType: .right, location: turnPoint,
+                              distanceFromStartMeters: 100, distanceToNextMeters: 100, instructionText: "Turn right"),
+                RouteManeuver(id: "r-m3", maneuverType: .arrive, location: reroutedEnd,
+                              distanceFromStartMeters: 200, distanceToNextMeters: nil, instructionText: nil),
+            ],
+            summary: RouteSummary(totalDistanceMeters: 200, estimatedDurationSeconds: 60,
+                                  startLabel: nil, destinationLabel: "Finish"),
+            provenance: RouteProvenance(providerID: .osm, sourceReference: nil, generatedAtUnixMs: 0)
+        )
+        app.preview = RoutePreviewModel(
+            alternatives: [RouteAlternative(
+                id: UUID(), title: "Rerouted", subtitle: "",
+                distanceMeters: 200, durationSeconds: 60, normalizedPackage: reroutedPkg
+            )],
+            selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        app.activeSession.routeIdentifier = "lshape-rerouted"
+
+        // First GPS fix on the new route — rider is at its very start.
+        vm.ingestRiderLocationFix(point300m, timestampMs: 2_000)
+
+        // Should speak the orientation cue ONCE. Without the progress reset,
+        // the engine would see all new-route maneuvers as "passed" and fire a
+        // ghost "arriving at destination" cue (or additional duplicate turn cues).
+        let arrivingCues = speech.spoken.filter { $0.lowercased().contains("arriving") }
+        XCTAssertTrue(
+            arrivingCues.isEmpty,
+            "must not fire a ghost 'arriving' cue on reroute — got \(speech.spoken)"
+        )
+        let nextTurnCues = speech.spoken.filter {
+            $0.lowercased().contains("next turn") && $0.lowercased().contains("right")
+        }
+        XCTAssertEqual(
+            nextTurnCues.count, 1,
+            "after reroute, orientation cue must fire exactly once — got \(speech.spoken)"
+        )
+    }
+
     func test_connectedToDevice_suppressesAllCues() async {
         // Spec line 131: cues are suppressed only when the companion is
         // ACTIVELY CONNECTED to the ESP (the device is then driving the

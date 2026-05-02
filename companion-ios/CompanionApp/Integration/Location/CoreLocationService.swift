@@ -32,7 +32,10 @@ final class CoreLocationService: NSObject, ObservableObject, LocationService {
         self.persistence = persistence
         super.init()
         manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+        // Planning-mode defaults — adequate for showing the rider dot on the
+        // map without hammering the GPS radio. Tightened to navigation-grade
+        // via setNavigationAccuracy(true) once a route starts.
+        manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.distanceFilter = 10
         // Background-readiness configuration. Without these flags iOS
         // silently pauses GPS once its motion heuristics decide the
@@ -71,6 +74,22 @@ final class CoreLocationService: NSObject, ObservableObject, LocationService {
         watching = false
         manager.stopUpdatingLocation()
         isLocating = false
+    }
+
+    /// Switches the CLLocationManager between navigation-grade and planning-mode
+    /// accuracy. Navigation mode uses `kCLLocationAccuracyBestForNavigation`
+    /// (keeps the GPS radio fully awake) and no distance filter so every fix
+    /// is delivered — mirroring how OsmAnd and OwnTracks keep background GPS
+    /// reliable. Planning mode backs off to `kCLLocationAccuracyBest` + a 10 m
+    /// filter, which is sufficient for showing the rider dot on the map.
+    func setNavigationAccuracy(_ active: Bool) {
+        if active {
+            manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
+            manager.distanceFilter = kCLDistanceFilterNone
+        } else {
+            manager.desiredAccuracy = kCLLocationAccuracyBest
+            manager.distanceFilter = 10
+        }
     }
 
     /// Request "Always" authorization for background GPS. iOS only allows

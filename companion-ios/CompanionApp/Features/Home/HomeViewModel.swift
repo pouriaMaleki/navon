@@ -827,6 +827,7 @@ final class HomeViewModel: ObservableObject {
         offRouteDurationMs = 0
         rerouteRequested = false
         lastAdvanceTimestampMs = -1
+        lastProgressRouteId = nil
         autoReroutePending = false
         pendingAutoRerouteTask?.cancel()
         pendingAutoRerouteTask = nil
@@ -895,6 +896,26 @@ final class HomeViewModel: ObservableObject {
             compassMode = .autoFollow
             activeRouteIdentifier = nil
             homeMode = .planning
+            arrivalNotice = nil
+            // Cancel any in-flight auto-reroute before clearing the flags it
+            // writes — without this the task can land after stop and mutate
+            // activeSession / rerouteRequested on a route that no longer exists.
+            pendingAutoRerouteTask?.cancel()
+            pendingAutoRerouteTask = nil
+            autoReroutePending = false
+            // Reset all off-route / reroute hysteresis so the next ride starts
+            // with a clean slate and stale @Published flags don't linger in the UI.
+            offRoute = false
+            offRouteDistanceM = 0
+            offRouteDurationMs = 0
+            rerouteRequested = false
+            // Reset progress so stale distance doesn't carry into the next route
+            // or confuse the CueEngine if the coordinator is ticked before the
+            // next startSelectedRoute clears them.
+            progressDistanceM = 0
+            routeTotalDistanceM = 0
+            lastProgressRouteId = nil
+            lastAdvanceTimestampMs = -1
             // Clear the persisted active session so a later cold launch
             // does not see a stale `routeIdentifier` and mistake the user
             // for being mid-ride (which previously caused the Live
@@ -902,9 +923,9 @@ final class HomeViewModel: ObservableObject {
             appModel.activeSession.routeIdentifier = nil
             appModel.activeSession.routeRevision = nil
             appModel.persistence.saveSession(appModel.activeSession)
-            // Drop the in-progress flag BEFORE dispatching so the
-            // coordinator's gating sees `isRouting=false` and ends the
-            // Live Activity instead of refreshing it.
+            // Drop the in-progress flag BEFORE dispatching. The didSet calls
+            // syncRoutingActivityServices(), which resets the CueEngine state
+            // and idles the idle timer before the final tick fires.
             appModel.isRoutingInProgress = false
             // Tell the routing activity coordinator that routing is over,
             // so it ends the Live Activity (and disables idle-timer hold).
@@ -1164,6 +1185,14 @@ final class HomeViewModel: ObservableObject {
     /// Total length of the active route in meters. Cached on Start.
     private var routeTotalDistanceM: Double = 0
 
+    /// Tracks which routeId we last reset progress for. When the active
+    /// session's routeIdentifier changes (i.e. a reroute completed), we
+    /// reset progress to 0 so stale distance doesn't make the CueEngine see
+    /// all new-route maneuvers as "already passed". Without this reset, the
+    /// route-start cue AND the nextTurnAfter cue both fire for the same
+    /// maneuver on the first tick, giving N+1 repeats after N reroutes.
+    private var lastProgressRouteId: String? = nil
+
     /// Project the rider onto the active route geometry and advance
     /// `progressDistanceM` monotonically (never regresses), mirroring
     /// runtime-core's behaviour. Also runs the off-route hysteresis: when
@@ -1172,6 +1201,13 @@ final class HomeViewModel: ObservableObject {
     /// time toward the reroute-request signal.
     private func advanceProgress(rider: CoordinatePoint, nowMs: Int64) {
         guard let geometry = guidanceRoute?.geometry, geometry.count >= 2 else { return }
+        let currentRouteId = appModel.activeSession.routeIdentifier
+        if currentRouteId != lastProgressRouteId {
+            lastProgressRouteId = currentRouteId
+            progressDistanceM = 0
+            routeTotalDistanceM = guidanceRoute.map { polylineLengthMeters($0.geometry) } ?? 0
+            lastAdvanceTimestampMs = -1
+        }
         let projection = projectProgressWithDistance(onto: geometry, rider: rider)
         let bounded = min(routeTotalDistanceM > 0 ? routeTotalDistanceM : projection.progress, projection.progress)
         progressDistanceM = max(progressDistanceM, bounded)
