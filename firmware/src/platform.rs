@@ -10,6 +10,12 @@ use crate::route_sync::{RouteSyncTransportError, RouteTransferChunk};
 use crate::settings::{NullSettingsStore, SettingsStore};
 use crate::touch::{TouchError, TouchInput, TouchSource};
 
+/// How long we tolerate no fresh RMC fix before flipping the
+/// "GETTING GPS" overlay back on. Set against the NEO-6M's 1 Hz
+/// default emit rate plus a few seconds of slack so a single dropped
+/// sentence (multipath, brief obstruction) doesn't blink the overlay.
+const GPS_LOST_THRESHOLD_MS: u32 = 10_000;
+
 pub trait FrameClock {
     fn next_dt(&mut self) -> Duration;
 }
@@ -270,6 +276,23 @@ where
 
         let dt = self.clock.next_dt();
         let gps = self.gps.poll()?;
+        // Push diagnostics into the App every frame so the overlay
+        // can render the BITS/PING/PINS counters. Then derive the
+        // "currently acquired?" signal from those diagnostics if the
+        // provider exposes them — that way a >10 s gap with no fresh
+        // RMC flips `gps_acquired` back to `false` and the overlay
+        // reappears, even though we'd previously locked. Providers
+        // that don't expose diagnostics (NullGps, FixedGps in host
+        // tests) fall back to the trait's `has_acquired_fix` default.
+        let diagnostics = self.gps.diagnostics_summary();
+        self.app.set_gps_diagnostics(diagnostics);
+        let acquired = match diagnostics {
+            Some(diag) => diag
+                .last_fix_age_ms
+                .is_some_and(|age| age <= GPS_LOST_THRESHOLD_MS),
+            None => self.gps.has_acquired_fix(),
+        };
+        self.app.set_gps_acquired(acquired);
         let touch = self.touch.poll()?;
         let mut frame = self.app.step_frame(dt, gps, touch)?;
         route_sync_statuses.extend(frame.route_sync_statuses.iter().cloned());

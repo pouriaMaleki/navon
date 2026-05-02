@@ -11,6 +11,9 @@ pub mod hosted_ble_state;
 pub mod pairing;
 pub mod pairing_overlay;
 pub mod gps;
+pub mod gps_overlay;
+#[cfg(target_os = "espidf")]
+pub mod gps_uart;
 pub mod input_bridge;
 pub mod map_source;
 #[cfg(target_os = "espidf")]

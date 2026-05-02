@@ -10,7 +10,7 @@ use runtime_core::map::MapSource;
 
 use crate::board_config::BoardConfig;
 use crate::display::{Display, DisplayBackend, DisplayError, MemoryDisplayBackend};
-use crate::gps::GpsInput;
+use crate::gps::{GpsDiagnostics, GpsInput};
 use crate::input_bridge::InputBridge;
 use crate::map_source::MapSourceBridge;
 use crate::pairing::{
@@ -163,6 +163,23 @@ where
     /// One-shot flag for the first successful QR encode so the operator
     /// gets a single confirmation in the boot log instead of 60/s spam.
     qr_encoded_logged: bool,
+    /// Whether the GPS provider has ever produced a real fix. Set by
+    /// the platform layer each frame from
+    /// [`crate::gps::GpsProvider::has_acquired_fix`]. While `false`,
+    /// `step_frame` paints the "GETTING GPS" overlay over the basemap
+    /// after the normal render pass — the rider sees a Helsinki-area
+    /// map with a black/white "GETTING GPS" banner until the NEO-6M
+    /// reports its first valid RMC sentence.
+    gps_acquired: bool,
+    /// Tracks the previous-frame value so we can emit a single info
+    /// log on the false→true edge instead of a per-frame line.
+    gps_acquired_logged: bool,
+    /// Latest counters from the GPS provider, surfaced on the
+    /// "GETTING GPS" overlay so a field operator can debug "no fix
+    /// after 30 minutes outdoors" without serial-console access.
+    /// `None` while the provider doesn't expose diagnostics
+    /// (host tests, `NullGpsProvider`, etc.).
+    gps_diagnostics: Option<GpsDiagnostics>,
     /// Per-frame render-path tag. Lets tests assert that they actually
     /// exercised the world-buffer cached-blit code path; production
     /// callers ignore it.
@@ -256,6 +273,17 @@ where
             last_bonded_peer_addr_type: None,
             was_in_pairing_overlay: false,
             qr_encoded_logged: false,
+            // Default `true` so unit tests that drive `step_frame`
+            // directly (bypassing the platform layer) don't see the
+            // overlay covering pixels they care about. In production
+            // `RuntimePlatform::run_frame` calls
+            // `App::set_gps_acquired(self.gps.has_acquired_fix())`
+            // on every frame *before* `step_frame`, so the constructor
+            // default is overwritten on frame 1 and the rider sees
+            // "GETTING GPS" until the NEO-6M reports its first fix.
+            gps_acquired: true,
+            gps_acquired_logged: false,
+            gps_diagnostics: None,
             #[cfg(test)]
             last_render_path: FramePath::None,
         })
@@ -445,6 +473,41 @@ where
         } else {
             log::info!("request_qr_display — showing QR for {:?}", QR_DISPLAY_DURATION);
         }
+    }
+
+    /// Records whether the GPS provider has produced a real fix yet. The
+    /// platform layer calls this once per frame from
+    /// [`crate::gps::GpsProvider::has_acquired_fix`]; while the value is
+    /// `false`, [`Self::step_frame`] paints the "GETTING GPS" overlay
+    /// over the map after the normal render pass.
+    pub fn set_gps_acquired(&mut self, acquired: bool) {
+        let was_acquired = self.gps_acquired;
+        self.gps_acquired = acquired;
+        // Log only on the false → true edge: that's the moment the
+        // operator cares about ("GPS just locked"). A constructor that
+        // boots with `gps_acquired = true` never logs because there
+        // was no acquisition event to announce.
+        if acquired && !was_acquired && !self.gps_acquired_logged {
+            log::info!("App: first real GPS fix received → dropping GETTING GPS overlay");
+            self.gps_acquired_logged = true;
+        }
+    }
+
+    pub fn is_gps_acquired(&self) -> bool {
+        self.gps_acquired
+    }
+
+    /// Stash the latest counters from the GPS provider. Called once
+    /// per frame from the platform layer; the value flows into the
+    /// "GETTING GPS" overlay so an operator standing outdoors can see
+    /// whether bytes are arriving (diagnoses wiring), sentences parse
+    /// (diagnoses baud), and fixes resolve (diagnoses sky view).
+    pub fn set_gps_diagnostics(&mut self, diagnostics: Option<GpsDiagnostics>) {
+        self.gps_diagnostics = diagnostics;
+    }
+
+    pub fn gps_diagnostics(&self) -> Option<GpsDiagnostics> {
+        self.gps_diagnostics
     }
 
     /// Test-only: shortcut into the `Operational` state without going
@@ -637,6 +700,19 @@ where
             {
                 self.last_render_path = FramePath::DirectRender;
             }
+        }
+        // While the NEO-6M is still searching for satellites, paint
+        // the "GETTING GPS" banner over whatever the renderer just
+        // produced. The map (camera held on the seed lat/lon by
+        // `SeedThenRealGpsProvider`) stays visible underneath; the
+        // overlay only overwrites the centered panel footprint, and
+        // disappears as soon as the provider reports its first real
+        // fix and `set_gps_acquired(true)` is called.
+        if !self.gps_acquired {
+            crate::gps_overlay::render_acquiring_gps_overlay(
+                &mut self.render_framebuffer,
+                self.gps_diagnostics,
+            );
         }
         let render = t_render_start.elapsed();
 
@@ -1561,6 +1637,58 @@ mod tests {
             !app.is_showing_qr(),
             "a successful bond must drop the QR overlay immediately, not wait \
              for the deadline",
+        );
+    }
+
+    #[test]
+    fn step_frame_paints_getting_gps_overlay_when_gps_not_acquired_yet() {
+        // Black-and-white "GETTING GPS" banner must appear in the
+        // center of the framebuffer while the app has not yet seen a
+        // real fix. Drives the same code path the device will hit on
+        // every cold boot before the NEO-6M reports its first RMC.
+        let mut app = App::default();
+        app.set_gps_acquired(false);
+        let _ = app
+            .step_frame(
+                Duration::from_millis(16),
+                Some(helsinki_fix(24.94210, 0.0)),
+                None,
+            )
+            .expect("frame with overlay");
+
+        let pixels = app.display().framebuffer().pixels();
+        let w = app.display().framebuffer().width() as usize;
+        let h = app.display().framebuffer().height() as usize;
+        // Center pixel sits inside the overlay panel — must be either
+        // panel-black or text-white (never an underlying map color).
+        let idx = ((h / 2) * w + (w / 2)) * 4;
+        let r = pixels[idx];
+        let g = pixels[idx + 1];
+        let b = pixels[idx + 2];
+        let is_panel_or_text =
+            (r == 0 && g == 0 && b == 0) || (r == 0xFF && g == 0xFF && b == 0xFF);
+        assert!(
+            is_panel_or_text,
+            "center pixel should be the overlay's panel/text color; got ({r},{g},{b})"
+        );
+
+        // After the platform reports a real fix, the overlay clears.
+        app.set_gps_acquired(true);
+        let _ = app
+            .step_frame(
+                Duration::from_millis(16),
+                Some(helsinki_fix(24.94310, 5.0)),
+                None,
+            )
+            .expect("frame after acquisition");
+        let pixels_after = app.display().framebuffer().pixels();
+        let r2 = pixels_after[idx];
+        let g2 = pixels_after[idx + 1];
+        let b2 = pixels_after[idx + 2];
+        assert!(
+            !(r2 == 0 && g2 == 0 && b2 == 0),
+            "center should not still be the panel-black color after acquisition; \
+             got ({r2},{g2},{b2}) — the overlay never cleared"
         );
     }
 

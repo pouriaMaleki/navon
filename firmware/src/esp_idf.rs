@@ -5,7 +5,7 @@ use crate::app::{App, AppBuildError};
 use crate::board_config::{BoardConfig, DisplayConfig, TouchControllerConfig};
 use crate::display::{DisplayBackend, DisplayError, MemoryDisplayBackend};
 use crate::framebuffer::Framebuffer;
-use crate::gps::{GpsError, GpsInput, GpsProvider, NullGpsProvider};
+use crate::gps::{GpsDiagnostics, GpsError, GpsInput, GpsProvider, NullGpsProvider};
 use crate::map_source::MapSourceBridge;
 use crate::platform::{NullTouchSource, RouteSyncIo, RuntimePlatform, SystemFrameClock};
 use crate::settings::{DefaultSettingsStore, SettingsStore, default_settings_store};
@@ -56,6 +56,16 @@ pub trait EspIdfPanel: std::fmt::Debug {
 
 pub trait EspIdfGpsSerial: std::fmt::Debug {
     fn read_sentence(&mut self) -> Result<Option<String>, EspIdfError>;
+
+    /// Number of raw bytes pulled off the UART RX FIFO since the
+    /// transport was constructed. Surfaces on the "GETTING GPS"
+    /// overlay so a field operator can tell whether the wiring is
+    /// even passing electrons. Default 0 for transports that don't
+    /// instrument this (e.g. test fixtures); the real
+    /// [`crate::gps_uart::UartGpsSerial`] overrides it.
+    fn bytes_seen(&self) -> u64 {
+        0
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -250,12 +260,44 @@ where
     }
 }
 
+/// Periodic-status log cadence while the receiver is still searching
+/// for satellites — fast enough that the operator can see "bytes
+/// flowing yet?" within a few seconds, slow enough that the console
+/// isn't drowned by it.
+const GPS_STATUS_LOG_INTERVAL_SEARCHING: std::time::Duration =
+    std::time::Duration::from_secs(5);
+
+/// Periodic-status log cadence once locked. We don't need a per-5 s
+/// reminder that the GPS is still working; once a minute is plenty
+/// for "I'm still here" reassurance.
+const GPS_STATUS_LOG_INTERVAL_LOCKED: std::time::Duration =
+    std::time::Duration::from_secs(60);
+
+/// Minimum gap between successive per-fix INFO lines after the very
+/// first one. Without this we'd log 60 lines per minute at the 1 Hz
+/// NMEA cadence — useless noise once the operator has confirmed
+/// acquisition.
+const GPS_FIX_LOG_INTERVAL: std::time::Duration = std::time::Duration::from_secs(30);
+
 #[derive(Debug, Clone)]
 pub struct EspIdfGpsProvider<S>
 where
     S: EspIdfGpsSerial,
 {
     serial: S,
+    sentences_seen: u64,
+    fixes_seen: u64,
+    last_sentence_kind: Option<String>,
+    last_status_log: Option<std::time::Instant>,
+    /// Wallclock instant of the most recent successful RMC parse.
+    /// Used both for log throttling (so we don't repeat per-fix INFO
+    /// lines at 1 Hz) and to fill `GpsDiagnostics::last_fix_age_ms`
+    /// (so the platform layer can detect signal loss after lock and
+    /// flip the overlay back on).
+    last_fix_at: Option<std::time::Instant>,
+    /// Wallclock instant of the most recent per-fix INFO log line —
+    /// driver of the 30 s cadence in `GPS_FIX_LOG_INTERVAL`.
+    last_fix_log: Option<std::time::Instant>,
 }
 
 impl<S> EspIdfGpsProvider<S>
@@ -263,7 +305,50 @@ where
     S: EspIdfGpsSerial,
 {
     pub fn new(serial: S) -> Self {
-        Self { serial }
+        Self {
+            serial,
+            sentences_seen: 0,
+            fixes_seen: 0,
+            last_sentence_kind: None,
+            last_status_log: None,
+            last_fix_at: None,
+            last_fix_log: None,
+        }
+    }
+
+    fn maybe_log_status(&mut self) {
+        let now = std::time::Instant::now();
+        let interval = if self.fixes_seen == 0 {
+            GPS_STATUS_LOG_INTERVAL_SEARCHING
+        } else {
+            GPS_STATUS_LOG_INTERVAL_LOCKED
+        };
+        let due = self
+            .last_status_log
+            .map(|last| now.duration_since(last) >= interval)
+            .unwrap_or(true);
+        if !due {
+            return;
+        }
+        self.last_status_log = Some(now);
+        let kind = self
+            .last_sentence_kind
+            .as_deref()
+            .unwrap_or("(none yet)");
+        if self.fixes_seen == 0 {
+            log::info!(
+                "gps: waiting for fix — sentences_seen={} last_kind={} (NEO-6M cold start can take 30 s … several minutes; outdoors with sky view recommended)",
+                self.sentences_seen,
+                kind,
+            );
+        } else {
+            log::info!(
+                "gps: sentences_seen={} fixes_seen={} last_kind={}",
+                self.sentences_seen,
+                self.fixes_seen,
+                kind,
+            );
+        }
     }
 }
 
@@ -271,15 +356,84 @@ impl<S> GpsProvider for EspIdfGpsProvider<S>
 where
     S: EspIdfGpsSerial,
 {
+    fn diagnostics_summary(&self) -> Option<GpsDiagnostics> {
+        let last_fix_age_ms = self.last_fix_at.map(|at| {
+            std::time::Instant::now()
+                .saturating_duration_since(at)
+                .as_millis()
+                .min(u32::MAX as u128) as u32
+        });
+        Some(GpsDiagnostics {
+            bytes_seen: self.serial.bytes_seen(),
+            sentences_seen: self.sentences_seen,
+            fixes_seen: self.fixes_seen,
+            last_fix_age_ms,
+        })
+    }
+
     fn poll(&mut self) -> Result<Option<GpsInput>, GpsError> {
-        match self
+        let sentence = self
             .serial
             .read_sentence()
-            .map_err(|error| GpsError::Provider(format!("{error:?}")))?
-        {
-            Some(sentence) => Ok(parse_rmc_sentence(&sentence)),
+            .map_err(|error| GpsError::Provider(format!("{error:?}")))?;
+
+        self.maybe_log_status();
+
+        let Some(sentence) = sentence else {
+            return Ok(None);
+        };
+
+        self.sentences_seen += 1;
+        // Cache the talker+type prefix (e.g. "GPRMC", "GPGSV") for the
+        // periodic status log so the operator can tell at a glance
+        // whether they're seeing fix-bearing sentences (RMC/GGA) or
+        // only satellite-search ones (GSV/GSA).
+        if let Some(kind) = nmea_kind(&sentence) {
+            self.last_sentence_kind = Some(kind);
+        }
+        log::debug!("gps nmea: {sentence}");
+
+        match parse_rmc_sentence(&sentence) {
+            Some(fix) => {
+                self.fixes_seen += 1;
+                let now = std::time::Instant::now();
+                self.last_fix_at = Some(now);
+                // Per-fix INFO log: emit the very first fix immediately
+                // (so the operator sees acquisition succeed in real
+                // time), then throttle subsequent fixes to once every
+                // `GPS_FIX_LOG_INTERVAL` so the steady-state 1 Hz
+                // stream doesn't drown the console.
+                let due = self
+                    .last_fix_log
+                    .map(|last| now.duration_since(last) >= GPS_FIX_LOG_INTERVAL)
+                    .unwrap_or(true);
+                if due {
+                    self.last_fix_log = Some(now);
+                    log::info!(
+                        "gps fix: lat={:.6} lon={:.6} speed_mps={:.2} course_rad={:?}",
+                        fix.lat_deg,
+                        fix.lon_deg,
+                        fix.speed_mps,
+                        fix.course_rad,
+                    );
+                }
+                Ok(Some(fix))
+            }
             None => Ok(None),
         }
+    }
+}
+
+/// Strips the `$` and pulls the talker+type field (`GPRMC`, `GNGGA`, …)
+/// out of an NMEA-0183 sentence. Returns `None` for malformed input so
+/// the caller falls back to its previous label.
+fn nmea_kind(sentence: &str) -> Option<String> {
+    let payload = sentence.trim().strip_prefix('$')?;
+    let head = payload.split(',').next()?;
+    if head.is_empty() {
+        None
+    } else {
+        Some(head.to_owned())
     }
 }
 
@@ -680,7 +834,8 @@ pub fn run_device_main() -> Result<(), String> {
     use runtime_core::api::RuntimeConfig;
 
     use crate::app::App;
-    use crate::gps::{FixedGpsProvider, GpsInput};
+    use crate::gps::{GpsInput, SeedThenRealGpsProvider};
+    use crate::gps_uart::UartGpsSerial;
     use crate::hosted_ble::HostedBleRouteSyncIo;
     use crate::map_source::MapSourceBridge;
     use crate::mipi_dsi::{
@@ -808,16 +963,36 @@ pub fn run_device_main() -> Result<(), String> {
     )
     .map_err(|error| format!("failed to build P4 app with panel: {error:?}"))?;
 
-    let (seed_lat, seed_lon) = (60.183564_f64, 24.946295_f64); // hardcoded home fix
-    let _ = center_lat_lon; // map centroid available but overridden above
-    let gps = FixedGpsProvider::new(GpsInput {
-        lat_deg: seed_lat,
-        lon_deg: seed_lon,
-        speed_mps: 0.0,
-        course_rad: None,
-        horizontal_accuracy_m: Some(5.0),
-    });
-    log::info!("seeded fixed GPS fix at lat={:.4} lon={:.4}", seed_lat, seed_lon);
+    // Bring up the NEO-6M on UART1 at 9600 baud. Until the module
+    // reports its first valid RMC fix — outdoor cold start is
+    // typically 30 s and can stretch to several minutes —
+    // `SeedThenRealGpsProvider` parks the camera on the embedded map's
+    // own centroid (Helsinki area for the bundled `city-small.svm`)
+    // instead of (0, 0) "Gulf of Guinea". The "GETTING GPS" overlay
+    // hides the rider marker during this window. Once a real fix
+    // arrives, the seed stops being substituted and the rider follows
+    // GPS as normal.
+    let (seed_lat, seed_lon) = center_lat_lon.unwrap_or((60.1699, 24.9384));
+    let real_gps_serial = UartGpsSerial::new_neo6m_uart1().map_err(|error| {
+        format!("failed to bring up GPS UART (NEO-6M @ default GPIOs): {error:?}")
+    })?;
+    let gps = SeedThenRealGpsProvider::new(
+        GpsInput {
+            lat_deg: seed_lat,
+            lon_deg: seed_lon,
+            speed_mps: 0.0,
+            course_rad: None,
+            horizontal_accuracy_m: Some(5.0),
+        },
+        EspIdfGpsProvider::new(real_gps_serial),
+    );
+    log::info!(
+        "gps: NEO-6M wired to UART1 @ 9600 baud (MCU TX = GPIO{}, MCU RX = GPIO{}); camera seeded at map centroid lat={:.4} lon={:.4} until first real fix",
+        crate::gps_uart::WAVESHARE_3P4C_GPS_TX_GPIO,
+        crate::gps_uart::WAVESHARE_3P4C_GPS_RX_GPIO,
+        seed_lat,
+        seed_lon,
+    );
 
     // Bring up the GT911 capacitive touch controller on the same I2C bus
     // the panel CH422G shares (SDA=GPIO7, SCL=GPIO8 @ 400 kHz). The 3.4C
