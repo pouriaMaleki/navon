@@ -61,6 +61,13 @@ class HomeStateHolder(
      */
     var mapFollowRiderTick by mutableIntStateOf(0)
         private set
+    /**
+     * True while the rider is browsing alternative routes from active guidance
+     * (the "split icon" flow). `homeMode` stays `PHONE_GUIDANCE` so guidance
+     * keeps running; the alternatives card is shown via this flag.
+     */
+    var isExploringAlternativesFromGuidance by mutableStateOf(false)
+        private set
 
     private var urlResolveJob: Job? = null
     private var mapInteractionRecenterJob: Job? = null
@@ -412,8 +419,42 @@ class HomeStateHolder(
             }
         } else {
             compassMode = HomeCompassMode.AUTO_FOLLOW
+            isExploringAlternativesFromGuidance = false
             homeMode = HomeMode.PHONE_GUIDANCE
         }
+    }
+
+    /**
+     * Spec #11 ("split-way reroute"): enter the "browse alternatives from
+     * guidance" state. `homeMode` stays `PHONE_GUIDANCE` so guidance keeps
+     * running; the alternatives card is shown via `isExploringAlternativesFromGuidance`.
+     * Re-plans from the rider's current location to the active destination so
+     * fresh alternatives are available to pick from.
+     */
+    fun exploreAlternateRoutes(scope: CoroutineScope) {
+        if (homeMode != HomeMode.PHONE_GUIDANCE) return
+        val destination = destinationCoordinate ?: return
+        val sourceToReuse = appState.activeSession.sourceMode
+        val titleHint = appState.activeSession.destinationLabel
+        // Set the flag immediately so the alternatives panel opens right away
+        // with a loading indicator while the plan fetches in the background.
+        isExploringAlternativesFromGuidance = true
+        appState.routeRequest = RoutePlanRequest(
+            origin = appState.riderLocation,
+            destination = destination,
+            providerId = sourceToReuse.primaryProviderId,
+        )
+        scope.launch {
+            appState.planRoute(sourceToReuse, preferredTitle = if (titleHint.isBlank()) null else titleHint)
+        }
+    }
+
+    /**
+     * Cancel browsing alternatives — dismiss the card, resume normal routing UI.
+     * The original route is still active; nothing else changes.
+     */
+    fun cancelAlternativesExploration() {
+        isExploringAlternativesFromGuidance = false
     }
 
     private fun polylineLengthMeters(polyline: List<CoordinatePoint>): Double {

@@ -310,14 +310,18 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50mCombined": {
-      "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {turn left} right {turn right} keepLeft {keep left} keepRight {keep right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} other {follow the route}} sharp sharp {second, select, left {left} right {right} keepLeft {keep left} keepRight {keep right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} other {straight}}",
+      "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {turn left} right {turn right} keepLeft {keep left} keepRight {keep right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} other {follow the route}} then quickly {second, select, left {left} right {right} keepLeft {keep left} keepRight {keep right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} other {ahead}}",
       "description": "Voice cue for back-to-back turns within ~80m: replaces two overlapping cues with one combined phrase.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select",
         "first": "select",
         "second": "select"
-      }
+      },
+      "sourceHash": "sha256:dfa2fdde6a0000c2",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-02T18:38:08Z",
+      "translatedBy": "openai/gpt-5.4-nano"
     },
     "guidance.distanceToDestination": {
       "value": "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} to {destination}",
@@ -388,6 +392,14 @@
       "translatedAt": "2026-04-30T13:40:46Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "home.continueOnCurrentRoute": {
+      "value": "Continue for current route",
+      "description": "Top row in the alternatives suggestions card when opened from active guidance. Tapping it dismisses the panel and resumes the current route.",
+      "sourceHash": "sha256:2a641b65544844c7",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-02T18:38:08Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "home.importedRoute": {
       "value": "Route wey don import",
       "description": "Header above the route alternatives card when a single route was imported from a GPX file or share-extension link.",
@@ -434,11 +446,11 @@
       "status": "reviewed"
     },
     "home.platformHint.locationSafariIos": {
-      "value": "Safari for iPhone no fit deliver background GPS, lock-screen direction, or audio cue when the tab dey hidden. If you want real background routing, install the native iOS app.",
+      "value": "Safari wey dey iPhone no fit send GPS for background, guidance for lock-screen, or audio cues while tab don hide. For real background routing, install the native iOS app.",
       "description": "Hint shown under the 'Allow GPS in background' setting when the browser is Safari on iOS.",
-      "sourceHash": "sha256:d739522e29c7ef00",
+      "sourceHash": "sha256:8e6ea72c4709e426",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:06:53Z",
+      "translatedAt": "2026-05-02T18:38:08Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.recenter": {

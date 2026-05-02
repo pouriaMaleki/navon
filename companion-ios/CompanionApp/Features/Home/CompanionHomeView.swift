@@ -414,7 +414,9 @@ struct CompanionHomeView: View {
                 routeSuggestionsCard
             }
         case .phoneGuidance:
-            if let active = viewModel.guidanceRoute {
+            if viewModel.isExploringAlternativesFromGuidance {
+                routeSuggestionsCard
+            } else if let active = viewModel.guidanceRoute {
                 activeGuidanceCard(active)
             }
         case .sendingToDevice, .deviceOverview:
@@ -747,9 +749,33 @@ struct CompanionHomeView: View {
                 Spacer()
                 Button(T.string("common.close")) {
                     isSearchFieldFocused = false
-                    viewModel.clearPreview()
+                    if viewModel.isExploringAlternativesFromGuidance {
+                        viewModel.cancelAlternativesExploration()
+                    } else {
+                        viewModel.clearPreview()
+                    }
                 }
                 .font(.subheadline.weight(.semibold))
+            }
+
+            if viewModel.isExploringAlternativesFromGuidance {
+                Button {
+                    viewModel.cancelAlternativesExploration()
+                } label: {
+                    HStack(spacing: 10) {
+                        Text(T.string("home.continueOnCurrentRoute"))
+                            .font(.subheadline.weight(.semibold))
+                        Spacer()
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.blue)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Color.blue.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+                .buttonStyle(.plain)
             }
 
             if let notice = appModel.preview.planningNotice {

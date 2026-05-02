@@ -310,14 +310,18 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50mCombined": {
-      "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, {first, select, left {बाएँ मुड़ें} right {दाएँ मुड़ें} keepLeft {बाएँ रखें} keepRight {दाएँ रखें} exitLeft {बाएँ निकास लें} exitRight {दाएँ निकास लें} uturn {U-turn करें} other {मार्ग का पालन करें}}, फिर तुरंत {second, select, left {बाएँ} right {दाएँ} keepLeft {बाएँ रखें} keepRight {दाएँ रखें} exitLeft {बायाँ निकास} exitRight {दायाँ निकास} uturn {U-turn} other {सीधे}}",
+      "value": "{distance, number} {distanceUnit, select, meters {मीटर} feet {फुट} other {मीटर}}, {first, select, left {बाएँ मुड़ें} right {दाएँ मुड़ें} keepLeft {बाएँ रहें} keepRight {दाएँ रहें} exitLeft {बाएँ निकास लें} exitRight {दाएँ निकास लें} uturn {यू-टर्न करें} other {रास्ते का अनुसरण करें}} फिर जल्दी {second, select, left {बाएँ} right {दाएँ} keepLeft {बाएँ रहें} keepRight {दाएँ रहें} exitLeft {बाएँ निकास} exitRight {दाएँ निकास} uturn {यू-टर्न} other {सीधे आगे}}",
       "description": "Voice cue for back-to-back turns within ~80m: replaces two overlapping cues with one combined phrase.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select",
         "first": "select",
         "second": "select"
-      }
+      },
+      "sourceHash": "sha256:dfa2fdde6a0000c2",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-02T18:37:57Z",
+      "translatedBy": "openai/gpt-5.4-nano"
     },
     "guidance.distanceToDestination": {
       "value": "{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} से {destination} तक",
@@ -388,6 +392,14 @@
       "translatedAt": "2026-04-30T13:39:36Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "home.continueOnCurrentRoute": {
+      "value": "वर्तमान मार्ग पर जारी रखें",
+      "description": "Top row in the alternatives suggestions card when opened from active guidance. Tapping it dismisses the panel and resumes the current route.",
+      "sourceHash": "sha256:2a641b65544844c7",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-02T18:37:57Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "home.importedRoute": {
       "value": "आयातित मार्ग",
       "description": "Header above the route alternatives card when a single route was imported from a GPX file or share-extension link.",
@@ -434,11 +446,11 @@
       "status": "reviewed"
     },
     "home.platformHint.locationSafariIos": {
-      "value": "जब टैब छिपा हो, तो iPhone पर Safari न तो बैकग्राउंड GPS दे सकता है, न लॉक-स्क्रीन निर्देश और न ही ऑडियो संकेत। असली बैकग्राउंड रूटिंग के लिए नेटिव iOS ऐप इंस्टॉल करें।",
+      "value": "iPhone पर Safari पृष्ठभूमि GPS, लॉक-स्क्रीन मार्गदर्शन, या ऑडियो संकेत नहीं दे सकता जब टैब छिपा हो। वास्तविक पृष्ठभूमि रूटिंग के लिए, मूल iOS ऐप इंस्टॉल करें।",
       "description": "Hint shown under the 'Allow GPS in background' setting when the browser is Safari on iOS.",
-      "sourceHash": "sha256:d739522e29c7ef00",
+      "sourceHash": "sha256:8e6ea72c4709e426",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T11:59:24Z",
+      "translatedAt": "2026-05-02T18:37:57Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.recenter": {

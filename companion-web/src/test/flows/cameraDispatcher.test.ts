@@ -39,8 +39,8 @@ function makeFakeMap(viewportHeight = 800) {
     easeTo: (args: { center: [number, number]; zoom: number; bearing: number }) => {
       easeToCalls.push(args);
     },
-    fitBounds: (bounds: unknown) => {
-      fitBoundsCalls.push(bounds);
+    fitBounds: (bounds: unknown, opts?: unknown) => {
+      fitBoundsCalls.push({ bounds, opts });
     },
   };
 }
@@ -158,5 +158,22 @@ describe("dispatchCameraTarget (spec lines 84, 101 — regression for 'Start doe
     expect(camCenterY).toBeCloseTo(expectedY, 0);
     // And the rider must NOT land in the bottom-card region.
     expect(camCenterY).toBeLessThan(896 - 132);
+  });
+
+  it("fitBounds dispatch includes bearing: 0 so the overview always resets north-up (regression: rotated overview after heading-up ride)", () => {
+    // After a heading-up routing session the MapLibre map has a non-zero bearing
+    // (e.g. 45°). fitBounds without `bearing: 0` inherits the current bearing
+    // and renders the overview rotated instead of north-up. Every path that
+    // calls fitBounds — compass tap (northPreview/northLocked), stopGuidance,
+    // route-overview in planning — must reset bearing explicitly.
+    store.mapCameraStore.fitBounds([HELSINKI, HELSINKI_DEST], 120);
+    const map = makeFakeMap();
+    dispatchCameraTarget(map as unknown as import("maplibre-gl").Map, store, true);
+    expect(map._fitBoundsCalls).toHaveLength(1);
+    const entry = map._fitBoundsCalls[0] as { bounds: unknown; opts?: { bearing?: number } };
+    expect(
+      entry.opts?.bearing,
+      "fitBounds must pass bearing: 0 to MapLibre so the route overview shows north-up regardless of the current map heading",
+    ).toBe(0);
   });
 });

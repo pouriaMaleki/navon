@@ -32,7 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে ঘুরুন</string>
     <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে ঘুরুন</string>
     <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর U-টার্ন করুন</string>
-    <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর {first, select, left {বামে ঘুরুন} right {ডানে ঘুরুন} keepLeft {বামে থাকুন} keepRight {ডানে থাকুন} exitLeft {বাম দিকের এক্সিট নিন} exitRight {ডান দিকের এক্সিট নিন} uturn {U-টার্ন করুন} other {রুট অনুসরণ করুন}}, তারপর দ্রুত {second, select, left {বামে} right {ডানে} keepLeft {বামে থাকুন} keepRight {ডানে থাকুন} exitLeft {বাম এক্সিট} exitRight {ডান এক্সিট} uturn {U-টার্ন} other {সামনে}}</string>
+    <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {মিটার} feet {ফুট} other {মিটার}}, {first, select, left {বাম দিকে ঘুরুন} right {ডান দিকে ঘুরুন} keepLeft {বামে থাকুন} keepRight {ডানে থাকুন} exitLeft {বাম দিকের এক্সিট নিন} exitRight {ডান দিকের এক্সিট নিন} uturn {একটি U-টার্ন করুন} other {রুট অনুসরণ করুন}} তারপর দ্রুত {second, select, left {বামে} right {ডানে} keepLeft {বামে থাকুন} keepRight {ডানে থাকুন} exitLeft {বাম এক্সিট} exitRight {ডান এক্সিট} uturn {U-টার্ন} other {সোজা এগিয়ে যান}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} থেকে {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">গন্তব্য মুছুন</string>
     <string name="home_a11y_currentSpeed" formatted="false">বর্তমান গতি</string>
@@ -41,13 +41,14 @@
     <string name="home_a11y_locationBlocked" formatted="false">অবস্থান ব্লক করা আছে</string>
     <string name="home_a11y_recenterMap" formatted="false">মানচিত্র আবার কেন্দ্র করুন</string>
     <string name="home_a11y_settings" formatted="false">সেটিংস</string>
+    <string name="home_continueOnCurrentRoute" formatted="false">বর্তমান রুটে এগিয়ে যান</string>
     <string name="home_importedRoute" formatted="false">ইমপোর্ট করা রুট</string>
     <string name="home_iosLocationHint" formatted="false">iOS সেটিংস খুলুন → Privacy → Location, যাতে এই অ্যাপটি \"Always\" করা যায়।</string>
     <string name="home_linkFailed" formatted="false">এই লিংকটি খোলা যায়নি</string>
     <string name="home_noSuggestions" formatted="false">এখনও কোনো পরামর্শ নেই…</string>
     <string name="home_openSettings" formatted="false">সেটিংস</string>
     <string name="home_platformHint_locationDefault" formatted="false">আপনার অবস্থানের অনুমতি চাওয়া হবে। অনুমতি দিন যাতে অ্যাপটি ব্যাকগ্রাউন্ডে থাকলেও নির্দেশনা আপনার অবস্থান অনুসরণ করতে থাকে।</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">ট্যাব লুকানো থাকলে iPhone-এর Safari ব্যাকগ্রাউন্ড GPS, লক-স্ক্রিন নির্দেশনা বা অডিও সংকেত দিতে পারে না। প্রকৃত ব্যাকগ্রাউন্ড রাউটিংয়ের জন্য নেটিভ iOS অ্যাপটি ইনস্টল করুন।</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">iPhone-এ Safari ব্যাকগ্রাউন্ডে GPS পাঠাতে পারে না, লক-স্ক্রিনে দিকনির্দেশনা দেখাতে পারে না, বা ট্যাব লুকানো থাকলে অডিও সংকেত দিতে পারে না। সত্যিকারের ব্যাকগ্রাউন্ড রাউটিংয়ের জন্য নেটিভ iOS অ্যাপ ইনস্টল করুন।</string>
     <string name="home_recenter" formatted="false">আবার কেন্দ্র করুন</string>
     <string name="home_resolvingLink" formatted="false">লিংক সমাধান করা হচ্ছে…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">গন্তব্যে যাওয়ার জন্য URL অনুসরণ করা হচ্ছে। এতে কয়েক সেকেন্ড লাগতে পারে।</string>

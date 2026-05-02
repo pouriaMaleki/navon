@@ -41,6 +41,7 @@
     <string name="home_a11y_locationBlocked" formatted="false">Location is blocked</string>
     <string name="home_a11y_recenterMap" formatted="false">Recenter map</string>
     <string name="home_a11y_settings" formatted="false">Settings</string>
+    <string name="home_continueOnCurrentRoute" formatted="false">Continue on current route</string>
     <string name="home_importedRoute" formatted="false">Imported route</string>
     <string name="home_iosLocationHint" formatted="false">Open iOS Settings → Privacy → Location to switch this app to \"Always\".</string>
     <string name="home_linkFailed" formatted="false">Couldn\'t open that link</string>

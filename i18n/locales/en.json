@@ -246,6 +246,11 @@
       "value": "Settings",
       "description": "Accessibility label for the Settings cog button."
     },
+    "home.continueOnCurrentRoute": {
+      "value": "Continue on current route",
+      "description": "Top row in the alternatives suggestions card when opened from active guidance. Tapping it dismisses the panel and resumes the current route.",
+      "placeholders": {}
+    },
     "home.importedRoute": {
       "value": "Imported route",
       "description": "Header above the route alternatives card when a single route was imported from a GPX file or share-extension link.",

@@ -870,6 +870,7 @@ final class HomeViewModel: ObservableObject {
             }
             homeMode = .phoneGuidance
             compassMode = .autoFollow
+            isExploringAlternativesFromGuidance = false
             // Reset progress for the new route so spec line 102 (next-turn
             // tracking) starts at 0 and advances as the rider proceeds.
             progressDistanceM = 0
@@ -952,28 +953,36 @@ final class HomeViewModel: ObservableObject {
     /// Spec #11 ("split-way reroute"): from inside an active route the rider
     /// can ask for fresh alternatives from their current location to the
     /// same destination, without committing to one until they Start it.
+    /// True while the rider is browsing alternative routes from active guidance
+    /// (the "split icon" flow). `homeMode` stays `.phoneGuidance` so guidance
+    /// keeps running; the alternatives card is shown via this flag.
+    @Published var isExploringAlternativesFromGuidance: Bool = false
+
+    /// Spec #11 ("split-way reroute"): from inside an active route the rider
+    /// can ask for fresh alternatives from their current location to the same
+    /// destination, without committing until they tap Start on one.
     /// Mirrors web's `RootStore.exploreAlternateRoutes`.
     ///
     /// Behavior:
-    /// - Re-plans from `appModel.riderLocation` to the active destination
-    ///   using whatever sourceMode the active session was using.
-    /// - Drops out of phoneGuidance back to `.planning` so the standard
-    ///   alternatives card and route-overview camera take over.
-    /// - The original route's identifier survives on `activeSession`, so
-    ///   if the rider cancels (clearPreview / picks the matching
-    ///   alternative) routing resumes on it.
+    /// - Re-plans from `appModel.riderLocation` to the active destination.
+    /// - homeMode stays `.phoneGuidance` — guidance keeps running.
+    /// - Sets `isExploringAlternativesFromGuidance = true` so the UI shows
+    ///   the alternatives card with a "Continue on current route" row at top.
+    /// - Picking a new route and tapping Start swaps the active route via the
+    ///   normal `startSelectedRoute` path; cancelling via
+    ///   `cancelAlternativesExploration()` clears the flag without touching
+    ///   the active session.
     func exploreAlternateRoutes() {
         guard homeMode == .phoneGuidance,
               let destination = appModel.activeSession.destinationCoordinate
         else { return }
         let sourceToReuse = appModel.activeSession.sourceMode
         let titleHint = appModel.activeSession.destinationLabel
-        // Synchronous state changes so the view immediately reflects the
-        // mode swap (camera, alternatives card, etc.) and so unit tests
-        // can observe the transition without awaiting the network plan.
         northPreviewTask?.cancel()
         compassMode = .autoFollow
-        homeMode = .planning
+        // Set the flag immediately so the alternatives panel opens right away
+        // with a loading indicator while the plan fetches in the background.
+        isExploringAlternativesFromGuidance = true
         planningStatus = "Looking for alternatives…"
         appModel.routeRequest = RoutePlanRequest(
             origin: appModel.riderLocation,
@@ -989,6 +998,12 @@ final class HomeViewModel: ObservableObject {
             await appModel.planRoute(using: sourceToReuse, preferredTitle: titleHint)
             appModel.recordPlannedPreview(source: .plannedRoute, sourceLabel: sourceToReuse.displayName)
         }
+    }
+
+    /// Cancel browsing alternatives — dismiss the card, resume normal routing UI.
+    /// The original route is still active; nothing else changes.
+    func cancelAlternativesExploration() {
+        isExploringAlternativesFromGuidance = false
     }
 
     /// The MKCoordinateRegion to fit when showing a route overview. Pure

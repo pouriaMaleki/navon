@@ -266,13 +266,13 @@ export class RootStore {
       const preview = await provider.replanRoute(session, rider, controller.signal);
       if (controller.signal.aborted) return;
       runInAction(() => {
-        // Drop guidance state so the home view renders as planning with
-        // the alternatives card. The active route's identifier survives
-        // on the session object so the user can re-Start the same path
-        // by picking the matching alternative.
-        this.guidanceStore.homeMode = "planning";
+        // Load the alternatives into the planning preview so the suggestions
+        // card can display them, then enter the "browsing from guidance" state
+        // — homeMode stays "phoneGuidance" so guidance keeps running. The
+        // camera fits the remaining route (north-up) so the rider can see
+        // both the current path and the alternatives at a glance.
         this.planningStore.setPreview(preview);
-        // North-up overview camera, mirroring pre-Start planning.
+        this.guidanceStore.enterAlternativesExploration();
         const selected = preview.alternatives[0];
         if (selected) this.mapCameraStore.fitBounds(selected.normalizedPackage.geometry, 120);
       });

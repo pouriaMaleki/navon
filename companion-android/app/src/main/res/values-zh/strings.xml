@@ -32,7 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，左转</string>
     <string name="cue_turn50m_right" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，右转</string>
     <string name="cue_turn50m_uturn" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，掉头</string>
-    <string name="cue_turn50mCombined" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，{first, select, left {左转} right {右转} keepLeft {靠左行驶} keepRight {靠右行驶} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} other {沿路线行驶}}，紧接着{second, select, left {左转} right {右转} keepLeft {靠左} keepRight {靠右} exitLeft {左侧出口} exitRight {右侧出口} uturn {掉头} other {直行}}</string>
+    <string name="cue_turn50mCombined" formatted="false">在 {distance, number} {distanceUnit, select, meters {米} feet {英尺} other {米}} 内，{first, select, left {向左转} right {向右转} keepLeft {靠左行驶} keepRight {靠右行驶} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} other {沿路线前进}} 然后迅速 {second, select, left {向左} right {向右} keepLeft {靠左行驶} keepRight {靠右行驶} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} other {继续前行}}</string>
     <string name="guidance_distanceToDestination" formatted="false">到 {destination} 还需 {distance, number} {distanceUnit, select, km {km} mi {mi} other {km}}</string>
     <string name="home_a11y_clearDestination" formatted="false">清除目的地</string>
     <string name="home_a11y_currentSpeed" formatted="false">当前速度</string>
@@ -41,13 +41,14 @@
     <string name="home_a11y_locationBlocked" formatted="false">位置已被阻止</string>
     <string name="home_a11y_recenterMap" formatted="false">重新定位地图</string>
     <string name="home_a11y_settings" formatted="false">设置</string>
+    <string name="home_continueOnCurrentRoute" formatted="false">继续沿当前路线</string>
     <string name="home_importedRoute" formatted="false">已导入的路线</string>
     <string name="home_iosLocationHint" formatted="false">打开 iOS 设置 → 隐私 → 位置，将此应用切换为“始终”。</string>
     <string name="home_linkFailed" formatted="false">无法打开该链接</string>
     <string name="home_noSuggestions" formatted="false">暂无建议…</string>
     <string name="home_openSettings" formatted="false">设置</string>
     <string name="home_platformHint_locationDefault" formatted="false">系统会请求定位权限。允许它，这样在应用处于后台时，导航仍会持续跟踪你的当前位置。</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">标签页隐藏时，iPhone 上的 Safari 无法提供后台 GPS、锁屏导航提示或语音提醒。如需真正的后台路线导航，请安装原生 iOS 应用。</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">iPhone 上的 Safari 无法在后台提供 GPS、锁屏导航或音频提示；当标签页被隐藏时尤其如此。要实现真正的后台路线导航，请安装原生 iOS 应用。</string>
     <string name="home_recenter" formatted="false">重新居中</string>
     <string name="home_resolvingLink" formatted="false">正在解析链接…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">正在跟随该链接到目的地。可能需要几秒钟。</string>

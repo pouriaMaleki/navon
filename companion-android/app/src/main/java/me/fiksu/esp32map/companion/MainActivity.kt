@@ -437,7 +437,13 @@ private fun CompanionHomeScreen(
                         RouteSuggestionsCard(appState, homeState)
                     }
                 }
-                HomeMode.PHONE_GUIDANCE -> ActiveGuidanceCard(homeState)
+                HomeMode.PHONE_GUIDANCE -> {
+                    if (homeState.isExploringAlternativesFromGuidance) {
+                        RouteSuggestionsCard(appState, homeState)
+                    } else {
+                        ActiveGuidanceCard(homeState)
+                    }
+                }
                 HomeMode.SENDING_TO_DEVICE, HomeMode.DEVICE_OVERVIEW -> DeviceOverviewCard(appState, homeState)
             }
             SpeedBadge(appState = appState, homeState = homeState)
@@ -764,7 +770,23 @@ private fun RouteSuggestionsCard(appState: CompanionAppState, homeState: HomeSta
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(homeState.routeSuggestionsTitle, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-            Button(onClick = { homeState.clearPreview() }) { Text("Close") }
+            Button(onClick = {
+                if (homeState.isExploringAlternativesFromGuidance) homeState.cancelAlternativesExploration()
+                else homeState.clearPreview()
+            }) { Text("Close") }
+        }
+        if (homeState.isExploringAlternativesFromGuidance) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { homeState.cancelAlternativesExploration() }
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), shape = MaterialTheme.shapes.medium)
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Continue on current route", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                Text("✓", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+            }
         }
         appState.preview.planningNotice?.takeIf { it.isNotBlank() }?.let {
             Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

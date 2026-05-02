@@ -32,7 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, vire à esquerda</string>
     <string name="cue_turn50m_right" formatted="false">Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, vire à direita</string>
     <string name="cue_turn50m_uturn" formatted="false">Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, faça uma conversão em U</string>
-    <string name="cue_turn50mCombined" formatted="false">Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {vire à esquerda} right {vire à direita} keepLeft {mantenha-se à esquerda} keepRight {mantenha-se à direita} exitLeft {pegue a saída à esquerda} exitRight {pegue a saída à direita} uturn {faça uma conversão em U} other {siga a rota}} e logo em seguida {second, select, left {à esquerda} right {à direita} keepLeft {mantenha-se à esquerda} keepRight {mantenha-se à direita} exitLeft {saída à esquerda} exitRight {saída à direita} uturn {conversão em U} other {em frente}}</string>
+    <string name="cue_turn50mCombined" formatted="false">Em {distance, number} {distanceUnit, select, meters {metros} feet {pés} other {metros}}, {first, select, left {vire à esquerda} right {vire à direita} keepLeft {mantenha-se à esquerda} keepRight {mantenha-se à direita} exitLeft {pegue a saída à esquerda} exitRight {pegue a saída à direita} uturn {faça uma conversão em U} other {siga a rota}} depois rapidamente {second, select, left {à esquerda} right {à direita} keepLeft {mantenha-se à esquerda} keepRight {mantenha-se à direita} exitLeft {saída à esquerda} exitRight {saída à direita} uturn {U-turn} other {em frente}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} até {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Limpar destino</string>
     <string name="home_a11y_currentSpeed" formatted="false">Velocidade atual</string>
@@ -41,13 +41,14 @@
     <string name="home_a11y_locationBlocked" formatted="false">Localização bloqueada</string>
     <string name="home_a11y_recenterMap" formatted="false">Centralizar mapa</string>
     <string name="home_a11y_settings" formatted="false">Configurações</string>
+    <string name="home_continueOnCurrentRoute" formatted="false">Continue na rota atual</string>
     <string name="home_importedRoute" formatted="false">Rota importada</string>
     <string name="home_iosLocationHint" formatted="false">Abra as Configurações do iOS → Privacidade → Localização para mudar este app para \"Sempre\".</string>
     <string name="home_linkFailed" formatted="false">Não foi possível abrir este link</string>
     <string name="home_noSuggestions" formatted="false">Sem sugestões ainda…</string>
     <string name="home_openSettings" formatted="false">Configurações</string>
     <string name="home_platformHint_locationDefault" formatted="false">Será pedida permissão de localização. Permita para que as orientações continuem acompanhando sua posição enquanto o app estiver em segundo plano.</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">O Safari no iPhone não consegue fornecer GPS em segundo plano, orientações na tela de bloqueio nem avisos de áudio enquanto a aba estiver oculta. Para um roteamento real em segundo plano, instale o app nativo de iOS.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">O Safari no iPhone não consegue fornecer GPS em segundo plano, orientações na tela de bloqueio ou avisos de áudio enquanto a aba estiver oculta. Para roteamento real em segundo plano, instale o app nativo do iOS.</string>
     <string name="home_recenter" formatted="false">Centralizar novamente</string>
     <string name="home_resolvingLink" formatted="false">Resolvendo link…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Seguindo o link para um destino. Isso pode levar alguns segundos.</string>

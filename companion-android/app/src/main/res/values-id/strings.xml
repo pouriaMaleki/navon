@@ -32,7 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kiri</string>
     <string name="cue_turn50m_right" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kanan</string>
     <string name="cue_turn50m_uturn" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, putar balik (U-turn)</string>
-    <string name="cue_turn50mCombined" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {belok kiri} right {belok kanan} keepLeft {tetap di kiri} keepRight {tetap di kanan} exitLeft {ambil pintu keluar kiri} exitRight {ambil pintu keluar kanan} uturn {putar balik (U-turn)} other {ikuti rute}} lalu segera {second, select, left {kiri} right {kanan} keepLeft {tetap di kiri} keepRight {tetap di kanan} exitLeft {pintu keluar kiri} exitRight {pintu keluar kanan} uturn {putar balik} other {lurus}}</string>
+    <string name="cue_turn50mCombined" formatted="false">Di {distance, number} {distanceUnit, select, meters {meter} feet {kaki} other {meter}}, {first, select, left {belok kiri} right {belok kanan} keepLeft {tetap di kiri} keepRight {tetap di kanan} exitLeft {ambil pintu keluar kiri} exitRight {ambil pintu keluar kanan} uturn {putar balik} other {ikuti rute}} lalu cepat {second, select, left {kiri} right {kanan} keepLeft {tetap di kiri} keepRight {tetap di kanan} exitLeft {pintu keluar kiri} exitRight {pintu keluar kanan} uturn {putar balik} other {terus}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} menuju {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Hapus tujuan</string>
     <string name="home_a11y_currentSpeed" formatted="false">Kecepatan saat ini</string>
@@ -41,13 +41,14 @@
     <string name="home_a11y_locationBlocked" formatted="false">Lokasi diblokir</string>
     <string name="home_a11y_recenterMap" formatted="false">Pusatkan ulang peta</string>
     <string name="home_a11y_settings" formatted="false">Pengaturan</string>
+    <string name="home_continueOnCurrentRoute" formatted="false">Lanjutkan di rute saat ini</string>
     <string name="home_importedRoute" formatted="false">Rute yang diimpor</string>
     <string name="home_iosLocationHint" formatted="false">Buka Pengaturan iOS → Privasi → Lokasi untuk mengubah aplikasi ini menjadi \"Selalu\".</string>
     <string name="home_linkFailed" formatted="false">Tidak dapat membuka tautan itu</string>
     <string name="home_noSuggestions" formatted="false">Belum ada saran…</string>
     <string name="home_openSettings" formatted="false">Pengaturan</string>
     <string name="home_platformHint_locationDefault" formatted="false">Anda akan diminta memberikan izin lokasi. Izinkan agar panduan tetap melacak posisi Anda saat aplikasi berada di latar belakang.</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">Safari di iPhone tidak dapat menyediakan GPS latar belakang, panduan layar terkunci, atau isyarat audio saat tab disembunyikan. Untuk navigasi latar belakang yang sesungguhnya, pasang aplikasi iOS native.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">Safari di iPhone tidak dapat mengirim GPS latar belakang, panduan di layar kunci, atau isyarat audio saat tab disembunyikan. Untuk penelusuran rute latar belakang yang sebenarnya, instal aplikasi iOS asli.</string>
     <string name="home_recenter" formatted="false">Pusatkan ulang</string>
     <string name="home_resolvingLink" formatted="false">Menyelesaikan tautan…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Mengikuti URL menuju tujuan. Ini bisa memakan waktu beberapa detik.</string>

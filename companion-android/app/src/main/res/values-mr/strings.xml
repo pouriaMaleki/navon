@@ -32,7 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, डावीकडे वळा</string>
     <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, उजवीकडे वळा</string>
     <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, U-turn करा</string>
-    <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, {first, select, left {डावीकडे वळा} right {उजवीकडे वळा} keepLeft {डावीकडे ठेवा} keepRight {उजवीकडे ठेवा} exitLeft {डाव्या एक्झिटकडे जा} exitRight {उजव्या एक्झिटकडे जा} uturn {U-turn करा} other {मार्गाचे अनुसरण करा}}, नंतर लगेच {second, select, left {डावीकडे} right {उजवीकडे} keepLeft {डावीकडे ठेवा} keepRight {उजवीकडे ठेवा} exitLeft {डावी एक्झिट} exitRight {उजवी एक्झिट} uturn {U-turn} other {सरळ}}</string>
+    <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {मीटर} feet {फूट} other {मीटर}}, {first, select, left {डावीकडे वळा} right {उजवीकडे वळा} keepLeft {डावीकडे ठेवा} keepRight {उजवीकडे ठेवा} exitLeft {डाव्या एक्झिट घ्या} exitRight {उजव्या एक्झिट घ्या} uturn {U-turn करा} other {मार्गाचे अनुसरण करा}} मग लगेच {second, select, left {डावीकडे} right {उजवीकडे} keepLeft {डावीकडे ठेवा} keepRight {उजवीकडे ठेवा} exitLeft {डावा एक्झिट} exitRight {उजवा एक्झिट} uturn {U-turn} other {सरळ पुढे}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} ते {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">गंतव्य साफ करा</string>
     <string name="home_a11y_currentSpeed" formatted="false">सध्याचा वेग</string>
@@ -41,13 +41,14 @@
     <string name="home_a11y_locationBlocked" formatted="false">स्थान अवरोधित आहे</string>
     <string name="home_a11y_recenterMap" formatted="false">नकाशा पुन्हा मध्यभागी आणा</string>
     <string name="home_a11y_settings" formatted="false">सेटिंग्ज</string>
+    <string name="home_continueOnCurrentRoute" formatted="false">सध्याच्या मार्गावर पुढे जा</string>
     <string name="home_importedRoute" formatted="false">आयात केलेला मार्ग</string>
     <string name="home_iosLocationHint" formatted="false">iOS सेटिंग्ज उघडा → गोपनीयता → स्थान, आणि हा अॅप “Always” (नेहमी) वर स्विच करा.</string>
     <string name="home_linkFailed" formatted="false">हा दुवा उघडता आला नाही</string>
     <string name="home_noSuggestions" formatted="false">अजून सूचना नाहीत…</string>
     <string name="home_openSettings" formatted="false">सेटिंग्ज</string>
     <string name="home_platformHint_locationDefault" formatted="false">तुमच्याकडून स्थानासाठी परवानगी मागितली जाईल. मार्गदर्शन तुमचे स्थान ॲप पार्श्वभूमीत असतानाही ट्रॅक करत राहण्यासाठी ते परवानगी द्या.</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">टॅब लपलेला असताना iPhone वरील Safari पार्श्वभूमी GPS, लॉक-स्क्रीन मार्गदर्शन किंवा ऑडिओ सूचना देऊ शकत नाही. खऱ्या पार्श्वभूमी रूटिंगसाठी नेटिव्ह iOS अ‍ॅप इन्स्टॉल करा.</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">iPhone वरील Safari पार्श्वभूमीतील GPS देऊ शकत नाही, लॉक-स्क्रीन मार्गदर्शन किंवा ऑडिओ संकेत देऊ शकत नाही, जेव्हा टॅब लपलेला असतो. खऱ्या पार्श्वभूमी रूटिंगसाठी, मूळ iOS अॅप इन्स्टॉल करा.</string>
     <string name="home_recenter" formatted="false">पुन्हा मध्यावर आणा</string>
     <string name="home_resolvingLink" formatted="false">दुवा शोधत आहे…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">गंतव्याकडे दुवा अनुसरत आहे. यास काही सेकंद लागू शकतात.</string>

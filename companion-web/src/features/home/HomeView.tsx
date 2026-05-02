@@ -273,6 +273,13 @@ const BottomOverlay = observer(({ store }: { store: RootStore }) => {
   const guidance = store.guidanceStore;
   const status = planning.planningStatus ?? planning.importActivityStatus;
   if (guidance.homeMode === "phoneGuidance") {
+    if (guidance.isExploringAlternativesFromGuidance) {
+      return (
+        <div className="overlay-bottom">
+          <RouteSuggestionsCard store={store} />
+        </div>
+      );
+    }
     return (
       <div className="overlay-bottom">
         <ActiveGuidanceCard store={store} />

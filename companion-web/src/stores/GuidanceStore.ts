@@ -106,6 +106,13 @@ export class GuidanceStore {
   homeMode: HomeMode = "planning";
   compassMode: HomeCompassMode = "autoFollow";
   activeSession: ActiveRouteSession = EMPTY_ACTIVE_SESSION;
+  /**
+   * True while the user is browsing alternative routes launched from active
+   * guidance (the "split icon" flow). Guidance keeps running — homeMode stays
+   * "phoneGuidance" — but the route-suggestions card is shown so the rider can
+   * pick a different route or dismiss back to the original.
+   */
+  isExploringAlternativesFromGuidance = false;
 
   // Route progress state (ported from runtime-core ActiveRoute)
   progressDistanceM = 0;
@@ -403,6 +410,7 @@ export class GuidanceStore {
     this.persistence.saveLastSession(this.activeSession);
     this.homeMode = "phoneGuidance";
     this.compassMode = "autoFollow";
+    this.isExploringAlternativesFromGuidance = false;
     this.resetProgress(package_);
     // Spec: on Start, the camera snaps onto the rider with routing zoom and
     // bearing-up. Emit a follow-rider recenter so RootStore can react. iOS
@@ -411,9 +419,30 @@ export class GuidanceStore {
     this.emitRecenterRequested();
   }
 
+  /**
+   * Enter the "browse alternatives from guidance" state. Called by RootStore
+   * once the async re-plan completes. homeMode stays "phoneGuidance" so
+   * guidance keeps running; the route-suggestions card is shown via the flag.
+   * No-op outside phoneGuidance so a stale async result can't flip the flag
+   * if the rider stopped guidance while the re-plan was in flight.
+   */
+  enterAlternativesExploration(): void {
+    if (this.homeMode !== "phoneGuidance") return;
+    this.isExploringAlternativesFromGuidance = true;
+  }
+
+  /**
+   * Cancel browsing — dismiss the alternatives card, resume normal routing UI.
+   * The original route is still active; nothing else changes.
+   */
+  cancelAlternativesExploration(): void {
+    this.isExploringAlternativesFromGuidance = false;
+  }
+
   stopGuidance(): void {
     this.homeMode = "planning";
     this.compassMode = "autoFollow";
+    this.isExploringAlternativesFromGuidance = false;
     this.activeSession = {
       ...this.activeSession,
       routeIdentifier: undefined,

@@ -12,6 +12,8 @@ type Props = { store: RootStore };
 export const RouteSuggestionsCard = observer(({ store }: Props) => {
   const t = useT(store);
   const planning = store.planningStore;
+  const guidance = store.guidanceStore;
+  const exploring = guidance.isExploringAlternativesFromGuidance;
   const limit = store.settingsStore.plannerPreferences.suggestionMode === "bestOnly" ? 1 : 3;
   const alternatives = planning.preview.alternatives.slice(0, limit);
   const selectedId = selectedAlternative(planning.preview)?.id;
@@ -25,12 +27,26 @@ export const RouteSuggestionsCard = observer(({ store }: Props) => {
         <div className="list-row__title">{t("home.routeOptions")}</div>
         <button
           type="button"
-          onClick={() => planning.clearPreview()}
+          onClick={() =>
+            exploring ? guidance.cancelAlternativesExploration() : planning.clearPreview()
+          }
           style={{ color: "var(--fg-soft)", fontWeight: 600 }}
         >
           {t("common.close")}
         </button>
       </div>
+      {exploring ? (
+        <button
+          type="button"
+          className="alternative alternative--selected"
+          onClick={() => guidance.cancelAlternativesExploration()}
+        >
+          <div style={{ textAlign: "start" }}>
+            <div className="list-row__title">{t("home.continueOnCurrentRoute")}</div>
+          </div>
+          <span aria-hidden>✓</span>
+        </button>
+      ) : null}
       {planning.preview.planningNotice ? (
         <div className="notice">{planning.preview.planningNotice}</div>
       ) : null}

@@ -32,7 +32,7 @@
     <string name="cue_turn50m_left" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں مڑیں</string>
     <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں مڑیں</string>
     <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں یو ٹرن کریں</string>
-    <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں {first, select, left {بائیں مڑیں} right {دائیں مڑیں} keepLeft {بائیں رہیں} keepRight {دائیں رہیں} exitLeft {بائیں ایگزٹ لیں} exitRight {دائیں ایگزٹ لیں} uturn {یو ٹرن کریں} other {راستے پر چلیں}}، پھر فوراً {second, select, left {بائیں} right {دائیں} keepLeft {بائیں رہیں} keepRight {دائیں رہیں} exitLeft {بائیں ایگزٹ} exitRight {دائیں ایگزٹ} uturn {یو ٹرن} other {سیدھا}}</string>
+    <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {میٹر} feet {فٹ} other {میٹر}}, {first, select, left {بائیں مڑیں} right {دائیں مڑیں} keepLeft {بائیں رہیں} keepRight {دائیں رہیں} exitLeft {بائیں ایگزٹ لیں} exitRight {دائیں ایگزٹ لیں} uturn {یو ٹرن کریں} other {راستہ فالو کریں}} پھر جلدی {second, select, left {بائیں} right {دائیں} keepLeft {بائیں رہیں} keepRight {دائیں رہیں} exitLeft {بائیں ایگزٹ} exitRight {دائیں ایگزٹ} uturn {یو ٹرن} other {آگے}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} میں {destination} تک</string>
     <string name="home_a11y_clearDestination" formatted="false">مقام صاف کریں</string>
     <string name="home_a11y_currentSpeed" formatted="false">موجودہ رفتار</string>
@@ -41,13 +41,14 @@
     <string name="home_a11y_locationBlocked" formatted="false">مقام بند ہے</string>
     <string name="home_a11y_recenterMap" formatted="false">نقشہ دوبارہ مرکز کریں</string>
     <string name="home_a11y_settings" formatted="false">ترتیبات</string>
+    <string name="home_continueOnCurrentRoute" formatted="false">موجودہ راستے پر جاری رکھیں</string>
     <string name="home_importedRoute" formatted="false">درآمد شدہ راستہ</string>
     <string name="home_iosLocationHint" formatted="false">iOS سیٹنگز کھولیں → پرائیویسی → لوکیشن تاکہ اس ایپ کو \"ہمیشہ\" پر سوئچ کیا جا سکے۔</string>
     <string name="home_linkFailed" formatted="false">اس لنک کو نہیں کھولا جا سکا</string>
     <string name="home_noSuggestions" formatted="false">ابھی تک کوئی تجاویز نہیں…</string>
     <string name="home_openSettings" formatted="false">ترتیبات</string>
     <string name="home_platformHint_locationDefault" formatted="false">آپ سے مقام کی اجازت مانگی جائے گی۔ اسے اجازت دیں تاکہ ایپ پسِ منظر میں ہونے پر بھی رہنمائی آپ کی موجودہ پوزیشن کو ٹریک کرتی رہے۔</string>
-    <string name="home_platformHint_locationSafariIos" formatted="false">جب ٹیب چھپا ہو تو iPhone پر Safari نہ پسِ منظر GPS فراہم کر سکتا ہے، نہ لاک اسکرین رہنمائی اور نہ آڈیو اشارے۔ حقیقی پسِ منظر روٹنگ کے لیے نیٹیو iOS ایپ انسٹال کریں۔</string>
+    <string name="home_platformHint_locationSafariIos" formatted="false">آئی فون پر Safari پس منظر میں GPS، لاک اسکرین رہنمائی، یا آڈیو اشارے اس وقت نہیں دے سکتا جب ٹیب چھپا ہو۔ حقیقی پس منظر میں روٹنگ کے لیے، مقامی iOS ایپ انسٹال کریں۔</string>
     <string name="home_recenter" formatted="false">دوبارہ مرکز کریں</string>
     <string name="home_resolvingLink" formatted="false">لنک حل ہو رہا ہے…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">منزل تک URL فالو کیا جا رہا ہے۔ اس میں چند سیکنڈ لگ سکتے ہیں۔</string>

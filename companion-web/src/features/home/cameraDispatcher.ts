@@ -66,5 +66,5 @@ export function dispatchCameraTarget(map: MaplibreMap, store: RootStore, mapRead
     [minLon, minLat],
     [maxLon, maxLat],
   ];
-  map.fitBounds(bounds, { padding: target.padding ?? 80, duration: 400, maxZoom: 16 });
+  map.fitBounds(bounds, { bearing: 0, padding: target.padding ?? 80, duration: 400, maxZoom: 16 });
 }
