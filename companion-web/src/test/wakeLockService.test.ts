@@ -19,7 +19,8 @@ function makeFakeSentinel(): FakeSentinel {
       sentinel.released = true;
     }),
     addEventListener: vi.fn((type, listener) => {
-      (listeners[type] ??= new Set()).add(listener);
+      if (!listeners[type]) listeners[type] = new Set();
+      listeners[type].add(listener);
     }),
     removeEventListener: vi.fn((type, listener) => {
       listeners[type]?.delete(listener);
@@ -162,7 +163,7 @@ describe("WakeLockService", () => {
     await flush();
     const sentinel = handle.last;
     sentinel.dispatchRelease();
-    expect((sentinel.addEventListener as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(
+    expect(sentinel.addEventListener as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
       "release",
       expect.any(Function),
     );
@@ -192,7 +193,7 @@ describe("WakeLockService", () => {
     service.update({ keepScreenOn: true, isRouting: true });
     await flush();
     expect(errorSpy).toHaveBeenCalled();
-    const firstArgs = errorSpy.mock.calls[0]!;
+    const firstArgs = errorSpy.mock.calls[0] ?? [];
     const joined = firstArgs.map(String).join(" ");
     expect(joined).toMatch(/NotAllowedError/);
     expect(joined).toMatch(/Document is not active/);

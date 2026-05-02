@@ -5,8 +5,8 @@
 
 import { describe, expect, it } from "vitest";
 import fixture from "../../../i18n/parity/cue-en-snapshots.json";
-import { cueMessage, type CueEvent } from "../integrations/cues/CueEngine.js";
 import { tIn } from "../i18n/index.js";
+import { type CueEvent, cueMessage } from "../integrations/cues/CueEngine.js";
 
 type Row = {
   event: CueEvent;

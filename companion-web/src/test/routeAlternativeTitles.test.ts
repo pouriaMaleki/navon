@@ -9,7 +9,10 @@ import { friendlyAlternativeLabel } from "../stores/PlanningStore.js";
 const start: CoordinatePoint = { latitude: 60.17, longitude: 24.94 };
 const end: CoordinatePoint = { latitude: 60.18, longitude: 24.95 };
 
-function alt(providerID: "osm" | "hsl" | "gpx", sourceReference: string | undefined): RouteAlternative {
+function alt(
+  providerID: "osm" | "hsl" | "gpx",
+  sourceReference: string | undefined,
+): RouteAlternative {
   return {
     id: `id-${sourceReference ?? "anon"}`,
     title: "x",
@@ -22,7 +25,11 @@ function alt(providerID: "osm" | "hsl" | "gpx", sourceReference: string | undefi
       revision: 1,
       geometry: [start, end],
       maneuvers: [],
-      summary: { totalDistanceMeters: 1000, estimatedDurationSeconds: 300, destinationLabel: "Park" },
+      summary: {
+        totalDistanceMeters: 1000,
+        estimatedDurationSeconds: 300,
+        destinationLabel: "Park",
+      },
       provenance: { providerID, sourceReference, generatedAtUnixMs: 0 },
     },
   };

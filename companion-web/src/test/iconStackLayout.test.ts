@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  type CoordinatePoint,
+  CURRENT_ROUTE_PACKAGE_VERSION,
+  type NormalizedRoutePackage,
+} from "../domain/models.js";
 import { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
 import { GuidanceStore } from "../stores/GuidanceStore.js";
 import { LocationStore } from "../stores/LocationStore.js";
 import { PlanningStore, type ProvidersMap } from "../stores/PlanningStore.js";
 import { SettingsStore } from "../stores/SettingsStore.js";
-import {
-  CURRENT_ROUTE_PACKAGE_VERSION,
-  type CoordinatePoint,
-  type NormalizedRoutePackage,
-} from "../domain/models.js";
 import { FakeLocationService, FakePlaceSearch, FakeRoutingAdapter } from "./fakes/index.js";
 
 /**
@@ -55,7 +55,13 @@ function tinyRoute(): NormalizedRoutePackage {
     revision: 1,
     geometry: [HELSINKI, end],
     maneuvers: [
-      { id: "depart", maneuverType: "depart", location: HELSINKI, distanceFromStartMeters: 0, distanceToNextMeters: 400 },
+      {
+        id: "depart",
+        maneuverType: "depart",
+        location: HELSINKI,
+        distanceFromStartMeters: 0,
+        distanceToNextMeters: 400,
+      },
       { id: "arrive", maneuverType: "arrive", location: end, distanceFromStartMeters: 400 },
     ],
     summary: { totalDistanceMeters: 400, estimatedDurationSeconds: 120, destinationLabel: "Park" },

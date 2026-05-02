@@ -203,8 +203,23 @@ export type SpeedUnit = "kph" | "mph";
  *  `i18n/catalog.config.json:locales`. */
 export type AppLanguagePref =
   | "system"
-  | "ar" | "bn" | "de" | "en" | "es" | "fa" | "fi" | "fr"
-  | "hi" | "id" | "ja" | "mr" | "pcm" | "pt" | "ru" | "ur" | "zh";
+  | "ar"
+  | "bn"
+  | "de"
+  | "en"
+  | "es"
+  | "fa"
+  | "fi"
+  | "fr"
+  | "hi"
+  | "id"
+  | "ja"
+  | "mr"
+  | "pcm"
+  | "pt"
+  | "ru"
+  | "ur"
+  | "zh";
 export type DistanceUnitPref = "system" | "metric" | "imperial";
 
 export type CompanionSettings = {

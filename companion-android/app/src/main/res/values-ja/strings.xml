@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">ESP32MapCompanion</string>
     <string name="common_cancel" formatted="false">キャンセル</string>
     <string name="common_cancel_role" formatted="false">キャンセル</string>
     <string name="common_close" formatted="false">閉じる</string>

@@ -23,7 +23,9 @@ function installSpeechSynthesis(voices: VoiceLike[]) {
     value: synth,
   });
   return {
-    fireVoicesChanged: () => listeners.forEach((fn) => fn()),
+    fireVoicesChanged: () => {
+      for (const fn of listeners) fn();
+    },
     setVoices: (next: VoiceLike[]) => {
       voices.splice(0, voices.length, ...next);
     },
@@ -44,9 +46,7 @@ describe("hasVoiceForLocale", () => {
 
   it("returns true while the voices list is still empty (initial enumeration)", async () => {
     installSpeechSynthesis([]);
-    const { hasVoiceForLocale } = await import(
-      "../integrations/audio/voiceAvailability.js"
-    );
+    const { hasVoiceForLocale } = await import("../integrations/audio/voiceAvailability.js");
     // Empty list means "still loading" — caller should not false-alarm.
     expect(hasVoiceForLocale("fa")).toBe(true);
     expect(hasVoiceForLocale("en")).toBe(true);
@@ -54,9 +54,7 @@ describe("hasVoiceForLocale", () => {
 
   it("returns true when a voice exists with the same primary tag", async () => {
     installSpeechSynthesis([{ lang: "fa-IR" }, { lang: "en-US" }]);
-    const { hasVoiceForLocale } = await import(
-      "../integrations/audio/voiceAvailability.js"
-    );
+    const { hasVoiceForLocale } = await import("../integrations/audio/voiceAvailability.js");
     expect(hasVoiceForLocale("fa")).toBe(true);
     expect(hasVoiceForLocale("en")).toBe(true);
     // Country-code shouldn't matter — primary tag match is enough.
@@ -65,9 +63,7 @@ describe("hasVoiceForLocale", () => {
 
   it("returns false when no voice matches the primary tag", async () => {
     installSpeechSynthesis([{ lang: "en-US" }, { lang: "fi-FI" }]);
-    const { hasVoiceForLocale } = await import(
-      "../integrations/audio/voiceAvailability.js"
-    );
+    const { hasVoiceForLocale } = await import("../integrations/audio/voiceAvailability.js");
     expect(hasVoiceForLocale("fa")).toBe(false);
     expect(hasVoiceForLocale("ar")).toBe(false);
   });
@@ -75,9 +71,7 @@ describe("hasVoiceForLocale", () => {
   it("re-evaluates after `voiceschanged` fires", async () => {
     const seed: VoiceLike[] = [];
     const handle = installSpeechSynthesis(seed);
-    const { hasVoiceForLocale } = await import(
-      "../integrations/audio/voiceAvailability.js"
-    );
+    const { hasVoiceForLocale } = await import("../integrations/audio/voiceAvailability.js");
     // Empty list → reports true (loading).
     expect(hasVoiceForLocale("ja")).toBe(true);
     // OS finished enumerating without Japanese.

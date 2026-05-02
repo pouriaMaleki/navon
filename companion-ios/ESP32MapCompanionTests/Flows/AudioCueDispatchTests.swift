@@ -74,6 +74,9 @@ final class AudioCueDispatchTests: XCTestCase {
         // assert cues fire on a synchronous tick — they don't drive the
         // scene phase. Disable the gate so the cue path is exercised.
         s.audioCuesOnlyInBackground = false
+        // Pin to metric so distance assertions are locale-independent on
+        // CI runners that default to a US/imperial system locale.
+        s.distanceUnit = .metric
         app.settings = s
         return app
     }

@@ -8,6 +8,7 @@
 // Components subscribe through MobX-aware helpers so locale changes
 // re-render the UI.
 
+import { formatMessage, type MessageValues } from "./messageFormat.js";
 import arMessages from "./messages/ar.json";
 import bnMessages from "./messages/bn.json";
 import deMessages from "./messages/de.json";
@@ -25,25 +26,66 @@ import ptMessages from "./messages/pt.json";
 import ruMessages from "./messages/ru.json";
 import urMessages from "./messages/ur.json";
 import zhMessages from "./messages/zh.json";
-import { formatMessage, type MessageValues } from "./messageFormat.js";
 
 export type AppLanguage =
   | "system"
-  | "ar" | "bn" | "de" | "en" | "es" | "fa" | "fi" | "fr"
-  | "hi" | "id" | "ja" | "mr" | "pcm" | "pt" | "ru" | "ur" | "zh";
+  | "ar"
+  | "bn"
+  | "de"
+  | "en"
+  | "es"
+  | "fa"
+  | "fi"
+  | "fr"
+  | "hi"
+  | "id"
+  | "ja"
+  | "mr"
+  | "pcm"
+  | "pt"
+  | "ru"
+  | "ur"
+  | "zh";
 export type DistanceUnit = "system" | "metric" | "imperial";
 
 export const SUPPORTED_LOCALES = [
-  "ar", "bn", "de", "en", "es", "fa", "fi", "fr",
-  "hi", "id", "ja", "mr", "pcm", "pt", "ru", "ur", "zh",
+  "ar",
+  "bn",
+  "de",
+  "en",
+  "es",
+  "fa",
+  "fi",
+  "fr",
+  "hi",
+  "id",
+  "ja",
+  "mr",
+  "pcm",
+  "pt",
+  "ru",
+  "ur",
+  "zh",
 ] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 
 const CATALOGS: Record<Locale, Record<string, string>> = {
-  ar: arMessages, bn: bnMessages, de: deMessages, en: enMessages,
-  es: esMessages, fa: faMessages, fi: fiMessages, fr: frMessages,
-  hi: hiMessages, id: idMessages, ja: jaMessages, mr: mrMessages,
-  pcm: pcmMessages, pt: ptMessages, ru: ruMessages, ur: urMessages,
+  ar: arMessages,
+  bn: bnMessages,
+  de: deMessages,
+  en: enMessages,
+  es: esMessages,
+  fa: faMessages,
+  fi: fiMessages,
+  fr: frMessages,
+  hi: hiMessages,
+  id: idMessages,
+  ja: jaMessages,
+  mr: mrMessages,
+  pcm: pcmMessages,
+  pt: ptMessages,
+  ru: ruMessages,
+  ur: urMessages,
   zh: zhMessages,
 } as Record<Locale, Record<string, string>>;
 
@@ -144,8 +186,7 @@ export function resolveDistanceUnit(
  * from the active locale, then to the key itself.
  */
 export function t(key: string, values?: MessageValues): string {
-  const template =
-    CATALOGS[activeLocale][key] ?? CATALOGS.en[key] ?? key;
+  const template = CATALOGS[activeLocale][key] ?? CATALOGS.en[key] ?? key;
   if (!values || Object.keys(values).length === 0) return template;
   try {
     return formatMessage(template, values, activeLocale);

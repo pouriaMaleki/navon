@@ -52,9 +52,7 @@ test.describe("Settings expansion — top-of-page toggles + gating", () => {
     const liveRow = page.locator("[data-testid='setting-liveActivityEnabled']");
     await expect(liveRow).toContainText(/Requires GPS/i);
 
-    await page
-      .locator("[data-testid='setting-allowBackgroundGps'] input[type='checkbox']")
-      .check();
+    await page.locator("[data-testid='setting-allowBackgroundGps'] input[type='checkbox']").check();
 
     await expect(cuesCheckbox).toBeEnabled();
     await expect(liveCheckbox).toBeEnabled();
@@ -67,12 +65,8 @@ test.describe("Settings expansion — top-of-page toggles + gating", () => {
     await page.evaluate(() => window.localStorage.clear());
     await page.reload();
     await page.getByRole("button", { name: "Settings" }).click();
-    await page
-      .locator("[data-testid='setting-keepScreenOn'] input[type='checkbox']")
-      .check();
-    await page
-      .locator("[data-testid='setting-allowBackgroundGps'] input[type='checkbox']")
-      .check();
+    await page.locator("[data-testid='setting-keepScreenOn'] input[type='checkbox']").check();
+    await page.locator("[data-testid='setting-allowBackgroundGps'] input[type='checkbox']").check();
     await page
       .locator("[data-testid='setting-liveActivityEnabled'] input[type='checkbox']")
       .check();

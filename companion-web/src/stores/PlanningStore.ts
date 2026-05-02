@@ -561,9 +561,10 @@ export function presentAlternatives(
  *   - HSL Digitransit live / fastest     → "HSL Fastest"
  *   - HSL Digitransit live / alternative → "HSL Route"
  */
-export function friendlyAlternativeLabel(
-  alt: RouteAlternative,
-): { title: string; subtitle: string } {
+export function friendlyAlternativeLabel(alt: RouteAlternative): {
+  title: string;
+  subtitle: string;
+} {
   const providerID = alt.normalizedPackage.provenance.providerID;
   const sourceRef = (alt.normalizedPackage.provenance.sourceReference ?? "").toLowerCase();
   if (providerID === "osm") {

@@ -1,21 +1,15 @@
-import { autorun, observable, runInAction, type IReactionDisposer } from "mobx";
+import { autorun, type IReactionDisposer, observable, runInAction } from "mobx";
 import type { RootStore } from "../../app/RootStore.js";
-import {
-  resolveDistanceUnit,
-  resolveLocale,
-  setActiveLocale,
-  t,
-  tIn,
-} from "../../i18n/index.js";
+import { resolveDistanceUnit, resolveLocale, setActiveLocale, t, tIn } from "../../i18n/index.js";
 import { hasVoiceForLocale } from "../audio/voiceAvailability.js";
 import type { WebTtsService } from "../audio/WebTtsService.js";
 import type { LiveNotificationService } from "../notifications/LiveNotificationService.js";
 import type { WakeLockService } from "../screen/WakeLockService.js";
 import {
-  cueMessage,
   type CueEngineState,
   type CueManeuver,
   type CueSnapshot,
+  cueMessage,
   initialCueEngineState,
   type ManeuverKind,
   tickCueEngine,
@@ -125,9 +119,8 @@ export function startRoutingActivityCoordinator(
         // Render the spoken text in whatever locale matches the picked
         // TTS voice — `tIn("en", ...)` when we fell back to English so
         // the voice and the text agree, otherwise the active locale.
-        const text = ttsLocale === locale
-          ? t(msg.key, msg.values)
-          : tIn(ttsLocale, msg.key, msg.values);
+        const text =
+          ttsLocale === locale ? t(msg.key, msg.values) : tIn(ttsLocale, msg.key, msg.values);
         services.tts.speak(text);
       }
     } else if (!isRouting) {
@@ -149,8 +142,7 @@ export function startRoutingActivityCoordinator(
       // the rider is mid-segment with nothing to act on, and a stale
       // "Continue" notification is just noise.
       const upcoming = guidance.upcomingTurnAlert;
-      const closeUpcomingTurn =
-        upcoming !== undefined && upcoming.distanceRemainingM <= 500;
+      const closeUpcomingTurn = upcoming !== undefined && upcoming.distanceRemainingM <= 500;
       const content = { title, body, closeUpcomingTurn };
       if (!lastLiveActivityActive) {
         void services.liveNotification.start(content);

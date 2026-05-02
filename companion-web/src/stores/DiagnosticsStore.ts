@@ -21,7 +21,7 @@ export class DiagnosticsStore {
   }
 
   updateFromSession(session: ActiveRouteSession | undefined): void {
-    if (!session || !session.routeIdentifier) {
+    if (!session?.routeIdentifier) {
       this.snapshot = EMPTY;
       return;
     }

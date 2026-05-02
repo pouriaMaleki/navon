@@ -47,7 +47,7 @@ export class FakeRoutingAdapter implements RoutingProvider {
   normalizePreview(preview: RoutePreviewModel, _request: RoutePlanRequest): NormalizedRoutePackage {
     return (
       preview.alternatives[0]?.normalizedPackage ??
-      buildSimplePreview(this.providerID, _request).alternatives[0]!.normalizedPackage
+      buildSimplePreview(this.providerID, _request).alternatives[0]?.normalizedPackage
     );
   }
 }

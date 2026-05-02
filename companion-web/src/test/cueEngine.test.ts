@@ -138,10 +138,7 @@ describe("CueEngine — back-to-back turn coalescing", () => {
 
 describe("CueEngine — existing approach + arrival cues unchanged", () => {
   it("emits 'in 50 meters turn left' when crossing the 50m threshold for a maneuver", () => {
-    const before = tick(
-      initialCueEngineState(),
-      baseSnapshot({ progressDistanceM: 100 }),
-    );
+    const before = tick(initialCueEngineState(), baseSnapshot({ progressDistanceM: 100 }));
     const after = tick(before.next, baseSnapshot({ progressDistanceM: 155 }));
     const turn50 = after.events.find((e) => e.kind === "turn50m");
     expect(turn50).toMatchObject({ kind: "turn50m", turnKind: "left" });

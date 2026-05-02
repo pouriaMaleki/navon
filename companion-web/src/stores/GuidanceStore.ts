@@ -224,15 +224,10 @@ export class GuidanceStore {
     const remaining =
       this.remainingDistanceM > 0
         ? this.remainingDistanceM
-        : this.guidanceRoute?.summary.totalDistanceMeters ?? 0;
+        : (this.guidanceRoute?.summary.totalDistanceMeters ?? 0);
     if (remaining <= 0) return "";
     const km = (remaining / 1000).toFixed(1);
-    const placeholder = new Set([
-      "",
-      "No destination",
-      "Selected destination",
-      "Current location",
-    ]);
+    const placeholder = new Set(["", "No destination", "Selected destination", "Current location"]);
     const candidates = [
       this.activeSession.destinationLabel ?? "",
       this.guidanceRoute?.summary.destinationLabel ?? "",
@@ -269,7 +264,7 @@ export class GuidanceStore {
     const seconds =
       this.remainingDurationSeconds > 0
         ? this.remainingDurationSeconds
-        : this.guidanceRoute?.summary.estimatedDurationSeconds ?? 0;
+        : (this.guidanceRoute?.summary.estimatedDurationSeconds ?? 0);
     if (seconds <= 0) return "";
     const minutes = Math.max(1, Math.ceil(seconds / 60));
     return `${minutes} min remaining`;
@@ -385,12 +380,7 @@ export class GuidanceStore {
     // iOS parity: don't clobber a real user-typed destination on
     // activeSession with the route package's generic placeholder
     // ("Selected destination" comes baked into the OSRM mapper).
-    const placeholder = new Set([
-      "",
-      "No destination",
-      "Selected destination",
-      "Current location",
-    ]);
+    const placeholder = new Set(["", "No destination", "Selected destination", "Current location"]);
     const sessionLabel = (this.activeSession.destinationLabel ?? "").trim();
     const packageLabel = (package_.summary.destinationLabel ?? "").trim();
     const sessionIsPlaceholder = placeholder.has(sessionLabel);

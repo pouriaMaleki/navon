@@ -344,9 +344,9 @@ export function tickCueEngine(
   };
 }
 
-import { distanceCueValues, type DistanceMode } from "../../i18n/formatDistance.js";
-import type { MessageValues } from "../../i18n/messageFormat.js";
+import { type DistanceMode, distanceCueValues } from "../../i18n/formatDistance.js";
 import { tIn } from "../../i18n/index.js";
+import type { MessageValues } from "../../i18n/messageFormat.js";
 
 /** Structured cue: an i18n catalog key + ICU placeholder values. The wiring
  *  layer feeds these to `t(key, values)` against the active locale; tests

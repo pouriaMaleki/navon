@@ -21,7 +21,7 @@ export const SearchPanel = observer(({ store }: Props) => {
 
   if (planning.isResolvingUrl) {
     return (
-      <div className="search-panel" role="status">
+      <div className="search-panel" data-testid="search-panel" role="status">
         <div className="list-row" style={{ alignItems: "center", gap: 12 }}>
           <span className="spinner" aria-hidden />
           <div style={{ flex: 1 }}>
@@ -37,7 +37,7 @@ export const SearchPanel = observer(({ store }: Props) => {
 
   if (planning.urlResolveError) {
     return (
-      <div className="search-panel" role="alert">
+      <div className="search-panel" data-testid="search-panel" role="alert">
         <div className="list-row">
           <div style={{ flex: 1 }}>
             <div className="list-row__title">Couldn't open that link</div>
@@ -49,7 +49,7 @@ export const SearchPanel = observer(({ store }: Props) => {
   }
 
   return (
-    <div className="search-panel" role="listbox">
+    <div className="search-panel" data-testid="search-panel" role="listbox">
       {showRecents ? (
         recents.length === 0 ? (
           <div className="empty-state">No recent routes yet. Try typing a destination.</div>
@@ -79,6 +79,7 @@ export const SearchPanel = observer(({ store }: Props) => {
             key={suggestion.id}
             type="button"
             className="list-row"
+            data-testid="search-row"
             onClick={() => {
               store.recordRecentDestination(suggestion.coordinate, suggestion.title);
               planning.selectSuggestion(suggestion);

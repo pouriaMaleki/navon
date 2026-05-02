@@ -380,8 +380,12 @@ textarea {
   pointer-events: auto;
   z-index: 5;
 }
-.rail--right { right: 12px; }
-.rail--left  { left: 12px; }
+.rail--right {
+  right: 12px;
+}
+.rail--left {
+  left: 12px;
+}
 
 .rail__icon {
   width: var(--rail-icon-size);

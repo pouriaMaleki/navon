@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite";
 import { useState } from "react";
 import type { RootStore } from "../../app/RootStore.js";
-import { useT, type TFunction } from "../../i18n/useT.js";
+import { type TFunction, useT } from "../../i18n/useT.js";
 import { ActivitySettingsSection } from "./ActivitySettingsSection.js";
 import { ImportDiagnosticsView } from "./ImportDiagnosticsView.js";
 import { LocaleSettingsSection } from "./LocaleSettingsSection.js";
@@ -34,7 +34,12 @@ export const SettingsHubView = observer(({ store }: Props) => {
     <div className="settings-overlay">
       <div className="settings-overlay__content">
         <header className="settings-overlay__header">
-          <button type="button" className="icon-button" aria-label={t("common.close")} onClick={back}>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label={t("common.close")}
+            onClick={back}
+          >
             ‹
           </button>
           <h1 style={{ margin: 0, fontSize: 18 }}>{titleFor(screen, t)}</h1>
@@ -66,14 +71,18 @@ export const SettingsHubView = observer(({ store }: Props) => {
               <button type="button" className="list-row" onClick={() => setScreen("planner")}>
                 <div style={{ flex: 1, textAlign: "start" }}>
                   <div className="list-row__title">{t("settings.hub.routePlanner")}</div>
-                  <div className="list-row__subtitle">{t("settings.hub.routePlanner.subtitle")}</div>
+                  <div className="list-row__subtitle">
+                    {t("settings.hub.routePlanner.subtitle")}
+                  </div>
                 </div>
                 <span aria-hidden>›</span>
               </button>
               <button type="button" className="list-row" onClick={() => setScreen("diagnostics")}>
                 <div style={{ flex: 1, textAlign: "start" }}>
                   <div className="list-row__title">{t("settings.hub.importDiagnostics")}</div>
-                  <div className="list-row__subtitle">{t("settings.hub.importDiagnostics.subtitle")}</div>
+                  <div className="list-row__subtitle">
+                    {t("settings.hub.importDiagnostics.subtitle")}
+                  </div>
                 </div>
                 <span aria-hidden>›</span>
               </button>

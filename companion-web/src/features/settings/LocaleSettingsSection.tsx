@@ -1,11 +1,7 @@
 import { observer } from "mobx-react-lite";
 import type { RootStore } from "../../app/RootStore.js";
 import type { AppLanguagePref, DistanceUnitPref } from "../../domain/models.js";
-import {
-  NATIVE_LANGUAGE_NAMES,
-  resolveLocale,
-  SUPPORTED_LOCALES,
-} from "../../i18n/index.js";
+import { NATIVE_LANGUAGE_NAMES, resolveLocale, SUPPORTED_LOCALES } from "../../i18n/index.js";
 import { useT } from "../../i18n/useT.js";
 import { hasVoiceForLocale } from "../../integrations/audio/voiceAvailability.js";
 

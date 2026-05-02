@@ -104,8 +104,7 @@ export class WakeLockService {
         }
         // If the user toggled keepScreenOn off / stopped routing while
         // the request was in flight, release the freshly-acquired lock.
-        const stillWanted =
-          this.current.keepScreenOn && this.current.isRouting;
+        const stillWanted = this.current.keepScreenOn && this.current.isRouting;
         if (!stillWanted) {
           void sentinel.release().catch(() => {
             /* ignore */
@@ -136,9 +135,7 @@ export class WakeLockService {
     sentinel.removeEventListener?.("release", this.onReleaseHandler);
     sentinel.release().catch((err: unknown) => {
       const e = err as { message?: string };
-      console.warn(
-        `[WakeLockService] release() rejected: ${e?.message ?? String(err)}`,
-      );
+      console.warn(`[WakeLockService] release() rejected: ${e?.message ?? String(err)}`);
     });
   }
 

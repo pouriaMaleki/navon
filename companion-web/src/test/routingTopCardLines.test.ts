@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
-  CURRENT_ROUTE_PACKAGE_VERSION,
   type CoordinatePoint,
+  CURRENT_ROUTE_PACKAGE_VERSION,
   type NormalizedRoutePackage,
 } from "../domain/models.js";
 import { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
@@ -143,11 +143,28 @@ describe("GuidanceStore — distance-first next-turn line (iOS parity)", () => {
       revision: 1,
       geometry: [HELSINKI, corner, end],
       maneuvers: [
-        { id: "m1", maneuverType: "depart", location: HELSINKI, distanceFromStartMeters: 0, distanceToNextMeters: 400 },
-        { id: "m2", maneuverType: "right", location: corner, distanceFromStartMeters: 400, distanceToNextMeters: 400, instructionText: "Turn right" },
+        {
+          id: "m1",
+          maneuverType: "depart",
+          location: HELSINKI,
+          distanceFromStartMeters: 0,
+          distanceToNextMeters: 400,
+        },
+        {
+          id: "m2",
+          maneuverType: "right",
+          location: corner,
+          distanceFromStartMeters: 400,
+          distanceToNextMeters: 400,
+          instructionText: "Turn right",
+        },
         { id: "m3", maneuverType: "arrive", location: end, distanceFromStartMeters: 800 },
       ],
-      summary: { totalDistanceMeters: 800, estimatedDurationSeconds: 240, destinationLabel: "Park" },
+      summary: {
+        totalDistanceMeters: 800,
+        estimatedDurationSeconds: 240,
+        destinationLabel: "Park",
+      },
       provenance: { providerID: "osm", generatedAtUnixMs: 0 },
     };
     setPreview(planning, pkg);

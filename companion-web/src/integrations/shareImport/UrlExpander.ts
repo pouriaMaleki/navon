@@ -68,7 +68,7 @@ export async function expandShortLink(url: string, signal?: AbortSignal): Promis
         continue;
       }
       const body = await response.text();
-      combinedBody += "\n" + body;
+      combinedBody += `\n${body}`;
       const title = extractTitle(body);
       if (title && !firstTitle) firstTitle = title;
       const expandedUrl = extractFinalUrl(body);

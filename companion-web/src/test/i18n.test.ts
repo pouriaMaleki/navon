@@ -19,13 +19,9 @@ describe("messageFormat", () => {
   });
 
   it("renders the canonical 50m turn cue verbatim in EN", () => {
-    expect(
-      tIn(
-        "en",
-        "cue.turn50m.left",
-        { distance: 50, distanceUnit: "meters" },
-      ),
-    ).toBe("In 50 meters, turn left");
+    expect(tIn("en", "cue.turn50m.left", { distance: 50, distanceUnit: "meters" })).toBe(
+      "In 50 meters, turn left",
+    );
   });
 });
 

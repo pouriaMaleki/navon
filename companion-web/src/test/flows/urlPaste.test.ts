@@ -64,10 +64,9 @@ describe("URL paste (plan flows #29-31)", () => {
   it("url_paste_loading_indicator (flow #30): isResolvingUrl is true before settle", async () => {
     const { planning, search } = buildHarness();
     search.nextResolve = null;
-    let observedWhileInFlight: boolean | undefined;
     // Call resolveUrlDestination without awaiting; inspect before microtask flush.
     const pending = planning.resolveUrlDestination("https://www.google.com/maps/@60.16,24.95,15z");
-    observedWhileInFlight = planning.isResolvingUrl;
+    const observedWhileInFlight = planning.isResolvingUrl;
     await pending;
     expect(
       observedWhileInFlight,

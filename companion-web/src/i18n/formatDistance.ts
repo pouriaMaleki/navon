@@ -3,7 +3,7 @@
 // `cue.turn50m.left`, and produces ready-to-render UI labels via
 // `units.distance.*` keys.
 
-import { t, type Locale } from "./index.js";
+import { type Locale, t } from "./index.js";
 
 export type DistanceMode = "metric" | "imperial";
 
@@ -39,11 +39,7 @@ export function distanceCueValues(
  * UI helper: produce a "8.6 km" / "5.4 mi" label for arbitrary distances,
  * choosing meters/feet for short distances and km/mi above ~1 unit.
  */
-export function formatDistanceLabel(
-  meters: number,
-  mode: DistanceMode,
-  _locale?: Locale,
-): string {
+export function formatDistanceLabel(meters: number, mode: DistanceMode, _locale?: Locale): string {
   if (mode === "imperial") {
     if (meters >= MI_THRESHOLD_M) {
       const miles = meters * MI_PER_M;
@@ -62,10 +58,7 @@ export function formatDistanceLabel(
  * UI helper: same as `formatDistanceLabel` but returns just the unit value
  * keyword used by `guidance.distanceToDestination`'s ICU select arm.
  */
-export function distanceLabelUnit(
-  meters: number,
-  mode: DistanceMode,
-): "km" | "mi" | "m" | "ft" {
+export function distanceLabelUnit(meters: number, mode: DistanceMode): "km" | "mi" | "m" | "ft" {
   if (mode === "imperial") {
     return meters >= MI_THRESHOLD_M ? "mi" : "ft";
   }

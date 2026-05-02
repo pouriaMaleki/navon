@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { CURRENT_ROUTE_PACKAGE_VERSION } from "../../domain/models.js";
 import type { CoordinatePoint } from "../../domain/models.js";
+import { CURRENT_ROUTE_PACKAGE_VERSION } from "../../domain/models.js";
 import { LocalStoragePersistence } from "../../integrations/persistence/LocalStoragePersistence.js";
 import { GuidanceStore } from "../../stores/GuidanceStore.js";
 import { LocationStore } from "../../stores/LocationStore.js";
@@ -92,8 +92,9 @@ describe("explore alternatives from guidance (split-icon UX)", () => {
     expect(guidance.homeMode).toBe("phoneGuidance");
 
     // RED: method doesn't exist
-    (guidance as unknown as { enterAlternativesExploration: () => void })
-      .enterAlternativesExploration();
+    (
+      guidance as unknown as { enterAlternativesExploration: () => void }
+    ).enterAlternativesExploration();
 
     expect(
       guidance.homeMode,
@@ -109,8 +110,9 @@ describe("explore alternatives from guidance (split-icon UX)", () => {
   it("enterAlternativesExploration outside phoneGuidance is a no-op", () => {
     const { guidance } = buildHarness();
     // In planning mode — should be a no-op
-    (guidance as unknown as { enterAlternativesExploration: () => void })
-      .enterAlternativesExploration();
+    (
+      guidance as unknown as { enterAlternativesExploration: () => void }
+    ).enterAlternativesExploration();
 
     expect(guidance.homeMode).toBe("planning");
     expect(
@@ -122,16 +124,18 @@ describe("explore alternatives from guidance (split-icon UX)", () => {
   it("cancelAlternativesExploration clears the flag and keeps homeMode = phoneGuidance", () => {
     const { guidance } = buildHarness();
     guidance.startSelectedRoute();
-    (guidance as unknown as { enterAlternativesExploration: () => void })
-      .enterAlternativesExploration();
+    (
+      guidance as unknown as { enterAlternativesExploration: () => void }
+    ).enterAlternativesExploration();
     expect(
       (guidance as unknown as { isExploringAlternativesFromGuidance?: boolean })
         .isExploringAlternativesFromGuidance,
     ).toBe(true);
 
     // RED: method doesn't exist
-    (guidance as unknown as { cancelAlternativesExploration: () => void })
-      .cancelAlternativesExploration();
+    (
+      guidance as unknown as { cancelAlternativesExploration: () => void }
+    ).cancelAlternativesExploration();
 
     expect(
       (guidance as unknown as { isExploringAlternativesFromGuidance?: boolean })
@@ -147,8 +151,9 @@ describe("explore alternatives from guidance (split-icon UX)", () => {
   it("startSelectedRoute clears isExploringAlternativesFromGuidance", () => {
     const { guidance, planning } = buildHarness();
     guidance.startSelectedRoute();
-    (guidance as unknown as { enterAlternativesExploration: () => void })
-      .enterAlternativesExploration();
+    (
+      guidance as unknown as { enterAlternativesExploration: () => void }
+    ).enterAlternativesExploration();
     expect(
       (guidance as unknown as { isExploringAlternativesFromGuidance?: boolean })
         .isExploringAlternativesFromGuidance,

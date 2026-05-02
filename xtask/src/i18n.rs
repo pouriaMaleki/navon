@@ -427,6 +427,10 @@ fn build_xcstrings(
 
 fn build_strings_xml(en: &Catalog, target: &Catalog) -> String {
     let mut s = String::from("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n");
+    // App-level strings that are not part of the translatable catalog but are
+    // required by AndroidManifest.xml. These are written to every locale so
+    // the build always finds them; app_name is intentionally not translated.
+    s.push_str("    <string name=\"app_name\">ESP32MapCompanion</string>\n");
     for (key, en_entry) in &en.entries {
         let value = target
             .entries

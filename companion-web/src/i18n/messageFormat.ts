@@ -10,11 +10,7 @@
 
 export type MessageValues = Record<string, string | number>;
 
-export function formatMessage(
-  template: string,
-  values: MessageValues,
-  locale: string,
-): string {
+export function formatMessage(template: string, values: MessageValues, locale: string): string {
   const parts = parse(template);
   return parts.map((p) => render(p, values, locale)).join("");
 }
