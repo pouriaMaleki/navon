@@ -76,7 +76,11 @@ export const RouteSuggestionsCard = observer(({ store }: Props) => {
             key={alt.id}
             type="button"
             className={`alternative${isSelected ? " alternative--selected" : ""}`}
-            onClick={() => planning.selectAlternative(alt.id)}
+            onClick={() =>
+              exploring
+                ? guidance.selectAlternativeForExploration(alt.id)
+                : planning.selectAlternative(alt.id)
+            }
           >
             <div style={{ textAlign: "start" }}>
               <div className="list-row__title">{alt.title}</div>

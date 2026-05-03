@@ -68,6 +68,11 @@ class HomeStateHolder(
      */
     var isExploringAlternativesFromGuidance by mutableStateOf(false)
         private set
+    /** The alternative explicitly tapped by the user during exploration. Null on enter. */
+    var explorationSelectedID: String? by mutableStateOf(null)
+        private set
+    /** The route package that was active when guidance started; frozen during exploration. */
+    private var activeRoutePackage: NormalizedRoutePackage? by mutableStateOf(null)
 
     private var urlResolveJob: Job? = null
     private var mapInteractionRecenterJob: Job? = null
@@ -116,7 +121,11 @@ class HomeStateHolder(
 
     val guidanceRoute: NormalizedRoutePackage?
         get() = when (homeMode) {
-            HomeMode.PHONE_GUIDANCE, HomeMode.DEVICE_OVERVIEW, HomeMode.SENDING_TO_DEVICE -> selectedPreview?.normalizedPackage
+            HomeMode.PHONE_GUIDANCE -> {
+                if (isExploringAlternativesFromGuidance) activeRoutePackage
+                else selectedPreview?.normalizedPackage
+            }
+            HomeMode.DEVICE_OVERVIEW, HomeMode.SENDING_TO_DEVICE -> selectedPreview?.normalizedPackage
             HomeMode.PLANNING -> null
         }
 
@@ -420,6 +429,8 @@ class HomeStateHolder(
         } else {
             compassMode = HomeCompassMode.AUTO_FOLLOW
             isExploringAlternativesFromGuidance = false
+            explorationSelectedID = null
+            activeRoutePackage = selectedPreview?.normalizedPackage
             homeMode = HomeMode.PHONE_GUIDANCE
         }
     }
@@ -439,6 +450,7 @@ class HomeStateHolder(
         // Set the flag immediately so the alternatives panel opens right away
         // with a loading indicator while the plan fetches in the background.
         isExploringAlternativesFromGuidance = true
+        explorationSelectedID = null
         compassMode = HomeCompassMode.NORTH_LOCKED
         appState.routeRequest = RoutePlanRequest(
             origin = appState.riderLocation,
@@ -456,17 +468,26 @@ class HomeStateHolder(
      */
     fun cancelAlternativesExploration() {
         isExploringAlternativesFromGuidance = false
+        explorationSelectedID = null
         compassMode = HomeCompassMode.AUTO_FOLLOW
     }
 
     /**
+     * Select an alternative for preview while exploring from guidance.
+     * Records the explicit user tap so selectedAlternativeIdForDisplay shows the checkmark.
+     */
+    fun selectAlternativeForExploration(id: String) {
+        explorationSelectedID = id
+        appState.selectAlternative(id)
+    }
+
+    /**
      * The alternative ID that should show a checkmark in the suggestions card.
-     * During exploration, returns null — no row should be checked because the
-     * "Continue on current route" button already marks the active route.
-     * Outside exploration, returns the planning-selected alternative ID.
+     * During exploration, returns the ID explicitly tapped by the user (null
+     * until first tap). Outside exploration, returns the planning-selected ID.
      */
     val selectedAlternativeIdForDisplay: String?
-        get() = if (isExploringAlternativesFromGuidance) null else appState.preview.selectedAlternativeId
+        get() = if (isExploringAlternativesFromGuidance) explorationSelectedID else appState.preview.selectedAlternativeId
 
     /**
      * Alternative routes to render on the map during exploration.

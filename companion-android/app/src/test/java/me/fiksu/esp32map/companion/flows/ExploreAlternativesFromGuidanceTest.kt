@@ -232,13 +232,54 @@ class ExploreAlternativesFromGuidanceTest {
      * alternative row shows a checkmark — the "Continue" button marks the active route.
      */
     @Test
-    fun selectedAlternativeIdForDisplay_isNullDuringExploration() = runTest {
+    fun selectedAlternativeIdForDisplay_isNullOnEnterExploration() = runTest {
         val holder = holderInPhoneGuidance()
         val scope = TestScope(StandardTestDispatcher(testScheduler))
         holder.exploreAlternateRoutes(scope)
 
         assertNull(
-            "selectedAlternativeIdForDisplay must be null during exploration",
+            "selectedAlternativeIdForDisplay must be null on enter — no double checkmark",
+            holder.selectedAlternativeIdForDisplay,
+        )
+    }
+
+    /**
+     * After the user calls selectAlternative during exploration, that alternative
+     * gets a checkmark in the card.
+     */
+    @Test
+    fun selectedAlternativeIdForDisplay_showsCheckmarkAfterTap() = runTest {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val state = CompanionAppState(app)
+        state.preview = RoutePreviewModel(
+            alternatives = listOf(
+                RouteAlternative(
+                    id = "a1", title = "Route 1", subtitle = "",
+                    distanceMeters = 2500, durationSeconds = 600,
+                    normalizedPackage = minimalPackage(),
+                ),
+                RouteAlternative(
+                    id = "a2", title = "Route 2", subtitle = "",
+                    distanceMeters = 3000, durationSeconds = 700,
+                    normalizedPackage = minimalPackage(),
+                ),
+            ),
+            selectedAlternativeId = "a1",
+            routeIdentifier = null,
+            routeRevision = null,
+            planningNotice = null,
+        )
+        val holder = HomeStateHolder(state, FakePlaceSearch())
+        holder.homeMode = HomeMode.PHONE_GUIDANCE
+        val scope = TestScope(StandardTestDispatcher(testScheduler))
+        holder.exploreAlternateRoutes(scope)
+        assertNull("pre-condition: null on enter", holder.selectedAlternativeIdForDisplay)
+
+        holder.selectAlternativeForExploration("a2")
+
+        assertEquals(
+            "tapping an alternative during exploration must show its checkmark",
+            "a2",
             holder.selectedAlternativeIdForDisplay,
         )
     }
@@ -301,6 +342,76 @@ class ExploreAlternativesFromGuidanceTest {
         assertTrue(
             "guidanceAlternatives must be empty when not exploring",
             holder.guidanceAlternatives.isEmpty(),
+        )
+    }
+
+    // ─── Test 9: guidanceRoute stability ──────────────────────────────────────
+
+    /**
+     * guidanceRoute must stay frozen to the active route when exploration loads
+     * new alternatives — prevents progress tracking using the wrong geometry.
+     */
+    @Test
+    fun guidanceRoute_staysStableDuringExploration() = runTest {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val state = CompanionAppState(app)
+        state.preview = RoutePreviewModel(
+            alternatives = listOf(
+                RouteAlternative(
+                    id = "orig",
+                    title = "Original Route",
+                    subtitle = "",
+                    distanceMeters = 2500,
+                    durationSeconds = 600,
+                    normalizedPackage = minimalPackage(),
+                )
+            ),
+            selectedAlternativeId = null,
+            routeIdentifier = null,
+            routeRevision = null,
+            planningNotice = null,
+        )
+        val holder = HomeStateHolder(state, FakePlaceSearch())
+        holder.startSelectedRoute()
+        val identifierBefore = holder.guidanceRoute?.routeIdentifier
+        assertEquals("precondition: active route must be set", "alt-explore-test", identifierBefore)
+
+        val scope = TestScope(StandardTestDispatcher(testScheduler))
+        holder.exploreAlternateRoutes(scope)
+
+        // Replace the planning preview with a new route (simulating async re-plan result)
+        state.preview = RoutePreviewModel(
+            alternatives = listOf(
+                RouteAlternative(
+                    id = "new",
+                    title = "New Route",
+                    subtitle = "",
+                    distanceMeters = 3500,
+                    durationSeconds = 800,
+                    normalizedPackage = NormalizedRoutePackage(
+                        version = RoutePackageVersion.CURRENT,
+                        routeIdentifier = "new-plan-route",
+                        revision = 1,
+                        geometry = listOf(
+                            CoordinatePoint(60.1699, 24.9384),
+                            CoordinatePoint(60.2000, 24.9500),
+                        ),
+                        maneuvers = minimalPackage().maneuvers,
+                        summary = minimalPackage().summary,
+                        provenance = minimalPackage().provenance,
+                    ),
+                )
+            ),
+            selectedAlternativeId = null,
+            routeIdentifier = null,
+            routeRevision = null,
+            planningNotice = null,
+        )
+
+        assertEquals(
+            "guidanceRoute must be frozen to the active ride during exploration",
+            identifierBefore,
+            holder.guidanceRoute?.routeIdentifier,
         )
     }
 

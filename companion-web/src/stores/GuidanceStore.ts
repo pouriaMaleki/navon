@@ -113,6 +113,13 @@ export class GuidanceStore {
    * pick a different route or dismiss back to the original.
    */
   isExploringAlternativesFromGuidance = false;
+  /** Which alternative the user has explicitly tapped during exploration.
+   *  Nil on enter and cleared on exit so the card starts with no checkmark. */
+  private explorationSelectedID: string | undefined = undefined;
+  /** Frozen snapshot of the active route when exploration begins.
+   *  Prevents guidanceRoute from flipping to a browsed alternative and
+   *  breaking GPS progress projection and the map's green-route polyline. */
+  private activeRoutePackage: NormalizedRoutePackage | undefined = undefined;
 
   // Route progress state (ported from runtime-core ActiveRoute)
   progressDistanceM = 0;
@@ -158,6 +165,7 @@ export class GuidanceStore {
 
   get guidanceRoute(): NormalizedRoutePackage | undefined {
     if (this.homeMode !== "phoneGuidance") return undefined;
+    if (this.isExploringAlternativesFromGuidance) return this.activeRoutePackage;
     return selectedAlternative(this.planning.preview)?.normalizedPackage;
   }
 
@@ -401,6 +409,8 @@ export class GuidanceStore {
     this.homeMode = "phoneGuidance";
     this.compassMode = "autoFollow";
     this.isExploringAlternativesFromGuidance = false;
+    this.explorationSelectedID = undefined;
+    this.activeRoutePackage = package_;
     this.resetProgress(package_);
     // Spec: on Start, the camera snaps onto the rider with routing zoom and
     // bearing-up. Emit a follow-rider recenter so RootStore can react. iOS
@@ -419,6 +429,7 @@ export class GuidanceStore {
   enterAlternativesExploration(): void {
     if (this.homeMode !== "phoneGuidance") return;
     this.isExploringAlternativesFromGuidance = true;
+    this.explorationSelectedID = undefined;
     this.compassMode = "northLocked";
   }
 
@@ -428,17 +439,27 @@ export class GuidanceStore {
    */
   cancelAlternativesExploration(): void {
     this.isExploringAlternativesFromGuidance = false;
+    this.explorationSelectedID = undefined;
     this.compassMode = "autoFollow";
   }
 
   /**
+   * Select an alternative for preview while exploring from guidance.
+   * Updates the planning selection (map highlight) and records the explicit
+   * user tap so selectedAlternativeIDForDisplay can show the checkmark.
+   */
+  selectAlternativeForExploration(id: string): void {
+    this.explorationSelectedID = id;
+    this.planning.selectAlternative(id);
+  }
+
+  /**
    * The alternative ID that should show a checkmark in the suggestions card.
-   * During exploration, returns undefined — no row should be checked because
-   * the "Continue on current route" button already marks the active route.
-   * Outside exploration, returns the planning-selected alternative ID.
+   * During exploration, returns the ID explicitly tapped by the user (nil
+   * until first tap). Outside exploration, returns the planning-selected ID.
    */
   get selectedAlternativeIDForDisplay(): string | undefined {
-    if (this.isExploringAlternativesFromGuidance) return undefined;
+    if (this.isExploringAlternativesFromGuidance) return this.explorationSelectedID;
     return this.planning.preview.selectedAlternativeID;
   }
 

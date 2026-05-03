@@ -173,15 +173,49 @@ final class ExploreAlternativesFromGuidanceTests: XCTestCase {
 
     // MARK: — selectedAlternativeIDForDisplay
 
-    /// 8. While exploring, no alternative row should show a checkmark —
+    /// 8. On entering exploration, no alternative row should show a checkmark —
     ///    the "Continue on current route" button already marks the active route.
-    func test_selectedAlternativeIDForDisplay_isNilDuringExploration() async {
+    func test_selectedAlternativeIDForDisplay_isNilOnEnterExploration() async {
         let (_, vm) = await makeRoutingHarness()
         vm.exploreAlternateRoutes()
 
         XCTAssertNil(
             vm.selectedAlternativeIDForDisplay,
-            "selectedAlternativeIDForDisplay must be nil during exploration so no row shows a double checkmark"
+            "selectedAlternativeIDForDisplay must be nil on enter so no row shows a double checkmark"
+        )
+    }
+
+    /// 8b. After the user taps an alternative during exploration, that row gets a checkmark.
+    func test_selectedAlternativeIDForDisplay_showsCheckmarkAfterTap() async {
+        let (app, vm) = await makeRoutingHarness()
+        // Add a second alternative to tap
+        let altID = UUID()
+        app.preview = RoutePreviewModel(
+            alternatives: [
+                app.preview.alternatives[0],
+                RouteAlternative(
+                    id: altID,
+                    title: "Route 2",
+                    subtitle: "",
+                    distanceMeters: 3000,
+                    durationSeconds: 700,
+                    normalizedPackage: straightLinePackage()
+                )
+            ],
+            selectedAlternativeID: app.preview.selectedAlternativeID,
+            routeIdentifier: nil,
+            routeRevision: nil,
+            planningNotice: nil
+        )
+        vm.exploreAlternateRoutes()
+        XCTAssertNil(vm.selectedAlternativeIDForDisplay, "pre-condition: nil on enter")
+
+        vm.selectAlternative(altID)
+
+        XCTAssertEqual(
+            vm.selectedAlternativeIDForDisplay,
+            altID,
+            "tapping an alternative during exploration must show its checkmark"
         )
     }
 
@@ -193,6 +227,53 @@ final class ExploreAlternativesFromGuidanceTests: XCTestCase {
             vm.selectedAlternativeIDForDisplay,
             app.preview.selectedAlternativeID,
             "outside exploration selectedAlternativeIDForDisplay must match the planning-selected alternative"
+        )
+    }
+
+    // MARK: — guidanceRoute stability
+
+    /// 12b. guidanceRoute must stay frozen to the active route when exploration
+    ///      loads new alternatives (prevents progress tracking using the wrong geometry).
+    func test_guidanceRoute_staysStableDuringExploration() async {
+        let (app, vm) = await makeRoutingHarness()
+        let routeIdentifierBefore = vm.guidanceRoute?.routeIdentifier
+        XCTAssertEqual(routeIdentifierBefore, "osm-straight", "precondition")
+
+        vm.exploreAlternateRoutes()
+        // Simulate async plan returning different alternatives
+        app.preview = RoutePreviewModel(
+            alternatives: [
+                RouteAlternative(
+                    id: UUID(),
+                    title: "New Route",
+                    subtitle: "",
+                    distanceMeters: 3500,
+                    durationSeconds: 800,
+                    normalizedPackage: {
+                        var p = self.straightLinePackage()
+                        // We need a different routeIdentifier — build one inline
+                        return NormalizedRoutePackage(
+                            version: p.version,
+                            routeIdentifier: "osm-new-plan",
+                            revision: 1,
+                            geometry: p.geometry,
+                            maneuvers: p.maneuvers,
+                            summary: p.summary,
+                            provenance: p.provenance
+                        )
+                    }()
+                )
+            ],
+            selectedAlternativeID: nil,
+            routeIdentifier: nil,
+            routeRevision: nil,
+            planningNotice: nil
+        )
+
+        XCTAssertEqual(
+            vm.guidanceRoute?.routeIdentifier,
+            routeIdentifierBefore,
+            "guidanceRoute must be frozen to the active ride during exploration"
         )
     }
 

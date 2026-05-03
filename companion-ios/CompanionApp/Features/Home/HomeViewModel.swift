@@ -251,7 +251,10 @@ final class HomeViewModel: ObservableObject {
 
     var guidanceRoute: NormalizedRoutePackage? {
         switch homeMode {
-        case .phoneGuidance, .deviceOverview, .sendingToDevice:
+        case .phoneGuidance:
+            if isExploringAlternativesFromGuidance { return activeRoutePackage }
+            return selectedPreview?.normalizedPackage
+        case .deviceOverview, .sendingToDevice:
             return selectedPreview?.normalizedPackage
         case .planning:
             return nil
@@ -810,6 +813,9 @@ final class HomeViewModel: ObservableObject {
     }
 
     func selectAlternative(_ alternativeID: UUID) {
+        if isExploringAlternativesFromGuidance {
+            explorationSelectedID = alternativeID
+        }
         appModel.selectAlternative(alternativeID)
     }
 
@@ -871,6 +877,8 @@ final class HomeViewModel: ObservableObject {
             homeMode = .phoneGuidance
             compassMode = .autoFollow
             isExploringAlternativesFromGuidance = false
+            explorationSelectedID = nil
+            activeRoutePackage = selectedPreview.normalizedPackage
             // Reset progress for the new route so spec line 102 (next-turn
             // tracking) starts at 0 and advances as the rider proceeds.
             progressDistanceM = 0
@@ -976,6 +984,13 @@ final class HomeViewModel: ObservableObject {
     /// (the "split icon" flow). `homeMode` stays `.phoneGuidance` so guidance
     /// keeps running; the alternatives card is shown via this flag.
     @Published var isExploringAlternativesFromGuidance: Bool = false
+    /// The alternative explicitly tapped by the user during exploration.
+    /// Nil on enter so no row shows a checkmark until the user taps one.
+    @Published private(set) var explorationSelectedID: UUID?
+    /// Frozen snapshot of the active route when exploration begins, so
+    /// `guidanceRoute` doesn't flip to a browsed alternative and break
+    /// GPS progress projection and the map's green-route polyline.
+    private var activeRoutePackage: NormalizedRoutePackage?
 
     /// Spec #11 ("split-way reroute"): from inside an active route the rider
     /// can ask for fresh alternatives from their current location to the same
@@ -1002,6 +1017,7 @@ final class HomeViewModel: ObservableObject {
         // Set the flag immediately so the alternatives panel opens right away
         // with a loading indicator while the plan fetches in the background.
         isExploringAlternativesFromGuidance = true
+        explorationSelectedID = nil
         planningStatus = "Looking for alternatives…"
         appModel.routeRequest = RoutePlanRequest(
             origin: appModel.riderLocation,
@@ -1023,15 +1039,15 @@ final class HomeViewModel: ObservableObject {
     /// The original route is still active; camera returns to autoFollow.
     func cancelAlternativesExploration() {
         isExploringAlternativesFromGuidance = false
+        explorationSelectedID = nil
         compassMode = .autoFollow
     }
 
     /// The alternative ID that should show a checkmark in the suggestions card.
-    /// During exploration, returns nil — no row should be checked because the
-    /// "Continue on current route" button already marks the active route.
-    /// Outside exploration, returns the planning-selected alternative ID.
+    /// During exploration, returns the ID explicitly tapped by the user (nil
+    /// until first tap). Outside exploration, returns the planning-selected ID.
     var selectedAlternativeIDForDisplay: UUID? {
-        isExploringAlternativesFromGuidance ? nil : appModel.preview.selectedAlternativeID
+        isExploringAlternativesFromGuidance ? explorationSelectedID : appModel.preview.selectedAlternativeID
     }
 
     /// Alternative routes to render on the map during exploration.

@@ -175,15 +175,51 @@ describe("explore alternatives from guidance (split-icon UX)", () => {
     ).toBe("autoFollow");
   });
 
-  it("selectedAlternativeIDForDisplay is undefined during exploration (no row checkmark)", () => {
+  it("selectedAlternativeIDForDisplay is undefined on enter exploration before any tap", () => {
     const { guidance } = buildHarness();
     guidance.startSelectedRoute();
     guidance.enterAlternativesExploration();
 
     expect(
       guidance.selectedAlternativeIDForDisplay,
-      "no alternative row must show a checkmark while browsing — the 'Continue' button already marks the active route",
+      "no alternative row must show a checkmark on enter — the 'Continue' button marks the active route",
     ).toBeUndefined();
+  });
+
+  it("selectedAlternativeIDForDisplay shows checkmark on alternative tapped during exploration", () => {
+    const { guidance, planning } = buildHarness();
+    guidance.startSelectedRoute();
+    // Load a second alternative so there's something to tap
+    planning.setPreview({
+      alternatives: [
+        {
+          id: "a1",
+          title: "Route 1",
+          subtitle: "",
+          distanceMeters: 2500,
+          durationSeconds: 600,
+          normalizedPackage: straightLinePackage(),
+        },
+        {
+          id: "a2",
+          title: "Route 2",
+          subtitle: "",
+          distanceMeters: 3000,
+          durationSeconds: 700,
+          normalizedPackage: { ...straightLinePackage(), routeIdentifier: "osm-alt" },
+        },
+      ],
+      selectedAlternativeID: "a1",
+    });
+    guidance.enterAlternativesExploration();
+    expect(guidance.selectedAlternativeIDForDisplay).toBeUndefined();
+
+    guidance.selectAlternativeForExploration("a2");
+
+    expect(
+      guidance.selectedAlternativeIDForDisplay,
+      "tapping an alternative during exploration must show its checkmark",
+    ).toBe("a2");
   });
 
   it("selectedAlternativeIDForDisplay returns the planning-selected id outside exploration", () => {
@@ -194,6 +230,34 @@ describe("explore alternatives from guidance (split-icon UX)", () => {
       guidance.selectedAlternativeIDForDisplay,
       "outside exploration the selected alternative id must be visible",
     ).toBe("a1");
+  });
+
+  it("guidanceRoute stays stable during exploration when planning preview is replaced", () => {
+    const { guidance, planning } = buildHarness();
+    guidance.startSelectedRoute();
+    const routeIdentifierBefore = guidance.guidanceRoute?.routeIdentifier;
+    expect(routeIdentifierBefore).toBe("osm-straight");
+
+    guidance.enterAlternativesExploration();
+    // Simulate async plan returning a completely different set of alternatives
+    planning.setPreview({
+      alternatives: [
+        {
+          id: "new-alt",
+          title: "New Route",
+          subtitle: "",
+          distanceMeters: 3500,
+          durationSeconds: 800,
+          normalizedPackage: { ...straightLinePackage(), routeIdentifier: "osm-new-plan" },
+        },
+      ],
+      selectedAlternativeID: "new-alt",
+    });
+
+    expect(
+      guidance.guidanceRoute?.routeIdentifier,
+      "guidanceRoute must be frozen to the active ride route during exploration",
+    ).toBe(routeIdentifierBefore);
   });
 
   it("guidanceAlternatives returns planning alternatives during exploration", () => {
