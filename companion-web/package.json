@@ -9,9 +9,9 @@
     "node": ">=20.19.0"
   },
   "scripts": {
-    "dev": "vite --host 0.0.0.0 --port 5173",
-    "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0 --port 5173",
+    "dev": "VITE_APP_VERSION=$(node -p \"require('./package.json').version\") VITE_APP_GIT_HASH=$(git rev-parse --short HEAD) VITE_APP_GIT_TIME=$(git log -1 --format=%cd) vite --host 0.0.0.0 --port 5173",
+    "build": "VITE_APP_VERSION=$(node -p \"require('./package.json').version\") VITE_APP_GIT_HASH=$(git rev-parse --short HEAD) VITE_APP_GIT_TIME=$(git log -1 --format=%cd) vite build",
+    "preview": "VITE_APP_VERSION=$(node -p \"require('./package.json').version\") VITE_APP_GIT_HASH=$(git rev-parse --short HEAD) VITE_APP_GIT_TIME=$(git log -1 --format=%cd) vite preview --host 0.0.0.0 --port 5173",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

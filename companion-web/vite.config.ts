@@ -1,6 +1,10 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  define: {
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(process.env.VITE_APP_VERSION),
+    "import.meta.env.VITE_APP_GIT_HASH": JSON.stringify(process.env.VITE_APP_GIT_HASH),
+  },
   server: {
     host: "0.0.0.0",
     port: 5173,
