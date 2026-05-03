@@ -21,6 +21,7 @@ final class AudioCueDispatchTests: XCTestCase {
         func setLanguage(_ bcp47: String) { lang = bcp47 }
         func hasVoice(forLocale locale: String) -> Bool { voiceAvailable }
         func shutdown() {}
+        func reset() { spoken = [] }
     }
 
     private func offset(_ base: CoordinatePoint, eastM: Double, northM: Double) -> CoordinatePoint {
@@ -74,9 +75,10 @@ final class AudioCueDispatchTests: XCTestCase {
         // assert cues fire on a synchronous tick — they don't drive the
         // scene phase. Disable the gate so the cue path is exercised.
         s.audioCuesOnlyInBackground = false
-        // Pin to metric so distance assertions are locale-independent on
-        // CI runners that default to a US/imperial system locale.
+        // Pin metric + English so distance/direction assertions are
+        // locale-independent on simulators with non-English system locale.
         s.distanceUnit = .metric
+        s.language = .en
         app.settings = s
         return app
     }
@@ -170,7 +172,7 @@ final class AudioCueDispatchTests: XCTestCase {
             longitude: start.longitude
         )
         vm.ingestRiderLocationFix(point300m, timestampMs: 1_000)
-        speech.spoken.removeAll()
+        speech.reset()
 
         // Simulate a reroute completing: new 200m route starting at point300m
         // with a right turn at 100m from the new start.
@@ -225,6 +227,88 @@ final class AudioCueDispatchTests: XCTestCase {
         XCTAssertEqual(
             nextTurnCues.count, 1,
             "after reroute, orientation cue must fire exactly once — got \(speech.spoken)"
+        )
+    }
+
+    func test_rerouteWithSameRouteId_differentRevision_resetsProgressAndCueEngine() async {
+        // Bug: when rerouting returns the same routeIdentifier (same origin +
+        // destination, same provider path) but a higher revision, the
+        // routeId-change guard in advanceProgress was never triggered because
+        // the identifier string didn't change. The CueEngine's
+        // routeStartedAnnounced flag stayed true and progressDistanceM wasn't
+        // reset, so the new route's maneuvers all appeared "already passed" and
+        // a ghost arrivingInM cue fired instead of the correct orientation cue.
+        let metersPerDegLat = 111_320.0
+        let speech = SpeechSpy()
+        let app = makeApp(speech: speech)
+        let vm = HomeViewModel(appModel: app)
+        let pkg = lShapeRoute()  // routeIdentifier = "lshape-cues", revision 1
+        app.preview = RoutePreviewModel(
+            alternatives: [RouteAlternative(
+                id: UUID(), title: "L", subtitle: "",
+                distanceMeters: 800, durationSeconds: 240, normalizedPackage: pkg
+            )],
+            selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        await vm.startSelectedRoute()
+
+        let start = pkg.geometry[0]
+        let point300m = CoordinatePoint(
+            latitude: start.latitude + 300.0 / metersPerDegLat,
+            longitude: start.longitude
+        )
+        vm.ingestRiderLocationFix(point300m, timestampMs: 1_000)
+        speech.reset()
+
+        // Reroute with the SAME routeIdentifier but revision bumped to 2.
+        let turnPoint = CoordinatePoint(
+            latitude: point300m.latitude + 100.0 / metersPerDegLat,
+            longitude: point300m.longitude
+        )
+        let reroutedEnd = CoordinatePoint(
+            latitude: point300m.latitude + 200.0 / metersPerDegLat,
+            longitude: point300m.longitude
+        )
+        let reroutedPkg = NormalizedRoutePackage(
+            version: RoutePackageVersion.current,
+            routeIdentifier: "lshape-cues",  // same identifier as original
+            revision: 2,                      // but bumped revision
+            geometry: [point300m, turnPoint, reroutedEnd],
+            maneuvers: [
+                RouteManeuver(id: "r-m1", maneuverType: .depart, location: point300m,
+                              distanceFromStartMeters: 0, distanceToNextMeters: 100, instructionText: nil),
+                RouteManeuver(id: "r-m2", maneuverType: .right, location: turnPoint,
+                              distanceFromStartMeters: 100, distanceToNextMeters: 100, instructionText: "Turn right"),
+                RouteManeuver(id: "r-m3", maneuverType: .arrive, location: reroutedEnd,
+                              distanceFromStartMeters: 200, distanceToNextMeters: nil, instructionText: nil),
+            ],
+            summary: RouteSummary(totalDistanceMeters: 200, estimatedDurationSeconds: 60,
+                                  startLabel: nil, destinationLabel: "Finish"),
+            provenance: RouteProvenance(providerID: .osm, sourceReference: nil, generatedAtUnixMs: 0)
+        )
+        app.preview = RoutePreviewModel(
+            alternatives: [RouteAlternative(
+                id: UUID(), title: "Rerouted", subtitle: "",
+                distanceMeters: 200, durationSeconds: 60, normalizedPackage: reroutedPkg
+            )],
+            selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        app.activeSession.routeIdentifier = "lshape-cues"
+        app.activeSession.routeRevision = 2
+
+        vm.ingestRiderLocationFix(point300m, timestampMs: 2_000)
+
+        let arrivingCues = speech.spoken.filter { $0.lowercased().contains("arriving") }
+        XCTAssertTrue(
+            arrivingCues.isEmpty,
+            "same-routeId reroute with bumped revision must not fire ghost arrivingInM — got \(speech.spoken)"
+        )
+        let nextTurnCues = speech.spoken.filter {
+            $0.lowercased().contains("next turn") && $0.lowercased().contains("right")
+        }
+        XCTAssertEqual(
+            nextTurnCues.count, 1,
+            "after same-routeId reroute with new revision, orientation cue must fire once — got \(speech.spoken)"
         )
     }
 

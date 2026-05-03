@@ -1200,13 +1200,20 @@ final class HomeViewModel: ObservableObject {
     /// Total length of the active route in meters. Cached on Start.
     private var routeTotalDistanceM: Double = 0
 
-    /// Tracks which routeId we last reset progress for. When the active
-    /// session's routeIdentifier changes (i.e. a reroute completed), we
-    /// reset progress to 0 so stale distance doesn't make the CueEngine see
-    /// all new-route maneuvers as "already passed". Without this reset, the
-    /// route-start cue AND the nextTurnAfter cue both fire for the same
-    /// maneuver on the first tick, giving N+1 repeats after N reroutes.
+    /// Composite key that combines routeIdentifier + revision so that a
+    /// reroute returning the SAME identifier with a bumped revision is still
+    /// treated as a new route (progress + CueEngine state reset). Without the
+    /// revision component, replanning the same origin→destination produced an
+    /// identical identifier, preserving stale progressDistanceM and causing the
+    /// CueEngine to see all new-route maneuvers as "already passed", which then
+    /// fired a ghost arrivingInM cue as the first sound after rerouting.
     private var lastProgressRouteId: String? = nil
+
+    private func routeKey() -> String? {
+        guard let id = appModel.activeSession.routeIdentifier else { return nil }
+        let rev = appModel.activeSession.routeRevision ?? 0
+        return "\(id)-rev\(rev)"
+    }
 
     /// Project the rider onto the active route geometry and advance
     /// `progressDistanceM` monotonically (never regresses), mirroring
@@ -1216,9 +1223,9 @@ final class HomeViewModel: ObservableObject {
     /// time toward the reroute-request signal.
     private func advanceProgress(rider: CoordinatePoint, nowMs: Int64) {
         guard let geometry = guidanceRoute?.geometry, geometry.count >= 2 else { return }
-        let currentRouteId = appModel.activeSession.routeIdentifier
-        if currentRouteId != lastProgressRouteId {
-            lastProgressRouteId = currentRouteId
+        let currentRouteKey = routeKey()
+        if currentRouteKey != lastProgressRouteId {
+            lastProgressRouteId = currentRouteKey
             progressDistanceM = 0
             routeTotalDistanceM = guidanceRoute.map { polylineLengthMeters($0.geometry) } ?? 0
             lastAdvanceTimestampMs = -1
@@ -1310,7 +1317,7 @@ final class HomeViewModel: ObservableObject {
             }
         }
         let snapshot = CueSnapshot(
-            routeId: appModel.activeSession.routeIdentifier,
+            routeId: routeKey(),
             pairedWithDevice: pairedWithDevice,
             progressDistanceM: progressDistanceM,
             maneuvers: cueManeuvers,

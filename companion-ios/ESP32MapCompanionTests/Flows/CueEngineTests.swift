@@ -185,6 +185,95 @@ final class CueEngineTests: XCTestCase {
         XCTAssertNotNil(firstTick, "new route id should re-announce next turn on first tick")
     }
 
+    // MARK: - Bug 1: last maneuver close to destination
+
+    func test_lastManeuver_closeToDestination_emitsArrivingNotNextTurn() {
+        // Route: m0 (left) at 500m, m1 (right) at 995m, route ends at 1000m.
+        // m1 is only 5m before the endpoint — treating it as a turn cue is
+        // misleading; "arriving" is the correct announcement.
+        let m0 = CueManeuver(id: "m0", kind: .left, distanceFromStartM: 500)
+        let m1 = CueManeuver(id: "m1", kind: .right, distanceFromStartM: 995)
+        // Tick once to build up routeStartedAnnounced state (rider far away).
+        var s = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: [m0, m1], routeTotalDistanceM: 1000),
+            state: CueEngineState()
+        ).nextState
+        // Advance past m0; now m1 is the next upcoming but it's 5m from route end.
+        let r = CueEngine.tick(
+            snapshot: base(progressDistanceM: 511, maneuvers: [m0, m1], routeTotalDistanceM: 1000),
+            state: s
+        )
+        let hasNextTurn = r.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        let hasArriving = r.events.contains { if case .arrivingInM = $0 { return true } else { return false } }
+        XCTAssertFalse(hasNextTurn, "last maneuver within 30m of route end must not emit nextTurnInAbout — got \(r.events)")
+        XCTAssertTrue(hasArriving, "last maneuver within 30m of route end must emit arrivingInM — got \(r.events)")
+    }
+
+    func test_lastManeuver_closeToDestination_suppressesTurn50m() {
+        // Same setup: m1 at 995m of 1000m route. Rider advances into the 50m
+        // window (distance = 30m). Must NOT fire turn50m — should have already
+        // fired arrivingInM when passing m0.
+        let m0 = CueManeuver(id: "m0", kind: .left, distanceFromStartM: 500)
+        let m1 = CueManeuver(id: "m1", kind: .right, distanceFromStartM: 995)
+        var s = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: [m0, m1], routeTotalDistanceM: 1000),
+            state: CueEngineState()
+        ).nextState
+        // Pass m0 — this fires arrivingInM and latches announced50m/10m for m1.
+        s = CueEngine.tick(
+            snapshot: base(progressDistanceM: 511, maneuvers: [m0, m1], routeTotalDistanceM: 1000),
+            state: s
+        ).nextState
+        // Now enter the 50m window for m1.
+        let r = CueEngine.tick(
+            snapshot: base(progressDistanceM: 965, maneuvers: [m0, m1], routeTotalDistanceM: 1000),
+            state: s
+        )
+        let hasTurn50m = r.events.contains { if case .turn50m = $0 { return true } else { return false } }
+        XCTAssertFalse(hasTurn50m, "turn50m must be suppressed for the last maneuver when arrivingInM was already announced — got \(r.events)")
+    }
+
+    func test_firstTick_singleManeuver_closeToDestination_emitsArriving() {
+        // Route with only one cue maneuver (right) at 995m of 1000m route.
+        // First tick must emit arrivingInM, not nextTurnInAbout.
+        let m1 = CueManeuver(id: "m1", kind: .right, distanceFromStartM: 995)
+        let r = CueEngine.tick(
+            snapshot: base(progressDistanceM: 0, maneuvers: [m1], routeTotalDistanceM: 1000),
+            state: CueEngineState()
+        )
+        let hasNextTurn = r.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        let hasArriving = r.events.contains { if case .arrivingInM = $0 { return true } else { return false } }
+        XCTAssertFalse(hasNextTurn, "single last maneuver close to destination must not fire nextTurnInAbout on first tick — got \(r.events)")
+        XCTAssertTrue(hasArriving, "single last maneuver close to destination must fire arrivingInM on first tick — got \(r.events)")
+    }
+
+    // MARK: - Bug 2: nextTurnInAbout + turn50m back-to-back for same maneuver
+
+    func test_nextTurnInAbout_suppressesTurn50m_whenNextManeuverWithin50m() {
+        // m1 at 500m, m2 at 545m. When the rider passes m1 (progress = 511m),
+        // m2 is 34m away — within the 50m window. The after-passing block must
+        // fire nextTurnInAbout AND pre-latch announced50m so turn50m does NOT
+        // also fire in the same tick.
+        let m1 = CueManeuver(id: "m1", kind: .left, distanceFromStartM: 500)
+        let m2 = CueManeuver(id: "m2", kind: .right, distanceFromStartM: 545)
+        var s = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: [m1, m2], routeTotalDistanceM: 1000),
+            state: CueEngineState()
+        ).nextState
+        s = CueEngine.tick(
+            snapshot: base(progressDistanceM: 450, maneuvers: [m1, m2], routeTotalDistanceM: 1000),
+            state: s
+        ).nextState
+        let r = CueEngine.tick(
+            snapshot: base(progressDistanceM: 511, maneuvers: [m1, m2], routeTotalDistanceM: 1000),
+            state: s
+        )
+        let hasNextTurn = r.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        let hasTurn50m = r.events.contains { if case .turn50m = $0 { return true } else { return false } }
+        XCTAssertTrue(hasNextTurn, "nextTurnInAbout must fire when passing m1 with m2 within 50m — got \(r.events)")
+        XCTAssertFalse(hasTurn50m, "turn50m must be suppressed when nextTurnInAbout already announces the same maneuver — got \(r.events)")
+    }
+
     func test_formatsSpecPhrases() {
         XCTAssertEqual(CueEngine.format(.turn50m(.left, distanceM: 50)), "In 50 meters, turn left")
         XCTAssertEqual(CueEngine.format(.turn50m(.keepRight, distanceM: 50)), "In 50 meters, keep right")

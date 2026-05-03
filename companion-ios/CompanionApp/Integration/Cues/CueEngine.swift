@@ -77,6 +77,11 @@ enum CueEngine {
     /// the rider then misperceives as the routing engine inventing
     /// turns that aren't really there.
     private static let backToBackThresholdM = 30.0
+    /// If the last cue maneuver sits within this distance of the route
+    /// end, approaching it is indistinguishable from arriving: substitute
+    /// `arrivingInM` for any `nextTurnInAbout` or approach cues so the
+    /// rider hears "arriving in Xm" rather than a phantom turn command.
+    private static let closeToDestinationM = 30.0
 
     struct Result {
         let events: [CueEvent]
@@ -124,8 +129,23 @@ enum CueEngine {
             }) {
                 let distanceM = firstNonDepart.distanceFromStartM - snapshot.progressDistanceM
                 if distanceM > Self.approach50M {
-                    // Case A.
-                    events.append(.nextTurnInAbout(turnKind: firstNonDepart.kind, distanceM: distanceM))
+                    // Case A — orientation cue.
+                    // Bug 1: if firstNonDepart is the last cue maneuver AND very
+                    // close to the route end, announce "arriving" instead of a
+                    // phantom turn direction.
+                    let firstIdx = snapshot.maneuvers.firstIndex { $0.id == firstNonDepart.id } ?? -1
+                    let isLastManeuver = firstIdx == snapshot.maneuvers.count - 1
+                    let distToEnd = snapshot.routeTotalDistanceM - firstNonDepart.distanceFromStartM
+                    if isLastManeuver && distToEnd < Self.closeToDestinationM {
+                        if !s.approachingDestinationAnnounced {
+                            events.append(.arrivingInM(distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM))
+                            s.approachingDestinationAnnounced = true
+                            s.announced50m.insert(firstNonDepart.id)
+                            s.announced10m.insert(firstNonDepart.id)
+                        }
+                    } else {
+                        events.append(.nextTurnInAbout(turnKind: firstNonDepart.kind, distanceM: distanceM))
+                    }
                 } else {
                     // Case B vs. C — peek at the follow-up gap.
                     let upcomingIdx = snapshot.maneuvers.firstIndex(where: { $0.id == firstNonDepart.id }) ?? -1
@@ -187,6 +207,60 @@ enum CueEngine {
             let upcoming = snapshot.maneuvers.first { $0.distanceFromStartM - snapshot.progressDistanceM >= 0 }
             let upcomingDistance = upcoming.map { $0.distanceFromStartM - snapshot.progressDistanceM }
 
+            // Bug 2 fix: run the "after-passing" block FIRST so it can
+            // pre-latch announced50m before the 50m approach check. The old
+            // ordering let turn50m fire in the same tick as nextTurnInAbout
+            // for the identical maneuver, producing a back-to-back double cue.
+            let lastPassed = snapshot.maneuvers
+                .filter { snapshot.progressDistanceM - $0.distanceFromStartM >= Self.passedTurnM }
+                .max { $0.distanceFromStartM < $1.distanceFromStartM }
+            if let lastPassed = lastPassed, !announcedNextTurnAfter.contains(lastPassed.id) {
+                let indexOfLast = snapshot.maneuvers.firstIndex { $0.id == lastPassed.id } ?? -1
+                let nextAfter = (indexOfLast >= 0 && indexOfLast + 1 < snapshot.maneuvers.count)
+                    ? snapshot.maneuvers[indexOfLast + 1] : nil
+                if let nextAfter = nextAfter {
+                    let distanceToNext = nextAfter.distanceFromStartM - snapshot.progressDistanceM
+                    // Bug 1 fix: if nextAfter is the last cue maneuver and sits
+                    // within closeToDestinationM of the route end, the rider is
+                    // effectively arriving — emit arrivingInM and suppress all
+                    // approach cues for that maneuver so the phantom "turn X"
+                    // never plays.
+                    let isLastManeuver = indexOfLast + 1 == snapshot.maneuvers.count - 1
+                    let distNextToEnd = snapshot.routeTotalDistanceM - nextAfter.distanceFromStartM
+                    if isLastManeuver && distNextToEnd < Self.closeToDestinationM {
+                        if !s.approachingDestinationAnnounced {
+                            events.append(.arrivingInM(
+                                distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM
+                            ))
+                            s.approachingDestinationAnnounced = true
+                            announcedNextTurnAfter.insert(lastPassed.id)
+                            announced50m.insert(nextAfter.id)
+                            announced10m.insert(nextAfter.id)
+                        }
+                    } else {
+                        events.append(.nextTurnInAbout(
+                            turnKind: nextAfter.kind,
+                            distanceM: distanceToNext
+                        ))
+                        announcedNextTurnAfter.insert(lastPassed.id)
+                        // If the next maneuver is already within the 50 m
+                        // approach window, pre-latch announced50m so the
+                        // turn50m block below (same tick) is suppressed.
+                        // The rider was just told the turn is imminent; a
+                        // second "In 50 m turn X" right after is redundant.
+                        if distanceToNext <= Self.approach50M {
+                            announced50m.insert(nextAfter.id)
+                        }
+                    }
+                } else if !s.approachingDestinationAnnounced {
+                    events.append(.arrivingInM(
+                        distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM
+                    ))
+                    announcedNextTurnAfter.insert(lastPassed.id)
+                    s.approachingDestinationAnnounced = true
+                }
+            }
+
             if let m = upcoming, let d = upcomingDistance,
                d <= Self.approach50M, d > Self.approach10M, !announced50m.contains(m.id) {
                 let upcomingIdx = snapshot.maneuvers.firstIndex(where: { $0.id == m.id }) ?? -1
@@ -213,39 +287,6 @@ enum CueEngine {
                d <= Self.approach10M, !announced10m.contains(m.id) {
                 events.append(.turn10m(m.kind))
                 announced10m.insert(m.id)
-            }
-
-            let lastPassed = snapshot.maneuvers
-                .filter { snapshot.progressDistanceM - $0.distanceFromStartM >= Self.passedTurnM }
-                .max { $0.distanceFromStartM < $1.distanceFromStartM }
-            if let lastPassed = lastPassed, !announcedNextTurnAfter.contains(lastPassed.id) {
-                let indexOfLast = snapshot.maneuvers.firstIndex { $0.id == lastPassed.id } ?? -1
-                let nextAfter = (indexOfLast >= 0 && indexOfLast + 1 < snapshot.maneuvers.count)
-                    ? snapshot.maneuvers[indexOfLast + 1] : nil
-                if let nextAfter = nextAfter {
-                    let distanceToNext = nextAfter.distanceFromStartM - snapshot.progressDistanceM
-                    events.append(.nextTurnInAbout(
-                        turnKind: nextAfter.kind,
-                        distanceM: distanceToNext
-                    ))
-                    announcedNextTurnAfter.insert(lastPassed.id)
-                    // If the next maneuver is already within the 50 m
-                    // approach window when we announce it, suppress the
-                    // 50 m cue for it — the rider was just told. Without
-                    // this they'd hear "Next turn left in about 30 m"
-                    // and a couple seconds later "In 50 m turn left",
-                    // which is both repetitive and factually wrong.
-                    // Lets only the 10 m action cue fire later.
-                    if distanceToNext <= Self.approach50M {
-                        announced50m.insert(nextAfter.id)
-                    }
-                } else if !s.approachingDestinationAnnounced {
-                    events.append(.arrivingInM(
-                        distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM
-                    ))
-                    announcedNextTurnAfter.insert(lastPassed.id)
-                    s.approachingDestinationAnnounced = true
-                }
             }
 
             s.announced50m = announced50m
