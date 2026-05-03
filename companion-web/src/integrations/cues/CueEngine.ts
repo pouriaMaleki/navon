@@ -73,6 +73,11 @@ const PASSED_TURN_M = 10;
 const ON_TRACK_CONFIRM_SAMPLES = 5;
 const ON_TRACK_CORRIDOR_M = 22;
 const REPEAT_OFFTRACK_SILENCE_THRESHOLD = 2;
+/** If the last cue maneuver sits within this distance of the route end,
+ *  approaching it is indistinguishable from arriving: substitute arrivingInM
+ *  for any nextTurnInAbout or approach cues so the rider hears "arriving in Xm"
+ *  rather than a phantom turn command. */
+const CLOSE_TO_DESTINATION_M = 30;
 /** Two maneuvers separated by less than this fold into a single
  *  "turn X then quickly Y" cue. 80 m at 25 km/h ≈ 11 s — enough for the
  *  rider to take both turns smoothly, not long enough for two
@@ -149,12 +154,32 @@ export function tickCueEngine(
     if (firstNonDepart) {
       const distanceM = firstNonDepart.distanceFromStartM - snapshot.progressDistanceM;
       if (distanceM > APPROACH_50_M) {
-        // Case A.
-        events.push({
-          kind: "nextTurnInAbout",
-          turnKind: firstNonDepart.kind,
-          distanceM,
-        });
+        // Case A — orientation cue.
+        // Bug 1: if firstNonDepart is the last cue maneuver AND very close
+        // to the route end, announce "arriving" instead of a phantom turn.
+        const firstIdx = snapshot.maneuvers.findIndex((m) => m.id === firstNonDepart.id);
+        const isLastManeuver = firstIdx === snapshot.maneuvers.length - 1;
+        const distToEnd = snapshot.routeTotalDistanceM - firstNonDepart.distanceFromStartM;
+        if (isLastManeuver && distToEnd < CLOSE_TO_DESTINATION_M) {
+          if (!s.approachingDestinationAnnounced) {
+            events.push({
+              kind: "arrivingInM",
+              distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM,
+            });
+            s = {
+              ...s,
+              approachingDestinationAnnounced: true,
+              announced50m: new Set([...s.announced50m, firstNonDepart.id]),
+              announced10m: new Set([...s.announced10m, firstNonDepart.id]),
+            };
+          }
+        } else {
+          events.push({
+            kind: "nextTurnInAbout",
+            turnKind: firstNonDepart.kind,
+            distanceM,
+          });
+        }
       } else {
         // Case B vs. C — peek at the follow-up gap.
         const upcomingIdx = snapshot.maneuvers.findIndex((m) => m.id === firstNonDepart.id);
@@ -290,20 +315,34 @@ export function tickCueEngine(
       const nextAfter = snapshot.maneuvers[indexOfLast + 1];
       if (nextAfter) {
         // Cue 4: there's another maneuver — announce next turn.
+        // Bug 1 fix: if nextAfter is the last cue maneuver and sits within
+        // CLOSE_TO_DESTINATION_M of the route end, the rider is effectively
+        // arriving — emit arrivingInM and suppress all approach cues for that
+        // maneuver so the phantom "turn X" never plays.
         const distanceToNext = nextAfter.distanceFromStartM - snapshot.progressDistanceM;
-        events.push({
-          kind: "nextTurnInAbout",
-          turnKind: nextAfter.kind,
-          distanceM: distanceToNext,
-        });
-        announcedNextTurnAfter.add(lastPassed.id);
-        // If the next maneuver is already within the 50 m approach
-        // window when we announce it, suppress the 50 m cue for it —
-        // the rider was just told. Without this they'd hear "Next
-        // turn left in about 30 m" and seconds later "In 50 m turn
-        // left", which is repetitive and factually wrong.
-        if (distanceToNext <= APPROACH_50_M) {
-          announced50m.add(nextAfter.id);
+        const isLastManeuver = indexOfLast + 1 === snapshot.maneuvers.length - 1;
+        const distNextToEnd = snapshot.routeTotalDistanceM - nextAfter.distanceFromStartM;
+        if (isLastManeuver && distNextToEnd < CLOSE_TO_DESTINATION_M) {
+          if (!s.approachingDestinationAnnounced) {
+            events.push({
+              kind: "arrivingInM",
+              distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM,
+            });
+            s = { ...s, approachingDestinationAnnounced: true };
+            announcedNextTurnAfter.add(lastPassed.id);
+            announced50m.add(nextAfter.id);
+            announced10m.add(nextAfter.id);
+          }
+        } else {
+          events.push({
+            kind: "nextTurnInAbout",
+            turnKind: nextAfter.kind,
+            distanceM: distanceToNext,
+          });
+          announcedNextTurnAfter.add(lastPassed.id);
+          if (distanceToNext <= APPROACH_50_M) {
+            announced50m.add(nextAfter.id);
+          }
         }
       } else if (!s.approachingDestinationAnnounced) {
         // Cue 5: no further maneuvers — arriving at destination.

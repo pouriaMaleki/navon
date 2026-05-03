@@ -520,6 +520,10 @@ export class GuidanceStore {
     // intents stay consistent. The arrival banner survives because we set it
     // before stopGuidance() (stopGuidance does not clear arrivalNotice).
     this.stopGuidance();
+    // Wipe the search field and all route alternatives so the map returns
+    // to a blank "Where to?" state. arrivalNotice persists until the rider
+    // starts a new route.
+    this.planning.clearPreview();
   }
 
   /**

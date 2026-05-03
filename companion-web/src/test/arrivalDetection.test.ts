@@ -95,4 +95,20 @@ describe("arrival detection (rider close to destination ends guidance)", () => {
     expect(guidance.homeMode).toBe("phoneGuidance");
     expect(guidance.arrivalNotice).toBeUndefined();
   });
+
+  it("clears the search query and route preview on arrival so no phantom polyline or stale destination remains", () => {
+    // After arriving the "Where to?" field and route alternatives must be
+    // wiped so the map shows a blank planning state. Previously
+    // declareArrival() only stopped guidance; planning.query and
+    // planning.preview were never cleared.
+    const { guidance, planning } = buildHarness();
+    void planning.updateQuery("Ensi linja 1");
+    expect(planning.preview.alternatives.length).toBeGreaterThan(0);
+
+    const arrivalPoint = { latitude: DEST.latitude - 0.00005, longitude: DEST.longitude };
+    guidance.advanceProgress(arrivalPoint, 1000);
+
+    expect(planning.query).toBe("");
+    expect(planning.preview.alternatives).toHaveLength(0);
+  });
 });

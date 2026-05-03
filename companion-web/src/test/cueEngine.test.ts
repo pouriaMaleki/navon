@@ -260,3 +260,105 @@ describe("CueEngine — existing approach + arrival cues unchanged", () => {
     expect(formatCueEvent({ kind: "arrived" })).toBe("You have arrived at your destination");
   });
 });
+
+describe("CueEngine — Bug 1: last maneuver close to destination emits arrivingInM", () => {
+  // Bug: when the last cue maneuver sits within ~30 m of the route end,
+  // the engine emitted nextTurnInAbout / turn50m for that phantom turn
+  // instead of arrivingInM.  The rider heard "next turn right in 80 m"
+  // while actually approaching the destination.
+
+  it("first-tick: emits arrivingInM (not nextTurnInAbout) when sole maneuver is within 30 m of route end", () => {
+    // Single maneuver at 975 m; route ends at 1000 m — 25 m gap (< 30 m threshold).
+    const snap = baseSnapshot({
+      maneuvers: [{ id: "m1", kind: "right" as const, distanceFromStartM: 975 }],
+      routeTotalDistanceM: 1000,
+      progressDistanceM: 0,
+    });
+    const { events } = tick(initialCueEngineState(), snap);
+    expect(events.find((e) => e.kind === "arrivingInM")).toBeDefined();
+    expect(events.find((e) => e.kind === "nextTurnInAbout")).toBeUndefined();
+  });
+
+  it("first-tick: emits nextTurnInAbout when sole maneuver is far from route end (> 30 m)", () => {
+    const snap = baseSnapshot({
+      maneuvers: [{ id: "m1", kind: "right" as const, distanceFromStartM: 200 }],
+      routeTotalDistanceM: 1000,
+      progressDistanceM: 0,
+    });
+    const { events } = tick(initialCueEngineState(), snap);
+    expect(events.find((e) => e.kind === "nextTurnInAbout")).toBeDefined();
+    expect(events.find((e) => e.kind === "arrivingInM")).toBeUndefined();
+  });
+
+  it("after-passing block: emits arrivingInM (not nextTurnInAbout) when next maneuver is within 30 m of route end", () => {
+    // m1 at 400 m, m2 at 975 m of 1000 m (25 m gap < 30 m threshold); rider passes m1.
+    const snap = baseSnapshot({
+      maneuvers: [
+        { id: "m1", kind: "left" as const, distanceFromStartM: 400 },
+        { id: "m2", kind: "right" as const, distanceFromStartM: 975 },
+      ],
+      routeTotalDistanceM: 1000,
+      progressDistanceM: 415,
+    });
+    const { events } = tick(initialCueEngineState(), snap);
+    expect(events.find((e) => e.kind === "arrivingInM")).toBeDefined();
+    expect(events.find((e) => e.kind === "nextTurnInAbout")).toBeUndefined();
+  });
+
+  it("after-passing block: suppresses turn50m for the last maneuver within 30 m of route end", () => {
+    // Rider at 930 m; m2 at 975 m of 1000 m — within 50 m approach AND
+    // last maneuver within 30 m of end. turn50m must not fire.
+    const snap = baseSnapshot({
+      maneuvers: [
+        { id: "m1", kind: "left" as const, distanceFromStartM: 400 },
+        { id: "m2", kind: "right" as const, distanceFromStartM: 975 },
+      ],
+      routeTotalDistanceM: 1000,
+      progressDistanceM: 930,
+    });
+    const { events } = tick(initialCueEngineState(), snap);
+    expect(events.find((e) => e.kind === "turn50m")).toBeUndefined();
+  });
+});
+
+describe("CueEngine — Bug 3: same routeId with bumped revision resets engine state", () => {
+  // Bug: the engine used only routeId (the identifier string) for its
+  // change-detection guard. When a reroute returned the same identifier
+  // but a higher revision, CueEngineState was not reset, so stale
+  // progressDistanceM made all new-route maneuvers appear "already passed"
+  // and a ghost arrivingInM fired as the first cue of the new route.
+  //
+  // Fix: the caller must pass a composite key "routeId-revN" so the engine
+  // detects the revision bump as a genuine route change.
+
+  it("resets engine state when routeId changes to same-identifier-but-new-revision composite key", () => {
+    // Simulate 300 m of progress on route r1-rev1.
+    const s1 = tick(
+      initialCueEngineState(),
+      baseSnapshot({ routeId: "lshape-rev1", progressDistanceM: 300 }),
+    ).next;
+
+    // Reroute: same base identifier, revision bumped to 2.
+    // New 200 m route with a right turn at 100 m.
+    const rerouteSnap: CueSnapshot = {
+      routeId: "lshape-rev2",
+      pairedWithDevice: false,
+      progressDistanceM: 0,
+      maneuvers: [{ id: "r-m1", kind: "right" as const, distanceFromStartM: 100 }],
+      offRoute: false,
+      rerouting: false,
+      arrived: false,
+      distanceFromRouteM: 0,
+      routeTotalDistanceM: 200,
+    };
+    const { events } = tick(s1, rerouteSnap);
+
+    const arrivingCues = events.filter((e) => e.kind === "arrivingInM");
+    expect(arrivingCues).toHaveLength(0);
+
+    const nextTurnCues = events.filter(
+      (e) => e.kind === "nextTurnInAbout" && (e as { turnKind: string }).turnKind === "right",
+    );
+    expect(nextTurnCues).toHaveLength(1);
+  });
+});

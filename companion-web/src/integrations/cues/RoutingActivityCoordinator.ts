@@ -156,6 +156,16 @@ export function startRoutingActivityCoordinator(
   });
 }
 
+/** Composite key used as CueSnapshot.routeId so a revision bump on the same
+ *  route identifier is treated as a genuine route change by the CueEngine. */
+export function buildRouteKey(
+  routeIdentifier: string | undefined,
+  routeRevision: number | undefined,
+): string | undefined {
+  if (!routeIdentifier) return undefined;
+  return `${routeIdentifier}-rev${routeRevision ?? 0}`;
+}
+
 function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnapshot {
   const guidance = store.guidanceStore;
   const route = guidance.guidanceRoute;
@@ -168,7 +178,10 @@ function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnaps
     }));
   const routeTotalDistanceM = route?.summary.totalDistanceMeters ?? 0;
   return {
-    routeId: guidance.activeSession.routeIdentifier,
+    routeId: buildRouteKey(
+      guidance.activeSession.routeIdentifier,
+      guidance.activeSession.routeRevision,
+    ),
     pairedWithDevice,
     progressDistanceM: guidance.progressDistanceM,
     maneuvers,
