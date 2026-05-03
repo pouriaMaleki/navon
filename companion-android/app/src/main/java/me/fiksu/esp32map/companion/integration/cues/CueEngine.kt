@@ -96,6 +96,11 @@ object CueEngine {
      *  the rider then misperceives as the routing engine inventing
      *  turns that aren't really there. */
     private const val BACK_TO_BACK_THRESHOLD_M = 30.0
+    /** If the last cue maneuver sits within this distance of the route end,
+     *  approaching it is indistinguishable from arriving: substitute ArrivingInM
+     *  for any NextTurnInAbout or approach cues so the rider hears "arriving in Xm"
+     *  rather than a phantom turn command. */
+    private const val CLOSE_TO_DESTINATION_M = 30.0
 
     data class Result(val events: List<CueEvent>, val nextState: CueEngineState)
 
@@ -137,13 +142,31 @@ object CueEngine {
             if (firstNonDepart != null) {
                 val distanceM = firstNonDepart.distanceFromStartM - snapshot.progressDistanceM
                 if (distanceM > APPROACH_50_M) {
-                    // Case A.
-                    events.add(
-                        CueEvent.NextTurnInAbout(
-                            turnKind = firstNonDepart.kind,
-                            distanceM = distanceM,
-                        ),
-                    )
+                    // Case A — orientation cue.
+                    // Bug 1: if firstNonDepart is the last cue maneuver AND very close
+                    // to the route end, announce "arriving" instead of a phantom turn.
+                    val firstIdx = snapshot.maneuvers.indexOfFirst { it.id == firstNonDepart.id }
+                    val isLastManeuver = firstIdx == snapshot.maneuvers.size - 1
+                    val distToEnd = snapshot.routeTotalDistanceM - firstNonDepart.distanceFromStartM
+                    if (isLastManeuver && distToEnd < CLOSE_TO_DESTINATION_M) {
+                        if (!s.approachingDestinationAnnounced) {
+                            events.add(CueEvent.ArrivingInM(
+                                distanceM = snapshot.routeTotalDistanceM - snapshot.progressDistanceM,
+                            ))
+                            s = s.copy(
+                                approachingDestinationAnnounced = true,
+                                announced50m = s.announced50m + firstNonDepart.id,
+                                announced10m = s.announced10m + firstNonDepart.id,
+                            )
+                        }
+                    } else {
+                        events.add(
+                            CueEvent.NextTurnInAbout(
+                                turnKind = firstNonDepart.kind,
+                                distanceM = distanceM,
+                            ),
+                        )
+                    }
                 } else {
                     // Case B vs. C — peek at the follow-up gap.
                     val upcomingIdx = snapshot.maneuvers.indexOfFirst { it.id == firstNonDepart.id }
@@ -257,22 +280,33 @@ object CueEngine {
                 val indexOfLast = snapshot.maneuvers.indexOfFirst { it.id == lastPassed.id }
                 val nextAfter = snapshot.maneuvers.getOrNull(indexOfLast + 1)
                 if (nextAfter != null) {
+                    // Bug 1 fix: if nextAfter is the last cue maneuver and sits within
+                    // CLOSE_TO_DESTINATION_M of the route end, emit ArrivingInM and
+                    // suppress all approach cues for it so the phantom "turn X" never plays.
                     val distanceToNext = nextAfter.distanceFromStartM - snapshot.progressDistanceM
-                    events.add(
-                        CueEvent.NextTurnInAbout(
-                            turnKind = nextAfter.kind,
-                            distanceM = distanceToNext,
-                        ),
-                    )
-                    announcedNextTurnAfter.add(lastPassed.id)
-                    // If the next maneuver is already within the 50 m
-                    // approach window when we announce it, suppress
-                    // the 50 m cue for it — the rider was just told.
-                    // Without this they'd hear "Next turn left in
-                    // about 30 m" and seconds later "In 50 m turn
-                    // left", which is repetitive and factually wrong.
-                    if (distanceToNext <= APPROACH_50_M) {
-                        announced50m.add(nextAfter.id)
+                    val isLastManeuver = indexOfLast + 1 == snapshot.maneuvers.size - 1
+                    val distNextToEnd = snapshot.routeTotalDistanceM - nextAfter.distanceFromStartM
+                    if (isLastManeuver && distNextToEnd < CLOSE_TO_DESTINATION_M) {
+                        if (!s.approachingDestinationAnnounced) {
+                            events.add(CueEvent.ArrivingInM(
+                                distanceM = snapshot.routeTotalDistanceM - snapshot.progressDistanceM,
+                            ))
+                            s = s.copy(approachingDestinationAnnounced = true)
+                            announcedNextTurnAfter.add(lastPassed.id)
+                            announced50m.add(nextAfter.id)
+                            announced10m.add(nextAfter.id)
+                        }
+                    } else {
+                        events.add(
+                            CueEvent.NextTurnInAbout(
+                                turnKind = nextAfter.kind,
+                                distanceM = distanceToNext,
+                            ),
+                        )
+                        announcedNextTurnAfter.add(lastPassed.id)
+                        if (distanceToNext <= APPROACH_50_M) {
+                            announced50m.add(nextAfter.id)
+                        }
                     }
                 } else if (!s.approachingDestinationAnnounced) {
                     events.add(

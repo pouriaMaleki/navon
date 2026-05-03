@@ -187,6 +187,94 @@ class CueEngineTest {
         assertEquals(ManeuverKind.LEFT, combined.followUpKind)
     }
 
+    // Bug 1: when the last cue maneuver sits within ~30 m of the route end,
+    // the engine must emit arrivingInM instead of nextTurnInAbout / turn50m.
+
+    @Test
+    fun firstTick_lastManeuverCloseToDestination_emitsArrivingNotNextTurn() {
+        // Single maneuver at 975 m; route ends at 1000 m (25 m gap < 30 m threshold).
+        val snap = base(
+            maneuvers = listOf(CueManeuver("m1", ManeuverKind.RIGHT, 975.0)),
+            routeTotalDistanceM = 1000.0,
+            progressDistanceM = 0.0,
+        )
+        val r = CueEngine.tick(snap, CueEngineState())
+        assertNotNull("must emit arrivingInM", r.events.firstOrNull { it is CueEvent.ArrivingInM })
+        assertNull("must not emit nextTurnInAbout", r.events.firstOrNull { it is CueEvent.NextTurnInAbout })
+    }
+
+    @Test
+    fun firstTick_lastManeuverFarFromDestination_emitsNextTurnNotArriving() {
+        // Same setup but maneuver at 200 m — clearly not close to the route end.
+        val snap = base(
+            maneuvers = listOf(CueManeuver("m1", ManeuverKind.RIGHT, 200.0)),
+            routeTotalDistanceM = 1000.0,
+            progressDistanceM = 0.0,
+        )
+        val r = CueEngine.tick(snap, CueEngineState())
+        assertNotNull("must emit nextTurnInAbout", r.events.firstOrNull { it is CueEvent.NextTurnInAbout })
+        assertNull("must not emit arrivingInM", r.events.firstOrNull { it is CueEvent.ArrivingInM })
+    }
+
+    @Test
+    fun afterPassingBlock_lastManeuverCloseToDestination_emitsArrivingNotNextTurn() {
+        // m1 at 400 m, m2 at 975 m of 1000 m; rider passes m1.
+        val snap = base(
+            maneuvers = listOf(
+                CueManeuver("m1", ManeuverKind.LEFT, 400.0),
+                CueManeuver("m2", ManeuverKind.RIGHT, 975.0),
+            ),
+            routeTotalDistanceM = 1000.0,
+            progressDistanceM = 415.0,
+        )
+        val r = CueEngine.tick(CueEngineState(), snap)
+        assertNotNull("must emit arrivingInM", r.events.firstOrNull { it is CueEvent.ArrivingInM })
+        assertNull("must not emit nextTurnInAbout", r.events.firstOrNull { it is CueEvent.NextTurnInAbout })
+    }
+
+    @Test
+    fun afterPassingBlock_lastManeuverCloseToDestination_suppressesTurn50m() {
+        // Rider at 930 m; m2 at 975 m — within 50 m approach AND
+        // last maneuver within 30 m of end. turn50m must not fire.
+        val snap = base(
+            maneuvers = listOf(
+                CueManeuver("m1", ManeuverKind.LEFT, 400.0),
+                CueManeuver("m2", ManeuverKind.RIGHT, 975.0),
+            ),
+            routeTotalDistanceM = 1000.0,
+            progressDistanceM = 930.0,
+        )
+        val r = CueEngine.tick(CueEngineState(), snap)
+        assertNull("turn50m must be suppressed for last maneuver near end", r.events.firstOrNull { it is CueEvent.Turn50m })
+    }
+
+    // Bug 3: same routeIdentifier with bumped revision must be detected as a
+    // route change when the caller uses a composite "id-revN" key.
+
+    @Test
+    fun sameRouteIdWithBumpedRevisionCompositeKey_resetsEngineState() {
+        // Simulate 300 m progress on route "lshape-rev1".
+        val s1 = CueEngine.tick(
+            base(routeId = "lshape-rev1", progressDistanceM = 300.0),
+            CueEngineState(),
+        ).nextState
+
+        // Reroute: same base identifier, revision bumped ("lshape-rev2").
+        val rerouteSnap = base(
+            routeId = "lshape-rev2",
+            progressDistanceM = 0.0,
+            maneuvers = listOf(CueManeuver("r-m1", ManeuverKind.RIGHT, 100.0)),
+            routeTotalDistanceM = 200.0,
+        )
+        val r = CueEngine.tick(rerouteSnap, s1)
+
+        val arrivingCues = r.events.filterIsInstance<CueEvent.ArrivingInM>()
+        assertTrue("must not fire ghost arrivingInM after reroute — got ${ r.events}", arrivingCues.isEmpty())
+        val nextTurnCues = r.events.filterIsInstance<CueEvent.NextTurnInAbout>()
+            .filter { it.turnKind == ManeuverKind.RIGHT }
+        assertEquals("orientation cue must fire exactly once — got ${r.events}", 1, nextTurnCues.size)
+    }
+
     @Test
     fun formatsSpecPhrases() {
         assertEquals("In 50 meters, turn left", CueEngine.format(CueEvent.Turn50m(ManeuverKind.LEFT)))

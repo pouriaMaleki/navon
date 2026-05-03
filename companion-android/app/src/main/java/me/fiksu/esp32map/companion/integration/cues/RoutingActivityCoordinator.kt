@@ -20,6 +20,13 @@ import me.fiksu.esp32map.companion.integration.screen.KeepScreenOnController
  * and the foreground service get exercised on every settings change). When
  * cues become available, call [onGuidanceTick].
  */
+/** Composite key for [CueSnapshot.routeId] so a revision bump on the same
+ *  route identifier is treated as a genuine route change by [CueEngine]. */
+fun buildRouteKey(routeIdentifier: String?, routeRevision: Int?): String? {
+    if (routeIdentifier == null) return null
+    return "$routeIdentifier-rev${routeRevision ?: 0}"
+}
+
 class RoutingActivityCoordinator(
     private val keepScreenOn: KeepScreenOnController,
     private val tts: TtsPort,

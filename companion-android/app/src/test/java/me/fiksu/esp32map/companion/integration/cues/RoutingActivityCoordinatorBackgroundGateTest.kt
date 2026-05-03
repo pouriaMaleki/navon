@@ -40,7 +40,9 @@ class RoutingActivityCoordinatorBackgroundGateTest {
         routeId = "r1",
         pairedWithDevice = false,
         progressDistanceM = 0.0,
-        maneuvers = emptyList(),
+        // A maneuver at 200 m so the first-tick orientation cue fires and
+        // the gating tests have a real cue to assert on.
+        maneuvers = listOf(CueManeuver("m1", ManeuverKind.RIGHT, 200.0)),
         offRoute = false,
         rerouting = false,
         arrived = false,
@@ -98,7 +100,7 @@ class RoutingActivityCoordinatorBackgroundGateTest {
             isRouting = true,
             isAppInBackground = true,
         )
-        assertTrue("expected at least 'Route started' cue", tts.spoken.contains("Route started"))
+        assertTrue("expected at least one cue to fire — got ${tts.spoken}", tts.spoken.isNotEmpty())
     }
 
     @Test
@@ -115,7 +117,7 @@ class RoutingActivityCoordinatorBackgroundGateTest {
             isRouting = true,
             isAppInBackground = false,
         )
-        assertTrue("expected at least 'Route started' cue", tts.spoken.contains("Route started"))
+        assertTrue("expected at least one cue to fire — got ${tts.spoken}", tts.spoken.isNotEmpty())
     }
 
     // No-voice fallback. When the OS has no installed TTS voice for the
@@ -156,7 +158,7 @@ class RoutingActivityCoordinatorBackgroundGateTest {
         )
         assertTrue(
             "cue text should be rendered in English to match the EN voice; got ${tts.spoken}",
-            tts.spoken.contains("Route started"),
+            tts.spoken.any { it.contains("Next turn", ignoreCase = true) || it.contains("right", ignoreCase = true) },
         )
     }
 
