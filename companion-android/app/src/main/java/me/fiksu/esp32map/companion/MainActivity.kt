@@ -520,6 +520,9 @@ private fun SpeedBadge(appState: CompanionAppState, homeState: HomeStateHolder) 
     val moving = homeState.travelHeadingDegrees != null
     val inGuidance = homeState.homeMode == HomeMode.PHONE_GUIDANCE
     if (!moving && !inGuidance) return
+    val suggestionsVisible = homeState.isExploringAlternativesFromGuidance ||
+        (homeState.homeMode == HomeMode.PLANNING && homeState.previewAlternatives.isNotEmpty())
+    if (suggestionsVisible) return
     val unit = appState.settings.speedUnit
     val mps = appState.locationState.currentSpeedMps
     val factor = if (unit == SpeedUnit.MPH) 2.2369363 else 3.6
@@ -776,16 +779,22 @@ private fun RouteSuggestionsCard(appState: CompanionAppState, homeState: HomeSta
             }) { Text("Close") }
         }
         if (homeState.isExploringAlternativesFromGuidance) {
+            val continueSelected = homeState.selectedAlternativeIdForDisplay == null
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { homeState.cancelAlternativesExploration() }
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), shape = MaterialTheme.shapes.medium)
+                    .clickable { homeState.deselectForExploration() }
+                    .background(
+                        if (continueSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent,
+                        shape = MaterialTheme.shapes.medium,
+                    )
                     .padding(horizontal = 10.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text("Continue on current route", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                Text("✓", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+                if (continueSelected) {
+                    Text("✓", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+                }
             }
         }
         appState.preview.planningNotice?.takeIf { it.isNotBlank() }?.let {
@@ -803,19 +812,21 @@ private fun RouteSuggestionsCard(appState: CompanionAppState, homeState: HomeSta
             }
         }
         homeState.previewAlternatives.forEach { alternative ->
-            val selected = alternative.id == appState.preview.selectedAlternativeId
+            val selected = alternative.id == homeState.selectedAlternativeIdForDisplay
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { homeState.selectAlternative(alternative.id) }
+                    .clickable {
+                        if (homeState.isExploringAlternativesFromGuidance) {
+                            homeState.selectAlternativeForExploration(alternative.id)
+                        } else {
+                            homeState.selectAlternative(alternative.id)
+                        }
+                    }
                     .background(
                         if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent,
                         shape = MaterialTheme.shapes.medium,
                     )
-                    // iOS parity: tighten the row to a compact two-line
-                    // block (title + km/min summary). 6 vertical pt + the
-                    // empty-subtitle skip gives the same visual weight as
-                    // iOS's `phoneGuidanceTopCard` rows.
                     .padding(horizontal = 10.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -827,11 +838,21 @@ private fun RouteSuggestionsCard(appState: CompanionAppState, homeState: HomeSta
                     Text(alternative.normalizedPackage.summaryLine, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (selected) {
-                    Text("Selected", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+                    Text("✓", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
-        Button(onClick = { homeState.startSelectedRoute() }, modifier = Modifier.fillMaxWidth(), enabled = homeState.homeMode != HomeMode.SENDING_TO_DEVICE) {
+        Button(
+            onClick = {
+                if (homeState.isExploringAlternativesFromGuidance && homeState.selectedAlternativeIdForDisplay == null) {
+                    homeState.cancelAlternativesExploration()
+                } else {
+                    homeState.startSelectedRoute()
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = homeState.previewAlternatives.isNotEmpty() || homeState.isExploringAlternativesFromGuidance,
+        ) {
             if (homeState.homeMode == HomeMode.SENDING_TO_DEVICE) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)

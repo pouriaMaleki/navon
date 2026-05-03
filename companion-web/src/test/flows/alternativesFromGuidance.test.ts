@@ -276,6 +276,63 @@ describe("explore alternatives from guidance (split-icon UX)", () => {
     expect(guidance.guidanceAlternatives).toHaveLength(0);
   });
 
+  // ── deselectForExploration regression tests ────────────────────────────────
+
+  it("deselectForExploration clears explorationSelectedID so Continue gets the checkmark again", () => {
+    const { guidance, planning } = buildHarness();
+    guidance.startSelectedRoute();
+    planning.setPreview({
+      alternatives: [
+        { id: "a1", title: "R1", subtitle: "", distanceMeters: 2500, durationSeconds: 600, normalizedPackage: straightLinePackage() },
+        { id: "a2", title: "R2", subtitle: "", distanceMeters: 3000, durationSeconds: 700, normalizedPackage: { ...straightLinePackage(), routeIdentifier: "osm-alt" } },
+      ],
+      selectedAlternativeID: "a1",
+    });
+    guidance.enterAlternativesExploration();
+    guidance.selectAlternativeForExploration("a2");
+    expect(guidance.selectedAlternativeIDForDisplay).toBe("a2");
+
+    guidance.deselectForExploration();
+
+    expect(
+      guidance.selectedAlternativeIDForDisplay,
+      "deselectForExploration must clear explorationSelectedID so Continue shows the checkmark",
+    ).toBeUndefined();
+  });
+
+  it("deselectForExploration outside exploration is a no-op", () => {
+    const { guidance } = buildHarness();
+    guidance.startSelectedRoute();
+    expect(guidance.selectedAlternativeIDForDisplay).toBe("a1");
+
+    guidance.deselectForExploration();
+
+    expect(
+      guidance.selectedAlternativeIDForDisplay,
+      "deselectForExploration outside exploration must not affect the planning-selected id",
+    ).toBe("a1");
+  });
+
+  // ── double-checkmark regression ────────────────────────────────────────────
+
+  it("selectedAlternativeIDForDisplay is undefined on exploration entry (no Continue double-checkmark)", () => {
+    const { guidance, planning } = buildHarness();
+    guidance.startSelectedRoute();
+    planning.setPreview({
+      alternatives: [
+        { id: "a1", title: "R1", subtitle: "", distanceMeters: 2500, durationSeconds: 600, normalizedPackage: straightLinePackage() },
+      ],
+      selectedAlternativeID: "a1",
+    });
+
+    guidance.enterAlternativesExploration();
+
+    expect(
+      guidance.selectedAlternativeIDForDisplay,
+      "on enter exploration selectedAlternativeIDForDisplay must be undefined — Continue shows the only checkmark",
+    ).toBeUndefined();
+  });
+
   it("startSelectedRoute clears isExploringAlternativesFromGuidance", () => {
     const { guidance, planning } = buildHarness();
     guidance.startSelectedRoute();

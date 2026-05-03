@@ -473,6 +473,15 @@ class HomeStateHolder(
     }
 
     /**
+     * Clear the explicitly-tapped alternative selection so the checkmark
+     * moves back to "Continue on current route". Does NOT exit exploration.
+     */
+    fun deselectForExploration() {
+        if (!isExploringAlternativesFromGuidance) return
+        explorationSelectedID = null
+    }
+
+    /**
      * Select an alternative for preview while exploring from guidance.
      * Records the explicit user tap so selectedAlternativeIdForDisplay shows the checkmark.
      */

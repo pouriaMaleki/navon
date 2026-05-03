@@ -444,6 +444,15 @@ export class GuidanceStore {
   }
 
   /**
+   * Deselect any explicitly-tapped alternative during exploration, moving
+   * the checkmark back to "Continue on current route".
+   */
+  deselectForExploration(): void {
+    if (!this.isExploringAlternativesFromGuidance) return;
+    this.explorationSelectedID = undefined;
+  }
+
+  /**
    * Select an alternative for preview while exploring from guidance.
    * Updates the planning selection (map highlight) and records the explicit
    * user tap so selectedAlternativeIDForDisplay can show the checkmark.

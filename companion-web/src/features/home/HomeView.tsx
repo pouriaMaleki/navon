@@ -146,6 +146,13 @@ const SpeedBadge = observer(({ store }: { store: RootStore }) => {
   const moving = store.locationStore.travelHeadingDegrees !== undefined;
   const inGuidance = store.guidanceStore.homeMode === "phoneGuidance";
   if (!moving && !inGuidance) return null;
+  // Hide whenever the route-suggestions card covers the bottom of the screen
+  if (store.guidanceStore.isExploringAlternativesFromGuidance) return null;
+  if (
+    store.guidanceStore.homeMode === "planning" &&
+    store.planningStore.preview.alternatives.length > 0
+  )
+    return null;
   const unit = store.settingsStore.settings.speedUnit;
   return (
     <div className="speed-badge" aria-label="Current speed" role="status">

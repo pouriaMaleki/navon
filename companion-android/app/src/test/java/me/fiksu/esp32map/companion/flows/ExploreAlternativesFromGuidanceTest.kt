@@ -345,6 +345,78 @@ class ExploreAlternativesFromGuidanceTest {
         )
     }
 
+    // ─── deselectForExploration regression tests ──────────────────────────────
+
+    /**
+     * After tapping an alternative, deselectForExploration() must move the
+     * checkmark back to "Continue on current route" (explorationSelectedID → null).
+     */
+    @Test
+    fun deselectForExploration_clearsSelection() = runTest {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val state = CompanionAppState(app)
+        state.preview = RoutePreviewModel(
+            alternatives = listOf(
+                RouteAlternative(
+                    id = "a1", title = "Route 1", subtitle = "",
+                    distanceMeters = 2500, durationSeconds = 600,
+                    normalizedPackage = minimalPackage(),
+                ),
+                RouteAlternative(
+                    id = "a2", title = "Route 2", subtitle = "",
+                    distanceMeters = 3000, durationSeconds = 700,
+                    normalizedPackage = minimalPackage(),
+                ),
+            ),
+            selectedAlternativeId = "a1",
+            routeIdentifier = null, routeRevision = null, planningNotice = null,
+        )
+        val holder = HomeStateHolder(state, FakePlaceSearch())
+        holder.homeMode = HomeMode.PHONE_GUIDANCE
+        val scope = TestScope(StandardTestDispatcher(testScheduler))
+        holder.exploreAlternateRoutes(scope)
+        holder.selectAlternativeForExploration("a2")
+        assertEquals("pre-condition: a2 selected", "a2", holder.selectedAlternativeIdForDisplay)
+
+        holder.deselectForExploration()
+
+        assertNull(
+            "deselectForExploration must clear explorationSelectedID so Continue shows the checkmark",
+            holder.selectedAlternativeIdForDisplay,
+        )
+    }
+
+    /**
+     * deselectForExploration() outside exploration must not affect the
+     * planning-selected alternative ID.
+     */
+    @Test
+    fun deselectForExploration_outsideExploration_isNoOp() = runTest {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val state = CompanionAppState(app)
+        state.preview = RoutePreviewModel(
+            alternatives = listOf(
+                RouteAlternative(
+                    id = "a1", title = "Route 1", subtitle = "",
+                    distanceMeters = 2500, durationSeconds = 600,
+                    normalizedPackage = minimalPackage(),
+                )
+            ),
+            selectedAlternativeId = "a1",
+            routeIdentifier = null, routeRevision = null, planningNotice = null,
+        )
+        val holder = HomeStateHolder(state, FakePlaceSearch())
+        holder.homeMode = HomeMode.PHONE_GUIDANCE
+
+        holder.deselectForExploration()
+
+        assertEquals(
+            "deselectForExploration outside exploration must not affect the planning-selected ID",
+            "a1",
+            holder.selectedAlternativeIdForDisplay,
+        )
+    }
+
     // ─── Test 9: guidanceRoute stability ──────────────────────────────────────
 
     /**

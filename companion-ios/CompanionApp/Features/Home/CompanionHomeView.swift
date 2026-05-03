@@ -193,7 +193,9 @@ struct CompanionHomeView: View {
     private var speedBadge: some View {
         let moving = viewModel.travelHeadingDegrees != nil
         let inGuidance = viewModel.homeMode == .phoneGuidance
-        if moving || inGuidance {
+        let suggestionsVisible = viewModel.isExploringAlternativesFromGuidance ||
+            (viewModel.homeMode == .planning && !appModel.preview.alternatives.isEmpty)
+        if (moving || inGuidance) && !suggestionsVisible {
             Text(formatSpeed(
                 appModel.locationService.currentSpeedMps,
                 unit: appModel.settings.speedUnit
@@ -763,21 +765,24 @@ struct CompanionHomeView: View {
             }
 
             if viewModel.isExploringAlternativesFromGuidance {
+                let continueSelected = viewModel.selectedAlternativeIDForDisplay == nil
                 Button {
-                    viewModel.cancelAlternativesExploration()
+                    viewModel.deselectForExploration()
                 } label: {
                     HStack(spacing: 10) {
                         Text(T.string("home.continueOnCurrentRoute"))
                             .font(.subheadline.weight(.semibold))
                         Spacer()
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.blue)
+                        if continueSelected {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.blue)
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
-                    .background(Color.blue.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .background(continueSelected ? Color.blue.opacity(0.12) : Color.clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }
@@ -829,7 +834,11 @@ struct CompanionHomeView: View {
 
             Button {
                 isSearchFieldFocused = false
-                Task { await viewModel.startSelectedRoute() }
+                if viewModel.isExploringAlternativesFromGuidance && viewModel.selectedAlternativeIDForDisplay == nil {
+                    viewModel.cancelAlternativesExploration()
+                } else {
+                    Task { await viewModel.startSelectedRoute() }
+                }
             } label: {
                 Group {
                     if viewModel.homeMode == .sendingToDevice {

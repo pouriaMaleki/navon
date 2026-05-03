@@ -292,12 +292,15 @@ function pushCameraTarget(map: MaplibreMap, store: RootStore, gate?: MapInteract
 
 function routeSignature(store: RootStore): string {
   const preview = store.planningStore.preview;
+  const guidance = store.guidanceStore;
   return [
-    store.guidanceStore.homeMode,
+    guidance.homeMode,
     preview.routeIdentifier ?? "",
     preview.routeRevision ?? "",
     preview.selectedAlternativeID ?? "",
     preview.alternatives.map((a) => a.normalizedPackage.routeIdentifier).join(","),
+    guidance.isExploringAlternativesFromGuidance ? "1" : "0",
+    guidance.selectedAlternativeIDForDisplay ?? "",
   ].join("|");
 }
 
@@ -335,15 +338,35 @@ function pushRider(map: MaplibreMap, store: RootStore): void {
 function buildRouteFeatures(store: RootStore): GeoJSON.Feature[] {
   const features: GeoJSON.Feature[] = [];
   const preview = store.planningStore.preview;
-  const homeMode = store.guidanceStore.homeMode;
+  const guidance = store.guidanceStore;
+  const homeMode = guidance.homeMode;
   const selectedId = preview.selectedAlternativeID ?? preview.alternatives[0]?.id;
   const showAlternates = homeMode === "planning";
 
-  // During guidance, show completed/remaining split for the selected route
   if (homeMode === "phoneGuidance") {
-    const split = store.guidanceStore.routeSplit;
+    // During exploration show the frozen active route + the new alternatives
+    if (guidance.isExploringAlternativesFromGuidance) {
+      const exploreSelectedId = guidance.selectedAlternativeIDForDisplay;
+      const activeRoute = guidance.guidanceRoute;
+      if (activeRoute) {
+        features.push({
+          type: "Feature",
+          properties: { selected: exploreSelectedId === undefined, completed: false },
+          geometry: {
+            type: "LineString",
+            coordinates: activeRoute.geometry.map((p) => [p.longitude, p.latitude]),
+          },
+        });
+      }
+      for (const alt of preview.alternatives) {
+        features.push(routeFeature(alt, alt.id === exploreSelectedId));
+      }
+      return features;
+    }
+
+    // Normal guidance: show completed/remaining split
+    const split = guidance.routeSplit;
     if (split) {
-      // Remaining route (bright)
       if (split.remaining.length >= 2) {
         features.push({
           type: "Feature",
@@ -354,7 +377,6 @@ function buildRouteFeatures(store: RootStore): GeoJSON.Feature[] {
           },
         });
       }
-      // Completed route (dimmed)
       if (split.completed.length >= 2) {
         features.push({
           type: "Feature",

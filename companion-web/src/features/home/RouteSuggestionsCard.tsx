@@ -37,13 +37,13 @@ export const RouteSuggestionsCard = observer(({ store }: Props) => {
       {exploring ? (
         <button
           type="button"
-          className="alternative alternative--selected"
-          onClick={() => guidance.cancelAlternativesExploration()}
+          className={`alternative${selectedId === undefined ? " alternative--selected" : ""}`}
+          onClick={() => guidance.deselectForExploration()}
         >
           <div style={{ textAlign: "start" }}>
             <div className="list-row__title">{t("home.continueOnCurrentRoute")}</div>
           </div>
-          <span aria-hidden>✓</span>
+          {selectedId === undefined ? <span aria-hidden>✓</span> : null}
         </button>
       ) : null}
       {planning.preview.planningNotice ? (
@@ -98,8 +98,14 @@ export const RouteSuggestionsCard = observer(({ store }: Props) => {
       <button
         type="button"
         className="primary-button"
-        onClick={() => store.guidanceStore.startSelectedRoute()}
-        disabled={alternatives.length === 0}
+        onClick={() => {
+          if (exploring && selectedId === undefined) {
+            guidance.cancelAlternativesExploration();
+          } else {
+            store.guidanceStore.startSelectedRoute();
+          }
+        }}
+        disabled={alternatives.length === 0 && !exploring}
       >
         {t("home.start")}
       </button>

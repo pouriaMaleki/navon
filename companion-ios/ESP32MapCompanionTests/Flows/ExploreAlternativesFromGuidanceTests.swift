@@ -331,6 +331,51 @@ final class ExploreAlternativesFromGuidanceTests: XCTestCase {
         )
     }
 
+    // MARK: — deselectForExploration
+
+    /// After tapping an alternative, calling `deselectForExploration()` must move
+    /// the checkmark back to "Continue on current route" (explorationSelectedID → nil).
+    func test_deselectForExploration_clearsSelection() async {
+        let (app, vm) = await makeRoutingHarness()
+        let altID = UUID()
+        app.preview = RoutePreviewModel(
+            alternatives: [
+                app.preview.alternatives[0],
+                RouteAlternative(
+                    id: altID, title: "Route 2", subtitle: "",
+                    distanceMeters: 3000, durationSeconds: 700,
+                    normalizedPackage: straightLinePackage()
+                )
+            ],
+            selectedAlternativeID: app.preview.selectedAlternativeID,
+            routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        vm.exploreAlternateRoutes()
+        vm.selectAlternative(altID)
+        XCTAssertEqual(vm.selectedAlternativeIDForDisplay, altID, "pre-condition: alt selected")
+
+        vm.deselectForExploration()
+
+        XCTAssertNil(
+            vm.selectedAlternativeIDForDisplay,
+            "deselectForExploration must clear explorationSelectedID so Continue gets the checkmark"
+        )
+    }
+
+    /// `deselectForExploration()` outside exploration must not affect the planning-selected ID.
+    func test_deselectForExploration_outsideExploration_isNoOp() async {
+        let (app, vm) = await makeRoutingHarness()
+        let expected = app.preview.selectedAlternativeID
+
+        vm.deselectForExploration()
+
+        XCTAssertEqual(
+            vm.selectedAlternativeIDForDisplay,
+            expected,
+            "deselectForExploration outside exploration must not affect the planning-selected ID"
+        )
+    }
+
     /// 5. `startSelectedRoute()` clears `isExploringAlternativesFromGuidance`.
     func test_startSelectedRoute_clearsExploringFlag() async {
         let (app, vm) = await makeRoutingHarness()

@@ -1043,6 +1043,13 @@ final class HomeViewModel: ObservableObject {
         compassMode = .autoFollow
     }
 
+    /// Clear the explicitly-tapped alternative selection so the checkmark
+    /// moves back to "Continue on current route". Does NOT exit exploration.
+    func deselectForExploration() {
+        guard isExploringAlternativesFromGuidance else { return }
+        explorationSelectedID = nil
+    }
+
     /// The alternative ID that should show a checkmark in the suggestions card.
     /// During exploration, returns the ID explicitly tapped by the user (nil
     /// until first tap). Outside exploration, returns the planning-selected ID.
