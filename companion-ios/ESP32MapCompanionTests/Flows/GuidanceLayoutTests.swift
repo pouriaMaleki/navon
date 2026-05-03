@@ -122,6 +122,31 @@ final class GuidanceLayoutTests: XCTestCase {
         XCTAssertEqual(vm.arrivalNotice, "Arrived at destination")
     }
 
+    func test_arrival_clearsQueryAndPreview() async {
+        // After arriving the "Where to?" field and all route alternatives
+        // must be wiped so the map shows a blank planning state — no
+        // phantom route polyline, no stale destination in the search bar.
+        let vm = await vmInGuidance(destinationLabel: "Ensi linja 1")
+        // Simulate having typed the destination in the search bar.
+        vm.query = "Ensi linja 1"
+        XCTAssertNotNil(vm.selectedPreview, "preview must have a selected alternative during guidance")
+
+        let arrivalPoint = CoordinatePoint(latitude: dest.latitude - 0.00005, longitude: dest.longitude)
+        vm.ingestRiderLocationFix(arrivalPoint, timestampMs: 1000)
+
+        for _ in 0..<10 where vm.homeMode != .planning { await Task.yield() }
+        for _ in 0..<10 where !vm.query.isEmpty { await Task.yield() }
+
+        XCTAssertTrue(
+            vm.query.isEmpty,
+            "query must be cleared after arrival — got '\(vm.query)'"
+        )
+        XCTAssertNil(
+            vm.selectedPreview,
+            "preview must be empty after arrival (no phantom route polyline)"
+        )
+    }
+
     func test_arrivalDetection_doesNotTriggerWhenFarFromDestination() async {
         let vm = await vmInGuidance(destinationLabel: "Ensi linja 1")
         // A coordinate roughly 60 m off-route from `quarter` — far from

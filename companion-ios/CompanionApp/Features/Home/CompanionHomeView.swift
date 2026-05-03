@@ -855,7 +855,7 @@ struct CompanionHomeView: View {
         // (see `guidanceSubtitleLine`). The bottom slot is intentionally
         // minimal: a floating Stop button (and the speed badge sits next
         // to it via the surrounding overlay).
-        Button(role: .destructive, action: viewModel.stopActiveNavigation) {
+        Button(role: .destructive, action: { viewModel.stopActiveNavigation() }) {
             Text(T.string("home.stop"))
                 .font(.headline)
                 .padding(.horizontal, 24)
@@ -882,7 +882,7 @@ struct CompanionHomeView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            Button(role: .destructive, action: viewModel.stopActiveNavigation) {
+            Button(role: .destructive, action: { viewModel.stopActiveNavigation() }) {
                 Text(T.string("home.stop"))
                     .frame(maxWidth: .infinity)
             }

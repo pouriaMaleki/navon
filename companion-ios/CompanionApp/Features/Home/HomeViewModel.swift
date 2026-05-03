@@ -884,7 +884,7 @@ final class HomeViewModel: ObservableObject {
         }
     }
 
-    func stopActiveNavigation() {
+    func stopActiveNavigation(afterArrival: Bool = false) {
         Task {
             var shouldClearPlanningStatus = false
             let destination = destinationCoordinate
@@ -897,7 +897,11 @@ final class HomeViewModel: ObservableObject {
             compassMode = .autoFollow
             activeRouteIdentifier = nil
             homeMode = .planning
-            arrivalNotice = nil
+            // arrivalNotice is intentionally NOT cleared here. For manual
+            // stop it was nil before (no arrival), so the omission is
+            // harmless. For the arrival path (afterArrival=true),
+            // declareArrival() just set it and it must persist until the
+            // user starts a new route.
             // Cancel any in-flight auto-reroute before clearing the flags it
             // writes — without this the task can land after stop and mutate
             // activeSession / rerouteRequested on a route that no longer exists.
@@ -931,6 +935,21 @@ final class HomeViewModel: ObservableObject {
             // Tell the routing activity coordinator that routing is over,
             // so it ends the Live Activity (and disables idle-timer hold).
             dispatchCueTick()
+            if afterArrival {
+                // Arrival: wipe the search field and all route alternatives
+                // so the map returns to a blank "Where to?" state. The
+                // arrival notice (set by declareArrival before this call)
+                // persists until the rider starts a new route.
+                query = ""
+                appModel.preview = RoutePreviewModel(
+                    alternatives: [],
+                    selectedAlternativeID: nil,
+                    routeIdentifier: nil,
+                    routeRevision: nil,
+                    planningNotice: nil
+                )
+                return
+            }
             guard !shouldPreserveCurrentPreview else { return }
             guard let destination else { return }
             planningStatus = "Refreshing route options…"
@@ -1389,10 +1408,7 @@ final class HomeViewModel: ObservableObject {
 
     private func declareArrival() {
         arrivalNotice = "Arrived at destination"
-        // Reuse the same teardown as a manual stop — keep persistence + UI
-        // intent consistent. arrivalNotice stays set because stopActiveNavigation
-        // does not clear it.
-        stopActiveNavigation()
+        stopActiveNavigation(afterArrival: true)
     }
 
     /// Equirectangular distance approximation in meters. Same formula used
