@@ -131,11 +131,18 @@ struct CompanionHomeView: View {
                         .stroke(isSelected ? .blue : .teal.opacity(0.45), lineWidth: isSelected ? 6 : 4)
                 }
             } else if let active = viewModel.guidanceRoute {
+                let exploreSelected = viewModel.selectedAlternativeIDForDisplay
+                // During exploration, dim the active route when the user has
+                // explicitly tapped an alternative (so the tapped one stands out).
+                let activeRouteColor: Color = (viewModel.isExploringAlternativesFromGuidance && exploreSelected != nil)
+                    ? .teal.opacity(0.45)
+                    : (viewModel.homeMode == .deviceOverview ? .blue : .green)
                 MapPolyline(coordinates: active.geometry.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
-                    .stroke(viewModel.homeMode == .deviceOverview ? .blue : .green, lineWidth: 7)
+                    .stroke(activeRouteColor, lineWidth: 7)
                 ForEach(viewModel.guidanceAlternatives, id: \.id) { alt in
+                    let isSelected = alt.id == exploreSelected
                     MapPolyline(coordinates: alt.normalizedPackage.geometry.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
-                        .stroke(.teal.opacity(0.45), lineWidth: 4)
+                        .stroke(isSelected ? Color.blue : .teal.opacity(0.45), lineWidth: isSelected ? 6 : 4)
                 }
             }
         }
