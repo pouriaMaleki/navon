@@ -133,6 +133,10 @@ struct CompanionHomeView: View {
             } else if let active = viewModel.guidanceRoute {
                 MapPolyline(coordinates: active.geometry.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
                     .stroke(viewModel.homeMode == .deviceOverview ? .blue : .green, lineWidth: 7)
+                ForEach(viewModel.guidanceAlternatives, id: \.id) { alt in
+                    MapPolyline(coordinates: alt.normalizedPackage.geometry.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
+                        .stroke(.teal.opacity(0.45), lineWidth: 4)
+                }
             }
         }
         .mapControlVisibility(.hidden)
@@ -809,7 +813,7 @@ struct CompanionHomeView: View {
                                 .foregroundStyle(.secondary)
                         }
                         Spacer()
-                        if alternative.id == appModel.preview.selectedAlternativeID {
+                        if alternative.id == viewModel.selectedAlternativeIDForDisplay {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(.blue)
                         }
@@ -818,7 +822,7 @@ struct CompanionHomeView: View {
                     .contentShape(Rectangle())
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
-                    .background(alternative.id == appModel.preview.selectedAlternativeID ? Color.blue.opacity(0.12) : Color.clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .background(alternative.id == viewModel.selectedAlternativeIDForDisplay ? Color.blue.opacity(0.12) : Color.clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }

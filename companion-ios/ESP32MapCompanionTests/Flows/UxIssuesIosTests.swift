@@ -114,7 +114,7 @@ final class UxIssuesIosTests: XCTestCase {
         XCTAssertEqual(vm.homeMode, .planning)
     }
 
-    func test_exploreAlternateRoutes_inPhoneGuidance_switchesToPlanning() async {
+    func test_exploreAlternateRoutes_inPhoneGuidance_keepsPhoneGuidance() async {
         let app = AppModel()
         let vm = HomeViewModel(appModel: app)
         let pkg = Self.straightLinePackage()
@@ -131,21 +131,18 @@ final class UxIssuesIosTests: XCTestCase {
         )
         await vm.startSelectedRoute()
         XCTAssertEqual(vm.homeMode, .phoneGuidance, "precondition")
-        // Capture the destination at the moment of the split-way tap so we
-        // can verify the freshly-issued routeRequest carries it forward.
         let destination = app.activeSession.destinationCoordinate
 
         vm.exploreAlternateRoutes()
 
-        XCTAssertEqual(vm.homeMode, .planning,
-            "Tapping the split-way icon must drop guidance back to planning so the alternatives card and route-overview camera take over.")
-        XCTAssertEqual(vm.compassMode, .autoFollow,
-            "compassMode must reset (north-preview lock from the prior trip would otherwise leak into the new selection).")
+        XCTAssertEqual(vm.homeMode, .phoneGuidance,
+            "homeMode must remain .phoneGuidance while exploring — guidance keeps running.")
+        XCTAssertEqual(vm.compassMode, .northLocked,
+            "compassMode must be .northLocked so the camera shows the full route overview.")
+        XCTAssertTrue(vm.isExploringAlternativesFromGuidance,
+            "isExploringAlternativesFromGuidance must be true so the alternatives panel is shown.")
         XCTAssertEqual(app.routeRequest.destination, destination,
             "Destination must be preserved verbatim — the user is asking for alternatives to the SAME destination.")
-        // origin should be the rider's current location, not the original
-        // start point. Without GPS it falls back to the static rider
-        // fallback (defaultRiderFallback).
         XCTAssertEqual(app.routeRequest.origin, AppModel.defaultRiderFallback,
             "origin must be the rider's current location at the moment of the request.")
     }

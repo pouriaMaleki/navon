@@ -439,6 +439,7 @@ class HomeStateHolder(
         // Set the flag immediately so the alternatives panel opens right away
         // with a loading indicator while the plan fetches in the background.
         isExploringAlternativesFromGuidance = true
+        compassMode = HomeCompassMode.NORTH_LOCKED
         appState.routeRequest = RoutePlanRequest(
             origin = appState.riderLocation,
             destination = destination,
@@ -451,11 +452,28 @@ class HomeStateHolder(
 
     /**
      * Cancel browsing alternatives — dismiss the card, resume normal routing UI.
-     * The original route is still active; nothing else changes.
+     * The original route is still active; camera returns to autoFollow.
      */
     fun cancelAlternativesExploration() {
         isExploringAlternativesFromGuidance = false
+        compassMode = HomeCompassMode.AUTO_FOLLOW
     }
+
+    /**
+     * The alternative ID that should show a checkmark in the suggestions card.
+     * During exploration, returns null — no row should be checked because the
+     * "Continue on current route" button already marks the active route.
+     * Outside exploration, returns the planning-selected alternative ID.
+     */
+    val selectedAlternativeIdForDisplay: String?
+        get() = if (isExploringAlternativesFromGuidance) null else appState.preview.selectedAlternativeId
+
+    /**
+     * Alternative routes to render on the map during exploration.
+     * Returns an empty list outside of exploration.
+     */
+    val guidanceAlternatives: List<RouteAlternative>
+        get() = if (isExploringAlternativesFromGuidance) appState.preview.alternatives else emptyList()
 
     private fun polylineLengthMeters(polyline: List<CoordinatePoint>): Double {
         if (polyline.size < 2) return 0.0

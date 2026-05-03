@@ -102,6 +102,7 @@ export function startRoutingActivityCoordinator(
       pairedWithDevice,
       audioCuesOnlyInBackground: settings.audioCuesOnlyInBackground,
       isAppInBackground: isAppInBackgroundBox.get(),
+      isExploringAlternativesFromGuidance: guidance.isExploringAlternativesFromGuidance,
     });
 
     if (cuesActive) {

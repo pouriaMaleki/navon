@@ -998,7 +998,7 @@ final class HomeViewModel: ObservableObject {
         let sourceToReuse = appModel.activeSession.sourceMode
         let titleHint = appModel.activeSession.destinationLabel
         northPreviewTask?.cancel()
-        compassMode = .autoFollow
+        compassMode = .northLocked
         // Set the flag immediately so the alternatives panel opens right away
         // with a loading indicator while the plan fetches in the background.
         isExploringAlternativesFromGuidance = true
@@ -1020,9 +1020,24 @@ final class HomeViewModel: ObservableObject {
     }
 
     /// Cancel browsing alternatives — dismiss the card, resume normal routing UI.
-    /// The original route is still active; nothing else changes.
+    /// The original route is still active; camera returns to autoFollow.
     func cancelAlternativesExploration() {
         isExploringAlternativesFromGuidance = false
+        compassMode = .autoFollow
+    }
+
+    /// The alternative ID that should show a checkmark in the suggestions card.
+    /// During exploration, returns nil — no row should be checked because the
+    /// "Continue on current route" button already marks the active route.
+    /// Outside exploration, returns the planning-selected alternative ID.
+    var selectedAlternativeIDForDisplay: UUID? {
+        isExploringAlternativesFromGuidance ? nil : appModel.preview.selectedAlternativeID
+    }
+
+    /// Alternative routes to render on the map during exploration.
+    /// Returns an empty array outside of exploration.
+    var guidanceAlternatives: [RouteAlternative] {
+        isExploringAlternativesFromGuidance ? appModel.preview.alternatives : []
     }
 
     /// The MKCoordinateRegion to fit when showing a route overview. Pure
@@ -1317,6 +1332,7 @@ final class HomeViewModel: ObservableObject {
     /// lifecycle (start when routing begins, update each tick, end on
     /// stop) from this single entry point.
     func dispatchCueTick() {
+        guard !isExploringAlternativesFromGuidance else { return }
         // Spec lines 7 / 131: cues fire from the phone only when the
         // ESP32 device isn't actively driving the on-screen guidance.
         // Pairing alone is not enough — the device might be paired but

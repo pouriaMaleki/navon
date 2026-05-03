@@ -419,14 +419,36 @@ export class GuidanceStore {
   enterAlternativesExploration(): void {
     if (this.homeMode !== "phoneGuidance") return;
     this.isExploringAlternativesFromGuidance = true;
+    this.compassMode = "northLocked";
   }
 
   /**
    * Cancel browsing — dismiss the alternatives card, resume normal routing UI.
-   * The original route is still active; nothing else changes.
+   * The original route is still active; camera returns to autoFollow.
    */
   cancelAlternativesExploration(): void {
     this.isExploringAlternativesFromGuidance = false;
+    this.compassMode = "autoFollow";
+  }
+
+  /**
+   * The alternative ID that should show a checkmark in the suggestions card.
+   * During exploration, returns undefined — no row should be checked because
+   * the "Continue on current route" button already marks the active route.
+   * Outside exploration, returns the planning-selected alternative ID.
+   */
+  get selectedAlternativeIDForDisplay(): string | undefined {
+    if (this.isExploringAlternativesFromGuidance) return undefined;
+    return this.planning.preview.selectedAlternativeID;
+  }
+
+  /**
+   * Alternative routes to render on the map during alternatives exploration.
+   * Returns an empty array outside of exploration so the map shows nothing extra.
+   */
+  get guidanceAlternatives(): NormalizedRoutePackage[] {
+    if (!this.isExploringAlternativesFromGuidance) return [];
+    return this.planning.preview.alternatives.map((a) => a.normalizedPackage);
   }
 
   stopGuidance(): void {

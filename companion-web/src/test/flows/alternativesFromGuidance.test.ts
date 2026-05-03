@@ -148,6 +148,70 @@ describe("explore alternatives from guidance (split-icon UX)", () => {
     ).toBe("phoneGuidance");
   });
 
+  it("enterAlternativesExploration sets compassMode to northLocked", () => {
+    const { guidance } = buildHarness();
+    guidance.startSelectedRoute();
+    expect(guidance.compassMode).toBe("autoFollow");
+
+    guidance.enterAlternativesExploration();
+
+    expect(
+      guidance.compassMode,
+      "entering alternatives must switch to northLocked for route overview",
+    ).toBe("northLocked");
+  });
+
+  it("cancelAlternativesExploration restores compassMode to autoFollow", () => {
+    const { guidance } = buildHarness();
+    guidance.startSelectedRoute();
+    guidance.enterAlternativesExploration();
+    expect(guidance.compassMode).toBe("northLocked");
+
+    guidance.cancelAlternativesExploration();
+
+    expect(
+      guidance.compassMode,
+      "cancelling must restore autoFollow so camera follows the rider",
+    ).toBe("autoFollow");
+  });
+
+  it("selectedAlternativeIDForDisplay is undefined during exploration (no row checkmark)", () => {
+    const { guidance } = buildHarness();
+    guidance.startSelectedRoute();
+    guidance.enterAlternativesExploration();
+
+    expect(
+      guidance.selectedAlternativeIDForDisplay,
+      "no alternative row must show a checkmark while browsing — the 'Continue' button already marks the active route",
+    ).toBeUndefined();
+  });
+
+  it("selectedAlternativeIDForDisplay returns the planning-selected id outside exploration", () => {
+    const { guidance } = buildHarness();
+    guidance.startSelectedRoute();
+
+    expect(
+      guidance.selectedAlternativeIDForDisplay,
+      "outside exploration the selected alternative id must be visible",
+    ).toBe("a1");
+  });
+
+  it("guidanceAlternatives returns planning alternatives during exploration", () => {
+    const { guidance } = buildHarness();
+    guidance.startSelectedRoute();
+    guidance.enterAlternativesExploration();
+
+    const alts = guidance.guidanceAlternatives;
+    expect(alts.length, "must expose at least the one seeded alternative").toBeGreaterThan(0);
+  });
+
+  it("guidanceAlternatives is empty outside of exploration", () => {
+    const { guidance } = buildHarness();
+    guidance.startSelectedRoute();
+
+    expect(guidance.guidanceAlternatives).toHaveLength(0);
+  });
+
   it("startSelectedRoute clears isExploringAlternativesFromGuidance", () => {
     const { guidance, planning } = buildHarness();
     guidance.startSelectedRoute();

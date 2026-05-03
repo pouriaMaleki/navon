@@ -184,6 +184,126 @@ class ExploreAlternativesFromGuidanceTest {
         )
     }
 
+    // ─── Test 6: compassMode ───────────────────────────────────────────────────
+
+    /**
+     * exploreAlternateRoutes() must switch compassMode to NORTH_LOCKED so
+     * the camera shows the full route overview while the rider browses.
+     */
+    @Test
+    fun exploreAlternateRoutes_setsCompassToNorthLocked() = runTest {
+        val holder = holderInPhoneGuidance()
+        assertEquals("precondition", HomeCompassMode.AUTO_FOLLOW, holder.compassMode)
+        val scope = TestScope(StandardTestDispatcher(testScheduler))
+
+        holder.exploreAlternateRoutes(scope)
+
+        assertEquals(
+            "entering alternatives must switch compassMode to NORTH_LOCKED",
+            HomeCompassMode.NORTH_LOCKED,
+            holder.compassMode,
+        )
+    }
+
+    /**
+     * cancelAlternativesExploration() must restore compassMode to AUTO_FOLLOW
+     * so the camera follows the rider again.
+     */
+    @Test
+    fun cancelAlternativesExploration_restoresCompassToAutoFollow() = runTest {
+        val holder = holderInPhoneGuidance()
+        val scope = TestScope(StandardTestDispatcher(testScheduler))
+        holder.exploreAlternateRoutes(scope)
+        assertEquals("precondition", HomeCompassMode.NORTH_LOCKED, holder.compassMode)
+
+        holder.cancelAlternativesExploration()
+
+        assertEquals(
+            "cancelling must restore compassMode to AUTO_FOLLOW",
+            HomeCompassMode.AUTO_FOLLOW,
+            holder.compassMode,
+        )
+    }
+
+    // ─── Test 7: selectedAlternativeIdForDisplay ───────────────────────────────
+
+    /**
+     * During exploration, selectedAlternativeIdForDisplay must be null so no
+     * alternative row shows a checkmark — the "Continue" button marks the active route.
+     */
+    @Test
+    fun selectedAlternativeIdForDisplay_isNullDuringExploration() = runTest {
+        val holder = holderInPhoneGuidance()
+        val scope = TestScope(StandardTestDispatcher(testScheduler))
+        holder.exploreAlternateRoutes(scope)
+
+        assertNull(
+            "selectedAlternativeIdForDisplay must be null during exploration",
+            holder.selectedAlternativeIdForDisplay,
+        )
+    }
+
+    /**
+     * Outside exploration, selectedAlternativeIdForDisplay returns the
+     * planning-selected alternative ID.
+     */
+    @Test
+    fun selectedAlternativeIdForDisplay_returnsSelectedIdOutsideExploration() = runTest {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val state = CompanionAppState(app)
+        state.preview = RoutePreviewModel(
+            alternatives = listOf(
+                RouteAlternative(
+                    id = "a1", title = "Route 1", subtitle = "",
+                    distanceMeters = 2500, durationSeconds = 600,
+                    normalizedPackage = minimalPackage(),
+                )
+            ),
+            selectedAlternativeId = "a1",
+            routeIdentifier = null,
+            routeRevision = null,
+            planningNotice = null,
+        )
+        val holder = HomeStateHolder(state, FakePlaceSearch())
+        holder.homeMode = HomeMode.PHONE_GUIDANCE
+
+        assertEquals(
+            "outside exploration selectedAlternativeIdForDisplay must match the selected ID",
+            "a1",
+            holder.selectedAlternativeIdForDisplay,
+        )
+    }
+
+    // ─── Test 8: guidanceAlternatives ─────────────────────────────────────────
+
+    /**
+     * guidanceAlternatives returns non-empty alternatives while exploring.
+     */
+    @Test
+    fun guidanceAlternatives_returnsAlternativesDuringExploration() = runTest {
+        val holder = holderInPhoneGuidance()
+        val scope = TestScope(StandardTestDispatcher(testScheduler))
+        holder.exploreAlternateRoutes(scope)
+
+        assertTrue(
+            "guidanceAlternatives must return alternatives during exploration",
+            holder.guidanceAlternatives.isNotEmpty(),
+        )
+    }
+
+    /**
+     * guidanceAlternatives is empty outside of exploration.
+     */
+    @Test
+    fun guidanceAlternatives_isEmptyOutsideExploration() = runTest {
+        val holder = holderInPhoneGuidance()
+
+        assertTrue(
+            "guidanceAlternatives must be empty when not exploring",
+            holder.guidanceAlternatives.isEmpty(),
+        )
+    }
+
     // ─── Test 5 ────────────────────────────────────────────────────────────────
 
     /**

@@ -14,6 +14,7 @@ export type CueGatingInput = {
   pairedWithDevice: boolean;
   audioCuesOnlyInBackground: boolean;
   isAppInBackground: boolean;
+  isExploringAlternativesFromGuidance: boolean;
 };
 
 export function shouldDispatchCues(input: CueGatingInput): boolean {
@@ -22,5 +23,6 @@ export function shouldDispatchCues(input: CueGatingInput): boolean {
   if (!input.allowBackgroundGps) return false;
   if (input.pairedWithDevice) return false;
   if (input.audioCuesOnlyInBackground && !input.isAppInBackground) return false;
+  if (input.isExploringAlternativesFromGuidance) return false;
   return true;
 }

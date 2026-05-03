@@ -2,7 +2,6 @@ import { observer } from "mobx-react-lite";
 import type { RootStore } from "../../app/RootStore.js";
 import {
   ROUTE_SOURCE_MODE_DISPLAY_NAME,
-  selectedAlternative,
   summaryLine,
 } from "../../domain/models.js";
 import { useT } from "../../i18n/useT.js";
@@ -16,7 +15,7 @@ export const RouteSuggestionsCard = observer(({ store }: Props) => {
   const exploring = guidance.isExploringAlternativesFromGuidance;
   const limit = store.settingsStore.plannerPreferences.suggestionMode === "bestOnly" ? 1 : 3;
   const alternatives = planning.preview.alternatives.slice(0, limit);
-  const selectedId = selectedAlternative(planning.preview)?.id;
+  const selectedId = guidance.selectedAlternativeIDForDisplay;
   const showSourceControl =
     !planning.isPreviewLockedToImportedRoute() && planning.availableSourceModes.length > 1;
   const sourceMode = planning.currentSourceMode;

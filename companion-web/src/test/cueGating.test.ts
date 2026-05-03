@@ -18,6 +18,7 @@ describe("shouldDispatchCues", () => {
     pairedWithDevice: false,
     audioCuesOnlyInBackground: false,
     isAppInBackground: false,
+    isExploringAlternativesFromGuidance: false,
   };
 
   it("fires when all base gates are open and the only-background guard is off", () => {
@@ -60,6 +61,15 @@ describe("shouldDispatchCues", () => {
         isAppInBackground: false,
       }),
     ).toBe(true);
+  });
+
+  it("is silent when exploring alternatives from guidance", () => {
+    expect(
+      shouldDispatchCues({
+        ...base,
+        isExploringAlternativesFromGuidance: true,
+      }),
+    ).toBe(false);
   });
 });
 
