@@ -406,11 +406,27 @@ private fun CompanionHomeScreen(
                     )
                 }
             } else {
+                val exploreSelectedId = homeState.selectedAlternativeIdForDisplay
                 homeState.guidanceRoute?.let { active ->
+                    // During exploration, dim the active route when the rider
+                    // has tapped an alternative so that alternative stands out.
+                    val activeColor = when {
+                        homeState.isExploringAlternativesFromGuidance && exploreSelectedId != null -> Color(0x6626A69A)
+                        homeState.homeMode == HomeMode.DEVICE_OVERVIEW -> Color(0xFF2D6CDF)
+                        else -> Color(0xFF2E7D32)
+                    }
                     Polyline(
                         points = active.geometry.map { LatLng(it.latitude, it.longitude) },
-                        color = if (homeState.homeMode == HomeMode.DEVICE_OVERVIEW) Color(0xFF2D6CDF) else Color(0xFF2E7D32),
+                        color = activeColor,
                         width = 12f,
+                    )
+                }
+                homeState.guidanceAlternatives.forEach { alt ->
+                    val isSelected = alt.id == exploreSelectedId
+                    Polyline(
+                        points = alt.normalizedPackage.geometry.map { LatLng(it.latitude, it.longitude) },
+                        color = if (isSelected) Color(0xFF2D6CDF) else Color(0x6626A69A),
+                        width = if (isSelected) 10f else 7f,
                     )
                 }
             }
