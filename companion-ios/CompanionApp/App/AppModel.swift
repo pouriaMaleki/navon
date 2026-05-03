@@ -864,7 +864,7 @@ final class AppModel: ObservableObject {
         activeSession.destinationLabel = displayDestinationTitle(
             selectedPackage: selectedPackage,
             preferredTitle: preferredTitle,
-            fallback: providerID.displayName + " route"
+            fallback: "No destination"
         )
         activeSession.destinationCoordinate = selectedPackage?.geometry.last ?? destination
         activeSession.providerID = providerID

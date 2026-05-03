@@ -698,9 +698,27 @@ private fun PhoneGuidanceTopArea(
     homeState: HomeStateHolder,
     scope: kotlinx.coroutines.CoroutineScope,
 ) {
-    // Top card: next-turn line as the headline, destination + remaining
-    // bundled as the subtitle (single source of truth — the bottom just
-    // floats a stop button). See HomeStateHolder.guidanceSubtitleLine.
+    if (homeState.isExploringAlternativesFromGuidance) {
+        // Read-only "Where to" bar showing the active destination while browsing alternatives.
+        val dest = homeState.query.ifBlank { homeState.activeNavigationTitle }
+        Surface(shape = MaterialTheme.shapes.large, tonalElevation = 4.dp) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text("🔍", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    dest,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
+            }
+        }
+        return
+    }
+    // Normal guidance: next-turn headline + destination+remaining subtitle.
     val headline = homeState.nextInstructionLine ?: homeState.activeNavigationTitle
     Surface(shape = MaterialTheme.shapes.large, tonalElevation = 4.dp) {
         Row(

@@ -130,6 +130,57 @@ final class RoutingTopCardLinesTests: XCTestCase {
         )
     }
 
+    func test_activeNavigationTitle_filtersSelectedDestination_andFallsToSession() async {
+        // Regression: guidanceRoute.summary.destinationLabel = "Selected destination"
+        // (baked in by OSRM) must not surface as the headline — fall through to
+        // activeSession.destinationLabel which carries the user-typed address.
+        let app = freshApp()
+        let vm = HomeViewModel(appModel: app)
+        let pkg = tinyRoute(destinationLabel: "Selected destination")
+        app.preview = RoutePreviewModel(
+            alternatives: [RouteAlternative(
+                id: UUID(), title: "T", subtitle: "",
+                distanceMeters: 8_600, durationSeconds: 960, normalizedPackage: pkg
+            )],
+            selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        app.activeSession.destinationLabel = "Alppila"
+        await vm.startSelectedRoute()
+        XCTAssertEqual(
+            vm.activeNavigationTitle, "Alppila",
+            "activeNavigationTitle must skip 'Selected destination' placeholder and return the user-typed session label"
+        )
+    }
+
+    func test_displayDestinationFallback_isNoDestination_notProviderName() async {
+        // Regression: applySelectedAlternativeToSession previously used
+        // "<providerName> route" as fallback, which bled "OSM route" into the
+        // distanceToDestinationLine. The fallback was changed to "No destination"
+        // (a known placeholder) so the distance line shows "X km" without a fake address.
+        let app = freshApp()
+        let vm = HomeViewModel(appModel: app)
+        let pkg = tinyRoute(destinationLabel: "Selected destination")
+        app.preview = RoutePreviewModel(
+            alternatives: [RouteAlternative(
+                id: UUID(), title: "T", subtitle: "",
+                distanceMeters: 8_600, durationSeconds: 960, normalizedPackage: pkg
+            )],
+            selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        // activeSession carries "No destination" (the new fallback) — not "OSM route"
+        app.activeSession.destinationLabel = "No destination"
+        await vm.startSelectedRoute()
+        let layout = vm.routingTopLayout
+        XCTAssertEqual(
+            layout?.distanceToDestinationLine, "8.6 km",
+            "When destination is unknown the distance line must be 'X km' — not 'X km to OSM route' or 'X km to No destination'"
+        )
+        XCTAssertNotEqual(
+            vm.activeNavigationTitle, "Selected destination",
+            "activeNavigationTitle must not expose OSRM's generic 'Selected destination' placeholder"
+        )
+    }
+
     func test_routingTopLayout_dropsDistanceLine_whenDestinationLabelIsMissing() async {
         // Defensive: if the destination label is the placeholder we should
         // not produce a confusing "X km to No destination" line.

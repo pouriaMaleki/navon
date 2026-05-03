@@ -192,8 +192,10 @@ export class GuidanceStore {
   }
 
   get activeNavigationTitle(): string {
-    const route = this.guidanceRoute;
-    return route?.summary.destinationLabel ?? this.activeSession.destinationLabel;
+    const placeholder = new Set(["", "No destination", "Selected destination", "Current location"]);
+    const routeLabel = (this.guidanceRoute?.summary.destinationLabel ?? "").trim();
+    if (routeLabel && !placeholder.has(routeLabel)) return routeLabel;
+    return this.activeSession.destinationLabel;
   }
 
   get activeNavigationSubtitle(): string {

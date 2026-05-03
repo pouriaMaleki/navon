@@ -323,8 +323,12 @@ final class HomeViewModel: ObservableObject {
     }
 
     var activeNavigationTitle: String {
+        let placeholders: Set<String> = ["selected destination", "current location"]
         if let destination = guidanceRoute?.summary.destinationLabel {
-            return destination
+            let trimmed = destination.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty && !placeholders.contains(trimmed.lowercased()) {
+                return trimmed
+            }
         }
         return appModel.activeSession.destinationLabel
     }

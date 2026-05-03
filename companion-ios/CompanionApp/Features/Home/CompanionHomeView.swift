@@ -464,11 +464,16 @@ struct CompanionHomeView: View {
     }
 
     private var phoneGuidanceTopOverlay: some View {
+        if viewModel.isExploringAlternativesFromGuidance {
+            // Show a read-only "Where to" bar with the active destination so
+            // the rider always sees where they're headed while comparing alternatives.
+            return AnyView(explorationDestinationBar)
+        }
         // Three-line text card (no icons): next-turn headline,
         // "X km to <destination>", "Y min remaining". Icons live on the
         // persistent rails so the layout doesn't reflow between modes.
         let layout = viewModel.routingTopLayout
-        return VStack(spacing: 6) {
+        return AnyView(VStack(spacing: 6) {
             if let offLabel = layout?.offRouteLabel {
                 Text(offLabel)
                     .font(.subheadline.weight(.bold))
@@ -484,7 +489,22 @@ struct CompanionHomeView: View {
                 distanceLine: layout?.distanceToDestinationLine ?? "",
                 minutesLine: layout?.minutesRemainingLine ?? ""
             )
+        })
+    }
+
+    /// Read-only "Where to" bar shown during alternatives exploration.
+    /// Mirrors the planning topBar appearance but is not interactive.
+    private var explorationDestinationBar: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+            let dest = viewModel.query.isEmpty ? viewModel.activeNavigationTitle : viewModel.query
+            Text(dest)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .padding(14)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     private func phoneGuidanceTopCard(

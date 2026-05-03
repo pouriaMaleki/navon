@@ -822,7 +822,7 @@ class CompanionAppState(
         activeSession = activeSession.copy(
             routeIdentifier = selectedPackage?.routeIdentifier ?: preview.routeIdentifier,
             routeRevision = selectedPackage?.revision ?: preview.routeRevision,
-            destinationLabel = displayDestinationTitle(selectedPackage, preferredTitle, "${providerId.displayName} route"),
+            destinationLabel = displayDestinationTitle(selectedPackage, preferredTitle, "No destination"),
             destinationCoordinate = selectedPackage?.geometry?.lastOrNull() ?: destination,
             providerId = providerId,
             sourceMode = sourceMode,

@@ -121,6 +121,41 @@ describe("GuidanceStore — three-line routing top card (iOS parity)", () => {
   });
 });
 
+describe("GuidanceStore — activeNavigationTitle placeholder filtering", () => {
+  beforeEach(() => {
+    globalThis.localStorage?.clear();
+  });
+
+  it("filters 'Selected destination' from guidanceRoute and falls back to activeSession label", () => {
+    const { planning, guidance } = buildHarness();
+    setPreview(planning, tinyRoute("Selected destination", 3.4));
+    guidance.activeSession = { ...guidance.activeSession, destinationLabel: "Kallio" };
+    guidance.startSelectedRoute();
+    expect(guidance.activeNavigationTitle).toBe("Kallio");
+  });
+
+  it("filters 'Current location' from guidanceRoute and falls back to activeSession label", () => {
+    const { planning, guidance } = buildHarness();
+    setPreview(planning, tinyRoute("Current location", 3.4));
+    guidance.activeSession = { ...guidance.activeSession, destinationLabel: "Alppila" };
+    guidance.startSelectedRoute();
+    expect(guidance.activeNavigationTitle).toBe("Alppila");
+  });
+
+  it("does not show provider-generated route title as destination in distanceToDestinationLine", () => {
+    // Regression: before the fix, displayDestinationTitle used "OSM route" as fallback
+    // when no real address was known, which bled into distanceToDestinationLine.
+    const { planning, guidance } = buildHarness();
+    // Simulate the new fallback behaviour: activeSession carries "No destination"
+    // (the placeholder) instead of a provider name.
+    setPreview(planning, tinyRoute("Selected destination", 8.6));
+    guidance.activeSession = { ...guidance.activeSession, destinationLabel: "No destination" };
+    guidance.startSelectedRoute();
+    // Must NOT show "8.6 km to No destination" or "8.6 km to OSM route"
+    expect(guidance.distanceToDestinationLine).toBe("8.6 km");
+  });
+});
+
 describe("GuidanceStore — distance-first next-turn line (iOS parity)", () => {
   beforeEach(() => {
     globalThis.localStorage?.clear();

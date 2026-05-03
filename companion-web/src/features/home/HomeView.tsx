@@ -223,6 +223,25 @@ const TopOverlay = observer(({ store }: { store: RootStore }) => {
   }, [planning, planning.isSearchOpen]);
 
   if (guidance.homeMode === "phoneGuidance") {
+    if (guidance.isExploringAlternativesFromGuidance) {
+      // Show a read-only "Where to" bar with the active destination so the
+      // rider always sees where they're headed while comparing alternatives.
+      const dest = planning.query || guidance.activeNavigationTitle;
+      return (
+        <div className="overlay-top">
+          <div className="search-bar">
+            <span aria-hidden>🔍</span>
+            <input
+              type="text"
+              readOnly
+              value={dest}
+              onChange={() => {}}
+              aria-label="Active destination"
+            />
+          </div>
+        </div>
+      );
+    }
     // iOS-parity routing top card. Three text lines, no icons (every
     // icon lives in the persistent rails). The eye hits the metric
     // first on every line — distance-first next-turn, then

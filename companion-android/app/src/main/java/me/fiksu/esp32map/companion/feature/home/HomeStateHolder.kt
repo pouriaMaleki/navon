@@ -171,7 +171,12 @@ class HomeStateHolder(
         }
 
     val activeNavigationTitle: String
-        get() = guidanceRoute?.summary?.destinationLabel ?: appState.activeSession.destinationLabel
+        get() {
+            val placeholders = setOf("selected destination", "current location")
+            val routeLabel = guidanceRoute?.summary?.destinationLabel?.trim() ?: ""
+            if (routeLabel.isNotEmpty() && !placeholders.contains(routeLabel.lowercase())) return routeLabel
+            return appState.activeSession.destinationLabel
+        }
 
     val activeNavigationSubtitle: String
         get() = when (homeMode) {
@@ -195,9 +200,10 @@ class HomeStateHolder(
      */
     val guidanceSubtitleLine: String
         get() {
+            val placeholders = setOf("", "no destination", "selected destination", "current location")
             val destination = (guidanceRoute?.summary?.destinationLabel ?: appState.activeSession.destinationLabel).trim()
             val remainingPart = activeNavigationSubtitle
-            return if (destination.isEmpty() || destination == "No destination") {
+            return if (placeholders.contains(destination.lowercase())) {
                 remainingPart
             } else {
                 "$destination • $remainingPart"
