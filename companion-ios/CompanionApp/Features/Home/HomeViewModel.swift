@@ -819,8 +819,10 @@ final class HomeViewModel: ObservableObject {
     func selectAlternative(_ alternativeID: UUID) {
         if isExploringAlternativesFromGuidance {
             explorationSelectedID = alternativeID
+            appModel.selectAlternativePreviewOnly(alternativeID)
+        } else {
+            appModel.selectAlternative(alternativeID)
         }
-        appModel.selectAlternative(alternativeID)
     }
 
     func startSelectedRoute() async {
@@ -1399,8 +1401,10 @@ final class HomeViewModel: ObservableObject {
 
     private func cueManeuverKind(_ type: RouteManeuverType) -> ManeuverKind {
         switch type {
-        case .left, .slightLeft, .sharpLeft: return .left
-        case .right, .slightRight, .sharpRight: return .right
+        case .left, .sharpLeft: return .left
+        case .slightLeft: return .keepLeft
+        case .right, .sharpRight: return .right
+        case .slightRight: return .keepRight
         case .uturn: return .uturn
         case .merge, .ramp, .roundabout: return .generic
         case .depart, .arrive, .straight: return .generic

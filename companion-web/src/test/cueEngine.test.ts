@@ -8,6 +8,7 @@ import {
   initialCueEngineState,
   tickCueEngine,
 } from "../integrations/cues/CueEngine.js";
+import { maneuverKindFromType } from "../integrations/cues/RoutingActivityCoordinator.js";
 
 const M_LEFT = (id: string, distance: number): CueManeuver => ({
   id,
@@ -360,5 +361,87 @@ describe("CueEngine — Bug 3: same routeId with bumped revision resets engine s
       (e) => e.kind === "nextTurnInAbout" && (e as { turnKind: string }).turnKind === "right",
     );
     expect(nextTurnCues).toHaveLength(1);
+  });
+});
+
+describe("CueEngine — turn10m fires 15m before the maneuver (5m earlier threshold)", () => {
+  it("fires turn10m when 14m before the turn (within the 15m window)", () => {
+    const m = M_LEFT("m1", 200);
+    const s1 = tick(initialCueEngineState(), baseSnapshot({ progressDistanceM: 100 }));
+    // 200 - 186 = 14 m remaining — should fire with the new 15m threshold
+    const s2 = tick(s1.next, baseSnapshot({ progressDistanceM: 186 }));
+    const t10 = s2.events.find((e) => e.kind === "turn10m");
+    expect(t10).toBeDefined();
+    expect(t10).toMatchObject({ kind: "turn10m", turnKind: "left" });
+  });
+
+  it("does not fire turn10m when 16m before the turn (just outside the 15m window)", () => {
+    const s1 = tick(initialCueEngineState(), baseSnapshot({ progressDistanceM: 100 }));
+    // 200 - 184 = 16 m remaining — should NOT fire
+    const s2 = tick(s1.next, baseSnapshot({ progressDistanceM: 184 }));
+    expect(s2.events.find((e) => e.kind === "turn10m")).toBeUndefined();
+  });
+});
+
+describe("CueEngine — skip turn50m cue when next turn is < 100m away", () => {
+  it("skips turn50m when route starts 80m from the first turn", () => {
+    // 80m > 50m so Case A fires nextTurnInAbout; but < 100m so turn50m must be pre-latched.
+    const m1: CueManeuver = { id: "m1", kind: "left", distanceFromStartM: 80 };
+    const snap = baseSnapshot({ maneuvers: [m1], routeTotalDistanceM: 500 });
+    const s1 = tick(initialCueEngineState(), snap);
+    // nextTurnInAbout fires on the first tick (80m away)
+    expect(s1.events.find((e) => e.kind === "nextTurnInAbout")).toBeDefined();
+    // Advance into the 50m window — turn50m must NOT fire (pre-latched)
+    const s2 = tick(s1.next, { ...snap, progressDistanceM: 35 }); // 80-35=45m < 50m
+    expect(s2.events.find((e) => e.kind === "turn50m")).toBeUndefined();
+  });
+
+  it("fires turn50m when route starts 120m from the first turn (above the 100m threshold)", () => {
+    const m1: CueManeuver = { id: "m1", kind: "left", distanceFromStartM: 120 };
+    const snap = baseSnapshot({ maneuvers: [m1], routeTotalDistanceM: 500 });
+    const s1 = tick(initialCueEngineState(), snap);
+    // Advance into 50m window — turn50m SHOULD fire (not pre-latched)
+    const s2 = tick(s1.next, { ...snap, progressDistanceM: 75 }); // 120-75=45m < 50m
+    expect(s2.events.find((e) => e.kind === "turn50m")).toBeDefined();
+  });
+
+  it("skips turn50m after passing a maneuver when the next turn is 70m away", () => {
+    // m1 at 100m, m2 at 170m. After passing m1 at rider=110m, m2 is 60m away (<100m).
+    const m1 = M_LEFT("m1", 100);
+    const m2 = M_LEFT("m2", 170);
+    const snap = (progress: number) =>
+      baseSnapshot({ maneuvers: [m1, m2], progressDistanceM: progress, routeTotalDistanceM: 1000 });
+    const s1 = tick(initialCueEngineState(), snap(0));
+    const s2 = tick(s1.next, snap(110)); // 10m past m1 → nextTurnInAbout(m2) at 60m
+    expect(s2.events.find((e) => e.kind === "nextTurnInAbout")).toBeDefined();
+    // Advance into m2's 50m window — turn50m must NOT fire (pre-latched)
+    const s3 = tick(s2.next, snap(125)); // 170-125=45m
+    expect(s3.events.find((e) => e.kind === "turn50m")).toBeUndefined();
+  });
+});
+
+describe("CueEngine — bear left/right maps to keepLeft/keepRight (not turn left/right)", () => {
+  it("slightLeft RouteManeuverType maps to keepLeft ManeuverKind", () => {
+    expect(maneuverKindFromType("slightLeft")).toBe("keepLeft");
+  });
+
+  it("slightRight RouteManeuverType maps to keepRight ManeuverKind", () => {
+    expect(maneuverKindFromType("slightRight")).toBe("keepRight");
+  });
+
+  it("sharpLeft still maps to left ManeuverKind", () => {
+    expect(maneuverKindFromType("sharpLeft")).toBe("left");
+  });
+
+  it("sharpRight still maps to right ManeuverKind", () => {
+    expect(maneuverKindFromType("sharpRight")).toBe("right");
+  });
+
+  it("keepLeft cue formats as 'Keep left' (not 'Turn left')", () => {
+    expect(formatCueEvent({ kind: "turn10m", turnKind: "keepLeft" })).toBe("Keep left");
+  });
+
+  it("keepRight cue formats as 'Keep right' (not 'Turn right')", () => {
+    expect(formatCueEvent({ kind: "turn10m", turnKind: "keepRight" })).toBe("Keep right");
   });
 });

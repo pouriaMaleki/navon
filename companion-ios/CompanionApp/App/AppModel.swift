@@ -537,6 +537,18 @@ final class AppModel: ObservableObject {
         refreshDiagnostics()
     }
 
+    /// Update preview selection without touching activeSession.destinationLabel.
+    /// Used during alternatives exploration so the rider's typed destination is preserved.
+    func selectAlternativePreviewOnly(_ alternativeID: UUID) {
+        preview.selectedAlternativeID = alternativeID
+        preview.routeIdentifier = preview.selectedAlternative?.normalizedPackage.routeIdentifier
+        preview.routeRevision = preview.selectedAlternative?.normalizedPackage.revision
+        if let providerID = preview.selectedAlternative?.normalizedPackage.provenance.providerID {
+            selectedProviderID = providerID
+        }
+        refreshDiagnostics()
+    }
+
     func resumePendingTransfer() async {
         do {
             try await bleService.resumePendingTransfer()

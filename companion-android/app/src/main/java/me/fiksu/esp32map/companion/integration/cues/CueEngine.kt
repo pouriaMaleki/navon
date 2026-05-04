@@ -82,7 +82,12 @@ data class CueEngineState(
 
 object CueEngine {
     private const val APPROACH_50_M = 50.0
-    private const val APPROACH_10_M = 10.0
+    private const val APPROACH_10_M = 15.0
+    /** When the next turn is closer than this at the time of the NextTurnInAbout
+     *  announcement, pre-latch Turn50m so it never fires. The rider has already
+     *  been told the turn is near; a redundant "in 50 m" before they can react
+     *  is jarring. */
+    private const val SKIP_50M_BELOW_DISTANCE_M = 100.0
     private const val PASSED_TURN_M = 10.0
     private const val ON_TRACK_CONFIRM_SAMPLES = 5
     private const val ON_TRACK_CORRIDOR_M = 22.0
@@ -166,6 +171,12 @@ object CueEngine {
                                 distanceM = distanceM,
                             ),
                         )
+                        // Pre-latch Turn50m when the first turn is already close: the
+                        // rider has the orientation cue; a redundant "in 50 m" a few
+                        // seconds later would be jarring before they can even react.
+                        if (distanceM < SKIP_50M_BELOW_DISTANCE_M) {
+                            nextAnnounced50m = nextAnnounced50m + firstNonDepart.id
+                        }
                     }
                 } else {
                     // Case B vs. C — peek at the follow-up gap.
@@ -304,7 +315,7 @@ object CueEngine {
                             ),
                         )
                         announcedNextTurnAfter.add(lastPassed.id)
-                        if (distanceToNext <= APPROACH_50_M) {
+                        if (distanceToNext < SKIP_50M_BELOW_DISTANCE_M) {
                             announced50m.add(nextAfter.id)
                         }
                     }

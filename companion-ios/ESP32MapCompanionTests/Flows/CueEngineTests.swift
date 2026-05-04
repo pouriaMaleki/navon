@@ -305,4 +305,76 @@ final class CueEngineTests: XCTestCase {
         XCTAssertEqual(CueEngine.format(.rerouting), "Rerouting")
         XCTAssertEqual(CueEngine.format(.onTrack), "On track")
     }
+
+    // MARK: — turn10m fires 15m before the maneuver (5m earlier)
+
+    func test_turn10mFiresAt14m_withinNew15mThreshold() {
+        let s1 = CueEngine.tick(snapshot: base(progressDistanceM: 100), state: CueEngineState()).nextState
+        // 200 - 186 = 14 m remaining — fires with the new 15m threshold
+        let r2 = CueEngine.tick(snapshot: base(progressDistanceM: 186), state: s1)
+        XCTAssertTrue(r2.events.contains(.turn10m(.left)),
+            "turn10m must fire when 14m before the turn (new 15m threshold)")
+    }
+
+    func test_turn10mDoesNotFireAt16m_outsideThreshold() {
+        let s1 = CueEngine.tick(snapshot: base(progressDistanceM: 100), state: CueEngineState()).nextState
+        // 200 - 184 = 16 m remaining — must NOT fire
+        let r2 = CueEngine.tick(snapshot: base(progressDistanceM: 184), state: s1)
+        XCTAssertFalse(r2.events.contains(.turn10m(.left)),
+            "turn10m must not fire when 16m before the turn (outside 15m threshold)")
+    }
+
+    // MARK: — skip turn50m when next turn is < 100m away
+
+    func test_skipsTurn50m_whenRouteStarts80mFromFirstTurn() {
+        // 80m is Case A (> 50m) → nextTurnInAbout fires. But 80m < 100m so
+        // turn50m must be pre-latched on the same first tick.
+        let m = CueManeuver(id: "m1", kind: .left, distanceFromStartM: 80)
+        let snap = base(maneuvers: [m], routeTotalDistanceM: 500)
+        let s1 = CueEngine.tick(snapshot: snap, state: CueEngineState())
+        XCTAssertTrue(s1.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } },
+            "nextTurnInAbout must still fire")
+        // Advance into the 50m window — turn50m must NOT fire (pre-latched)
+        var snap2 = snap; snap2 = base(progressDistanceM: 35, maneuvers: [m], routeTotalDistanceM: 500)
+        let s2 = CueEngine.tick(snapshot: snap2, state: s1.nextState)
+        XCTAssertFalse(s2.events.contains { if case .turn50m = $0 { return true } else { return false } },
+            "turn50m must not fire when first turn was < 100m at route start")
+    }
+
+    func test_firesTurn50m_whenRouteStarts120mFromFirstTurn() {
+        // 120m > 100m threshold → turn50m is NOT pre-latched and fires normally
+        let m = CueManeuver(id: "m1", kind: .left, distanceFromStartM: 120)
+        let s1 = CueEngine.tick(snapshot: base(maneuvers: [m], routeTotalDistanceM: 500),
+                                state: CueEngineState()).nextState
+        // Advance to 45m from m1 (120-75=45m) → inside 50m window
+        let r2 = CueEngine.tick(snapshot: base(progressDistanceM: 75, maneuvers: [m], routeTotalDistanceM: 500),
+                                state: s1)
+        XCTAssertTrue(r2.events.contains { if case .turn50m = $0 { return true } else { return false } },
+            "turn50m must fire when turn was >= 100m at route start")
+    }
+
+    func test_skipsTurn50m_afterPassingManeuver_whenNextIs70mAway() {
+        // m1 at 100m, m2 at 170m. After passing m1 (rider at 110m), m2 is 60m away (<100m).
+        let m1 = CueManeuver(id: "m1", kind: .left, distanceFromStartM: 100)
+        let m2 = CueManeuver(id: "m2", kind: .left, distanceFromStartM: 170)
+        let maneuvers = [m1, m2]
+        let s1 = CueEngine.tick(snapshot: base(maneuvers: maneuvers), state: CueEngineState()).nextState
+        let s2 = CueEngine.tick(snapshot: base(progressDistanceM: 110, maneuvers: maneuvers), state: s1)
+        XCTAssertTrue(s2.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } },
+            "nextTurnInAbout must fire after passing m1")
+        // Advance into m2's 50m window (170-125=45m) — turn50m must NOT fire
+        let s3 = CueEngine.tick(snapshot: base(progressDistanceM: 125, maneuvers: maneuvers), state: s2.nextState)
+        XCTAssertFalse(s3.events.contains { if case .turn50m = $0 { return true } else { return false } },
+            "turn50m must not fire when next turn was < 100m at time of nextTurnInAbout")
+    }
+
+    // MARK: — bear left/right → keepLeft/keepRight cue format
+
+    func test_keepLeft_formatsAsKeepLeft_notTurnLeft() {
+        XCTAssertEqual(CueEngine.format(.turn10m(.keepLeft)), "Keep left")
+    }
+
+    func test_keepRight_formatsAsKeepRight_notTurnRight() {
+        XCTAssertEqual(CueEngine.format(.turn10m(.keepRight)), "Keep right")
+    }
 }

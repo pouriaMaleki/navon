@@ -68,7 +68,12 @@ export type CueEngineState = {
 };
 
 const APPROACH_50_M = 50;
-const APPROACH_10_M = 10;
+const APPROACH_10_M = 15;
+/** When the next turn is closer than this at the time of the nextTurnInAbout
+ *  announcement, pre-latch the turn50m cue so it never fires. The rider has
+ *  already been told the turn is near; a redundant "in 50 m" announcement
+ *  before they can even hear the first one is jarring. */
+const SKIP_50M_BELOW_DISTANCE_M = 100;
 const PASSED_TURN_M = 10;
 const ON_TRACK_CONFIRM_SAMPLES = 5;
 const ON_TRACK_CORRIDOR_M = 22;
@@ -179,6 +184,14 @@ export function tickCueEngine(
             turnKind: firstNonDepart.kind,
             distanceM,
           });
+          // Pre-latch turn50m when the first turn is already close: the rider
+          // has the orientation cue; a redundant "in 50 m" a few seconds later
+          // would be jarring before they can even react to the first.
+          if (distanceM < SKIP_50M_BELOW_DISTANCE_M) {
+            const set = new Set(nextAnnounced50m);
+            set.add(firstNonDepart.id);
+            nextAnnounced50m = set;
+          }
         }
       } else {
         // Case B vs. C — peek at the follow-up gap.
@@ -340,7 +353,7 @@ export function tickCueEngine(
             distanceM: distanceToNext,
           });
           announcedNextTurnAfter.add(lastPassed.id);
-          if (distanceToNext <= APPROACH_50_M) {
+          if (distanceToNext < SKIP_50M_BELOW_DISTANCE_M) {
             announced50m.add(nextAfter.id);
           }
         }

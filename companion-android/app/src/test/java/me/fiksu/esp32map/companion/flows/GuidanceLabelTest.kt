@@ -58,6 +58,46 @@ class GuidanceLabelTest {
         return holder to state
     }
 
+    // ─── selectAlternativeForExploration — destination preservation ──────────
+
+    @Test
+    fun selectAlternativeForExploration_preservesDestinationLabel() {
+        // Regression: selectAlternativeForExploration previously called
+        // appState.selectAlternative which in turn called
+        // applySelectedAlternativeToSession(preferredTitle = null), overwriting
+        // activeSession.destinationLabel with the "No destination" fallback and
+        // erasing the user-typed address. The fix uses selectAlternativePreviewOnly
+        // which updates the preview selection without touching the session.
+        val pkg1 = packageWithDestinationLabel("Selected destination")
+        val pkg2 = packageWithDestinationLabel("Selected destination")
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val state = CompanionAppState(app)
+        state.preview = RoutePreviewModel(
+            alternatives = listOf(
+                RouteAlternative("a1", "Route 1", "", 2500, 600, pkg1),
+                RouteAlternative("a2", "Route 2", "", 3000, 720, pkg2),
+            ),
+            selectedAlternativeId = "a1",
+            routeIdentifier = pkg1.routeIdentifier,
+            routeRevision = pkg1.revision,
+            planningNotice = null,
+        )
+        val holder = HomeStateHolder(state, FakePlaceSearch())
+        holder.startSelectedRoute()
+        // Simulate the user-typed destination being set on the active session
+        state.activeSession = state.activeSession.copy(destinationLabel = "Kallio")
+
+        // Directly call the exploration selection (no need to enter exploration mode;
+        // the invariant is that this call must never overwrite destinationLabel).
+        holder.selectAlternativeForExploration("a2")
+
+        assertEquals(
+            "selectAlternativeForExploration must not overwrite activeSession.destinationLabel",
+            "Kallio",
+            state.activeSession.destinationLabel,
+        )
+    }
+
     // ─── activeNavigationTitle ────────────────────────────────────────────────
 
     @Test

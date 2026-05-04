@@ -295,4 +295,84 @@ class CueEngineTest {
         assertEquals("Rerouting", CueEngine.format(CueEvent.Rerouting))
         assertEquals("On track", CueEngine.format(CueEvent.OnTrack))
     }
+
+    // ─── turn10m fires 15m before the maneuver (5m earlier) ──────────────────
+
+    @Test
+    fun turn10mFiresAt14m_withinNew15mThreshold() {
+        val s1 = CueEngine.tick(base(progressDistanceM = 100.0), CueEngineState()).nextState
+        // 200 - 186 = 14 m remaining — fires with the new 15m threshold
+        val r2 = CueEngine.tick(base(progressDistanceM = 186.0), s1)
+        assertNotNull(
+            "turn10m must fire when 14m before the turn (new 15m threshold)",
+            r2.events.firstOrNull { it is CueEvent.Turn10m },
+        )
+    }
+
+    @Test
+    fun turn10mDoesNotFireAt16m_outsideThreshold() {
+        val s1 = CueEngine.tick(base(progressDistanceM = 100.0), CueEngineState()).nextState
+        // 200 - 184 = 16 m remaining — must NOT fire
+        val r2 = CueEngine.tick(base(progressDistanceM = 184.0), s1)
+        assertNull(
+            "turn10m must not fire when 16m before the turn (outside 15m threshold)",
+            r2.events.firstOrNull { it is CueEvent.Turn10m },
+        )
+    }
+
+    // ─── skip turn50m when next turn is < 100m away ───────────────────────────
+
+    @Test
+    fun skipsTurn50m_whenRouteStarts80mFromFirstTurn() {
+        // 80m > 50m → Case A fires nextTurnInAbout; but 80m < 100m so
+        // turn50m must be pre-latched and must not fire when rider enters 50m window.
+        val m = CueManeuver("m1", ManeuverKind.LEFT, 80.0)
+        val snap = base(maneuvers = listOf(m), routeTotalDistanceM = 500.0)
+        val s1 = CueEngine.tick(snap, CueEngineState())
+        assertNotNull("nextTurnInAbout must fire", s1.events.firstOrNull { it is CueEvent.NextTurnInAbout })
+        // Advance into the 50m window (80-35=45m) — turn50m must NOT fire
+        val s2 = CueEngine.tick(snap.copy(progressDistanceM = 35.0), s1.nextState)
+        assertNull("turn50m must not fire when first turn was < 100m at route start",
+            s2.events.firstOrNull { it is CueEvent.Turn50m })
+    }
+
+    @Test
+    fun firesTurn50m_whenRouteStarts120mFromFirstTurn() {
+        // 120m > 100m → NOT pre-latched, turn50m fires normally
+        val m = CueManeuver("m1", ManeuverKind.LEFT, 120.0)
+        val snap = base(maneuvers = listOf(m), routeTotalDistanceM = 500.0)
+        val s1 = CueEngine.tick(snap, CueEngineState()).nextState
+        // 120-75=45m → inside 50m window
+        val r2 = CueEngine.tick(snap.copy(progressDistanceM = 75.0), s1)
+        assertNotNull("turn50m must fire when turn was >= 100m at route start",
+            r2.events.firstOrNull { it is CueEvent.Turn50m })
+    }
+
+    @Test
+    fun skipsTurn50m_afterPassingManeuver_whenNextIs60mAway() {
+        // m1 at 100m, m2 at 170m. After passing m1 (rider at 110m), m2 is 60m away (<100m).
+        val m1 = CueManeuver("m1", ManeuverKind.LEFT, 100.0)
+        val m2 = CueManeuver("m2", ManeuverKind.LEFT, 170.0)
+        val maneuvers = listOf(m1, m2)
+        val s1 = CueEngine.tick(base(maneuvers = maneuvers), CueEngineState()).nextState
+        val s2 = CueEngine.tick(base(progressDistanceM = 110.0, maneuvers = maneuvers), s1)
+        assertNotNull("nextTurnInAbout must fire after passing m1",
+            s2.events.firstOrNull { it is CueEvent.NextTurnInAbout })
+        // Advance into m2's 50m window (170-125=45m) — turn50m must NOT fire
+        val s3 = CueEngine.tick(base(progressDistanceM = 125.0, maneuvers = maneuvers), s2.nextState)
+        assertNull("turn50m must not fire when next turn was < 100m at time of nextTurnInAbout",
+            s3.events.firstOrNull { it is CueEvent.Turn50m })
+    }
+
+    // ─── bear left/right → keepLeft/keepRight cue format ─────────────────────
+
+    @Test
+    fun keepLeft_formatsAsKeepLeft_notTurnLeft() {
+        assertEquals("Keep left", CueEngine.format(CueEvent.Turn10m(ManeuverKind.KEEP_LEFT)))
+    }
+
+    @Test
+    fun keepRight_formatsAsKeepRight_notTurnRight() {
+        assertEquals("Keep right", CueEngine.format(CueEvent.Turn10m(ManeuverKind.KEEP_RIGHT)))
+    }
 }

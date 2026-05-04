@@ -63,7 +63,11 @@ struct CueEngineState: Equatable {
 
 enum CueEngine {
     private static let approach50M = 50.0
-    private static let approach10M = 10.0
+    private static let approach10M = 15.0
+    /// When the next turn is closer than this at the time of nextTurnInAbout,
+    /// pre-latch turn50m so it never fires. The rider has already been told
+    /// the turn is near; a redundant "in 50 m" before they can react is jarring.
+    private static let skip50mBelowDistanceM = 100.0
     private static let passedTurnM = 10.0
     private static let onTrackConfirmSamples = 5
     private static let onTrackCorridorM = 22.0
@@ -145,6 +149,12 @@ enum CueEngine {
                         }
                     } else {
                         events.append(.nextTurnInAbout(turnKind: firstNonDepart.kind, distanceM: distanceM))
+                        // Pre-latch turn50m when the first turn is already close: the rider
+                        // has the orientation cue; a redundant "in 50 m" a few seconds later
+                        // would be jarring before they can even react to the first.
+                        if distanceM < Self.skip50mBelowDistanceM {
+                            s.announced50m.insert(firstNonDepart.id)
+                        }
                     }
                 } else {
                     // Case B vs. C — peek at the follow-up gap.
@@ -243,12 +253,10 @@ enum CueEngine {
                             distanceM: distanceToNext
                         ))
                         announcedNextTurnAfter.insert(lastPassed.id)
-                        // If the next maneuver is already within the 50 m
-                        // approach window, pre-latch announced50m so the
-                        // turn50m block below (same tick) is suppressed.
-                        // The rider was just told the turn is imminent; a
-                        // second "In 50 m turn X" right after is redundant.
-                        if distanceToNext <= Self.approach50M {
+                        // Pre-latch turn50m whenever the next turn is close enough
+                        // that the rider has already been told about it. Below
+                        // skip50mBelowDistanceM the "in X m" cue is redundant.
+                        if distanceToNext < Self.skip50mBelowDistanceM {
                             announced50m.insert(nextAfter.id)
                         }
                     }

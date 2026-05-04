@@ -181,6 +181,38 @@ final class RoutingTopCardLinesTests: XCTestCase {
         )
     }
 
+    func test_selectAlternativePreviewOnly_preservesDestinationLabel() {
+        // Regression: during alternatives exploration, tapping a different route called
+        // appModel.selectAlternative which in turn called applySelectedAlternativeToSession,
+        // overwriting activeSession.destinationLabel with "No destination" and erasing the
+        // user-typed address (e.g. "Kallio"). The fix: exploration uses selectAlternativePreviewOnly
+        // which updates preview selection without touching the session.
+        let app = freshApp()
+        let pkg1 = tinyRoute(destinationLabel: "Selected destination")
+        let pkg2 = tinyRoute(destinationLabel: "Selected destination")
+        let alt1ID = UUID()
+        let alt2ID = UUID()
+        app.preview = RoutePreviewModel(
+            alternatives: [
+                RouteAlternative(id: alt1ID, title: "T1", subtitle: "", distanceMeters: 8_600,
+                                 durationSeconds: 960, normalizedPackage: pkg1),
+                RouteAlternative(id: alt2ID, title: "T2", subtitle: "", distanceMeters: 9_000,
+                                 durationSeconds: 1_000, normalizedPackage: pkg2),
+            ],
+            selectedAlternativeID: alt1ID, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        app.activeSession.destinationLabel = "Kallio"
+        app.selectAlternativePreviewOnly(alt2ID)
+        XCTAssertEqual(
+            app.activeSession.destinationLabel, "Kallio",
+            "selectAlternativePreviewOnly must not overwrite activeSession.destinationLabel — got '\(app.activeSession.destinationLabel)'"
+        )
+        XCTAssertEqual(
+            app.preview.selectedAlternativeID, alt2ID,
+            "selectAlternativePreviewOnly must update preview.selectedAlternativeID"
+        )
+    }
+
     func test_routingTopLayout_dropsDistanceLine_whenDestinationLabelIsMissing() async {
         // Defensive: if the destination label is the placeholder we should
         // not produce a confusing "X km to No destination" line.

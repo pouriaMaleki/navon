@@ -156,6 +156,35 @@ describe("GuidanceStore — activeNavigationTitle placeholder filtering", () => 
   });
 });
 
+describe("GuidanceStore — selectAlternativeForExploration preserves destinationLabel", () => {
+  beforeEach(() => {
+    globalThis.localStorage?.clear();
+  });
+
+  it("selectAlternativeForExploration does not overwrite activeSession.destinationLabel", () => {
+    // Regression: on Android/iOS, selectAlternativeForExploration previously called
+    // selectAlternative which called applySelectedAlternativeToSession, erasing the
+    // user-typed address. The web PlanningStore.selectAlternative only updates preview,
+    // so this test pins that invariant stays true.
+    const { planning, guidance } = buildHarness();
+    const pkg1 = tinyRoute("Selected destination", 3.4);
+    const pkg2 = tinyRoute("Selected destination", 5.0);
+    planning.preview = {
+      alternatives: [
+        { id: "a", title: "T1", subtitle: "", distanceMeters: 3_400, durationSeconds: 600, normalizedPackage: pkg1 },
+        { id: "b", title: "T2", subtitle: "", distanceMeters: 5_000, durationSeconds: 900, normalizedPackage: pkg2 },
+      ],
+      selectedAlternativeID: "a",
+      routeIdentifier: pkg1.routeIdentifier,
+      routeRevision: pkg1.revision,
+    };
+    guidance.activeSession = { ...guidance.activeSession, destinationLabel: "Kallio" };
+    guidance.startSelectedRoute();
+    guidance.selectAlternativeForExploration("b");
+    expect(guidance.activeSession.destinationLabel).toBe("Kallio");
+  });
+});
+
 describe("GuidanceStore — distance-first next-turn line (iOS parity)", () => {
   beforeEach(() => {
     globalThis.localStorage?.clear();

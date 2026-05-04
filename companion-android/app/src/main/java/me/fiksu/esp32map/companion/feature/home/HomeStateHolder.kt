@@ -493,7 +493,7 @@ class HomeStateHolder(
      */
     fun selectAlternativeForExploration(id: String) {
         explorationSelectedID = id
-        appState.selectAlternative(id)
+        appState.selectAlternativePreviewOnly(id)
     }
 
     /**

@@ -364,6 +364,18 @@ class CompanionAppState(
         refreshDiagnostics()
     }
 
+    /** Update preview selection without touching activeSession.destinationLabel.
+     *  Used during alternatives exploration so the rider's typed destination is preserved. */
+    fun selectAlternativePreviewOnly(alternativeId: String) {
+        preview = preview.copy(
+            selectedAlternativeId = alternativeId,
+            routeIdentifier = preview.alternatives.firstOrNull { it.id == alternativeId }?.normalizedPackage?.routeIdentifier,
+            routeRevision = preview.alternatives.firstOrNull { it.id == alternativeId }?.normalizedPackage?.revision,
+        )
+        preview.selectedAlternative?.normalizedPackage?.provenance?.providerId?.let { selectedProviderId = it }
+        refreshDiagnostics()
+    }
+
     fun connectToDevice() {
         viewModelScope.launch {
             // Fast path when we already know the peripheral identifier:

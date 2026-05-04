@@ -194,16 +194,19 @@ function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnaps
   };
 }
 
-function maneuverKindFromType(type: string): ManeuverKind {
+/** Exported for testing. */
+export function maneuverKindFromType(type: string): ManeuverKind {
   switch (type) {
     case "left":
-    case "slightLeft":
     case "sharpLeft":
       return "left";
+    case "slightLeft":
+      return "keepLeft";
     case "right":
-    case "slightRight":
     case "sharpRight":
       return "right";
+    case "slightRight":
+      return "keepRight";
     case "uturn":
       return "uturn";
     case "ramp":
