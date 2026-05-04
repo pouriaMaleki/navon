@@ -59,9 +59,33 @@
         "distanceUnit": "select"
       }
     },
+    "cue.nextTurnInAbout.merge": {
+      "value": "Next merge in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue announcing an upcoming merge maneuver.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.nextTurnInAbout.ramp": {
+      "value": "Next ramp in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue announcing an upcoming ramp.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
     "cue.nextTurnInAbout.right": {
       "value": "Next turn right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
       "description": "Voice cue announcing the upcoming right turn distance ahead.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.nextTurnInAbout.roundabout": {
+      "value": "Next roundabout in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue announcing an upcoming roundabout.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
@@ -125,9 +149,24 @@
       "description": "Imperative voice cue at the moment of a left turn (within ~10m).",
       "placeholders": {}
     },
+    "cue.turn10m.merge": {
+      "value": "Merge",
+      "description": "Imperative voice cue at the moment of a merge (within ~10m).",
+      "placeholders": {}
+    },
+    "cue.turn10m.ramp": {
+      "value": "Take the ramp",
+      "description": "Imperative voice cue at the moment of a ramp (within ~10m).",
+      "placeholders": {}
+    },
     "cue.turn10m.right": {
       "value": "Turn right",
       "description": "Imperative voice cue at the moment of a right turn.",
+      "placeholders": {}
+    },
+    "cue.turn10m.roundabout": {
+      "value": "Enter the roundabout",
+      "description": "Imperative voice cue at the moment of entering a roundabout (within ~10m).",
       "placeholders": {}
     },
     "cue.turn10m.uturn": {
@@ -183,9 +222,33 @@
         "distanceUnit": "select"
       }
     },
+    "cue.turn50m.merge": {
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, merge",
+      "description": "Voice cue ~50m before a merge.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.turn50m.ramp": {
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the ramp",
+      "description": "Voice cue ~50m before a ramp.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
     "cue.turn50m.right": {
       "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn right",
       "description": "Voice cue ~50m before a right turn.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.turn50m.roundabout": {
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, enter the roundabout",
+      "description": "Voice cue ~50m before a roundabout. {distance} is the rounded distance to the maneuver.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"

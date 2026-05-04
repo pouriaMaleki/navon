@@ -1084,6 +1084,222 @@
         }
       }
     },
+    "cue.nextTurnInAbout.merge" : {
+      "comment" : "Voice cue announcing an upcoming merge maneuver.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الاندماج التالي بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে মার্জ করুন"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächste Einfahrt in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next merge in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Próxima incorporación en aproximadamente {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ادغام بعدی در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sulautuminen noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prochaine fusion dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में मर्ज करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Belok gabung berikutnya dalam sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で合流します"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये विलीनीकरण"
+          }
+        },
+        "pcm" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next merge for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Próxima conversão à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Слияние через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں مرج کریں"
+          }
+        },
+        "zh" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后并入"
+          }
+        }
+      }
+    },
+    "cue.nextTurnInAbout.ramp" : {
+      "comment" : "Voice cue announcing an upcoming ramp.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "منحدر التالي بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে র‌্যাম্প"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächste Auffahrt in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next ramp in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Próxima rampa en aproximadamente {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رمپ بعدی در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ramppi noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prochaine bretelle dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में रैम्प लें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jalur masuk berikutnya dalam sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でランプに入ります"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये रॅम्प"
+          }
+        },
+        "pcm" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next ramp for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Próxima rampa em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Съезд через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں ریمپ لیں"
+          }
+        },
+        "zh" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后上匝道"
+          }
+        }
+      }
+    },
     "cue.nextTurnInAbout.right" : {
       "comment" : "Voice cue announcing the upcoming right turn distance ahead.",
       "extractionState" : "manual",
@@ -1188,6 +1404,114 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 右转"
+          }
+        }
+      }
+    },
+    "cue.nextTurnInAbout.roundabout" : {
+      "comment" : "Voice cue announcing an upcoming roundabout.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الدوران التالي (دوّار) بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে রাউন্ডঅ্যাবাউট"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächster Kreisverkehr in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next roundabout in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Próxima rotonda en aproximadamente {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "میدان گرد بعدی در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pyöröliittymä noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prochain rond-point dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में राउंडअबाउट"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bundaran berikutnya dalam sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でラウンドアバウトに入ります"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये राउंडअबाऊट"
+          }
+        },
+        "pcm" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next roundabout for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Próxima rotatória em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Кольцевая развязка через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں گول چکر میں داخل ہوں"
+          }
+        },
+        "zh" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "大约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后进入环岛"
           }
         }
       }
@@ -2380,6 +2704,222 @@
         }
       }
     },
+    "cue.turn10m.merge" : {
+      "comment" : "Imperative voice cue at the moment of a merge (within ~10m).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اندِمج"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "মার্জ করুন"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einbiegen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incorpórate"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ادغام کن"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sulautu"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fusionne"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "मर्ज करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gabung"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合流してください"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "विलीनीकरण करा"
+          }
+        },
+        "pcm" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mesclar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сливайся"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مرج کریں"
+          }
+        },
+        "zh" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "并入"
+          }
+        }
+      }
+    },
+    "cue.turn10m.ramp" : {
+      "comment" : "Imperative voice cue at the moment of a ramp (within ~10m).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خُذ المنحدر"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "র‌্যাম্প নিন"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auffahrt nehmen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take the ramp"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toma la rampa"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رمپ را بگیر"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ota ramppi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prends la bretelle"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "रैम्प लें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ambil jalur masuk"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ランプに入ってください"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "रॅम्प घ्या"
+          }
+        },
+        "pcm" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take the ramp"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pegue a rampa"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Съезжай"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ریمپ لیں"
+          }
+        },
+        "zh" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上匝道"
+          }
+        }
+      }
+    },
     "cue.turn10m.right" : {
       "comment" : "Imperative voice cue at the moment of a right turn.",
       "extractionState" : "manual",
@@ -2484,6 +3024,114 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "右转"
+          }
+        }
+      }
+    },
+    "cue.turn10m.roundabout" : {
+      "comment" : "Imperative voice cue at the moment of entering a roundabout (within ~10m).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ادخل الدوّار"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "রাউন্ডঅ্যাবাউটে ঢুকুন"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In den Kreisverkehr einfahren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter the roundabout"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entra en la rotonda"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "وارد میدان گرد شو"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aja pyöröliittymään"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entre dans le rond-point"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "राउंडअबाउट में प्रवेश करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masuk ke bundaran"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ラウンドアバウトに入ってください"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "राउंडअबाऊटमध्ये प्रवेश करा"
+          }
+        },
+        "pcm" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter the roundabout"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entre na rotatória"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Въезжай на кольцевую развязку"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "گول چکر میں داخل ہوں"
+          }
+        },
+        "zh" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "进入环岛"
           }
         }
       }
@@ -3244,6 +3892,222 @@
         }
       }
     },
+    "cue.turn50m.merge" : {
+      "comment" : "Voice cue ~50m before a merge.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "على بُعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، اندِمج"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে, মার্জ করুন"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, einbiegen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, merge"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, incorpórate"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، ادغام کن"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, sulautu"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, fusionne"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, मर्ज करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, gabung"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で合流します"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, विलीनीकरण करा"
+          }
+        },
+        "pcm" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, merge"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, mesclar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, сливайся"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں، مرج کریں"
+          }
+        },
+        "zh" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 内，并入"
+          }
+        }
+      }
+    },
+    "cue.turn50m.ramp" : {
+      "comment" : "Voice cue ~50m before a ramp.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "على بُعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، خُذ المنحدر"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে, র‌্যাম্প নিন"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, Auffahrt nehmen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the ramp"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, toma la rampa"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، رمپ را بگیر"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ota ramppi"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, prends la bretelle"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, रैम्प लें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ambil jalur masuk"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でランプに入ります"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, रॅम्प घ्या"
+          }
+        },
+        "pcm" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the ramp"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, pegue a rampa"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, съезжай"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں، ریمپ لیں"
+          }
+        },
+        "zh" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 内，上匝道"
+          }
+        }
+      }
+    },
     "cue.turn50m.right" : {
       "comment" : "Voice cue ~50m before a right turn.",
       "extractionState" : "manual",
@@ -3348,6 +4212,114 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，右转"
+          }
+        }
+      }
+    },
+    "cue.turn50m.roundabout" : {
+      "comment" : "Voice cue ~50m before a roundabout. {distance} is the rounded distance to the maneuver.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "على بُعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، ادخل الدوّار"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে, রাউন্ডঅ্যাবাউটে ঢুকুন"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, in den Kreisverkehr einfahren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, enter the roundabout"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, entra en la rotonda"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، وارد میدان گرد شو"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, aja pyöröliittymään"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, entre dans le rond-point"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, राउंडअबाउट में प्रवेश करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, masuk ke bundaran"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でラウンドアバウトに入ります"
+          }
+        },
+        "mr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, राउंडअबाऊटमध्ये प्रवेश करा"
+          }
+        },
+        "pcm" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, enter the roundabout"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, entre na rotatória"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, въезжай на кольцевую развязку"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں، گول چکر میں داخل ہوں"
+          }
+        },
+        "zh" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 内，进入环岛"
           }
         }
       }

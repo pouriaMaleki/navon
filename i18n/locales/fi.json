@@ -87,6 +87,30 @@
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "cue.nextTurnInAbout.merge": {
+      "value": "Sulautuminen noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue announcing an upcoming merge maneuver.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:5bbc6eee1a4f4c29",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-04T18:12:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.nextTurnInAbout.ramp": {
+      "value": "Ramppi noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue announcing an upcoming ramp.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:44e6668fb502aa25",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-04T18:12:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "cue.nextTurnInAbout.right": {
       "value": "Käänny oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
       "description": "Voice cue announcing the upcoming right turn distance ahead.",
@@ -97,6 +121,18 @@
       "sourceHash": "sha256:dfdd2abff056fd52",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T10:05:18Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.nextTurnInAbout.roundabout": {
+      "value": "Pyöröliittymä noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue announcing an upcoming roundabout.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:1aecf6facd4d0104",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-04T18:12:58Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.nextTurnInAbout.uturn": {
@@ -191,12 +227,36 @@
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "cue.turn10m.merge": {
+      "value": "Sulautu",
+      "description": "Imperative voice cue at the moment of a merge (within ~10m).",
+      "sourceHash": "sha256:78a22775d5049794",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-04T18:12:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn10m.ramp": {
+      "value": "Ota ramppi",
+      "description": "Imperative voice cue at the moment of a ramp (within ~10m).",
+      "sourceHash": "sha256:9ef60d8bacc4e03e",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-04T18:12:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "cue.turn10m.right": {
       "value": "Käänny oikealle",
       "description": "Imperative voice cue at the moment of a right turn.",
       "sourceHash": "sha256:478caebf59dd7fd0",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T10:05:18Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn10m.roundabout": {
+      "value": "Aja pyöröliittymään",
+      "description": "Imperative voice cue at the moment of entering a roundabout (within ~10m).",
+      "sourceHash": "sha256:a2927343f240b37c",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-04T18:12:58Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn10m.uturn": {
@@ -279,6 +339,30 @@
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "cue.turn50m.merge": {
+      "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, sulautu",
+      "description": "Voice cue ~50m before a merge.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:dbe4ef1bd2aa37d2",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-04T18:12:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn50m.ramp": {
+      "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ota ramppi",
+      "description": "Voice cue ~50m before a ramp.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:0542ab18ff748ae8",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-04T18:12:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "cue.turn50m.right": {
       "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny oikealle",
       "description": "Voice cue ~50m before a right turn.",
@@ -289,6 +373,18 @@
       "sourceHash": "sha256:43900e5a2a6e01b1",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T10:05:18Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn50m.roundabout": {
+      "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, aja pyöröliittymään",
+      "description": "Voice cue ~50m before a roundabout. {distance} is the rounded distance to the maneuver.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:331d03f149c6a8eb",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-04T18:12:58Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50m.uturn": {

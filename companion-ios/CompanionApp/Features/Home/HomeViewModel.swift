@@ -1426,19 +1426,15 @@ final class HomeViewModel: ObservableObject {
         // currently disconnected (rider out of range / device off), in
         // which case the phone is the only UI and SHOULD speak.
         let pairedWithDevice = appModel.isDeviceConnectedForCueSuppression
+        // Filtering and kind-mapping live in `CueManeuverMapping` — the
+        // single point of truth for which maneuver types reach the cue
+        // stream. Returning nil silences a maneuver entirely (slight*
+        // splits, .straight, .depart, .arrive).
         let cueManeuvers: [CueManeuver] = (guidanceRoute?.maneuvers ?? []).compactMap { m in
-            switch m.maneuverType {
-            case .depart, .arrive:
-                return nil
-            // slight* turns intentionally produce no cue: there's no clear
-            // split, the rider just follows the road. The audio cue would
-            // be noise on every minor curve.
-            case .slightLeft, .slightRight:
-                return nil
-            default:
-                return CueManeuver(
+            CueManeuverMapping.kind(for: m.maneuverType).map { kind in
+                CueManeuver(
                     id: m.id,
-                    kind: cueManeuverKind(m.maneuverType),
+                    kind: kind,
                     distanceFromStartM: m.distanceFromStartMeters
                 )
             }
@@ -1460,18 +1456,6 @@ final class HomeViewModel: ObservableObject {
             isRouting: appModel.isRoutingInProgress,
             isAppInBackground: appModel.isAppInBackground
         )
-    }
-
-    private func cueManeuverKind(_ type: RouteManeuverType) -> ManeuverKind {
-        switch type {
-        case .left, .sharpLeft: return .left
-        case .slightLeft: return .keepLeft
-        case .right, .sharpRight: return .right
-        case .slightRight: return .keepRight
-        case .uturn: return .uturn
-        case .merge, .ramp, .roundabout: return .generic
-        case .depart, .arrive, .straight: return .generic
-        }
     }
 
     /// Variant of `projectProgress` that also returns the perpendicular

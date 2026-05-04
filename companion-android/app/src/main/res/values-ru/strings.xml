@@ -11,7 +11,10 @@
     <string name="cue_arrivingInM" formatted="false">Прибытие в пункт назначения через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">Следующий поворот через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">Поворот налево через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_merge" formatted="false">Слияние через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_ramp" formatted="false">Съезд через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_right" formatted="false">Поворот направо через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_roundabout" formatted="false">Кольцевая развязка через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_uturn" formatted="false">Разворот через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_offTrack" formatted="false">Сбились с маршрута</string>
     <string name="cue_onTrack" formatted="false">Маршрут восстановлен</string>
@@ -23,7 +26,10 @@
     <string name="cue_turn10m_keepLeft" formatted="false">Держитесь левее</string>
     <string name="cue_turn10m_keepRight" formatted="false">Держитесь правее</string>
     <string name="cue_turn10m_left" formatted="false">Поверните налево</string>
+    <string name="cue_turn10m_merge" formatted="false">Сливайся</string>
+    <string name="cue_turn10m_ramp" formatted="false">Съезжай</string>
     <string name="cue_turn10m_right" formatted="false">Поверните направо</string>
+    <string name="cue_turn10m_roundabout" formatted="false">Въезжай на кольцевую развязку</string>
     <string name="cue_turn10m_uturn" formatted="false">Сделайте разворот</string>
     <string name="cue_turn50m_exitLeft" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сверните налево</string>
     <string name="cue_turn50m_exitRight" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сверните направо</string>
@@ -31,7 +37,10 @@
     <string name="cue_turn50m_keepLeft" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} держитесь левее</string>
     <string name="cue_turn50m_keepRight" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} держитесь правее</string>
     <string name="cue_turn50m_left" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните налево</string>
+    <string name="cue_turn50m_merge" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, сливайся</string>
+    <string name="cue_turn50m_ramp" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, съезжай</string>
     <string name="cue_turn50m_right" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните направо</string>
+    <string name="cue_turn50m_roundabout" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, въезжай на кольцевую развязку</string>
     <string name="cue_turn50m_uturn" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сделайте разворот</string>
     <string name="cue_turn50mCombined" formatted="false">На {distance, number} {distanceUnit, select, meters {метров} feet {футов} other {метров}}, {first, select, left {поверните налево} right {поверните направо} keepLeft {держитесь левее} keepRight {держитесь правее} exitLeft {сверните на левый съезд} exitRight {сверните на правый съезд} uturn {развернитесь} other {следуйте по маршруту}} затем быстро {second, select, left {поверните налево} right {поверните направо} keepLeft {держитесь левее} keepRight {держитесь правее} exitLeft {сверните на левый съезд} exitRight {сверните на правый съезд} uturn {разворот} other {продолжайте прямо}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} до {destination}</string>

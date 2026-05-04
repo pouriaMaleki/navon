@@ -106,9 +106,13 @@ final class AutoRerouteTests: XCTestCase {
         let (app, vm) = await startRoute(pkg)
 
         // Build up some mid-route state: advance the rider, trigger off-route.
+        // The route runs pure north, so a fix 50 m due east of the START
+        // projects onto t=0 and progress stays 0 (perpendicular to the
+        // segment). Use a fix that's both 100 m along the route AND 50 m
+        // east so projection advances and the off-route latch trips.
         let start = pkg.geometry[0]
-        let onRoute = start  // 0 m into route
-        let drifted = offset(start, eastM: 50, northM: 0)  // 50 m off-route
+        let onRoute = offset(start, eastM: 0, northM: 100) // 100 m along route
+        let drifted = offset(start, eastM: 50, northM: 100) // 50 m east of the 100 m mark
         vm.ingestRiderLocationFix(onRoute, timestampMs: 0)
         vm.ingestRiderLocationFix(drifted, timestampMs: 1_000)
         // offRoute should be latched

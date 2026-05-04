@@ -11,7 +11,10 @@
     <string name="cue_arrivingInM" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} به مقصد می‌رسید</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} نوبت بعدی</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} به چپ بپیچید</string>
+    <string name="cue_nextTurnInAbout_merge" formatted="false">ادغام بعدی در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_ramp" formatted="false">رمپ بعدی در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_right" formatted="false">در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} به راست بپیچید</string>
+    <string name="cue_nextTurnInAbout_roundabout" formatted="false">میدان گرد بعدی در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_uturn" formatted="false">در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} یک دور U بزنید</string>
     <string name="cue_offTrack" formatted="false">از مسیر خارج شدید</string>
     <string name="cue_onTrack" formatted="false">در مسیر هستید</string>
@@ -23,7 +26,10 @@
     <string name="cue_turn10m_keepLeft" formatted="false">به چپ بروید</string>
     <string name="cue_turn10m_keepRight" formatted="false">به راست بروید</string>
     <string name="cue_turn10m_left" formatted="false">به چپ بپیچید</string>
+    <string name="cue_turn10m_merge" formatted="false">ادغام کن</string>
+    <string name="cue_turn10m_ramp" formatted="false">رمپ را بگیر</string>
     <string name="cue_turn10m_right" formatted="false">به راست بپیچید</string>
+    <string name="cue_turn10m_roundabout" formatted="false">وارد میدان گرد شو</string>
     <string name="cue_turn10m_uturn" formatted="false">یک دور U بزنید</string>
     <string name="cue_turn50m_exitLeft" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، خروجیِ چپ را بگیرید</string>
     <string name="cue_turn50m_exitRight" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، خروجیِ راست را بگیرید</string>
@@ -31,7 +37,10 @@
     <string name="cue_turn50m_keepLeft" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، به چپ بروید</string>
     <string name="cue_turn50m_keepRight" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، به راست بروید</string>
     <string name="cue_turn50m_left" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، به چپ بپیچید</string>
+    <string name="cue_turn50m_merge" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، ادغام کن</string>
+    <string name="cue_turn50m_ramp" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، رمپ را بگیر</string>
     <string name="cue_turn50m_right" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، به راست بپیچید</string>
+    <string name="cue_turn50m_roundabout" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، وارد میدان گرد شو</string>
     <string name="cue_turn50m_uturn" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، یک دور U بزنید</string>
     <string name="cue_turn50mCombined" formatted="false">در {distance, number} {distanceUnit, select, meters {متر} feet {فوت} other {متر}}، {first, select, left {به چپ بپیچ} right {به راست بپیچ} keepLeft {به چپ ادامه بده} keepRight {به راست ادامه بده} exitLeft {از خروجیِ سمت چپ برو} exitRight {از خروجیِ سمت راست برو} uturn {یک U-turn انجام بده} other {مسیر را دنبال کن}} سپس سریع {second, select, left {به چپ} right {به راست} keepLeft {به چپ ادامه بده} keepRight {به راست ادامه بده} exitLeft {از خروجیِ سمت چپ} exitRight {از خروجیِ سمت راست} uturn {U-turn} other {مستقیم}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} تا {destination}</string>

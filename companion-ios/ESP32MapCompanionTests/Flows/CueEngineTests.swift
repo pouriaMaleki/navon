@@ -185,6 +185,89 @@ final class CueEngineTests: XCTestCase {
         XCTAssertNotNil(firstTick, "new route id should re-announce next turn on first tick")
     }
 
+    // MARK: - Bug 4: arrived flag suppresses arrivingInM in same tick
+
+    func test_arrivingInM_suppressedWhenArrivedFlagTrueSameTick() {
+        // Set up a state where the after-passing block would fire arrivingInM
+        // (rider passed the only maneuver, no follow-up). Then on the same tick
+        // mark `arrived = true` — only the dedicated `arrived` cue should fire.
+        // The double cue ("Arriving at your destination in 5 meters" → "You have
+        // arrived") with disagreeing distances has been a long-standing complaint.
+        let m1 = mLeft("m1", 400)
+        // First tick to consume route-started announcement.
+        var s = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: [m1], routeTotalDistanceM: 600),
+            state: CueEngineState()
+        ).nextState
+        // Rider crosses arrival radius before the after-passing block has run.
+        let r = CueEngine.tick(
+            snapshot: base(
+                progressDistanceM: 595,
+                maneuvers: [m1],
+                arrived: true,
+                routeTotalDistanceM: 600
+            ),
+            state: s
+        )
+        let hasArriving = r.events.contains { if case .arrivingInM = $0 { return true } else { return false } }
+        let hasArrived = r.events.contains(.arrived)
+        XCTAssertFalse(hasArriving, "arrivingInM must be suppressed when arrived flag is true on the same tick — got \(r.events)")
+        XCTAssertTrue(hasArrived, "arrived cue must fire — got \(r.events)")
+    }
+
+    // MARK: - Bug 5: back-to-back pair with first turn under 15m at route start
+
+    func test_firstTick_backToBackPair_under15mFromStart_emitsCombinedCue() {
+        // Route starts 10m before m1; m2 follows 15m later (within 30m back-to-back
+        // threshold). Without the fix, only `turn10m(m1.kind)` fires and the rider
+        // never hears about m2. The fix: Case C emits the combined cue with the
+        // actual distance even when distance < APPROACH_10_M.
+        let m1 = CueManeuver(id: "m1", kind: .right, distanceFromStartM: 10)
+        let m2 = CueManeuver(id: "m2", kind: .left, distanceFromStartM: 25)
+        let r = CueEngine.tick(
+            snapshot: base(progressDistanceM: 0, maneuvers: [m1, m2], routeTotalDistanceM: 1000),
+            state: CueEngineState()
+        )
+        let combined = r.events.first {
+            if case .turn50m(_, _, let f) = $0 { return f != nil } else { return false }
+        }
+        XCTAssertNotNil(combined, "first-tick back-to-back pair under 15m must emit combined turn50m cue — got \(r.events)")
+        if case .turn50m(let k, let d, let f) = combined! {
+            XCTAssertEqual(k, ManeuverKind.right)
+            XCTAssertEqual(f, ManeuverKind.left)
+            XCTAssertEqual(d, 10, accuracy: 0.5, "combined cue must carry the actual distance, not 50")
+        }
+    }
+
+    // MARK: - Roundabout / merge / ramp first-class cues
+
+    func test_formatsRoundaboutPhrases() {
+        XCTAssertEqual(CueEngine.format(.turn50m(.roundabout, distanceM: 50)), "In 50 meters, enter the roundabout")
+        XCTAssertEqual(CueEngine.format(.turn10m(.roundabout)), "Enter the roundabout")
+        XCTAssertEqual(
+            CueEngine.format(.nextTurnInAbout(turnKind: .roundabout, distanceM: 200)),
+            "Next roundabout in about 200 meters"
+        )
+    }
+
+    func test_formatsMergePhrases() {
+        XCTAssertEqual(CueEngine.format(.turn50m(.merge, distanceM: 50)), "In 50 meters, merge")
+        XCTAssertEqual(CueEngine.format(.turn10m(.merge)), "Merge")
+        XCTAssertEqual(
+            CueEngine.format(.nextTurnInAbout(turnKind: .merge, distanceM: 200)),
+            "Next merge in about 200 meters"
+        )
+    }
+
+    func test_formatsRampPhrases() {
+        XCTAssertEqual(CueEngine.format(.turn50m(.ramp, distanceM: 50)), "In 50 meters, take the ramp")
+        XCTAssertEqual(CueEngine.format(.turn10m(.ramp)), "Take the ramp")
+        XCTAssertEqual(
+            CueEngine.format(.nextTurnInAbout(turnKind: .ramp, distanceM: 200)),
+            "Next ramp in about 200 meters"
+        )
+    }
+
     // MARK: - Bug 1: last maneuver close to destination
 
     func test_lastManeuver_closeToDestination_emitsArrivingNotNextTurn() {
@@ -276,7 +359,6 @@ final class CueEngineTests: XCTestCase {
 
     func test_formatsSpecPhrases() {
         XCTAssertEqual(CueEngine.format(.turn50m(.left, distanceM: 50)), "In 50 meters, turn left")
-        XCTAssertEqual(CueEngine.format(.turn50m(.keepRight, distanceM: 50)), "In 50 meters, keep right")
         XCTAssertEqual(CueEngine.format(.turn50m(.exitLeft, distanceM: 50)), "In 50 meters, take the left exit")
         XCTAssertEqual(
             CueEngine.format(.turn50m(.right, distanceM: 50, followUpKind: .left)),
@@ -366,16 +448,6 @@ final class CueEngineTests: XCTestCase {
         let s3 = CueEngine.tick(snapshot: base(progressDistanceM: 125, maneuvers: maneuvers), state: s2.nextState)
         XCTAssertFalse(s3.events.contains { if case .turn50m = $0 { return true } else { return false } },
             "turn50m must not fire when next turn was < 100m at time of nextTurnInAbout")
-    }
-
-    // MARK: — bear left/right → keepLeft/keepRight cue format
-
-    func test_keepLeft_formatsAsKeepLeft_notTurnLeft() {
-        XCTAssertEqual(CueEngine.format(.turn10m(.keepLeft)), "Keep left")
-    }
-
-    func test_keepRight_formatsAsKeepRight_notTurnRight() {
-        XCTAssertEqual(CueEngine.format(.turn10m(.keepRight)), "Keep right")
     }
 
     // MARK: — rerouting cue silences after 2 episodes

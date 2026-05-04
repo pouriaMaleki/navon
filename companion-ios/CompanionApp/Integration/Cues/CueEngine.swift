@@ -8,9 +8,9 @@ import Foundation
 
 enum ManeuverKind {
     case left, right
-    case keepLeft, keepRight
     case exitLeft, exitRight
     case uturn
+    case roundabout, merge, ramp
     case generic
 }
 
@@ -175,14 +175,25 @@ enum CueEngine {
                     let follow = (upcomingIdx >= 0 && upcomingIdx + 1 < snapshot.maneuvers.count)
                         ? snapshot.maneuvers[upcomingIdx + 1] : nil
                     let gap = follow.map { $0.distanceFromStartM - firstNonDepart.distanceFromStartM } ?? .infinity
-                    if follow == nil || gap > Self.backToBackThresholdM {
+                    if let follow = follow, gap <= Self.backToBackThresholdM {
+                        // Case C: emit the combined cue here directly
+                        // with the actual distance. The regular 50 m
+                        // block downstream gates on `d > approach10M`
+                        // (15 m) and would skip routes starting < 15 m
+                        // before a back-to-back pair, leaving the rider
+                        // with only `turn10m(first)` and no warning
+                        // about the second turn.
+                        events.append(.turn50m(firstNonDepart.kind, distanceM: distanceM, followUpKind: follow.kind))
+                        s.announced50m.insert(firstNonDepart.id)
+                        s.announced50m.insert(follow.id)
+                        s.announced10m.insert(firstNonDepart.id)
+                        s.announced10m.insert(follow.id)
+                        s.announcedNextTurnAfter.insert(firstNonDepart.id)
+                    } else {
                         // Case B: pre-latch the 50 m cue so only the
                         // 10 m action cue fires for this maneuver.
                         s.announced50m.insert(firstNonDepart.id)
                     }
-                    // Case C: do nothing here — the 50 m block in this
-                    // same tick will detect the back-to-back pair and
-                    // emit the combined cue with actual distance.
                 }
             }
             s.routeStartedAnnounced = true
@@ -262,7 +273,14 @@ enum CueEngine {
                     let isLastManeuver = indexOfLast + 1 == snapshot.maneuvers.count - 1
                     let distNextToEnd = snapshot.routeTotalDistanceM - nextAfter.distanceFromStartM
                     if isLastManeuver && distNextToEnd < Self.closeToDestinationM {
-                        if !s.approachingDestinationAnnounced {
+                        // Bug 4: when the rider has already crossed the
+                        // arrival radius, the dedicated `arrived` cue at
+                        // the bottom of this function is the right thing
+                        // to speak — emitting `arrivingInM` here too
+                        // produces a same-tick double cue with
+                        // disagreeing distances ("Arriving in 5 m" →
+                        // "You have arrived").
+                        if !s.approachingDestinationAnnounced && !snapshot.arrived {
                             events.append(.arrivingInM(
                                 distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM
                             ))
@@ -284,7 +302,10 @@ enum CueEngine {
                             announced50m.insert(nextAfter.id)
                         }
                     }
-                } else if !s.approachingDestinationAnnounced {
+                } else if !s.approachingDestinationAnnounced && !snapshot.arrived {
+                    // Bug 4: skip arrivingInM when the rider has already
+                    // crossed the arrival radius — the `arrived` cue at
+                    // the bottom of this function speaks instead.
                     events.append(.arrivingInM(
                         distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM
                     ))
@@ -425,22 +446,27 @@ enum CueEngine {
         switch k {
         case .left: return "left"
         case .right: return "right"
-        case .keepLeft: return "keepLeft"
-        case .keepRight: return "keepRight"
         case .exitLeft: return "exitLeft"
         case .exitRight: return "exitRight"
         case .uturn: return "uturn"
+        case .roundabout: return "roundabout"
+        case .merge: return "merge"
+        case .ramp: return "ramp"
         case .generic: return "generic"
         }
     }
 
-    /// Collapse 8 maneuver kinds into the 4 directions the
-    /// `cue.nextTurnInAbout.*` catalog supports.
+    /// Collapse maneuver kinds into the slugs the `cue.nextTurnInAbout.*`
+    /// catalog supports. Exit ramps fold into their parent direction; the
+    /// dedicated kinds keep their own slug.
     private static func nextTurnDirection(_ k: ManeuverKind) -> String {
         switch k {
-        case .left, .keepLeft, .exitLeft: return "left"
-        case .right, .keepRight, .exitRight: return "right"
+        case .left, .exitLeft: return "left"
+        case .right, .exitRight: return "right"
         case .uturn: return "uturn"
+        case .roundabout: return "roundabout"
+        case .merge: return "merge"
+        case .ramp: return "ramp"
         case .generic: return "generic"
         }
     }

@@ -11,7 +11,10 @@
     <string name="cue_arrivingInM" formatted="false">目的地まで{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">次の案内まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">次の左折まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です</string>
+    <string name="cue_nextTurnInAbout_merge" formatted="false">約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で合流します</string>
+    <string name="cue_nextTurnInAbout_ramp" formatted="false">約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でランプに入ります</string>
     <string name="cue_nextTurnInAbout_right" formatted="false">次の右折まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です</string>
+    <string name="cue_nextTurnInAbout_roundabout" formatted="false">約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でラウンドアバウトに入ります</string>
     <string name="cue_nextTurnInAbout_uturn" formatted="false">次のUターンまで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です</string>
     <string name="cue_offTrack" formatted="false">進路を外れています</string>
     <string name="cue_onTrack" formatted="false">進路に戻りました</string>
@@ -23,7 +26,10 @@
     <string name="cue_turn10m_keepLeft" formatted="false">左側を進んでください</string>
     <string name="cue_turn10m_keepRight" formatted="false">右側を進んでください</string>
     <string name="cue_turn10m_left" formatted="false">左折してください</string>
+    <string name="cue_turn10m_merge" formatted="false">合流してください</string>
+    <string name="cue_turn10m_ramp" formatted="false">ランプに入ってください</string>
     <string name="cue_turn10m_right" formatted="false">右折してください</string>
+    <string name="cue_turn10m_roundabout" formatted="false">ラウンドアバウトに入ってください</string>
     <string name="cue_turn10m_uturn" formatted="false">Uターンしてください</string>
     <string name="cue_turn50m_exitLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左の出口へ</string>
     <string name="cue_turn50m_exitRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右の出口へ</string>
@@ -31,7 +37,10 @@
     <string name="cue_turn50m_keepLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左側を進んでください</string>
     <string name="cue_turn50m_keepRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右側を進んでください</string>
     <string name="cue_turn50m_left" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左折してください</string>
+    <string name="cue_turn50m_merge" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で合流します</string>
+    <string name="cue_turn50m_ramp" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でランプに入ります</string>
     <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右折してください</string>
+    <string name="cue_turn50m_roundabout" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でラウンドアバウトに入ります</string>
     <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でUターンしてください</string>
     <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}, {first, select, left {左折} right {右折} keepLeft {左側を進む} keepRight {右側を進む} exitLeft {左の出口を出る} exitRight {右の出口を出る} uturn {Uターンする} other {進行方向に従う}} その後すぐに {second, select, left {左} right {右} keepLeft {左側を進む} keepRight {右側を進む} exitLeft {左の出口} exitRight {右の出口} uturn {Uターン} other {そのまま進む}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} 先の{destination}</string>

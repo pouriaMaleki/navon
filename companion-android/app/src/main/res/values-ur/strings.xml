@@ -11,7 +11,10 @@
     <string name="cue_arrivingInM" formatted="false">آپ اپنی منزل پر {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں پہنچ رہے ہیں</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں اگلا موڑ</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں مڑیں گے</string>
+    <string name="cue_nextTurnInAbout_merge" formatted="false">تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں مرج کریں</string>
+    <string name="cue_nextTurnInAbout_ramp" formatted="false">تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں ریمپ لیں</string>
     <string name="cue_nextTurnInAbout_right" formatted="false">تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں مڑیں گے</string>
+    <string name="cue_nextTurnInAbout_roundabout" formatted="false">تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں گول چکر میں داخل ہوں</string>
     <string name="cue_nextTurnInAbout_uturn" formatted="false">تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں یو ٹرن</string>
     <string name="cue_offTrack" formatted="false">راستے سے ہٹ گئے</string>
     <string name="cue_onTrack" formatted="false">راستے پر واپس آگئے</string>
@@ -23,7 +26,10 @@
     <string name="cue_turn10m_keepLeft" formatted="false">بائیں رہیں</string>
     <string name="cue_turn10m_keepRight" formatted="false">دائیں رہیں</string>
     <string name="cue_turn10m_left" formatted="false">بائیں مڑیں</string>
+    <string name="cue_turn10m_merge" formatted="false">مرج کریں</string>
+    <string name="cue_turn10m_ramp" formatted="false">ریمپ لیں</string>
     <string name="cue_turn10m_right" formatted="false">دائیں مڑیں</string>
+    <string name="cue_turn10m_roundabout" formatted="false">گول چکر میں داخل ہوں</string>
     <string name="cue_turn10m_uturn" formatted="false">یو ٹرن کریں</string>
     <string name="cue_turn50m_exitLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں ایگزٹ لیں</string>
     <string name="cue_turn50m_exitRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں ایگزٹ لیں</string>
@@ -31,7 +37,10 @@
     <string name="cue_turn50m_keepLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں رہیں</string>
     <string name="cue_turn50m_keepRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں رہیں</string>
     <string name="cue_turn50m_left" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں مڑیں</string>
+    <string name="cue_turn50m_merge" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں، مرج کریں</string>
+    <string name="cue_turn50m_ramp" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں، ریمپ لیں</string>
     <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں مڑیں</string>
+    <string name="cue_turn50m_roundabout" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں، گول چکر میں داخل ہوں</string>
     <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں یو ٹرن کریں</string>
     <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {میٹر} feet {فٹ} other {میٹر}}, {first, select, left {بائیں مڑیں} right {دائیں مڑیں} keepLeft {بائیں رہیں} keepRight {دائیں رہیں} exitLeft {بائیں ایگزٹ لیں} exitRight {دائیں ایگزٹ لیں} uturn {یو ٹرن کریں} other {راستہ فالو کریں}} پھر جلدی {second, select, left {بائیں} right {دائیں} keepLeft {بائیں رہیں} keepRight {دائیں رہیں} exitLeft {بائیں ایگزٹ} exitRight {دائیں ایگزٹ} uturn {یو ٹرن} other {آگے}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} میں {destination} تک</string>

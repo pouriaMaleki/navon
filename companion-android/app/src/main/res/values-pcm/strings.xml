@@ -11,7 +11,10 @@
     <string name="cue_arrivingInM" formatted="false">You go reach your destination for {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">Next turn for ahead for like {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">Turn left for ahead for like {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_merge" formatted="false">Next merge for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_ramp" formatted="false">Next ramp for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_right" formatted="false">Turn right for ahead for like {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_roundabout" formatted="false">Next roundabout for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_uturn" formatted="false">Do U-turn for ahead for like {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_offTrack" formatted="false">You don go off road</string>
     <string name="cue_onTrack" formatted="false">You don return to road</string>
@@ -23,7 +26,10 @@
     <string name="cue_turn10m_keepLeft" formatted="false">Keep left</string>
     <string name="cue_turn10m_keepRight" formatted="false">Keep right</string>
     <string name="cue_turn10m_left" formatted="false">Turn left</string>
+    <string name="cue_turn10m_merge" formatted="false">Merge</string>
+    <string name="cue_turn10m_ramp" formatted="false">Take the ramp</string>
     <string name="cue_turn10m_right" formatted="false">Turn right</string>
+    <string name="cue_turn10m_roundabout" formatted="false">Enter the roundabout</string>
     <string name="cue_turn10m_uturn" formatted="false">Make a U-turn</string>
     <string name="cue_turn50m_exitLeft" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the left exit</string>
     <string name="cue_turn50m_exitRight" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the right exit</string>
@@ -31,7 +37,10 @@
     <string name="cue_turn50m_keepLeft" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, keep left</string>
     <string name="cue_turn50m_keepRight" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, keep right</string>
     <string name="cue_turn50m_left" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn left</string>
+    <string name="cue_turn50m_merge" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, merge</string>
+    <string name="cue_turn50m_ramp" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the ramp</string>
     <string name="cue_turn50m_right" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn right</string>
+    <string name="cue_turn50m_roundabout" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, enter the roundabout</string>
     <string name="cue_turn50m_uturn" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, make a U-turn</string>
     <string name="cue_turn50mCombined" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {turn left} right {turn right} keepLeft {keep left} keepRight {keep right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} other {follow the route}} then quickly {second, select, left {left} right {right} keepLeft {keep left} keepRight {keep right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} other {ahead}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} to {destination}</string>

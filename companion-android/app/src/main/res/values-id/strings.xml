@@ -11,7 +11,10 @@
     <string name="cue_arrivingInM" formatted="false">Tiba di tujuan Anda dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">Belok berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">Belok kiri berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_merge" formatted="false">Belok gabung berikutnya dalam sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_ramp" formatted="false">Jalur masuk berikutnya dalam sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_right" formatted="false">Belok kanan berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_roundabout" formatted="false">Bundaran berikutnya dalam sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_uturn" formatted="false">Belok U berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_offTrack" formatted="false">Keluar jalur</string>
     <string name="cue_onTrack" formatted="false">Kembali ke jalur</string>
@@ -23,7 +26,10 @@
     <string name="cue_turn10m_keepLeft" formatted="false">Tetap di kiri</string>
     <string name="cue_turn10m_keepRight" formatted="false">Tetap di kanan</string>
     <string name="cue_turn10m_left" formatted="false">Belok kiri</string>
+    <string name="cue_turn10m_merge" formatted="false">Gabung</string>
+    <string name="cue_turn10m_ramp" formatted="false">Ambil jalur masuk</string>
     <string name="cue_turn10m_right" formatted="false">Belok kanan</string>
+    <string name="cue_turn10m_roundabout" formatted="false">Masuk ke bundaran</string>
     <string name="cue_turn10m_uturn" formatted="false">Putar balik (U-turn)</string>
     <string name="cue_turn50m_exitLeft" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ambil pintu keluar kiri</string>
     <string name="cue_turn50m_exitRight" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ambil pintu keluar kanan</string>
@@ -31,7 +37,10 @@
     <string name="cue_turn50m_keepLeft" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, tetap di kiri</string>
     <string name="cue_turn50m_keepRight" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, tetap di kanan</string>
     <string name="cue_turn50m_left" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kiri</string>
+    <string name="cue_turn50m_merge" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, gabung</string>
+    <string name="cue_turn50m_ramp" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ambil jalur masuk</string>
     <string name="cue_turn50m_right" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kanan</string>
+    <string name="cue_turn50m_roundabout" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, masuk ke bundaran</string>
     <string name="cue_turn50m_uturn" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, putar balik (U-turn)</string>
     <string name="cue_turn50mCombined" formatted="false">Di {distance, number} {distanceUnit, select, meters {meter} feet {kaki} other {meter}}, {first, select, left {belok kiri} right {belok kanan} keepLeft {tetap di kiri} keepRight {tetap di kanan} exitLeft {ambil pintu keluar kiri} exitRight {ambil pintu keluar kanan} uturn {putar balik} other {ikuti rute}} lalu cepat {second, select, left {kiri} right {kanan} keepLeft {tetap di kiri} keepRight {tetap di kanan} exitLeft {pintu keluar kiri} exitRight {pintu keluar kanan} uturn {putar balik} other {terus}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} menuju {destination}</string>
