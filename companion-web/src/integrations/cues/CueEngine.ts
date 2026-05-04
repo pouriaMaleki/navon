@@ -65,6 +65,11 @@ export type CueEngineState = {
   silenced: boolean;
   consecutiveOnRouteSamples: number;
   onTrackAnnounced: boolean;
+  /** Number of rerouting cues that have fired (counts rising edges).
+   *  Persists across route id changes, since each successful reroute itself
+   *  causes a route id change. Reset only when the rider is confirmed
+   *  on-track for ON_TRACK_CONFIRM_SAMPLES consecutive ticks. */
+  reroutingEpisodeCount: number;
 };
 
 const APPROACH_50_M = 50;
@@ -78,6 +83,9 @@ const PASSED_TURN_M = 10;
 const ON_TRACK_CONFIRM_SAMPLES = 5;
 const ON_TRACK_CORRIDOR_M = 22;
 const REPEAT_OFFTRACK_SILENCE_THRESHOLD = 2;
+/** Cap on rerouting audio cues per "off-route session". After this many fires,
+ *  stay silent until the rider is confirmed on-track. */
+const REROUTING_CUE_CAP = 2;
 /** If the last cue maneuver sits within this distance of the route end,
  *  approaching it is indistinguishable from arriving: substitute arrivingInM
  *  for any nextTurnInAbout or approach cues so the rider hears "arriving in Xm"
@@ -111,6 +119,7 @@ export function initialCueEngineState(): CueEngineState {
     silenced: false,
     consecutiveOnRouteSamples: 0,
     onTrackAnnounced: false,
+    reroutingEpisodeCount: 0,
   };
 }
 
@@ -126,7 +135,14 @@ export function tickCueEngine(
   // Reset all latches on route id change (including reroute completion).
   let s: CueEngineState =
     snapshot.routeId !== state.lastRouteId
-      ? { ...initialCueEngineState(), lastRouteId: snapshot.routeId }
+      ? {
+          ...initialCueEngineState(),
+          lastRouteId: snapshot.routeId,
+          // Persist rerouting silence across route id changes — every
+          // successful reroute issues a new route id, so resetting here
+          // would defeat the cue cap.
+          reroutingEpisodeCount: state.reroutingEpisodeCount,
+        }
       : state;
 
   const events: CueEvent[] = [];
@@ -232,12 +248,20 @@ export function tickCueEngine(
     consecutiveOnRouteSamples = 0;
   }
 
+  let reroutingEpisodeCount = s.reroutingEpisodeCount;
+
   if (silenced && consecutiveOnRouteSamples >= ON_TRACK_CONFIRM_SAMPLES && !onTrackAnnounced) {
     events.push({ kind: "onTrack" });
     silenced = false;
     onTrackAnnounced = true;
     // Reset episode count so the rider can start fresh.
     offRouteEpisodeCount = 0;
+  }
+  // Independent reset of the rerouting cue counter: even without an off-route
+  // silence event, a sustained on-track confirmation means the rider is back
+  // on the route and the next reroute episode (if any) deserves a fresh count.
+  if (consecutiveOnRouteSamples >= ON_TRACK_CONFIRM_SAMPLES) {
+    reroutingEpisodeCount = 0;
   }
 
   if (offRouteRose && offRouteEpisodeCount > REPEAT_OFFTRACK_SILENCE_THRESHOLD && !silenced) {
@@ -248,9 +272,10 @@ export function tickCueEngine(
     events.push({ kind: "offTrack" });
   }
 
-  // Rerouting rising edge.
+  // Rerouting rising edge — capped at REROUTING_CUE_CAP per off-route session.
   const reroutingRose = !s.prevRerouting && snapshot.rerouting;
-  if (reroutingRose && !silenced) {
+  if (reroutingRose) reroutingEpisodeCount += 1;
+  if (reroutingRose && !silenced && reroutingEpisodeCount <= REROUTING_CUE_CAP) {
     events.push({ kind: "rerouting" });
   }
 
@@ -392,6 +417,7 @@ export function tickCueEngine(
       silenced,
       consecutiveOnRouteSamples,
       onTrackAnnounced,
+      reroutingEpisodeCount,
     },
   };
 }

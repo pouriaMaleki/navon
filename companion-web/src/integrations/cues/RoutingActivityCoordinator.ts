@@ -172,11 +172,13 @@ function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnaps
   const route = guidance.guidanceRoute;
   const maneuvers: CueManeuver[] = (route?.maneuvers ?? [])
     .filter((m) => m.maneuverType !== "depart" && m.maneuverType !== "arrive")
-    .map((m) => ({
-      id: m.id,
-      kind: maneuverKindFromType(m.maneuverType),
-      distanceFromStartM: m.distanceFromStartMeters,
-    }));
+    .flatMap((m) => {
+      // slight* turns intentionally produce undefined → filtered out:
+      // there's no clear split, the rider just follows the road.
+      const kind = maneuverKindFromType(m.maneuverType);
+      if (kind === undefined) return [];
+      return [{ id: m.id, kind, distanceFromStartM: m.distanceFromStartMeters }];
+    });
   const routeTotalDistanceM = route?.summary.totalDistanceMeters ?? 0;
   return {
     routeId: buildRouteKey(
@@ -194,19 +196,20 @@ function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnaps
   };
 }
 
-/** Exported for testing. */
-export function maneuverKindFromType(type: string): ManeuverKind {
+/** Exported for testing. Returns `undefined` for maneuver types that should
+ *  not produce any audio cue (slight turns — no clear split, rider follows
+ *  the road naturally). The snapshot builder filters those out. */
+export function maneuverKindFromType(type: string): ManeuverKind | undefined {
   switch (type) {
     case "left":
     case "sharpLeft":
       return "left";
-    case "slightLeft":
-      return "keepLeft";
     case "right":
     case "sharpRight":
       return "right";
+    case "slightLeft":
     case "slightRight":
-      return "keepRight";
+      return undefined;
     case "uturn":
       return "uturn";
     case "ramp":

@@ -31,6 +31,16 @@ const OFF_ROUTE_ENTER_DISTANCE_M = 35;
 const OFF_ROUTE_EXIT_DISTANCE_M = 22;
 const MAJOR_TURN_ALERT_DISTANCE_M = 80;
 const REROUTE_REQUEST_DELAY_MS = 2000;
+/** Sliding window over which past reroute attempts contribute to the backoff
+ *  delay. Older attempts age out and stop counting. */
+const REROUTING_BACKOFF_WINDOW_MS = 30_000;
+/** Throttle threshold: at this many attempts in the window, hold the next
+ *  auto-reroute by REROUTING_BACKOFF_DELAY_MS. */
+const REROUTING_THROTTLE_AT_ATTEMPTS = 3;
+/** Escalation threshold: at this many attempts, hold for REROUTING_BACKOFF_LONG_DELAY_MS. */
+const REROUTING_ESCALATE_AT_ATTEMPTS = 5;
+const REROUTING_BACKOFF_DELAY_MS = 5_000;
+const REROUTING_BACKOFF_LONG_DELAY_MS = 10_000;
 /**
  * Arrival is declared when the rider is within this many metres of the route
  * destination. Larger than the off-route exit distance so a rider drifting
@@ -126,6 +136,14 @@ export class GuidanceStore {
   offRoute = false;
   offRouteDistanceM = 0;
   rerouteRequested = false;
+  /** Sliding-window log of timestamps when an auto-reroute was attempted.
+   *  Used to compute the backoff delay; entries older than the window age
+   *  out automatically on every `recordReroutingAttempt` call. */
+  reroutingAttemptTimestamps: number[] = [];
+  /** Wall-clock millisecond timestamp at which the currently-deferred auto
+   *  reroute will fire, or `undefined` if no reroute is being held back.
+   *  Drives the "Waiting to reroute" UI and the manual-override button. */
+  reroutingDelayedUntilMs: number | undefined = undefined;
   upcomingTurnAlert: UpcomingTurnAlert | undefined = undefined;
   /**
    * Set to a banner message when the rider has reached the destination and
@@ -500,6 +518,41 @@ export class GuidanceStore {
     // routes" — return to the route-overview camera so the user sees the
     // same routes from before Start.
     this.emitFitRouteRequested();
+  }
+
+  /** Records an auto-reroute attempt at `now` and returns the required delay
+   *  before the reroute should actually fire. Drives the throttle the
+   *  RootStore reaction consults: 0 ms means fire immediately, > 0 ms means
+   *  the caller should defer (and the UI will surface the wait via
+   *  {@link isWaitingToReroute}). Old timestamps outside the sliding window
+   *  age out automatically. */
+  recordReroutingAttempt(now: number): number {
+    this.reroutingAttemptTimestamps = this.reroutingAttemptTimestamps.filter(
+      (t) => now - t < REROUTING_BACKOFF_WINDOW_MS,
+    );
+    this.reroutingAttemptTimestamps.push(now);
+    const count = this.reroutingAttemptTimestamps.length;
+    let delayMs = 0;
+    if (count >= REROUTING_ESCALATE_AT_ATTEMPTS) delayMs = REROUTING_BACKOFF_LONG_DELAY_MS;
+    else if (count >= REROUTING_THROTTLE_AT_ATTEMPTS) delayMs = REROUTING_BACKOFF_DELAY_MS;
+    this.reroutingDelayedUntilMs = delayMs > 0 ? now + delayMs : undefined;
+    return delayMs;
+  }
+
+  /** True while an auto-reroute is being held back by the throttle. The view
+   *  layer passes the current wall-clock so this stays a pure read against
+   *  the recorded `reroutingDelayedUntilMs` — easy to test, no clock side
+   *  effects. */
+  isWaitingToReroute(now: number): boolean {
+    return this.reroutingDelayedUntilMs !== undefined && now < this.reroutingDelayedUntilMs;
+  }
+
+  /** Rider tapped "Reroute now" — clear the throttle delay so the next tick
+   *  of the RootStore reaction fires the reroute immediately. Does not
+   *  itself trigger the request; the caller observes
+   *  `reroutingDelayedUntilMs === undefined` and proceeds. */
+  requestManualReroute(): void {
+    this.reroutingDelayedUntilMs = undefined;
   }
 
   /** Called on every GPS update during guidance to advance route-follow state. */

@@ -421,6 +421,51 @@ final class HomeViewModel: ObservableObject {
     /// Reset to `false` when the rider returns into the route corridor.
     private var autoReroutePending: Bool = false
 
+    /// Sliding-window log of timestamps when an auto-reroute was attempted.
+    /// Used to compute the backoff delay; entries older than the window age
+    /// out automatically on every `recordReroutingAttempt` call.
+    @Published private(set) var reroutingAttemptTimestampsMs: [Double] = []
+    /// Wall-clock millisecond timestamp at which the currently-deferred auto
+    /// reroute will fire, or nil if no reroute is being held back. Drives
+    /// the "Waiting to reroute" UI and the manual-override button.
+    @Published private(set) var reroutingDelayedUntilMs: Double?
+
+    private static let reroutingBackoffWindowMs: Double = 30_000
+    private static let reroutingThrottleAtAttempts: Int = 3
+    private static let reroutingEscalateAtAttempts: Int = 5
+    private static let reroutingBackoffDelayMs: Double = 5_000
+    private static let reroutingBackoffLongDelayMs: Double = 10_000
+
+    /// Records an auto-reroute attempt at `now` and returns the required delay
+    /// before the reroute should actually fire. 0 ms means fire immediately,
+    /// > 0 ms means defer (and the UI surfaces the wait via `isWaitingToReroute`).
+    func recordReroutingAttempt(now: Double) -> Double {
+        reroutingAttemptTimestampsMs.removeAll { now - $0 >= Self.reroutingBackoffWindowMs }
+        reroutingAttemptTimestampsMs.append(now)
+        let count = reroutingAttemptTimestampsMs.count
+        var delayMs: Double = 0
+        if count >= Self.reroutingEscalateAtAttempts {
+            delayMs = Self.reroutingBackoffLongDelayMs
+        } else if count >= Self.reroutingThrottleAtAttempts {
+            delayMs = Self.reroutingBackoffDelayMs
+        }
+        reroutingDelayedUntilMs = delayMs > 0 ? now + delayMs : nil
+        return delayMs
+    }
+
+    /// True while an auto-reroute is being held back by the throttle. The
+    /// view layer passes the current wall-clock so this stays a pure read.
+    func isWaitingToReroute(now: Double) -> Bool {
+        guard let until = reroutingDelayedUntilMs else { return false }
+        return now < until
+    }
+
+    /// Rider tapped "Reroute now" — clear the throttle delay so the next
+    /// observer pass fires the reroute immediately.
+    func requestManualReroute() {
+        reroutingDelayedUntilMs = nil
+    }
+
     /// The most recently dispatched auto-reroute task. Tests await this
     /// to observe the asynchronous `AppModel.rerouteActiveSession`
     /// completing; production code does not need to read it.
@@ -1329,11 +1374,24 @@ final class HomeViewModel: ObservableObject {
         // Rising edge of `rerouteRequested` (false → true) is the only
         // moment we kick the routing provider. Subsequent ticks while
         // the rider stays off-route hold the latch so we don't spam
-        // requests.
+        // requests. The backoff throttle holds repeat attempts longer
+        // when the rider keeps drifting in a short window.
         if rerouteRequested && !prevRerouteRequested && !autoReroutePending {
             autoReroutePending = true
+            let now = Date().timeIntervalSince1970 * 1_000
+            let delayMs = recordReroutingAttempt(now: now)
             let model = appModel
             pendingAutoRerouteTask = Task { @MainActor in
+                if delayMs > 0 {
+                    // Poll for manual override or delay expiry; manual override
+                    // clears `reroutingDelayedUntilMs` so this loop short-circuits.
+                    while let until = self.reroutingDelayedUntilMs,
+                          Date().timeIntervalSince1970 * 1_000 < until {
+                        try? await Task.sleep(nanoseconds: 250_000_000)
+                        if Task.isCancelled { return }
+                    }
+                    self.reroutingDelayedUntilMs = nil
+                }
                 await model.rerouteActiveSession(from: rider, reason: "Off-route")
             }
         }
@@ -1371,6 +1429,11 @@ final class HomeViewModel: ObservableObject {
         let cueManeuvers: [CueManeuver] = (guidanceRoute?.maneuvers ?? []).compactMap { m in
             switch m.maneuverType {
             case .depart, .arrive:
+                return nil
+            // slight* turns intentionally produce no cue: there's no clear
+            // split, the rider just follows the road. The audio cue would
+            // be noise on every minor curve.
+            case .slightLeft, .slightRight:
                 return nil
             default:
                 return CueManeuver(

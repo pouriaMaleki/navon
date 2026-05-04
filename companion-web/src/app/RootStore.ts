@@ -99,11 +99,35 @@ export class RootStore {
         this.guidanceStore.advanceProgress(location, Date.now());
       },
     );
-    // Trigger rerouting when sustained off-route is detected.
+    // Trigger rerouting when sustained off-route is detected. Honors the
+    // backoff throttle so rapid repeated drift doesn't flood the planner.
     reaction(
       () => this.guidanceStore.rerouteRequested,
       (requested) => {
-        if (requested) void this.performReroute();
+        if (!requested) return;
+        const delayMs = this.guidanceStore.recordReroutingAttempt(Date.now());
+        if (delayMs === 0) {
+          void this.performReroute();
+          return;
+        }
+        // Defer; if the rider hits "Reroute now" the manual-override clears
+        // `reroutingDelayedUntilMs` and we fire immediately on the next pass.
+        const scheduledAt = Date.now() + delayMs;
+        const tick = () => {
+          if (this.guidanceStore.reroutingDelayedUntilMs === undefined) {
+            void this.performReroute();
+            return;
+          }
+          const remaining = this.guidanceStore.reroutingDelayedUntilMs - Date.now();
+          if (remaining <= 0) {
+            this.guidanceStore.reroutingDelayedUntilMs = undefined;
+            void this.performReroute();
+            return;
+          }
+          setTimeout(tick, Math.min(remaining, 250));
+        };
+        setTimeout(tick, Math.min(delayMs, 250));
+        void scheduledAt;
       },
     );
     // Follow-rider intent: center on rider, zoom into routing view, rotate

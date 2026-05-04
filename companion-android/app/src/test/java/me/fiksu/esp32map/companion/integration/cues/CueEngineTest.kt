@@ -375,4 +375,59 @@ class CueEngineTest {
     fun keepRight_formatsAsKeepRight_notTurnRight() {
         assertEquals("Keep right", CueEngine.format(CueEvent.Turn10m(ManeuverKind.KEEP_RIGHT)))
     }
+
+    // ─── rerouting cue silences after 2 episodes (across route id changes) ───
+
+    private fun reroutingSnap(rerouting: Boolean, routeId: String = "r1") = CueSnapshot(
+        routeId, false, 0.0,
+        listOf(CueManeuver("m1", ManeuverKind.LEFT, 200.0)),
+        false, rerouting, false, 0.0, 1000.0,
+    )
+
+    @Test
+    fun rerouting_firesOn1stEpisode() {
+        val s1 = CueEngine.tick(reroutingSnap(false), CueEngineState()).nextState
+        val r2 = CueEngine.tick(reroutingSnap(true), s1)
+        assertNotNull("1st rerouting episode must fire the cue",
+            r2.events.firstOrNull { it is CueEvent.Rerouting })
+    }
+
+    @Test
+    fun rerouting_firesOn2ndEpisode_acrossRouteIdChange() {
+        var s = CueEngineState()
+        s = CueEngine.tick(reroutingSnap(false, "r1"), s).nextState
+        s = CueEngine.tick(reroutingSnap(true, "r1"), s).nextState  // 1st
+        s = CueEngine.tick(reroutingSnap(false, "r2"), s).nextState // new route
+        val r = CueEngine.tick(reroutingSnap(true, "r2"), s)        // 2nd
+        assertNotNull("2nd rerouting episode must still fire — cap is 2",
+            r.events.firstOrNull { it is CueEvent.Rerouting })
+    }
+
+    @Test
+    fun rerouting_silencedOn3rdEpisode() {
+        var s = CueEngineState()
+        s = CueEngine.tick(reroutingSnap(false, "r1"), s).nextState
+        s = CueEngine.tick(reroutingSnap(true, "r1"), s).nextState  // 1st
+        s = CueEngine.tick(reroutingSnap(false, "r2"), s).nextState
+        s = CueEngine.tick(reroutingSnap(true, "r2"), s).nextState  // 2nd
+        s = CueEngine.tick(reroutingSnap(false, "r3"), s).nextState
+        val r = CueEngine.tick(reroutingSnap(true, "r3"), s)        // 3rd
+        assertNull("3rd rerouting episode must be silenced",
+            r.events.firstOrNull { it is CueEvent.Rerouting })
+    }
+
+    @Test
+    fun rerouting_resetsAfterConfirmedOnTrack() {
+        var s = CueEngineState()
+        s = CueEngine.tick(reroutingSnap(false, "r1"), s).nextState
+        s = CueEngine.tick(reroutingSnap(true, "r1"), s).nextState
+        s = CueEngine.tick(reroutingSnap(false, "r2"), s).nextState
+        s = CueEngine.tick(reroutingSnap(true, "r2"), s).nextState
+        repeat(5) {
+            s = CueEngine.tick(reroutingSnap(false, "r2"), s).nextState
+        }
+        val r = CueEngine.tick(reroutingSnap(true, "r3"), s)
+        assertNotNull("After confirmed on-track the rerouting cue counter must reset",
+            r.events.firstOrNull { it is CueEvent.Rerouting })
+    }
 }

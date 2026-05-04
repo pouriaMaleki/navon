@@ -59,6 +59,12 @@ struct CueEngineState: Equatable {
     var silenced: Bool = false
     var consecutiveOnRouteSamples: Int = 0
     var onTrackAnnounced: Bool = false
+    /// Number of rerouting cues that have fired (counts rising edges).
+    /// Persists across route id changes — every successful reroute issues a
+    /// new route id, so resetting on route id would defeat the cue cap.
+    /// Reset only when the rider is confirmed on-track for
+    /// `onTrackConfirmSamples` consecutive ticks.
+    var reroutingEpisodeCount: Int = 0
 }
 
 enum CueEngine {
@@ -72,6 +78,9 @@ enum CueEngine {
     private static let onTrackConfirmSamples = 5
     private static let onTrackCorridorM = 22.0
     private static let repeatOffTrackSilenceThreshold = 2
+    /// Cap on rerouting audio cues per "off-route session". After this many
+    /// fires, stay silent until the rider is confirmed on-track.
+    private static let reroutingCueCap = 2
     /// Two maneuvers separated by less than this fold into a single
     /// "turn X then quickly Y" cue. Mirrors web's BACK_TO_BACK_THRESHOLD_M.
     /// 30 m matches the spec phrase "then quickly" — at cycling speeds
@@ -99,7 +108,11 @@ enum CueEngine {
 
         var s: CueEngineState
         if snapshot.routeId != state.lastRouteId {
+            // Persist rerouting silence across route id changes — every
+            // successful reroute issues a new route id, so resetting here
+            // would defeat the cue cap.
             s = CueEngineState(lastRouteId: snapshot.routeId)
+            s.reroutingEpisodeCount = state.reroutingEpisodeCount
         } else {
             s = state
         }
@@ -189,11 +202,20 @@ enum CueEngine {
             consecutiveOnRouteSamples = 0
         }
 
+        var reroutingEpisodeCount = s.reroutingEpisodeCount
+
         if silenced && consecutiveOnRouteSamples >= Self.onTrackConfirmSamples && !onTrackAnnounced {
             events.append(.onTrack)
             silenced = false
             onTrackAnnounced = true
             offRouteEpisodeCount = 0
+        }
+        // Independent reset of the rerouting cue counter: even without an
+        // off-route silence event, sustained on-track confirmation means the
+        // rider is back on the route and the next reroute episode (if any)
+        // deserves a fresh count.
+        if consecutiveOnRouteSamples >= Self.onTrackConfirmSamples {
+            reroutingEpisodeCount = 0
         }
 
         if offRouteRose && offRouteEpisodeCount > Self.repeatOffTrackSilenceThreshold && !silenced {
@@ -204,8 +226,10 @@ enum CueEngine {
             events.append(.offTrack)
         }
 
+        // Rerouting rising edge — capped at reroutingCueCap per off-route session.
         let reroutingRose = !s.prevRerouting && snapshot.rerouting
-        if reroutingRose && !silenced {
+        if reroutingRose { reroutingEpisodeCount += 1 }
+        if reroutingRose && !silenced && reroutingEpisodeCount <= Self.reroutingCueCap {
             events.append(.rerouting)
         }
 
@@ -313,6 +337,7 @@ enum CueEngine {
         s.silenced = silenced
         s.consecutiveOnRouteSamples = consecutiveOnRouteSamples
         s.onTrackAnnounced = onTrackAnnounced
+        s.reroutingEpisodeCount = reroutingEpisodeCount
 
         return Result(events: events, nextState: s)
     }

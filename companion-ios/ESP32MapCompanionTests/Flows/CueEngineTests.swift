@@ -377,4 +377,64 @@ final class CueEngineTests: XCTestCase {
     func test_keepRight_formatsAsKeepRight_notTurnRight() {
         XCTAssertEqual(CueEngine.format(.turn10m(.keepRight)), "Keep right")
     }
+
+    // MARK: — rerouting cue silences after 2 episodes
+
+    private func reroutingSnap(_ rerouting: Bool, routeId: String = "r1") -> CueSnapshot {
+        CueSnapshot(
+            routeId: routeId,
+            pairedWithDevice: false,
+            progressDistanceM: 0,
+            maneuvers: [CueManeuver(id: "m1", kind: .left, distanceFromStartM: 200)],
+            offRoute: false,
+            rerouting: rerouting,
+            arrived: false,
+            distanceFromRouteM: 0,
+            routeTotalDistanceM: 1000
+        )
+    }
+
+    func test_rerouting_firesOn1stEpisode() {
+        let s1 = CueEngine.tick(snapshot: reroutingSnap(false), state: CueEngineState()).nextState
+        let r2 = CueEngine.tick(snapshot: reroutingSnap(true), state: s1)
+        XCTAssertTrue(r2.events.contains(.rerouting),
+            "1st rerouting episode must fire the cue")
+    }
+
+    func test_rerouting_firesOn2ndEpisode_acrossRouteIdChange() {
+        var s = CueEngineState()
+        s = CueEngine.tick(snapshot: reroutingSnap(false, routeId: "r1"), state: s).nextState
+        s = CueEngine.tick(snapshot: reroutingSnap(true, routeId: "r1"), state: s).nextState // 1st
+        s = CueEngine.tick(snapshot: reroutingSnap(false, routeId: "r2"), state: s).nextState // new route
+        let r = CueEngine.tick(snapshot: reroutingSnap(true, routeId: "r2"), state: s)        // 2nd
+        XCTAssertTrue(r.events.contains(.rerouting),
+            "2nd rerouting episode must still fire — cap is 2")
+    }
+
+    func test_rerouting_silencedOn3rdEpisode() {
+        var s = CueEngineState()
+        s = CueEngine.tick(snapshot: reroutingSnap(false, routeId: "r1"), state: s).nextState
+        s = CueEngine.tick(snapshot: reroutingSnap(true, routeId: "r1"), state: s).nextState // 1st
+        s = CueEngine.tick(snapshot: reroutingSnap(false, routeId: "r2"), state: s).nextState
+        s = CueEngine.tick(snapshot: reroutingSnap(true, routeId: "r2"), state: s).nextState // 2nd
+        s = CueEngine.tick(snapshot: reroutingSnap(false, routeId: "r3"), state: s).nextState
+        let r = CueEngine.tick(snapshot: reroutingSnap(true, routeId: "r3"), state: s)       // 3rd
+        XCTAssertFalse(r.events.contains(.rerouting),
+            "3rd rerouting episode must be silenced — episode count > 2")
+    }
+
+    func test_rerouting_resetsAfterConfirmedOnTrack() {
+        var s = CueEngineState()
+        s = CueEngine.tick(snapshot: reroutingSnap(false, routeId: "r1"), state: s).nextState
+        s = CueEngine.tick(snapshot: reroutingSnap(true, routeId: "r1"), state: s).nextState
+        s = CueEngine.tick(snapshot: reroutingSnap(false, routeId: "r2"), state: s).nextState
+        s = CueEngine.tick(snapshot: reroutingSnap(true, routeId: "r2"), state: s).nextState
+        // 5 confirmed-on-track ticks reset rerouting episode count
+        for _ in 0..<5 {
+            s = CueEngine.tick(snapshot: reroutingSnap(false, routeId: "r2"), state: s).nextState
+        }
+        let r = CueEngine.tick(snapshot: reroutingSnap(true, routeId: "r3"), state: s)
+        XCTAssertTrue(r.events.contains(.rerouting),
+            "After confirmed on-track the rerouting cue counter must reset")
+    }
 }

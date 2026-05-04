@@ -420,28 +420,78 @@ describe("CueEngine — skip turn50m cue when next turn is < 100m away", () => {
   });
 });
 
-describe("CueEngine — bear left/right maps to keepLeft/keepRight (not turn left/right)", () => {
-  it("slightLeft RouteManeuverType maps to keepLeft ManeuverKind", () => {
-    expect(maneuverKindFromType("slightLeft")).toBe("keepLeft");
+describe("CueEngine — bear left/right (slight turns) produce NO audio cues", () => {
+  // User feedback: "Bear left/right" was being spoken on every minor curve in
+  // the road. There's no clear split — the rider would just naturally follow
+  // the road. The cue is noise. Suppress slight* maneuvers entirely.
+  it("maneuverKindFromType returns undefined for slightLeft (silent)", () => {
+    expect(maneuverKindFromType("slightLeft")).toBeUndefined();
   });
 
-  it("slightRight RouteManeuverType maps to keepRight ManeuverKind", () => {
-    expect(maneuverKindFromType("slightRight")).toBe("keepRight");
+  it("maneuverKindFromType returns undefined for slightRight (silent)", () => {
+    expect(maneuverKindFromType("slightRight")).toBeUndefined();
   });
 
-  it("sharpLeft still maps to left ManeuverKind", () => {
+  it("sharpLeft still maps to left ManeuverKind (sharp turns are real cues)", () => {
     expect(maneuverKindFromType("sharpLeft")).toBe("left");
   });
 
   it("sharpRight still maps to right ManeuverKind", () => {
     expect(maneuverKindFromType("sharpRight")).toBe("right");
   });
+});
 
-  it("keepLeft cue formats as 'Keep left' (not 'Turn left')", () => {
-    expect(formatCueEvent({ kind: "turn10m", turnKind: "keepLeft" })).toBe("Keep left");
+describe("CueEngine — rerouting cue silences after 2 episodes (across reroutes)", () => {
+  // User feedback: "rerouting" was firing every time off-route → reroute
+  // cycle completed. With repeated drift, the rider hears "Rerouting" over
+  // and over. Cap to 2; after that, stay silent until a confirmed on-track.
+  // Episode count must persist across route id changes (every successful
+  // reroute issues a new route id, so resetting on route id would defeat
+  // the cap).
+
+  function reroutingSnapshot(rerouting: boolean, routeId = "r1"): CueSnapshot {
+    return baseSnapshot({ rerouting, offRoute: false, routeId, distanceFromRouteM: 0 });
+  }
+
+  it("fires rerouting cue on the 1st episode", () => {
+    const t1 = tick(initialCueEngineState(), reroutingSnapshot(false));
+    const t2 = tick(t1.next, reroutingSnapshot(true));
+    expect(t2.events.find((e) => e.kind === "rerouting")).toBeDefined();
   });
 
-  it("keepRight cue formats as 'Keep right' (not 'Turn right')", () => {
-    expect(formatCueEvent({ kind: "turn10m", turnKind: "keepRight" })).toBe("Keep right");
+  it("fires rerouting cue on the 2nd episode (different route id, after the first reroute)", () => {
+    let s = initialCueEngineState();
+    s = tick(s, reroutingSnapshot(false, "r1")).next;
+    s = tick(s, reroutingSnapshot(true, "r1")).next; // 1st rises
+    s = tick(s, reroutingSnapshot(false, "r2")).next; // new route after reroute
+    const t = tick(s, reroutingSnapshot(true, "r2")); // 2nd rises
+    expect(t.events.find((e) => e.kind === "rerouting")).toBeDefined();
+  });
+
+  it("does NOT fire rerouting cue on the 3rd episode (silenced)", () => {
+    let s = initialCueEngineState();
+    s = tick(s, reroutingSnapshot(false, "r1")).next;
+    s = tick(s, reroutingSnapshot(true, "r1")).next; // 1st
+    s = tick(s, reroutingSnapshot(false, "r2")).next;
+    s = tick(s, reroutingSnapshot(true, "r2")).next; // 2nd
+    s = tick(s, reroutingSnapshot(false, "r3")).next;
+    const t = tick(s, reroutingSnapshot(true, "r3")); // 3rd → silenced
+    expect(t.events.find((e) => e.kind === "rerouting")).toBeUndefined();
+  });
+
+  it("resets the rerouting cue counter after a confirmed on-track (5 corridor samples)", () => {
+    let s = initialCueEngineState();
+    // Fire the 2-cue cap then exhaust it
+    s = tick(s, reroutingSnapshot(false, "r1")).next;
+    s = tick(s, reroutingSnapshot(true, "r1")).next; // 1st
+    s = tick(s, reroutingSnapshot(false, "r2")).next;
+    s = tick(s, reroutingSnapshot(true, "r2")).next; // 2nd
+    // Now drive 5 confirmed-on-track samples to clear silence
+    for (let i = 0; i < 5; i += 1) {
+      s = tick(s, baseSnapshot({ rerouting: false, offRoute: false, distanceFromRouteM: 0, routeId: "r2" })).next;
+    }
+    // After reset, a new rerouting episode should fire again
+    const t = tick(s, reroutingSnapshot(true, "r3"));
+    expect(t.events.find((e) => e.kind === "rerouting")).toBeDefined();
   });
 });
