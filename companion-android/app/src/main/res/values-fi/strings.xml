@@ -23,8 +23,6 @@
     <string name="cue_turn10m_exitLeft" formatted="false">Ota vasen liittymä</string>
     <string name="cue_turn10m_exitRight" formatted="false">Ota oikea liittymä</string>
     <string name="cue_turn10m_generic" formatted="false">Noudata reittiä</string>
-    <string name="cue_turn10m_keepLeft" formatted="false">Pidä vasemmalla</string>
-    <string name="cue_turn10m_keepRight" formatted="false">Pidä oikealla</string>
     <string name="cue_turn10m_left" formatted="false">Käänny vasemmalle</string>
     <string name="cue_turn10m_merge" formatted="false">Sulautu</string>
     <string name="cue_turn10m_ramp" formatted="false">Ota ramppi</string>
@@ -34,15 +32,13 @@
     <string name="cue_turn50m_exitLeft" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, ota vasen liittymä</string>
     <string name="cue_turn50m_exitRight" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, ota oikea liittymä</string>
     <string name="cue_turn50m_generic" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, noudata reittiä</string>
-    <string name="cue_turn50m_keepLeft" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, pidä vasemmalla</string>
-    <string name="cue_turn50m_keepRight" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, pidä oikealla</string>
     <string name="cue_turn50m_left" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny vasemmalle</string>
     <string name="cue_turn50m_merge" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, sulautu</string>
     <string name="cue_turn50m_ramp" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ota ramppi</string>
     <string name="cue_turn50m_right" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny oikealle</string>
     <string name="cue_turn50m_roundabout" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, aja pyöröliittymään</string>
     <string name="cue_turn50m_uturn" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, tee U-käännös</string>
-    <string name="cue_turn50mCombined" formatted="false">Kun {distance, number} {distanceUnit, select, meters {metriä} feet {jalkaa} other {metriä}}, {first, select, left {käänny vasemmalle} right {käänny oikealle} keepLeft {pidä vasemmalla} keepRight {pidä oikealla} exitLeft {ota vasen liittymä} exitRight {ota oikea liittymä} uturn {tee U-käännös} other {noudata reittiä}} sitten nopeasti {second, select, left {vasemmalle} right {oikealle} keepLeft {pidä vasemmalla} keepRight {pidä oikealla} exitLeft {vasen liittymä} exitRight {oikea liittymä} uturn {U-käännös} other {eteenpäin}}</string>
+    <string name="cue_turn50mCombined" formatted="false">Kun {distance, number} {distanceUnit, select, meters {metriä} feet {jalkaa} other {metriä}}, {first, select, left {käänny vasemmalle} right {käänny oikealle} exitLeft {ota vasen ulosajo} exitRight {ota oikea ulosajo} uturn {tee U-käännös} roundabout {aja kiertoliittymään} merge {yhdistä} ramp {ota ramppi} other {noudata reittiä}} sitten nopeasti {second, select, left {vasemmalle} right {oikealle} exitLeft {vasen ulosajo} exitRight {oikea ulosajo} uturn {U-käännös} roundabout {kiertoliittymä} merge {yhdistä} ramp {ramppi} other {eteenpäin}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} kohteeseen {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Tyhjennä määränpää</string>
     <string name="home_a11y_currentSpeed" formatted="false">Nykyinen nopeus</string>

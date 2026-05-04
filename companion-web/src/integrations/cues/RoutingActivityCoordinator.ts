@@ -170,15 +170,13 @@ export function buildRouteKey(
 function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnapshot {
   const guidance = store.guidanceStore;
   const route = guidance.guidanceRoute;
-  const maneuvers: CueManeuver[] = (route?.maneuvers ?? [])
-    .filter((m) => m.maneuverType !== "depart" && m.maneuverType !== "arrive")
-    .flatMap((m) => {
-      // slight* turns intentionally produce undefined → filtered out:
-      // there's no clear split, the rider just follows the road.
-      const kind = maneuverKindFromType(m.maneuverType);
-      if (kind === undefined) return [];
-      return [{ id: m.id, kind, distanceFromStartM: m.distanceFromStartMeters }];
-    });
+  const maneuvers: CueManeuver[] = (route?.maneuvers ?? []).flatMap((m) => {
+    // `maneuverKindFromType` is the single point of truth for the
+    // silenced-by-design set (slight*, straight, depart, arrive).
+    const kind = maneuverKindFromType(m.maneuverType);
+    if (kind === undefined) return [];
+    return [{ id: m.id, kind, distanceFromStartM: m.distanceFromStartMeters }];
+  });
   const routeTotalDistanceM = route?.summary.totalDistanceMeters ?? 0;
   return {
     routeId: buildRouteKey(
@@ -196,9 +194,17 @@ function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnaps
   };
 }
 
-/** Exported for testing. Returns `undefined` for maneuver types that should
- *  not produce any audio cue (slight turns — no clear split, rider follows
- *  the road naturally). The snapshot builder filters those out. */
+/** Exported for testing. Returns `undefined` for maneuver types that
+ *  should not produce any audio cue. Silenced kinds:
+ *   - `slightLeft` / `slightRight` — minor splits the rider follows
+ *     naturally; "Bear left/right" on every gentle curve is noise.
+ *   - `straight` — not a turn; firing "Next turn in about X meters" /
+ *     "Follow the route" with no matching UI element is the bug
+ *     this filter exists to prevent.
+ *   - `depart` / `arrive` — the cue stream uses dedicated `arrived` /
+ *     `arrivingInM` events, not maneuver entries.
+ *  Unknown / future types fall through to the silenced default rather
+ *  than masquerading as `generic` cues that don't match any UI. */
 export function maneuverKindFromType(type: string): ManeuverKind | undefined {
   switch (type) {
     case "left":
@@ -207,16 +213,21 @@ export function maneuverKindFromType(type: string): ManeuverKind | undefined {
     case "right":
     case "sharpRight":
       return "right";
-    case "slightLeft":
-    case "slightRight":
-      return undefined;
     case "uturn":
       return "uturn";
-    case "ramp":
-    case "merge":
     case "roundabout":
-      return "generic";
+      return "roundabout";
+    case "merge":
+      return "merge";
+    case "ramp":
+      return "ramp";
+    case "slightLeft":
+    case "slightRight":
+    case "straight":
+    case "depart":
+    case "arrive":
+      return undefined;
     default:
-      return "generic";
+      return undefined;
   }
 }

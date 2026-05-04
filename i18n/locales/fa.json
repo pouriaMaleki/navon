@@ -406,7 +406,7 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50mCombined": {
-      "value": "در {distance, number} {distanceUnit, select, meters {متر} feet {فوت} other {متر}}، {first, select, left {به چپ بپیچ} right {به راست بپیچ} keepLeft {به چپ ادامه بده} keepRight {به راست ادامه بده} exitLeft {از خروجیِ سمت چپ برو} exitRight {از خروجیِ سمت راست برو} uturn {یک U-turn انجام بده} other {مسیر را دنبال کن}} سپس سریع {second, select, left {به چپ} right {به راست} keepLeft {به چپ ادامه بده} keepRight {به راست ادامه بده} exitLeft {از خروجیِ سمت چپ} exitRight {از خروجیِ سمت راست} uturn {U-turn} other {مستقیم}}",
+      "value": "در {distance, number} {distanceUnit, select, meters {متر} feet {فوت} other {متر}}، {first, select, left {به چپ بپیچ} right {به راست بپیچ} exitLeft {از خروجیِ سمت چپ خارج شو} exitRight {از خروجیِ سمت راست خارج شو} uturn {یک U-turn انجام بده} roundabout {وارد میدان گردان شو} merge {ادغام شو} ramp {رمپ را بگیر} other {مسیر را دنبال کن}} سپس سریع {second, select, left {به چپ} right {به راست} exitLeft {خروجیِ سمت چپ} exitRight {خروجیِ سمت راست} uturn {U-turn} roundabout {میدان گردان} merge {ادغام} ramp {رمپ} other {به جلو}}",
       "description": "Voice cue for back-to-back turns within ~80m: replaces two overlapping cues with one combined phrase.",
       "placeholders": {
         "distance": "number",
@@ -414,9 +414,9 @@
         "first": "select",
         "second": "select"
       },
-      "sourceHash": "sha256:dfa2fdde6a0000c2",
+      "sourceHash": "sha256:24316b55bc9130fd",
       "status": "ai-translated",
-      "translatedAt": "2026-05-02T18:37:50Z",
+      "translatedAt": "2026-05-04T18:27:52Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "guidance.distanceToDestination": {

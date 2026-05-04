@@ -134,16 +134,6 @@
       "description": "Imperative voice cue for a generic maneuver.",
       "placeholders": {}
     },
-    "cue.turn10m.keepLeft": {
-      "value": "Keep left",
-      "description": "Imperative voice cue at a keep-left bifurcation.",
-      "placeholders": {}
-    },
-    "cue.turn10m.keepRight": {
-      "value": "Keep right",
-      "description": "Imperative voice cue at a keep-right bifurcation.",
-      "placeholders": {}
-    },
     "cue.turn10m.left": {
       "value": "Turn left",
       "description": "Imperative voice cue at the moment of a left turn (within ~10m).",
@@ -198,22 +188,6 @@
         "distanceUnit": "select"
       }
     },
-    "cue.turn50m.keepLeft": {
-      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, keep left",
-      "description": "Voice cue ~50m before a keep-left maneuver at a bifurcation.",
-      "placeholders": {
-        "distance": "number",
-        "distanceUnit": "select"
-      }
-    },
-    "cue.turn50m.keepRight": {
-      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, keep right",
-      "description": "Voice cue ~50m before a keep-right maneuver at a bifurcation.",
-      "placeholders": {
-        "distance": "number",
-        "distanceUnit": "select"
-      }
-    },
     "cue.turn50m.left": {
       "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn left",
       "description": "Voice cue ~50m before a left turn. {distance} is the rounded distance to the maneuver.",
@@ -255,7 +229,7 @@
       }
     },
     "cue.turn50mCombined": {
-      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {turn left} right {turn right} keepLeft {keep left} keepRight {keep right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} other {follow the route}} then quickly {second, select, left {left} right {right} keepLeft {keep left} keepRight {keep right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} other {ahead}}",
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {turn left} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} then quickly {second, select, left {left} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}",
       "description": "Voice cue for back-to-back turns within ~80m: replaces two overlapping cues with one combined phrase.",
       "placeholders": {
         "distance": "number",

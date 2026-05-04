@@ -23,8 +23,6 @@
     <string name="cue_turn10m_exitLeft" formatted="false">Prenez la sortie à gauche</string>
     <string name="cue_turn10m_exitRight" formatted="false">Prenez la sortie à droite</string>
     <string name="cue_turn10m_generic" formatted="false">Suivez l’itinéraire</string>
-    <string name="cue_turn10m_keepLeft" formatted="false">Restez à gauche</string>
-    <string name="cue_turn10m_keepRight" formatted="false">Restez à droite</string>
     <string name="cue_turn10m_left" formatted="false">Tournez à gauche</string>
     <string name="cue_turn10m_merge" formatted="false">Fusionne</string>
     <string name="cue_turn10m_ramp" formatted="false">Prends la bretelle</string>
@@ -34,15 +32,13 @@
     <string name="cue_turn50m_exitLeft" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, prenez la sortie à gauche</string>
     <string name="cue_turn50m_exitRight" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, prenez la sortie à droite</string>
     <string name="cue_turn50m_generic" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, suivez l’itinéraire</string>
-    <string name="cue_turn50m_keepLeft" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, restez à gauche</string>
-    <string name="cue_turn50m_keepRight" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, restez à droite</string>
     <string name="cue_turn50m_left" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, tournez à gauche</string>
     <string name="cue_turn50m_merge" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, fusionne</string>
     <string name="cue_turn50m_ramp" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, prends la bretelle</string>
     <string name="cue_turn50m_right" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, tournez à droite</string>
     <string name="cue_turn50m_roundabout" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, entre dans le rond-point</string>
     <string name="cue_turn50m_uturn" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, faites un demi-tour</string>
-    <string name="cue_turn50mCombined" formatted="false">À {distance, number} {distanceUnit, select, meters {mètres} feet {pieds} other {mètres}}, {first, select, left {tournez à gauche} right {tournez à droite} keepLeft {restez à gauche} keepRight {restez à droite} exitLeft {prenez la sortie de gauche} exitRight {prenez la sortie de droite} uturn {faites un demi-tour} other {suivez l’itinéraire}} puis rapidement {second, select, left {à gauche} right {à droite} keepLeft {restez à gauche} keepRight {restez à droite} exitLeft {sortie de gauche} exitRight {sortie de droite} uturn {demi-tour} other {tout droit}}</string>
+    <string name="cue_turn50mCombined" formatted="false">À {distance, number} {distanceUnit, select, meters {mètres} feet {pieds} other {mètres}}, {first, select, left {tournez à gauche} right {tournez à droite} exitLeft {prenez la sortie à gauche} exitRight {prenez la sortie à droite} uturn {faites un demi-tour} roundabout {entrez dans le rond-point} merge {fusionnez} ramp {prenez la bretelle} other {suivez l’itinéraire}} puis rapidement {second, select, left {à gauche} right {à droite} exitLeft {sortie à gauche} exitRight {sortie à droite} uturn {demi-tour} roundabout {rond-point} merge {fusion} ramp {bretelle} other {tout droit}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} jusqu’à {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Effacer la destination</string>
     <string name="home_a11y_currentSpeed" formatted="false">Vitesse actuelle</string>

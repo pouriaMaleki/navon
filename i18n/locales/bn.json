@@ -406,7 +406,7 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50mCombined": {
-      "value": "{distance, number} {distanceUnit, select, meters {মিটার} feet {ফুট} other {মিটার}}, {first, select, left {বাম দিকে ঘুরুন} right {ডান দিকে ঘুরুন} keepLeft {বামে থাকুন} keepRight {ডানে থাকুন} exitLeft {বাম দিকের এক্সিট নিন} exitRight {ডান দিকের এক্সিট নিন} uturn {একটি U-টার্ন করুন} other {রুট অনুসরণ করুন}} তারপর দ্রুত {second, select, left {বামে} right {ডানে} keepLeft {বামে থাকুন} keepRight {ডানে থাকুন} exitLeft {বাম এক্সিট} exitRight {ডান এক্সিট} uturn {U-টার্ন} other {সোজা এগিয়ে যান}}",
+      "value": "{distance, number} {distanceUnit, select, meters {মিটার} feet {ফুট} other {মিটার}}, তারপর দ্রুত {first, select, left {বাঁ দিকে ঘুরুন} right {ডান দিকে ঘুরুন} exitLeft {বাম এক্সিট নিন} exitRight {ডান এক্সিট নিন} uturn {একটি U-turn করুন} roundabout {রাউন্ডঅ্যাবাউটে ঢোকুন} merge {মার্জ করুন} ramp {র‌্যাম্প নিন} other {পথ অনুসরণ করুন}} তারপর দ্রুত {second, select, left {বামে} right {ডানে} exitLeft {বাম এক্সিট} exitRight {ডান এক্সিট} uturn {U-turn} roundabout {রাউন্ডঅ্যাবাউট} merge {মার্জ} ramp {র‌্যাম্প} other {সামনে}}",
       "description": "Voice cue for back-to-back turns within ~80m: replaces two overlapping cues with one combined phrase.",
       "placeholders": {
         "distance": "number",
@@ -414,9 +414,9 @@
         "first": "select",
         "second": "select"
       },
-      "sourceHash": "sha256:dfa2fdde6a0000c2",
+      "sourceHash": "sha256:24316b55bc9130fd",
       "status": "ai-translated",
-      "translatedAt": "2026-05-02T18:37:41Z",
+      "translatedAt": "2026-05-04T18:28:36Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "guidance.distanceToDestination": {

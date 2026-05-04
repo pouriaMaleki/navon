@@ -23,8 +23,6 @@
     <string name="cue_turn10m_exitLeft" formatted="false">خذ المخرج الأيسر</string>
     <string name="cue_turn10m_exitRight" formatted="false">خذ المخرج الأيمن</string>
     <string name="cue_turn10m_generic" formatted="false">اتبع المسار</string>
-    <string name="cue_turn10m_keepLeft" formatted="false">ابقَ يسارًا</string>
-    <string name="cue_turn10m_keepRight" formatted="false">ابقَ يمينًا</string>
     <string name="cue_turn10m_left" formatted="false">انعطف يسارًا</string>
     <string name="cue_turn10m_merge" formatted="false">اندِمج</string>
     <string name="cue_turn10m_ramp" formatted="false">خُذ المنحدر</string>
@@ -34,15 +32,13 @@
     <string name="cue_turn50m_exitLeft" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، خذ المخرج الأيسر</string>
     <string name="cue_turn50m_exitRight" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، خذ المخرج الأيمن</string>
     <string name="cue_turn50m_generic" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، اتبع المسار</string>
-    <string name="cue_turn50m_keepLeft" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، ابقَ يسارًا</string>
-    <string name="cue_turn50m_keepRight" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، ابقَ يمينًا</string>
     <string name="cue_turn50m_left" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، انعطف يسارًا</string>
     <string name="cue_turn50m_merge" formatted="false">على بُعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، اندِمج</string>
     <string name="cue_turn50m_ramp" formatted="false">على بُعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، خُذ المنحدر</string>
     <string name="cue_turn50m_right" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، انعطف يمينًا</string>
     <string name="cue_turn50m_roundabout" formatted="false">على بُعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، ادخل الدوّار</string>
     <string name="cue_turn50m_uturn" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، قم بعمل انعطاف U</string>
-    <string name="cue_turn50mCombined" formatted="false">في {distance, number} {distanceUnit, select, meters {متر} feet {قدم} other {متر}}, {first, select, left {انعطف يسارًا} right {انعطف يمينًا} keepLeft {ابقَ على اليسار} keepRight {ابقَ على اليمين} exitLeft {خذ مخرجًا يسارًا} exitRight {خذ مخرجًا يمينًا} uturn {اعمل دورة U} other {اتبع المسار}} ثم بسرعة {second, select, left {يسارًا} right {يمينًا} keepLeft {ابقَ على اليسار} keepRight {ابقَ على اليمين} exitLeft {مخرجًا يسارًا} exitRight {مخرجًا يمينًا} uturn {U-turn} other {إلى الأمام}}</string>
+    <string name="cue_turn50mCombined" formatted="false">عند {distance, number} {distanceUnit, select, meters {متر} feet {قدم} other {متر}}، {first, select, left {انعطف يسارًا} right {انعطف يمينًا} exitLeft {خذ المخرج الأيسر} exitRight {خذ المخرج الأيمن} uturn {قم بعمل U-turn} roundabout {ادخل الدوّار} merge {ادمج} ramp {خذ المنحدر} other {اتبع المسار}} ثم بسرعة {second, select, left {يسارًا} right {يمينًا} exitLeft {المخرج الأيسر} exitRight {المخرج الأيمن} uturn {U-turn} roundabout {الدوّار} merge {ادمج} ramp {المنحدر} other {إلى الأمام}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} إلى {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">مسح الوجهة</string>
     <string name="home_a11y_currentSpeed" formatted="false">السرعة الحالية</string>

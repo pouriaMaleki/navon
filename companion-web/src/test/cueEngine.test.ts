@@ -441,6 +441,118 @@ describe("CueEngine — bear left/right (slight turns) produce NO audio cues", (
   });
 });
 
+describe("CueEngine — maneuver-kind filter contract (bugs 1, 2, 3)", () => {
+  // Bug 1: .straight is not a turn — filing "Next turn in about X meters" /
+  // "Follow the route" while the UI shows nothing is the bug to prevent.
+  it("returns undefined for straight (bug 1: not a turn)", () => {
+    expect(maneuverKindFromType("straight")).toBeUndefined();
+  });
+
+  it("returns undefined for depart and arrive (handled by dedicated cues)", () => {
+    expect(maneuverKindFromType("depart")).toBeUndefined();
+    expect(maneuverKindFromType("arrive")).toBeUndefined();
+  });
+
+  // Bug 2: roundabout / merge / ramp are first-class kinds, not generic.
+  it("maps roundabout to its own ManeuverKind (bug 2: was generic)", () => {
+    expect(maneuverKindFromType("roundabout")).toBe("roundabout");
+  });
+
+  it("maps merge to its own ManeuverKind (bug 2: was generic)", () => {
+    expect(maneuverKindFromType("merge")).toBe("merge");
+  });
+
+  it("maps ramp to its own ManeuverKind (bug 2: was generic)", () => {
+    expect(maneuverKindFromType("ramp")).toBe("ramp");
+  });
+
+  // Bug 3: keepLeft / keepRight removed entirely from ManeuverKind. The
+  // TypeScript compiler enforces this — no runtime test needed for the
+  // type-level guarantee. Unknown types now silence rather than coerce
+  // to "generic" (the old bug-2 noise source).
+  it("returns undefined for unknown types (no silent generic coercion)", () => {
+    expect(maneuverKindFromType("zigzag")).toBeUndefined();
+    expect(maneuverKindFromType("")).toBeUndefined();
+  });
+});
+
+describe("CueEngine — first-class roundabout / merge / ramp cues (bug 2)", () => {
+  it("formats roundabout phrases", () => {
+    expect(formatCueEvent({ kind: "turn50m", turnKind: "roundabout", distanceM: 50 })).toBe(
+      "In 50 meters, enter the roundabout",
+    );
+    expect(formatCueEvent({ kind: "turn10m", turnKind: "roundabout" })).toBe(
+      "Enter the roundabout",
+    );
+    expect(formatCueEvent({ kind: "nextTurnInAbout", turnKind: "roundabout", distanceM: 200 })).toBe(
+      "Next roundabout in about 200 meters",
+    );
+  });
+
+  it("formats merge phrases", () => {
+    expect(formatCueEvent({ kind: "turn50m", turnKind: "merge", distanceM: 50 })).toBe(
+      "In 50 meters, merge",
+    );
+    expect(formatCueEvent({ kind: "turn10m", turnKind: "merge" })).toBe("Merge");
+    expect(formatCueEvent({ kind: "nextTurnInAbout", turnKind: "merge", distanceM: 200 })).toBe(
+      "Next merge in about 200 meters",
+    );
+  });
+
+  it("formats ramp phrases", () => {
+    expect(formatCueEvent({ kind: "turn50m", turnKind: "ramp", distanceM: 50 })).toBe(
+      "In 50 meters, take the ramp",
+    );
+    expect(formatCueEvent({ kind: "turn10m", turnKind: "ramp" })).toBe("Take the ramp");
+    expect(formatCueEvent({ kind: "nextTurnInAbout", turnKind: "ramp", distanceM: 200 })).toBe(
+      "Next ramp in about 200 meters",
+    );
+  });
+});
+
+describe("CueEngine — bug 4: arrived flag suppresses arrivingInM same tick", () => {
+  it("does not emit arrivingInM when arrived is true on the same tick", () => {
+    // After-passing block would fire arrivingInM (rider passed the only
+    // maneuver, no follow-up). On the same tick mark arrived = true —
+    // only the dedicated `arrived` cue should fire, not both.
+    const m1 = M_LEFT("m1", 400);
+    let s = initialCueEngineState();
+    s = tick(s, baseSnapshot({ progressDistanceM: 100, maneuvers: [m1], routeTotalDistanceM: 600 })).next;
+    const r = tick(
+      s,
+      baseSnapshot({
+        progressDistanceM: 595,
+        maneuvers: [m1],
+        arrived: true,
+        routeTotalDistanceM: 600,
+      }),
+    );
+    expect(r.events.find((e) => e.kind === "arrivingInM")).toBeUndefined();
+    expect(r.events.find((e) => e.kind === "arrived")).toBeDefined();
+  });
+});
+
+describe("CueEngine — bug 5: back-to-back pair under 15m at route start emits combined cue", () => {
+  it("emits combined turn50m on first tick when first turn < 15m and follow-up within 30m", () => {
+    // Route starts 10m before m1; m2 follows 15m later (within 30m back-to-back
+    // threshold). Without the fix, the regular 50m block gates on d > 15m and
+    // never fires — only `turn10m(m1)` plays and the rider misses m2.
+    const m1: CueManeuver = { id: "m1", kind: "right", distanceFromStartM: 10 };
+    const m2: CueManeuver = { id: "m2", kind: "left", distanceFromStartM: 25 };
+    const r = tick(
+      initialCueEngineState(),
+      baseSnapshot({ progressDistanceM: 0, maneuvers: [m1, m2], routeTotalDistanceM: 1000 }),
+    );
+    const combined = r.events.find(
+      (e) => e.kind === "turn50m" && (e as { followUpKind?: string }).followUpKind !== undefined,
+    ) as { kind: "turn50m"; turnKind: string; distanceM: number; followUpKind?: string } | undefined;
+    expect(combined).toBeDefined();
+    expect(combined?.turnKind).toBe("right");
+    expect(combined?.followUpKind).toBe("left");
+    expect(combined?.distanceM).toBeCloseTo(10, 1);
+  });
+});
+
 describe("CueEngine — rerouting cue silences after 2 episodes (across reroutes)", () => {
   // User feedback: "rerouting" was firing every time off-route → reroute
   // cycle completed. With repeated drift, the rider hears "Rerouting" over

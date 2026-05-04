@@ -278,7 +278,6 @@ class CueEngineTest {
     @Test
     fun formatsSpecPhrases() {
         assertEquals("In 50 meters, turn left", CueEngine.format(CueEvent.Turn50m(ManeuverKind.LEFT)))
-        assertEquals("In 50 meters, keep right", CueEngine.format(CueEvent.Turn50m(ManeuverKind.KEEP_RIGHT)))
         assertEquals("In 50 meters, take the left exit", CueEngine.format(CueEvent.Turn50m(ManeuverKind.EXIT_LEFT)))
         assertEquals("Turn right", CueEngine.format(CueEvent.Turn10m(ManeuverKind.RIGHT)))
         assertEquals(
@@ -364,16 +363,102 @@ class CueEngineTest {
             s3.events.firstOrNull { it is CueEvent.Turn50m })
     }
 
-    // ─── bear left/right → keepLeft/keepRight cue format ─────────────────────
+    // ─── first-class roundabout / merge / ramp cues (bug 2) ──────────────────
 
     @Test
-    fun keepLeft_formatsAsKeepLeft_notTurnLeft() {
-        assertEquals("Keep left", CueEngine.format(CueEvent.Turn10m(ManeuverKind.KEEP_LEFT)))
+    fun formatsRoundaboutPhrases() {
+        assertEquals(
+            "In 50 meters, enter the roundabout",
+            CueEngine.format(CueEvent.Turn50m(ManeuverKind.ROUNDABOUT)),
+        )
+        assertEquals("Enter the roundabout", CueEngine.format(CueEvent.Turn10m(ManeuverKind.ROUNDABOUT)))
+        assertEquals(
+            "Next roundabout in about 200 meters",
+            CueEngine.format(CueEvent.NextTurnInAbout(ManeuverKind.ROUNDABOUT, 200.0)),
+        )
     }
 
     @Test
-    fun keepRight_formatsAsKeepRight_notTurnRight() {
-        assertEquals("Keep right", CueEngine.format(CueEvent.Turn10m(ManeuverKind.KEEP_RIGHT)))
+    fun formatsMergePhrases() {
+        assertEquals(
+            "In 50 meters, merge",
+            CueEngine.format(CueEvent.Turn50m(ManeuverKind.MERGE)),
+        )
+        assertEquals("Merge", CueEngine.format(CueEvent.Turn10m(ManeuverKind.MERGE)))
+        assertEquals(
+            "Next merge in about 200 meters",
+            CueEngine.format(CueEvent.NextTurnInAbout(ManeuverKind.MERGE, 200.0)),
+        )
+    }
+
+    @Test
+    fun formatsRampPhrases() {
+        assertEquals(
+            "In 50 meters, take the ramp",
+            CueEngine.format(CueEvent.Turn50m(ManeuverKind.RAMP)),
+        )
+        assertEquals("Take the ramp", CueEngine.format(CueEvent.Turn10m(ManeuverKind.RAMP)))
+        assertEquals(
+            "Next ramp in about 200 meters",
+            CueEngine.format(CueEvent.NextTurnInAbout(ManeuverKind.RAMP, 200.0)),
+        )
+    }
+
+    // ─── bug 4: arrived flag suppresses arrivingInM same tick ────────────────
+
+    @Test
+    fun arrivingInM_suppressedWhenArrivedFlagTrueSameTick() {
+        // After-passing block would fire ArrivingInM (rider passed the only
+        // maneuver, no follow-up). On the same tick mark arrived = true —
+        // only the dedicated `Arrived` cue should fire, not both.
+        val m1 = CueManeuver("m1", ManeuverKind.LEFT, 400.0)
+        var s = CueEngine.tick(
+            base(progressDistanceM = 100.0, maneuvers = listOf(m1), routeTotalDistanceM = 600.0),
+            CueEngineState(),
+        ).nextState
+        val r = CueEngine.tick(
+            base(
+                progressDistanceM = 595.0,
+                maneuvers = listOf(m1),
+                arrived = true,
+                routeTotalDistanceM = 600.0,
+            ),
+            s,
+        )
+        assertNull(
+            "arrivingInM must be suppressed when arrived flag is true on the same tick — got ${r.events}",
+            r.events.firstOrNull { it is CueEvent.ArrivingInM },
+        )
+        assertNotNull(
+            "arrived cue must fire — got ${r.events}",
+            r.events.firstOrNull { it is CueEvent.Arrived },
+        )
+    }
+
+    // ─── bug 5: back-to-back pair under 15m at route start emits combined cue ─
+
+    @Test
+    fun firstTick_backToBackPair_under15mFromStart_emitsCombinedCue() {
+        // Route starts 10m before m1; m2 follows 15m later (within 30m
+        // back-to-back threshold). Without the fix, the regular 50m block
+        // gates on d > 15m and never fires — only `Turn10m(m1)` plays and
+        // the rider misses m2.
+        val m1 = CueManeuver("m1", ManeuverKind.RIGHT, 10.0)
+        val m2 = CueManeuver("m2", ManeuverKind.LEFT, 25.0)
+        val r = CueEngine.tick(
+            base(progressDistanceM = 0.0, maneuvers = listOf(m1, m2), routeTotalDistanceM = 1000.0),
+            CueEngineState(),
+        )
+        val combined = r.events.firstOrNull {
+            it is CueEvent.Turn50m && it.followUpKind != null
+        } as? CueEvent.Turn50m
+        assertNotNull(
+            "first-tick back-to-back pair under 15m must emit combined Turn50m cue — got ${r.events}",
+            combined,
+        )
+        assertEquals(ManeuverKind.RIGHT, combined!!.turnKind)
+        assertEquals(ManeuverKind.LEFT, combined.followUpKind)
+        assertEquals(10.0, combined.distanceM, 0.5)
     }
 
     // ─── rerouting cue silences after 2 episodes (across route id changes) ───

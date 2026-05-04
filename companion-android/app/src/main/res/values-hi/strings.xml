@@ -23,8 +23,6 @@
     <string name="cue_turn10m_exitLeft" formatted="false">बाएँ निकास लें</string>
     <string name="cue_turn10m_exitRight" formatted="false">दाएँ निकास लें</string>
     <string name="cue_turn10m_generic" formatted="false">मार्ग का पालन करें</string>
-    <string name="cue_turn10m_keepLeft" formatted="false">बाएँ रखें</string>
-    <string name="cue_turn10m_keepRight" formatted="false">दाएँ रखें</string>
     <string name="cue_turn10m_left" formatted="false">बाएँ मुड़ें</string>
     <string name="cue_turn10m_merge" formatted="false">मर्ज करें</string>
     <string name="cue_turn10m_ramp" formatted="false">रैम्प लें</string>
@@ -34,15 +32,13 @@
     <string name="cue_turn50m_exitLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, बाएँ निकास लें</string>
     <string name="cue_turn50m_exitRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, दाएँ निकास लें</string>
     <string name="cue_turn50m_generic" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, मार्ग का पालन करें</string>
-    <string name="cue_turn50m_keepLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, बाएँ रखें</string>
-    <string name="cue_turn50m_keepRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, दाएँ रखें</string>
     <string name="cue_turn50m_left" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, बाएँ मुड़ें</string>
     <string name="cue_turn50m_merge" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, मर्ज करें</string>
     <string name="cue_turn50m_ramp" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, रैम्प लें</string>
     <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, दाएँ मुड़ें</string>
     <string name="cue_turn50m_roundabout" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, राउंडअबाउट में प्रवेश करें</string>
     <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, U-turn करें</string>
-    <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {मीटर} feet {फुट} other {मीटर}}, {first, select, left {बाएँ मुड़ें} right {दाएँ मुड़ें} keepLeft {बाएँ रहें} keepRight {दाएँ रहें} exitLeft {बाएँ निकास लें} exitRight {दाएँ निकास लें} uturn {यू-टर्न करें} other {रास्ते का अनुसरण करें}} फिर जल्दी {second, select, left {बाएँ} right {दाएँ} keepLeft {बाएँ रहें} keepRight {दाएँ रहें} exitLeft {बाएँ निकास} exitRight {दाएँ निकास} uturn {यू-टर्न} other {सीधे आगे}}</string>
+    <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {मीटर} feet {फीट} other {मीटर}}, {first, select, left {बाएँ मुड़ें} right {दाएँ मुड़ें} exitLeft {बाएँ निकास लें} exitRight {दाएँ निकास लें} uturn {U-turn करें} roundabout {राउंडअबाउट में प्रवेश करें} merge {मर्ज करें} ramp {रैम्प लें} other {रास्ता फॉलो करें}} फिर जल्दी {second, select, left {बाएँ} right {दाएँ} exitLeft {बाएँ निकास} exitRight {दाएँ निकास} uturn {U-turn} roundabout {राउंडअबाउट} merge {मर्ज} ramp {रैम्प} other {आगे}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} से {destination} तक</string>
     <string name="home_a11y_clearDestination" formatted="false">गंतव्य साफ़ करें</string>
     <string name="home_a11y_currentSpeed" formatted="false">वर्तमान गति</string>

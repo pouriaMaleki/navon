@@ -4,11 +4,12 @@
 export type ManeuverKind =
   | "left"
   | "right"
-  | "keepLeft"
-  | "keepRight"
   | "exitLeft"
   | "exitRight"
   | "uturn"
+  | "roundabout"
+  | "merge"
+  | "ramp"
   | "generic";
 
 export type CueManeuver = {
@@ -172,6 +173,8 @@ export function tickCueEngine(
       (m) => m.distanceFromStartM - snapshot.progressDistanceM >= 0,
     );
     let nextAnnounced50m = s.announced50m;
+    const nextAnnounced10m = new Set(s.announced10m);
+    const nextAnnouncedNextTurnAfter = new Set(s.announcedNextTurnAfter);
     if (firstNonDepart) {
       const distanceM = firstNonDepart.distanceFromStartM - snapshot.progressDistanceM;
       if (distanceM > APPROACH_50_M) {
@@ -216,19 +219,41 @@ export function tickCueEngine(
         const gap = follow
           ? follow.distanceFromStartM - firstNonDepart.distanceFromStartM
           : Number.POSITIVE_INFINITY;
-        if (!follow || gap > BACK_TO_BACK_THRESHOLD_M) {
+        if (follow && gap <= BACK_TO_BACK_THRESHOLD_M) {
+          // Case C: emit the combined cue here directly with the actual
+          // distance. The regular 50 m block downstream gates on
+          // `d > APPROACH_10_M` (15 m) and would skip routes starting
+          // < 15 m before a back-to-back pair, leaving the rider with
+          // only `turn10m(first)` and no warning about the second turn.
+          events.push({
+            kind: "turn50m",
+            turnKind: firstNonDepart.kind,
+            distanceM,
+            followUpKind: follow.kind,
+          });
+          const set50 = new Set(nextAnnounced50m);
+          set50.add(firstNonDepart.id);
+          set50.add(follow.id);
+          nextAnnounced50m = set50;
+          nextAnnounced10m.add(firstNonDepart.id);
+          nextAnnounced10m.add(follow.id);
+          nextAnnouncedNextTurnAfter.add(firstNonDepart.id);
+        } else {
           // Case B: pre-latch the 50 m cue so only the 10 m action
           // cue fires for this maneuver.
           const set = new Set(nextAnnounced50m);
           set.add(firstNonDepart.id);
           nextAnnounced50m = set;
         }
-        // Case C: do nothing here — the 50 m block in this same tick
-        // will detect the back-to-back pair and emit the combined cue
-        // with actual distance.
       }
     }
-    s = { ...s, routeStartedAnnounced: true, announced50m: nextAnnounced50m };
+    s = {
+      ...s,
+      routeStartedAnnounced: true,
+      announced50m: nextAnnounced50m,
+      announced10m: nextAnnounced10m,
+      announcedNextTurnAfter: nextAnnouncedNextTurnAfter,
+    };
   }
 
   // Off-route episode tracking.
@@ -361,7 +386,12 @@ export function tickCueEngine(
         const isLastManeuver = indexOfLast + 1 === snapshot.maneuvers.length - 1;
         const distNextToEnd = snapshot.routeTotalDistanceM - nextAfter.distanceFromStartM;
         if (isLastManeuver && distNextToEnd < CLOSE_TO_DESTINATION_M) {
-          if (!s.approachingDestinationAnnounced) {
+          // Bug 4: when the rider has already crossed the arrival
+          // radius, the dedicated `arrived` cue at the bottom of this
+          // function speaks instead — emitting `arrivingInM` here too
+          // produces a same-tick double cue with disagreeing distances
+          // ("Arriving in 5 m" → "You have arrived").
+          if (!s.approachingDestinationAnnounced && !snapshot.arrived) {
             events.push({
               kind: "arrivingInM",
               distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM,
@@ -382,7 +412,10 @@ export function tickCueEngine(
             announced50m.add(nextAfter.id);
           }
         }
-      } else if (!s.approachingDestinationAnnounced) {
+      } else if (!s.approachingDestinationAnnounced && !snapshot.arrived) {
+        // Bug 4: skip arrivingInM when the rider has already crossed the
+        // arrival radius — the `arrived` cue at the bottom of this
+        // function speaks instead.
         // Cue 5: no further maneuvers — arriving at destination.
         events.push({
           kind: "arrivingInM",
@@ -493,20 +526,27 @@ export function formatCueEvent(event: CueEvent): string {
   return tIn("en", key, values);
 }
 
-/** Collapse the 8 maneuver kinds into the 4 directions the
- *  `cue.nextTurnInAbout.*` catalog supports. */
-function nextTurnDirection(kind: ManeuverKind): "left" | "right" | "uturn" | "generic" {
+/** Collapse maneuver kinds into the slugs the `cue.nextTurnInAbout.*`
+ *  catalog supports. Exit ramps fold into their parent direction; the
+ *  dedicated kinds keep their own slug. */
+function nextTurnDirection(
+  kind: ManeuverKind,
+): "left" | "right" | "uturn" | "roundabout" | "merge" | "ramp" | "generic" {
   switch (kind) {
     case "left":
-    case "keepLeft":
     case "exitLeft":
       return "left";
     case "right":
-    case "keepRight":
     case "exitRight":
       return "right";
     case "uturn":
       return "uturn";
+    case "roundabout":
+      return "roundabout";
+    case "merge":
+      return "merge";
+    case "ramp":
+      return "ramp";
     case "generic":
       return "generic";
   }

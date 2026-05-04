@@ -11,11 +11,12 @@ package me.fiksu.esp32map.companion.integration.cues
 enum class ManeuverKind {
     LEFT,
     RIGHT,
-    KEEP_LEFT,
-    KEEP_RIGHT,
     EXIT_LEFT,
     EXIT_RIGHT,
     UTURN,
+    ROUNDABOUT,
+    MERGE,
+    RAMP,
     GENERIC;
 }
 
@@ -199,14 +200,31 @@ object CueEngine {
                     val follow = snapshot.maneuvers.getOrNull(upcomingIdx + 1)
                     val gap = follow?.let { it.distanceFromStartM - firstNonDepart.distanceFromStartM }
                         ?: Double.POSITIVE_INFINITY
-                    if (follow == null || gap > BACK_TO_BACK_THRESHOLD_M) {
+                    if (follow != null && gap <= BACK_TO_BACK_THRESHOLD_M) {
+                        // Case C: emit the combined cue here directly
+                        // with the actual distance. The regular 50 m
+                        // block downstream gates on `d > APPROACH_10_M`
+                        // (15 m) and would skip routes starting < 15 m
+                        // before a back-to-back pair, leaving the rider
+                        // with only `Turn10m(first)` and no warning
+                        // about the second turn.
+                        events.add(
+                            CueEvent.Turn50m(
+                                turnKind = firstNonDepart.kind,
+                                distanceM = distanceM,
+                                followUpKind = follow.kind,
+                            ),
+                        )
+                        nextAnnounced50m = nextAnnounced50m + firstNonDepart.id + follow.id
+                        s = s.copy(
+                            announced10m = s.announced10m + firstNonDepart.id + follow.id,
+                            announcedNextTurnAfter = s.announcedNextTurnAfter + firstNonDepart.id,
+                        )
+                    } else {
                         // Case B: pre-latch the 50 m cue so only the
                         // 10 m action cue fires for this maneuver.
                         nextAnnounced50m = nextAnnounced50m + firstNonDepart.id
                     }
-                    // Case C: do nothing here — the 50 m block in this
-                    // same tick will detect the back-to-back pair and
-                    // emit the combined cue with actual distance.
                 }
             }
             s = s.copy(routeStartedAnnounced = true, announced50m = nextAnnounced50m)
@@ -323,7 +341,12 @@ object CueEngine {
                     val isLastManeuver = indexOfLast + 1 == snapshot.maneuvers.size - 1
                     val distNextToEnd = snapshot.routeTotalDistanceM - nextAfter.distanceFromStartM
                     if (isLastManeuver && distNextToEnd < CLOSE_TO_DESTINATION_M) {
-                        if (!s.approachingDestinationAnnounced) {
+                        // Bug 4: when the rider has already crossed the
+                        // arrival radius, the dedicated `Arrived` cue at
+                        // the bottom of this function speaks instead —
+                        // emitting `ArrivingInM` here too produces a
+                        // same-tick double cue with disagreeing distances.
+                        if (!s.approachingDestinationAnnounced && !snapshot.arrived) {
                             events.add(CueEvent.ArrivingInM(
                                 distanceM = snapshot.routeTotalDistanceM - snapshot.progressDistanceM,
                             ))
@@ -344,7 +367,10 @@ object CueEngine {
                             announced50m.add(nextAfter.id)
                         }
                     }
-                } else if (!s.approachingDestinationAnnounced) {
+                } else if (!s.approachingDestinationAnnounced && !snapshot.arrived) {
+                    // Bug 4: skip ArrivingInM when the rider has already
+                    // crossed the arrival radius — the `Arrived` cue at
+                    // the bottom of this function speaks instead.
                     events.add(
                         CueEvent.ArrivingInM(
                             distanceM = snapshot.routeTotalDistanceM - snapshot.progressDistanceM,
@@ -452,20 +478,25 @@ object CueEngine {
     private fun maneuverSlug(kind: ManeuverKind): String = when (kind) {
         ManeuverKind.LEFT -> "left"
         ManeuverKind.RIGHT -> "right"
-        ManeuverKind.KEEP_LEFT -> "keepLeft"
-        ManeuverKind.KEEP_RIGHT -> "keepRight"
         ManeuverKind.EXIT_LEFT -> "exitLeft"
         ManeuverKind.EXIT_RIGHT -> "exitRight"
         ManeuverKind.UTURN -> "uturn"
+        ManeuverKind.ROUNDABOUT -> "roundabout"
+        ManeuverKind.MERGE -> "merge"
+        ManeuverKind.RAMP -> "ramp"
         ManeuverKind.GENERIC -> "generic"
     }
 
-    /** Collapse 8 maneuver kinds into the 4 directions the
-     *  `cue.nextTurnInAbout.*` catalog supports. */
+    /** Collapse maneuver kinds into the slugs the `cue.nextTurnInAbout.*`
+     *  catalog supports. Exit ramps fold into their parent direction; the
+     *  dedicated kinds keep their own slug. */
     private fun nextTurnDirection(kind: ManeuverKind): String = when (kind) {
-        ManeuverKind.LEFT, ManeuverKind.KEEP_LEFT, ManeuverKind.EXIT_LEFT -> "left"
-        ManeuverKind.RIGHT, ManeuverKind.KEEP_RIGHT, ManeuverKind.EXIT_RIGHT -> "right"
+        ManeuverKind.LEFT, ManeuverKind.EXIT_LEFT -> "left"
+        ManeuverKind.RIGHT, ManeuverKind.EXIT_RIGHT -> "right"
         ManeuverKind.UTURN -> "uturn"
+        ManeuverKind.ROUNDABOUT -> "roundabout"
+        ManeuverKind.MERGE -> "merge"
+        ManeuverKind.RAMP -> "ramp"
         ManeuverKind.GENERIC -> "generic"
     }
 }

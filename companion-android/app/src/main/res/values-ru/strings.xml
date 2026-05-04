@@ -23,8 +23,6 @@
     <string name="cue_turn10m_exitLeft" formatted="false">Сверните налево</string>
     <string name="cue_turn10m_exitRight" formatted="false">Сверните направо</string>
     <string name="cue_turn10m_generic" formatted="false">Следуйте по маршруту</string>
-    <string name="cue_turn10m_keepLeft" formatted="false">Держитесь левее</string>
-    <string name="cue_turn10m_keepRight" formatted="false">Держитесь правее</string>
     <string name="cue_turn10m_left" formatted="false">Поверните налево</string>
     <string name="cue_turn10m_merge" formatted="false">Сливайся</string>
     <string name="cue_turn10m_ramp" formatted="false">Съезжай</string>
@@ -34,15 +32,13 @@
     <string name="cue_turn50m_exitLeft" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сверните налево</string>
     <string name="cue_turn50m_exitRight" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сверните направо</string>
     <string name="cue_turn50m_generic" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} следуйте по маршруту</string>
-    <string name="cue_turn50m_keepLeft" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} держитесь левее</string>
-    <string name="cue_turn50m_keepRight" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} держитесь правее</string>
     <string name="cue_turn50m_left" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните налево</string>
     <string name="cue_turn50m_merge" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, сливайся</string>
     <string name="cue_turn50m_ramp" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, съезжай</string>
     <string name="cue_turn50m_right" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните направо</string>
     <string name="cue_turn50m_roundabout" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, въезжай на кольцевую развязку</string>
     <string name="cue_turn50m_uturn" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сделайте разворот</string>
-    <string name="cue_turn50mCombined" formatted="false">На {distance, number} {distanceUnit, select, meters {метров} feet {футов} other {метров}}, {first, select, left {поверните налево} right {поверните направо} keepLeft {держитесь левее} keepRight {держитесь правее} exitLeft {сверните на левый съезд} exitRight {сверните на правый съезд} uturn {развернитесь} other {следуйте по маршруту}} затем быстро {second, select, left {поверните налево} right {поверните направо} keepLeft {держитесь левее} keepRight {держитесь правее} exitLeft {сверните на левый съезд} exitRight {сверните на правый съезд} uturn {разворот} other {продолжайте прямо}}</string>
+    <string name="cue_turn50mCombined" formatted="false">На {distance, number} {distanceUnit, select, meters {метров} feet {футов} other {метров}}, {first, select, left {поверните налево} right {поверните направо} exitLeft {сверните на левый съезд} exitRight {сверните на правый съезд} uturn {сделайте разворот} roundabout {въезжайте на круговое движение} merge {вливайтесь} ramp {съезжайте на съезд} other {следуйте по маршруту}} затем быстро {second, select, left {налево} right {направо} exitLeft {на левый съезд} exitRight {на правый съезд} uturn {U-turn} roundabout {на круговое движение} merge {вливайтесь} ramp {на съезд} other {вперед}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} до {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Очистить пункт назначения</string>
     <string name="home_a11y_currentSpeed" formatted="false">Текущая скорость</string>

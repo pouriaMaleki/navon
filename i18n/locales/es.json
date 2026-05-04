@@ -406,7 +406,7 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50mCombined": {
-      "value": "En {distance, number} {distanceUnit, select, meters {metros} feet {pies} other {metros}}, {first, select, left {gira a la izquierda} right {gira a la derecha} keepLeft {mantén a la izquierda} keepRight {mantén a la derecha} exitLeft {toma la salida izquierda} exitRight {toma la salida derecha} uturn {haz una U-turn} other {sigue la ruta}} luego rápidamente {second, select, left {a la izquierda} right {a la derecha} keepLeft {mantén a la izquierda} keepRight {mantén a la derecha} exitLeft {salida izquierda} exitRight {salida derecha} uturn {U-turn} other {sigue recto}}",
+      "value": "En {distance, number} {distanceUnit, select, meters {metros} feet {pies} other {metros}}, {first, select, left {gira a la izquierda} right {gira a la derecha} exitLeft {toma la salida izquierda} exitRight {toma la salida derecha} uturn {haz una U-turn} roundabout {entra a la rotonda} merge {incorpórate} ramp {toma la rampa} other {sigue la ruta}} luego rápidamente {second, select, left {a la izquierda} right {a la derecha} exitLeft {salida izquierda} exitRight {salida derecha} uturn {U-turn} roundabout {rotonda} merge {incorpórate} ramp {rampa} other {sigue adelante}}",
       "description": "Voice cue for back-to-back turns within ~80m: replaces two overlapping cues with one combined phrase.",
       "placeholders": {
         "distance": "number",
@@ -414,9 +414,9 @@
         "first": "select",
         "second": "select"
       },
-      "sourceHash": "sha256:dfa2fdde6a0000c2",
+      "sourceHash": "sha256:24316b55bc9130fd",
       "status": "ai-translated",
-      "translatedAt": "2026-05-02T18:37:47Z",
+      "translatedAt": "2026-05-04T18:27:50Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "guidance.distanceToDestination": {

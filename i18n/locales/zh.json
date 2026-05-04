@@ -406,7 +406,7 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50mCombined": {
-      "value": "在 {distance, number} {distanceUnit, select, meters {米} feet {英尺} other {米}} 内，{first, select, left {向左转} right {向右转} keepLeft {靠左行驶} keepRight {靠右行驶} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} other {沿路线前进}} 然后迅速 {second, select, left {向左} right {向右} keepLeft {靠左行驶} keepRight {靠右行驶} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} other {继续前行}}",
+      "value": "在 {distance, number} {distanceUnit, select, meters {米} feet {英尺} other {米}} 处，{first, select, left {向左转} right {向右转} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶上匝道} other {沿路线前行}}，然后迅速 {second, select, left {向左} right {向右} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶上匝道} other {继续前行}}",
       "description": "Voice cue for back-to-back turns within ~80m: replaces two overlapping cues with one combined phrase.",
       "placeholders": {
         "distance": "number",
@@ -414,9 +414,9 @@
         "first": "select",
         "second": "select"
       },
-      "sourceHash": "sha256:dfa2fdde6a0000c2",
+      "sourceHash": "sha256:24316b55bc9130fd",
       "status": "ai-translated",
-      "translatedAt": "2026-05-02T18:38:17Z",
+      "translatedAt": "2026-05-04T18:28:22Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "guidance.distanceToDestination": {
