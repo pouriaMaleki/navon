@@ -9,7 +9,7 @@ export function TopBar(): ReactElement {
         <p className={styles["subtitle"]}>Target profile: Waveshare ESP32-P4 LCD (800x800)</p>
       </div>
       <div className={styles["actions"]}>
-        <a className={styles["linkButton"]} href="/web-fullscreen.html">
+        <a className={styles["linkButton"]} href={`${import.meta.env.BASE_URL}web-fullscreen.html`}>
           Web Fullscreen
         </a>
       </div>
