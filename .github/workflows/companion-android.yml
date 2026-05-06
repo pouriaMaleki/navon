@@ -51,7 +51,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Run Android quality gates
-        run: ./gradlew lintDebug testDebugUnitTest assembleDebug
+        run: ./gradlew clean lintDebug testDebugUnitTest assembleDebug --no-build-cache --rerun-tasks
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v6

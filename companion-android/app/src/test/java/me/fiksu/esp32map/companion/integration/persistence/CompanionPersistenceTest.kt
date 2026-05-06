@@ -11,7 +11,7 @@ import me.fiksu.esp32map.companion.domain.RouteProviderId
 
 class CompanionPersistenceTest {
     @Test
-    fun recentDestinationsAreStoredNewestFirstAndTrimmedToTen() {
+    fun recentDestinationsAreStoredNewestFirstAndTrimmedToThirty() {
         val persistence = CompanionPersistence()
 
         repeat(12) { index ->
@@ -19,9 +19,9 @@ class CompanionPersistenceTest {
         }
 
         val recent = persistence.loadRecentDestinations()
-        assertEquals(10, recent.size)
+        assertEquals(12, recent.size)
         assertEquals(CoordinatePoint(71.0, 35.0), recent.first())
-        assertEquals(CoordinatePoint(62.0, 26.0), recent.last())
+        assertEquals(CoordinatePoint(60.0, 24.0), recent.last())
     }
 
     @Test

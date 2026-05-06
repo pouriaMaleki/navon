@@ -107,7 +107,7 @@ jobs:
             ~/.gradle/wrapper
           key: gradle-${{ hashFiles('companion-android/**/*.gradle*', 'companion-android/gradle/libs.versions.toml') }}
       - name: Run JVM tests
-        run: ./gradlew :app:testDebugUnitTest --no-daemon
+        run: ./gradlew clean :app:testDebugUnitTest --no-daemon --no-build-cache --rerun-tasks
 
   # ─── Slow lane (main + nightly) ─────────────────────────────────────────
   web-e2e:

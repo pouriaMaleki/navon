@@ -162,8 +162,8 @@ class CueEngineTest {
 
     @Test
     fun resetsLatchesOnRouteIdChange() {
-        val s1 = CueEngine.tick(base(progressDistanceM = 155.0), CueEngineState()).nextState
-        val s2 = CueEngine.tick(base(routeId = "r2", progressDistanceM = 155.0), s1)
+        val s1 = CueEngine.tick(base(progressDistanceM = 100.0), CueEngineState()).nextState
+        val s2 = CueEngine.tick(base(routeId = "r2", progressDistanceM = 100.0), s1)
         assertNotNull(s2.events.firstOrNull { it is CueEvent.NextTurnInAbout })
     }
 
