@@ -1468,6 +1468,21 @@ final class HomeViewModel: ObservableObject {
             isRouting: appModel.isRoutingInProgress,
             isAppInBackground: appModel.isAppInBackground
         )
+        // Push the same tick into the Live Activity coordinator. The
+        // coordinator gates on `liveActivityEnabled && allowBackgroundGps
+        // && isRouting && route != nil` and silently no-ops when off.
+        appModel.activeGuidanceRoute = guidanceRoute
+        let isImperial = T.resolveDistanceUnit(appModel.settings.distanceUnit) == .imperial
+        appModel.liveActivityCoordinator.onGuidanceTick(
+            settings: appModel.settings,
+            isRouting: appModel.isRoutingInProgress,
+            route: guidanceRoute,
+            progressDistanceM: progressDistanceM,
+            offRoute: offRoute,
+            rerouting: rerouteRequested,
+            arrived: arrivalNotice != nil,
+            isImperial: isImperial
+        )
     }
 
     /// Variant of `projectProgress` that also returns the perpendicular

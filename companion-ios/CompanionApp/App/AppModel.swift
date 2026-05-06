@@ -65,6 +65,7 @@ final class AppModel: ObservableObject {
     let bleService: BleRouteSyncService
     let locationService: CoreLocationService
     private(set) var routingActivityCoordinator: RoutingActivityCoordinator
+    private(set) var liveActivityCoordinator: LiveActivityCoordinator
 
     private var cancellables = Set<AnyCancellable>()
     private var lastHandledRerouteSignature: String?
@@ -86,6 +87,9 @@ final class AppModel: ObservableObject {
         self.routingActivityCoordinator = RoutingActivityCoordinator(
             idleTimer: IdleTimerController(),
             speech: SpeechService()
+        )
+        self.liveActivityCoordinator = LiveActivityCoordinator(
+            driver: ActivityKitLiveActivityDriver()
         )
 
         let loadedSettings = persistence.loadSettings()
@@ -295,7 +299,19 @@ final class AppModel: ObservableObject {
             isRouting: isRoutingInProgress,
             pairedWithDevice: pairedWithDevice
         )
+        liveActivityCoordinator.onSettingsOrRoutingChange(
+            settings: settings,
+            isRouting: isRoutingInProgress,
+            route: activeGuidanceRoute
+        )
     }
+
+    /// Latest route package the user is actively riding. Source of truth
+    /// lives on `HomeViewModel.guidanceRoute`; the live activity
+    /// coordinator only needs the package's `routeIdentifier`,
+    /// `summary`, and `maneuvers`. Set by `HomeViewModel` whenever its
+    /// `guidanceRoute` changes.
+    var activeGuidanceRoute: NormalizedRoutePackage?
 
     /// Spec line 130: when the user toggles "Allow GPS in background" on,
     /// escalate the CoreLocation authorization to Always. iOS only offers
@@ -343,6 +359,12 @@ final class AppModel: ObservableObject {
             idleTimer: IdleTimerController(),
             speech: speech
         )
+    }
+
+    /// Test seam: swap in a fake driver so the coordinator can be exercised
+    /// without touching ActivityKit.
+    func replaceLiveActivityCoordinatorForTesting(driver: LiveActivityDriver) {
+        liveActivityCoordinator = LiveActivityCoordinator(driver: driver)
     }
 
     /// Test seam: stamps the paired-peripheral state without going through

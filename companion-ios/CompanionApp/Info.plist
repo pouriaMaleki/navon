@@ -70,6 +70,8 @@
         <string>location</string>
         <string>audio</string>
     </array>
+    <key>NSSupportsLiveActivities</key>
+    <true/>
     <key>UIApplicationSceneManifest</key>
     <dict>
         <key>UIApplicationSupportsMultipleScenes</key>

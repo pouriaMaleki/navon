@@ -15,8 +15,11 @@ targets:
     sources:
       - CompanionApp
       - CompanionSharedImport
+      - CompanionLiveActivity/Shared
     dependencies:
       - target: ESP32MapCompanionShare
+        embed: true
+      - target: ESP32MapCompanionLiveActivity
         embed: true
     settings:
       base:
@@ -60,6 +63,23 @@ targets:
         SWIFT_VERSION: 5.10
         INFOPLIST_FILE: ESP32MapCompanionUITests/Info.plist
         TEST_TARGET_NAME: ESP32MapCompanion
+  ESP32MapCompanionLiveActivity:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    configFiles:
+      Debug: Config/Signing.xcconfig
+      Release: Config/Signing.xcconfig
+    sources:
+      - CompanionLiveActivity
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: me.fiksu.esp32map.companion.ios.liveactivity
+        PRODUCT_NAME: ESP32MapCompanionLiveActivity
+        INFOPLIST_FILE: CompanionLiveActivity/Info.plist
+        SWIFT_VERSION: 5.10
+        CODE_SIGN_STYLE: Automatic
+        APPLICATION_EXTENSION_API_ONLY: YES
   ESP32MapCompanionShare:
     type: app-extension
     platform: iOS
