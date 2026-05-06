@@ -14,17 +14,14 @@ Main features of this application is:
 - Secure connection to ESP32 handheld and passing route to it
 - Many languages support (Machine translated)
 
+## Demo
+
 - Web version of the app (There might be issues with background locations, due to OS limitations): <https://map.fiksu.me>
 - ESP32 Web Emulator: <https://map.fiksu.me/emulator>
 - iOS app: `companion-ios/`
 - Android app: `companion-android/`
 
-<img src="demo/demo-2.jpg" alt="Demo 2" width="160" /> <img src="demo/demo-3.png" alt="Demo 3" width="160" /> <img src="demo/demo-4.png" alt="Demo 4" width="160" /> <img src="demo/demo-5.png" alt="Demo 5" width="160" /> <img src="demo/demo-6.png" alt="Demo 6" width="160" /> <img src="demo/demo-1.jpg" alt="Demo 1" width="160" />
-
-## Hardware [Optional]
-
-- Target device: Waveshare ESP32-P4-WIFI6-Touch-LCD-3.4C (3.4")
-- Product page: <https://www.waveshare.com/esp32-p4-wifi6-touch-lcd-3.4c.htm>
+<img src="demo/demo-2.jpg" alt="Web app screenshot" width="160" /> <img src="demo/demo-3.png" alt="Web app screenshot route planning" width="160" /> <img src="demo/demo-4.png" alt="iOS App screenshot route planning" width="160" /> <img src="demo/demo-5.png" alt="iOS app settings page screenshot" width="160" /> <img src="demo/demo-6.png" alt="iOS lock screen guides screenshot" width="160" /> <img src="demo/demo-1.jpg" alt="ESP32-P4 with 3.4inch screen as a handheld device rendering map" width="160" />
 
 ## Dev Setup (Dev Container)
 
@@ -83,6 +80,30 @@ docker compose down
 
 Default port is `4173` (override with `EMULATOR_PORT`).
 
+## Translations (i18n)
+
+- Main source language file: `i18n/locales/en.json`
+- Locale config: `i18n/catalog.config.json`
+
+Before commit, run:
+
+```bash
+cargo xtask i18n-gen
+cargo xtask i18n-sync-all
+cargo xtask i18n-gen
+```
+
+For one locale only:
+
+```bash
+cargo xtask i18n-sync --locale fi
+```
+
+## Hardware [Optional]
+
+- Target device: Waveshare ESP32-P4-WIFI6-Touch-LCD-3.4C (3.4")
+- Product page: <https://www.waveshare.com/esp32-p4-wifi6-touch-lcd-3.4c.htm>
+
 ## Make a Map for ESP32 Handheld Device
 
 Source dataset (MapTiler):
@@ -128,21 +149,4 @@ General flow:
    espflash monitor --chip esp32p4 --port <PORT>
    ```
 
-## Translations (i18n)
-
-- Main source language file: `i18n/locales/en.json`
-- Locale config: `i18n/catalog.config.json`
-
-Before commit, run:
-
-```bash
-cargo xtask i18n-gen
-cargo xtask i18n-sync-all
-cargo xtask i18n-gen
-```
-
-For one locale only:
-
-```bash
-cargo xtask i18n-sync --locale fi
-```
+Copy city.svm to SD Card if you want larger size map. Flashed map is very small and provided only as a backup (or for testing).

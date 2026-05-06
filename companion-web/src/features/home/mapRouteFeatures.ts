@@ -71,7 +71,10 @@ function routeFeature(alt: RouteAlternative, selected: boolean): GeoJSON.Feature
     properties: { id: alt.id, selected },
     geometry: {
       type: "LineString",
-      coordinates: alt.normalizedPackage.geometry.map((p: CoordinatePoint) => [p.longitude, p.latitude]),
+      coordinates: alt.normalizedPackage.geometry.map((p: CoordinatePoint) => [
+        p.longitude,
+        p.latitude,
+      ]),
     },
   };
 }

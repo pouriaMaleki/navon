@@ -411,7 +411,6 @@ describe("CueEngine — Bug 3: same routeId with bumped revision resets engine s
 
 describe("CueEngine — turn10m fires 15m before the maneuver (5m earlier threshold)", () => {
   it("fires turn10m when 14m before the turn (within the 15m window)", () => {
-    const m = M_LEFT("m1", 200);
     const s1 = tick(initialCueEngineState(), baseSnapshot({ progressDistanceM: 100 }));
     // 200 - 186 = 14 m remaining — should fire with the new 15m threshold
     const s2 = tick(s1.next, baseSnapshot({ progressDistanceM: 186 }));
@@ -529,9 +528,9 @@ describe("CueEngine — first-class roundabout / merge / ramp cues (bug 2)", () 
     expect(formatCueEvent({ kind: "turn10m", turnKind: "roundabout" })).toBe(
       "Enter the roundabout",
     );
-    expect(formatCueEvent({ kind: "nextTurnInAbout", turnKind: "roundabout", distanceM: 200 })).toBe(
-      "Next roundabout in about 200 meters",
-    );
+    expect(
+      formatCueEvent({ kind: "nextTurnInAbout", turnKind: "roundabout", distanceM: 200 }),
+    ).toBe("Next roundabout in about 200 meters");
   });
 
   it("formats merge phrases", () => {
@@ -562,7 +561,10 @@ describe("CueEngine — bug 4: arrived flag suppresses arrivingInM same tick", (
     // only the dedicated `arrived` cue should fire, not both.
     const m1 = M_LEFT("m1", 400);
     let s = initialCueEngineState();
-    s = tick(s, baseSnapshot({ progressDistanceM: 100, maneuvers: [m1], routeTotalDistanceM: 600 })).next;
+    s = tick(
+      s,
+      baseSnapshot({ progressDistanceM: 100, maneuvers: [m1], routeTotalDistanceM: 600 }),
+    ).next;
     const r = tick(
       s,
       baseSnapshot({
@@ -590,7 +592,9 @@ describe("CueEngine — bug 5: back-to-back pair under 15m at route start emits 
     );
     const combined = r.events.find(
       (e) => e.kind === "turn50m" && (e as { followUpKind?: string }).followUpKind !== undefined,
-    ) as { kind: "turn50m"; turnKind: string; distanceM: number; followUpKind?: string } | undefined;
+    ) as
+      | { kind: "turn50m"; turnKind: string; distanceM: number; followUpKind?: string }
+      | undefined;
     expect(combined).toBeDefined();
     expect(combined?.turnKind).toBe("right");
     expect(combined?.followUpKind).toBe("left");
@@ -645,7 +649,10 @@ describe("CueEngine — rerouting cue silences after 2 episodes (across reroutes
     s = tick(s, reroutingSnapshot(true, "r2")).next; // 2nd
     // Now drive 5 confirmed-on-track samples to clear silence
     for (let i = 0; i < 5; i += 1) {
-      s = tick(s, baseSnapshot({ rerouting: false, offRoute: false, distanceFromRouteM: 0, routeId: "r2" })).next;
+      s = tick(
+        s,
+        baseSnapshot({ rerouting: false, offRoute: false, distanceFromRouteM: 0, routeId: "r2" }),
+      ).next;
     }
     // After reset, a new rerouting episode should fire again
     const t = tick(s, reroutingSnapshot(true, "r3"));

@@ -283,8 +283,22 @@ describe("explore alternatives from guidance (split-icon UX)", () => {
     guidance.startSelectedRoute();
     planning.setPreview({
       alternatives: [
-        { id: "a1", title: "R1", subtitle: "", distanceMeters: 2500, durationSeconds: 600, normalizedPackage: straightLinePackage() },
-        { id: "a2", title: "R2", subtitle: "", distanceMeters: 3000, durationSeconds: 700, normalizedPackage: { ...straightLinePackage(), routeIdentifier: "osm-alt" } },
+        {
+          id: "a1",
+          title: "R1",
+          subtitle: "",
+          distanceMeters: 2500,
+          durationSeconds: 600,
+          normalizedPackage: straightLinePackage(),
+        },
+        {
+          id: "a2",
+          title: "R2",
+          subtitle: "",
+          distanceMeters: 3000,
+          durationSeconds: 700,
+          normalizedPackage: { ...straightLinePackage(), routeIdentifier: "osm-alt" },
+        },
       ],
       selectedAlternativeID: "a1",
     });
@@ -320,7 +334,14 @@ describe("explore alternatives from guidance (split-icon UX)", () => {
     guidance.startSelectedRoute();
     planning.setPreview({
       alternatives: [
-        { id: "a1", title: "R1", subtitle: "", distanceMeters: 2500, durationSeconds: 600, normalizedPackage: straightLinePackage() },
+        {
+          id: "a1",
+          title: "R1",
+          subtitle: "",
+          distanceMeters: 2500,
+          durationSeconds: 600,
+          normalizedPackage: straightLinePackage(),
+        },
       ],
       selectedAlternativeID: "a1",
     });

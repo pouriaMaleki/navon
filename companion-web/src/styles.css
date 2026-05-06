@@ -10,9 +10,7 @@
   --danger: #ff5f5f;
   --card-bg: rgba(16, 19, 43, 0.85);
   --card-border: rgba(245, 247, 251, 0.08);
-  font-family:
-    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
 }
 
 * {
@@ -535,7 +533,4 @@ textarea {
 
 .location-banner__button--ghost {
   color: var(--fg-soft);
-}
-
-.version-indicator {
 }

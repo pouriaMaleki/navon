@@ -1,9 +1,6 @@
 import { observer } from "mobx-react-lite";
 import type { RootStore } from "../../app/RootStore.js";
-import {
-  ROUTE_SOURCE_MODE_DISPLAY_NAME,
-  summaryLine,
-} from "../../domain/models.js";
+import { ROUTE_SOURCE_MODE_DISPLAY_NAME, summaryLine } from "../../domain/models.js";
 import { useT } from "../../i18n/useT.js";
 
 type Props = { store: RootStore };

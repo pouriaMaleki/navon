@@ -4,6 +4,7 @@
  * exposes guidanceAlternatives" and "the map actually renders them".
  */
 import { describe, expect, it } from "vitest";
+import type { RootStore } from "../../app/RootStore.js";
 import type { CoordinatePoint } from "../../domain/models.js";
 import { CURRENT_ROUTE_PACKAGE_VERSION } from "../../domain/models.js";
 import { buildRouteFeatures } from "../../features/home/mapRouteFeatures.js";
@@ -13,7 +14,6 @@ import { LocationStore } from "../../stores/LocationStore.js";
 import { PlanningStore, type ProvidersMap } from "../../stores/PlanningStore.js";
 import { SettingsStore } from "../../stores/SettingsStore.js";
 import { FakeLocationService, FakePlaceSearch, FakeRoutingAdapter } from "../fakes/index.js";
-import type { RootStore } from "../../app/RootStore.js";
 
 const HELSINKI: CoordinatePoint = { latitude: 60.1699, longitude: 24.9384 };
 const ESPOO: CoordinatePoint = { latitude: 60.2055, longitude: 24.6559 };
@@ -56,14 +56,37 @@ describe("buildRouteFeatures — exploration rendering", () => {
   it("renders the active route as the selected (yellow) feature when no alternative is tapped", () => {
     const { guidance, planning, store } = buildHarness();
     planning.setPreview({
-      alternatives: [{ id: "a1", title: "R1", subtitle: "", distanceMeters: 5000, durationSeconds: 900, normalizedPackage: pkg() }],
+      alternatives: [
+        {
+          id: "a1",
+          title: "R1",
+          subtitle: "",
+          distanceMeters: 5000,
+          durationSeconds: 900,
+          normalizedPackage: pkg(),
+        },
+      ],
       selectedAlternativeID: "a1",
     });
     guidance.startSelectedRoute();
     planning.setPreview({
       alternatives: [
-        { id: "b1", title: "Alt1", subtitle: "", distanceMeters: 4000, durationSeconds: 800, normalizedPackage: pkg("alt-1") },
-        { id: "b2", title: "Alt2", subtitle: "", distanceMeters: 6000, durationSeconds: 1000, normalizedPackage: pkg("alt-2") },
+        {
+          id: "b1",
+          title: "Alt1",
+          subtitle: "",
+          distanceMeters: 4000,
+          durationSeconds: 800,
+          normalizedPackage: pkg("alt-1"),
+        },
+        {
+          id: "b2",
+          title: "Alt2",
+          subtitle: "",
+          distanceMeters: 6000,
+          durationSeconds: 1000,
+          normalizedPackage: pkg("alt-2"),
+        },
       ],
       selectedAlternativeID: "b1",
     });
@@ -87,14 +110,37 @@ describe("buildRouteFeatures — exploration rendering", () => {
   it("renders the tapped alternative as selected (yellow) and the active route as non-selected (teal)", () => {
     const { guidance, planning, store } = buildHarness();
     planning.setPreview({
-      alternatives: [{ id: "a1", title: "R1", subtitle: "", distanceMeters: 5000, durationSeconds: 900, normalizedPackage: pkg() }],
+      alternatives: [
+        {
+          id: "a1",
+          title: "R1",
+          subtitle: "",
+          distanceMeters: 5000,
+          durationSeconds: 900,
+          normalizedPackage: pkg(),
+        },
+      ],
       selectedAlternativeID: "a1",
     });
     guidance.startSelectedRoute();
     planning.setPreview({
       alternatives: [
-        { id: "b1", title: "Alt1", subtitle: "", distanceMeters: 4000, durationSeconds: 800, normalizedPackage: pkg("alt-1") },
-        { id: "b2", title: "Alt2", subtitle: "", distanceMeters: 6000, durationSeconds: 1000, normalizedPackage: pkg("alt-2") },
+        {
+          id: "b1",
+          title: "Alt1",
+          subtitle: "",
+          distanceMeters: 4000,
+          durationSeconds: 800,
+          normalizedPackage: pkg("alt-1"),
+        },
+        {
+          id: "b2",
+          title: "Alt2",
+          subtitle: "",
+          distanceMeters: 6000,
+          durationSeconds: 1000,
+          normalizedPackage: pkg("alt-2"),
+        },
       ],
       selectedAlternativeID: "b1",
     });
@@ -116,14 +162,37 @@ describe("buildRouteFeatures — exploration rendering", () => {
   it("renders all alternatives during exploration (not just the active route)", () => {
     const { guidance, planning, store } = buildHarness();
     planning.setPreview({
-      alternatives: [{ id: "a1", title: "R1", subtitle: "", distanceMeters: 5000, durationSeconds: 900, normalizedPackage: pkg() }],
+      alternatives: [
+        {
+          id: "a1",
+          title: "R1",
+          subtitle: "",
+          distanceMeters: 5000,
+          durationSeconds: 900,
+          normalizedPackage: pkg(),
+        },
+      ],
       selectedAlternativeID: "a1",
     });
     guidance.startSelectedRoute();
     planning.setPreview({
       alternatives: [
-        { id: "b1", title: "Alt1", subtitle: "", distanceMeters: 4000, durationSeconds: 800, normalizedPackage: pkg("alt-1") },
-        { id: "b2", title: "Alt2", subtitle: "", distanceMeters: 6000, durationSeconds: 1000, normalizedPackage: pkg("alt-2") },
+        {
+          id: "b1",
+          title: "Alt1",
+          subtitle: "",
+          distanceMeters: 4000,
+          durationSeconds: 800,
+          normalizedPackage: pkg("alt-1"),
+        },
+        {
+          id: "b2",
+          title: "Alt2",
+          subtitle: "",
+          distanceMeters: 6000,
+          durationSeconds: 1000,
+          normalizedPackage: pkg("alt-2"),
+        },
       ],
       selectedAlternativeID: "b1",
     });
@@ -139,7 +208,16 @@ describe("buildRouteFeatures — exploration rendering", () => {
   it("normal guidance (not exploring) only renders the route split, not alternatives", () => {
     const { guidance, planning, store } = buildHarness();
     planning.setPreview({
-      alternatives: [{ id: "a1", title: "R1", subtitle: "", distanceMeters: 5000, durationSeconds: 900, normalizedPackage: pkg() }],
+      alternatives: [
+        {
+          id: "a1",
+          title: "R1",
+          subtitle: "",
+          distanceMeters: 5000,
+          durationSeconds: 900,
+          normalizedPackage: pkg(),
+        },
+      ],
       selectedAlternativeID: "a1",
     });
     guidance.startSelectedRoute();

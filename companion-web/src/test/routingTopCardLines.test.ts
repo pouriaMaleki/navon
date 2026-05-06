@@ -171,8 +171,22 @@ describe("GuidanceStore — selectAlternativeForExploration preserves destinatio
     const pkg2 = tinyRoute("Selected destination", 5.0);
     planning.preview = {
       alternatives: [
-        { id: "a", title: "T1", subtitle: "", distanceMeters: 3_400, durationSeconds: 600, normalizedPackage: pkg1 },
-        { id: "b", title: "T2", subtitle: "", distanceMeters: 5_000, durationSeconds: 900, normalizedPackage: pkg2 },
+        {
+          id: "a",
+          title: "T1",
+          subtitle: "",
+          distanceMeters: 3_400,
+          durationSeconds: 600,
+          normalizedPackage: pkg1,
+        },
+        {
+          id: "b",
+          title: "T2",
+          subtitle: "",
+          distanceMeters: 5_000,
+          durationSeconds: 900,
+          normalizedPackage: pkg2,
+        },
       ],
       selectedAlternativeID: "a",
       routeIdentifier: pkg1.routeIdentifier,

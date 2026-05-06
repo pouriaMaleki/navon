@@ -69,45 +69,25 @@ export const SettingsHubView = observer(({ store }: Props) => {
             <ActivitySettingsSection store={store} />
             <LocaleSettingsSection store={store} />
             <div className="settings-section">
-              <button
-                type="button"
-                className="list-row"
-                onClick={() => setScreen("routes")}
-              >
+              <button type="button" className="list-row" onClick={() => setScreen("routes")}>
                 <div style={{ flex: 1, textAlign: "start" }}>
-                  <div className="list-row__title">
-                    {t("settings.hub.routes")}
-                  </div>
-                  <div className="list-row__subtitle">
-                    {t("settings.hub.routes.subtitle")}
-                  </div>
+                  <div className="list-row__title">{t("settings.hub.routes")}</div>
+                  <div className="list-row__subtitle">{t("settings.hub.routes.subtitle")}</div>
                 </div>
                 <span aria-hidden>›</span>
               </button>
-              <button
-                type="button"
-                className="list-row"
-                onClick={() => setScreen("planner")}
-              >
+              <button type="button" className="list-row" onClick={() => setScreen("planner")}>
                 <div style={{ flex: 1, textAlign: "start" }}>
-                  <div className="list-row__title">
-                    {t("settings.hub.routePlanner")}
-                  </div>
+                  <div className="list-row__title">{t("settings.hub.routePlanner")}</div>
                   <div className="list-row__subtitle">
                     {t("settings.hub.routePlanner.subtitle")}
                   </div>
                 </div>
                 <span aria-hidden>›</span>
               </button>
-              <button
-                type="button"
-                className="list-row"
-                onClick={() => setScreen("diagnostics")}
-              >
+              <button type="button" className="list-row" onClick={() => setScreen("diagnostics")}>
                 <div style={{ flex: 1, textAlign: "start" }}>
-                  <div className="list-row__title">
-                    {t("settings.hub.importDiagnostics")}
-                  </div>
+                  <div className="list-row__title">{t("settings.hub.importDiagnostics")}</div>
                   <div className="list-row__subtitle">
                     {t("settings.hub.importDiagnostics.subtitle")}
                   </div>
@@ -127,12 +107,8 @@ export const SettingsHubView = observer(({ store }: Props) => {
             }}
           />
         ) : null}
-        {screen === "planner" ? (
-          <RoutePlannerSettingsView store={store} />
-        ) : null}
-        {screen === "diagnostics" ? (
-          <ImportDiagnosticsView store={store} />
-        ) : null}
+        {screen === "planner" ? <RoutePlannerSettingsView store={store} /> : null}
+        {screen === "diagnostics" ? <ImportDiagnosticsView store={store} /> : null}
         {screen === "routeDetail" && detailItemId ? (
           <RouteDetailView
             store={store}

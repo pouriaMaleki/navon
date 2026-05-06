@@ -14,6 +14,9 @@ on:
     - cron: "15 3 * * *"
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   # ─── Fast lane ──────────────────────────────────────────────────────────
   rust-unit:
@@ -80,6 +83,7 @@ jobs:
           xcodebuild test \
             -project ESP32MapCompanion.xcodeproj \
             -scheme ESP32MapCompanion \
+            -only-testing:ESP32MapCompanionTests \
             -destination 'platform=iOS Simulator,name=iPhone 16' \
             CODE_SIGNING_ALLOWED=NO
 

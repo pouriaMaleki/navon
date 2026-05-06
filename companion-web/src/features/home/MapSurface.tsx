@@ -3,10 +3,7 @@ import { reaction } from "mobx";
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef } from "react";
 import type { RootStore } from "../../app/RootStore.js";
-import {
-  type CoordinatePoint,
-  selectedAlternative,
-} from "../../domain/models.js";
+import { type CoordinatePoint, selectedAlternative } from "../../domain/models.js";
 import { dispatchCameraTarget } from "./cameraDispatcher.js";
 import { MapInteractionGate } from "./MapInteractionGate.js";
 import { buildRouteFeatures as _buildRouteFeatures } from "./mapRouteFeatures.js";
