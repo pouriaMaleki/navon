@@ -1,82 +1,148 @@
-# ESP32 Bike Minimap Platform
+# ESP32 Bike Minimap
 
-Rust-based bike minimap platform with shared runtime behavior for firmware and emulator.
+This is a bike and hike map application, focused mainly on ease of use when on the bike. An ESP32 based map screen (like a bike computer or a handheld GPS) is an optional and aditional tool that should help navigating instead of using your phone.
 
-## Production (home lab)
-The production stack is a single `docker compose` service from [compose.yaml](/host/esp32-map/compose.yaml). One nginx container serves both web apps:
-- `/` — the companion web app (`companion-web/`, OSM-tiled planner).
-- `/emulator/` — the device emulator (`emulator/web/`, Vite + `render-core-wasm`).
+Main features of this application is:
 
-Start or update deployment:
+- Proper camera for riding (heading direction up) and exploring mode (north up)
+- Visible useful POIs for cycling and hiking
+- Audio cues for navigation
+- iOS and Android navigation guide from lock screen
+- Using BRouter.de and OSM router to get best cycling and walking routes
+- Support for importing GPX files or Google maps links (link to destination, not the route)
+- Support using Digitransit (HSL) route planner in Finland to get best cycling and walking routes
+- Secure connection to ESP32 handheld and passing route to it
+- Many languages support (Machine translated)
+
+- Web version of the app (There might be issues with background locations, due to OS limitations): <https://map.fiksu.me>
+- ESP32 Web Emulator: <https://map.fiksu.me/emulator>
+- iOS app: `companion-ios/`
+- Android app: `companion-android/`
+
+<img src="demo/demo-1.jpg" alt="Demo 1" width="160" /> <img src="demo/demo-2.jpg" alt="Demo 2" width="160" /> <img src="demo/demo-3.png" alt="Demo 3" width="160" /> <img src="demo/demo-4.png" alt="Demo 4" width="160" /> <img src="demo/demo-5.png" alt="Demo 5" width="160" /> <img src="demo/demo-6.png" alt="Demo 6" width="160" />
+
+## Hardware [Optional]
+
+- Target device: Waveshare ESP32-P4-WIFI6-Touch-LCD-3.4C (3.4")
+- Product page: <https://www.waveshare.com/esp32-p4-wifi6-touch-lcd-3.4c.htm>
+
+## Dev Setup (Dev Container)
+
+Recommended flow is VS Code Remote SSH + Dev Containers.
+
+1. Open this repo in VS Code.
+2. Run `Dev Containers: Reopen in Container`.
+3. Use the container terminal for all commands below.
+
+## Run Dev (All Projects)
+
+From repo root:
+
+ESP32 Firmware:
+
+- Emulator (Rust + web): `cargo xtask emu`
+- Firmware bundle image: `cargo xtask bundle-device`
+- Firmware direct flash: `cargo xtask deploy-device --port /dev/ttyUSB0`
+
+Companion projects:
+
+- Web companion:
+  ```bash
+  cd companion-web
+  npm install
+  npm run dev
+  ```
+- iOS companion:
+  ```bash
+  cd companion-ios
+  brew install xcodegen
+  cp Config/Signing.local.example.xcconfig Config/Signing.local.xcconfig
+  xcodegen generate
+  open ESP32MapCompanion.xcodeproj
+  ```
+- Android companion:
+  ```bash
+  cd companion-android
+  ./gradlew lintDebug testDebugUnitTest assembleDebug
+  ```
+
+## Docker Compose
+
+`compose.yaml` serves both apps from one container:
+
+- `/` -> companion web
+- `/emulator/` -> emulator
+
+Commands:
+
 ```bash
 docker compose up --build -d
-```
-
-View service logs:
-```bash
 docker compose logs -f emulator-web
+docker compose down
 ```
 
-Pull/build lifecycle:
+Default port is `4173` (override with `EMULATOR_PORT`).
+
+## Make a Map for ESP32 Handheld Device
+
+Source dataset (MapTiler):
+<https://www.maptiler.com/on-prem-datasets/europe/finland/helsinki/>
+
+1. Download your map `.mbtiles` file.
+2. Put it in `map-src/` (example: `map-src/helsinki.mbtiles`).
+3. Convert to runtime map:
+   ```bash
+   cargo run -p map-vector-cli -- \
+     convert-mbtiles \
+     --input map-src/helsinki.mbtiles \
+     --output map-data/city.svm \
+     --target-zoom 16 \
+     --profile bike
+   ```
+4. Create smaller flash-friendly map:
+   ```bash
+   cargo run -p map-vector-cli --release -- \
+     shrink-svm --input map-data/city.svm \
+               --output map-data/city-small.svm \
+               --max-segments 400000
+   ```
+
+## Flash Firmware to ESP32-P4
+
+General flow:
+
+1. Build firmware image:
+   ```bash
+   cargo xtask bundle-device
+   ```
+2. Flash app image to device:
+   ```bash
+   espflash write-bin --chip esp32p4 --port <PORT> 0x0 .xtask/device/firmware-release-app.bin
+   ```
+3. Flash map partition:
+   ```bash
+   espflash write-bin --chip esp32p4 --port <PORT> 0x400000 map-data/city-small.svm
+   ```
+4. Monitor logs:
+   ```bash
+   espflash monitor --chip esp32p4 --port <PORT>
+   ```
+
+## Translations (i18n)
+
+- Main source language file: `i18n/locales/en.json`
+- Locale config: `i18n/catalog.config.json`
+
+Before commit, run:
+
 ```bash
-docker compose pull
-docker compose build --pull
-docker compose up -d
+cargo xtask i18n-gen
+cargo xtask i18n-sync-all
+cargo xtask i18n-gen
 ```
 
-Notes:
-- Public port mapping is `0.0.0.0:${EMULATOR_PORT:-4173}:4173` for edge routing (for example `map.fiksu.me` upstream). The service name is still `emulator-web` so existing upstream routing keeps working even though it now hosts both apps.
-- Migration from old stacks:
-  - Stop legacy stacks if they are still running:
-    - `docker compose -f docker-compose.yml down`
-    - `docker compose -f compose.code-server.yaml down`
-  - Remove obsolete code-server data volume only if you do not need it:
-    - `docker volume rm esp32-code-server-data`
+For one locale only:
 
-## Development (VS Code Remote SSH)
-Canonical development flow is VS Code Remote SSH -> Reopen in Container.
-
-Steps:
-1. SSH to your Linux host from VS Code.
-2. Open this repository.
-3. Run `Dev Containers: Reopen in Container`.
-4. In the devcontainer terminal:
-   - `cargo xtask prepare-map`
-   - `cargo xtask emu`
-5. Open the forwarded URL on your local machine:
-   - `http://localhost:5173`
-6. Optional emulator route import checkpoint:
-   - use `Import GPX` in the emulator controls, or the `GPX` button in fullscreen web mode, to load a `.gpx` file through the shared Rust importer
-
-The devcontainer pins `CARGO_TARGET_DIR=/work/target/devcontainer` to isolate container build artifacts from host builds.
-The devcontainer also persists full container home state at `~/.devcontainer-homes/esp32-map` on the host by mounting it to `/home/vscode`.
-On first run after this change, host auth directories are migrated once when present:
-- `~/.codex` -> `~/.devcontainer-homes/esp32-map/.codex`
-- `~/.claude` -> `~/.devcontainer-homes/esp32-map/.claude`
-- `~/.gemini` -> `~/.devcontainer-homes/esp32-map/.gemini`
-Host SSH keys are mounted from `~/.ssh` to `/home/vscode/.ssh` for Git operations.
-Devcontainer runtime is pinned to DNS servers `1.1.1.1` and `8.8.8.8` to avoid host resolver issues.
-Production deployment remains unchanged and still uses [compose.yaml](/host/esp32-map/compose.yaml) only.
-
-## Companion Apps
-Companion apps ship on three platforms with the same product surface and shared contracts:
-
-- `companion-ios/` — native SwiftUI + MapKit, CoreLocation, CoreBluetooth.
-- `companion-android/` — Jetpack Compose + Google Maps, FusedLocationProvider, Android BLE/GATT.
-- `companion-web/` — React + MobX + MapLibre on OpenStreetMap tiles, browser Geolocation. Phone-guidance only (no device/BLE).
-
-See [`docs/companion-app-architecture.md`](./docs/companion-app-architecture.md) for the shared architecture and platform rules, and [`docs/i18n.md`](./docs/i18n.md) for the localization system (catalog, translation sync, adding a new language).
-
-Current companion checkpoint:
-- Rider position comes from real device GPS on all three apps via a shared `LocationService` abstraction; the locate/recenter slot shows a spinner until the first fix arrives, with a persisted last-known fallback when permission is denied.
-- HSL is only offered when the Digitransit subscription key is configured AND both trip endpoints fall inside the Uusimaa region; otherwise the source picker collapses to OSM and the Mixed / HSL tabs are hidden. Route Planner settings explains HSL and links to the Digitransit portal.
-- "Where to?" accepts pasted Google Maps / OSM URLs directly, with a loading row while the URL is being followed and an error row on failure.
-- Native GPX import works in all three apps (document pickers on iOS/Android, drag-and-drop on web); sample fallback remains available when live planning is disabled.
-- Route alternatives can be chosen before sync; reroute requests can be driven from an editable rider location in the app shell.
-
-Build notes:
-- iOS uses XcodeGen to keep project configuration in text.
-- Android uses Gradle Kotlin DSL for Android Studio / CLI builds on machines with Android SDK installed.
-- Web uses Vite + TypeScript; `cd companion-web && npm install && npm run dev` serves it at `http://localhost:5173/`.
-- Automated mobile build setup is documented in [`docs/companion-builds.md`](./docs/companion-builds.md).
-- `companion-web/package-lock.json` is covered by the same `npm audit` security workflow as `emulator/web/`.
+```bash
+cargo xtask i18n-sync --locale fi
+```
