@@ -29,6 +29,7 @@
     <string name="cue_turn10m_right" formatted="false">उजवीकडे वळा</string>
     <string name="cue_turn10m_roundabout" formatted="false">राउंडअबाऊटमध्ये प्रवेश करा</string>
     <string name="cue_turn10m_uturn" formatted="false">U-turn करा</string>
+    <string name="cue_turn10mCombined" formatted="false">{first, select, left {डावीकडे वळा} right {उजवीकडे वळा} exitLeft {डावीकडचा एक्झिट घ्या} exitRight {उजवीकडचा एक्झिट घ्या} uturn {U-turn करा} roundabout {राउंडअबाउटमध्ये प्रवेश करा} merge {विलीन व्हा} ramp {रॅम्प घ्या} other {पुढे चालू ठेवा}} मग लगेच {second, select, left {डावीकडे} right {उजवीकडे} exitLeft {डावीकडचा एक्झिट} exitRight {उजवीकडचा एक्झिट} uturn {U-turn} roundabout {राउंडअबाउट} merge {विलीन} ramp {रॅम्प} other {पुढे}}</string>
     <string name="cue_turn50m_exitLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, डाव्या एक्झिटकडे जा</string>
     <string name="cue_turn50m_exitRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, उजव्या एक्झिटकडे जा</string>
     <string name="cue_turn50m_generic" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, मार्गाचे अनुसरण करा</string>
@@ -41,6 +42,7 @@
     <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {मीटर} feet {फूट} other {मीटर}}, {first, select, left {डावीकडे वळा} right {उजवीकडे वळा} exitLeft {डाव्या एक्झिटमधून जा} exitRight {उजव्या एक्झिटमधून जा} uturn {U-turn करा} roundabout {राउंडअबाउटमध्ये प्रवेश करा} merge {विलीन व्हा} ramp {रॅम्प घ्या} other {मार्गाचे अनुसरण करा}} मग पटकन {second, select, left {डावीकडे} right {उजवीकडे} exitLeft {डावा एक्झिट} exitRight {उजवा एक्झिट} uturn {U-turn} roundabout {राउंडअबाउट} merge {विलीन} ramp {रॅम्प} other {पुढे}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} ते {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">गंतव्य साफ करा</string>
+    <string name="home_a11y_closeArrivalNotice" formatted="false">आगमन संदेश बंद करा</string>
     <string name="home_a11y_currentSpeed" formatted="false">सध्याचा वेग</string>
     <string name="home_a11y_findAlternates" formatted="false">पर्यायी मार्ग शोधा</string>
     <string name="home_a11y_locating" formatted="false">तुम्हाला शोधत आहे</string>

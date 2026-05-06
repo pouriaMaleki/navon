@@ -29,6 +29,7 @@
     <string name="cue_turn10m_right" formatted="false">انعطف يمينًا</string>
     <string name="cue_turn10m_roundabout" formatted="false">ادخل الدوّار</string>
     <string name="cue_turn10m_uturn" formatted="false">قم بعمل انعطاف U</string>
+    <string name="cue_turn10mCombined" formatted="false">{first, select, left {انعطف يسارًا} right {انعطف يمينًا} exitLeft {خذ المخرج الأيسر} exitRight {خذ المخرج الأيمن} uturn {قم بعمل U-turn} roundabout {ادخل الدوّار} merge {ادمج} ramp {خذ المنحدر} other {تابع}} ثم فورًا {second, select, left {يسارًا} right {يمينًا} exitLeft {المخرج الأيسر} exitRight {المخرج الأيمن} uturn {U-turn} roundabout {الدوّار} merge {الدمج} ramp {المنحدر} other {إلى الأمام}}</string>
     <string name="cue_turn50m_exitLeft" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، خذ المخرج الأيسر</string>
     <string name="cue_turn50m_exitRight" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، خذ المخرج الأيمن</string>
     <string name="cue_turn50m_generic" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، اتبع المسار</string>
@@ -41,6 +42,7 @@
     <string name="cue_turn50mCombined" formatted="false">عند {distance, number} {distanceUnit, select, meters {متر} feet {قدم} other {متر}}، {first, select, left {انعطف يسارًا} right {انعطف يمينًا} exitLeft {خذ المخرج الأيسر} exitRight {خذ المخرج الأيمن} uturn {قم بعمل U-turn} roundabout {ادخل الدوّار} merge {ادمج} ramp {خذ المنحدر} other {اتبع المسار}} ثم بسرعة {second, select, left {يسارًا} right {يمينًا} exitLeft {المخرج الأيسر} exitRight {المخرج الأيمن} uturn {U-turn} roundabout {الدوّار} merge {ادمج} ramp {المنحدر} other {إلى الأمام}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} إلى {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">مسح الوجهة</string>
+    <string name="home_a11y_closeArrivalNotice" formatted="false">إغلاق رسالة الوصول</string>
     <string name="home_a11y_currentSpeed" formatted="false">السرعة الحالية</string>
     <string name="home_a11y_findAlternates" formatted="false">ابحث عن مسارات بديلة</string>
     <string name="home_a11y_locating" formatted="false">أحدد موقعك</string>

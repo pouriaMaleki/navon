@@ -228,6 +228,14 @@
         "distanceUnit": "select"
       }
     },
+    "cue.turn10mCombined": {
+      "value": "{first, select, left {Turn left} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} then immediately {second, select, left {left} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}",
+      "description": "Voice cue for back-to-back turns when the rider's first in-range tick already landed inside the 10 m approach window — replaces the unsuffixed turn10m so the rider still hears about both turns.",
+      "placeholders": {
+        "first": "select",
+        "second": "select"
+      }
+    },
     "cue.turn50mCombined": {
       "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {turn left} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} then quickly {second, select, left {left} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}",
       "description": "Voice cue for back-to-back turns within ~80m: replaces two overlapping cues with one combined phrase.",
@@ -258,6 +266,10 @@
     "home.a11y.clearDestination": {
       "value": "Clear destination",
       "description": "Accessibility label for the X button next to the search bar."
+    },
+    "home.a11y.closeArrivalNotice": {
+      "value": "Close arrival message",
+      "description": "Accessibility label for the X button on the arrival banner that dismisses it so newly suggested routes can be shown."
     },
     "home.a11y.currentSpeed": {
       "value": "Current speed",

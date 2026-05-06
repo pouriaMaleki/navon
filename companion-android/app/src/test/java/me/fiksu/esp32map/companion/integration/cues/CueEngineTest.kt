@@ -461,6 +461,41 @@ class CueEngineTest {
         assertEquals(10.0, combined.distanceM, 0.5)
     }
 
+    // ─── back-to-back fusion at the 10 m tier (sparse-GPS escape hatch) ─────
+
+    // User-reported regression: M1 (right) ~10 m before M2 (left). The rider
+    // heard "turn right" only — no warning of the immediate left after. The
+    // 50 m fusion branch is gated on `d > APPROACH_10_M`, so when a tick
+    // first lands inside the 10 m approach window (sparse GPS, fast cycling,
+    // app foregrounded mid-ride), the 50 m combined cue is skipped and the
+    // unsuffixed Turn10m fires alone. The 10 m branch needs the same
+    // back-to-back peek the 50 m branch already performs.
+    @Test
+    fun turn10m_coalescesFollowUp_whenFirstInRangeTickIsAlreadyInside15m() {
+        val m1 = CueManeuver("m1", ManeuverKind.RIGHT, 200.0)
+        val m2 = CueManeuver("m2", ManeuverKind.LEFT, 210.0)
+        // Tick 1 at 50 m progress — orientation cue path.
+        val s1 = CueEngine.tick(
+            base(progressDistanceM = 50.0, maneuvers = listOf(m1, m2)),
+            CueEngineState(),
+        ).nextState
+        // Sparse-GPS jump from 50 m to 190 m progress — 10 m before m1, so
+        // the 50 m approach window was skipped entirely.
+        val r2 = CueEngine.tick(
+            base(progressDistanceM = 190.0, maneuvers = listOf(m1, m2)),
+            s1,
+        )
+        val combined = r2.events.firstOrNull {
+            it is CueEvent.Turn10m && it.followUpKind != null
+        } as? CueEvent.Turn10m
+        assertNotNull(
+            "Turn10m must coalesce with the follow-up when the 50 m window was skipped — got ${r2.events}",
+            combined,
+        )
+        assertEquals(ManeuverKind.RIGHT, combined!!.turnKind)
+        assertEquals(ManeuverKind.LEFT, combined.followUpKind)
+    }
+
     // ─── rerouting cue silences after 2 episodes (across route id changes) ───
 
     private fun reroutingSnap(rerouting: Boolean, routeId: String = "r1") = CueSnapshot(

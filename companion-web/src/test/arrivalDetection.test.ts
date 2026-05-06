@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CURRENT_ROUTE_PACKAGE_VERSION } from "../domain/models.js";
 import { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
 import { GuidanceStore } from "../stores/GuidanceStore.js";
@@ -110,5 +110,59 @@ describe("arrival detection (rider close to destination ends guidance)", () => {
 
     expect(planning.query).toBe("");
     expect(planning.preview.alternatives).toHaveLength(0);
+  });
+});
+
+// The arrival banner used to persist forever; once it appeared the rider had
+// no way to dismiss it without selecting a brand-new destination, and even
+// then the banner won the BottomOverlay z-order race against the new route
+// suggestions card. Both an explicit close affordance and a 60s auto-dismiss
+// are required so a rider can plan a follow-up trip without being trapped.
+describe("arrival banner dismissal", () => {
+  beforeEach(() => {
+    globalThis.localStorage?.clear();
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("clears arrivalNotice when dismissArrivalNotice() is called (close button)", () => {
+    const { guidance } = buildHarness();
+    const arrivalPoint = { latitude: DEST.latitude - 0.00005, longitude: DEST.longitude };
+    guidance.advanceProgress(arrivalPoint, 1000);
+    expect(guidance.arrivalNotice).toBe("Arrived at destination");
+
+    guidance.dismissArrivalNotice();
+
+    expect(guidance.arrivalNotice).toBeUndefined();
+  });
+
+  it("auto-dismisses the arrival banner after 60 seconds", () => {
+    const { guidance } = buildHarness();
+    const arrivalPoint = { latitude: DEST.latitude - 0.00005, longitude: DEST.longitude };
+    guidance.advanceProgress(arrivalPoint, 1000);
+    expect(guidance.arrivalNotice).toBe("Arrived at destination");
+
+    // Just before one minute — still showing.
+    vi.advanceTimersByTime(59_000);
+    expect(guidance.arrivalNotice).toBe("Arrived at destination");
+
+    // Cross the one-minute threshold — gone.
+    vi.advanceTimersByTime(2_000);
+    expect(guidance.arrivalNotice).toBeUndefined();
+  });
+
+  it("cancels the auto-dismiss timer when manually dismissed", () => {
+    const { guidance } = buildHarness();
+    const arrivalPoint = { latitude: DEST.latitude - 0.00005, longitude: DEST.longitude };
+    guidance.advanceProgress(arrivalPoint, 1000);
+    const timersAtArrival = vi.getTimerCount();
+
+    guidance.dismissArrivalNotice();
+    expect(guidance.arrivalNotice).toBeUndefined();
+    // The 60s auto-dismiss timer must be cancelled — otherwise it would race
+    // with the next arrival and clear the new banner early.
+    expect(vi.getTimerCount()).toBe(timersAtArrival - 1);
   });
 });

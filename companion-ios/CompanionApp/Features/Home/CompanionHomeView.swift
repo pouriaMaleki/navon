@@ -440,14 +440,25 @@ struct CompanionHomeView: View {
     }
 
     private func arrivalCard(_ message: String) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(message)
-                .font(.headline)
-            Text(T.string("home.routingFinished"))
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(message)
+                    .font(.headline)
+                Text(T.string("home.routingFinished"))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Button {
+                viewModel.dismissArrivalNotice()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityLabel(T.string("home.a11y.closeArrivalNotice"))
+            .buttonStyle(.plain)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .padding(.horizontal, 16)

@@ -84,6 +84,37 @@ final class CueEngineTests: XCTestCase {
         }
     }
 
+    // User-reported regression: M1 (right) ~10 m before M2 (left). The
+    // rider heard "turn right" only — no warning of the immediate left
+    // after. The 50 m fusion branch is gated on `d > approach10M`, so
+    // when a tick first lands within the 10 m approach window (sparse
+    // GPS, fast cycling, or a foregrounded app), the 50 m combined cue
+    // is skipped and the unsuffixed turn10m fires alone. The 10 m
+    // branch needs the same back-to-back peek the 50 m branch performs.
+    func test_back2backTurnsCoalesceAtTurn10mWhenFirstTickIsAlreadyInside15m() {
+        let m1 = CueManeuver(id: "m1", kind: .right, distanceFromStartM: 200)
+        let m2 = CueManeuver(id: "m2", kind: .left, distanceFromStartM: 210)
+        // Tick 1 at 50 m progress — orientation cue path.
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 50, maneuvers: [m1, m2]),
+            state: CueEngineState()
+        ).nextState
+        // Sparse-GPS jump from 50 m to 190 m progress — 10 m before m1, so
+        // the 50 m approach window was skipped entirely.
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 190, maneuvers: [m1, m2]),
+            state: s1
+        )
+        let combined = r2.events.first {
+            if case .turn10m(_, let f) = $0 { return f != nil } else { return false }
+        }
+        XCTAssertNotNil(combined, "turn10m must coalesce with the follow-up when the 50 m window was skipped — got \(r2.events)")
+        if case .turn10m(let k, let f) = combined! {
+            XCTAssertEqual(k, ManeuverKind.right)
+            XCTAssertEqual(f, ManeuverKind.left)
+        }
+    }
+
     func test_doesNotReEmit50mForSameManeuver() {
         let s1 = CueEngine.tick(snapshot: base(progressDistanceM: 155), state: CueEngineState()).nextState
         let r2 = CueEngine.tick(snapshot: base(progressDistanceM: 160), state: s1)

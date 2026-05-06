@@ -43,7 +43,15 @@ export type CueEvent =
    *  a single combined cue ("In 20 meters, turn right then quickly left")
    *  instead of two overlapping cue chains. */
   | { kind: "turn50m"; turnKind: ManeuverKind; distanceM: number; followUpKind?: ManeuverKind }
-  | { kind: "turn10m"; turnKind: ManeuverKind }
+  /**
+   * Immediate-action 10 m cue. `followUpKind` is set when the next maneuver
+   * is within `BACK_TO_BACK_THRESHOLD_M` of this one — covers the
+   * sparse-GPS / fast-cycling case where the 50 m combined cue was missed
+   * because the first in-range tick already landed inside 15 m of M1. Without
+   * this fold, the rider would hear only "turn <first>" with no mention of
+   * the immediately-following turn.
+   */
+  | { kind: "turn10m"; turnKind: ManeuverKind; followUpKind?: ManeuverKind }
   | { kind: "nextTurnInAbout"; turnKind: ManeuverKind; distanceM: number }
   | { kind: "arrivingInM"; distanceM: number }
   | { kind: "arrived" }
@@ -356,15 +364,35 @@ export function tickCueEngine(
       }
     }
 
-    // Cue 3: 10m approach (latched per maneuver id).
+    // Cue 3: 10m approach (latched per maneuver id). Mirror the 50 m
+    // branch's back-to-back peek so the rider still hears about a
+    // follow-up turn when the 50 m combined cue was skipped (sparse GPS,
+    // fast cycling, or a tick that landed already inside 15 m).
     if (
       upcoming &&
       upcomingDistance !== undefined &&
       upcomingDistance <= APPROACH_10_M &&
       !announced10m.has(upcoming.id)
     ) {
-      events.push({ kind: "turn10m", turnKind: upcoming.kind });
-      announced10m.add(upcoming.id);
+      const upcomingIdx = snapshot.maneuvers.findIndex((m) => m.id === upcoming.id);
+      const followUp = snapshot.maneuvers[upcomingIdx + 1];
+      const gapToFollowUp = followUp
+        ? followUp.distanceFromStartM - upcoming.distanceFromStartM
+        : Number.POSITIVE_INFINITY;
+      if (followUp && gapToFollowUp <= BACK_TO_BACK_THRESHOLD_M) {
+        events.push({
+          kind: "turn10m",
+          turnKind: upcoming.kind,
+          followUpKind: followUp.kind,
+        });
+        announced10m.add(upcoming.id);
+        announced10m.add(followUp.id);
+        announced50m.add(followUp.id);
+        announcedNextTurnAfter.add(upcoming.id);
+      } else {
+        events.push({ kind: "turn10m", turnKind: upcoming.kind });
+        announced10m.add(upcoming.id);
+      }
     }
 
     // Cue 4 + 5: passed last maneuver by 10m.
@@ -493,6 +521,15 @@ export function cueMessage(event: CueEvent, distanceMode: DistanceMode = "metric
         values: distanceCueValues(event.distanceM, distanceMode),
       };
     case "turn10m":
+      if (event.followUpKind) {
+        return {
+          key: "cue.turn10mCombined",
+          values: {
+            first: event.turnKind,
+            second: event.followUpKind,
+          },
+        };
+      }
       return { key: `cue.turn10m.${event.turnKind}`, values: {} };
     case "nextTurnInAbout":
       return {

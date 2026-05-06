@@ -3025,6 +3025,114 @@
         }
       }
     },
+    "cue.turn10mCombined": {
+      "comment": "Voice cue for back-to-back turns when the rider's first in-range tick already landed inside the 10 m approach window — replaces the unsuffixed turn10m so the rider still hears about both turns.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {انعطف يسارًا} right {انعطف يمينًا} exitLeft {خذ المخرج الأيسر} exitRight {خذ المخرج الأيمن} uturn {قم بعمل U-turn} roundabout {ادخل الدوّار} merge {ادمج} ramp {خذ المنحدر} other {تابع}} ثم فورًا {second, select, left {يسارًا} right {يمينًا} exitLeft {المخرج الأيسر} exitRight {المخرج الأيمن} uturn {U-turn} roundabout {الدوّار} merge {الدمج} ramp {المنحدر} other {إلى الأمام}}"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {বাঁদিকে ঘুরুন} right {ডানদিকে ঘুরুন} exitLeft {বাম প্রস্থান নিন} exitRight {ডান প্রস্থান নিন} uturn {একটি U-turn করুন} roundabout {রাউন্ডঅ্যাবাউটে প্রবেশ করুন} merge {মার্জ করুন} ramp {র‌্যাম্প নিন} other {চালিয়ে যান}} তারপর সাথে সাথে {second, select, left {বাম} right {ডান} exitLeft {বাম প্রস্থান} exitRight {ডান প্রস্থান} uturn {U-turn} roundabout {রাউন্ডঅ্যাবাউট} merge {মার্জ} ramp {র‌্যাম্প} other {সামনে}}"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {Links abbiegen} right {Rechts abbiegen} exitLeft {Nimm die linke Ausfahrt} exitRight {Nimm die rechte Ausfahrt} uturn {Mach eine U-Wende} roundabout {In den Kreisverkehr einfahren} merge {Zusammenführen} ramp {Nimm die Rampe} other {Weiterfahren}} dann sofort {second, select, left {links} right {rechts} exitLeft {linke Ausfahrt} exitRight {rechte Ausfahrt} uturn {U-Wende} roundabout {Kreisverkehr} merge {zusammenführen} ramp {Rampe} other {geradeaus}}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {Turn left} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} then immediately {second, select, left {left} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {Gira a la izquierda} right {Gira a la derecha} exitLeft {Toma la salida izquierda} exitRight {Toma la salida derecha} uturn {Haz una U-turn} roundabout {Entra a la rotonda} merge {Fusiona} ramp {Toma la rampa} other {Continúa}} luego inmediatamente {second, select, left {izquierda} right {derecha} exitLeft {salida izquierda} exitRight {salida derecha} uturn {U-turn} roundabout {rotonda} merge {fusión} ramp {rampa} other {adelante}}"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {به چپ بپیچ} right {به راست بپیچ} exitLeft {از خروجیِ چپ خارج شو} exitRight {از خروجیِ راست خارج شو} uturn {یک U-turn انجام بده} roundabout {وارد رُنداباوت شو} merge {ادغام کن} ramp {رمپ را بگیر} other {ادامه بده}} سپس بلافاصله {second, select, left {به چپ} right {به راست} exitLeft {خروجیِ چپ} exitRight {خروجیِ راست} uturn {U-turn} roundabout {رُنداباوت} merge {ادغام} ramp {رمپ} other {به جلو}}"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {Käänny vasemmalle} right {Käänny oikealle} exitLeft {Ota vasen liittymä} exitRight {Ota oikea liittymä} uturn {Tee U-käännös} roundabout {Aja ympyrään} merge {Yhdistä} ramp {Ota ramppi} other {Jatka}} sitten heti {second, select, left {vasemmalle} right {oikealle} exitLeft {vasen liittymä} exitRight {oikea liittymä} uturn {U-käännös} roundabout {ympyrään} merge {yhdistä} ramp {ramppi} other {eteenpäin}}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {Tournez à gauche} right {Tournez à droite} exitLeft {Prenez la sortie à gauche} exitRight {Prenez la sortie à droite} uturn {Faites un demi-tour} roundabout {Entrez dans le rond-point} merge {Fusionnez} ramp {Prenez la bretelle} other {Continuez}} puis immédiatement {second, select, left {à gauche} right {à droite} exitLeft {sortie à gauche} exitRight {sortie à droite} uturn {Demi-tour} roundabout {rond-point} merge {fusion} ramp {bretelle} other {tout droit}}"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {बाएँ मुड़ें} right {दाएँ मुड़ें} exitLeft {बाएँ निकास लें} exitRight {दाएँ निकास लें} uturn {U-turn करें} roundabout {राउंडअबाउट में प्रवेश करें} merge {मर्ज करें} ramp {रैम्प लें} other {आगे बढ़ें}} फिर तुरंत {second, select, left {बाएँ} right {दाएँ} exitLeft {बाएँ निकास} exitRight {दाएँ निकास} uturn {U-turn} roundabout {राउंडअबाउट} merge {मर्ज} ramp {रैम्प} other {आगे}}"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {Belok kiri} right {Belok kanan} exitLeft {Ambil keluar kiri} exitRight {Ambil keluar kanan} uturn {Putar balik} roundabout {Masuk ke bundaran} merge {Gabung} ramp {Ambil jalur masuk} other {Lanjut}} lalu segera {second, select, left {kiri} right {kanan} exitLeft {keluar kiri} exitRight {keluar kanan} uturn {Putar balik} roundabout {bundaran} merge {gabung} ramp {jalur masuk} other {ke depan}}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {左に曲がって} right {右に曲がって} exitLeft {左の出口へ} exitRight {右の出口へ} uturn {Uターンして} roundabout {ラウンドアバウトに入って} merge {合流して} ramp {ランプに入って} other {そのまま進んで}} すぐに {second, select, left {左} right {右} exitLeft {左の出口} exitRight {右の出口} uturn {Uターン} roundabout {ラウンドアバウト} merge {合流} ramp {ランプ} other {その先へ}}"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {डावीकडे वळा} right {उजवीकडे वळा} exitLeft {डावीकडचा एक्झिट घ्या} exitRight {उजवीकडचा एक्झिट घ्या} uturn {U-turn करा} roundabout {राउंडअबाउटमध्ये प्रवेश करा} merge {विलीन व्हा} ramp {रॅम्प घ्या} other {पुढे चालू ठेवा}} मग लगेच {second, select, left {डावीकडे} right {उजवीकडे} exitLeft {डावीकडचा एक्झिट} exitRight {उजवीकडचा एक्झिट} uturn {U-turn} roundabout {राउंडअबाउट} merge {विलीन} ramp {रॅम्प} other {पुढे}}"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {Turn left} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} then immediately {second, select, left {left} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {Vire à esquerda} right {Vire à direita} exitLeft {Pegue a saída à esquerda} exitRight {Pegue a saída à direita} uturn {Faça uma conversão em U} roundabout {Entre no trevo} merge {Mescle} ramp {Pegue a rampa} other {Continue}} então imediatamente {second, select, left {à esquerda} right {à direita} exitLeft {saída à esquerda} exitRight {saída à direita} uturn {U-turn} roundabout {trevo} merge {mescle} ramp {rampa} other {à frente}}"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {Поверните налево} right {Поверните направо} exitLeft {Сверните на левый съезд} exitRight {Сверните на правый съезд} uturn {Сделайте разворот} roundabout {Въезжайте на круговое движение} merge {Сливайтесь} ramp {Съезжайте на рампу} other {Продолжайте}} затем сразу {second, select, left {налево} right {направо} exitLeft {левый съезд} exitRight {правый съезд} uturn {разворот} roundabout {круговое движение} merge {слияние} ramp {рампа} other {вперед}}"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {بائیں مڑیں} right {دائیں مڑیں} exitLeft {بائیں سے باہر نکلیں} exitRight {دائیں سے باہر نکلیں} uturn {یو ٹرن کریں} roundabout {گول چکر میں داخل ہوں} merge {ضم کریں} ramp {ریمپ لیں} other {جاری رکھیں}} پھر فوراً {second, select, left {بائیں} right {دائیں} exitLeft {بائیں سے باہر نکلیں} exitRight {دائیں سے باہر نکلیں} uturn {یو ٹرن} roundabout {گول چکر} merge {ضم} ramp {ریمپ} other {آگے}}"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{first, select, left {向左转} right {向右转} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶入匝道} other {继续前行}} 然后立刻 {second, select, left {左转} right {右转} exitLeft {左侧出口} exitRight {右侧出口} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶入匝道} other {继续前行}}"
+          }
+        }
+      }
+    },
     "cue.turn50m.exitLeft": {
       "comment": "Voice cue ~50m before a left exit ramp / off-ramp.",
       "extractionState": "manual",
@@ -4317,6 +4425,114 @@
           "stringUnit": {
             "state": "translated",
             "value": "清除目的地"
+          }
+        }
+      }
+    },
+    "home.a11y.closeArrivalNotice": {
+      "comment": "Accessibility label for the X button on the arrival banner that dismisses it so newly suggested routes can be shown.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إغلاق رسالة الوصول"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আগমনের বার্তা বন্ধ করুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ankunftsmeldung schließen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close arrival message"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar aviso de llegada"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بستن پیام رسیدن"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sulje saapumisilmoitus"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer le message d’arrivée"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आगमन संदेश बंद करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutup pesan kedatangan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到着メッセージを閉じる"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आगमन संदेश बंद करा"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pa a"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fechar aviso de chegada"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Закрыть сообщение о прибытии"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آمد کا پیغام بند کریں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭到达消息"
           }
         }
       }

@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.fiksu.esp32map.companion.integration.share.UrlDestinationResolution
@@ -219,6 +220,15 @@ class HomeStateHolder(
         private set
 
     /**
+     * Auto-dismiss the arrival banner after 60 s so a rider who walked away
+     * from the phone doesn't return to a banner blocking new route
+     * suggestions. Mirrors web/iOS.
+     */
+    private val arrivalNoticeAutoDismissMs: Long = 60_000L
+    private var arrivalNoticeAutoDismissJob: Job? = null
+    private val arrivalNoticeScope: CoroutineScope = MainScope()
+
+    /**
      * Distance (m) the rider has progressed along the active route, from
      * monotonic projection of each fix onto the polyline. Bumped only on
      * `ingestRiderLocationFix` while in PHONE_GUIDANCE. Drives the
@@ -424,6 +434,7 @@ class HomeStateHolder(
         // Starting a new route clears any stale arrival banner from the
         // previous trip and resets progress so route-overview-remaining
         // begins at the start of the new geometry.
+        cancelArrivalNoticeAutoDismiss()
         arrivalNotice = null
         progressDistanceM = 0.0
         routeTotalDistanceM = polylineLengthMeters(selectedPreview?.normalizedPackage?.geometry ?: emptyList())
@@ -781,9 +792,29 @@ class HomeStateHolder(
 
     private fun declareArrival() {
         arrivalNotice = "Arrived at destination"
+        scheduleArrivalNoticeAutoDismiss()
         // Reuse the manual-stop teardown so persistence + UI stay consistent.
         // arrivalNotice survives because stopActiveNavigation() doesn't clear it.
         stopActiveNavigation()
+    }
+
+    /** Manual dismissal from the banner's close button. */
+    fun dismissArrivalNotice() {
+        cancelArrivalNoticeAutoDismiss()
+        arrivalNotice = null
+    }
+
+    private fun scheduleArrivalNoticeAutoDismiss() {
+        cancelArrivalNoticeAutoDismiss()
+        arrivalNoticeAutoDismissJob = arrivalNoticeScope.launch {
+            delay(arrivalNoticeAutoDismissMs)
+            arrivalNotice = null
+        }
+    }
+
+    private fun cancelArrivalNoticeAutoDismiss() {
+        arrivalNoticeAutoDismissJob?.cancel()
+        arrivalNoticeAutoDismissJob = null
     }
 
     companion object {

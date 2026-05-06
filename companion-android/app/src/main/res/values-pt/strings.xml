@@ -29,6 +29,7 @@
     <string name="cue_turn10m_right" formatted="false">Vire à direita</string>
     <string name="cue_turn10m_roundabout" formatted="false">Entre na rotatória</string>
     <string name="cue_turn10m_uturn" formatted="false">Faça uma conversão em U</string>
+    <string name="cue_turn10mCombined" formatted="false">{first, select, left {Vire à esquerda} right {Vire à direita} exitLeft {Pegue a saída à esquerda} exitRight {Pegue a saída à direita} uturn {Faça uma conversão em U} roundabout {Entre no trevo} merge {Mescle} ramp {Pegue a rampa} other {Continue}} então imediatamente {second, select, left {à esquerda} right {à direita} exitLeft {saída à esquerda} exitRight {saída à direita} uturn {U-turn} roundabout {trevo} merge {mescle} ramp {rampa} other {à frente}}</string>
     <string name="cue_turn50m_exitLeft" formatted="false">Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, pegue a saída à esquerda</string>
     <string name="cue_turn50m_exitRight" formatted="false">Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, pegue a saída à direita</string>
     <string name="cue_turn50m_generic" formatted="false">Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, siga a rota</string>
@@ -41,6 +42,7 @@
     <string name="cue_turn50mCombined" formatted="false">Em {distance, number} {distanceUnit, select, meters {metros} feet {pés} other {metros}}, {first, select, left {vire à esquerda} right {vire à direita} exitLeft {pegue a saída à esquerda} exitRight {pegue a saída à direita} uturn {faça uma conversão em U} roundabout {entre no trevo} merge {siga para a via de integração} ramp {pegue a rampa} other {siga o percurso}} depois rapidamente {second, select, left {à esquerda} right {à direita} exitLeft {saída à esquerda} exitRight {saída à direita} uturn {U-turn} roundabout {trevo} merge {siga para a via de integração} ramp {rampa} other {em frente}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} até {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Limpar destino</string>
+    <string name="home_a11y_closeArrivalNotice" formatted="false">Fechar aviso de chegada</string>
     <string name="home_a11y_currentSpeed" formatted="false">Velocidade atual</string>
     <string name="home_a11y_findAlternates" formatted="false">Encontrar rotas alternativas</string>
     <string name="home_a11y_locating" formatted="false">Localizando você</string>

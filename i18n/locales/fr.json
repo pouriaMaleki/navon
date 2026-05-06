@@ -273,6 +273,18 @@
       "translatedAt": "2026-04-30T11:59:05Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "cue.turn10mCombined": {
+      "value": "{first, select, left {Tournez à gauche} right {Tournez à droite} exitLeft {Prenez la sortie à gauche} exitRight {Prenez la sortie à droite} uturn {Faites un demi-tour} roundabout {Entrez dans le rond-point} merge {Fusionnez} ramp {Prenez la bretelle} other {Continuez}} puis immédiatement {second, select, left {à gauche} right {à droite} exitLeft {sortie à gauche} exitRight {sortie à droite} uturn {Demi-tour} roundabout {rond-point} merge {fusion} ramp {bretelle} other {tout droit}}",
+      "description": "Voice cue for back-to-back turns when the rider's first in-range tick already landed inside the 10 m approach window — replaces the unsuffixed turn10m so the rider still hears about both turns.",
+      "placeholders": {
+        "first": "select",
+        "second": "select"
+      },
+      "sourceHash": "sha256:50d85f77b22966ff",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-06T09:09:44Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "cue.turn50m.exitLeft": {
       "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, prenez la sortie à gauche",
       "description": "Voice cue ~50m before a left exit ramp / off-ramp.",
@@ -438,6 +450,14 @@
       "sourceHash": "sha256:07be8d9dada21836",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T13:39:16Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.closeArrivalNotice": {
+      "value": "Fermer le message d’arrivée",
+      "description": "Accessibility label for the X button on the arrival banner that dismisses it so newly suggested routes can be shown.",
+      "sourceHash": "sha256:e26abce3d50c4f9f",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-06T08:10:32Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.a11y.currentSpeed": {

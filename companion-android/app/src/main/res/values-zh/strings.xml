@@ -29,6 +29,7 @@
     <string name="cue_turn10m_right" formatted="false">右转</string>
     <string name="cue_turn10m_roundabout" formatted="false">进入环岛</string>
     <string name="cue_turn10m_uturn" formatted="false">掉头</string>
+    <string name="cue_turn10mCombined" formatted="false">{first, select, left {向左转} right {向右转} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶入匝道} other {继续前行}} 然后立刻 {second, select, left {左转} right {右转} exitLeft {左侧出口} exitRight {右侧出口} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶入匝道} other {继续前行}}</string>
     <string name="cue_turn50m_exitLeft" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，从左侧出口驶出</string>
     <string name="cue_turn50m_exitRight" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，从右侧出口驶出</string>
     <string name="cue_turn50m_generic" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，沿路线行驶</string>
@@ -41,6 +42,7 @@
     <string name="cue_turn50mCombined" formatted="false">在 {distance, number} {distanceUnit, select, meters {米} feet {英尺} other {米}} 处，{first, select, left {向左转} right {向右转} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶上匝道} other {沿路线前行}}，然后迅速 {second, select, left {向左} right {向右} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶上匝道} other {继续前行}}</string>
     <string name="guidance_distanceToDestination" formatted="false">到 {destination} 还需 {distance, number} {distanceUnit, select, km {km} mi {mi} other {km}}</string>
     <string name="home_a11y_clearDestination" formatted="false">清除目的地</string>
+    <string name="home_a11y_closeArrivalNotice" formatted="false">关闭到达消息</string>
     <string name="home_a11y_currentSpeed" formatted="false">当前速度</string>
     <string name="home_a11y_findAlternates" formatted="false">查找备选路线</string>
     <string name="home_a11y_locating" formatted="false">正在定位你</string>

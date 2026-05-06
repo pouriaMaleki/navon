@@ -29,6 +29,7 @@
     <string name="cue_turn10m_right" formatted="false">ডানে ঘুরুন</string>
     <string name="cue_turn10m_roundabout" formatted="false">রাউন্ডঅ্যাবাউটে ঢুকুন</string>
     <string name="cue_turn10m_uturn" formatted="false">U-টার্ন করুন</string>
+    <string name="cue_turn10mCombined" formatted="false">{first, select, left {বাঁদিকে ঘুরুন} right {ডানদিকে ঘুরুন} exitLeft {বাম প্রস্থান নিন} exitRight {ডান প্রস্থান নিন} uturn {একটি U-turn করুন} roundabout {রাউন্ডঅ্যাবাউটে প্রবেশ করুন} merge {মার্জ করুন} ramp {র‌্যাম্প নিন} other {চালিয়ে যান}} তারপর সাথে সাথে {second, select, left {বাম} right {ডান} exitLeft {বাম প্রস্থান} exitRight {ডান প্রস্থান} uturn {U-turn} roundabout {রাউন্ডঅ্যাবাউট} merge {মার্জ} ramp {র‌্যাম্প} other {সামনে}}</string>
     <string name="cue_turn50m_exitLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বাম দিকের এক্সিট নিন</string>
     <string name="cue_turn50m_exitRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডান দিকের এক্সিট নিন</string>
     <string name="cue_turn50m_generic" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর রুট অনুসরণ করুন</string>
@@ -41,6 +42,7 @@
     <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {মিটার} feet {ফুট} other {মিটার}}, তারপর দ্রুত {first, select, left {বাঁ দিকে ঘুরুন} right {ডান দিকে ঘুরুন} exitLeft {বাম এক্সিট নিন} exitRight {ডান এক্সিট নিন} uturn {একটি U-turn করুন} roundabout {রাউন্ডঅ্যাবাউটে ঢোকুন} merge {মার্জ করুন} ramp {র‌্যাম্প নিন} other {পথ অনুসরণ করুন}} তারপর দ্রুত {second, select, left {বামে} right {ডানে} exitLeft {বাম এক্সিট} exitRight {ডান এক্সিট} uturn {U-turn} roundabout {রাউন্ডঅ্যাবাউট} merge {মার্জ} ramp {র‌্যাম্প} other {সামনে}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} থেকে {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">গন্তব্য মুছুন</string>
+    <string name="home_a11y_closeArrivalNotice" formatted="false">আগমনের বার্তা বন্ধ করুন</string>
     <string name="home_a11y_currentSpeed" formatted="false">বর্তমান গতি</string>
     <string name="home_a11y_findAlternates" formatted="false">বিকল্প রুট খুঁজুন</string>
     <string name="home_a11y_locating" formatted="false">আপনাকে খুঁজে বের করা হচ্ছে</string>

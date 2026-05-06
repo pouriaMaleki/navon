@@ -401,8 +401,19 @@ final class HomeViewModel: ObservableObject {
     }
 
     /// Set when the rider has reached the destination and guidance has been
-    /// auto-stopped. Cleared on the next route start.
+    /// auto-stopped. Cleared on the next route start, on manual dismissal,
+    /// or after `arrivalNoticeAutoDismissDelay` seconds.
     @Published var arrivalNotice: String?
+
+    /// Auto-dismiss delay for the arrival banner. The banner used to persist
+    /// forever; without a timeout, a rider who walked away from the phone
+    /// would come back to a banner blocking the new route suggestions card.
+    /// Sixty seconds matches the web/Android constant.
+    private static let arrivalNoticeAutoDismissDelay: TimeInterval = 60
+    /// Test seam — when non-nil, overrides the production 60s delay so unit
+    /// tests can verify the auto-dismiss path without sleeping a minute.
+    static var arrivalNoticeAutoDismissDelayForTesting: TimeInterval?
+    private var arrivalNoticeAutoDismissTask: Task<Void, Never>?
 
     /// Spec mirroring web's GuidanceStore: distance from the projected
     /// route, off-route latched state with hysteresis, and a reroute-request
@@ -876,6 +887,7 @@ final class HomeViewModel: ObservableObject {
         activeRouteIdentifier = selectedPreview.normalizedPackage.routeIdentifier
         // Starting a new route clears any stale arrival banner from the
         // previous trip.
+        cancelArrivalNoticeAutoDismiss()
         arrivalNotice = nil
         // Reset off-route state so an old latch from a previous trip doesn't
         // bleed into the new one before the first fix arrives.
@@ -1502,7 +1514,30 @@ final class HomeViewModel: ObservableObject {
 
     private func declareArrival() {
         arrivalNotice = "Arrived at destination"
+        scheduleArrivalNoticeAutoDismiss()
         stopActiveNavigation(afterArrival: true)
+    }
+
+    /// Manual dismissal from the banner's close button.
+    func dismissArrivalNotice() {
+        cancelArrivalNoticeAutoDismiss()
+        arrivalNotice = nil
+    }
+
+    private func scheduleArrivalNoticeAutoDismiss() {
+        cancelArrivalNoticeAutoDismiss()
+        let delay = HomeViewModel.arrivalNoticeAutoDismissDelayForTesting
+            ?? HomeViewModel.arrivalNoticeAutoDismissDelay
+        arrivalNoticeAutoDismissTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            guard let self, !Task.isCancelled else { return }
+            self.arrivalNotice = nil
+        }
+    }
+
+    private func cancelArrivalNoticeAutoDismiss() {
+        arrivalNoticeAutoDismissTask?.cancel()
+        arrivalNoticeAutoDismissTask = nil
     }
 
     /// Equirectangular distance approximation in meters. Same formula used

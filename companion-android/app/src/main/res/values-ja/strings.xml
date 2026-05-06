@@ -29,6 +29,7 @@
     <string name="cue_turn10m_right" formatted="false">右折してください</string>
     <string name="cue_turn10m_roundabout" formatted="false">ラウンドアバウトに入ってください</string>
     <string name="cue_turn10m_uturn" formatted="false">Uターンしてください</string>
+    <string name="cue_turn10mCombined" formatted="false">{first, select, left {左に曲がって} right {右に曲がって} exitLeft {左の出口へ} exitRight {右の出口へ} uturn {Uターンして} roundabout {ラウンドアバウトに入って} merge {合流して} ramp {ランプに入って} other {そのまま進んで}} すぐに {second, select, left {左} right {右} exitLeft {左の出口} exitRight {右の出口} uturn {Uターン} roundabout {ラウンドアバウト} merge {合流} ramp {ランプ} other {その先へ}}</string>
     <string name="cue_turn50m_exitLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左の出口へ</string>
     <string name="cue_turn50m_exitRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右の出口へ</string>
     <string name="cue_turn50m_generic" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でルートに従ってください</string>
@@ -41,6 +42,7 @@
     <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}, {first, select, left {左折} right {右折} exitLeft {左の出口を出る} exitRight {右の出口を出る} uturn {Uターンする} roundabout {ラウンドアバウトに入る} merge {合流する} ramp {ランプを進む} other {進行方向に従う}} のあとすぐに {second, select, left {左} right {右} exitLeft {左の出口} exitRight {右の出口} uturn {Uターン} roundabout {ラウンドアバウト} merge {合流} ramp {ランプ} other {そのまま進む}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} 先の{destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">目的地をクリア</string>
+    <string name="home_a11y_closeArrivalNotice" formatted="false">到着メッセージを閉じる</string>
     <string name="home_a11y_currentSpeed" formatted="false">現在の速度</string>
     <string name="home_a11y_findAlternates" formatted="false">別ルートを探す</string>
     <string name="home_a11y_locating" formatted="false">位置を特定中</string>

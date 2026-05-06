@@ -119,6 +119,51 @@ describe("CueEngine — back-to-back turn coalescing", () => {
     expect(turn50?.followUpKind).toBeUndefined();
   });
 
+  // User-reported regression: M1 (left) at ~10 m before M2 (right). The
+  // rider heard "turn left" only — no mention of the right turn. The 50 m
+  // fusion branch is gated on `upcomingDistance > 15 m`, so when a tick
+  // first lands within the 10 m approach window (sparse GPS, foregrounded
+  // app, fast cycling), the 50 m combined cue is skipped and the
+  // unsuffixed `turn10m` for M1 fires alone. The 10 m branch needs the
+  // same back-to-back peek the 50 m branch already performs.
+  it("annotates turn10m with the follow-up maneuver when the rider's first in-range tick is already inside 15m and M2 is within 30m", () => {
+    const back2back = baseSnapshot({
+      maneuvers: [M_RIGHT("m1", 200), M_LEFT("m2", 210)],
+      progressDistanceM: 50,
+    });
+    let s = initialCueEngineState();
+    // First tick at 50 m progress — orientation cue path; the 50 m combined
+    // path will be considered on subsequent ticks.
+    s = tick(s, back2back).next;
+    // Sparse-GPS jump straight from 50 m progress (150 m before M1) to
+    // 190 m progress (10 m before M1). Skips the 50 m approach window
+    // entirely, so the 50 m combined cue cannot fire.
+    const close = tick(s, { ...back2back, progressDistanceM: 190 });
+    const turn10 = close.events.find((e) => e.kind === "turn10m");
+    expect(turn10).toMatchObject({
+      kind: "turn10m",
+      turnKind: "right",
+      followUpKind: "left",
+    });
+    // No separate turn10m for M2 should follow — the combined cue already
+    // mentioned it.
+    const past = tick(close.next, { ...back2back, progressDistanceM: 205 });
+    expect(past.events.find((e) => e.kind === "turn10m")).toBeUndefined();
+  });
+
+  it("does not annotate turn10m when the follow-up is far away", () => {
+    // Standard single-turn case: progress jumps from 100 → 192 (8 m before
+    // m1 at 200; m2 at 400 is 200 m past — far). The 10 m cue must remain
+    // a single-direction event.
+    const t1 = tick(initialCueEngineState(), baseSnapshot({ progressDistanceM: 100 }));
+    const t2 = tick(t1.next, baseSnapshot({ progressDistanceM: 192 }));
+    const turn10 = t2.events.find((e) => e.kind === "turn10m") as
+      | { followUpKind?: string }
+      | undefined;
+    expect(turn10).toBeDefined();
+    expect(turn10?.followUpKind).toBeUndefined();
+  });
+
   it("suppresses turn50m / turn10m / nextTurnInAbout for the follow-up maneuver after a coalesced cue", () => {
     const back2back = baseSnapshot({
       maneuvers: [M_RIGHT("m1", 200), M_LEFT("m2", 230)],

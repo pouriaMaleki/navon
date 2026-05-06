@@ -55,7 +55,16 @@ sealed class CueEvent {
         val distanceM: Double,
         val followUpKind: ManeuverKind? = null,
     ) : CueEvent()
-    data class Turn10m(val turnKind: ManeuverKind) : CueEvent()
+    /** Immediate-action 10 m cue. `followUpKind` is set when the next
+     *  maneuver is within `BACK_TO_BACK_THRESHOLD_M` of this one — covers
+     *  the sparse-GPS / fast-cycling case where the 50 m combined cue was
+     *  missed because the first in-range tick already landed inside 15 m
+     *  of M1. Without this fold, the rider hears only "turn <first>" with
+     *  no mention of the immediately-following turn. */
+    data class Turn10m(
+        val turnKind: ManeuverKind,
+        val followUpKind: ManeuverKind? = null,
+    ) : CueEvent()
     data class NextTurnInAbout(val turnKind: ManeuverKind, val distanceM: Double) : CueEvent()
     data class ArrivingInM(val distanceM: Double) : CueEvent()
     object Arrived : CueEvent()
@@ -323,8 +332,30 @@ object CueEngine {
             if (upcoming != null && upcomingDistance != null &&
                 upcomingDistance <= APPROACH_10_M && !announced10m.contains(upcoming.id)
             ) {
-                events.add(CueEvent.Turn10m(upcoming.kind))
-                announced10m.add(upcoming.id)
+                val upcomingIdx = snapshot.maneuvers.indexOfFirst { it.id == upcoming.id }
+                val followUp = snapshot.maneuvers.getOrNull(upcomingIdx + 1)
+                val gap = followUp?.let { it.distanceFromStartM - upcoming.distanceFromStartM }
+                    ?: Double.POSITIVE_INFINITY
+                if (followUp != null && gap <= BACK_TO_BACK_THRESHOLD_M) {
+                    // Mirror the 50 m branch's fusion: when the rider's
+                    // first in-range tick already landed inside 15 m, the
+                    // 50 m combined cue is gated out — emitting the
+                    // back-to-back pair here is the rider's only warning
+                    // of the immediately-following turn.
+                    events.add(
+                        CueEvent.Turn10m(
+                            turnKind = upcoming.kind,
+                            followUpKind = followUp.kind,
+                        ),
+                    )
+                    announced10m.add(upcoming.id)
+                    announced10m.add(followUp.id)
+                    announced50m.add(followUp.id)
+                    announcedNextTurnAfter.add(upcoming.id)
+                } else {
+                    events.add(CueEvent.Turn10m(upcoming.kind))
+                    announced10m.add(upcoming.id)
+                }
             }
 
             val lastPassed = snapshot.maneuvers
@@ -442,10 +473,23 @@ object CueEngine {
                 )
             }
         }
-        is CueEvent.Turn10m -> CueMessage(
-            "cue.turn10m.${maneuverSlug(event.turnKind)}",
-            emptyMap(),
-        )
+        is CueEvent.Turn10m -> {
+            val followUp = event.followUpKind
+            if (followUp != null) {
+                CueMessage(
+                    "cue.turn10mCombined",
+                    mapOf(
+                        "first" to maneuverSlug(event.turnKind),
+                        "second" to maneuverSlug(followUp),
+                    ),
+                )
+            } else {
+                CueMessage(
+                    "cue.turn10m.${maneuverSlug(event.turnKind)}",
+                    emptyMap(),
+                )
+            }
+        }
         is CueEvent.NextTurnInAbout -> CueMessage(
             "cue.nextTurnInAbout.${nextTurnDirection(event.turnKind)}",
             me.fiksu.esp32map.companion.integration.i18n.DistanceFormatter

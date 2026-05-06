@@ -35,7 +35,13 @@ struct CueSnapshot {
 
 enum CueEvent: Equatable {
     case turn50m(ManeuverKind, distanceM: Double, followUpKind: ManeuverKind? = nil)
-    case turn10m(ManeuverKind)
+    /// Immediate-action 10 m cue. `followUpKind` is set when the next
+    /// maneuver is within `backToBackThresholdM` of this one — covers the
+    /// sparse-GPS / fast-cycling case where the 50 m combined cue was
+    /// missed because the first in-range tick already landed inside 15 m
+    /// of M1. Without this fold, the rider hears only "turn <first>" with
+    /// no mention of the immediately-following turn.
+    case turn10m(ManeuverKind, followUpKind: ManeuverKind? = nil)
     case nextTurnInAbout(turnKind: ManeuverKind, distanceM: Double)
     case arrivingInM(distanceM: Double)
     case arrived
@@ -338,8 +344,25 @@ enum CueEngine {
             }
             if let m = upcoming, let d = upcomingDistance,
                d <= Self.approach10M, !announced10m.contains(m.id) {
-                events.append(.turn10m(m.kind))
-                announced10m.insert(m.id)
+                let upcomingIdx = snapshot.maneuvers.firstIndex(where: { $0.id == m.id }) ?? -1
+                let followUp = (upcomingIdx >= 0 && upcomingIdx + 1 < snapshot.maneuvers.count)
+                    ? snapshot.maneuvers[upcomingIdx + 1] : nil
+                let gapToFollowUp = followUp.map { $0.distanceFromStartM - m.distanceFromStartM } ?? .infinity
+                if let followUp = followUp, gapToFollowUp <= Self.backToBackThresholdM {
+                    // Mirror the 50 m branch's fusion: when the rider's
+                    // first in-range tick already landed inside 15 m, the
+                    // 50 m combined cue is gated out — emitting the
+                    // back-to-back pair here is the rider's only warning
+                    // of the immediately-following turn.
+                    events.append(.turn10m(m.kind, followUpKind: followUp.kind))
+                    announced10m.insert(m.id)
+                    announced10m.insert(followUp.id)
+                    announced50m.insert(followUp.id)
+                    announcedNextTurnAfter.insert(m.id)
+                } else {
+                    events.append(.turn10m(m.kind, followUpKind: nil))
+                    announced10m.insert(m.id)
+                }
             }
 
             s.announced50m = announced50m
@@ -407,7 +430,17 @@ enum CueEngine {
                 args: ["distanceUnit": pair.unit],
                 numericArgs: ["distance": pair.distance]
             )
-        case .turn10m(let k):
+        case .turn10m(let k, let followUp):
+            if let followUp = followUp {
+                return CueMessage(
+                    key: "cue.turn10mCombined",
+                    args: [
+                        "first": maneuverSlug(k),
+                        "second": maneuverSlug(followUp),
+                    ],
+                    numericArgs: [:]
+                )
+            }
             return CueMessage(key: "cue.turn10m.\(maneuverSlug(k))", args: [:], numericArgs: [:])
         case .nextTurnInAbout(let k, let d):
             let pair = distanceCueValues(d, mode: distanceMode)

@@ -448,7 +448,7 @@ private fun CompanionHomeScreen(
                 HomeMode.PLANNING -> {
                     val arrival = homeState.arrivalNotice
                     if (arrival != null) {
-                        ArrivalCard(arrival)
+                        ArrivalCard(arrival, onClose = { homeState.dismissArrivalNotice() })
                     } else if (homeState.previewAlternatives.isNotEmpty()) {
                         RouteSuggestionsCard(appState, homeState)
                     }
@@ -919,17 +919,28 @@ private fun ActiveGuidanceCard(homeState: HomeStateHolder) {
 }
 
 @Composable
-private fun ArrivalCard(message: String) {
-    Column(
+private fun ArrivalCard(message: String, onClose: () -> Unit) {
+    Row(
         modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.94f), shape = MaterialTheme.shapes.extraLarge).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.Top,
     ) {
-        Text(message, style = MaterialTheme.typography.titleMedium)
-        Text(
-            "Routing finished. Tap a destination to plan again.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(message, style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Routing finished. Tap a destination to plan again.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        IconButton(
+            onClick = onClose,
+            modifier = Modifier.semantics { contentDescription = "Close arrival message" },
+        ) {
+            Text("×", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 

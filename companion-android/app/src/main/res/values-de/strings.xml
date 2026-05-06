@@ -29,6 +29,7 @@
     <string name="cue_turn10m_right" formatted="false">Rechts abbiegen</string>
     <string name="cue_turn10m_roundabout" formatted="false">In den Kreisverkehr einfahren</string>
     <string name="cue_turn10m_uturn" formatted="false">Mach einen U-Turn</string>
+    <string name="cue_turn10mCombined" formatted="false">{first, select, left {Links abbiegen} right {Rechts abbiegen} exitLeft {Nimm die linke Ausfahrt} exitRight {Nimm die rechte Ausfahrt} uturn {Mach eine U-Wende} roundabout {In den Kreisverkehr einfahren} merge {Zusammenführen} ramp {Nimm die Rampe} other {Weiterfahren}} dann sofort {second, select, left {links} right {rechts} exitLeft {linke Ausfahrt} exitRight {rechte Ausfahrt} uturn {U-Wende} roundabout {Kreisverkehr} merge {zusammenführen} ramp {Rampe} other {geradeaus}}</string>
     <string name="cue_turn50m_exitLeft" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, nimm die linke Ausfahrt</string>
     <string name="cue_turn50m_exitRight" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, nimm die rechte Ausfahrt</string>
     <string name="cue_turn50m_generic" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, folge der Route</string>
@@ -41,6 +42,7 @@
     <string name="cue_turn50mCombined" formatted="false">In {distance, number} {distanceUnit, select, meters {Meter} feet {Fuß} other {Meter}}, {first, select, left {abbiegen nach links} right {abbiegen nach rechts} exitLeft {links abbiegen} exitRight {rechts abbiegen} uturn {Wenden} roundabout {in den Kreisverkehr einfahren} merge {zusammenführen} ramp {Auffahrt nehmen} other {der Strecke folgen}} dann schnell {second, select, left {links} right {rechts} exitLeft {links abbiegen} exitRight {rechts abbiegen} uturn {Wenden} roundabout {Kreisverkehr} merge {zusammenführen} ramp {Auffahrt} other {geradeaus}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} bis {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Ziel löschen</string>
+    <string name="home_a11y_closeArrivalNotice" formatted="false">Ankunftsmeldung schließen</string>
     <string name="home_a11y_currentSpeed" formatted="false">Aktuelle Geschwindigkeit</string>
     <string name="home_a11y_findAlternates" formatted="false">Alternative Routen finden</string>
     <string name="home_a11y_locating" formatted="false">Position wird ermittelt</string>

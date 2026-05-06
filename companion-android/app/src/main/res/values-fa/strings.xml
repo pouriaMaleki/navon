@@ -29,6 +29,7 @@
     <string name="cue_turn10m_right" formatted="false">به راست بپیچید</string>
     <string name="cue_turn10m_roundabout" formatted="false">وارد میدان گرد شو</string>
     <string name="cue_turn10m_uturn" formatted="false">یک دور U بزنید</string>
+    <string name="cue_turn10mCombined" formatted="false">{first, select, left {به چپ بپیچ} right {به راست بپیچ} exitLeft {از خروجیِ چپ خارج شو} exitRight {از خروجیِ راست خارج شو} uturn {یک U-turn انجام بده} roundabout {وارد رُنداباوت شو} merge {ادغام کن} ramp {رمپ را بگیر} other {ادامه بده}} سپس بلافاصله {second, select, left {به چپ} right {به راست} exitLeft {خروجیِ چپ} exitRight {خروجیِ راست} uturn {U-turn} roundabout {رُنداباوت} merge {ادغام} ramp {رمپ} other {به جلو}}</string>
     <string name="cue_turn50m_exitLeft" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، خروجیِ چپ را بگیرید</string>
     <string name="cue_turn50m_exitRight" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، خروجیِ راست را بگیرید</string>
     <string name="cue_turn50m_generic" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، مسیر را دنبال کنید</string>
@@ -41,6 +42,7 @@
     <string name="cue_turn50mCombined" formatted="false">در {distance, number} {distanceUnit, select, meters {متر} feet {فوت} other {متر}}، {first, select, left {به چپ بپیچ} right {به راست بپیچ} exitLeft {از خروجیِ سمت چپ خارج شو} exitRight {از خروجیِ سمت راست خارج شو} uturn {یک U-turn انجام بده} roundabout {وارد میدان گردان شو} merge {ادغام شو} ramp {رمپ را بگیر} other {مسیر را دنبال کن}} سپس سریع {second, select, left {به چپ} right {به راست} exitLeft {خروجیِ سمت چپ} exitRight {خروجیِ سمت راست} uturn {U-turn} roundabout {میدان گردان} merge {ادغام} ramp {رمپ} other {به جلو}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} تا {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">پاک کردن مقصد</string>
+    <string name="home_a11y_closeArrivalNotice" formatted="false">بستن پیام رسیدن</string>
     <string name="home_a11y_currentSpeed" formatted="false">سرعت فعلی</string>
     <string name="home_a11y_findAlternates" formatted="false">یافتن مسیرهای جایگزین</string>
     <string name="home_a11y_locating" formatted="false">موقعیت شما را پیدا می‌کنم</string>

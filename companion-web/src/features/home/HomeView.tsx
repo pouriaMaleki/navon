@@ -325,11 +325,32 @@ const BottomOverlay = observer(({ store }: { store: RootStore }) => {
   if (guidance.arrivalNotice) {
     return (
       <div className="overlay-bottom">
-        <div className="card" role="status">
-          <div className="list-row__title">{guidance.arrivalNotice}</div>
-          <div className="list-row__subtitle">
-            Routing finished. Tap a destination to plan again.
+        <div
+          className="card"
+          role="status"
+          style={{ display: "flex", alignItems: "flex-start", gap: 12 }}
+        >
+          <div style={{ flex: 1 }}>
+            <div className="list-row__title">{guidance.arrivalNotice}</div>
+            <div className="list-row__subtitle">
+              Routing finished. Tap a destination to plan again.
+            </div>
           </div>
+          <button
+            type="button"
+            aria-label="Close arrival message"
+            onClick={() => guidance.dismissArrivalNotice()}
+            style={{
+              background: "transparent",
+              border: "none",
+              fontSize: 20,
+              lineHeight: 1,
+              cursor: "pointer",
+              padding: 4,
+            }}
+          >
+            ×
+          </button>
         </div>
       </div>
     );

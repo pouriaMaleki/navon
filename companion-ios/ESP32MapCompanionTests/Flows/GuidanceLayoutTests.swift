@@ -147,6 +147,42 @@ final class GuidanceLayoutTests: XCTestCase {
         )
     }
 
+    /// The arrival banner used to persist forever; the rider could not
+    /// dismiss it even after picking a new destination, so the banner won
+    /// the bottom-overlay z-order against the new route suggestions card.
+    /// An explicit close affordance is required.
+    func test_dismissArrivalNotice_clearsBanner() async {
+        let vm = await vmInGuidance(destinationLabel: "Ensi linja 1")
+        let arrivalPoint = CoordinatePoint(latitude: dest.latitude - 0.00005, longitude: dest.longitude)
+        vm.ingestRiderLocationFix(arrivalPoint, timestampMs: 1000)
+        for _ in 0..<10 where vm.arrivalNotice == nil { await Task.yield() }
+        XCTAssertEqual(vm.arrivalNotice, "Arrived at destination")
+
+        vm.dismissArrivalNotice()
+
+        XCTAssertNil(vm.arrivalNotice)
+    }
+
+    /// 60s parity with web/Android: if the rider walks away without tapping
+    /// close, the banner must clear itself so a follow-up trip's suggestions
+    /// can appear.
+    func test_arrivalNotice_autoDismissesAfterTimeout() async {
+        // Shrink the auto-dismiss delay so the test runs in <1 s instead of
+        // the production 60 s.
+        HomeViewModel.arrivalNoticeAutoDismissDelayForTesting = 0.05
+        defer { HomeViewModel.arrivalNoticeAutoDismissDelayForTesting = nil }
+
+        let vm = await vmInGuidance(destinationLabel: "Ensi linja 1")
+        let arrivalPoint = CoordinatePoint(latitude: dest.latitude - 0.00005, longitude: dest.longitude)
+        vm.ingestRiderLocationFix(arrivalPoint, timestampMs: 1000)
+        for _ in 0..<10 where vm.arrivalNotice == nil { await Task.yield() }
+        XCTAssertEqual(vm.arrivalNotice, "Arrived at destination")
+
+        // Wait long enough for the auto-dismiss timer to fire.
+        try? await Task.sleep(nanoseconds: 300_000_000)
+        XCTAssertNil(vm.arrivalNotice, "arrival banner must auto-dismiss after the configured delay")
+    }
+
     func test_arrivalDetection_doesNotTriggerWhenFarFromDestination() async {
         let vm = await vmInGuidance(destinationLabel: "Ensi linja 1")
         // A coordinate roughly 60 m off-route from `quarter` — far from

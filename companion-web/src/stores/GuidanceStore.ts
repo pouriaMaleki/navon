@@ -151,6 +151,16 @@ export class GuidanceStore {
    */
   arrivalNotice: string | undefined = undefined;
 
+  /**
+   * Dismiss-after timer for `arrivalNotice`. The banner used to persist
+   * forever; if the rider then started picking a new destination, the banner
+   * still won the BottomOverlay z-order against the new suggestions card.
+   * Sixty seconds matches the iOS/Android auto-dismiss so platform behavior
+   * stays in lock-step.
+   */
+  private arrivalNoticeTimeoutId?: ReturnType<typeof setTimeout>;
+  private static readonly arrivalNoticeAutoDismissMs = 60_000;
+
   private offRouteDurationMs = 0;
   private lastAdvanceTimestampMs = 0;
   private storedManeuvers: StoredManeuver[] = [];
@@ -623,14 +633,36 @@ export class GuidanceStore {
 
   private declareArrival(): void {
     this.arrivalNotice = "Arrived at destination";
+    this.scheduleArrivalNoticeAutoDismiss();
     // Reuse the same teardown as a manual stop so persistence + UI camera
     // intents stay consistent. The arrival banner survives because we set it
     // before stopGuidance() (stopGuidance does not clear arrivalNotice).
     this.stopGuidance();
     // Wipe the search field and all route alternatives so the map returns
     // to a blank "Where to?" state. arrivalNotice persists until the rider
-    // starts a new route.
+    // dismisses it, the 60s timer fires, or starts a new route.
     this.planning.clearPreview();
+  }
+
+  /** Manual dismissal from the banner's close button. */
+  dismissArrivalNotice(): void {
+    this.cancelArrivalNoticeTimer();
+    this.arrivalNotice = undefined;
+  }
+
+  private scheduleArrivalNoticeAutoDismiss(): void {
+    this.cancelArrivalNoticeTimer();
+    this.arrivalNoticeTimeoutId = setTimeout(() => {
+      this.arrivalNoticeTimeoutId = undefined;
+      this.arrivalNotice = undefined;
+    }, GuidanceStore.arrivalNoticeAutoDismissMs);
+  }
+
+  private cancelArrivalNoticeTimer(): void {
+    if (this.arrivalNoticeTimeoutId !== undefined) {
+      clearTimeout(this.arrivalNoticeTimeoutId);
+      this.arrivalNoticeTimeoutId = undefined;
+    }
   }
 
   /**
@@ -681,6 +713,7 @@ export class GuidanceStore {
     this.rerouteRequested = false;
     this.lastAdvanceTimestampMs = 0;
     this.upcomingTurnAlert = undefined;
+    this.cancelArrivalNoticeTimer();
     this.arrivalNotice = undefined;
   }
 

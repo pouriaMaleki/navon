@@ -273,6 +273,18 @@
       "translatedAt": "2026-04-30T11:59:24Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "cue.turn10mCombined": {
+      "value": "{first, select, left {बाएँ मुड़ें} right {दाएँ मुड़ें} exitLeft {बाएँ निकास लें} exitRight {दाएँ निकास लें} uturn {U-turn करें} roundabout {राउंडअबाउट में प्रवेश करें} merge {मर्ज करें} ramp {रैम्प लें} other {आगे बढ़ें}} फिर तुरंत {second, select, left {बाएँ} right {दाएँ} exitLeft {बाएँ निकास} exitRight {दाएँ निकास} uturn {U-turn} roundabout {राउंडअबाउट} merge {मर्ज} ramp {रैम्प} other {आगे}}",
+      "description": "Voice cue for back-to-back turns when the rider's first in-range tick already landed inside the 10 m approach window — replaces the unsuffixed turn10m so the rider still hears about both turns.",
+      "placeholders": {
+        "first": "select",
+        "second": "select"
+      },
+      "sourceHash": "sha256:50d85f77b22966ff",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-06T09:09:45Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "cue.turn50m.exitLeft": {
       "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, बाएँ निकास लें",
       "description": "Voice cue ~50m before a left exit ramp / off-ramp.",
@@ -438,6 +450,14 @@
       "sourceHash": "sha256:07be8d9dada21836",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T13:39:36Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.a11y.closeArrivalNotice": {
+      "value": "आगमन संदेश बंद करें",
+      "description": "Accessibility label for the X button on the arrival banner that dismisses it so newly suggested routes can be shown.",
+      "sourceHash": "sha256:e26abce3d50c4f9f",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-06T08:10:33Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.a11y.currentSpeed": {
