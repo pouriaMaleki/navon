@@ -157,7 +157,7 @@
     <string name="settings_restartRequired_title" formatted="false">再起動が必要です</string>
     <string name="settings_routePlanner_cyclingSpeed" formatted="false">自転車速度</string>
     <string name="settings_routePlanner_defaults_section" formatted="false">デフォルト</string>
-    <string name="settings_routePlanner_hsl_description" formatted="false">HSLはヘルシンキ地域交通当局です。DigitransitのAPIは、ヘルシンキ都市圏で高品質な自転車ルーティングを提供します。キーは無料です。ポータルでサインインし、アプリを登録して、サブスクリプションキーを上の欄に貼り付けてください。ヘルシンキ圏外ではHSLをオフにし、プランナーはOSMのルーティングをグローバルに使用します。</string>
+    <string name="settings_routePlanner_hsl_description" formatted="false">HSLはヘルシンキ地域交通局です。HSLのDigitransit APIは、フィンランド全土（ヘルシンキ、タンペレ、トゥルク、オウルなど）を含む高品質な自転車ルーティングを提供します。ポイントは無料であることです。ポータルでサインインし、アプリを登録して、サブスクリプションキーを上の欄に貼り付けてください。フィンランド国外ではHSLをオフにし、プランナーは世界中でOSMルーティングを使用します。</string>
     <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
     <string name="settings_routePlanner_riding_footnote" formatted="false">自転車速度の上書きにより、HSLのETAを調整します（Digitransitは遅めの自転車速度をデフォルトにします）。速度の単位は、地図上でライブ速度バッジを表示する方法です。</string>
     <string name="settings_routePlanner_riding_section" formatted="false">走行</string>

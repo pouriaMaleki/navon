@@ -827,7 +827,7 @@
       "description": "Section header on the Route Planner page for defaults."
     },
     "settings.routePlanner.hsl.description": {
-      "value": "HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across the Helsinki metro area. The key is free — sign in at the portal, register an app, and copy the subscription key into the field above. Outside the Helsinki area, leave HSL off and the planner uses OSM routing globally.",
+      "value": "HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across Finland — including Helsinki, Tampere, Turku, Oulu, and other regions covered by published GTFS feeds. The key is free — sign in at the portal, register an app, and copy the subscription key into the field above. Outside Finland, leave HSL off and the planner uses OSM routing globally.",
       "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names."
     },
     "settings.routePlanner.hsl.section": {

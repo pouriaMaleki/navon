@@ -1409,11 +1409,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.description": {
-      "value": "HSL ist die Verkehrsbehörde der Region Helsinki. Ihre Digitransit-API bietet hochwertige Fahrrad-Routen über das gesamte Ballungsgebiet von Helsinki. Der Schlüssel ist kostenlos — melde dich im Portal an, registriere eine App und kopiere den Subscription Key in das Feld oben. Außerhalb des Gebiets von Helsinki HSL deaktivieren; der Planer nutzt dann OSM-Routing global.",
+      "value": "HSL ist die Verkehrsbehörde der Region Helsinki. Ihre Digitransit-API bietet hochwertige Fahrrad-Routenplanung in ganz Finnland – einschließlich Helsinki, Tampere, Turku, Oulu und weiteren Regionen, die durch veröffentlichte GTFS-Feeds abgedeckt sind. Der Schlüssel ist kostenlos – melde dich im Portal an, registriere eine App und kopiere den Subscription Key in das Feld oben. Außerhalb Finnlands lasse HSL aus und der Planer verwendet OSM-Routing weltweit.",
       "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
-      "sourceHash": "sha256:c973b6517ed52a36",
+      "sourceHash": "sha256:e93cb87801d921aa",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:38:14Z",
+      "translatedAt": "2026-05-06T12:05:47Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.section": {

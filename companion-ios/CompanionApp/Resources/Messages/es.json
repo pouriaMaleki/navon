@@ -155,7 +155,7 @@
   "settings.restartRequired.title": "Se requiere reinicio",
   "settings.routePlanner.cyclingSpeed": "Velocidad de ciclismo",
   "settings.routePlanner.defaults.section": "Valores predeterminados",
-  "settings.routePlanner.hsl.description": "HSL es la autoridad de transporte del Área Metropolitana de Helsinki. Su API de Digitransit ofrece enrutamiento de alta calidad para bicicletas en toda el área metropolitana de Helsinki. La clave es gratuita: inicia sesión en el portal, registra una aplicación y copia la clave de suscripción en el campo de arriba. Fuera del área de Helsinki, deja HSL desactivado y el planificador usa enrutamiento con OSM a nivel global.",
+  "settings.routePlanner.hsl.description": "HSL es la autoridad de transporte de la Región de Helsinki. Su API de Digitransit ofrece rutas de bicicleta de alta calidad en toda Finlandia, incluyendo Helsinki, Tampere, Turku, Oulu y otras regiones cubiertas por feeds GTFS publicados. La clave es gratuita: inicia sesión en el portal, registra una aplicación y copia la clave de suscripción en el campo de arriba. Fuera de Finlandia, deja HSL desactivado y el planificador usará el enrutado de OSM a nivel global.",
   "settings.routePlanner.hsl.section": "HSL Digitransit",
   "settings.routePlanner.riding.footnote": "La velocidad de ciclismo anula las ETA de HSL (Digitransit usa una velocidad de bicicleta lenta de forma predeterminada). La unidad de velocidad es cómo se muestra la insignia de velocidad en el mapa.",
   "settings.routePlanner.riding.section": "Ciclismo",

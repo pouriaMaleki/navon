@@ -155,7 +155,7 @@
   "settings.restartRequired.title": "Redémarrage requis",
   "settings.routePlanner.cyclingSpeed": "Vitesse à vélo",
   "settings.routePlanner.defaults.section": "Par défaut",
-  "settings.routePlanner.hsl.description": "HSL est l’autorité des transports de la région de Helsinki. Leur API Digitransit fournit un routage vélo de haute qualité dans toute la zone métropolitaine de Helsinki. La clé est gratuite : connectez-vous sur le portail, enregistrez une application, puis copiez la clé d’abonnement dans le champ ci-dessus. En dehors de la zone de Helsinki, laissez HSL désactivé et le planificateur utilise le routage OSM à l’échelle mondiale.",
+  "settings.routePlanner.hsl.description": "HSL est l’autorité des transports de la région de Helsinki. Leur API Digitransit fournit un routage vélo de haute qualité à travers toute la Finlande — y compris Helsinki, Tampere, Turku, Oulu et d’autres régions couvertes par des flux GTFS publiés. L’essentiel : c’est gratuit — connectez-vous au portail, enregistrez une application, puis copiez la clé d’abonnement dans le champ ci-dessus. En dehors de la Finlande, laissez HSL désactivé et le planificateur utilisera le routage via OSM à l’échelle mondiale.",
   "settings.routePlanner.hsl.section": "HSL Digitransit",
   "settings.routePlanner.riding.footnote": "La vitesse à vélo remplace les ETA HSL (Digitransit utilise une vitesse vélo lente par défaut). L’unité de vitesse sert à afficher le badge de vitesse en direct sur la carte.",
   "settings.routePlanner.riding.section": "En vélo",

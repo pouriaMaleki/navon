@@ -1409,11 +1409,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.description": {
-      "value": "HSL হলো হেলসিঙ্কি অঞ্চল পরিবহন কর্তৃপক্ষ। তাদের Digitransit API হেলসিঙ্কি মেট্রো এলাকার জুড়ে উচ্চমানের সাইকেল রাউটিং দেয়। কীটি ফ্রি — পোর্টালে সাইন ইন করুন, একটি অ্যাপ রেজিস্টার করুন, এবং সাবস্ক্রিপশন কীটি উপরের ফিল্ডে কপি করুন। হেলসিঙ্কি এলাকার বাইরে HSL বন্ধ রাখুন এবং প্ল্যানার বিশ্বব্যাপী OSM রাউটিং ব্যবহার করবে।",
+      "value": "HSL হলো হেলসিঙ্কি অঞ্চল পরিবহন কর্তৃপক্ষ। তাদের Digitransit API ফিনল্যান্ড জুড়ে উচ্চমানের সাইকেল রাউটিং দেয়—যার মধ্যে হেলসিঙ্কি, তাম্পেরে, তুর্কু, ওউলু এবং প্রকাশিত GTFS ফিড দ্বারা কভার করা অন্যান্য অঞ্চলও আছে। মূল সুবিধা হলো এটি বিনামূল্যে—পোর্টালে সাইন ইন করুন, একটি অ্যাপ রেজিস্টার করুন, এবং সাবস্ক্রিপশন কীটি উপরের ঘরে কপি করুন। ফিনল্যান্ডের বাইরে HSL বন্ধ রাখুন, আর প্ল্যানার বিশ্বব্যাপী OSM রাউটিং ব্যবহার করবে।",
       "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
-      "sourceHash": "sha256:c973b6517ed52a36",
+      "sourceHash": "sha256:e93cb87801d921aa",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:37:59Z",
+      "translatedAt": "2026-05-06T12:05:45Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.section": {

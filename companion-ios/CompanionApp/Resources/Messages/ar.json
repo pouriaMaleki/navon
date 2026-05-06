@@ -155,7 +155,7 @@
   "settings.restartRequired.title": "يلزم إعادة التشغيل",
   "settings.routePlanner.cyclingSpeed": "سرعة الدراجة",
   "settings.routePlanner.defaults.section": "الافتراضيات",
-  "settings.routePlanner.hsl.description": "HSL هي هيئة النقل في منطقة هلسنكي. توفر واجهة Digitransit API الخاصة بهم توجيهًا عالي الجودة للدراجات عبر منطقة مترو هلسنكي. المفتاح مجاني — سجّل الدخول في البوابة، وسجّل تطبيقًا، ثم انسخ مفتاح الاشتراك إلى الحقل أعلاه. خارج منطقة هلسنكي، اترك HSL دون تفعيل وسيستخدم المخطط توجيه OSM عالميًا.",
+  "settings.routePlanner.hsl.description": "‏HSL هي سلطة النقل في منطقة هلسنكي. توفر واجهة برمجة التطبيقات الخاصة بـ Digitransit لديهم توجيهًا عالي الجودة للدراجات عبر فنلندا — بما في ذلك هلسنكي وتامبيري وتوركو وأولو وغيرها من المناطق المشمولة بواجهات تغذية GTFS المنشورة. المفتاح مجاني — سجّل الدخول إلى البوابة، وسجّل تطبيقًا، ثم انسخ مفتاح الاشتراك إلى الحقل أعلاه. خارج فنلندا، اترك HSL غير مفعّل وسيستخدم المخطط توجيه OSM عالميًا.",
   "settings.routePlanner.hsl.section": "HSL Digitransit",
   "settings.routePlanner.riding.footnote": "تتجاوز سرعة الدراجة تقديرات HSL ETAs (تكون افتراضات Digitransit لسرعة دراجة بطيئة). وحدة السرعة هي كيفية عرض شارة السرعة المباشرة على الخريطة.",
   "settings.routePlanner.riding.section": "الركوب",

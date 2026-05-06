@@ -1409,11 +1409,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.description": {
-      "value": "HSL हेलसिंकी क्षेत्र परिवहन प्राधिकरण है। उनका Digitransit API हेलसिंकी मेट्रो क्षेत्र में उच्च-गुणवत्ता वाली बाइक रूटिंग देता है। कुंजी मुफ़्त है — पोर्टल पर साइन इन करें, एक ऐप रजिस्टर करें, और सब्सक्रिप्शन कुंजी को ऊपर वाले फ़ील्ड में कॉपी करें। हेलसिंकी क्षेत्र के बाहर HSL बंद रखें और प्लानर वैश्विक रूप से OSM रूटिंग का उपयोग करेगा।",
+      "value": "HSL हेलसिंकी क्षेत्र परिवहन प्राधिकरण है। उनका Digitransit API फ़िनलैंड भर में, प्रकाशित GTFS फ़ीड्स द्वारा कवर किए गए क्षेत्रों—हेलसिंकी, टैम्परे, तुर्कु, ओउलू और अन्य—में उच्च-गुणवत्ता वाली साइकिल रूटिंग देता है। कुंजी मुफ़्त है—पोर्टल पर साइन इन करें, एक ऐप रजिस्टर करें, और सब्सक्रिप्शन की को ऊपर वाले फ़ील्ड में कॉपी करें। फ़िनलैंड के बाहर, HSL बंद रखें और प्लानर वैश्विक रूप से OSM रूटिंग का उपयोग करेगा।",
       "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
-      "sourceHash": "sha256:c973b6517ed52a36",
+      "sourceHash": "sha256:e93cb87801d921aa",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:39:36Z",
+      "translatedAt": "2026-05-06T12:05:57Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.section": {

@@ -157,7 +157,7 @@
     <string name="settings_restartRequired_title" formatted="false">需要重启</string>
     <string name="settings_routePlanner_cyclingSpeed" formatted="false">骑行速度</string>
     <string name="settings_routePlanner_defaults_section" formatted="false">默认值</string>
-    <string name="settings_routePlanner_hsl_description" formatted="false">HSL 是赫尔辛基地区交通管理机构。他们的 Digitransit API 可在赫尔辛基地铁周边提供高质量的自行车路线规划。密钥是免费的——在门户登录、注册应用，然后将订阅密钥复制到上方的输入框中。在赫尔辛基地区之外，请关闭 HSL，规划器将使用 OSM 在全球范围内进行路线规划。</string>
+    <string name="settings_routePlanner_hsl_description" formatted="false">HSL 是赫尔辛基地区交通管理机构。他们的 Digitransit API 可在整个芬兰提供高质量的自行车路线规划——包括赫尔辛基、坦佩雷、图尔库、奥卢以及其他由已发布的 GTFS 数据源覆盖的地区。关键在于：它是免费的——在门户网站登录、注册一个应用，然后将订阅密钥复制到上方的输入框中。在芬兰以外，请关闭 HSL，规划器将使用 OSM 在全球范围内进行路线规划。</string>
     <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
     <string name="settings_routePlanner_riding_footnote" formatted="false">骑行速度用于覆盖 HSL 的预计到达时间（ETAs）（Digitransit 默认使用较慢的骑行速度）。速度单位用于在地图上显示实时速度徽章。</string>
     <string name="settings_routePlanner_riding_section" formatted="false">骑行</string>

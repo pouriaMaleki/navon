@@ -157,7 +157,7 @@
     <string name="settings_restartRequired_title" formatted="false">रीस्टार्ट आवश्यक</string>
     <string name="settings_routePlanner_cyclingSpeed" formatted="false">सायकलिंग वेग</string>
     <string name="settings_routePlanner_defaults_section" formatted="false">डीफॉल्ट्स</string>
-    <string name="settings_routePlanner_hsl_description" formatted="false">HSL हे हेलसिंकी प्रदेश परिवहन प्राधिकरण आहे. त्यांचे Digitransit API हेलसिंकी महानगर परिसरात उच्च-गुणवत्तेचे सायकल रूटिंग देते. की मोफत आहे — पोर्टलवर साइन इन करा, अॅप नोंदणी करा, आणि सबस्क्रिप्शन की वरच्या फील्डमध्ये कॉपी करा. हेलसिंकी क्षेत्राबाहेर HSL बंद ठेवा आणि प्लॅनर जागतिक स्तरावर OSM रूटिंग वापरेल.</string>
+    <string name="settings_routePlanner_hsl_description" formatted="false">HSL ही हेलसिंकी प्रदेशातील परिवहन प्राधिकरण आहे. त्यांची Digitransit API फिनलंडभर उच्च-गुणवत्तेचे सायकल रूटिंग देते — ज्यामध्ये हेलसिंकी, टॅम्पेरे, तुर्कू, ओउलू आणि प्रकाशित GTFS फीड्सद्वारे कव्हर होणाऱ्या इतर प्रदेशांचा समावेश आहे. महत्त्वाची गोष्ट म्हणजे हे मोफत आहे — पोर्टलवर साइन इन करा, अॅप नोंदणी करा आणि सबस्क्रिप्शन की वरच्या फील्डमध्ये कॉपी करा. फिनलंडच्या बाहेर HSL बंद ठेवा आणि प्लॅनर जागतिक स्तरावर OSM रूटिंग वापरेल.</string>
     <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
     <string name="settings_routePlanner_riding_footnote" formatted="false">सायकलिंग वेग HSL ETAs ओव्हरराईड करतो (Digitransit डीफॉल्टने धीम्या सायकल वेगावर सेट असते). वेगाचे युनिट म्हणजे नकाशावर लाइव्ह-वेग बॅज कसा दाखवला जातो ते.</string>
     <string name="settings_routePlanner_riding_section" formatted="false">स्वारी</string>

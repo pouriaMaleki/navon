@@ -157,7 +157,7 @@
     <string name="settings_restartRequired_title" formatted="false">نیاز به راه‌اندازی مجدد</string>
     <string name="settings_routePlanner_cyclingSpeed" formatted="false">سرعت دوچرخه‌سواری</string>
     <string name="settings_routePlanner_defaults_section" formatted="false">پیش‌فرض‌ها</string>
-    <string name="settings_routePlanner_hsl_description" formatted="false">HSL سازمان حمل‌ونقل منطقه هلسینکی است. Digitransit API آن‌ها مسیریابی باکیفیت برای دوچرخه در سراسر منطقه مترو هلسینکی ارائه می‌دهد. کلید رایگان است—در پورتال وارد شوید، یک اپ ثبت کنید و کلید اشتراک را در فیلد بالا کپی کنید. خارج از محدوده هلسینکی، HSL را خاموش بگذارید و برنامه‌ریز از مسیریابی OSM به‌صورت سراسری استفاده می‌کند.</string>
+    <string name="settings_routePlanner_hsl_description" formatted="false">HSL مرجع حمل‌ونقل منطقه هلسینکی است. API مربوط به Digitransit آن‌ها، مسیریابی باکیفیت دوچرخه را در سراسر فنلاند ارائه می‌دهد—از جمله هلسینکی، تامپره، تورکو، اولو و سایر مناطق تحت پوشش فیدهای منتشرشده GTFS. کلید رایگان است—در پورتال وارد شوید، یک اپ ثبت کنید و کلید اشتراک را در فیلد بالا کپی کنید. خارج از فنلاند، HSL را خاموش کنید تا برنامه از مسیریابی OSM به‌صورت سراسری استفاده کند.</string>
     <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
     <string name="settings_routePlanner_riding_footnote" formatted="false">سرعت دوچرخه‌سواری، ETAهای HSL را بازنویسی می‌کند (به‌صورت پیش‌فرض Digitransit سرعت دوچرخه کندتری در نظر می‌گیرد). واحد سرعت مشخص می‌کند که نشانگر سرعتِ زنده روی نقشه چگونه نمایش داده می‌شود.</string>
     <string name="settings_routePlanner_riding_section" formatted="false">دوچرخه‌سواری</string>

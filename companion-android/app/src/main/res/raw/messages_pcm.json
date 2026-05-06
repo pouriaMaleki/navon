@@ -155,7 +155,7 @@
   "settings.restartRequired.title": "Restart required",
   "settings.routePlanner.cyclingSpeed": "Cycling speed",
   "settings.routePlanner.defaults.section": "Defaults",
-  "settings.routePlanner.hsl.description": "HSL na authority for di Helsinki Region Transport. Dem Digitransit API na e dey give bike routing wey good well-well across di metro area for Helsinki. Key no cost — just sign in for portal, register app, then copy subscription key put for field wey dey above. For outside Helsinki area, leave HSL make e no work, planner go use OSM routing for everywhere.",
+  "settings.routePlanner.hsl.description": "HSL na imaa Helsinki Region Transport (authority). Diẹr Digitransit API na e give high-quality bike routing for Finland—including Helsinki, Tampere, Turku, Oulu, àti other regions wey dey under published GTFS feeds. Diẹr key no cost—just sign in for portal, register app, make you copy subscription key put for field wey dey above. For outside Finland, leave HSL off, ki planner no use OSM routing for whole world.",
   "settings.routePlanner.hsl.section": "HSL Digitransit",
   "settings.routePlanner.riding.footnote": "Cycling speed overrides HSL ETAs (Digitransit default na slow bike speed). Speed unit na how dem go show live-speed badge for map.",
   "settings.routePlanner.riding.section": "Riding",

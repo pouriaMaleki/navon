@@ -16859,103 +16859,103 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL هي هيئة النقل في منطقة هلسنكي. توفر واجهة Digitransit API الخاصة بهم توجيهًا عالي الجودة للدراجات عبر منطقة مترو هلسنكي. المفتاح مجاني — سجّل الدخول في البوابة، وسجّل تطبيقًا، ثم انسخ مفتاح الاشتراك إلى الحقل أعلاه. خارج منطقة هلسنكي، اترك HSL دون تفعيل وسيستخدم المخطط توجيه OSM عالميًا."
+            "value" : "‏HSL هي سلطة النقل في منطقة هلسنكي. توفر واجهة برمجة التطبيقات الخاصة بـ Digitransit لديهم توجيهًا عالي الجودة للدراجات عبر فنلندا — بما في ذلك هلسنكي وتامبيري وتوركو وأولو وغيرها من المناطق المشمولة بواجهات تغذية GTFS المنشورة. المفتاح مجاني — سجّل الدخول إلى البوابة، وسجّل تطبيقًا، ثم انسخ مفتاح الاشتراك إلى الحقل أعلاه. خارج فنلندا، اترك HSL غير مفعّل وسيستخدم المخطط توجيه OSM عالميًا."
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL হলো হেলসিঙ্কি অঞ্চল পরিবহন কর্তৃপক্ষ। তাদের Digitransit API হেলসিঙ্কি মেট্রো এলাকার জুড়ে উচ্চমানের সাইকেল রাউটিং দেয়। কীটি ফ্রি — পোর্টালে সাইন ইন করুন, একটি অ্যাপ রেজিস্টার করুন, এবং সাবস্ক্রিপশন কীটি উপরের ফিল্ডে কপি করুন। হেলসিঙ্কি এলাকার বাইরে HSL বন্ধ রাখুন এবং প্ল্যানার বিশ্বব্যাপী OSM রাউটিং ব্যবহার করবে।"
+            "value" : "HSL হলো হেলসিঙ্কি অঞ্চল পরিবহন কর্তৃপক্ষ। তাদের Digitransit API ফিনল্যান্ড জুড়ে উচ্চমানের সাইকেল রাউটিং দেয়—যার মধ্যে হেলসিঙ্কি, তাম্পেরে, তুর্কু, ওউলু এবং প্রকাশিত GTFS ফিড দ্বারা কভার করা অন্যান্য অঞ্চলও আছে। মূল সুবিধা হলো এটি বিনামূল্যে—পোর্টালে সাইন ইন করুন, একটি অ্যাপ রেজিস্টার করুন, এবং সাবস্ক্রিপশন কীটি উপরের ঘরে কপি করুন। ফিনল্যান্ডের বাইরে HSL বন্ধ রাখুন, আর প্ল্যানার বিশ্বব্যাপী OSM রাউটিং ব্যবহার করবে।"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL ist die Verkehrsbehörde der Region Helsinki. Ihre Digitransit-API bietet hochwertige Fahrrad-Routen über das gesamte Ballungsgebiet von Helsinki. Der Schlüssel ist kostenlos — melde dich im Portal an, registriere eine App und kopiere den Subscription Key in das Feld oben. Außerhalb des Gebiets von Helsinki HSL deaktivieren; der Planer nutzt dann OSM-Routing global."
+            "value" : "HSL ist die Verkehrsbehörde der Region Helsinki. Ihre Digitransit-API bietet hochwertige Fahrrad-Routenplanung in ganz Finnland – einschließlich Helsinki, Tampere, Turku, Oulu und weiteren Regionen, die durch veröffentlichte GTFS-Feeds abgedeckt sind. Der Schlüssel ist kostenlos – melde dich im Portal an, registriere eine App und kopiere den Subscription Key in das Feld oben. Außerhalb Finnlands lasse HSL aus und der Planer verwendet OSM-Routing weltweit."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across the Helsinki metro area. The key is free — sign in at the portal, register an app, and copy the subscription key into the field above. Outside the Helsinki area, leave HSL off and the planner uses OSM routing globally."
+            "value" : "HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across Finland — including Helsinki, Tampere, Turku, Oulu, and other regions covered by published GTFS feeds. The key is free — sign in at the portal, register an app, and copy the subscription key into the field above. Outside Finland, leave HSL off and the planner uses OSM routing globally."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL es la autoridad de transporte del Área Metropolitana de Helsinki. Su API de Digitransit ofrece enrutamiento de alta calidad para bicicletas en toda el área metropolitana de Helsinki. La clave es gratuita: inicia sesión en el portal, registra una aplicación y copia la clave de suscripción en el campo de arriba. Fuera del área de Helsinki, deja HSL desactivado y el planificador usa enrutamiento con OSM a nivel global."
+            "value" : "HSL es la autoridad de transporte de la Región de Helsinki. Su API de Digitransit ofrece rutas de bicicleta de alta calidad en toda Finlandia, incluyendo Helsinki, Tampere, Turku, Oulu y otras regiones cubiertas por feeds GTFS publicados. La clave es gratuita: inicia sesión en el portal, registra una aplicación y copia la clave de suscripción en el campo de arriba. Fuera de Finlandia, deja HSL desactivado y el planificador usará el enrutado de OSM a nivel global."
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL سازمان حمل‌ونقل منطقه هلسینکی است. Digitransit API آن‌ها مسیریابی باکیفیت برای دوچرخه در سراسر منطقه مترو هلسینکی ارائه می‌دهد. کلید رایگان است—در پورتال وارد شوید، یک اپ ثبت کنید و کلید اشتراک را در فیلد بالا کپی کنید. خارج از محدوده هلسینکی، HSL را خاموش بگذارید و برنامه‌ریز از مسیریابی OSM به‌صورت سراسری استفاده می‌کند."
+            "value" : "HSL مرجع حمل‌ونقل منطقه هلسینکی است. API مربوط به Digitransit آن‌ها، مسیریابی باکیفیت دوچرخه را در سراسر فنلاند ارائه می‌دهد—از جمله هلسینکی، تامپره، تورکو، اولو و سایر مناطق تحت پوشش فیدهای منتشرشده GTFS. کلید رایگان است—در پورتال وارد شوید، یک اپ ثبت کنید و کلید اشتراک را در فیلد بالا کپی کنید. خارج از فنلاند، HSL را خاموش کنید تا برنامه از مسیریابی OSM به‌صورت سراسری استفاده کند."
           }
         },
         "fi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL on Helsingin seudun liikenteen viranomainen. Heidän Digitransit API tarjoaa korkealaatuista pyöräreititystä koko Helsingin metropolialueella. Avain on ilmainen — kirjaudu portaalissa, rekisteröi sovellus ja kopioi tilausavain yllä olevaan kenttään. Helsingin alueen ulkopuolella jätä HSL pois ja reititin käyttää OSM-reititystä maailmanlaajuisesti."
+            "value" : "HSL on Helsingin seudun liikenteen viranomainen. Heidän Digitransit-sovellusrajapintansa tarjoaa korkealaatuista pyöräreititystä koko Suomessa — mukaan lukien Helsinki, Tampere, Turku, Oulu ja muut alueet, jotka kuuluvat julkaistujen GTFS-syötteiden piiriin. Tärkeintä on, että avain on ilmainen — kirjaudu portaalissa sisään, rekisteröi sovellus ja kopioi tilausavain yllä olevaan kenttään. Suomen ulkopuolella jätä HSL pois päältä ja reititin käyttää OSM-reititystä maailmanlaajuisesti."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL est l’autorité des transports de la région de Helsinki. Leur API Digitransit fournit un routage vélo de haute qualité dans toute la zone métropolitaine de Helsinki. La clé est gratuite : connectez-vous sur le portail, enregistrez une application, puis copiez la clé d’abonnement dans le champ ci-dessus. En dehors de la zone de Helsinki, laissez HSL désactivé et le planificateur utilise le routage OSM à l’échelle mondiale."
+            "value" : "HSL est l’autorité des transports de la région de Helsinki. Leur API Digitransit fournit un routage vélo de haute qualité à travers toute la Finlande — y compris Helsinki, Tampere, Turku, Oulu et d’autres régions couvertes par des flux GTFS publiés. L’essentiel : c’est gratuit — connectez-vous au portail, enregistrez une application, puis copiez la clé d’abonnement dans le champ ci-dessus. En dehors de la Finlande, laissez HSL désactivé et le planificateur utilisera le routage via OSM à l’échelle mondiale."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL हेलसिंकी क्षेत्र परिवहन प्राधिकरण है। उनका Digitransit API हेलसिंकी मेट्रो क्षेत्र में उच्च-गुणवत्ता वाली बाइक रूटिंग देता है। कुंजी मुफ़्त है — पोर्टल पर साइन इन करें, एक ऐप रजिस्टर करें, और सब्सक्रिप्शन कुंजी को ऊपर वाले फ़ील्ड में कॉपी करें। हेलसिंकी क्षेत्र के बाहर HSL बंद रखें और प्लानर वैश्विक रूप से OSM रूटिंग का उपयोग करेगा।"
+            "value" : "HSL हेलसिंकी क्षेत्र परिवहन प्राधिकरण है। उनका Digitransit API फ़िनलैंड भर में, प्रकाशित GTFS फ़ीड्स द्वारा कवर किए गए क्षेत्रों—हेलसिंकी, टैम्परे, तुर्कु, ओउलू और अन्य—में उच्च-गुणवत्ता वाली साइकिल रूटिंग देता है। कुंजी मुफ़्त है—पोर्टल पर साइन इन करें, एक ऐप रजिस्टर करें, और सब्सक्रिप्शन की को ऊपर वाले फ़ील्ड में कॉपी करें। फ़िनलैंड के बाहर, HSL बंद रखें और प्लानर वैश्विक रूप से OSM रूटिंग का उपयोग करेगा।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL adalah otoritas Transportasi Wilayah Helsinki. API Digitransit mereka menyediakan routing sepeda berkualitas tinggi di area metro Helsinki. Kuncinya gratis — masuk di portal, daftarkan aplikasi, lalu salin kunci langganan ke kolom di atas. Di luar area Helsinki, matikan HSL dan perencana menggunakan routing OSM secara global."
+            "value" : "HSL adalah otoritas Transportasi Wilayah Helsinki. API Digitransit mereka menyediakan perutean sepeda berkualitas tinggi di seluruh Finland — termasuk Helsinki, Tampere, Turku, Oulu, dan wilayah lain yang tercakup oleh feed GTFS yang dipublikasikan. Kuncinya gratis — masuk ke portal, daftarkan aplikasi, lalu salin subscription key ke kolom di atas. Di luar Finland, matikan HSL dan perencana menggunakan perutean OSM secara global."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSLはヘルシンキ地域交通当局です。DigitransitのAPIは、ヘルシンキ都市圏で高品質な自転車ルーティングを提供します。キーは無料です。ポータルでサインインし、アプリを登録して、サブスクリプションキーを上の欄に貼り付けてください。ヘルシンキ圏外ではHSLをオフにし、プランナーはOSMのルーティングをグローバルに使用します。"
+            "value" : "HSLはヘルシンキ地域交通局です。HSLのDigitransit APIは、フィンランド全土（ヘルシンキ、タンペレ、トゥルク、オウルなど）を含む高品質な自転車ルーティングを提供します。ポイントは無料であることです。ポータルでサインインし、アプリを登録して、サブスクリプションキーを上の欄に貼り付けてください。フィンランド国外ではHSLをオフにし、プランナーは世界中でOSMルーティングを使用します。"
           }
         },
         "mr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL हे हेलसिंकी प्रदेश परिवहन प्राधिकरण आहे. त्यांचे Digitransit API हेलसिंकी महानगर परिसरात उच्च-गुणवत्तेचे सायकल रूटिंग देते. की मोफत आहे — पोर्टलवर साइन इन करा, अॅप नोंदणी करा, आणि सबस्क्रिप्शन की वरच्या फील्डमध्ये कॉपी करा. हेलसिंकी क्षेत्राबाहेर HSL बंद ठेवा आणि प्लॅनर जागतिक स्तरावर OSM रूटिंग वापरेल."
+            "value" : "HSL ही हेलसिंकी प्रदेशातील परिवहन प्राधिकरण आहे. त्यांची Digitransit API फिनलंडभर उच्च-गुणवत्तेचे सायकल रूटिंग देते — ज्यामध्ये हेलसिंकी, टॅम्पेरे, तुर्कू, ओउलू आणि प्रकाशित GTFS फीड्सद्वारे कव्हर होणाऱ्या इतर प्रदेशांचा समावेश आहे. महत्त्वाची गोष्ट म्हणजे हे मोफत आहे — पोर्टलवर साइन इन करा, अॅप नोंदणी करा आणि सबस्क्रिप्शन की वरच्या फील्डमध्ये कॉपी करा. फिनलंडच्या बाहेर HSL बंद ठेवा आणि प्लॅनर जागतिक स्तरावर OSM रूटिंग वापरेल."
           }
         },
         "pcm" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL na authority for di Helsinki Region Transport. Dem Digitransit API na e dey give bike routing wey good well-well across di metro area for Helsinki. Key no cost — just sign in for portal, register app, then copy subscription key put for field wey dey above. For outside Helsinki area, leave HSL make e no work, planner go use OSM routing for everywhere."
+            "value" : "HSL na imaa Helsinki Region Transport (authority). Diẹr Digitransit API na e give high-quality bike routing for Finland—including Helsinki, Tampere, Turku, Oulu, àti other regions wey dey under published GTFS feeds. Diẹr key no cost—just sign in for portal, register app, make you copy subscription key put for field wey dey above. For outside Finland, leave HSL off, ki planner no use OSM routing for whole world."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL é a autoridade de transporte da Região de Helsinque. Sua API Digitransit fornece roteamento de bicicleta de alta qualidade em toda a área metropolitana de Helsinque. A chave é gratuita — faça login no portal, registre um aplicativo e copie a chave de assinatura no campo acima. Fora da área de Helsinque, deixe HSL desativado e o planejador usa roteamento OSM globalmente."
+            "value" : "HSL é a autoridade de transporte da Região de Helsinque. A API do Digitransit deles oferece roteamento de bicicleta de alta qualidade em toda a Finlândia — incluindo Helsinque, Tampere, Turku, Oulu e outras regiões cobertas por feeds GTFS publicados. A chave é gratuita — faça login no portal, registre um aplicativo e copie a chave de assinatura no campo acima. Fora da Finlândia, deixe o HSL desativado e o planejador usa o roteamento do OSM globalmente."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL — транспортное управление Хельсинкского региона. Их API Digitransit обеспечивает высококачественную маршрутизацию для велосипедов по району метро Хельсинки. Ключ бесплатный — войдите на портал, зарегистрируйте приложение и скопируйте ключ подписки в поле выше. За пределами Хельсинки отключите HSL, и планировщик будет использовать маршрутизацию OSM глобально."
+            "value" : "HSL — это транспортное управление столичного региона Хельсинки. Их API Digitransit обеспечивает высококачественную велонавигацию по всей Финляндии — включая Хельсинки, Тампере, Турку, Оулу и другие регионы, охваченные опубликованными фидами GTFS. Ключ бесплатный: войдите на портал, зарегистрируйте приложение и скопируйте subscription key в поле выше. За пределами Финляндии оставьте HSL выключенным — и планировщик будет использовать маршрутизацию OSM по всему миру."
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL ہیلسنکی ریجن ٹرانسپورٹ اتھارٹی ہے۔ ان کی Digitransit API ہیلسنکی میٹرو کے علاقے میں اعلیٰ معیار کی بائیک روٹنگ فراہم کرتی ہے۔ کلید مفت ہے — پورٹل پر سائن اِن کریں، ایک ایپ رجسٹر کریں، اور سبسکرپشن کی کو اوپر والے فیلڈ میں کاپی کریں۔ ہیلسنکی کے علاقے سے باہر HSL بند رکھیں اور پلانر عالمی سطح پر OSM روٹنگ استعمال کرے گا۔"
+            "value" : "HSL ہیلسنکی ریجن ٹرانسپورٹ اتھارٹی ہے۔ ان کی Digitransit API فن لینڈ بھر میں اعلیٰ معیار کی سائیکل روٹنگ فراہم کرتی ہے — جس میں ہیلسنکی، ٹمپرے، تُرکو، اوولو اور دیگر وہ علاقے شامل ہیں جو شائع شدہ GTFS فیڈز کے ذریعے کور ہوتے ہیں۔ اصل بات یہ ہے کہ یہ مفت ہے — پورٹل پر سائن اِن کریں، ایک ایپ رجسٹر کریں، اور سبسکرپشن کی کو اوپر والے فیلڈ میں کاپی کریں۔ فن لینڈ کے باہر HSL کو آف رکھیں اور پلانر عالمی سطح پر OSM روٹنگ استعمال کرے گا۔"
           }
         },
         "zh" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HSL 是赫尔辛基地区交通管理机构。他们的 Digitransit API 可在赫尔辛基地铁周边提供高质量的自行车路线规划。密钥是免费的——在门户登录、注册应用，然后将订阅密钥复制到上方的输入框中。在赫尔辛基地区之外，请关闭 HSL，规划器将使用 OSM 在全球范围内进行路线规划。"
+            "value" : "HSL 是赫尔辛基地区交通管理机构。他们的 Digitransit API 可在整个芬兰提供高质量的自行车路线规划——包括赫尔辛基、坦佩雷、图尔库、奥卢以及其他由已发布的 GTFS 数据源覆盖的地区。关键在于：它是免费的——在门户网站登录、注册一个应用，然后将订阅密钥复制到上方的输入框中。在芬兰以外，请关闭 HSL，规划器将使用 OSM 在全球范围内进行路线规划。"
           }
         }
       }

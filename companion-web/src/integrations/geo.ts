@@ -3,23 +3,23 @@ import type { CoordinatePoint, RouteManeuverType } from "../domain/models.js";
 const METERS_PER_DEGREE_LAT = 111_320.0;
 
 /**
- * Approximate bounding box for the Uusimaa region of Finland (Helsinki, Espoo, Vantaa,
- * Porvoo, Hanko, Loviisa, etc.). HSL Digitransit only meaningfully covers this area, so
- * we hide the HSL tab when either endpoint is outside the box.
+ * Approximate bounding box for mainland Finland (including Åland). Digitransit's
+ * `finland` router aggregates GTFS feeds nationwide, so we hide the HSL tab only
+ * when either endpoint is outside the country.
  */
-const UUSIMAA_BOUNDS = {
-  minLat: 59.8,
-  maxLat: 60.8,
-  minLon: 23.3,
-  maxLon: 26.7,
+const FINLAND_BOUNDS = {
+  minLat: 59.7,
+  maxLat: 70.1,
+  minLon: 19.0,
+  maxLon: 31.7,
 };
 
-export function isInUusimaa(point: CoordinatePoint): boolean {
+export function isInFinland(point: CoordinatePoint): boolean {
   return (
-    point.latitude >= UUSIMAA_BOUNDS.minLat &&
-    point.latitude <= UUSIMAA_BOUNDS.maxLat &&
-    point.longitude >= UUSIMAA_BOUNDS.minLon &&
-    point.longitude <= UUSIMAA_BOUNDS.maxLon
+    point.latitude >= FINLAND_BOUNDS.minLat &&
+    point.latitude <= FINLAND_BOUNDS.maxLat &&
+    point.longitude >= FINLAND_BOUNDS.minLon &&
+    point.longitude <= FINLAND_BOUNDS.maxLon
   );
 }
 

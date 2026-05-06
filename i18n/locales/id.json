@@ -1409,11 +1409,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.description": {
-      "value": "HSL adalah otoritas Transportasi Wilayah Helsinki. API Digitransit mereka menyediakan routing sepeda berkualitas tinggi di area metro Helsinki. Kuncinya gratis — masuk di portal, daftarkan aplikasi, lalu salin kunci langganan ke kolom di atas. Di luar area Helsinki, matikan HSL dan perencana menggunakan routing OSM secara global.",
+      "value": "HSL adalah otoritas Transportasi Wilayah Helsinki. API Digitransit mereka menyediakan perutean sepeda berkualitas tinggi di seluruh Finland — termasuk Helsinki, Tampere, Turku, Oulu, dan wilayah lain yang tercakup oleh feed GTFS yang dipublikasikan. Kuncinya gratis — masuk ke portal, daftarkan aplikasi, lalu salin subscription key ke kolom di atas. Di luar Finland, matikan HSL dan perencana menggunakan perutean OSM secara global.",
       "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
-      "sourceHash": "sha256:c973b6517ed52a36",
+      "sourceHash": "sha256:e93cb87801d921aa",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:39:49Z",
+      "translatedAt": "2026-05-06T12:05:59Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.section": {

@@ -1409,11 +1409,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.description": {
-      "value": "HSL هي هيئة النقل في منطقة هلسنكي. توفر واجهة Digitransit API الخاصة بهم توجيهًا عالي الجودة للدراجات عبر منطقة مترو هلسنكي. المفتاح مجاني — سجّل الدخول في البوابة، وسجّل تطبيقًا، ثم انسخ مفتاح الاشتراك إلى الحقل أعلاه. خارج منطقة هلسنكي، اترك HSL دون تفعيل وسيستخدم المخطط توجيه OSM عالميًا.",
+      "value": "‏HSL هي سلطة النقل في منطقة هلسنكي. توفر واجهة برمجة التطبيقات الخاصة بـ Digitransit لديهم توجيهًا عالي الجودة للدراجات عبر فنلندا — بما في ذلك هلسنكي وتامبيري وتوركو وأولو وغيرها من المناطق المشمولة بواجهات تغذية GTFS المنشورة. المفتاح مجاني — سجّل الدخول إلى البوابة، وسجّل تطبيقًا، ثم انسخ مفتاح الاشتراك إلى الحقل أعلاه. خارج فنلندا، اترك HSL غير مفعّل وسيستخدم المخطط توجيه OSM عالميًا.",
       "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
-      "sourceHash": "sha256:c973b6517ed52a36",
+      "sourceHash": "sha256:e93cb87801d921aa",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:37:46Z",
+      "translatedAt": "2026-05-06T12:05:41Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.section": {

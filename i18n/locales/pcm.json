@@ -1409,11 +1409,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.description": {
-      "value": "HSL na authority for di Helsinki Region Transport. Dem Digitransit API na e dey give bike routing wey good well-well across di metro area for Helsinki. Key no cost — just sign in for portal, register app, then copy subscription key put for field wey dey above. For outside Helsinki area, leave HSL make e no work, planner go use OSM routing for everywhere.",
+      "value": "HSL na imaa Helsinki Region Transport (authority). Diẹr Digitransit API na e give high-quality bike routing for Finland—including Helsinki, Tampere, Turku, Oulu, àti other regions wey dey under published GTFS feeds. Diẹr key no cost—just sign in for portal, register app, make you copy subscription key put for field wey dey above. For outside Finland, leave HSL off, ki planner no use OSM routing for whole world.",
       "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
-      "sourceHash": "sha256:c973b6517ed52a36",
+      "sourceHash": "sha256:e93cb87801d921aa",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:40:46Z",
+      "translatedAt": "2026-05-06T12:06:05Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.section": {

@@ -155,7 +155,7 @@
   "settings.restartRequired.title": "Uudelleenkäynnistys vaaditaan",
   "settings.routePlanner.cyclingSpeed": "Pyöräilyn nopeus",
   "settings.routePlanner.defaults.section": "Oletukset",
-  "settings.routePlanner.hsl.description": "HSL on Helsingin seudun liikenteen viranomainen. Heidän Digitransit API tarjoaa korkealaatuista pyöräreititystä koko Helsingin metropolialueella. Avain on ilmainen — kirjaudu portaalissa, rekisteröi sovellus ja kopioi tilausavain yllä olevaan kenttään. Helsingin alueen ulkopuolella jätä HSL pois ja reititin käyttää OSM-reititystä maailmanlaajuisesti.",
+  "settings.routePlanner.hsl.description": "HSL on Helsingin seudun liikenteen viranomainen. Heidän Digitransit-sovellusrajapintansa tarjoaa korkealaatuista pyöräreititystä koko Suomessa — mukaan lukien Helsinki, Tampere, Turku, Oulu ja muut alueet, jotka kuuluvat julkaistujen GTFS-syötteiden piiriin. Tärkeintä on, että avain on ilmainen — kirjaudu portaalissa sisään, rekisteröi sovellus ja kopioi tilausavain yllä olevaan kenttään. Suomen ulkopuolella jätä HSL pois päältä ja reititin käyttää OSM-reititystä maailmanlaajuisesti.",
   "settings.routePlanner.hsl.section": "HSL Digitransit",
   "settings.routePlanner.riding.footnote": "Pyöräilyn nopeus ohittaa HSL:n ETA-arviot (Digitransit käyttää oletuksena hidasta pyöränopeutta). Nopeusyksikkö määrittää, miten reaaliaikaisen nopeuden tunniste näytetään kartalla.",
   "settings.routePlanner.riding.section": "Pyöräily",

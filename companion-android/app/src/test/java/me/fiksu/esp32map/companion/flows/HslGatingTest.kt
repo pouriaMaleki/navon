@@ -1,45 +1,45 @@
 package me.fiksu.esp32map.companion.flows
 
 import me.fiksu.esp32map.companion.domain.CoordinatePoint
-import me.fiksu.esp32map.companion.domain.geo.UusimaaBounds
+import me.fiksu.esp32map.companion.domain.geo.FinlandBounds
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
  * L1 tests — HSL applicability bounding-box semantics (plan flow #31 /
- * hsl_skipped_outside_uusimaa). Exercises the real `UusimaaBounds.contains`
- * used by `CompanionAppState.isInUusimaa`, so a regression in the shipped code
+ * hsl_skipped_outside_finland). Exercises the real `FinlandBounds.contains`
+ * used by `CompanionAppState.isInFinland`, so a regression in the shipped code
  * surfaces here.
  */
 class HslGatingTest {
     @Test
     fun helsinki_inside_bounds() {
-        assertTrue(UusimaaBounds.contains(CoordinatePoint(60.1699, 24.9384)))
+        assertTrue(FinlandBounds.contains(CoordinatePoint(60.1699, 24.9384)))
     }
 
     @Test
-    fun tampere_outside_bounds() {
-        assertFalse(UusimaaBounds.contains(CoordinatePoint(61.4978, 23.7610)))
+    fun tampere_inside_bounds() {
+        assertTrue(FinlandBounds.contains(CoordinatePoint(61.4978, 23.7610)))
     }
 
     @Test
-    fun stockholm_far_south_rejected() {
-        assertFalse(UusimaaBounds.contains(CoordinatePoint(59.3293, 18.0686)))
+    fun rovaniemi_inside_bounds() {
+        assertTrue(FinlandBounds.contains(CoordinatePoint(66.5039, 25.7294)))
     }
 
     @Test
-    fun stPetersburg_far_east_rejected() {
-        assertFalse(UusimaaBounds.contains(CoordinatePoint(59.9311, 30.3609)))
+    fun stockholm_west_rejected() {
+        assertFalse(FinlandBounds.contains(CoordinatePoint(59.3293, 18.0686)))
     }
 
     @Test
-    fun porvoo_east_edge_still_inside() {
-        assertTrue(UusimaaBounds.contains(CoordinatePoint(60.3907, 25.6615)))
+    fun tallinn_south_rejected() {
+        assertFalse(FinlandBounds.contains(CoordinatePoint(59.4370, 24.7536)))
     }
 
     @Test
-    fun just_north_of_bbox_rejected() {
-        assertFalse(UusimaaBounds.contains(CoordinatePoint(60.9, 24.9)))
+    fun far_north_arctic_rejected() {
+        assertFalse(FinlandBounds.contains(CoordinatePoint(71.0, 25.0)))
     }
 }

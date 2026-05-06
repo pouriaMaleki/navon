@@ -1310,11 +1310,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.description": {
-      "value": "HSL on Helsingin seudun liikenteen viranomainen. Heidän Digitransit API tarjoaa korkealaatuista pyöräreititystä koko Helsingin metropolialueella. Avain on ilmainen — kirjaudu portaalissa, rekisteröi sovellus ja kopioi tilausavain yllä olevaan kenttään. Helsingin alueen ulkopuolella jätä HSL pois ja reititin käyttää OSM-reititystä maailmanlaajuisesti.",
+      "value": "HSL on Helsingin seudun liikenteen viranomainen. Heidän Digitransit-sovellusrajapintansa tarjoaa korkealaatuista pyöräreititystä koko Suomessa — mukaan lukien Helsinki, Tampere, Turku, Oulu ja muut alueet, jotka kuuluvat julkaistujen GTFS-syötteiden piiriin. Tärkeintä on, että avain on ilmainen — kirjaudu portaalissa sisään, rekisteröi sovellus ja kopioi tilausavain yllä olevaan kenttään. Suomen ulkopuolella jätä HSL pois päältä ja reititin käyttää OSM-reititystä maailmanlaajuisesti.",
       "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
-      "sourceHash": "sha256:c973b6517ed52a36",
+      "sourceHash": "sha256:e93cb87801d921aa",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedAt": "2026-05-06T12:05:53Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.section": {

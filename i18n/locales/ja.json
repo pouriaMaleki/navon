@@ -1409,11 +1409,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.description": {
-      "value": "HSLはヘルシンキ地域交通当局です。DigitransitのAPIは、ヘルシンキ都市圏で高品質な自転車ルーティングを提供します。キーは無料です。ポータルでサインインし、アプリを登録して、サブスクリプションキーを上の欄に貼り付けてください。ヘルシンキ圏外ではHSLをオフにし、プランナーはOSMのルーティングをグローバルに使用します。",
+      "value": "HSLはヘルシンキ地域交通局です。HSLのDigitransit APIは、フィンランド全土（ヘルシンキ、タンペレ、トゥルク、オウルなど）を含む高品質な自転車ルーティングを提供します。ポイントは無料であることです。ポータルでサインインし、アプリを登録して、サブスクリプションキーを上の欄に貼り付けてください。フィンランド国外ではHSLをオフにし、プランナーは世界中でOSMルーティングを使用します。",
       "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
-      "sourceHash": "sha256:c973b6517ed52a36",
+      "sourceHash": "sha256:e93cb87801d921aa",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:40:04Z",
+      "translatedAt": "2026-05-06T12:06:01Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.section": {

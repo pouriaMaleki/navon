@@ -240,26 +240,26 @@ final class AppModel: ObservableObject {
             && !settings.hslSubscriptionKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    /// True when both endpoints of the current request fall inside the Uusimaa region of
-    /// Finland (HSL Digitransit's coverage area).
+    /// True when both endpoints of the current request fall inside Finland
+    /// (Digitransit's nationwide coverage area).
     var isHslApplicableForRequest: Bool {
-        AppModel.isInUusimaa(routeRequest.origin) && AppModel.isInUusimaa(routeRequest.destination)
+        AppModel.isInFinland(routeRequest.origin) && AppModel.isInFinland(routeRequest.destination)
     }
 
     /// True when HSL is both configured AND geographically usable for the current request.
     var isHslAvailable: Bool { isHslLiveConfigured && isHslApplicableForRequest }
 
     /// Source-mode tabs visible in the UI. With no Digitransit key, or when either endpoint
-    /// is outside Uusimaa, mixed/HSL collapse to OSM (the picker hides itself when there is
+    /// is outside Finland, mixed/HSL collapse to OSM (the picker hides itself when there is
     /// only one option).
     var sourceModeOptions: [RouteSourceMode] {
         isHslAvailable ? RouteSourceMode.allCases : [.osm]
     }
 
-    /// Approximate bounding box for the Uusimaa region of Finland (Helsinki, Espoo,
-    /// Vantaa, Porvoo, Hanko, Loviisa, etc.).
-    static func isInUusimaa(_ point: CoordinatePoint) -> Bool {
-        (59.8...60.8).contains(point.latitude) && (23.3...26.7).contains(point.longitude)
+    /// Approximate bounding box for mainland Finland (including Åland). Digitransit's
+    /// `finland` router aggregates GTFS feeds nationwide.
+    static func isInFinland(_ point: CoordinatePoint) -> Bool {
+        (59.7...70.1).contains(point.latitude) && (19.0...31.7).contains(point.longitude)
     }
 
     var isDeviceConnected: Bool {
@@ -393,7 +393,7 @@ final class AppModel: ObservableObject {
         return isDeviceConnected
     }
 
-    /// When HSL becomes unusable (no key OR endpoints outside Uusimaa), fall back any
+    /// When HSL becomes unusable (no key OR endpoints outside Finland), fall back any
     /// HSL-only or Mixed active selections to OSM. Persisted defaults are also normalised
     /// when the underlying *configuration* (the key) is gone, so a relaunch is consistent.
     func normalizeSourceModeForHslAvailability() {
@@ -482,7 +482,7 @@ final class AppModel: ObservableObject {
     }
 
     func planRoute(using sourceMode: RouteSourceMode, preferredTitle: String? = nil, revisionOverride: Int? = nil) async {
-        // If HSL isn't available for this trip (no key OR endpoints outside Uusimaa),
+        // If HSL isn't available for this trip (no key OR endpoints outside Finland),
         // collapse mixed/HSL down to OSM before planning so we don't race a useless provider.
         let effectiveMode: RouteSourceMode = (!isHslAvailable && sourceMode != .osm) ? .osm : sourceMode
         currentSourceMode = effectiveMode
@@ -767,7 +767,7 @@ final class AppModel: ObservableObject {
         guard let osm = providers[.osm] else {
             throw NSError(domain: "AppModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Mixed mode providers are unavailable"])
         }
-        // Skip the HSL race when HSL is unavailable (no key OR endpoints outside Uusimaa).
+        // Skip the HSL race when HSL is unavailable (no key OR endpoints outside Finland).
         let includeHsl = isHslAvailable
         async let osmPreview = preview(from: osm, request: request, revisionOverride: revisionOverride)
         let previews: [RoutePreviewModel]

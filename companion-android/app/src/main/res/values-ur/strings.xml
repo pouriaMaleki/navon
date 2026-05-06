@@ -157,7 +157,7 @@
     <string name="settings_restartRequired_title" formatted="false">دوبارہ شروع کرنا ضروری ہے</string>
     <string name="settings_routePlanner_cyclingSpeed" formatted="false">سائیکلنگ رفتار</string>
     <string name="settings_routePlanner_defaults_section" formatted="false">ڈیفالٹس</string>
-    <string name="settings_routePlanner_hsl_description" formatted="false">HSL ہیلسنکی ریجن ٹرانسپورٹ اتھارٹی ہے۔ ان کی Digitransit API ہیلسنکی میٹرو کے علاقے میں اعلیٰ معیار کی بائیک روٹنگ فراہم کرتی ہے۔ کلید مفت ہے — پورٹل پر سائن اِن کریں، ایک ایپ رجسٹر کریں، اور سبسکرپشن کی کو اوپر والے فیلڈ میں کاپی کریں۔ ہیلسنکی کے علاقے سے باہر HSL بند رکھیں اور پلانر عالمی سطح پر OSM روٹنگ استعمال کرے گا۔</string>
+    <string name="settings_routePlanner_hsl_description" formatted="false">HSL ہیلسنکی ریجن ٹرانسپورٹ اتھارٹی ہے۔ ان کی Digitransit API فن لینڈ بھر میں اعلیٰ معیار کی سائیکل روٹنگ فراہم کرتی ہے — جس میں ہیلسنکی، ٹمپرے، تُرکو، اوولو اور دیگر وہ علاقے شامل ہیں جو شائع شدہ GTFS فیڈز کے ذریعے کور ہوتے ہیں۔ اصل بات یہ ہے کہ یہ مفت ہے — پورٹل پر سائن اِن کریں، ایک ایپ رجسٹر کریں، اور سبسکرپشن کی کو اوپر والے فیلڈ میں کاپی کریں۔ فن لینڈ کے باہر HSL کو آف رکھیں اور پلانر عالمی سطح پر OSM روٹنگ استعمال کرے گا۔</string>
     <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
     <string name="settings_routePlanner_riding_footnote" formatted="false">سائیکلنگ رفتار HSL کے ETA کو اوور رائیڈ کرتی ہے (Digitransit ڈیفالٹ طور پر سست بائیک رفتار استعمال کرتا ہے)۔ رفتار کی اکائی یہ ہے کہ نقشے پر لائیو رفتار بیج کیسے دکھایا جاتا ہے۔</string>
     <string name="settings_routePlanner_riding_section" formatted="false">سفر</string>

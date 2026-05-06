@@ -1409,11 +1409,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.description": {
-      "value": "HSL ہیلسنکی ریجن ٹرانسپورٹ اتھارٹی ہے۔ ان کی Digitransit API ہیلسنکی میٹرو کے علاقے میں اعلیٰ معیار کی بائیک روٹنگ فراہم کرتی ہے۔ کلید مفت ہے — پورٹل پر سائن اِن کریں، ایک ایپ رجسٹر کریں، اور سبسکرپشن کی کو اوپر والے فیلڈ میں کاپی کریں۔ ہیلسنکی کے علاقے سے باہر HSL بند رکھیں اور پلانر عالمی سطح پر OSM روٹنگ استعمال کرے گا۔",
+      "value": "HSL ہیلسنکی ریجن ٹرانسپورٹ اتھارٹی ہے۔ ان کی Digitransit API فن لینڈ بھر میں اعلیٰ معیار کی سائیکل روٹنگ فراہم کرتی ہے — جس میں ہیلسنکی، ٹمپرے، تُرکو، اوولو اور دیگر وہ علاقے شامل ہیں جو شائع شدہ GTFS فیڈز کے ذریعے کور ہوتے ہیں۔ اصل بات یہ ہے کہ یہ مفت ہے — پورٹل پر سائن اِن کریں، ایک ایپ رجسٹر کریں، اور سبسکرپشن کی کو اوپر والے فیلڈ میں کاپی کریں۔ فن لینڈ کے باہر HSL کو آف رکھیں اور پلانر عالمی سطح پر OSM روٹنگ استعمال کرے گا۔",
       "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
-      "sourceHash": "sha256:c973b6517ed52a36",
+      "sourceHash": "sha256:e93cb87801d921aa",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:41:25Z",
+      "translatedAt": "2026-05-06T12:06:12Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.section": {

@@ -1409,11 +1409,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.description": {
-      "value": "HSL سازمان حمل‌ونقل منطقه هلسینکی است. Digitransit API آن‌ها مسیریابی باکیفیت برای دوچرخه در سراسر منطقه مترو هلسینکی ارائه می‌دهد. کلید رایگان است—در پورتال وارد شوید، یک اپ ثبت کنید و کلید اشتراک را در فیلد بالا کپی کنید. خارج از محدوده هلسینکی، HSL را خاموش بگذارید و برنامه‌ریز از مسیریابی OSM به‌صورت سراسری استفاده می‌کند.",
+      "value": "HSL مرجع حمل‌ونقل منطقه هلسینکی است. API مربوط به Digitransit آن‌ها، مسیریابی باکیفیت دوچرخه را در سراسر فنلاند ارائه می‌دهد—از جمله هلسینکی، تامپره، تورکو، اولو و سایر مناطق تحت پوشش فیدهای منتشرشده GTFS. کلید رایگان است—در پورتال وارد شوید، یک اپ ثبت کنید و کلید اشتراک را در فیلد بالا کپی کنید. خارج از فنلاند، HSL را خاموش کنید تا برنامه از مسیریابی OSM به‌صورت سراسری استفاده کند.",
       "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
-      "sourceHash": "sha256:c973b6517ed52a36",
+      "sourceHash": "sha256:e93cb87801d921aa",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:38:50Z",
+      "translatedAt": "2026-05-06T12:05:51Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.section": {

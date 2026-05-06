@@ -83,7 +83,7 @@ export class RootStore {
       { autoBind: true },
     );
     autorun(() => this.diagnosticsStore.updateFromSession(this.guidanceStore.activeSession));
-    // Whenever HSL stops being usable (no key OR endpoints outside Uusimaa), switch the
+    // Whenever HSL stops being usable (no key OR endpoints outside Finland), switch the
     // active source mode to OSM. Mixed/HSL collapse to a single OSM tab in those cases.
     autorun(() => {
       if (!this.planningStore.isHslAvailable && this.planningStore.currentSourceMode !== "osm") {

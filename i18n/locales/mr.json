@@ -1409,11 +1409,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.description": {
-      "value": "HSL हे हेलसिंकी प्रदेश परिवहन प्राधिकरण आहे. त्यांचे Digitransit API हेलसिंकी महानगर परिसरात उच्च-गुणवत्तेचे सायकल रूटिंग देते. की मोफत आहे — पोर्टलवर साइन इन करा, अॅप नोंदणी करा, आणि सबस्क्रिप्शन की वरच्या फील्डमध्ये कॉपी करा. हेलसिंकी क्षेत्राबाहेर HSL बंद ठेवा आणि प्लॅनर जागतिक स्तरावर OSM रूटिंग वापरेल.",
+      "value": "HSL ही हेलसिंकी प्रदेशातील परिवहन प्राधिकरण आहे. त्यांची Digitransit API फिनलंडभर उच्च-गुणवत्तेचे सायकल रूटिंग देते — ज्यामध्ये हेलसिंकी, टॅम्पेरे, तुर्कू, ओउलू आणि प्रकाशित GTFS फीड्सद्वारे कव्हर होणाऱ्या इतर प्रदेशांचा समावेश आहे. महत्त्वाची गोष्ट म्हणजे हे मोफत आहे — पोर्टलवर साइन इन करा, अॅप नोंदणी करा आणि सबस्क्रिप्शन की वरच्या फील्डमध्ये कॉपी करा. फिनलंडच्या बाहेर HSL बंद ठेवा आणि प्लॅनर जागतिक स्तरावर OSM रूटिंग वापरेल.",
       "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
-      "sourceHash": "sha256:c973b6517ed52a36",
+      "sourceHash": "sha256:e93cb87801d921aa",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:40:32Z",
+      "translatedAt": "2026-05-06T12:06:03Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.section": {

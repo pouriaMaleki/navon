@@ -1409,11 +1409,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.description": {
-      "value": "HSL 是赫尔辛基地区交通管理机构。他们的 Digitransit API 可在赫尔辛基地铁周边提供高质量的自行车路线规划。密钥是免费的——在门户登录、注册应用，然后将订阅密钥复制到上方的输入框中。在赫尔辛基地区之外，请关闭 HSL，规划器将使用 OSM 在全球范围内进行路线规划。",
+      "value": "HSL 是赫尔辛基地区交通管理机构。他们的 Digitransit API 可在整个芬兰提供高质量的自行车路线规划——包括赫尔辛基、坦佩雷、图尔库、奥卢以及其他由已发布的 GTFS 数据源覆盖的地区。关键在于：它是免费的——在门户网站登录、注册一个应用，然后将订阅密钥复制到上方的输入框中。在芬兰以外，请关闭 HSL，规划器将使用 OSM 在全球范围内进行路线规划。",
       "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
-      "sourceHash": "sha256:c973b6517ed52a36",
+      "sourceHash": "sha256:e93cb87801d921aa",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:41:50Z",
+      "translatedAt": "2026-05-06T12:06:15Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.section": {

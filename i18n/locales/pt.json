@@ -1409,11 +1409,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.description": {
-      "value": "HSL é a autoridade de transporte da Região de Helsinque. Sua API Digitransit fornece roteamento de bicicleta de alta qualidade em toda a área metropolitana de Helsinque. A chave é gratuita — faça login no portal, registre um aplicativo e copie a chave de assinatura no campo acima. Fora da área de Helsinque, deixe HSL desativado e o planejador usa roteamento OSM globalmente.",
+      "value": "HSL é a autoridade de transporte da Região de Helsinque. A API do Digitransit deles oferece roteamento de bicicleta de alta qualidade em toda a Finlândia — incluindo Helsinque, Tampere, Turku, Oulu e outras regiões cobertas por feeds GTFS publicados. A chave é gratuita — faça login no portal, registre um aplicativo e copie a chave de assinatura no campo acima. Fora da Finlândia, deixe o HSL desativado e o planejador usa o roteamento do OSM globalmente.",
       "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
-      "sourceHash": "sha256:c973b6517ed52a36",
+      "sourceHash": "sha256:e93cb87801d921aa",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedAt": "2026-05-06T12:06:07Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.routePlanner.hsl.section": {

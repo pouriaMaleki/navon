@@ -157,7 +157,7 @@
     <string name="settings_restartRequired_title" formatted="false">Требуется перезапуск</string>
     <string name="settings_routePlanner_cyclingSpeed" formatted="false">Скорость для езды</string>
     <string name="settings_routePlanner_defaults_section" formatted="false">По умолчанию</string>
-    <string name="settings_routePlanner_hsl_description" formatted="false">HSL — транспортное управление Хельсинкского региона. Их API Digitransit обеспечивает высококачественную маршрутизацию для велосипедов по району метро Хельсинки. Ключ бесплатный — войдите на портал, зарегистрируйте приложение и скопируйте ключ подписки в поле выше. За пределами Хельсинки отключите HSL, и планировщик будет использовать маршрутизацию OSM глобально.</string>
+    <string name="settings_routePlanner_hsl_description" formatted="false">HSL — это транспортное управление столичного региона Хельсинки. Их API Digitransit обеспечивает высококачественную велонавигацию по всей Финляндии — включая Хельсинки, Тампере, Турку, Оулу и другие регионы, охваченные опубликованными фидами GTFS. Ключ бесплатный: войдите на портал, зарегистрируйте приложение и скопируйте subscription key в поле выше. За пределами Финляндии оставьте HSL выключенным — и планировщик будет использовать маршрутизацию OSM по всему миру.</string>
     <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
     <string name="settings_routePlanner_riding_footnote" formatted="false">Скорость для езды переопределяет ETA HSL (по умолчанию Digitransit использует медленную скорость для велосипеда). Единица скорости — это то, как на карте отображается бейдж текущей скорости.</string>
     <string name="settings_routePlanner_riding_section" formatted="false">Езда</string>

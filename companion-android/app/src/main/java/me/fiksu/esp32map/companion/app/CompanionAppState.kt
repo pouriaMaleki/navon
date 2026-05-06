@@ -34,7 +34,7 @@ import me.fiksu.esp32map.companion.domain.RoutePreviewModel
 import me.fiksu.esp32map.companion.domain.RouteSourceMode
 import me.fiksu.esp32map.companion.domain.RoutingProvider
 import me.fiksu.esp32map.companion.domain.SyncSessionState
-import me.fiksu.esp32map.companion.domain.geo.UusimaaBounds
+import me.fiksu.esp32map.companion.domain.geo.FinlandBounds
 import me.fiksu.esp32map.companion.integration.AndroidLocationService
 import me.fiksu.esp32map.companion.integration.ble.BleRouteSyncService
 import me.fiksu.esp32map.companion.integration.ble.PairingQrPayload
@@ -121,11 +121,11 @@ class CompanionAppState(
         get() = settings.preferLiveHslRouting && settings.hslSubscriptionKey.trim().isNotEmpty()
 
     /**
-     * True when both endpoints of the current request fall inside the Uusimaa region
-     * of Finland (HSL Digitransit's coverage area).
+     * True when both endpoints of the current request fall inside Finland
+     * (Digitransit's nationwide coverage area).
      */
     val isHslApplicableForRequest: Boolean
-        get() = isInUusimaa(routeRequest.origin) && isInUusimaa(routeRequest.destination)
+        get() = isInFinland(routeRequest.origin) && isInFinland(routeRequest.destination)
 
     /** True when HSL is both configured AND geographically usable for the current request. */
     val isHslAvailable: Boolean
@@ -133,13 +133,13 @@ class CompanionAppState(
 
     /**
      * Source-mode tabs visible in the UI. With no Digitransit key, or when either endpoint
-     * is outside Uusimaa, mixed/HSL collapse to OSM (the picker hides itself when there is
+     * is outside Finland, mixed/HSL collapse to OSM (the picker hides itself when there is
      * only one option).
      */
     val sourceModeOptions: List<RouteSourceMode>
         get() = if (isHslAvailable) RouteSourceMode.entries else listOf(RouteSourceMode.OSM)
 
-    private fun isInUusimaa(point: CoordinatePoint): Boolean = UusimaaBounds.contains(point)
+    private fun isInFinland(point: CoordinatePoint): Boolean = FinlandBounds.contains(point)
 
     val routeHistoryItems: List<RouteHistoryItem>
         get() {
@@ -226,7 +226,7 @@ class CompanionAppState(
     }
 
     /**
-     * When HSL becomes unusable (no key OR endpoints outside Uusimaa), fall back any
+     * When HSL becomes unusable (no key OR endpoints outside Finland), fall back any
      * HSL-only or Mixed active selections to OSM. Persisted defaults are also normalised
      * when the underlying *configuration* (the key) is gone, so a relaunch is consistent.
      */
@@ -275,7 +275,7 @@ class CompanionAppState(
 
     fun planRoute(sourceMode: RouteSourceMode = currentSourceMode, preferredTitle: String? = null, revisionOverride: Int? = null, onComplete: () -> Unit = {}) {
         // Collapse mixed/HSL down to OSM when HSL isn't available for this trip
-        // (no key OR endpoints outside Uusimaa).
+        // (no key OR endpoints outside Finland).
         val effectiveMode = if (!isHslAvailable && sourceMode != RouteSourceMode.OSM) RouteSourceMode.OSM else sourceMode
         currentSourceMode = effectiveMode
         routeRequest = routeRequest.copy(providerId = effectiveMode.primaryProviderId)

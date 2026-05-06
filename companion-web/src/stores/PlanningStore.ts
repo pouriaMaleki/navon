@@ -12,7 +12,7 @@ import {
   selectedAlternative,
 } from "../domain/models.js";
 import type { PlaceSearchService, RoutingProvider } from "../domain/providers.js";
-import { isInUusimaa } from "../integrations/geo.js";
+import { isInFinland } from "../integrations/geo.js";
 import {
   expandShortLink,
   extractCoordinateFromText,
@@ -82,9 +82,9 @@ export class PlanningStore {
     return this.location.bestKnownLocation() ?? this.routeRequest.origin ?? DEFAULT_ORIGIN;
   }
 
-  /** True only when both endpoints are inside the Uusimaa region (HSL coverage area). */
+  /** True only when both endpoints are inside Finland (Digitransit's coverage area). */
   get isHslApplicableForRequest(): boolean {
-    return isInUusimaa(this.routeRequest.origin) && isInUusimaa(this.routeRequest.destination);
+    return isInFinland(this.routeRequest.origin) && isInFinland(this.routeRequest.destination);
   }
 
   /** True when HSL is both configured AND geographically usable for the current request. */
@@ -94,7 +94,7 @@ export class PlanningStore {
 
   /**
    * Source-mode tabs visible in the UI. With no Digitransit key, or when either endpoint
-   * is outside Uusimaa, the only working provider is OSM, so we collapse the picker to
+   * is outside Finland, the only working provider is OSM, so we collapse the picker to
    * a single OSM option (the UI hides it entirely when there is only one).
    */
   get availableSourceModes(): RouteSourceMode[] {

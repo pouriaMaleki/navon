@@ -6,10 +6,10 @@ import { PlanningStore } from "../../stores/PlanningStore.js";
 import { SettingsStore } from "../../stores/SettingsStore.js";
 import { FakeLocationService, FakePlaceSearch, FakeRoutingAdapter } from "../fakes/index.js";
 
-// Helsinki (inside Uusimaa) and Tampere (outside Uusimaa) anchors used below.
+// Helsinki (inside Finland) and Stockholm (outside Finland) anchors used below.
 const HELSINKI = { latitude: 60.1699, longitude: 24.9384 };
 const HELSINKI_DEST = { latitude: 60.1921, longitude: 24.9458 };
-const TAMPERE = { latitude: 61.4978, longitude: 23.761 };
+const STOCKHOLM = { latitude: 59.3293, longitude: 18.0686 };
 
 type Harness = {
   planning: PlanningStore;
@@ -54,7 +54,7 @@ describe("source selection (flows #38, #39, #41)", () => {
     expect(planning.availableSourceModes).toEqual(["osm"]);
   });
 
-  it("dual_source_shows_tabs: HSL configured + both endpoints in Uusimaa exposes all modes", () => {
+  it("dual_source_shows_tabs: HSL configured + both endpoints in Finland exposes all modes", () => {
     const { planning, settings } = buildHarness();
     settings.updateSettings({ preferLiveHslRouting: true, hslSubscriptionKey: "KEY" });
     planning.routeRequest = {
@@ -65,13 +65,13 @@ describe("source selection (flows #38, #39, #41)", () => {
     expect(planning.availableSourceModes).toEqual(["mixed", "hsl", "osm"]);
   });
 
-  it("hsl_skipped_outside_uusimaa: destination outside bbox collapses to [osm]", () => {
+  it("hsl_skipped_outside_finland: destination outside bbox collapses to [osm]", () => {
     const { planning, settings } = buildHarness();
     settings.updateSettings({ preferLiveHslRouting: true, hslSubscriptionKey: "KEY" });
     planning.routeRequest = {
       ...planning.routeRequest,
       origin: HELSINKI,
-      destination: TAMPERE,
+      destination: STOCKHOLM,
     };
     expect(planning.availableSourceModes).toEqual(["osm"]);
   });
