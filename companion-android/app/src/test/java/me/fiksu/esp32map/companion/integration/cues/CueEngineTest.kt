@@ -227,7 +227,7 @@ class CueEngineTest {
             routeTotalDistanceM = 1000.0,
             progressDistanceM = 415.0,
         )
-        val r = CueEngine.tick(CueEngineState(), snap)
+        val r = CueEngine.tick(snap, CueEngineState())
         assertNotNull("must emit arrivingInM", r.events.firstOrNull { it is CueEvent.ArrivingInM })
         assertNull("must not emit nextTurnInAbout", r.events.firstOrNull { it is CueEvent.NextTurnInAbout })
     }
@@ -244,7 +244,7 @@ class CueEngineTest {
             routeTotalDistanceM = 1000.0,
             progressDistanceM = 930.0,
         )
-        val r = CueEngine.tick(CueEngineState(), snap)
+        val r = CueEngine.tick(snap, CueEngineState())
         assertNull("turn50m must be suppressed for last maneuver near end", r.events.firstOrNull { it is CueEvent.Turn50m })
     }
 
@@ -277,8 +277,8 @@ class CueEngineTest {
 
     @Test
     fun formatsSpecPhrases() {
-        assertEquals("In 50 meters, turn left", CueEngine.format(CueEvent.Turn50m(ManeuverKind.LEFT)))
-        assertEquals("In 50 meters, take the left exit", CueEngine.format(CueEvent.Turn50m(ManeuverKind.EXIT_LEFT)))
+        assertEquals("In 50 meters, turn left", CueEngine.format(CueEvent.Turn50m(ManeuverKind.LEFT, 50.0)))
+        assertEquals("In 50 meters, take the left exit", CueEngine.format(CueEvent.Turn50m(ManeuverKind.EXIT_LEFT, 50.0)))
         assertEquals("Turn right", CueEngine.format(CueEvent.Turn10m(ManeuverKind.RIGHT)))
         assertEquals(
             "Next turn left in about 190 meters",
@@ -369,7 +369,7 @@ class CueEngineTest {
     fun formatsRoundaboutPhrases() {
         assertEquals(
             "In 50 meters, enter the roundabout",
-            CueEngine.format(CueEvent.Turn50m(ManeuverKind.ROUNDABOUT)),
+            CueEngine.format(CueEvent.Turn50m(ManeuverKind.ROUNDABOUT, 50.0)),
         )
         assertEquals("Enter the roundabout", CueEngine.format(CueEvent.Turn10m(ManeuverKind.ROUNDABOUT)))
         assertEquals(
@@ -382,7 +382,7 @@ class CueEngineTest {
     fun formatsMergePhrases() {
         assertEquals(
             "In 50 meters, merge",
-            CueEngine.format(CueEvent.Turn50m(ManeuverKind.MERGE)),
+            CueEngine.format(CueEvent.Turn50m(ManeuverKind.MERGE, 50.0)),
         )
         assertEquals("Merge", CueEngine.format(CueEvent.Turn10m(ManeuverKind.MERGE)))
         assertEquals(
@@ -395,7 +395,7 @@ class CueEngineTest {
     fun formatsRampPhrases() {
         assertEquals(
             "In 50 meters, take the ramp",
-            CueEngine.format(CueEvent.Turn50m(ManeuverKind.RAMP)),
+            CueEngine.format(CueEvent.Turn50m(ManeuverKind.RAMP, 50.0)),
         )
         assertEquals("Take the ramp", CueEngine.format(CueEvent.Turn10m(ManeuverKind.RAMP)))
         assertEquals(

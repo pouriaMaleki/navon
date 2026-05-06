@@ -27,7 +27,7 @@ class RouteAlternativeTitlesTest {
         val start = CoordinatePoint(60.17, 24.94)
         val end = CoordinatePoint(60.18, 24.95)
         val pkg = NormalizedRoutePackage(
-            version = RoutePackageVersion.current,
+            version = RoutePackageVersion.CURRENT,
             routeIdentifier = "rid-${sourceReference ?: "anon"}",
             revision = 1,
             geometry = listOf(start, end),

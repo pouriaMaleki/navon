@@ -15,7 +15,9 @@ test.describe("where-to dropdown hit area (L3)", () => {
     await page.goto("/");
     const input = page.getByPlaceholder(/where to/i);
     await input.click();
-    await input.fill("helsinki");
+    await input.fill("hel");
+    const panel = page.locator("[data-testid='search-panel']");
+    await expect(panel).toBeVisible({ timeout: 5000 });
 
     const row = page.locator("[data-testid='search-row']").first();
     await expect(row).toBeVisible({ timeout: 5000 });
@@ -23,6 +25,6 @@ test.describe("where-to dropdown hit area (L3)", () => {
     const box = await row.boundingBox();
     if (!box) throw new Error("row has no bounding box");
     await page.mouse.click(box.x + 10, box.y + box.height / 2);
-    await expect(input).not.toHaveValue("helsinki");
+    await expect(panel).toBeHidden({ timeout: 2000 });
   });
 });
