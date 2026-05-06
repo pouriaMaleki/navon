@@ -19,7 +19,7 @@ Main features of this application is:
 - iOS app: `companion-ios/`
 - Android app: `companion-android/`
 
-<img src="demo/demo-1.jpg" alt="Demo 1" width="160" /> <img src="demo/demo-2.jpg" alt="Demo 2" width="160" /> <img src="demo/demo-3.png" alt="Demo 3" width="160" /> <img src="demo/demo-4.png" alt="Demo 4" width="160" /> <img src="demo/demo-5.png" alt="Demo 5" width="160" /> <img src="demo/demo-6.png" alt="Demo 6" width="160" />
+<img src="demo/demo-2.jpg" alt="Demo 2" width="160" /> <img src="demo/demo-3.png" alt="Demo 3" width="160" /> <img src="demo/demo-4.png" alt="Demo 4" width="160" /> <img src="demo/demo-5.png" alt="Demo 5" width="160" /> <img src="demo/demo-6.png" alt="Demo 6" width="160" /> <img src="demo/demo-1.jpg" alt="Demo 1" width="160" />
 
 ## Hardware [Optional]
 
