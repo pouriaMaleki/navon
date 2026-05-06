@@ -21,6 +21,7 @@ import me.fiksu.esp32map.companion.domain.RoutePreviewModel
 import me.fiksu.esp32map.companion.domain.RouteProvenance
 import me.fiksu.esp32map.companion.domain.RouteProviderId
 import me.fiksu.esp32map.companion.domain.RouteSummary
+import me.fiksu.esp32map.companion.fakes.FakeLocationService
 import me.fiksu.esp32map.companion.fakes.FakePlaceSearch
 import me.fiksu.esp32map.companion.feature.home.HomeStateHolder
 import org.junit.Assert.assertEquals
@@ -43,7 +44,7 @@ class CameraModeTest {
     @Test
     fun handleCompassDoubleTap_locks_north_up_while_routing() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         // handleCompassDoubleTap is a no-op outside phone guidance (see
         // HomeStateHolder.kt:365). We must put the holder into PHONE_GUIDANCE
@@ -56,7 +57,7 @@ class CameraModeTest {
     @Test
     fun handleCompassDoubleTap_outsideGuidance_isNoOp() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         // homeMode defaults to PLANNING — handler must no-op.
         holder.handleCompassDoubleTap()
@@ -66,7 +67,7 @@ class CameraModeTest {
     @Test
     fun handleCompassTap_outsideGuidance_isNoOp() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         val scope = TestScope(StandardTestDispatcher(testScheduler))
         holder.handleCompassTap(scope)
@@ -76,7 +77,7 @@ class CameraModeTest {
     @Test
     fun handleCompassTap_duringRouting_entersNorthPreview() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         val scope = TestScope(StandardTestDispatcher(testScheduler))
         holder.homeMode = HomeMode.PHONE_GUIDANCE
@@ -92,7 +93,7 @@ class CameraModeTest {
         // GPS update. HomeStateHolder must expose `mapFollowRiderTick` and
         // bump it when `notifyRiderLocationUpdated()` is called in guidance.
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         holder.homeMode = HomeMode.PHONE_GUIDANCE
         val before = holder.mapFollowRiderTick
@@ -107,7 +108,7 @@ class CameraModeTest {
     @Test
     fun notifyRiderLocationUpdated_outsideRouting_isNoOp() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         // homeMode defaults to PLANNING.
         val before = holder.mapFollowRiderTick
@@ -120,7 +121,7 @@ class CameraModeTest {
     @Test
     fun noteUserMapInteraction_duringRouting_schedulesRecenter() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         val scope = TestScope(StandardTestDispatcher(testScheduler))
         holder.homeMode = HomeMode.PHONE_GUIDANCE
@@ -147,7 +148,7 @@ class CameraModeTest {
     @Test
     fun noteUserMapInteraction_outsideRouting_isNoOp() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         val scope = TestScope(StandardTestDispatcher(testScheduler))
         // homeMode defaults to PLANNING.
@@ -187,7 +188,7 @@ class CameraModeTest {
     @Test
     fun routingBearingDegrees_atRouteStart_pointsAlongFirstLeg() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         val pkg = lShapeRoute()
         state.preview = RoutePreviewModel(
@@ -213,7 +214,7 @@ class CameraModeTest {
     @Test
     fun routingBearingDegrees_shiftsToNextLegOnceProgressPassesCorner() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         val pkg = lShapeRoute()
         state.preview = RoutePreviewModel(
@@ -250,7 +251,7 @@ class CameraModeTest {
     @Test
     fun compassLock_survivesRiderLocationUpdates() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         holder.homeMode = HomeMode.PHONE_GUIDANCE
         holder.compassMode = HomeCompassMode.NORTH_LOCKED
@@ -266,7 +267,7 @@ class CameraModeTest {
     @Test
     fun compassLock_survivesInactivityTimeoutRecenter() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         val scope = TestScope(StandardTestDispatcher(testScheduler))
         holder.homeMode = HomeMode.PHONE_GUIDANCE
@@ -350,7 +351,7 @@ class CameraModeTest {
     fun movingWithRoute_cameraBearingTracksTrailHeading_notRouteSegment() = runTest {
         // Route goes NORTH; rider actually moves EAST. Camera must follow EAST.
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         val start = CoordinatePoint(60.17, 24.94)
         val northEnd = CoordinatePoint(60.175, 24.94)
@@ -386,7 +387,7 @@ class CameraModeTest {
     @Test
     fun movingWithoutRoute_cameraBearingTracksTrailHeading() {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         val start = CoordinatePoint(60.17, 24.94)
         for (i in 0 until 8) {
@@ -407,7 +408,7 @@ class CameraModeTest {
         // expose travelHeadingDegrees so the Compose camera dispatch can
         // rotate. Existing tests only covered phoneGuidance.
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         // No startSelectedRoute — homeMode stays PLANNING.
         val start = CoordinatePoint(60.17, 24.94)
@@ -426,7 +427,7 @@ class CameraModeTest {
     @Test
     fun stationaryOnRoute_cameraBearingFallsBackToRouteSegment() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         val start = CoordinatePoint(60.17, 24.94)
         val northEnd = CoordinatePoint(60.175, 24.94)

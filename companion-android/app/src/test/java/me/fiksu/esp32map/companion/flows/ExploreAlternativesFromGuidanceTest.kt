@@ -8,6 +8,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import me.fiksu.esp32map.companion.app.CompanionAppState
 import me.fiksu.esp32map.companion.domain.*
+import me.fiksu.esp32map.companion.fakes.FakeLocationService
 import me.fiksu.esp32map.companion.fakes.FakePlaceSearch
 import me.fiksu.esp32map.companion.feature.home.HomeStateHolder
 import org.junit.Assert.*
@@ -35,7 +36,7 @@ class ExploreAlternativesFromGuidanceTest {
 
     private fun makeHolder(): HomeStateHolder {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         return HomeStateHolder(state, FakePlaceSearch())
     }
 
@@ -90,7 +91,7 @@ class ExploreAlternativesFromGuidanceTest {
      */
     private fun holderInPhoneGuidance(): HomeStateHolder {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         state.preview = RoutePreviewModel(
             alternatives = listOf(
                 RouteAlternative(
@@ -250,7 +251,7 @@ class ExploreAlternativesFromGuidanceTest {
     @Test
     fun selectedAlternativeIdForDisplay_showsCheckmarkAfterTap() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         state.preview = RoutePreviewModel(
             alternatives = listOf(
                 RouteAlternative(
@@ -291,7 +292,7 @@ class ExploreAlternativesFromGuidanceTest {
     @Test
     fun selectedAlternativeIdForDisplay_returnsSelectedIdOutsideExploration() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         state.preview = RoutePreviewModel(
             alternatives = listOf(
                 RouteAlternative(
@@ -354,7 +355,7 @@ class ExploreAlternativesFromGuidanceTest {
     @Test
     fun deselectForExploration_clearsSelection() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         state.preview = RoutePreviewModel(
             alternatives = listOf(
                 RouteAlternative(
@@ -393,7 +394,7 @@ class ExploreAlternativesFromGuidanceTest {
     @Test
     fun deselectForExploration_outsideExploration_isNoOp() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         state.preview = RoutePreviewModel(
             alternatives = listOf(
                 RouteAlternative(
@@ -426,7 +427,7 @@ class ExploreAlternativesFromGuidanceTest {
     @Test
     fun guidanceRoute_staysStableDuringExploration() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         state.preview = RoutePreviewModel(
             alternatives = listOf(
                 RouteAlternative(
@@ -496,7 +497,7 @@ class ExploreAlternativesFromGuidanceTest {
     @Test
     fun startSelectedRoute_clearsExploringFlag() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         val scope = TestScope(StandardTestDispatcher(testScheduler))
 

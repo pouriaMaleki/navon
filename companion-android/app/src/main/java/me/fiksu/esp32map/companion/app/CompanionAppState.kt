@@ -34,6 +34,7 @@ import me.fiksu.esp32map.companion.domain.RoutePreviewModel
 import me.fiksu.esp32map.companion.domain.RouteSourceMode
 import me.fiksu.esp32map.companion.domain.RoutingProvider
 import me.fiksu.esp32map.companion.domain.SyncSessionState
+import me.fiksu.esp32map.companion.domain.LocationService
 import me.fiksu.esp32map.companion.domain.geo.FinlandBounds
 import me.fiksu.esp32map.companion.integration.AndroidLocationService
 import me.fiksu.esp32map.companion.integration.ble.BleRouteSyncService
@@ -50,6 +51,7 @@ class CompanionAppState(
     application: Application,
     persistenceOverride: CompanionPersistence? = null,
     bleServiceOverride: BleRouteSyncService? = null,
+    locationServiceOverride: LocationService? = null,
 ) : AndroidViewModel(application) {
     companion object {
         private val DEFAULT_RIDER_FALLBACK = CoordinatePoint(60.1699, 24.9384)
@@ -108,7 +110,8 @@ class CompanionAppState(
         persistenceOverride ?: CompanionPersistence(application.applicationContext)
     val bleService: BleRouteSyncService =
         bleServiceOverride ?: BleRouteSyncService(application.applicationContext)
-    val locationService = AndroidLocationService(application.applicationContext, persistence)
+    val locationService: LocationService =
+        locationServiceOverride ?: AndroidLocationService(application.applicationContext, persistence)
     var locationState by mutableStateOf(locationService.state.value)
 
     /**

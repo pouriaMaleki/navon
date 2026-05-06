@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import me.fiksu.esp32map.companion.app.CompanionAppState
 import me.fiksu.esp32map.companion.domain.*
+import me.fiksu.esp32map.companion.fakes.FakeLocationService
 import me.fiksu.esp32map.companion.fakes.FakePlaceSearch
 import me.fiksu.esp32map.companion.feature.home.HomeStateHolder
 import org.junit.Assert.*
@@ -45,7 +46,7 @@ class GuidanceLabelTest {
     /** Returns (holder, state) with homeMode = PHONE_GUIDANCE for the given package. */
     private fun holderInGuidanceWith(pkg: NormalizedRoutePackage): Pair<HomeStateHolder, CompanionAppState> {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         state.preview = RoutePreviewModel(
             alternatives = listOf(RouteAlternative("a1", "Route 1", "", 2500, 600, pkg)),
             selectedAlternativeId = "a1",
@@ -71,7 +72,7 @@ class GuidanceLabelTest {
         val pkg1 = packageWithDestinationLabel("Selected destination")
         val pkg2 = packageWithDestinationLabel("Selected destination")
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         state.preview = RoutePreviewModel(
             alternatives = listOf(
                 RouteAlternative("a1", "Route 1", "", 2500, 600, pkg1),
@@ -158,7 +159,7 @@ class GuidanceLabelTest {
         // The fixed fallback is "No destination" — a known placeholder — so the
         // provider name never surfaces as if it were a destination address.
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         state.routeRequest = RoutePlanRequest(
             origin = origin,
             destination = destination,

@@ -7,6 +7,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import me.fiksu.esp32map.companion.app.CompanionAppState
+import me.fiksu.esp32map.companion.fakes.FakeLocationService
 import me.fiksu.esp32map.companion.fakes.FakePlaceSearch
 import me.fiksu.esp32map.companion.feature.home.HomeStateHolder
 import org.junit.Assert.assertFalse
@@ -28,7 +29,7 @@ class HomeStateUrlPasteTest {
     @Test
     fun url_query_starts_url_resolve_and_clears_search_suggestions() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         val scope = TestScope(StandardTestDispatcher(testScheduler))
         holder.updateQuery("https://www.google.com/maps/@60.16,24.95,15z", scope)
@@ -39,7 +40,7 @@ class HomeStateUrlPasteTest {
     @Test
     fun nonUrl_query_does_not_set_isResolvingUrl() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         val scope = TestScope(StandardTestDispatcher(testScheduler))
         holder.updateQuery("helsinki central", scope)
@@ -49,7 +50,7 @@ class HomeStateUrlPasteTest {
     @Test
     fun closeSearch_clears_url_state() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         val scope = TestScope(StandardTestDispatcher(testScheduler))
         holder.updateQuery("https://maps.app.goo.gl/test", scope)

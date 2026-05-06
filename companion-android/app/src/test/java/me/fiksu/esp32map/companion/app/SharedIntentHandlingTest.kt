@@ -1,10 +1,16 @@
 package me.fiksu.esp32map.companion.app
 
+import android.app.Application
 import android.content.Intent
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(manifest = Config.NONE, application = Application::class)
 class SharedIntentHandlingTest {
     @Test
     fun consumedShareIntentIsIgnoredOnSubsequentChecks() {

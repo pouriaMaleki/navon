@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.runTest
 import me.fiksu.esp32map.companion.app.CompanionAppState
 import me.fiksu.esp32map.companion.domain.DestinationSearchResult
 import me.fiksu.esp32map.companion.domain.CoordinatePoint
+import me.fiksu.esp32map.companion.fakes.FakeLocationService
 import me.fiksu.esp32map.companion.fakes.FakePlaceSearch
 import me.fiksu.esp32map.companion.feature.home.HomeStateHolder
 import org.junit.Assert.assertEquals
@@ -42,7 +43,7 @@ class HomeStateWhereToTest {
 
     private fun newHolder(): Pair<HomeStateHolder, FakePlaceSearch> {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val search = FakePlaceSearch()
         return HomeStateHolder(state, search) to search
     }

@@ -52,7 +52,7 @@ sealed class CueEvent {
      *  two overlapping cue chains. */
     data class Turn50m(
         val turnKind: ManeuverKind,
-        val distanceM: Double,
+        val distanceM: Double = 50.0,
         val followUpKind: ManeuverKind? = null,
     ) : CueEvent()
     /** Immediate-action 10 m cue. `followUpKind` is set when the next

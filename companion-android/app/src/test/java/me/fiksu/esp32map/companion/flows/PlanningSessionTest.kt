@@ -16,6 +16,7 @@ import me.fiksu.esp32map.companion.domain.RoutePreviewModel
 import me.fiksu.esp32map.companion.domain.RouteProvenance
 import me.fiksu.esp32map.companion.domain.RouteProviderId
 import me.fiksu.esp32map.companion.domain.RouteSummary
+import me.fiksu.esp32map.companion.fakes.FakeLocationService
 import me.fiksu.esp32map.companion.fakes.FakePlaceSearch
 import me.fiksu.esp32map.companion.feature.home.HomeStateHolder
 import org.junit.Assert.assertEquals
@@ -75,7 +76,7 @@ class PlanningSessionTest {
     @Test
     fun startSelectedRoute_enters_phone_guidance_mode() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val state = CompanionAppState(app)
+        val state = CompanionAppState(app, locationServiceOverride = FakeLocationService())
         val holder = HomeStateHolder(state, FakePlaceSearch())
         state.preview = RoutePreviewModel(
             alternatives = listOf(

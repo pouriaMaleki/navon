@@ -1,12 +1,26 @@
 package me.fiksu.esp32map.companion.integration.cues
 
+import me.fiksu.esp32map.companion.integration.i18n.Strings
+import me.fiksu.esp32map.companion.integration.i18n.SupportedLocale
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.BeforeClass
 import org.junit.Test
+import java.io.File
 
 class CueEngineTest {
+
+    companion object {
+        @JvmStatic
+        @BeforeClass
+        fun bootstrapEnCatalog() {
+            val json = File("src/main/res/raw/messages_en.json").readText()
+            Strings.bootstrapLocale(SupportedLocale.EN, json)
+        }
+    }
+
 
     private fun mLeft(id: String, distance: Double) =
         CueManeuver(id, ManeuverKind.LEFT, distance)

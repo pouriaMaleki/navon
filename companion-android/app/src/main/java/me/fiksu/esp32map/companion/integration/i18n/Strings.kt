@@ -96,6 +96,11 @@ object Strings {
         active = locale
     }
 
+    /** Load a locale catalog from a pre-parsed JSON string — for tests that run without an Android context. */
+    fun bootstrapLocale(locale: SupportedLocale, json: String) {
+        catalogs[locale] = parseFlatJson(json)
+    }
+
     fun resolveLocale(preference: AppLanguagePref): SupportedLocale {
         if (preference == AppLanguagePref.SYSTEM) {
             val tag = Locale.getDefault().language
