@@ -37,6 +37,8 @@ jobs:
           PY
       - name: Regenerate GPS fixtures
         run: cargo run -p xtask --bin gen-gps-fixtures
+      - name: Verify committed GPS fixtures are up to date
+        run: git diff --exit-code -- parity-fixtures/data
       - name: Run parity-fixtures tests (including flow tests)
         run: cargo test -p parity-fixtures
 
@@ -58,6 +60,9 @@ jobs:
         run: |
           mkdir -p map-data && python3 -c "import struct; open('map-data/city.svm','wb').write(b'SVM1'+struct.pack('<i',12)+struct.pack('<iiii',0,0,0,0)+struct.pack('<H',0)+struct.pack('<I',0))"
           cargo run -p xtask --bin gen-gps-fixtures
+      - name: Verify committed GPS fixtures are up to date
+        working-directory: .
+        run: git diff --exit-code -- parity-fixtures/data
       - run: npm ci
       - run: npm run lint
       - run: npm run test
@@ -165,6 +170,8 @@ jobs:
         run: |
           mkdir -p map-data && python3 -c "import struct; open('map-data/city.svm','wb').write(b'SVM1'+struct.pack('<i',12)+struct.pack('<iiii',0,0,0,0)+struct.pack('<H',0)+struct.pack('<I',0))"
           cargo run -p xtask --bin gen-gps-fixtures
+      - name: Verify committed GPS fixtures are up to date
+        run: git diff --exit-code -- parity-fixtures/data
       - name: Check baseline has not drifted
         env:
           CI: "true"

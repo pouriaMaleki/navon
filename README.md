@@ -150,3 +150,28 @@ General flow:
    ```
 
 Copy city.svm to SD Card if you want larger size map. Flashed map is very small and provided only as a backup (or for testing).
+
+## Folder Structure
+
+```text
+.
+├─ docs/              Product specs, plans, architecture notes, and contracts.
+├─ firmware/          ESP32 firmware app and platform integrations.
+├─ runtime-core/      Shared Rust runtime logic (camera, motion, routing, input).
+├─ render-core/       Shared Rust rendering pipeline and visual assets.
+├─ render-core-wasm/  WASM bridge exposing shared runtime/render to web/emulator.
+├─ emulator/          Browser-based ESP32 runtime emulator and UI shell.
+├─ companion-web/     Web companion app (route planning, guidance, sync flows).
+├─ companion-ios/     iOS companion app and tests.
+├─ companion-android/ Android companion app and tests.
+├─ parity-fixtures/   Cross-platform fixture data and parity/regression tests.
+├─ route-import-gpx/  Shared GPX-to-route package importer crate (used by `render-core-wasm` for emulator/web GPX import).
+├─ map-vector-cli/    Map conversion CLI (.mbtiles -> .svm and shrink tools).
+├─ map-runtime/       Runtime map data interfaces/types used by core runtime.
+├─ map-src/           Input map datasets (source files, usually .mbtiles).
+├─ map-data/          Generated runtime map files (.svm) for emulator/device.
+├─ xtask/             Workspace task runner (build, emulator, fixtures, i18n).
+├─ i18n/              Translation source catalogs and localization tooling data.
+├─ demo/              Screenshots and demo media used in documentation.
+└─ infra/             Devcontainer and local developer environment setup scripts.
+```

@@ -1,6 +1,7 @@
 # Rust build artifacts
 /firmware/target/
 /target/
+/node_modules/
 
 # embuild cache (~5 GB of vendored ESP-IDF + tools). Lives under
 # /work/.embuild because esp-idf-sys's workspace detection lands here
