@@ -36,6 +36,7 @@ struct DeviceSettingsView: View {
         List {
             pairedDeviceSection
             connectionDetailsSection
+            gpsSourceSection
             transferSection
             diagnosticsSection
         }
@@ -134,6 +135,32 @@ struct DeviceSettingsView: View {
                           ["status": .string(appModel.bleService.sessionState.lastSyncResult)]))
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+        }
+    }
+
+    private var gpsSourceSection: some View {
+        Section("GPS Source") {
+            Picker("GPS Source", selection: $appModel.gpsSource) {
+                Text("Internal (NEO-6M)").tag(AppModel.GpsSourceSelection.internal)
+                Text("Phone GPS").tag(AppModel.GpsSourceSelection.phone)
+            }
+            .pickerStyle(.inline)
+            .onChange(of: appModel.gpsSource) { newValue in
+                appModel.handleGpsSourceChange(to: newValue)
+            }
+            if appModel.gpsSource == .phone {
+                HStack {
+                    Text("Status")
+                    Spacer()
+                    if appModel.isPhoneGpsForwarding {
+                        Label("Active", systemImage: "location.fill")
+                            .foregroundColor(.green)
+                    } else {
+                        Label("Inactive", systemImage: "location.slash")
+                            .foregroundColor(.red)
+                    }
+                }
+            }
         }
     }
 

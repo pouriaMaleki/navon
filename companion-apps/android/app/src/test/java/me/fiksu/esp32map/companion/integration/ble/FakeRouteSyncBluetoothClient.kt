@@ -93,4 +93,8 @@ class FakeRouteSyncBluetoothClient : RouteSyncBluetoothClient {
         lastWrittenPacket = packet
         writeResult.getOrThrow()
     }
+
+    override suspend fun writePhoneGpsSample(lat: Double, lon: Double, speed: Double, course: Double?, accuracy: Double?) {
+        // No-op for test fakes — phone GPS forwarding is tested independently.
+    }
 }

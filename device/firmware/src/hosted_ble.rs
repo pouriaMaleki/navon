@@ -40,8 +40,14 @@ use crate::platform::{AuthCmplOutcome, RouteSyncIo, RouteSyncIoError};
 use crate::route_sync::RouteTransferChunk;
 use crate::route_sync_ble::{BleRouteSyncPacket, decode_ble_packet, encode_ble_packet};
 
+/// Max number of phone GPS samples to buffer in the inbound queue before
+/// dropping the oldest entries. At a 1 Hz companion write rate and a 60 Hz
+/// drain rate, 8 entries is more than enough headroom.
+const MAX_PHONE_GPS_QUEUE: usize = 8;
+
 static INBOUND: OnceLock<Mutex<VecDeque<RouteTransferChunk>>> = OnceLock::new();
 static PAIRING_INBOUND: OnceLock<Mutex<VecDeque<[u8; SECRET_LEN]>>> = OnceLock::new();
+static PHONE_GPS_INBOUND: OnceLock<Mutex<VecDeque<Vec<u8>>>> = OnceLock::new();
 /// Auth-completion events the GAP handler pushes from the BT host
 /// task. The runtime task drains them once per frame and forwards
 /// the outcome to `App::ingest_auth_cmpl`.
@@ -89,6 +95,16 @@ fn pairing_inbound() -> &'static Mutex<VecDeque<[u8; SECRET_LEN]>> {
 
 fn auth_cmpl_inbound() -> &'static Mutex<VecDeque<AuthCmplEvent>> {
     AUTH_CMPL_INBOUND.get_or_init(|| Mutex::new(VecDeque::new()))
+}
+
+fn phone_gps_inbound() -> &'static Mutex<VecDeque<Vec<u8>>> {
+    PHONE_GPS_INBOUND.get_or_init(|| Mutex::new(VecDeque::new()))
+}
+
+/// Drain one queued phone GPS sample if any are available. Called once
+/// per frame from the platform layer via `RouteSyncIo::poll_phone_gps_sample`.
+pub fn drain_phone_gps_sample() -> Option<Vec<u8>> {
+    phone_gps_inbound().lock().ok().and_then(|mut q| q.pop_front())
 }
 
 /// Drain one queued pairing-confirm secret if any are available. Called
@@ -172,6 +188,7 @@ impl HostedBleRouteSyncIo {
         let _ = inbound();
         let _ = pairing_inbound();
         let _ = auth_cmpl_inbound();
+        let _ = phone_gps_inbound();
 
         let cbs = esp_idf_svc::sys::hosted_ble_route_sync_callbacks_t {
             on_chunk: Some(on_chunk_trampoline),
@@ -179,6 +196,7 @@ impl HostedBleRouteSyncIo {
             on_pairing_request: Some(on_pairing_request_trampoline),
             is_pairing_mode: Some(is_pairing_mode_trampoline),
             on_auth_cmpl: Some(on_auth_cmpl_trampoline),
+            on_phone_gps: Some(on_phone_gps_trampoline),
             ctx: std::ptr::null_mut(),
         };
 
@@ -256,6 +274,23 @@ unsafe extern "C" fn is_pairing_mode_trampoline(_ctx: *mut c_void) -> bool {
 unsafe extern "C" fn on_pairing_request_trampoline(_ctx: *mut c_void) {
     log::info!("hosted-ble: pairing-request flag set from BT host task");
     PAIRING_REQUEST_PENDING.store(true, Ordering::SeqCst);
+}
+
+unsafe extern "C" fn on_phone_gps_trampoline(
+    data: *const u8,
+    len: usize,
+    _ctx: *mut c_void,
+) {
+    if data.is_null() || len == 0 {
+        return;
+    }
+    let bytes = unsafe { std::slice::from_raw_parts(data, len) };
+    if let Ok(mut queue) = phone_gps_inbound().lock() {
+        queue.push_back(bytes.to_vec());
+        while queue.len() > MAX_PHONE_GPS_QUEUE {
+            queue.pop_front();
+        }
+    }
 }
 
 unsafe extern "C" fn on_auth_cmpl_trampoline(
@@ -350,6 +385,13 @@ impl RouteSyncIo for HostedBleRouteSyncIo {
             peer_addr: event.peer_addr,
             addr_type: event.addr_type,
         }))
+    }
+
+    fn poll_phone_gps_sample(&mut self) -> Result<Option<Vec<u8>>, RouteSyncIoError> {
+        if matches!(self, Self::Inactive) {
+            return Ok(None);
+        }
+        Ok(drain_phone_gps_sample())
     }
 
     fn set_advertising_allowlist(

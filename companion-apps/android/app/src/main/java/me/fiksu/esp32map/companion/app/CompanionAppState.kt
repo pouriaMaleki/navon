@@ -37,6 +37,7 @@ import me.fiksu.esp32map.companion.domain.SyncSessionState
 import me.fiksu.esp32map.companion.domain.LocationService
 import me.fiksu.esp32map.companion.domain.geo.FinlandBounds
 import me.fiksu.esp32map.companion.integration.AndroidLocationService
+import me.fiksu.esp32map.companion.feature.device.PhoneGpsForwarder
 import me.fiksu.esp32map.companion.integration.ble.BleRouteSyncService
 import me.fiksu.esp32map.companion.integration.ble.PairingQrPayload
 import me.fiksu.esp32map.companion.integration.diagnostics.CompanionDiagnosticsStore
@@ -46,6 +47,11 @@ import me.fiksu.esp32map.companion.integration.hsl.HslRoutingAdapter
 import me.fiksu.esp32map.companion.integration.persistence.CompanionPersistence
 import me.fiksu.esp32map.companion.integration.sample.SampleRoutingAdapter
 import me.fiksu.esp32map.companion.integration.share.AndroidShareImportParser
+
+enum class GpsSourceSelection {
+    INTERNAL,
+    PHONE,
+}
 
 class CompanionAppState(
     application: Application,
@@ -124,6 +130,21 @@ class CompanionAppState(
     /** Tracks the QR-OOB pairing flow's current step. */
     var pairingState by mutableStateOf<PairingFlowState>(PairingFlowState.Idle)
         private set
+
+    /** GPS source selection for the device settings screen. */
+    var gpsSource by mutableStateOf(GpsSourceSelection.INTERNAL)
+
+    /** Whether the phone GPS forwarder is actively sending data. */
+    var isPhoneGpsForwarding by mutableStateOf(false)
+        private set
+
+    /** Phone GPS forwarding coroutine-backed writer. */
+    private val phoneGpsForwarder: PhoneGpsForwarder by lazy {
+        PhoneGpsForwarder(
+            bleClient = bleService.bluetoothClient,
+            locationService = locationService as AndroidLocationService,
+        )
+    }
 
     /** Best estimate of where the rider currently is. Falls back to last-known then default. */
     val riderLocation: CoordinatePoint
@@ -432,6 +453,13 @@ class CompanionAppState(
      * Enter the pairing flow's introductory step. The UI sheet observes
      * `pairingState` and walks the user through QR scan → confirm.
      */
+    fun handleGpsSourceChange(source: GpsSourceSelection) {
+        when (source) {
+            GpsSourceSelection.INTERNAL -> phoneGpsForwarder.stop()
+            GpsSourceSelection.PHONE -> phoneGpsForwarder.start()
+        }
+    }
+
     fun beginPairingFlow() {
         pairingState = PairingFlowState.Instructions
     }

@@ -64,4 +64,7 @@ interface RouteSyncBluetoothClient {
     suspend fun writePairingRequest()
 
     suspend fun write(packet: BleRouteSyncPacket)
+
+    /** Write a phone GPS sample as CSV: lat,lon,speed,course,accuracy */
+    suspend fun writePhoneGpsSample(lat: Double, lon: Double, speed: Double, course: Double?, accuracy: Double?)
 }

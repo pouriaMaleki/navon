@@ -10,7 +10,7 @@ use runtime_core::map::MapSource;
 
 use crate::board_config::BoardConfig;
 use crate::display::{Display, DisplayBackend, DisplayError, MemoryDisplayBackend};
-use crate::gps::{GpsDiagnostics, GpsInput};
+use crate::gps::{GpsDiagnostics, GpsInput, GpsSource};
 use crate::input_bridge::InputBridge;
 use crate::map_source::MapSourceBridge;
 use crate::pairing::{
@@ -180,6 +180,11 @@ where
     /// `None` while the provider doesn't expose diagnostics
     /// (host tests, `NullGpsProvider`, etc.).
     gps_diagnostics: Option<GpsDiagnostics>,
+    /// Current GPS source for this session. Resets to `Internal` on
+    /// every boot. When `Phone`, the platform layer uses phone GPS
+    /// samples instead of polling the internal GPS provider, and the
+    /// "GETTING GPS" overlay is suppressed.
+    gps_source: GpsSource,
     /// Per-frame render-path tag. Lets tests assert that they actually
     /// exercised the world-buffer cached-blit code path; production
     /// callers ignore it.
@@ -284,6 +289,7 @@ where
             gps_acquired: true,
             gps_acquired_logged: false,
             gps_diagnostics: None,
+            gps_source: GpsSource::Internal,
             #[cfg(test)]
             last_render_path: FramePath::None,
         })
@@ -510,6 +516,20 @@ where
         self.gps_diagnostics
     }
 
+    /// Set the GPS source for this session. Switching to `Phone`
+    /// suppresses the "GETTING GPS" overlay and causes the platform
+    /// layer to use phone GPS samples instead of the internal provider.
+    pub fn set_gps_source(&mut self, source: GpsSource) {
+        if source != self.gps_source {
+            log::info!("App: GPS source switched to {:?}", source);
+            self.gps_source = source;
+        }
+    }
+
+    pub fn gps_source(&self) -> GpsSource {
+        self.gps_source
+    }
+
     /// Test-only: shortcut into the `Operational` state without going
     /// through the QR-OOB handshake. Used by smoke tests that just want
     /// to exercise the runtime/render path; pairing-flow coverage lives
@@ -708,7 +728,10 @@ where
         // overlay only overwrites the centered panel footprint, and
         // disappears as soon as the provider reports its first real
         // fix and `set_gps_acquired(true)` is called.
-        if !self.gps_acquired {
+        // While GPS is still searching (internal mode only), paint the
+        // "GETTING GPS" banner. Phone GPS is always considered acquired
+        // so the overlay never appears in that mode.
+        if self.gps_source != GpsSource::Phone && !self.gps_acquired {
             crate::gps_overlay::render_acquiring_gps_overlay(
                 &mut self.render_framebuffer,
                 self.gps_diagnostics,

@@ -31,6 +31,9 @@ protocol RouteSyncBluetoothClient: AnyObject {
     func writePairingRequest() async throws
     func writePairingConfirm(secret: Data) async throws
     func write(packet: BleRouteSyncPacket) async throws
+    /// Write a phone GPS sample to the device's phone-GPS characteristic
+    /// (UUID …-1007). Format is CSV: `lat,lon,speed,course,accuracy`.
+    func writePhoneGpsSample(lat: Double, lon: Double, speed: Double, course: Double?, accuracy: Double?) async throws
 }
 
 enum CoreBluetoothRouteSyncError: LocalizedError {
@@ -90,6 +93,7 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
     private var eventNotifyCharacteristic: CBCharacteristic?
     private var pairingConfirmCharacteristic: CBCharacteristic?
     private var pairingRequestCharacteristic: CBCharacteristic?
+    private var phoneGpsCharacteristic: CBCharacteristic?
 
     private var pendingPowerOnContinuation: CheckedContinuation<Void, Error>?
     private var pendingScanContinuation: CheckedContinuation<String, Error>?
@@ -101,6 +105,7 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
     private let eventNotifyUUID = CBUUID(string: BleRouteSyncGattContract.eventNotifyCharacteristicUUID)
     private let pairingConfirmUUID = CBUUID(string: BleRouteSyncGattContract.pairingConfirmCharacteristicUUID)
     private let pairingRequestUUID = CBUUID(string: BleRouteSyncGattContract.pairingRequestCharacteristicUUID)
+    private let phoneGpsUUID = CBUUID(string: BleRouteSyncGattContract.phoneGpsDataCharacteristicUUID)
 
     var isReady: Bool {
         connectedPeripheral != nil && chunkWriteCharacteristic != nil && eventNotifyCharacteristic != nil
@@ -259,6 +264,22 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
         }
     }
 
+    func writePhoneGpsSample(lat: Double, lon: Double, speed: Double, course: Double?, accuracy: Double?) async throws {
+        guard let peripheral = connectedPeripheral, let characteristic = phoneGpsCharacteristic else {
+            throw CoreBluetoothRouteSyncError.characteristicMissing
+        }
+        let courseStr = course.map { String($0) } ?? "0.0"
+        let accuracyStr = accuracy.map { String($0) } ?? "0.0"
+        let csv = "\(lat),\(lon),\(speed),\(courseStr),\(accuracyStr)"
+        guard let data = csv.data(using: .utf8) else {
+            throw CoreBluetoothRouteSyncError.writeFailed("Failed to encode phone GPS sample")
+        }
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            pendingWriteContinuation = continuation
+            peripheral.writeValue(data, for: characteristic, type: .withResponse)
+        }
+    }
+
     private func ensurePoweredOn() async throws {
         switch centralManager.state {
         case .poweredOn:
@@ -292,6 +313,7 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
         eventNotifyCharacteristic = characteristics.first(where: { $0.uuid == eventNotifyUUID })
         pairingConfirmCharacteristic = characteristics.first(where: { $0.uuid == pairingConfirmUUID })
         pairingRequestCharacteristic = characteristics.first(where: { $0.uuid == pairingRequestUUID })
+        phoneGpsCharacteristic = characteristics.first(where: { $0.uuid == phoneGpsUUID })
         guard let eventNotifyCharacteristic else {
             if let pendingConnectContinuation {
                 self.pendingConnectContinuation = nil
@@ -364,6 +386,7 @@ extension CoreBluetoothRouteSyncClient: CBCentralManagerDelegate {
         connectedPeripheral = nil
         chunkWriteCharacteristic = nil
         eventNotifyCharacteristic = nil
+        phoneGpsCharacteristic = nil
         let detail = error?.localizedDescription ?? "Disconnected from \(peripheral.name ?? "ESP32 device")"
         if let pendingConnectContinuation {
             self.pendingConnectContinuation = nil
@@ -390,7 +413,7 @@ extension CoreBluetoothRouteSyncClient: CBPeripheralDelegate {
             return
         }
         peripheral.discoverCharacteristics(
-            [chunkWriteUUID, eventNotifyUUID, pairingConfirmUUID, pairingRequestUUID],
+            [chunkWriteUUID, eventNotifyUUID, pairingConfirmUUID, pairingRequestUUID, phoneGpsUUID],
             for: routeSyncService,
         )
     }

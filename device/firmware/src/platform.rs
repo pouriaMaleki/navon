@@ -5,7 +5,7 @@ use runtime_core::map::MapSource;
 
 use crate::app::{App, AppError, FrameResult};
 use crate::display::DisplayBackend;
-use crate::gps::{GpsError, GpsInput, GpsProvider};
+use crate::gps::{GpsError, GpsInput, GpsProvider, GpsSource};
 use crate::route_sync::{RouteSyncTransportError, RouteTransferChunk};
 use crate::settings::{NullSettingsStore, SettingsStore};
 use crate::touch::{TouchError, TouchInput, TouchSource};
@@ -95,6 +95,14 @@ pub trait RouteSyncIo {
     /// transports. The hosted-BLE impl drains the queue populated by
     /// the C-side `ESP_GAP_BLE_AUTH_CMPL_EVT` trampoline.
     fn poll_auth_cmpl(&mut self) -> Result<Option<AuthCmplOutcome>, RouteSyncIoError> {
+        Ok(None)
+    }
+
+    /// Drain the latest phone GPS sample from the BLE inbound queue.
+    /// Returns the raw CSV bytes (`lat,lon,speed,course,accuracy`) or
+    /// `None` if no sample has arrived since the last call. Default
+    /// no-op for non-BLE transports.
+    fn poll_phone_gps_sample(&mut self) -> Result<Option<Vec<u8>>, RouteSyncIoError> {
         Ok(None)
     }
 
@@ -197,6 +205,10 @@ pub struct RuntimePlatform<
     clock: C,
     route_sync: R,
     last_reroute_requested: bool,
+    /// Monotonic instant of the last valid phone GPS sample received
+    /// from the companion. Used to detect BLE disconnect / sample
+    /// stream interruption and auto-fallback to internal GPS.
+    phone_gps_last_received: Option<Instant>,
 }
 
 impl<T, G, C, S, B, U, R> RuntimePlatform<T, G, C, S, B, U, R>
@@ -217,6 +229,7 @@ where
             clock,
             route_sync,
             last_reroute_requested: false,
+            phone_gps_last_received: None,
         }
     }
 
@@ -275,24 +288,68 @@ where
         }
 
         let dt = self.clock.next_dt();
-        let gps = self.gps.poll()?;
-        // Push diagnostics into the App every frame so the overlay
-        // can render the BITS/PING/PINS counters. Then derive the
-        // "currently acquired?" signal from those diagnostics if the
-        // provider exposes them — that way a >10 s gap with no fresh
-        // RMC flips `gps_acquired` back to `false` and the overlay
-        // reappears, even though we'd previously locked. Providers
-        // that don't expose diagnostics (NullGps, FixedGps in host
-        // tests) fall back to the trait's `has_acquired_fix` default.
-        let diagnostics = self.gps.diagnostics_summary();
-        self.app.set_gps_diagnostics(diagnostics);
-        let acquired = match diagnostics {
-            Some(diag) => diag
-                .last_fix_age_ms
-                .is_some_and(|age| age <= GPS_LOST_THRESHOLD_MS),
-            None => self.gps.has_acquired_fix(),
+
+        // --- Phone GPS ---
+        // Drain the most recent phone GPS sample from the BLE queue. If
+        // the companion is streaming samples, use the latest one instead
+        // of the internal GPS provider. Auto-fallback to Internal if no
+        // sample arrives within the timeout window (handles BLE disconnect
+        // and companion backgrounding gracefully).
+        let mut phone_gps_input: Option<GpsInput> = None;
+        while let Some(raw) = self.route_sync.poll_phone_gps_sample()? {
+            match parse_phone_gps_csv(&raw) {
+                Ok(sample) => {
+                    phone_gps_input = Some(sample);
+                    self.phone_gps_last_received = Some(Instant::now());
+                    // Switch to phone GPS on the first valid sample.
+                    if self.app.gps_source() != GpsSource::Phone {
+                        self.app.set_gps_source(GpsSource::Phone);
+                    }
+                }
+                Err(_) => {
+                    // Malformed CSV — drop silently, next write will
+                    // deliver a fresh sample.
+                }
+            }
+        }
+
+        // Auto-fallback: no phone sample for > 3 s → revert to Internal.
+        const PHONE_GPS_TIMEOUT: Duration = Duration::from_secs(3);
+        if self.app.gps_source() == GpsSource::Phone {
+            if let Some(last) = self.phone_gps_last_received {
+                if last.elapsed() > PHONE_GPS_TIMEOUT {
+                    log::info!(
+                        "Phone GPS timed out (no sample for {:?}s) — reverting to Internal",
+                        last.elapsed().as_secs()
+                    );
+                    self.app.set_gps_source(GpsSource::Internal);
+                }
+            }
+        }
+
+        let gps = if self.app.gps_source() == GpsSource::Phone {
+            phone_gps_input
+        } else {
+            self.gps.poll()?
         };
-        self.app.set_gps_acquired(acquired);
+
+        // Push diagnostics into the App every frame so the overlay
+        // can render the BITS/PING/PINS counters (internal GPS only).
+        // Phone GPS has no diagnostics and is always considered acquired.
+        if self.app.gps_source() == GpsSource::Phone {
+            self.app.set_gps_diagnostics(None);
+            self.app.set_gps_acquired(true);
+        } else {
+            let diagnostics = self.gps.diagnostics_summary();
+            self.app.set_gps_diagnostics(diagnostics);
+            let acquired = match diagnostics {
+                Some(diag) => diag
+                    .last_fix_age_ms
+                    .is_some_and(|age| age <= GPS_LOST_THRESHOLD_MS),
+                None => self.gps.has_acquired_fix(),
+            };
+            self.app.set_gps_acquired(acquired);
+        }
         let touch = self.touch.poll()?;
         let mut frame = self.app.step_frame(dt, gps, touch)?;
         route_sync_statuses.extend(frame.route_sync_statuses.iter().cloned());
@@ -397,6 +454,47 @@ pub fn run_host_demo() -> Result<FrameResult, PlatformError> {
 
     let _ = platform.run_frame()?;
     platform.run_frame()
+}
+
+/// Parse a phone GPS CSV string into a [`GpsInput`].
+///
+/// Format: `lat,lon,speed,course,accuracy` — e.g.
+/// `60.174420,24.942100,5.0,0.0,4.0`. Course and accuracy may be
+/// missing or empty (coerced to `None`).
+fn parse_phone_gps_csv(raw: &[u8]) -> Result<GpsInput, GpsError> {
+    let text = std::str::from_utf8(raw)
+        .map_err(|_| GpsError::Provider("phone GPS: invalid UTF-8".into()))?;
+    let fields: Vec<&str> = text.trim().split(',').collect();
+    if fields.len() < 3 {
+        return Err(GpsError::Provider(
+            "phone GPS: need at least lat,lon,speed".into(),
+        ));
+    }
+    let lat_deg = fields[0]
+        .parse::<f64>()
+        .map_err(|_| GpsError::Provider("phone GPS: invalid lat".into()))?;
+    let lon_deg = fields[1]
+        .parse::<f64>()
+        .map_err(|_| GpsError::Provider("phone GPS: invalid lon".into()))?;
+    let speed_mps = fields[2]
+        .parse::<f32>()
+        .map_err(|_| GpsError::Provider("phone GPS: invalid speed".into()))?;
+    let course_rad = fields
+        .get(3)
+        .filter(|s| !s.is_empty())
+        .and_then(|s| s.parse::<f32>().ok())
+        .map(|deg| deg.to_radians());
+    let horizontal_accuracy_m = fields
+        .get(4)
+        .filter(|s| !s.is_empty())
+        .and_then(|s| s.parse::<f32>().ok());
+    Ok(GpsInput {
+        lat_deg,
+        lon_deg,
+        speed_mps,
+        course_rad,
+        horizontal_accuracy_m,
+    })
 }
 
 #[cfg(test)]

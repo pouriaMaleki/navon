@@ -82,4 +82,8 @@ final class FakeRouteSyncBluetoothClient: RouteSyncBluetoothClient {
         lastWrittenPacket = packet
         try writeResult.get()
     }
+
+    func writePhoneGpsSample(lat: Double, lon: Double, speed: Double, course: Double?, accuracy: Double?) async throws {
+        // No-op for test fakes — phone GPS forwarding isn't tested through BLE.
+    }
 }

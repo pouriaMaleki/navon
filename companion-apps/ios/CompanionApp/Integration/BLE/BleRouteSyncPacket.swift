@@ -15,6 +15,11 @@ enum BleRouteSyncGattContract {
     /// pairing has happened, so the user can scan the QR before the
     /// encrypted pairing-confirm write triggers SMP.
     static let pairingRequestCharacteristicUUID = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1005"
+    /// Phone GPS data characteristic (UUID …-1007). Unencrypted write.
+    /// Companion writes CSV-encoded GPS samples (lat,lon,speed,course,accuracy)
+    /// at ~1 Hz when Phone GPS mode is active. The first sample write
+    /// implicitly signals the device to switch from Internal GPS to Phone GPS.
+    static let phoneGpsDataCharacteristicUUID = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1007"
 }
 
 struct RouteTransferChunkEnvelope: Equatable {

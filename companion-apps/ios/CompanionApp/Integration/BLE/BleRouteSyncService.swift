@@ -23,7 +23,7 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
 
     private let chunkSizeBytes = 96
     private let ackTimeoutNanoseconds: UInt64 = 2_000_000_000
-    private let bluetoothClient: RouteSyncBluetoothClient
+    let bluetoothClient: RouteSyncBluetoothClient
     private var pendingTransfer: PendingTransfer?
     private var ackTimeoutTask: Task<Void, Never>?
 

@@ -38,6 +38,8 @@ object BleRouteSyncGattContract {
      * triggers SMP.
      */
     const val PAIRING_REQUEST_CHARACTERISTIC_UUID: String = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1005"
+    /** Phone GPS data characteristic (UUID …-1007). Unencrypted write. */
+    const val PHONE_GPS_DATA_CHARACTERISTIC_UUID: String = "8d0f3f30-7b4d-4f7c-8b24-2f8e7e4e1007"
 }
 
 data class RouteTransferChunkEnvelope(

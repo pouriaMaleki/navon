@@ -12,7 +12,7 @@ CONFIG_ESPTOOLPY_FLASHSIZE_32MB=y
 # embuild's `PROJECT_DIR` points at `/work/target`, not the crate source,
 # so resolve the CSV via an absolute path rather than a crate-relative one.
 CONFIG_PARTITION_TABLE_CUSTOM=y
-CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="/work/firmware/partitions.csv"
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="/work/device/firmware/partitions.csv"
 
 # Watchdog / task stacks for a simple main loop.
 CONFIG_ESP_MAIN_TASK_STACK_SIZE=16384

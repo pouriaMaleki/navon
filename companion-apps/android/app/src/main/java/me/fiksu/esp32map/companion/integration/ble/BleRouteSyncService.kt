@@ -28,7 +28,7 @@ import me.fiksu.esp32map.companion.domain.SyncSessionState
 
 class BleRouteSyncService(
     context: Context,
-    private val bluetoothClient: RouteSyncBluetoothClient = AndroidBleRouteSyncClient(context),
+    val bluetoothClient: RouteSyncBluetoothClient = AndroidBleRouteSyncClient(context),
 ) : RouteSyncTransport {
     private val mutableState = MutableStateFlow(SyncSessionState())
     val state: StateFlow<SyncSessionState> = mutableState.asStateFlow()

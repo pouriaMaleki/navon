@@ -74,12 +74,19 @@ typedef void (*hosted_ble_auth_cmpl_cb_t)(bool success,
                                           uint8_t addr_type,
                                           void *ctx);
 
+// Called when a companion writes a phone GPS sample to the
+// phone-GPS characteristic (UUID …-1007). `data` points to the raw
+// CSV bytes (lat,lon,speed,course,accuracy); `len` is the payload
+// length.
+typedef void (*hosted_ble_phone_gps_cb_t)(const uint8_t *data, size_t len, void *ctx);
+
 typedef struct {
     hosted_ble_chunk_cb_t on_chunk;
     hosted_ble_pairing_confirm_cb_t on_pairing_confirm;
     hosted_ble_pairing_request_cb_t on_pairing_request;
     hosted_ble_is_pairing_mode_cb_t is_pairing_mode;
     hosted_ble_auth_cmpl_cb_t on_auth_cmpl;
+    hosted_ble_phone_gps_cb_t on_phone_gps;
     void *ctx;
 } hosted_ble_route_sync_callbacks_t;
 

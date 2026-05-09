@@ -60,6 +60,15 @@ final class AppModel: ObservableObject {
     }
     @Published var pairingState: PairingFlowState = .idle
 
+    enum GpsSourceSelection: String, CaseIterable {
+        case `internal`
+        case phone
+    }
+
+    @Published var gpsSource: GpsSourceSelection = .internal
+    @Published private(set) var isPhoneGpsForwarding: Bool = false
+    private var phoneGpsForwarder: PhoneGpsForwarder?
+
     let diagnosticsStore = CompanionDiagnosticsStore()
     let persistence: CompanionPersistence
     let bleService: BleRouteSyncService
@@ -84,6 +93,16 @@ final class AppModel: ObservableObject {
         self.bleService = bleService ?? BleRouteSyncService()
         let locationService = CoreLocationService(persistence: persistence)
         self.locationService = locationService
+        self.phoneGpsForwarder = PhoneGpsForwarder(
+            bleClient: bleService.bluetoothClient,
+            locationService: locationService
+        )
+        // Reflect forwarder state in published property.
+        phoneGpsForwarder?.$isForwarding
+            .receive(on: DispatchQueue.main)
+            .assign(to: \.isPhoneGpsForwarding, on: self)
+            .store(in: &cancellables)
+
         self.routingActivityCoordinator = RoutingActivityCoordinator(
             idleTimer: IdleTimerController(),
             speech: SpeechService()
@@ -158,6 +177,19 @@ final class AppModel: ObservableObject {
     func beginPairingFlow() {
         pairingLog.notice("beginPairingFlow tapped — pairingState → .instructions")
         pairingState = .instructions
+    }
+
+    /// Start or stop the phone GPS forwarder when the user toggles the
+    /// GPS source picker in Device Settings. The firmware auto-detects
+    /// phone GPS writes and switches source; when writes stop it falls
+    /// back to Internal GPS after a 3-second timeout.
+    func handleGpsSourceChange(to source: GpsSourceSelection) {
+        switch source {
+        case .internal:
+            phoneGpsForwarder?.stop()
+        case .phone:
+            phoneGpsForwarder?.start()
+        }
     }
 
     /// Step the device into pairing mode before the camera opens.
@@ -714,6 +746,12 @@ final class AppModel: ObservableObject {
             .sink { [weak self] state in
                 guard let self else { return }
                 self.refreshDiagnostics()
+                // Stop phone GPS forwarding when BLE disconnects so the
+                // companion doesn't keep wasting power on writes that
+                // can't reach the device.
+                if state.connectionState == .disconnected {
+                    self.phoneGpsForwarder?.stop()
+                }
                 guard case let .rerouteRequest(message)? = state.lastInboundMessage else { return }
                 let signature = "\(message.routeIdentifier)-\(message.riderLocation.latitude)-\(message.riderLocation.longitude)-\(message.reason)"
                 guard self.lastHandledRerouteSignature != signature else { return }

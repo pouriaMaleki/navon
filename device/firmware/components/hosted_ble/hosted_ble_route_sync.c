@@ -44,7 +44,7 @@ static const char *TAG = "hosted_ble_rs";
 // = 9 handles for attributes plus the service handle = 10. 14 leaves a
 // small cushion for attribute reservation. Under-provisioning causes
 // ESP_GATT_NO_RESOURCES on `esp_ble_gatts_add_char` after the cap.
-#define HOSTED_BLE_SERVICE_NUM_HANDLE 14
+#define HOSTED_BLE_SERVICE_NUM_HANDLE 16
 #define HOSTED_BLE_MAX_PACKET_LEN 512
 // Pairing-confirm payload is exactly the 32-byte ephemeral secret from
 // the QR. Anything longer is malformed; reject early to keep the C path
@@ -77,12 +77,20 @@ static const uint8_t PAIRING_REQUEST_UUID128[ESP_UUID_LEN_128] = {
     0x05, 0x10, 0x4e, 0x7e, 0x8e, 0x2f, 0x24, 0x8b,
     0x7c, 0x4f, 0x4d, 0x7b, 0x30, 0x3f, 0x0f, 0x8d,
 };
+// Phone GPS data characteristic (UUID …-1007). Unencrypted write.
+// Companion writes a CSV-encoded GPS sample (lat,lon,speed,course,accuracy)
+// at approximately 1 Hz while Phone GPS mode is active.
+static const uint8_t PHONE_GPS_UUID128[ESP_UUID_LEN_128] = {
+    0x07, 0x10, 0x4e, 0x7e, 0x8e, 0x2f, 0x24, 0x8b,
+    0x7c, 0x4f, 0x4d, 0x7b, 0x30, 0x3f, 0x0f, 0x8d,
+};
 
 static hosted_ble_chunk_cb_t s_chunk_cb;
 static hosted_ble_pairing_confirm_cb_t s_pairing_confirm_cb;
 static hosted_ble_pairing_request_cb_t s_pairing_request_cb;
 static hosted_ble_is_pairing_mode_cb_t s_is_pairing_mode_cb;
 static hosted_ble_auth_cmpl_cb_t s_auth_cmpl_cb;
+static hosted_ble_phone_gps_cb_t s_phone_gps_cb;
 static void *s_chunk_ctx;
 
 static esp_gatt_if_t s_gatts_if = ESP_GATT_IF_NONE;
@@ -100,6 +108,7 @@ static uint16_t s_chunk_char_handle;
 static uint16_t s_event_char_handle;
 static uint16_t s_pairing_char_handle;
 static uint16_t s_pairing_request_char_handle;
+static uint16_t s_phone_gps_char_handle;
 // Tracks which of the two advertising payloads (main + scan response)
 // have been accepted by the controller. We only call
 // `esp_ble_gap_start_advertising` once both have landed.
@@ -367,6 +376,19 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
                                ESP_GATT_PERM_WRITE,
                                ESP_GATT_CHAR_PROP_BIT_WRITE,
                                NULL, NULL);
+
+        // Phone GPS data: unencrypted write. Companion writes CSV-encoded
+        // GPS samples at ~1 Hz. The C trampoline forwards each write to
+        // the Rust side where it is parsed and made available to the
+        // platform layer's GPS provider selection.
+        esp_bt_uuid_t phone_gps_uuid;
+        memset(&phone_gps_uuid, 0, sizeof(phone_gps_uuid));
+        phone_gps_uuid.len = ESP_UUID_LEN_128;
+        memcpy(phone_gps_uuid.uuid.uuid128, PHONE_GPS_UUID128, ESP_UUID_LEN_128);
+        esp_ble_gatts_add_char(s_service_handle, &phone_gps_uuid,
+                               ESP_GATT_PERM_WRITE,
+                               ESP_GATT_CHAR_PROP_BIT_WRITE,
+                               NULL, NULL);
         break;
     }
     case ESP_GATTS_ADD_CHAR_EVT: {
@@ -393,10 +415,13 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
         } else if (uuid_matches(&param->add_char.char_uuid,
                                 PAIRING_REQUEST_UUID128)) {
             s_pairing_request_char_handle = param->add_char.attr_handle;
+        } else if (uuid_matches(&param->add_char.char_uuid, PHONE_GPS_UUID128)) {
+            s_phone_gps_char_handle = param->add_char.attr_handle;
         }
 
         if (s_chunk_char_handle != 0 && s_event_char_handle != 0 &&
-            s_pairing_char_handle != 0 && s_pairing_request_char_handle != 0) {
+            s_pairing_char_handle != 0 && s_pairing_request_char_handle != 0 &&
+            s_phone_gps_char_handle != 0) {
             esp_ble_gatts_start_service(s_service_handle);
         }
         break;
@@ -454,6 +479,10 @@ static void gatts_event_handler(esp_gatts_cb_event_t event,
             if (s_pairing_request_cb != NULL) {
                 s_pairing_request_cb(s_chunk_ctx);
             }
+        } else if (param->write.handle == s_phone_gps_char_handle &&
+                   s_phone_gps_cb != NULL &&
+                   param->write.value != NULL && param->write.len > 0) {
+            s_phone_gps_cb(param->write.value, param->write.len, s_chunk_ctx);
         } else if (param->write.handle == s_pairing_char_handle) {
             // Single-bond policy: refuse pairing-confirm writes once the
             // device is bonded. The companion-side `forgetPairedDevice`
@@ -508,6 +537,7 @@ esp_err_t hosted_ble_route_sync_start(const hosted_ble_route_sync_callbacks_t *c
     s_pairing_request_cb = cb->on_pairing_request;
     s_is_pairing_mode_cb = cb->is_pairing_mode;
     s_auth_cmpl_cb = cb->on_auth_cmpl;
+    s_phone_gps_cb = cb->on_phone_gps;
     s_chunk_ctx = cb->ctx;
 
     err = esp_ble_gap_register_callback(gap_event_handler);

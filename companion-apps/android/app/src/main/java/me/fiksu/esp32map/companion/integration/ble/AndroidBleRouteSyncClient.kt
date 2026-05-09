@@ -45,6 +45,7 @@ class AndroidBleRouteSyncClient(
     private var bluetoothGatt: BluetoothGatt? = null
     private var chunkWriteCharacteristic: BluetoothGattCharacteristic? = null
     private var eventNotifyCharacteristic: BluetoothGattCharacteristic? = null
+    private var phoneGpsCharacteristic: BluetoothGattCharacteristic? = null
 
     private var pendingScanContinuation: kotlin.coroutines.Continuation<String>? = null
     private var pendingConnectContinuation: kotlin.coroutines.Continuation<String>? = null
@@ -274,6 +275,23 @@ class AndroidBleRouteSyncClient(
         }
     }
 
+    @SuppressLint("MissingPermission")
+    override suspend fun writePhoneGpsSample(lat: Double, lon: Double, speed: Double, course: Double?, accuracy: Double?) {
+        ensurePermissions()
+        val gatt = bluetoothGatt ?: error("BLE GATT connection is not ready")
+        val characteristic = phoneGpsCharacteristic ?: error("Phone GPS characteristic not found")
+        val csv = "$lat,$lon,$speed,${course ?: 0.0},${accuracy ?: 0.0}"
+        characteristic.value = csv.toByteArray()
+        characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+        suspendCancellableCoroutine { continuation ->
+            pendingWriteContinuation = continuation
+            if (!gatt.writeCharacteristic(characteristic)) {
+                pendingWriteContinuation = null
+                continuation.resumeWithException(IllegalStateException("writeCharacteristic returned false (phone_gps)"))
+            }
+        }
+    }
+
     private fun ensurePermissions() {
         val missing = requiredPermissions().firstOrNull {
             ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
@@ -297,6 +315,7 @@ class AndroidBleRouteSyncClient(
                 bluetoothGatt = null
                 chunkWriteCharacteristic = null
                 eventNotifyCharacteristic = null
+                phoneGpsCharacteristic = null
                 if (pendingConnectContinuation != null) {
                     pendingConnectContinuation?.resumeWithException(
                         IllegalStateException("Disconnected from ${gatt.device.nameOrFallback("ESP32 device")}")
@@ -324,6 +343,7 @@ class AndroidBleRouteSyncClient(
                 }
             chunkWriteCharacteristic = service.getCharacteristic(java.util.UUID.fromString(BleRouteSyncGattContract.CHUNK_WRITE_CHARACTERISTIC_UUID))
             eventNotifyCharacteristic = service.getCharacteristic(java.util.UUID.fromString(BleRouteSyncGattContract.EVENT_NOTIFY_CHARACTERISTIC_UUID))
+            phoneGpsCharacteristic = service.getCharacteristic(java.util.UUID.fromString(BleRouteSyncGattContract.PHONE_GPS_DATA_CHARACTERISTIC_UUID))
             val notifyCharacteristic = eventNotifyCharacteristic
             if (chunkWriteCharacteristic == null || notifyCharacteristic == null) {
                 pendingConnectContinuation?.resumeWithException(IllegalStateException("ESP32 route-sync characteristics were not discovered"))

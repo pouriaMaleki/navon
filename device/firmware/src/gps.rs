@@ -2,6 +2,18 @@ use std::collections::VecDeque;
 
 use runtime_core::api::GpsSample;
 
+/// Which GPS source the device uses for this session. Resets to
+/// `Internal` on every boot; when the companion pushes phone GPS
+/// samples the platform layer switches to `Phone` automatically.
+/// Session-only by design — no NVS persistence so a reboot always
+/// returns to the built-in GPS module.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum GpsSource {
+    #[default]
+    Internal,
+    Phone,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct GpsInput {
     pub lat_deg: f64,
