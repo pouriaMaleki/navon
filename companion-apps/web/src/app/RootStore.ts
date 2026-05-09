@@ -107,6 +107,7 @@ export class RootStore {
         if (!requested) return;
         const delayMs = this.guidanceStore.recordReroutingAttempt(Date.now());
         if (delayMs === 0) {
+          this.guidanceStore.markAutoRerouteDispatched();
           void this.performReroute();
           return;
         }
@@ -115,12 +116,13 @@ export class RootStore {
         const scheduledAt = Date.now() + delayMs;
         const tick = () => {
           if (this.guidanceStore.reroutingDelayedUntilMs === undefined) {
+            this.guidanceStore.markAutoRerouteDispatched();
             void this.performReroute();
             return;
           }
           const remaining = this.guidanceStore.reroutingDelayedUntilMs - Date.now();
           if (remaining <= 0) {
-            this.guidanceStore.reroutingDelayedUntilMs = undefined;
+            this.guidanceStore.markAutoRerouteDispatched();
             void this.performReroute();
             return;
           }

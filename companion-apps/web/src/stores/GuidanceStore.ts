@@ -565,6 +565,15 @@ export class GuidanceStore {
     this.reroutingDelayedUntilMs = undefined;
   }
 
+  /** Called when an auto-reroute is actually dispatched. Re-arms the
+   *  reroute latch while preserving off-route state so sustained off-route
+   *  riding can schedule another attempt without briefly returning to route. */
+  markAutoRerouteDispatched(): void {
+    this.rerouteRequested = false;
+    this.offRouteDurationMs = 0;
+    this.reroutingDelayedUntilMs = undefined;
+  }
+
   /** Called on every GPS update during guidance to advance route-follow state. */
   advanceProgress(riderLocation: CoordinatePoint, timestampMs: number): void {
     if (this.homeMode !== "phoneGuidance") return;

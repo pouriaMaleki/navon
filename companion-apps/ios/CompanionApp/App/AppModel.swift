@@ -94,15 +94,13 @@ final class AppModel: ObservableObject {
         let locationService = CoreLocationService(persistence: persistence)
         self.locationService = locationService
         self.phoneGpsForwarder = PhoneGpsForwarder(
-            bleClient: bleService.bluetoothClient,
+            bleClient: self.bleService.bluetoothClient,
             locationService: locationService
         )
-        // Reflect forwarder state in published property.
-        phoneGpsForwarder?.$isForwarding
-            .receive(on: DispatchQueue.main)
-            .assign(to: \.isPhoneGpsForwarding, on: self)
-            .store(in: &cancellables)
-
+        let loadedSettings = persistence.loadSettings()
+        settings = loadedSettings
+        let preferences = persistence.loadRoutePlannerPreferences()
+        currentSourceMode = preferences.defaultSourceMode
         self.routingActivityCoordinator = RoutingActivityCoordinator(
             idleTimer: IdleTimerController(),
             speech: SpeechService()
@@ -110,9 +108,12 @@ final class AppModel: ObservableObject {
         self.liveActivityCoordinator = LiveActivityCoordinator(
             driver: ActivityKitLiveActivityDriver()
         )
+        // Reflect forwarder state in published property.
+        phoneGpsForwarder?.$isForwarding
+            .receive(on: DispatchQueue.main)
+            .assign(to: \.isPhoneGpsForwarding, on: self)
+            .store(in: &cancellables)
 
-        let loadedSettings = persistence.loadSettings()
-        settings = loadedSettings
         // Push the persisted language preference to the i18n runtime before
         // any view renders. Without this, T.string(...) defaults to .en
         // until the user opens routing (which is when
@@ -122,8 +123,6 @@ final class AppModel: ObservableObject {
         // because Swift won't let init access `self` until every stored
         // property is initialized.
         T.setActiveLocale(T.resolveLocale(loadedSettings.language))
-        let preferences = persistence.loadRoutePlannerPreferences()
-        currentSourceMode = preferences.defaultSourceMode
         if let storedSession = persistence.loadLastSession() {
             activeSession = storedSession
             // The stored session reflects the LAST destination + provider

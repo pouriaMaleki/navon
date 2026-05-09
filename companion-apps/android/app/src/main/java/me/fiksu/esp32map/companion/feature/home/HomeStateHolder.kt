@@ -33,6 +33,10 @@ import me.fiksu.esp32map.companion.integration.location.HeadingTrail
 class HomeStateHolder(
     private val appState: CompanionAppState,
     private val placeSearchService: PlaceSearchService,
+    private val autoRerouteDispatcher: suspend (CoordinatePoint) -> Unit = { rider ->
+        appState.rerouteActiveSession(rider, "Off-route")
+    },
+    private val autoRerouteScope: CoroutineScope = MainScope(),
 ) {
     var query by mutableStateOf("")
     var isSearchOpen by mutableStateOf(false)
@@ -238,6 +242,18 @@ class HomeStateHolder(
     var progressDistanceM by mutableStateOf(0.0)
         private set
     private var routeTotalDistanceM: Double = 0.0
+    var offRouteDistanceM by mutableStateOf(0.0)
+        private set
+    var offRoute by mutableStateOf(false)
+        private set
+    var rerouteRequested by mutableStateOf(false)
+        private set
+    private var offRouteDurationMs: Double = 0.0
+    private var lastAdvanceTimestampMs: Long = -1
+    private var autoReroutePending: Boolean = false
+    private var pendingAutoRerouteJob: Job? = null
+    private var reroutingDelayedUntilMs: Double? = null
+    private val reroutingAttemptTimestamps = mutableListOf<Double>()
 
     /**
      * Geometry the route-overview camera should fit when the user taps
@@ -438,6 +454,16 @@ class HomeStateHolder(
         arrivalNotice = null
         progressDistanceM = 0.0
         routeTotalDistanceM = polylineLengthMeters(selectedPreview?.normalizedPackage?.geometry ?: emptyList())
+        offRouteDistanceM = 0.0
+        offRoute = false
+        rerouteRequested = false
+        offRouteDurationMs = 0.0
+        lastAdvanceTimestampMs = -1
+        autoReroutePending = false
+        pendingAutoRerouteJob?.cancel()
+        pendingAutoRerouteJob = null
+        reroutingDelayedUntilMs = null
+        reroutingAttemptTimestamps.clear()
         if (appState.isDeviceConnected) {
             homeMode = HomeMode.SENDING_TO_DEVICE
             appState.sendSelectedRoute { success ->
@@ -547,6 +573,15 @@ class HomeStateHolder(
             appState.clearActiveRoute()
         }
         homeMode = HomeMode.PLANNING
+        offRouteDistanceM = 0.0
+        offRoute = false
+        rerouteRequested = false
+        offRouteDurationMs = 0.0
+        lastAdvanceTimestampMs = -1
+        autoReroutePending = false
+        pendingAutoRerouteJob?.cancel()
+        pendingAutoRerouteJob = null
+        reroutingDelayedUntilMs = null
         if (shouldPreserveCurrentPreview || destination == null) {
             return
         }
@@ -693,11 +728,52 @@ class HomeStateHolder(
             // completed prefix.
             val geometry = guidanceRoute?.geometry
             if (geometry != null && geometry.size >= 2) {
-                val projected = projectProgressMeters(geometry, point)
+                val projection = projectProgressWithDistance(geometry, point)
                 val capped = if (routeTotalDistanceM > 0.0) {
-                    kotlin.math.min(routeTotalDistanceM, projected)
-                } else projected
+                    kotlin.math.min(routeTotalDistanceM, projection.progressM)
+                } else projection.progressM
                 if (capped > progressDistanceM) progressDistanceM = capped
+                offRouteDistanceM = projection.distanceToRouteM
+
+                val dt = if (lastAdvanceTimestampMs >= 0) {
+                    (timestampMs - lastAdvanceTimestampMs).toDouble()
+                } else 0.0
+                lastAdvanceTimestampMs = timestampMs
+                val wasOffRoute = offRoute
+                val prevRerouteRequested = rerouteRequested
+                if (offRoute) {
+                    if (projection.distanceToRouteM <= OFF_ROUTE_EXIT_DISTANCE_M) offRoute = false
+                } else if (projection.distanceToRouteM >= OFF_ROUTE_ENTER_DISTANCE_M) {
+                    offRoute = true
+                }
+                if (offRoute) {
+                    offRouteDurationMs = if (wasOffRoute) offRouteDurationMs + dt else dt
+                    if (offRouteDurationMs >= REROUTE_REQUEST_DELAY_MS) rerouteRequested = true
+                } else {
+                    offRouteDurationMs = 0.0
+                    rerouteRequested = false
+                    autoReroutePending = false
+                }
+                if (rerouteRequested && !prevRerouteRequested && !autoReroutePending) {
+                    autoReroutePending = true
+                    val delayMs = recordReroutingAttempt(timestampMs.toDouble())
+                    pendingAutoRerouteJob = autoRerouteScope.launch {
+                        if (delayMs > 0.0) {
+                            while (true) {
+                                val until = reroutingDelayedUntilMs
+                                val now = System.currentTimeMillis().toDouble()
+                                if (until == null || now >= until) break
+                                delay(250)
+                            }
+                        }
+                        markAutoRerouteDispatched()
+                        try {
+                            autoRerouteDispatcher(point)
+                        } finally {
+                            autoReroutePending = false
+                        }
+                    }
+                }
             }
             // Spec: when the rider arrives at the destination, end routing.
             // Straight-line distance to the route's last vertex so a rider
@@ -716,7 +792,16 @@ class HomeStateHolder(
      * is what the monotonic-progress invariant needs.
      */
     private fun projectProgressMeters(polyline: List<CoordinatePoint>, rider: CoordinatePoint): Double {
-        if (polyline.size < 2) return 0.0
+        return projectProgressWithDistance(polyline, rider).progressM
+    }
+
+    private data class ProgressProjection(
+        val progressM: Double,
+        val distanceToRouteM: Double,
+    )
+
+    private fun projectProgressWithDistance(polyline: List<CoordinatePoint>, rider: CoordinatePoint): ProgressProjection {
+        if (polyline.size < 2) return ProgressProjection(0.0, 0.0)
         val metersPerDegLat = 111_320.0
         var bestDistSq = Double.POSITIVE_INFINITY
         var bestProgress = 0.0
@@ -743,7 +828,38 @@ class HomeStateHolder(
             }
             traversed += segLen
         }
-        return bestProgress
+        return ProgressProjection(
+            progressM = bestProgress,
+            distanceToRouteM = kotlin.math.sqrt(bestDistSq),
+        )
+    }
+
+    private fun recordReroutingAttempt(now: Double): Double {
+        reroutingAttemptTimestamps.removeAll { now - it >= REROUTING_BACKOFF_WINDOW_MS }
+        reroutingAttemptTimestamps += now
+        val count = reroutingAttemptTimestamps.size
+        val delayMs = when {
+            count >= REROUTING_ESCALATE_AT_ATTEMPTS -> REROUTING_BACKOFF_LONG_DELAY_MS
+            count >= REROUTING_THROTTLE_AT_ATTEMPTS -> REROUTING_BACKOFF_DELAY_MS
+            else -> 0.0
+        }
+        reroutingDelayedUntilMs = if (delayMs > 0.0) now + delayMs else null
+        return delayMs
+    }
+
+    fun isWaitingToReroute(now: Double): Boolean {
+        val until = reroutingDelayedUntilMs ?: return false
+        return now < until
+    }
+
+    fun requestManualReroute() {
+        reroutingDelayedUntilMs = null
+    }
+
+    private fun markAutoRerouteDispatched() {
+        rerouteRequested = false
+        offRouteDurationMs = 0.0
+        reroutingDelayedUntilMs = null
     }
 
     /**
@@ -818,6 +934,14 @@ class HomeStateHolder(
     }
 
     companion object {
+        private const val OFF_ROUTE_ENTER_DISTANCE_M = 35.0
+        private const val OFF_ROUTE_EXIT_DISTANCE_M = 22.0
+        private const val REROUTE_REQUEST_DELAY_MS = 2_000.0
+        private const val REROUTING_BACKOFF_WINDOW_MS = 30_000.0
+        private const val REROUTING_THROTTLE_AT_ATTEMPTS = 3
+        private const val REROUTING_ESCALATE_AT_ATTEMPTS = 5
+        private const val REROUTING_BACKOFF_DELAY_MS = 5_000.0
+        private const val REROUTING_BACKOFF_LONG_DELAY_MS = 10_000.0
         /**
          * Larger than the off-route exit distance so a rider drifting around
          * the destination doesn't bounce between "off route" and "arrived".

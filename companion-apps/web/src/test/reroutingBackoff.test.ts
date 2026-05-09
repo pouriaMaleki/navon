@@ -113,4 +113,18 @@ describe("GuidanceStore — rerouting backoff (sliding 30 s window)", () => {
     expect(guidance.isWaitingToReroute(7_999)).toBe(true);
     expect(guidance.isWaitingToReroute(8_000)).toBe(false);
   });
+
+  it("markAutoRerouteDispatched re-arms reroute while staying off-route", () => {
+    const { guidance } = buildHarness();
+    guidance.offRoute = true;
+    guidance.recordReroutingAttempt(1_000);
+    guidance.recordReroutingAttempt(2_000);
+    guidance.recordReroutingAttempt(3_000);
+    guidance.rerouteRequested = true;
+
+    guidance.markAutoRerouteDispatched();
+
+    expect(guidance.rerouteRequested).toBe(false);
+    expect(guidance.reroutingDelayedUntilMs).toBeUndefined();
+  });
 });

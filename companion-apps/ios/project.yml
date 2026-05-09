@@ -4,6 +4,11 @@ options:
 configs:
   Debug: debug
   Release: release
+settings:
+  base:
+    # Allow automatic team injection when IOS_DEVELOPMENT_TEAM is exported.
+    # Local Signing.local.xcconfig remains the persisted fallback for Xcode.
+    DEVELOPMENT_TEAM: ${IOS_DEVELOPMENT_TEAM}
 targets:
   ESP32MapCompanion:
     type: application

@@ -477,6 +477,16 @@ final class HomeViewModel: ObservableObject {
         reroutingDelayedUntilMs = nil
     }
 
+    /// Called when an auto-reroute is actually dispatched. Re-arms the
+    /// reroute request latch while preserving off-route state so sustained
+    /// off-route riding can schedule a follow-up reroute attempt without
+    /// requiring a temporary return to the on-route corridor.
+    private func markAutoRerouteDispatched() {
+        rerouteRequested = false
+        offRouteDurationMs = 0
+        reroutingDelayedUntilMs = nil
+    }
+
     /// The most recently dispatched auto-reroute task. Tests await this
     /// to observe the asynchronous `AppModel.rerouteActiveSession`
     /// completing; production code does not need to read it.
@@ -1402,8 +1412,9 @@ final class HomeViewModel: ObservableObject {
                         try? await Task.sleep(nanoseconds: 250_000_000)
                         if Task.isCancelled { return }
                     }
-                    self.reroutingDelayedUntilMs = nil
                 }
+                self.markAutoRerouteDispatched()
+                defer { self.autoReroutePending = false }
                 await model.rerouteActiveSession(from: rider, reason: "Off-route")
             }
         }

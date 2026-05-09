@@ -154,11 +154,11 @@ final class AutoRerouteTests: XCTestCase {
         XCTAssertFalse(app.isRoutingInProgress)
     }
 
-    func test_autoRerouteFiresOnceWhileFlagStaysTrue() async {
-        // Avoid spamming the routing provider while the rider remains
-        // off-route. The flag stays `true` for as long as the rider is
-        // away from the corridor; the dispatch should latch and wait
-        // for the next rising edge.
+    func test_sustainedOffRoute_canTriggerFollowUpAutoRerouteWithoutReturningOnRoute() async {
+        // Regression guard: after dispatching an auto-reroute, we must
+        // re-arm the reroute latch even if the rider is still off-route.
+        // Audio cues may be silenced by CueEngine policy, but rerouting
+        // itself must continue.
         let pkg = straightRoute()
         let (app, vm) = await startRoute(pkg)
 
@@ -167,14 +167,16 @@ final class AutoRerouteTests: XCTestCase {
         vm.ingestRiderLocationFix(drifted, timestampMs: 3000)
         await vm.pendingAutoRerouteTask?.value
         let firstStamp = app.activeSession.lastRerouteTimestamp
+        XCTAssertNotNil(firstStamp)
 
-        // Subsequent off-route ticks must not kick another reroute.
+        // Keep riding off-route. Another sustained dwell should trigger
+        // a follow-up reroute without needing an on-route reset.
         vm.ingestRiderLocationFix(drifted, timestampMs: 4500)
         vm.ingestRiderLocationFix(drifted, timestampMs: 6000)
         await vm.pendingAutoRerouteTask?.value
-        XCTAssertEqual(
+        XCTAssertNotEqual(
             app.activeSession.lastRerouteTimestamp, firstStamp,
-            "while off-route flag stays true, no new auto-reroute should fire"
+            "sustained off-route after a reroute must still permit another reroute attempt"
         )
     }
 }
