@@ -27,9 +27,10 @@ Main features of this application is:
 
 Recommended flow is VS Code Remote SSH + Dev Containers.
 
-1. Open this repo in VS Code.
-2. Run `Dev Containers: Reopen in Container`.
-3. Use the container terminal for all commands below.
+1. Copy `.env.example` to `.env` and fill in your API keys (gitignored).
+2. Open this repo in VS Code.
+3. Run `Dev Containers: Reopen in Container`.
+4. Use the container terminal for all commands below.
 
 ## Run Dev (All Projects)
 
@@ -155,23 +156,32 @@ Copy city.svm to SD Card if you want larger size map. Flashed map is very small 
 
 ```text
 .
-├─ docs/              Product specs, plans, architecture notes, and contracts.
-├─ firmware/          ESP32 firmware app and platform integrations.
-├─ runtime-core/      Shared Rust runtime logic (camera, motion, routing, input).
-├─ render-core/       Shared Rust rendering pipeline and visual assets.
-├─ render-core-wasm/  WASM bridge exposing shared runtime/render to web/emulator.
-├─ emulator/          Browser-based ESP32 runtime emulator and UI shell.
-├─ companion-web/     Web companion app (route planning, guidance, sync flows).
-├─ companion-ios/     iOS companion app and tests.
-├─ companion-android/ Android companion app and tests.
-├─ parity-fixtures/   Cross-platform fixture data and parity/regression tests.
-├─ route-import-gpx/  Shared GPX-to-route package importer crate (used by `render-core-wasm` for emulator/web GPX import).
-├─ map-vector-cli/    Map conversion CLI (.mbtiles -> .svm and shrink tools).
-├─ map-runtime/       Runtime map data interfaces/types used by core runtime.
-├─ map-src/           Input map datasets (source files, usually .mbtiles).
-├─ map-data/          Generated runtime map files (.svm) for emulator/device.
-├─ xtask/             Workspace task runner (build, emulator, fixtures, i18n).
-├─ i18n/              Translation source catalogs and localization tooling data.
-├─ demo/              Screenshots and demo media used in documentation.
-└─ infra/             Devcontainer and local developer environment setup scripts.
+├─ companion-apps/            User-facing companion apps (web + native).
+│  ├─ web/                    Companion web app.
+│  ├─ ios/                    Companion iOS app and tests.
+│  └─ android/                Companion Android app and tests.
+│
+├─ device/                    Device-side runtime stack and simulator.
+│  ├─ firmware/               ESP32 firmware and hardware integrations.
+│  ├─ emulator/               Browser-based runtime emulator/simulator UI.
+│  └─ core/                   Shared Rust runtime/render crates used by device flows.
+│     ├─ runtime-core/        Runtime logic (camera, motion, routing, input).
+│     ├─ render-core/         Rendering pipeline and visual assets.
+│     ├─ render-core-wasm/    WASM bridge exposing runtime/render APIs.
+│     ├─ map-runtime/         Shared map/runtime interfaces.
+│     └─ route-import-gpx/    GPX-to-route importer (used via WASM import path).
+│
+├─ data/                      Shared datasets and generated fixture/map artifacts.
+│  ├─ parity-fixtures/        Cross-platform parity fixture data and tests.
+│  ├─ map-src/                Input map datasets (usually .mbtiles files).
+│  └─ map-data/               Generated runtime map files (.svm).
+│
+├─ tools/                     Developer tooling and conversion CLIs.
+│  ├─ xtask/                  Workspace task runner (build, emu, fixtures, i18n).
+│  └─ map-vector-cli/         Map conversion CLI (.mbtiles -> .svm and shrink).
+│
+├─ docs/                      Product specs, plans, architecture notes, contracts.
+├─ i18n/                      Translation catalogs and localization tooling data.
+├─ infra/                     Devcontainer and local environment setup scripts.
+└─ demo/                      Screenshots and demo media for documentation.
 ```

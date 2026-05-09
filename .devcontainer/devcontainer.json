@@ -4,20 +4,17 @@
     "context": "..",
     "dockerfile": "../infra/devcontainer/Containerfile"
   },
-  "initializeCommand": "bash .devcontainer/scripts/init-host-home.sh",
+  "initializeCommand": "bash infra/devcontainer/scripts/init-host-home.sh",
   "workspaceFolder": "/work",
   "workspaceMount": "source=${localWorkspaceFolder},target=/work,type=bind",
   "runArgs": [
     "--dns=1.1.1.1",
     "--dns=8.8.8.8",
-    "--publish=3024:3024",
-    "--publish=8449:8449",
     "--publish=5173:5173"
   ],
   "mounts": [
     "source=${localEnv:HOME}/.devcontainer-homes/esp32-map,target=/home/vscode,type=bind,consistency=cached",
-    "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
-    "source=${localEnv:LEX_PATH:-/opt/lex-disabled},target=/opt/lex,type=bind,consistency=cached"
+    "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
   ],
   "remoteUser": "vscode",
   "containerEnv": {
@@ -26,21 +23,11 @@
     "TZ": "Europe/Helsinki"
   },
   "forwardPorts": [
-    5173,
-    3024,
-    8449
+    5173
   ],
   "portsAttributes": {
     "5173": {
-      "label": "Emulator (Vite)",
-      "onAutoForward": "notify"
-    },
-    "3024": {
-      "label": "Lex Code Viewer",
-      "onAutoForward": "notify"
-    },
-    "8449": {
-      "label": "Code Server",
+      "label": "Vite Dev Server (emulator + companion)",
       "onAutoForward": "notify"
     }
   },
@@ -62,9 +49,7 @@
         "tamasfe.even-better-toml",
         "ms-vscode.makefile-tools",
         "probe-rs.probe-rs-debugger",
-        "wokwi.wokwi-vscode",
-        "fill-labs.dependi",
-        "openai.chatgpt"
+        "fill-labs.dependi"
       ]
     }
   }

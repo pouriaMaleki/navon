@@ -27,6 +27,4 @@ migrate_dir_once ".codex"
 migrate_dir_once ".claude"
 migrate_dir_once ".gemini"
 migrate_dir_once ".config/gh"
-mkdir -p "${PERSIST_HOME}/.config/lex"
-
 date -u +"%Y-%m-%dT%H:%M:%SZ" > "${MIGRATION_MARKER}"

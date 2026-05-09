@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Load shared env from repo root .env (API keys, etc.)
+if [ -f /work/.env ]; then
+  set -a
+  source /work/.env
+  set +a
+fi
+
 # Keep espup artifacts and export script in persistent config volume.
 ESP_CONFIG_DIR="${HOME}/.config/esp"
 ESP_EXPORT_PERSIST="${ESP_CONFIG_DIR}/export-esp.sh"
@@ -69,11 +76,6 @@ if [ -f /work/emulator/web/package-lock.json ] && [ ! -d /work/emulator/web/node
   (cd /work/emulator/web && npm ci)
 fi
 
-# Keep local bun usable in future shells when present.
-if [ -x "${HOME}/.bun/bin/bun" ] && ! grep -q 'export PATH="$HOME/.bun/bin:$PATH"' "${HOME}/.bashrc"; then
-  printf '\nexport PATH="$HOME/.bun/bin:$PATH"\n' >> "${HOME}/.bashrc"
-fi
-
 # Keep git global config in a persistent mounted directory.
 mkdir -p "${HOME}/.config/git"
 if [ ! -f "${HOME}/.config/git/config" ]; then
@@ -83,46 +85,20 @@ if [ -f "${HOME}/.gitconfig" ] && [ ! -s "${HOME}/.config/git/config" ]; then
   cp "${HOME}/.gitconfig" "${HOME}/.config/git/config"
 fi
 
+# deepclaude: symlink into PATH (run early — cheap and should never be skipped)
+DEEPCLAUDE_SRC="/work/infra/devcontainer/scripts/deepclaude.sh"
+if [ -f "${DEEPCLAUDE_SRC}" ] && [ ! -L "/usr/local/bin/deepclaude" ]; then
+  sudo ln -sf "${DEEPCLAUDE_SRC}" /usr/local/bin/deepclaude
+  echo "deepclaude symlinked to /usr/local/bin/deepclaude"
+fi
+
 # Persisted SSH directory should keep secure permissions for OpenSSH.
 mkdir -p "${HOME}/.ssh"
 chmod 700 "${HOME}/.ssh"
 find "${HOME}/.ssh" -type f -name "id_*" -exec chmod 600 {} \;
 
-# Load shared env from persistent home (used by Lex and code-server).
-LEX_ENV="${HOME}/.config/lex/.env"
-if [ -f "${LEX_ENV}" ]; then
-  set -a
-  source "${LEX_ENV}"
-  set +a
-fi
-
-# Lex code viewer: initialize and start if mounted at /opt/lex.
-if [ -f /opt/lex/server.ts ] && command -v bun >/dev/null 2>&1; then
-  # Install dependencies if missing
-  if [ ! -d /opt/lex/node_modules ]; then
-    (cd /opt/lex && bun install)
-  fi
-
-  # Ensure node-pty has native bindings for this platform
-  if [ ! -f /opt/lex/node_modules/node-pty/build/Release/pty.node ]; then
-    (cd /opt/lex && npm rebuild node-pty 2>/dev/null || true)
-  fi
-
-  # Fix node-pty spawn-helper permissions if needed
-  find /opt/lex/node_modules/node-pty/prebuilds -name "spawn-helper" -exec chmod +x {} \; 2>/dev/null || true
-
-  if command -v tmux >/dev/null 2>&1; then
-    tmux new-session -d -s lex \
-      "cd /opt/lex && set -a && [ -f '${LEX_ENV}' ] && source '${LEX_ENV}'; set +a && bun run server.ts --port 3024 --root /work" \
-      2>/dev/null || true
-    echo "Lex code viewer started on port 3024"
-  fi
-fi
-
-# Start code-server for browser-based VS Code access (only when password is configured).
-if [ -n "${CODE_SERVER_PASSWORD:-}" ] && command -v code-server >/dev/null 2>&1 && command -v tmux >/dev/null 2>&1; then
-  tmux new-session -d -s code-server \
-    "PASSWORD='${CODE_SERVER_PASSWORD}' code-server --bind-addr 0.0.0.0:8449 --auth password /work" \
-    2>/dev/null || true
-  echo "Code Server started on port 8449"
+# Android companion toolchain (JDK + SDK). Idempotent — skips if already installed.
+ANDROID_SETUP="/work/infra/devcontainer/scripts/install-android-toolchain.sh"
+if [ -f "${ANDROID_SETUP}" ]; then
+  bash "${ANDROID_SETUP}"
 fi

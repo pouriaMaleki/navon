@@ -22,13 +22,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && npm install -g node-gyp @anthropic-ai/claude-code @openai/codex \
     && rm -rf /var/lib/apt/lists/*
 
-# Install bun (used by Lex code viewer when mounted)
-RUN curl -fsSL https://bun.sh/install | bash \
-    && cp /root/.bun/bin/bun /usr/local/bin/bun \
-    && chmod 755 /usr/local/bin/bun
-
-# Install code-server
-RUN curl -fsSL https://code-server.dev/install.sh | sh
 
 USER vscode
 
@@ -37,7 +30,8 @@ RUN rustup self update || true \
     && rustup default stable \
     && rustc --version \
     && rustup component add rustfmt clippy \
-    && cargo install espup --locked
+    && cargo install espup --locked \
+    && cargo install probe-rs-tools --locked
 
 COPY infra/devcontainer/motd.txt /etc/motd
 
