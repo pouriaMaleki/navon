@@ -29,11 +29,11 @@
     "zh": { "rtl": false, "translatorVariant": "Simplified Mandarin Chinese (Mainland China)" }
   },
   "outputs": {
-    "web": "companion-web/src/i18n/messages",
-    "ios": "companion-ios/CompanionApp/Resources/Localizable.xcstrings",
-    "iosMessages": "companion-ios/CompanionApp/Resources/Messages",
-    "androidValues": "companion-android/app/src/main/res/values",
-    "androidRaw": "companion-android/app/src/main/res/raw",
+    "web": "companion-apps/web/src/i18n/messages",
+    "ios": "companion-apps/ios/CompanionApp/Resources/Localizable.xcstrings",
+    "iosMessages": "companion-apps/ios/CompanionApp/Resources/Messages",
+    "androidValues": "companion-apps/android/app/src/main/res/values",
+    "androidRaw": "companion-apps/android/app/src/main/res/raw",
     "parityFixture": "i18n/parity/cue-en-snapshots.json"
   }
 }

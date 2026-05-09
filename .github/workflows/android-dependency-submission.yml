@@ -4,13 +4,13 @@ on:
   pull_request:
     paths:
       - ".github/workflows/android-dependency-submission.yml"
-      - "companion-android/**"
+      - "companion-apps/android/**"
   push:
     branches:
       - main
     paths:
       - ".github/workflows/android-dependency-submission.yml"
-      - "companion-android/**"
+      - "companion-apps/android/**"
   workflow_dispatch:
 
 jobs:
@@ -46,7 +46,7 @@ jobs:
       - name: Generate Android dependency graph
         uses: gradle/actions/dependency-submission@v6
         with:
-          build-root-directory: companion-android
+          build-root-directory: companion-apps/android
           dependency-graph: generate-and-upload
           dependency-graph-continue-on-failure: false
 
@@ -82,6 +82,6 @@ jobs:
       - name: Submit Android dependency graph
         uses: gradle/actions/dependency-submission@v6
         with:
-          build-root-directory: companion-android
+          build-root-directory: companion-apps/android
           dependency-graph: generate-submit-and-upload
           dependency-graph-continue-on-failure: false

@@ -1,4 +1,4 @@
-# Build context for emulator/web/Dockerfile.
+# Build context for device/emulator/web/Dockerfile.
 # Everything excluded here is either a build output, a vendored dep, or
 # IDE / editor noise — none of it belongs in the wasm-builder,
 # emulator-builder, or companion-builder stages.
@@ -21,27 +21,27 @@
 **/.cache
 **/playwright-report
 **/test-results
-companion-web/e2e-results.json
+companion-apps/web/e2e-results.json
 
 # Android Gradle / IDE artifacts.
 **/build
-companion-android/.gradle
-companion-android/.idea
-companion-android/local.properties
-companion-android/captures
+companion-apps/android/.gradle
+companion-apps/android/.idea
+companion-apps/android/local.properties
+companion-apps/android/captures
 
 # iOS Xcode / DerivedData / user-specific xcuserdata.
-companion-ios/DerivedData
+companion-apps/ios/DerivedData
 **/xcuserdata
 **/*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
 
 # Firmware-side artifacts the wasm build doesn't need.
-firmware/managed_components
-firmware/dependencies.lock
-firmware/sdkconfig.old
+device/firmware/managed_components
+device/firmware/dependencies.lock
+device/firmware/sdkconfig.old
 
 # Emulator-web outputs.
-emulator/web/wasm-pkg
+device/emulator/web/wasm-pkg
 
 # OS / editor noise.
 .DS_Store

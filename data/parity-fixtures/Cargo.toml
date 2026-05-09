@@ -1,0 +1,13 @@
+[package]
+name = "parity-fixtures"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+runtime-core = { path = "../../device/core/runtime-core" }
+smallvec = "1"
+
+[dev-dependencies]
+firmware = { path = "../../device/firmware" }
+render-core-wasm = { path = "../../device/core/render-core-wasm" }
+serde_json = "1"

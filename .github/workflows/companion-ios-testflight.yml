@@ -12,7 +12,7 @@ jobs:
     runs-on: macos-latest
     defaults:
       run:
-        working-directory: companion-ios
+        working-directory: companion-apps/ios
     env:
       IOS_DEVELOPMENT_TEAM: ${{ vars.IOS_DEVELOPMENT_TEAM }}
       IOS_APP_BUNDLE_ID: me.fiksu.esp32map.companion.ios
@@ -163,21 +163,21 @@ jobs:
       - name: Upload TestFlight IPA artifact
         uses: actions/upload-artifact@v6
         with:
-          name: companion-ios-testflight-ipa
-          path: companion-ios/build/export/*.ipa
+          name: companion-apps/ios-testflight-ipa
+          path: companion-apps/ios/build/export/*.ipa
           if-no-files-found: error
 
       - name: Upload xcarchive artifact
         uses: actions/upload-artifact@v6
         with:
-          name: companion-ios-testflight-xcarchive
-          path: companion-ios/build/ESP32MapCompanion.xcarchive
+          name: companion-apps/ios-testflight-xcarchive
+          path: companion-apps/ios/build/ESP32MapCompanion.xcarchive
           if-no-files-found: error
 
       - name: Upload app to TestFlight
         uses: Apple-Actions/upload-testflight-build@v3
         with:
-          app-path: companion-ios/${{ env.IOS_IPA_PATH }}
+          app-path: companion-apps/ios/${{ env.IOS_IPA_PATH }}
           issuer-id: ${{ vars.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ vars.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}

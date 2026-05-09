@@ -7,7 +7,7 @@ services:
   emulator-web:
     build:
       context: .
-      dockerfile: emulator/web/Dockerfile
+      dockerfile: device/emulator/web/Dockerfile
     ports:
       - "0.0.0.0:${EMULATOR_PORT:-4173}:4173"
     restart: unless-stopped

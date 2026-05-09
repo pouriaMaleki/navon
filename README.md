@@ -18,8 +18,8 @@ Main features of this application is:
 
 - Web version of the app (There might be issues with background locations, due to OS limitations): <https://map.fiksu.me>
 - ESP32 Web Emulator: <https://map.fiksu.me/emulator>
-- iOS app: `companion-ios/`
-- Android app: `companion-android/`
+- iOS app: `companion-apps/ios/`
+- Android app: `companion-apps/android/`
 
 <img src="demo/demo-2.jpg" alt="Web app screenshot" width="160" /> <img src="demo/demo-3.png" alt="Web app screenshot route planning" width="160" /> <img src="demo/demo-4.png" alt="iOS App screenshot route planning" width="160" /> <img src="demo/demo-5.png" alt="iOS app settings page screenshot" width="160" /> <img src="demo/demo-6.png" alt="iOS lock screen guides screenshot" width="160" /> <img src="demo/demo-1.jpg" alt="ESP32-P4 with 3.4inch screen as a handheld device rendering map" width="160" />
 
@@ -46,13 +46,13 @@ Companion projects:
 
 - Web companion:
   ```bash
-  cd companion-web
+  cd companion-apps/web
   npm install
   npm run dev
   ```
 - iOS companion:
   ```bash
-  cd companion-ios
+  cd companion-apps/ios
   brew install xcodegen
   cp Config/Signing.local.example.xcconfig Config/Signing.local.xcconfig
   xcodegen generate
@@ -60,7 +60,7 @@ Companion projects:
   ```
 - Android companion:
   ```bash
-  cd companion-android
+  cd companion-apps/android
   ./gradlew lintDebug testDebugUnitTest assembleDebug
   ```
 
@@ -111,21 +111,21 @@ Source dataset (MapTiler):
 <https://www.maptiler.com/on-prem-datasets/europe/finland/helsinki/>
 
 1. Download your map `.mbtiles` file.
-2. Put it in `map-src/` (example: `map-src/helsinki.mbtiles`).
+2. Put it in `data/map-src/` (example: `data/map-src/helsinki.mbtiles`).
 3. Convert to runtime map:
    ```bash
    cargo run -p map-vector-cli -- \
      convert-mbtiles \
-     --input map-src/helsinki.mbtiles \
-     --output map-data/city.svm \
+     --input data/map-src/helsinki.mbtiles \
+     --output data/map-data/city.svm \
      --target-zoom 16 \
      --profile bike
    ```
 4. Create smaller flash-friendly map:
    ```bash
    cargo run -p map-vector-cli --release -- \
-     shrink-svm --input map-data/city.svm \
-               --output map-data/city-small.svm \
+     shrink-svm --input data/map-data/city.svm \
+               --output data/map-data/city-small.svm \
                --max-segments 400000
    ```
 
@@ -143,7 +143,7 @@ General flow:
    ```
 3. Flash map partition:
    ```bash
-   espflash write-bin --chip esp32p4 --port <PORT> 0x400000 map-data/city-small.svm
+   espflash write-bin --chip esp32p4 --port <PORT> 0x400000 data/map-data/city-small.svm
    ```
 4. Monitor logs:
    ```bash

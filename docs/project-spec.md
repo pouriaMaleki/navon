@@ -58,7 +58,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 ## Architecture Boundaries
 
 - `/work` owns runtime camera, motion, input, query, and render behavior.
-- `/work/map-vector-cli` owns host-side map conversion and `.svm` format generation only.
+- `/work/tools/map-vector-cli` owns host-side map conversion and `.svm` format generation only.
 - `runtime-core` owns stateful runtime policy:
   - motion estimation
   - gesture and tap interpretation
@@ -121,9 +121,9 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 ## Security And Dependency Tracking
 
 - Rust workspace dependencies must pass repository vulnerability scanning through the root workspace lockfile.
-- Emulator web dependencies must pass repository vulnerability scanning through `emulator/web/package-lock.json`.
-- Companion web dependencies must pass repository vulnerability scanning through `companion-web/package-lock.json`.
-- `emulator/web/package-lock.json` and `companion-web/package-lock.json` are the canonical JavaScript lockfiles for repository security automation; any additional JS lockfiles must not become the sole source of dependency truth.
+- Emulator web dependencies must pass repository vulnerability scanning through `device/emulator/web/package-lock.json`.
+- Companion web dependencies must pass repository vulnerability scanning through `companion-apps/web/package-lock.json`.
+- `device/emulator/web/package-lock.json` and `companion-apps/web/package-lock.json` are the canonical JavaScript lockfiles for repository security automation; any additional JS lockfiles must not become the sole source of dependency truth.
 - Android companion dependencies must be published into GitHub dependency tracking so repository security advisories and dependency review can cover that subtree.
 - Android companion builds must use the committed Gradle Wrapper and repository-owned dependency verification metadata instead of relying on ad-hoc machine-wide Gradle installs.
 - iOS companion dependency managers must not be introduced without adding repository CVE coverage in CI during the same change.
@@ -141,12 +141,12 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - Emulator web forwards raw GPS and normalized touch contacts only.
 - Firmware follows the same runtime/query/render pipeline, with real hardware integration still being completed behind the adapter boundary.
 - Companion apps ship on three platforms:
-  - `companion-ios/` — native SwiftUI, MapKit, CoreLocation, CoreBluetooth.
-  - `companion-android/` — Jetpack Compose, Google Maps, FusedLocationProvider, Android BLE/GATT.
-  - `companion-web/` — React + MobX + MapLibre on OSM tiles, browser Geolocation, no BLE (phone-guidance only).
+  - `companion-apps/ios/` — native SwiftUI, MapKit, CoreLocation, CoreBluetooth.
+  - `companion-apps/android/` — Jetpack Compose, Google Maps, FusedLocationProvider, Android BLE/GATT.
+  - `companion-apps/web/` — React + MobX + MapLibre on OSM tiles, browser Geolocation, no BLE (phone-guidance only).
     All three share the same product surface, the same `companion.*` persistence keys, and the same RoutePackage contracts; see [`companion-app-architecture.md`](./companion-app-architecture.md) for the detailed architecture.
 - iOS phone-guidance Live Activities show route status plus a MapKit snapshot of the active route ahead. Snapshot version stamps are route-scoped so settings toggles can reuse a valid current snapshot, while route changes and route end clear stale map images.
-- Production deployment co-hosts `companion-web` and `emulator/web` in a single nginx container (companion at `/`, emulator at `/emulator/`) so edge routing remains a single service.
+- Production deployment co-hosts `companion-apps/web` and `device/emulator/web` in a single nginx container (companion at `/`, emulator at `/emulator/`) so edge routing remains a single service.
 
 ## Supporting References
 
@@ -156,5 +156,3 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - Runtime architecture decision: [`/work/docs/runtime-ecs-architecture.md`](/work/docs/runtime-ecs-architecture.md)
 - Framework execution guide: [`/work/docs/framework-execution-guide.md`](/work/docs/framework-execution-guide.md)
 - Device touch integration: [`/work/docs/device-touch-integration-plan.md`](/work/docs/device-touch-integration-plan.md)
-- Main plan: [`/work/docs/current-plan.md`](/work/docs/current-plan.md)
-- Main TODO: [`/work/docs/todo.md`](/work/docs/todo.md)

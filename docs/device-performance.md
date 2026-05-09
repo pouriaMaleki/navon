@@ -60,7 +60,7 @@ not measurement.
 | **Span-based scanline rasterizer** (replace Bresenham + stamp_circle with span fills) | up to -3× on `render` | ~2 weeks | medium-high | Memset-style writes are the fastest possible per-pixel cost. Anti-aliasing harder. |
 | **PPA-accelerated `convert` / `push`** | -34 ms `push` + free color conversion in DMA | ~2-3 weeks | medium | IDF's `esp_driver_ppa` exists but bindings need to be added to our build (`extra_components`). PPA rotation is discrete 0/90/180/270 only — useless for track-up rotation. |
 | **Multi-core pipeline** (Core 0: input/runtime/query, Core 1: rasterize) | up to ~2× throughput when CPU-bound | ~1 week | medium | Both cores share PSRAM bus → likely ~1.5× actual. Sync via double-buffer + mutex. |
-| **Pre-baked raster tiles in flash** + CPU bilinear-rotated compositor | up to 60 fps idle, ~20 fps panning with rotation | ~6-8 weeks | low (architecturally) | The "commercial nav device" architecture. Vector rasterizer reserved for overlays only. See `docs/current-plan.md` history for the design that got close. |
+| **Pre-baked raster tiles in flash** + CPU bilinear-rotated compositor | up to 60 fps idle, ~20 fps panning with rotation | ~6-8 weeks | low (architecturally) | The "commercial nav device" architecture. Vector rasterizer reserved for overlays only. See device-performance history for the design that got close. |
 
 ## Fundamental constraint
 
@@ -87,10 +87,10 @@ time) or hardware acceleration the chip doesn't fully provide.
 every frame. To time a new section:
 
 1. Add a `Duration` field to `PhaseTimings` in
-   [firmware/src/app.rs](../firmware/src/app.rs).
+   [firmware/src/app.rs](../device/firmware/src/app.rs).
 2. Wrap the section with `Instant::now()` / `.elapsed()`.
 3. Aggregate it in the per-second log loop in
-   [firmware/src/esp_idf.rs `run_device_main`](../firmware/src/esp_idf.rs).
+   [firmware/src/esp_idf.rs `run_device_main`](../device/firmware/src/esp_idf.rs).
 
 Cost is two `Instant::now()` calls per frame per probe, well below
 microsecond accuracy on the IDF clock — negligible vs the work being

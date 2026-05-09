@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Idempotent installer for the JDK + Android SDK pair the companion-android
+# Idempotent installer for the JDK + Android SDK pair the companion-apps/android
 # project needs. The official Android docs and AGP 8.13 require JDK 17+;
 # we install Temurin 21 LTS because it's the latest "recommended" JDK
 # Android still officially supports (AGP 8.7+ added JDK 21 support) and
@@ -85,4 +85,4 @@ echo "  export ANDROID_HOME=${SDK_DIR}"
 echo "  export PATH=\$JAVA_HOME/bin:\$ANDROID_HOME/cmdline-tools/latest/bin:\$ANDROID_HOME/platform-tools:\$PATH"
 echo
 echo "Verify with:"
-echo "  cd /work/companion-android && ./gradlew :app:assembleDebug"
+echo "  cd /work/companion-apps/android && ./gradlew :app:assembleDebug"

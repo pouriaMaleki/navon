@@ -51,7 +51,7 @@ this — see the bring-up doc in
 
 A factory-reset gesture on the device itself (long-press combo, button
 sequence) is a planned follow-up but **not in this release** — see
-[todo.md](todo.md).
+
 
 ## Anti-replay protections
 - The QR's secret rotates every 60 seconds while the device is

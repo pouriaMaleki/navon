@@ -1,5 +1,5 @@
 # Rust build artifacts
-/firmware/target/
+/device/firmware/target/
 /target/
 /node_modules/
 
@@ -18,8 +18,8 @@
 # Cargo local config. `config.toml` is checked in because it holds the
 # shared P4 rustflags / ldproxy / ESP_IDF_VERSION wiring that every
 # contributor needs; only truly local/generated state stays ignored.
-/firmware/.cargo/.local/
-/firmware/.cargo/credentials.toml
+/device/firmware/.cargo/.local/
+/device/firmware/.cargo/credentials.toml
 
 # Tool/editor temp files
 *.swp
@@ -47,33 +47,33 @@
 /.tools/
 
 # Gradle dry-run output from `--write-verification-metadata sha256 --dry-run`.
-/companion-android/gradle/verification-metadata.dryrun.xml
+/companion-apps/android/gradle/verification-metadata.dryrun.xml
 
 # Local map inputs/outputs and device bundles
-/map-src/*
-!/map-src/.gitkeep
-/map-data/*
-!/map-data/.gitkeep
+/data/map-src/*
+!/data/map-src/.gitkeep
+/data/map-data/*
+!/data/map-data/.gitkeep
 /device-bundle/
 
 # Legacy local map folder
-/map/
+/data/map/
 
 # Generated runtime map bridge module
-/render-core-wasm/src/generated_map.rs
+/device/core/render-core-wasm/src/generated_map.rs
 
 # Web companion build + test artifacts
-/companion-web/.vitest/
-/companion-web/test-results/
-/companion-web/playwright-report/
-/companion-web/e2e-results.json
+/companion-apps/web/.vitest/
+/companion-apps/web/test-results/
+/companion-apps/web/playwright-report/
+/companion-apps/web/e2e-results.json
 
 # Native companion app artifacts
-/companion-ios/ESP32MapCompanion.xcodeproj/
-/companion-ios/build/
-/companion-ios/DerivedData/
-/companion-ios/Config/Signing.local.xcconfig
-/companion-android/.gradle/
-/companion-android/build/
-/companion-android/app/build/
-/companion-android/local.properties
+/companion-apps/ios/ESP32MapCompanion.xcodeproj/
+/companion-apps/ios/build/
+/companion-apps/ios/DerivedData/
+/companion-apps/ios/Config/Signing.local.xcconfig
+/companion-apps/android/.gradle/
+/companion-apps/android/build/
+/companion-apps/android/app/build/
+/companion-apps/android/local.properties

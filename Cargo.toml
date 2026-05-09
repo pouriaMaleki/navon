@@ -1,13 +1,13 @@
 [workspace]
 members = [
-  "firmware",
-  "parity-fixtures",
-  "map-runtime",
-  "runtime-core",
-  "route-import-gpx",
-  "render-core",
-  "render-core-wasm",
-  "map-vector-cli",
-  "xtask"
+  "device/firmware",
+  "data/parity-fixtures",
+  "device/core/map-runtime",
+  "device/core/runtime-core",
+  "device/core/route-import-gpx",
+  "device/core/render-core",
+  "device/core/render-core-wasm",
+  "tools/map-vector-cli",
+  "tools/xtask"
 ]
 resolver = "2"

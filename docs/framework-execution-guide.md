@@ -1,8 +1,6 @@
 # Framework Execution Guide
 
 Spec reference: [`project-spec.md`](./project-spec.md)
-Plan reference: [`current-plan.md`](./current-plan.md)
-
 ## Goal
 Lead the project as a framework-first Rust buildout where shared runtime behavior is implemented once and consumed by both firmware and wasm adapters.
 
@@ -138,7 +136,7 @@ New functionality should enter through one of these paths:
 - a new render overlay primitive
 
 ## Companion App Guardrails
-When editing `companion-ios` or `companion-android`, preserve these rules:
+When editing `companion-apps/ios` or `companion-apps/android`, preserve these rules:
 1. Keep Home as the single primary surface; do not reintroduce tabbed primary navigation.
 2. Keep feature state in feature-scoped view models or state holders, not in one monolithic app object.
 3. Keep views free of provider, import, BLE, and persistence logic.

@@ -72,8 +72,8 @@ if ! command -v wasm-pack >/dev/null 2>&1; then
 fi
 
 # Install emulator web dependencies for the first `cargo xtask emu` run.
-if [ -f /work/emulator/web/package-lock.json ] && [ ! -d /work/emulator/web/node_modules ]; then
-  (cd /work/emulator/web && npm ci)
+if [ -f /work/device/emulator/web/package-lock.json ] && [ ! -d /work/device/emulator/web/node_modules ]; then
+  (cd /work/device/emulator/web && npm ci)
 fi
 
 # Keep git global config in a persistent mounted directory.

@@ -5,7 +5,7 @@ You should also check md files and see if some of these are not documented prope
 here are important things to know:
 
 - esp code has slighly different UX compared to companion apps.
-- companion-web, companion-ios and companion-android should have same ux (related to map at least)
+- companion-apps/web, companion-apps/ios and companion-apps/android should have same ux (related to map at least)
 - esp interactions and icons:
   - map and POIs
   - pan
@@ -50,7 +50,7 @@ Tests should cover these ux cases as end to end tests (or if they suite for inte
   - user can pinch to zoom or with two fingers rotate (zoom and rotation work at the same time too)
   - by panning, user can explore other areas
   - Specific to esp, if user leaves in other location, after a timeout of inactivity camera resets and recenters smoothly. It should recenter on the user location (if stationary) or go back to rigin mode where user location is rendered on the bottom of the screen (when moving)
-    Pinned numeric values (canonical copy lives in `parity-fixtures/data/ux-constants.toml`; `runtime-core/src/api/config.rs` reads the same defaults):
+    Pinned numeric values (canonical copy lives in `data/parity-fixtures/data/ux-constants.toml`; `runtime-core/src/api/config.rs` reads the same defaults):
 
 - enter moving threshold: 0.5 kph ≈ 0.139 mps
 - exit moving threshold: 0.3 kph ≈ 0.083 mps

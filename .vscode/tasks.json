@@ -53,7 +53,7 @@
     {
       "label": "Device: bundle (clean)",
       "type": "shell",
-      "command": "cargo clean -p esp-idf-sys --target riscv32imafc-esp-espidf --release && cargo clean -p firmware --target riscv32imafc-esp-espidf --release && rm -rf target/devcontainer/riscv32imafc-esp-espidf/release/build/esp-idf-sys-*/out/build && cargo xtask bundle-device --release",
+      "command": "cargo clean -p esp-idf-sys --target riscv32imafc-esp-espidf --release && cargo clean -p device/firmware --target riscv32imafc-esp-espidf --release && rm -rf target/devcontainer/riscv32imafc-esp-espidf/release/build/esp-idf-sys-*/out/build && cargo xtask bundle-device --release",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -84,7 +84,7 @@
       "type": "shell",
       "command": "./gradlew :app:assembleDebug && printf '\\n>>> Debug APK: %s\\n' \"$(ls -1 \"$(pwd)\"/app/build/outputs/apk/debug/*.apk | head -n 1)\" && ls -lh \"$(pwd)\"/app/build/outputs/apk/debug/*.apk",
       "options": {
-        "cwd": "${workspaceFolder}/companion-android",
+        "cwd": "${workspaceFolder}/companion-apps/android",
         "env": {
           "JAVA_HOME": "/work/.tools/jdk-21.0.11+10",
           "ANDROID_HOME": "/work/.tools/android-sdk",
@@ -100,14 +100,14 @@
         "Android: install toolchain"
       ],
       "dependsOrder": "sequence",
-      "detail": "Builds + prints the resulting APK path. Output lives at companion-android/app/build/outputs/apk/debug/app-debug.apk (~70 s clean, ~10 s incremental)."
+      "detail": "Builds + prints the resulting APK path. Output lives at companion-apps/android/app/build/outputs/apk/debug/app-debug.apk (~70 s clean, ~10 s incremental)."
     },
     {
       "label": "Android: assemble release",
       "type": "shell",
       "command": "./gradlew :app:assembleRelease && printf '\\n>>> Release APK: %s\\n' \"$(ls -1 \"$(pwd)\"/app/build/outputs/apk/release/*.apk | head -n 1)\" && ls -lh \"$(pwd)\"/app/build/outputs/apk/release/*.apk",
       "options": {
-        "cwd": "${workspaceFolder}/companion-android",
+        "cwd": "${workspaceFolder}/companion-apps/android",
         "env": {
           "JAVA_HOME": "/work/.tools/jdk-21.0.11+10",
           "ANDROID_HOME": "/work/.tools/android-sdk",
@@ -119,14 +119,14 @@
         "Android: install toolchain"
       ],
       "dependsOrder": "sequence",
-      "detail": "Builds the unsigned release APK and prints its path. File lands at companion-android/app/build/outputs/apk/release/app-release-unsigned.apk; needs a real signing config before publishing."
+      "detail": "Builds the unsigned release APK and prints its path. File lands at companion-apps/android/app/build/outputs/apk/release/app-release-unsigned.apk; needs a real signing config before publishing."
     },
     {
       "label": "Android: lint + compile",
       "type": "shell",
       "command": "./gradlew :app:compileDebugKotlin :app:lintDebug",
       "options": {
-        "cwd": "${workspaceFolder}/companion-android",
+        "cwd": "${workspaceFolder}/companion-apps/android",
         "env": {
           "JAVA_HOME": "/work/.tools/jdk-21.0.11+10",
           "ANDROID_HOME": "/work/.tools/android-sdk",
@@ -145,7 +145,7 @@
       "type": "shell",
       "command": "./gradlew clean",
       "options": {
-        "cwd": "${workspaceFolder}/companion-android",
+        "cwd": "${workspaceFolder}/companion-apps/android",
         "env": {
           "JAVA_HOME": "/work/.tools/jdk-21.0.11+10",
           "ANDROID_HOME": "/work/.tools/android-sdk",
@@ -153,7 +153,7 @@
         }
       },
       "problemMatcher": [],
-      "detail": "Drops companion-android/build and companion-android/app/build."
+      "detail": "Drops companion-apps/android/build and companion-apps/android/app/build."
     },
     {
       "label": "i18n: sync all translations",
@@ -183,7 +183,7 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
-      "detail": "Refreshes companion-web JSON, iOS xcstrings + Resources/Messages JSON, Android strings.xml + raw JSON, and the cue parity fixture from i18n/locales/*.json. Run after editing any locale file by hand."
+      "detail": "Refreshes companion-apps/web JSON, iOS xcstrings + Resources/Messages JSON, Android strings.xml + raw JSON, and the cue parity fixture from i18n/locales/*.json. Run after editing any locale file by hand."
     }
   ],
   "inputs": [

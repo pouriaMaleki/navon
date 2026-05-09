@@ -11,14 +11,14 @@ This repo uses a split mobile build path:
 - This keeps the Linux home server as the main development environment while making mobile builds mostly automatic after every push or pull request.
 
 ## Workflows
-- `.github/workflows/companion-android.yml`
+- `.github/workflows/companion-apps/android.yml`
   - Validates the committed Gradle Wrapper
   - Runs Android lint, JVM unit tests, and debug assembly on `ubuntu-latest`
   - Produces a debug APK artifact
-- `.github/workflows/companion-ios-self-hosted.yml`
+- `.github/workflows/companion-apps/ios-self-hosted.yml`
   - `simulator_validation`: validates the app shell with an unsigned simulator build
   - `signed_device`: archives and exports a signed iPhone IPA on your self-hosted MacBook runner
-- `.github/workflows/companion-ios-testflight.yml`
+- `.github/workflows/companion-apps/ios-testflight.yml`
   - manually archives a signed Release IPA on a GitHub-hosted macOS runner
   - uploads the IPA to TestFlight using an App Store Connect API key
 
@@ -81,10 +81,10 @@ Before the signed workflow can produce an installable IPA, do this once on the M
 8. If you plan to use `ad-hoc` export, ensure your phone is registered in the provisioning profile for that team.
 9. Persist the team for local Xcode builds:
    ```bash
-   cd companion-ios
+   cd companion-apps/ios
    cp Config/Signing.local.example.xcconfig Config/Signing.local.xcconfig
    ```
-10. Edit `companion-ios/Config/Signing.local.xcconfig` and set:
+10. Edit `companion-apps/ios/Config/Signing.local.xcconfig` and set:
     ```xcconfig
     DEVELOPMENT_TEAM = YOUR_TEAM_ID
     ```
@@ -105,7 +105,7 @@ Before the signed workflow can produce an installable IPA, do this once on the M
 ### Android
 On pushes to `main`, pull requests, or manual dispatch:
 ```bash
-cd companion-android
+cd companion-apps/android
 ./gradlew lintDebug testDebugUnitTest assembleDebug
 ```
 The resulting debug APK is uploaded as a GitHub Actions artifact.
@@ -115,7 +115,7 @@ Android dependency tracking also uses the committed Gradle Wrapper so GitHub dep
 ### iOS Simulator Validation
 On pushes to `main`, pull requests, or manual dispatch with `build_kind=simulator_validation`:
 ```bash
-cd companion-ios
+cd companion-apps/ios
 xcodegen generate
 xcodebuild \
   -project ESP32MapCompanion.xcodeproj \
@@ -145,7 +145,7 @@ The workflow will:
 ## How To Install The Signed Build On Your iPhone From Your Mac
 After the workflow finishes:
 
-1. On the MacBook, download the `companion-ios-signed-ipa` artifact from the workflow run.
+1. On the MacBook, download the `companion-apps/ios-signed-ipa` artifact from the workflow run.
 2. Connect the iPhone to the MacBook with USB.
 3. Open Xcode.
 4. Go to:

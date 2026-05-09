@@ -3,14 +3,14 @@ name: Companion Android
 on:
   pull_request:
     paths:
-      - '.github/workflows/companion-android.yml'
-      - 'companion-android/**'
+      - '.github/workflows/companion-apps/android.yml'
+      - 'companion-apps/android/**'
   push:
     branches:
       - main
     paths:
-      - '.github/workflows/companion-android.yml'
-      - 'companion-android/**'
+      - '.github/workflows/companion-apps/android.yml'
+      - 'companion-apps/android/**'
   workflow_dispatch:
 
 permissions:
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: companion-android
+        working-directory: companion-apps/android
 
     steps:
       - name: Checkout
@@ -56,6 +56,6 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v6
         with:
-          name: companion-android-debug-apk
-          path: companion-android/app/build/outputs/apk/debug/*.apk
+          name: companion-apps/android-debug-apk
+          path: companion-apps/android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error

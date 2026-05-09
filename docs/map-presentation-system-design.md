@@ -166,7 +166,7 @@ Geometry types should also expand over time:
 - point POIs: bike parking, repair, supermarket, food
 
 ## Ownership Boundaries
-- `/work/map-vector-cli`
+- `/work/tools/map-vector-cli`
   - owns source ingestion
   - owns feature classification
   - owns simplification/generalization
@@ -250,11 +250,9 @@ This gets the biggest UX improvement while keeping the first milestone realistic
 
 ## Immediate Repo Impact
 The next planning and implementation work should touch:
-- [`/work/map-vector-cli/docs/project-spec.md`](/work/map-vector-cli/docs/project-spec.md)
-- [`/work/map-vector-cli/docs/current-plan.md`](/work/map-vector-cli/docs/current-plan.md)
-- [`/work/docs/project-spec.md`](/work/docs/project-spec.md)
-- [`/work/docs/current-plan.md`](/work/docs/current-plan.md)
-- [`/work/docs/poi-layer-design.md`](/work/docs/poi-layer-design.md)
+- [`/work/tools/map-vector-cli/docs/project-spec.md`](/work/tools/map-vector-cli/docs/project-spec.md)
+- [`/work/tools/map-vector-cli/docs/current-plan.md`](/work/tools/map-vector-cli/docs/current-plan.md)
+- [`/work/docs/project-spec.md`](/work/docs/project-spec.md)- [`/work/docs/poi-layer-design.md`](/work/docs/poi-layer-design.md)
 - `runtime-core` map query model
 - `map-runtime` `.svm` reader/query backend
 - `render-core` style and geometry rendering

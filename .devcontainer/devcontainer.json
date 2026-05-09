@@ -37,7 +37,7 @@
       "settings": {
         "rust-analyzer.check.command": "clippy",
         "rust-analyzer.linkedProjects": [
-          "/work/firmware/Cargo.toml"
+          "/work/device/firmware/Cargo.toml"
         ],
         "editor.formatOnSave": true,
         "files.trimTrailingWhitespace": true,

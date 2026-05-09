@@ -3,14 +3,14 @@ name: Companion iOS
 on:
   pull_request:
     paths:
-      - '.github/workflows/companion-ios-self-hosted.yml'
-      - 'companion-ios/**'
+      - '.github/workflows/companion-apps/ios-self-hosted.yml'
+      - 'companion-apps/ios/**'
   push:
     branches:
       - main
     paths:
-      - '.github/workflows/companion-ios-self-hosted.yml'
-      - 'companion-ios/**'
+      - '.github/workflows/companion-apps/ios-self-hosted.yml'
+      - 'companion-apps/ios/**'
   workflow_dispatch:
     inputs:
       build_kind:
@@ -51,7 +51,7 @@ jobs:
       - macOS
     defaults:
       run:
-        working-directory: companion-ios
+        working-directory: companion-apps/ios
 
     steps:
       - name: Checkout
@@ -95,7 +95,7 @@ jobs:
       - macOS
     defaults:
       run:
-        working-directory: companion-ios
+        working-directory: companion-apps/ios
     env:
       IOS_BUNDLE_ID: ${{ github.event.inputs.ios_bundle_id }}
       IOS_DEVELOPMENT_TEAM: ${{ github.event.inputs.ios_development_team || vars.IOS_DEVELOPMENT_TEAM }}
@@ -189,15 +189,15 @@ jobs:
       - name: Upload signed IPA
         uses: actions/upload-artifact@v6
         with:
-          name: companion-ios-signed-ipa
+          name: companion-apps/ios-signed-ipa
           path: |
-            companion-ios/build/export/*.ipa
-            companion-ios/build/export/*.plist
+            companion-apps/ios/build/export/*.ipa
+            companion-apps/ios/build/export/*.plist
           if-no-files-found: error
 
       - name: Upload xcarchive
         uses: actions/upload-artifact@v6
         with:
-          name: companion-ios-xcarchive
-          path: companion-ios/build/ESP32MapCompanion.xcarchive
+          name: companion-apps/ios-xcarchive
+          path: companion-apps/ios/build/ESP32MapCompanion.xcarchive
           if-no-files-found: error

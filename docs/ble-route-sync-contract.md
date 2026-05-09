@@ -116,7 +116,7 @@ The secret rotates every 60s while the device is in pairing mode
 (`firmware/src/pairing.rs::ROTATION_PERIOD`) so a stale photo of the
 QR can't be replayed later.
 
-Golden fixture: `parity-fixtures/data/pairing_qr_v1.json`. Both
+Golden fixture: `data/parity-fixtures/data/pairing_qr_v1.json`. Both
 Android and iOS decoder unit tests read this file and assert identical
 field values; catches schema drift before it ships.
 

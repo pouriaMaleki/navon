@@ -1,0 +1,74 @@
+[package]
+name = "firmware"
+version = "0.1.0"
+edition = "2024"
+resolver = "2"
+build = "build.rs"
+
+[[bin]]
+name = "firmware"
+path = "src/main.rs"
+
+[dependencies]
+base64 = { version = "0.22.1", default-features = false, features = ["alloc"] }
+# The `embedded-map` feature is kept for host builds (city.svm embedded for
+# tests and the emulator). On `target_os = "espidf"`, EmbeddedMapSource::default()
+# returns empty(); the actual map is loaded from the "map_data" flash partition
+# at runtime by the ESP32-P4 entrypoint in esp_idf.rs.
+map-runtime = { path = "../core/map-runtime" }
+qrcodegen = { version = "1.8.0", default-features = false }
+render-core = { path = "../core/render-core" }
+runtime-core = { path = "../core/runtime-core" }
+# `log` is needed on both host (for `app.rs` pairing-flow trace) and the
+# device target. On host the calls are no-ops unless a logger is initialized
+# in tests; on espidf `EspLogger::initialize_default()` routes them to UART.
+log = "0.4"
+
+[target.'cfg(target_os = "espidf")'.dependencies]
+esp-idf-svc = { version = "0.52.1", features = ["binstart"] }
+enumset = "1.1.10"
+
+[build-dependencies]
+embuild = { version = "0.33", features = ["espidf"] }
+
+[package.metadata.esp-idf-sys]
+esp_idf_sdkconfig_defaults = "sdkconfig.defaults"
+esp_idf_tools_install_dir = "workspace"
+
+# Pull the upstream Espressif JD9365 panel driver (the IC on the Waveshare
+# ESP32-P4-WIFI6-Touch-LCD-3.4C) as a managed component. This gives us the
+# `esp_lcd_new_panel_jd9365` C function — handles the ~200-command vendor
+# init sequence and reset pulse internally, far cleaner than re-implementing
+# all those DCS commands by hand. The `bindings_header` directive feeds the
+# component's public header into bindgen so the Rust-side symbols appear
+# in `esp_idf_svc::sys`.
+extra_components = [
+    { remote_component = { name = "espressif/esp_lcd_jd9365", version = "1.0.4" }, bindings_header = "jd9365_bindings.h" },
+    # GT911 capacitive touch controller driver (Waveshare 3.4C uses one on
+    # I2C0 at 0x5d). Pulls in `espressif/esp_lcd_touch` as a transitive
+    # dep, so the base `esp_lcd_touch_read_data` / `esp_lcd_touch_get_data`
+    # APIs come along for free. Pin esp_lcd_touch to <1.2.0 because
+    # version 1.2 introduced C23-style `[[deprecated(...)]]` attributes
+    # that this build's bindgen clang (16.x) doesn't accept in C mode.
+    { remote_component = { name = "espressif/esp_lcd_touch", version = "1.1.2" }, bindings_header = "gt911_bindings.h" },
+    { remote_component = { name = "espressif/esp_lcd_touch_gt911", version = "1.1.3" }, bindings_header = "gt911_bindings.h" },
+    # Local read-only SD card map loader. Reads /sdcard/map.svm into a
+    # PSRAM buffer if a card is inserted; otherwise returns NULL and the
+    # firmware falls back to the on-flash map_data partition. The component
+    # never writes, erases, or formats the card.
+    { component_dirs = ["components/sdmap"], bindings_header = "sdmap_bindings.h" },
+    # Hosted BLE bring-up + route-sync GATT server. Brings up Bluedroid
+    # against the ESP32-C6 radio that Waveshare wires to the P4 over SDIO,
+    # then publishes the route-sync service/characteristic contract from
+    # `docs/ble-route-sync-contract.md`. Pulls in `espressif/esp_hosted`
+    # via the component's idf_component.yml.
+    { component_dirs = ["components/hosted_ble"], bindings_header = "hosted_ble_bindings.h" }
+]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    "cfg(esp32s2)",
+    "cfg(esp32p4)",
+    "cfg(esp_idf_bt_enabled)",
+    "cfg(esp_idf_bt_bluedroid_enabled)",
+] }

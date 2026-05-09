@@ -71,7 +71,7 @@ Future categories can be added without changing the ownership model.
 - This allows a future Helsinki official-data adapter without changing `runtime-core`, `map-runtime`, or emulator behavior.
 
 ## Ownership Boundaries
-- `/work/map-vector-cli`
+- `/work/tools/map-vector-cli`
   - owns POI source ingestion
   - owns source-to-category normalization
   - owns writing POI point records into `.svm`
