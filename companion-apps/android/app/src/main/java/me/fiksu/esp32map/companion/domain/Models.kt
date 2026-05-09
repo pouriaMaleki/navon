@@ -155,6 +155,11 @@ data class RoutePlanRequest(
     val providerId: RouteProviderId,
 )
 
+data class RerouteContext(
+    val headingDegrees: Double? = null,
+    val speedMps: Double? = null,
+)
+
 enum class SpeedUnit(val label: String) {
     KPH("km/h"),
     MPH("mph");

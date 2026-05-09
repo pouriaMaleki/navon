@@ -4,6 +4,7 @@ import {
   type CoordinatePoint,
   CURRENT_ROUTE_PACKAGE_VERSION,
   type NormalizedRoutePackage,
+  type RerouteContext,
   type RouteAlternative,
   type RouteManeuver,
   type RouteManeuverType,
@@ -64,10 +65,12 @@ export class HslRoutingAdapter implements RoutingProvider {
   async replanRoute(
     session: ActiveRouteSession,
     riderLocation: CoordinatePoint,
+    rerouteContext?: RerouteContext,
     signal?: AbortSignal,
   ): Promise<RoutePreviewModel> {
+    const rerouteOrigin = headingBiasedOrigin(riderLocation, rerouteContext, "hsl");
     const request: RoutePlanRequest = {
-      origin: riderLocation,
+      origin: rerouteOrigin,
       destination: session.destinationCoordinate ?? riderLocation,
       providerID: session.providerID,
     };
@@ -126,6 +129,53 @@ export class HslRoutingAdapter implements RoutingProvider {
       cyclingSpeedKph,
     );
   }
+}
+
+const MIN_HEADING_SPEED_MPS = 2.0;
+const REROUTE_FORWARD_SHIFT_M = 15.0;
+
+function headingBiasedOrigin(
+  riderLocation: CoordinatePoint,
+  rerouteContext: RerouteContext | undefined,
+  providerLabel: string,
+): CoordinatePoint {
+  const heading = rerouteContext?.headingDegrees;
+  const speedMps = rerouteContext?.speedMps;
+  if (heading == null || !Number.isFinite(heading)) {
+    console.debug(`[reroute_heading] provider=${providerLabel} reason=no_heading`);
+    return riderLocation;
+  }
+  if (speedMps == null || !Number.isFinite(speedMps) || speedMps < MIN_HEADING_SPEED_MPS) {
+    console.debug(`[reroute_heading] provider=${providerLabel} reason=low_speed speed=${speedMps ?? "nil"}`);
+    return riderLocation;
+  }
+  const shifted = shiftPointByHeading(riderLocation, heading, REROUTE_FORWARD_SHIFT_M);
+  if (
+    !Number.isFinite(shifted.latitude) ||
+    !Number.isFinite(shifted.longitude) ||
+    (shifted.latitude === riderLocation.latitude && shifted.longitude === riderLocation.longitude)
+  ) {
+    console.debug(`[reroute_heading] provider=${providerLabel} reason=shift_failed`);
+    return riderLocation;
+  }
+  console.debug(`[reroute_heading] provider=${providerLabel} reason=applied`);
+  return shifted;
+}
+
+function shiftPointByHeading(
+  point: CoordinatePoint,
+  headingDegrees: number,
+  distanceMeters: number,
+): CoordinatePoint {
+  const metersPerDegLat = 111_320.0;
+  const rad = (headingDegrees * Math.PI) / 180;
+  const northM = Math.cos(rad) * distanceMeters;
+  const eastM = Math.sin(rad) * distanceMeters;
+  const lat = point.latitude + northM / metersPerDegLat;
+  const latRad = (point.latitude * Math.PI) / 180;
+  const lonScale = metersPerDegLat * Math.cos(latRad);
+  const lon = lonScale === 0 ? point.longitude : point.longitude + eastM / lonScale;
+  return { latitude: lat, longitude: lon };
 }
 
 async function fetchLive(

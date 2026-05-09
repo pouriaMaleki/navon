@@ -30,6 +30,7 @@ import me.fiksu.esp32map.companion.domain.RoutePlanRequest
 import me.fiksu.esp32map.companion.domain.RoutePlannerPreferences
 import me.fiksu.esp32map.companion.domain.RouteProviderId
 import me.fiksu.esp32map.companion.domain.RouteRerouteRequestMessage
+import me.fiksu.esp32map.companion.domain.RerouteContext
 import me.fiksu.esp32map.companion.domain.RoutePreviewModel
 import me.fiksu.esp32map.companion.domain.RouteSourceMode
 import me.fiksu.esp32map.companion.domain.RoutingProvider
@@ -328,7 +329,13 @@ class CompanionAppState(
         }
     }
 
-    fun planRoute(sourceMode: RouteSourceMode = currentSourceMode, preferredTitle: String? = null, revisionOverride: Int? = null, onComplete: () -> Unit = {}) {
+    fun planRoute(
+        sourceMode: RouteSourceMode = currentSourceMode,
+        preferredTitle: String? = null,
+        revisionOverride: Int? = null,
+        rerouteContext: RerouteContext? = null,
+        onComplete: () -> Unit = {},
+    ) {
         // Collapse mixed/HSL down to OSM when HSL isn't available for this trip
         // (no key OR endpoints outside Finland).
         val effectiveMode = if (!isHslAvailable && sourceMode != RouteSourceMode.OSM) RouteSourceMode.OSM else sourceMode
@@ -336,7 +343,7 @@ class CompanionAppState(
         routeRequest = routeRequest.copy(providerId = effectiveMode.primaryProviderId)
         viewModelScope.launch {
             runCatching {
-                val nextPreview = buildPreview(routeRequest, effectiveMode, revisionOverride)
+                val nextPreview = buildPreview(routeRequest, effectiveMode, revisionOverride, rerouteContext)
                 preview = nextPreview
                 persistence.saveRecentDestination(routeRequest.destination)
                 applySelectedAlternativeToSession(effectiveMode, routeRequest.destination, preferredTitle)
@@ -716,7 +723,11 @@ class CompanionAppState(
         }
     }
 
-    fun rerouteActiveSession(riderLocation: CoordinatePoint, reason: String) {
+    fun rerouteActiveSession(
+        riderLocation: CoordinatePoint,
+        reason: String,
+        rerouteContext: RerouteContext? = null,
+    ) {
         val destination = activeSession.destinationCoordinate ?: return
         viewModelScope.launch {
             val routeIdentifier = activeSession.routeIdentifier ?: preview.routeIdentifier ?: "preview-route"
@@ -732,7 +743,12 @@ class CompanionAppState(
                 destination = destination,
                 providerId = activeSession.sourceMode.primaryProviderId,
             )
-            preview = buildPreview(routeRequest, activeSession.sourceMode, (activeSession.routeRevision ?: 0) + 1)
+            preview = buildPreview(
+                routeRequest,
+                activeSession.sourceMode,
+                (activeSession.routeRevision ?: 0) + 1,
+                rerouteContext,
+            )
             applySelectedAlternativeToSession(activeSession.sourceMode, destination, activeSession.destinationLabel)
             activeSession = activeSession.copy(
                 lastRerouteReason = reason,
@@ -749,12 +765,17 @@ class CompanionAppState(
         )
     }
 
-    private suspend fun buildPreview(request: RoutePlanRequest, sourceMode: RouteSourceMode, revisionOverride: Int?): RoutePreviewModel {
+    private suspend fun buildPreview(
+        request: RoutePlanRequest,
+        sourceMode: RouteSourceMode,
+        revisionOverride: Int?,
+        rerouteContext: RerouteContext? = null,
+    ): RoutePreviewModel {
         return when (sourceMode) {
-            RouteSourceMode.MIXED -> buildMixedPreview(request, revisionOverride)
+            RouteSourceMode.MIXED -> buildMixedPreview(request, revisionOverride, rerouteContext)
             RouteSourceMode.HSL, RouteSourceMode.OSM -> {
                 val provider = providers[sourceMode.primaryProviderId] ?: error("Missing provider for ${sourceMode.displayName}")
-                val providerPreview = previewFrom(provider, request, revisionOverride)
+                val providerPreview = previewFrom(provider, request, revisionOverride, rerouteContext)
                 val alternatives = presentAlternatives(providerPreview.alternatives)
                 providerPreview.copy(
                     alternatives = alternatives,
@@ -766,7 +787,12 @@ class CompanionAppState(
         }
     }
 
-    private suspend fun previewFrom(provider: RoutingProvider, request: RoutePlanRequest, revisionOverride: Int?): RoutePreviewModel {
+    private suspend fun previewFrom(
+        provider: RoutingProvider,
+        request: RoutePlanRequest,
+        revisionOverride: Int?,
+        rerouteContext: RerouteContext? = null,
+    ): RoutePreviewModel {
         return if (revisionOverride != null) {
             provider.replanRoute(
                 activeSession.copy(
@@ -776,18 +802,23 @@ class CompanionAppState(
                     sourceMode = currentSourceMode,
                 ),
                 request.origin,
+                rerouteContext,
             )
         } else {
             provider.planRoute(request)
         }
     }
 
-    private suspend fun buildMixedPreview(request: RoutePlanRequest, revisionOverride: Int?): RoutePreviewModel {
+    private suspend fun buildMixedPreview(
+        request: RoutePlanRequest,
+        revisionOverride: Int?,
+        rerouteContext: RerouteContext? = null,
+    ): RoutePreviewModel {
         val hsl = providers[RouteProviderId.HSL] ?: error("Missing HSL provider")
         val osm = providers[RouteProviderId.OSM] ?: error("Missing OSM provider")
         val previews = listOf(
-            previewFrom(hsl, request, revisionOverride),
-            previewFrom(osm, request, revisionOverride),
+            previewFrom(hsl, request, revisionOverride, rerouteContext),
+            previewFrom(osm, request, revisionOverride, rerouteContext),
         )
         val effectivePreviews = preferredMixedPreviews(previews)
         val mixedAlternatives = mergeMixedAlternatives(effectivePreviews.flatMap { it.alternatives })

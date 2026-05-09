@@ -512,14 +512,24 @@ final class AppModel: ObservableObject {
         await planRoute(using: currentSourceMode)
     }
 
-    func planRoute(using sourceMode: RouteSourceMode, preferredTitle: String? = nil, revisionOverride: Int? = nil) async {
+    func planRoute(
+        using sourceMode: RouteSourceMode,
+        preferredTitle: String? = nil,
+        revisionOverride: Int? = nil,
+        rerouteContext: RerouteContext? = nil
+    ) async {
         // If HSL isn't available for this trip (no key OR endpoints outside Finland),
         // collapse mixed/HSL down to OSM before planning so we don't race a useless provider.
         let effectiveMode: RouteSourceMode = (!isHslAvailable && sourceMode != .osm) ? .osm : sourceMode
         currentSourceMode = effectiveMode
         routeRequest.providerID = effectiveMode.primaryProviderID
         do {
-            preview = try await buildPreview(for: routeRequest, sourceMode: effectiveMode, revisionOverride: revisionOverride)
+            preview = try await buildPreview(
+                for: routeRequest,
+                sourceMode: effectiveMode,
+                revisionOverride: revisionOverride,
+                rerouteContext: rerouteContext
+            )
             persistence.saveRecentDestination(routeRequest.destination)
             notePersistenceChanged()
             applySelectedAlternativeToSession(sourceMode: effectiveMode, destination: routeRequest.destination, preferredTitle: preferredTitle)
@@ -684,7 +694,11 @@ final class AppModel: ObservableObject {
         await rerouteActiveSession(from: riderLocation, reason: "Device requested reroute")
     }
 
-    func rerouteActiveSession(from riderLocation: CoordinatePoint, reason: String) async {
+    func rerouteActiveSession(
+        from riderLocation: CoordinatePoint,
+        reason: String,
+        rerouteContext: RerouteContext? = nil
+    ) async {
         guard activeSession.destinationCoordinate != nil else { return }
         let routeIdentifier = activeSession.routeIdentifier ?? preview.routeIdentifier ?? "preview-route"
         await bleService.receiveRerouteRequest(
@@ -700,7 +714,12 @@ final class AppModel: ObservableObject {
             destination: activeSession.destinationCoordinate ?? routeRequest.destination,
             providerID: activeSession.sourceMode.primaryProviderID
         )
-        await planRoute(using: activeSession.sourceMode, preferredTitle: activeSession.destinationLabel, revisionOverride: (activeSession.routeRevision ?? 0) + 1)
+        await planRoute(
+            using: activeSession.sourceMode,
+            preferredTitle: activeSession.destinationLabel,
+            revisionOverride: (activeSession.routeRevision ?? 0) + 1,
+            rerouteContext: rerouteContext
+        )
         activeSession.lastRerouteReason = reason
         activeSession.lastRerouteTimestamp = Date()
         _ = await sendSelectedRoute()
@@ -765,16 +784,26 @@ final class AppModel: ObservableObject {
     private func buildPreview(
         for request: RoutePlanRequest,
         sourceMode: RouteSourceMode,
-        revisionOverride: Int?
+        revisionOverride: Int?,
+        rerouteContext: RerouteContext? = nil
     ) async throws -> RoutePreviewModel {
         switch sourceMode {
         case .mixed:
-            return try await buildMixedPreview(for: request, revisionOverride: revisionOverride)
+            return try await buildMixedPreview(
+                for: request,
+                revisionOverride: revisionOverride,
+                rerouteContext: rerouteContext
+            )
         case .hsl, .osm:
             guard let provider = providers[sourceMode.primaryProviderID] else {
                 throw NSError(domain: "AppModel", code: 1, userInfo: [NSLocalizedDescriptionKey: "Missing provider for \(sourceMode.displayName)"])
             }
-            var preview = try await preview(from: provider, request: request, revisionOverride: revisionOverride)
+            var preview = try await preview(
+                from: provider,
+                request: request,
+                revisionOverride: revisionOverride,
+                rerouteContext: rerouteContext
+            )
             preview.alternatives = presentAlternatives(preview.alternatives, sourceMode: sourceMode)
             preview.selectedAlternativeID = preview.alternatives.first?.id
             preview.routeIdentifier = preview.alternatives.first?.normalizedPackage.routeIdentifier
@@ -783,7 +812,12 @@ final class AppModel: ObservableObject {
         }
     }
 
-    private func preview(from provider: RoutingProvider, request: RoutePlanRequest, revisionOverride: Int?) async throws -> RoutePreviewModel {
+    private func preview(
+        from provider: RoutingProvider,
+        request: RoutePlanRequest,
+        revisionOverride: Int?,
+        rerouteContext: RerouteContext? = nil
+    ) async throws -> RoutePreviewModel {
         if let revisionOverride {
             let session = ActiveRouteSession(
                 routeIdentifier: activeSession.routeIdentifier,
@@ -795,21 +829,39 @@ final class AppModel: ObservableObject {
                 lastRerouteReason: activeSession.lastRerouteReason,
                 lastRerouteTimestamp: activeSession.lastRerouteTimestamp
             )
-            return try await provider.replanRoute(using: session, riderLocation: request.origin)
+            return try await provider.replanRoute(
+                using: session,
+                riderLocation: request.origin,
+                rerouteContext: rerouteContext
+            )
         }
         return try await provider.planRoute(request)
     }
 
-    private func buildMixedPreview(for request: RoutePlanRequest, revisionOverride: Int?) async throws -> RoutePreviewModel {
+    private func buildMixedPreview(
+        for request: RoutePlanRequest,
+        revisionOverride: Int?,
+        rerouteContext: RerouteContext? = nil
+    ) async throws -> RoutePreviewModel {
         guard let osm = providers[.osm] else {
             throw NSError(domain: "AppModel", code: 2, userInfo: [NSLocalizedDescriptionKey: "Mixed mode providers are unavailable"])
         }
         // Skip the HSL race when HSL is unavailable (no key OR endpoints outside Finland).
         let includeHsl = isHslAvailable
-        async let osmPreview = preview(from: osm, request: request, revisionOverride: revisionOverride)
+        async let osmPreview = preview(
+            from: osm,
+            request: request,
+            revisionOverride: revisionOverride,
+            rerouteContext: rerouteContext
+        )
         let previews: [RoutePreviewModel]
         if includeHsl, let hsl = providers[.hsl] {
-            async let hslPreview = preview(from: hsl, request: request, revisionOverride: revisionOverride)
+            async let hslPreview = preview(
+                from: hsl,
+                request: request,
+                revisionOverride: revisionOverride,
+                rerouteContext: rerouteContext
+            )
             previews = try await [hslPreview, osmPreview]
         } else {
             previews = try await [osmPreview]

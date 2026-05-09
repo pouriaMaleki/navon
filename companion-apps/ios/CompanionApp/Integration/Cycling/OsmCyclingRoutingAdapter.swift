@@ -9,6 +9,8 @@ import Foundation
 struct OsmCyclingRoutingAdapter: RoutingProvider {
     let providerID: RouteProviderID = .osm
     let isAvailableInV1: Bool = true
+    private static let minHeadingSpeedMps: Double = 2.0
+    private static let rerouteForwardShiftM: Double = 15.0
 
     /// Last-resort fallback when all live sources fail.
     private let sample = SampleRoutingAdapter(providerID: .osm)
@@ -17,9 +19,18 @@ struct OsmCyclingRoutingAdapter: RoutingProvider {
         return await fanOutOrFallback(request: request, revision: 1)
     }
 
-    func replanRoute(using session: ActiveRouteSession, riderLocation: CoordinatePoint) async throws -> RoutePreviewModel {
+    func replanRoute(
+        using session: ActiveRouteSession,
+        riderLocation: CoordinatePoint,
+        rerouteContext: RerouteContext?
+    ) async throws -> RoutePreviewModel {
+        let rerouteOrigin = headingBiasedOrigin(
+            riderLocation: riderLocation,
+            rerouteContext: rerouteContext,
+            providerLabel: "osm"
+        )
         let request = RoutePlanRequest(
-            origin: riderLocation,
+            origin: rerouteOrigin,
             destination: session.destinationCoordinate ?? riderLocation,
             providerID: providerID
         )
@@ -105,6 +116,46 @@ struct OsmCyclingRoutingAdapter: RoutingProvider {
         } catch {
             return nil
         }
+    }
+
+    private func headingBiasedOrigin(
+        riderLocation: CoordinatePoint,
+        rerouteContext: RerouteContext?,
+        providerLabel: String
+    ) -> CoordinatePoint {
+        guard let heading = rerouteContext?.headingDegrees, heading.isFinite else {
+            print("[reroute_heading] provider=\(providerLabel) reason=no_heading")
+            return riderLocation
+        }
+        guard let speed = rerouteContext?.speedMps, speed.isFinite, speed >= Self.minHeadingSpeedMps else {
+            print("[reroute_heading] provider=\(providerLabel) reason=low_speed speed=\(rerouteContext?.speedMps.map(String.init) ?? "nil")")
+            return riderLocation
+        }
+        let shifted = shiftPointByHeading(point: riderLocation, headingDegrees: heading, distanceMeters: Self.rerouteForwardShiftM)
+        if !shifted.latitude.isFinite || !shifted.longitude.isFinite ||
+            (shifted.latitude == riderLocation.latitude && shifted.longitude == riderLocation.longitude) {
+            print("[reroute_heading] provider=\(providerLabel) reason=shift_failed")
+            return riderLocation
+        }
+        print("[reroute_heading] provider=\(providerLabel) reason=applied")
+        return shifted
+    }
+
+    private func shiftPointByHeading(
+        point: CoordinatePoint,
+        headingDegrees: Double,
+        distanceMeters: Double
+    ) -> CoordinatePoint {
+        let metersPerDegLat = 111_320.0
+        let rad = headingDegrees * .pi / 180.0
+        let northM = cos(rad) * distanceMeters
+        let eastM = sin(rad) * distanceMeters
+        let latitude = point.latitude + northM / metersPerDegLat
+        let lonScale = metersPerDegLat * cos(point.latitude * .pi / 180.0)
+        let longitude = lonScale == 0
+            ? point.longitude
+            : point.longitude + eastM / lonScale
+        return CoordinatePoint(latitude: latitude, longitude: longitude)
     }
 }
 

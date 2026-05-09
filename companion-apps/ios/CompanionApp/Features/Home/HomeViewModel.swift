@@ -1415,7 +1415,14 @@ final class HomeViewModel: ObservableObject {
                 }
                 self.markAutoRerouteDispatched()
                 defer { self.autoReroutePending = false }
-                await model.rerouteActiveSession(from: rider, reason: "Off-route")
+                await model.rerouteActiveSession(
+                    from: rider,
+                    reason: "Off-route",
+                    rerouteContext: RerouteContext(
+                        headingDegrees: self.travelHeadingDegrees,
+                        speedMps: model.locationService.currentSpeedMps
+                    )
+                )
             }
         }
 

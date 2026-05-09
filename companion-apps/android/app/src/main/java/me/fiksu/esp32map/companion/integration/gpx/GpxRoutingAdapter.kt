@@ -19,6 +19,7 @@ import me.fiksu.esp32map.companion.domain.RoutePlanRequest
 import me.fiksu.esp32map.companion.domain.RoutePreviewModel
 import me.fiksu.esp32map.companion.domain.RouteProvenance
 import me.fiksu.esp32map.companion.domain.RouteProviderId
+import me.fiksu.esp32map.companion.domain.RerouteContext
 import me.fiksu.esp32map.companion.domain.RouteSummary
 import me.fiksu.esp32map.companion.domain.RoutingProvider
 import org.xmlpull.v1.XmlPullParser
@@ -32,7 +33,12 @@ class GpxRoutingAdapter : RoutingProvider {
         throw IllegalStateException("Select a GPX file instead of using coordinate planning.")
     }
 
-    override suspend fun replanRoute(session: ActiveRouteSession, riderLocation: CoordinatePoint): RoutePreviewModel {
+    override suspend fun replanRoute(
+        _session: ActiveRouteSession,
+        _riderLocation: CoordinatePoint,
+        _rerouteContext: RerouteContext?,
+    ): RoutePreviewModel {
+        println("[reroute_heading] provider=gpxImport reason=provider_noop")
         throw IllegalStateException("Reroute is not supported for imported GPX routes yet.")
     }
 

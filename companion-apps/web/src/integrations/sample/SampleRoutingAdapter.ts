@@ -3,6 +3,7 @@ import {
   type CoordinatePoint,
   CURRENT_ROUTE_PACKAGE_VERSION,
   type NormalizedRoutePackage,
+  type RerouteContext,
   ROUTE_PROVIDER_DISPLAY_NAME,
   type RouteAlternative,
   type RouteManeuver,
@@ -54,7 +55,9 @@ export class SampleRoutingAdapter implements RoutingProvider {
   async replanRoute(
     session: ActiveRouteSession,
     riderLocation: CoordinatePoint,
+    _rerouteContext?: RerouteContext,
   ): Promise<RoutePreviewModel> {
+    console.debug("[reroute_heading] provider=sample reason=provider_noop");
     const request: RoutePlanRequest = {
       origin: riderLocation,
       destination: session.destinationCoordinate ?? riderLocation,

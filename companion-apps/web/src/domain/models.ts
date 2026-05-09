@@ -155,6 +155,11 @@ export type ActiveRouteSession = {
   lastRerouteTimestampMs?: number;
 };
 
+export type RerouteContext = {
+  headingDegrees?: number;
+  speedMps?: number;
+};
+
 export const EMPTY_ACTIVE_SESSION: ActiveRouteSession = {
   destinationLabel: "No destination",
   providerID: "hsl",

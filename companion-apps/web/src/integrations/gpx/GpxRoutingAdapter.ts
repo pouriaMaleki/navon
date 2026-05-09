@@ -3,6 +3,7 @@ import {
   type CoordinatePoint,
   CURRENT_ROUTE_PACKAGE_VERSION,
   type NormalizedRoutePackage,
+  type RerouteContext,
   type RouteAlternative,
   type RouteManeuver,
   type RoutePlanRequest,
@@ -23,7 +24,9 @@ export class GpxRoutingAdapter implements RoutingProvider {
   async replanRoute(
     _session: ActiveRouteSession,
     _riderLocation: CoordinatePoint,
+    _rerouteContext?: RerouteContext,
   ): Promise<RoutePreviewModel> {
+    console.debug("[reroute_heading] provider=gpxImport reason=provider_noop");
     throw new Error("Reroute is not supported for imported GPX routes yet.");
   }
 

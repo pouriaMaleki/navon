@@ -80,4 +80,40 @@ final class HslSpeedOverrideTests: XCTestCase {
         let fastSec = fastPreview.alternatives[0].normalizedPackage.summary.estimatedDurationSeconds
         XCTAssertLessThan(fastSec, slowSec)
     }
+
+    func test_replanRoute_appliesHeadingBiasWhenSpeedIsHigh() async throws {
+        let a = adapter(cyclingSpeedKph: 18)
+        let session = ActiveRouteSession(
+            routeIdentifier: "r1",
+            routeRevision: 1,
+            destinationLabel: "Dest",
+            destinationCoordinate: destination,
+            providerID: .hsl,
+            sourceMode: .hsl
+        )
+        let preview = try await a.replanRoute(
+            using: session,
+            riderLocation: origin,
+            rerouteContext: RerouteContext(headingDegrees: 90, speedMps: 4.0)
+        )
+        XCTAssertNotEqual(preview.alternatives.first?.normalizedPackage.geometry.first, origin)
+    }
+
+    func test_replanRoute_keepsLegacyOriginWhenSpeedIsLow() async throws {
+        let a = adapter(cyclingSpeedKph: 18)
+        let session = ActiveRouteSession(
+            routeIdentifier: "r1",
+            routeRevision: 1,
+            destinationLabel: "Dest",
+            destinationCoordinate: destination,
+            providerID: .hsl,
+            sourceMode: .hsl
+        )
+        let preview = try await a.replanRoute(
+            using: session,
+            riderLocation: origin,
+            rerouteContext: RerouteContext(headingDegrees: 90, speedMps: 0.5)
+        )
+        XCTAssertEqual(preview.alternatives.first?.normalizedPackage.geometry.first, origin)
+    }
 }

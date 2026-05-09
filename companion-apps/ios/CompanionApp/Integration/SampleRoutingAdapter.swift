@@ -28,7 +28,13 @@ struct SampleRoutingAdapter: RoutingProvider {
         return buildPreview(for: request, revision: 1, planningNotice: planningNotice(for: providerID))
     }
 
-    func replanRoute(using session: ActiveRouteSession, riderLocation: CoordinatePoint) async throws -> RoutePreviewModel {
+    func replanRoute(
+        using session: ActiveRouteSession,
+        riderLocation: CoordinatePoint,
+        rerouteContext: RerouteContext?
+    ) async throws -> RoutePreviewModel {
+        _ = rerouteContext
+        print("[reroute_heading] provider=sample reason=provider_noop")
         let request = RoutePlanRequest(
             origin: riderLocation,
             destination: session.destinationCoordinate ?? riderLocation,

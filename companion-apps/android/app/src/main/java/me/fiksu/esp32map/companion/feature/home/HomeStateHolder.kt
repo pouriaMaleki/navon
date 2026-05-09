@@ -24,6 +24,7 @@ import me.fiksu.esp32map.companion.domain.RouteManeuverType
 import me.fiksu.esp32map.companion.domain.RoutePlanRequest
 import me.fiksu.esp32map.companion.domain.RoutePreviewModel
 import me.fiksu.esp32map.companion.domain.RouteProviderId
+import me.fiksu.esp32map.companion.domain.RerouteContext
 import me.fiksu.esp32map.companion.domain.RouteSourceMode
 import me.fiksu.esp32map.companion.domain.RouteStartBehavior
 import me.fiksu.esp32map.companion.domain.RouteSuggestionMode
@@ -34,7 +35,14 @@ class HomeStateHolder(
     private val appState: CompanionAppState,
     private val placeSearchService: PlaceSearchService,
     private val autoRerouteDispatcher: suspend (CoordinatePoint) -> Unit = { rider ->
-        appState.rerouteActiveSession(rider, "Off-route")
+        appState.rerouteActiveSession(
+            rider,
+            "Off-route",
+            RerouteContext(
+                headingDegrees = travelHeadingDegrees,
+                speedMps = appState.locationState.currentSpeedMps,
+            ),
+        )
     },
     private val autoRerouteScope: CoroutineScope = MainScope(),
 ) {

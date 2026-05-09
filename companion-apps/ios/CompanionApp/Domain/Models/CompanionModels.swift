@@ -206,6 +206,11 @@ struct RoutePlanRequest: Equatable {
     var providerID: RouteProviderID
 }
 
+struct RerouteContext: Equatable {
+    var headingDegrees: Double?
+    var speedMps: Double?
+}
+
 enum SpeedUnit: String, CaseIterable, Identifiable, Codable {
     case kph
     case mph

@@ -23,6 +23,7 @@ import me.fiksu.esp32map.companion.domain.RoutePlanRequest
 import me.fiksu.esp32map.companion.domain.RoutePreviewModel
 import me.fiksu.esp32map.companion.domain.RouteProvenance
 import me.fiksu.esp32map.companion.domain.RouteProviderId
+import me.fiksu.esp32map.companion.domain.RerouteContext
 import me.fiksu.esp32map.companion.domain.RouteSummary
 import me.fiksu.esp32map.companion.domain.RoutingProvider
 import org.json.JSONArray
@@ -41,7 +42,12 @@ class SampleRoutingAdapter(
         }
     }
 
-    override suspend fun replanRoute(session: ActiveRouteSession, riderLocation: CoordinatePoint): RoutePreviewModel {
+    override suspend fun replanRoute(
+        session: ActiveRouteSession,
+        riderLocation: CoordinatePoint,
+        _rerouteContext: RerouteContext?,
+    ): RoutePreviewModel {
+        println("[reroute_heading] provider=sample reason=provider_noop")
         val request = RoutePlanRequest(
             origin = riderLocation,
             destination = session.destinationCoordinate ?: riderLocation,

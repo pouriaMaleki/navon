@@ -3,6 +3,7 @@ import type {
   CoordinatePoint,
   DestinationSearchResult,
   NormalizedRoutePackage,
+  RerouteContext,
   RoutePlanRequest,
   RoutePreviewModel,
   RouteProviderID,
@@ -14,6 +15,7 @@ export interface RoutingProvider {
   replanRoute(
     session: ActiveRouteSession,
     riderLocation: CoordinatePoint,
+    rerouteContext?: RerouteContext,
     signal?: AbortSignal,
   ): Promise<RoutePreviewModel>;
   normalizePreview(preview: RoutePreviewModel, request: RoutePlanRequest): NormalizedRoutePackage;

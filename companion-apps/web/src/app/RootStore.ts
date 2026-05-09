@@ -2,6 +2,7 @@ import { autorun, makeAutoObservable, reaction, runInAction } from "mobx";
 import {
   type CoordinatePoint,
   type ImportClassification,
+  type RerouteContext,
   primaryProviderID,
   type RouteHistoryItem,
   type RouteHistorySource,
@@ -233,7 +234,13 @@ export class RootStore {
 
     try {
       const provider = this.providers[session.providerID];
-      const preview = await provider.replanRoute(session, riderLocation, controller.signal);
+      const rerouteContext = this.buildRerouteContext();
+      const preview = await provider.replanRoute(
+        session,
+        riderLocation,
+        rerouteContext,
+        controller.signal,
+      );
       if (controller.signal.aborted) return;
       const selected = preview.alternatives[0];
       if (!selected) return;
@@ -289,7 +296,8 @@ export class RootStore {
     this.rerouteAbort = controller;
     try {
       const provider = this.providers[session.providerID];
-      const preview = await provider.replanRoute(session, rider, controller.signal);
+      const rerouteContext = this.buildRerouteContext();
+      const preview = await provider.replanRoute(session, rider, rerouteContext, controller.signal);
       if (controller.signal.aborted) return;
       runInAction(() => {
         // Load the alternatives into the planning preview so the suggestions
@@ -345,6 +353,13 @@ export class RootStore {
     } finally {
       this.planningStore.endImportActivity();
     }
+  }
+
+  private buildRerouteContext(): RerouteContext | undefined {
+    const headingDegrees = this.locationStore.travelHeadingDegrees;
+    const speedMps = this.locationStore.currentSpeedMps;
+    if (headingDegrees == null && speedMps == null) return undefined;
+    return { headingDegrees: headingDegrees ?? undefined, speedMps };
   }
 
   /** Classify and consume any drop/share input. */

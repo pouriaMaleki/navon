@@ -4,7 +4,11 @@ interface RoutingProvider {
     val providerId: RouteProviderId
     val isAvailableInV1: Boolean
     suspend fun planRoute(request: RoutePlanRequest): RoutePreviewModel
-    suspend fun replanRoute(session: ActiveRouteSession, riderLocation: CoordinatePoint): RoutePreviewModel
+    suspend fun replanRoute(
+        session: ActiveRouteSession,
+        riderLocation: CoordinatePoint,
+        rerouteContext: RerouteContext? = null,
+    ): RoutePreviewModel
     fun normalizePreview(preview: RoutePreviewModel, request: RoutePlanRequest): NormalizedRoutePackage
 }
 

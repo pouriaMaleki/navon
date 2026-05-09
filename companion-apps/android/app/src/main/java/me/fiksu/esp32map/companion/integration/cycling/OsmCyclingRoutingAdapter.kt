@@ -20,6 +20,7 @@ import me.fiksu.esp32map.companion.domain.RoutePlanRequest
 import me.fiksu.esp32map.companion.domain.RoutePreviewModel
 import me.fiksu.esp32map.companion.domain.RouteProvenance
 import me.fiksu.esp32map.companion.domain.RouteProviderId
+import me.fiksu.esp32map.companion.domain.RerouteContext
 import me.fiksu.esp32map.companion.domain.RouteSummary
 import me.fiksu.esp32map.companion.domain.RoutingProvider
 import me.fiksu.esp32map.companion.integration.sample.SampleRoutingAdapter
@@ -35,6 +36,10 @@ import org.json.JSONObject
  * in semantics. See `docs/companion-app-architecture.md` for the design.
  */
 class OsmCyclingRoutingAdapter : RoutingProvider {
+    companion object {
+        private const val MIN_HEADING_SPEED_MPS = 2.0
+        private const val REROUTE_FORWARD_SHIFT_M = 15.0
+    }
     override val providerId: RouteProviderId = RouteProviderId.OSM
     override val isAvailableInV1: Boolean = true
 
@@ -48,13 +53,56 @@ class OsmCyclingRoutingAdapter : RoutingProvider {
     override suspend fun replanRoute(
         session: ActiveRouteSession,
         riderLocation: CoordinatePoint,
+        rerouteContext: RerouteContext?,
     ): RoutePreviewModel {
+        val rerouteOrigin = headingBiasedOrigin(riderLocation, rerouteContext, "osm")
         val request = RoutePlanRequest(
-            origin = riderLocation,
+            origin = rerouteOrigin,
             destination = session.destinationCoordinate ?: riderLocation,
             providerId = providerId,
         )
         return fanOutOrFallback(request, (session.routeRevision ?: 0) + 1)
+    }
+
+    private fun headingBiasedOrigin(
+        riderLocation: CoordinatePoint,
+        rerouteContext: RerouteContext?,
+        providerLabel: String,
+    ): CoordinatePoint {
+        val heading = rerouteContext?.headingDegrees
+        val speed = rerouteContext?.speedMps
+        if (heading == null || !heading.isFinite()) {
+            println("[reroute_heading] provider=$providerLabel reason=no_heading")
+            return riderLocation
+        }
+        if (speed == null || !speed.isFinite() || speed < MIN_HEADING_SPEED_MPS) {
+            println("[reroute_heading] provider=$providerLabel reason=low_speed speed=${speed ?: "nil"}")
+            return riderLocation
+        }
+        val shifted = shiftPointByHeading(riderLocation, heading, REROUTE_FORWARD_SHIFT_M)
+        if (!shifted.latitude.isFinite() || !shifted.longitude.isFinite() ||
+            (shifted.latitude == riderLocation.latitude && shifted.longitude == riderLocation.longitude)
+        ) {
+            println("[reroute_heading] provider=$providerLabel reason=shift_failed")
+            return riderLocation
+        }
+        println("[reroute_heading] provider=$providerLabel reason=applied")
+        return shifted
+    }
+
+    private fun shiftPointByHeading(
+        point: CoordinatePoint,
+        headingDegrees: Double,
+        distanceMeters: Double,
+    ): CoordinatePoint {
+        val metersPerDegLat = 111_320.0
+        val rad = Math.toRadians(headingDegrees)
+        val northM = kotlin.math.cos(rad) * distanceMeters
+        val eastM = kotlin.math.sin(rad) * distanceMeters
+        val lat = point.latitude + northM / metersPerDegLat
+        val lonScale = metersPerDegLat * kotlin.math.cos(Math.toRadians(point.latitude))
+        val lon = if (lonScale == 0.0) point.longitude else point.longitude + eastM / lonScale
+        return CoordinatePoint(latitude = lat, longitude = lon)
     }
 
     override fun normalizePreview(

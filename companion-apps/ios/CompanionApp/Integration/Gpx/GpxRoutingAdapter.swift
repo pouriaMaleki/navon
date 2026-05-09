@@ -8,7 +8,15 @@ struct GpxRoutingAdapter: RoutingProvider {
         throw GpxRoutingAdapterError.fileImportRequired
     }
 
-    func replanRoute(using session: ActiveRouteSession, riderLocation: CoordinatePoint) async throws -> RoutePreviewModel {
+    func replanRoute(
+        using session: ActiveRouteSession,
+        riderLocation: CoordinatePoint,
+        rerouteContext: RerouteContext?
+    ) async throws -> RoutePreviewModel {
+        _ = session
+        _ = riderLocation
+        _ = rerouteContext
+        print("[reroute_heading] provider=gpxImport reason=provider_noop")
         throw GpxRoutingAdapterError.rerouteNotSupported
     }
 

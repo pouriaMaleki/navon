@@ -2,6 +2,7 @@ import type {
   ActiveRouteSession,
   CoordinatePoint,
   NormalizedRoutePackage,
+  RerouteContext,
   RoutePlanRequest,
   RoutePreviewModel,
   RouteProviderID,
@@ -19,7 +20,7 @@ export class FakeRoutingAdapter implements RoutingProvider {
   nextPreview?: RoutePreviewModel;
   planFactory?: (request: RoutePlanRequest) => RoutePreviewModel;
   planCalls: RoutePlanRequest[] = [];
-  replanCalls: Array<{ session: ActiveRouteSession; rider: CoordinatePoint }> = [];
+  replanCalls: Array<{ session: ActiveRouteSession; rider: CoordinatePoint; context?: RerouteContext }> = [];
 
   constructor(providerID: RouteProviderID = "osm") {
     this.providerID = providerID;
@@ -35,8 +36,9 @@ export class FakeRoutingAdapter implements RoutingProvider {
   async replanRoute(
     session: ActiveRouteSession,
     rider: CoordinatePoint,
+    context?: RerouteContext,
   ): Promise<RoutePreviewModel> {
-    this.replanCalls.push({ session, rider });
+    this.replanCalls.push({ session, rider, context });
     return buildSimplePreview(this.providerID, {
       origin: rider,
       destination: session.destinationCoordinate ?? rider,
