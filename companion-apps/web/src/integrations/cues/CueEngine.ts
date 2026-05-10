@@ -16,6 +16,7 @@ export type CueManeuver = {
   id: string;
   kind: ManeuverKind;
   distanceFromStartM: number;
+  isMinorKeep?: boolean;
 };
 
 export type CueSnapshot = {
@@ -79,6 +80,8 @@ export type CueEngineState = {
    *  causes a route id change. Reset only when the rider is confirmed
    *  on-track for ON_TRACK_CONFIRM_SAMPLES consecutive ticks. */
   reroutingEpisodeCount: number;
+  lastMinorKeepCueProgressByKind: Partial<Record<"left" | "right", number>>;
+  escalatedMinorKeepIds: ReadonlySet<string>;
 };
 
 const APPROACH_50_M = 50;
@@ -112,6 +115,10 @@ const CLOSE_TO_DESTINATION_M = 30;
 // rider then misperceives as the routing engine inventing turns that
 // aren't really there.
 const BACK_TO_BACK_THRESHOLD_M = 30;
+const MINOR_KEEP_SPLIT_DISTANCE_M = 35;
+const MINOR_KEEP_COOLDOWN_PROGRESS_M = 120;
+const MINOR_KEEP_URGENCY_DISTANCE_M = 15;
+const MINOR_KEEP_NEXT_TURN_PREVIEW_MIN_DISTANCE_M = 100;
 
 export function initialCueEngineState(): CueEngineState {
   return {
@@ -129,7 +136,68 @@ export function initialCueEngineState(): CueEngineState {
     consecutiveOnRouteSamples: 0,
     onTrackAnnounced: false,
     reroutingEpisodeCount: 0,
+    lastMinorKeepCueProgressByKind: {},
+    escalatedMinorKeepIds: new Set(),
   };
+}
+
+type MinorKeepDecision = "split_promoted" | "minor_suppressed" | "cooldown_suppressed" | "urgency_escalated";
+
+function evaluateMinorKeepCue(
+  snapshot: CueSnapshot,
+  maneuver: CueManeuver,
+  distanceM: number,
+  followUpGapM: number,
+  state: CueEngineState,
+): { allow: boolean; decision: MinorKeepDecision } {
+  const kind = maneuver.kind;
+  if (kind !== "left" && kind !== "right") {
+    console.warn(`[cue_policy] unexpected minor keep kind=${kind}`);
+    return { allow: false, decision: "minor_suppressed" };
+  }
+  const splitLike = distanceM <= MINOR_KEEP_SPLIT_DISTANCE_M || followUpGapM <= BACK_TO_BACK_THRESHOLD_M;
+  if (!splitLike) {
+    if (distanceM <= MINOR_KEEP_URGENCY_DISTANCE_M && !state.escalatedMinorKeepIds.has(maneuver.id)) {
+      return { allow: true, decision: "urgency_escalated" };
+    }
+    return { allow: false, decision: "minor_suppressed" };
+  }
+  const lastProgress = state.lastMinorKeepCueProgressByKind[kind];
+  if (
+    typeof lastProgress === "number" &&
+    snapshot.progressDistanceM - lastProgress < MINOR_KEEP_COOLDOWN_PROGRESS_M
+  ) {
+    if (distanceM <= MINOR_KEEP_URGENCY_DISTANCE_M && !state.escalatedMinorKeepIds.has(maneuver.id)) {
+      return { allow: true, decision: "urgency_escalated" };
+    }
+    return { allow: false, decision: "cooldown_suppressed" };
+  }
+  return { allow: true, decision: "split_promoted" };
+}
+
+function evaluateMinorKeepPreviewCue(
+  snapshot: CueSnapshot,
+  maneuver: CueManeuver,
+  distanceM: number,
+  state: CueEngineState,
+): { allow: boolean; decision: Exclude<MinorKeepDecision, "urgency_escalated"> } {
+  const kind = maneuver.kind;
+  if (kind !== "left" && kind !== "right") {
+    console.warn(`[cue_policy] unexpected minor keep preview kind=${kind}`);
+    return { allow: false, decision: "minor_suppressed" };
+  }
+  const lastProgress = state.lastMinorKeepCueProgressByKind[kind];
+  const inCooldown =
+    typeof lastProgress === "number" && snapshot.progressDistanceM - lastProgress < MINOR_KEEP_COOLDOWN_PROGRESS_M;
+  if (inCooldown) return { allow: false, decision: "cooldown_suppressed" };
+  if (distanceM < MINOR_KEEP_NEXT_TURN_PREVIEW_MIN_DISTANCE_M) {
+    return { allow: false, decision: "minor_suppressed" };
+  }
+  return { allow: true, decision: "split_promoted" };
+}
+
+function logMinorKeepDecision(decision: MinorKeepDecision): void {
+  console.debug(`[cue_policy] reason=${decision}`);
 }
 
 export function tickCueEngine(
@@ -317,6 +385,8 @@ export function tickCueEngine(
     const announced50m = new Set(s.announced50m);
     const announced10m = new Set(s.announced10m);
     const announcedNextTurnAfter = new Set(s.announcedNextTurnAfter);
+    const lastMinorKeepCueProgressByKind = { ...s.lastMinorKeepCueProgressByKind };
+    const escalatedMinorKeepIds = new Set(s.escalatedMinorKeepIds);
 
     // Find the next maneuver ahead of progress.
     const upcoming = snapshot.maneuvers.find(
@@ -343,7 +413,26 @@ export function tickCueEngine(
       const gapToFollowUp = followUp
         ? followUp.distanceFromStartM - upcoming.distanceFromStartM
         : Number.POSITIVE_INFINITY;
-      if (followUp && gapToFollowUp <= BACK_TO_BACK_THRESHOLD_M) {
+      let allowMinorKeep = true;
+      if (upcoming.isMinorKeep) {
+        const minorDecision = evaluateMinorKeepCue(
+          snapshot,
+          upcoming,
+          upcomingDistance,
+          gapToFollowUp,
+          { ...s, lastMinorKeepCueProgressByKind, escalatedMinorKeepIds },
+        );
+        logMinorKeepDecision(minorDecision.decision);
+        allowMinorKeep = minorDecision.allow;
+        if (minorDecision.allow) {
+          const key = upcoming.kind as "left" | "right";
+          lastMinorKeepCueProgressByKind[key] = snapshot.progressDistanceM;
+          if (minorDecision.decision === "urgency_escalated") escalatedMinorKeepIds.add(upcoming.id);
+        } else {
+          announced50m.add(upcoming.id);
+        }
+      }
+      if (allowMinorKeep && followUp && gapToFollowUp <= BACK_TO_BACK_THRESHOLD_M) {
         events.push({
           kind: "turn50m",
           turnKind: upcoming.kind,
@@ -354,7 +443,7 @@ export function tickCueEngine(
         announced50m.add(followUp.id);
         announced10m.add(followUp.id);
         announcedNextTurnAfter.add(upcoming.id);
-      } else {
+      } else if (allowMinorKeep) {
         events.push({
           kind: "turn50m",
           turnKind: upcoming.kind,
@@ -379,7 +468,26 @@ export function tickCueEngine(
       const gapToFollowUp = followUp
         ? followUp.distanceFromStartM - upcoming.distanceFromStartM
         : Number.POSITIVE_INFINITY;
-      if (followUp && gapToFollowUp <= BACK_TO_BACK_THRESHOLD_M) {
+      let allowMinorKeep = true;
+      if (upcoming.isMinorKeep) {
+        const minorDecision = evaluateMinorKeepCue(
+          snapshot,
+          upcoming,
+          upcomingDistance,
+          gapToFollowUp,
+          { ...s, lastMinorKeepCueProgressByKind, escalatedMinorKeepIds },
+        );
+        logMinorKeepDecision(minorDecision.decision);
+        allowMinorKeep = minorDecision.allow;
+        if (minorDecision.allow) {
+          const key = upcoming.kind as "left" | "right";
+          lastMinorKeepCueProgressByKind[key] = snapshot.progressDistanceM;
+          if (minorDecision.decision === "urgency_escalated") escalatedMinorKeepIds.add(upcoming.id);
+        } else {
+          announced10m.add(upcoming.id);
+        }
+      }
+      if (allowMinorKeep && followUp && gapToFollowUp <= BACK_TO_BACK_THRESHOLD_M) {
         events.push({
           kind: "turn10m",
           turnKind: upcoming.kind,
@@ -389,7 +497,7 @@ export function tickCueEngine(
         announced10m.add(followUp.id);
         announced50m.add(followUp.id);
         announcedNextTurnAfter.add(upcoming.id);
-      } else {
+      } else if (allowMinorKeep) {
         events.push({ kind: "turn10m", turnKind: upcoming.kind });
         announced10m.add(upcoming.id);
       }
@@ -430,15 +538,32 @@ export function tickCueEngine(
             announced10m.add(nextAfter.id);
           }
         } else {
-          events.push({
-            kind: "nextTurnInAbout",
-            turnKind: nextAfter.kind,
-            distanceM: distanceToNext,
-          });
-          announcedNextTurnAfter.add(lastPassed.id);
-          if (distanceToNext < SKIP_50M_BELOW_DISTANCE_M) {
-            announced50m.add(nextAfter.id);
+          let allowNextTurnPreview = true;
+          if (nextAfter.isMinorKeep) {
+            const previewDecision = evaluateMinorKeepPreviewCue(
+              snapshot,
+              nextAfter,
+              distanceToNext,
+              { ...s, lastMinorKeepCueProgressByKind, escalatedMinorKeepIds },
+            );
+            logMinorKeepDecision(previewDecision.decision);
+            allowNextTurnPreview = previewDecision.allow;
           }
+          if (allowNextTurnPreview) {
+            events.push({
+              kind: "nextTurnInAbout",
+              turnKind: nextAfter.kind,
+              distanceM: distanceToNext,
+            });
+            if (nextAfter.isMinorKeep && (nextAfter.kind === "left" || nextAfter.kind === "right")) {
+              const key = nextAfter.kind;
+              lastMinorKeepCueProgressByKind[key] = snapshot.progressDistanceM;
+            }
+            if (distanceToNext < SKIP_50M_BELOW_DISTANCE_M) {
+              announced50m.add(nextAfter.id);
+            }
+          }
+          announcedNextTurnAfter.add(lastPassed.id);
         }
       } else if (!s.approachingDestinationAnnounced && !snapshot.arrived) {
         // Bug 4: skip arrivingInM when the rider has already crossed the
@@ -459,6 +584,8 @@ export function tickCueEngine(
       announced50m,
       announced10m,
       announcedNextTurnAfter,
+      lastMinorKeepCueProgressByKind,
+      escalatedMinorKeepIds,
     };
   }
 

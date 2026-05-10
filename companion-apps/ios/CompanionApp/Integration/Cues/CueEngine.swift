@@ -18,6 +18,14 @@ struct CueManeuver: Equatable {
     let id: String
     let kind: ManeuverKind
     let distanceFromStartM: Double
+    let isMinorKeep: Bool
+
+    init(id: String, kind: ManeuverKind, distanceFromStartM: Double, isMinorKeep: Bool = false) {
+        self.id = id
+        self.kind = kind
+        self.distanceFromStartM = distanceFromStartM
+        self.isMinorKeep = isMinorKeep
+    }
 }
 
 struct CueSnapshot {
@@ -71,6 +79,8 @@ struct CueEngineState: Equatable {
     /// Reset only when the rider is confirmed on-track for
     /// `onTrackConfirmSamples` consecutive ticks.
     var reroutingEpisodeCount: Int = 0
+    var lastMinorKeepCueProgressByKind: [ManeuverKind: Double] = [:]
+    var escalatedMinorKeepIds: Set<String> = []
 }
 
 enum CueEngine {
@@ -101,10 +111,75 @@ enum CueEngine {
     /// `arrivingInM` for any `nextTurnInAbout` or approach cues so the
     /// rider hears "arriving in Xm" rather than a phantom turn command.
     private static let closeToDestinationM = 30.0
+    private static let minorKeepSplitDistanceM = 35.0
+    private static let minorKeepCooldownProgressM = 120.0
+    private static let minorKeepUrgencyDistanceM = 15.0
+    private static let minorKeepNextTurnPreviewMinDistanceM = 100.0
 
     struct Result {
         let events: [CueEvent]
         let nextState: CueEngineState
+    }
+
+    private enum MinorKeepDecision: String {
+        case splitPromoted = "split_promoted"
+        case minorSuppressed = "minor_suppressed"
+        case cooldownSuppressed = "cooldown_suppressed"
+        case urgencyEscalated = "urgency_escalated"
+    }
+
+    private static func evaluateMinorKeepCue(
+        snapshot: CueSnapshot,
+        maneuver: CueManeuver,
+        distanceM: Double,
+        followUpGapM: Double,
+        state: CueEngineState
+    ) -> (allow: Bool, decision: MinorKeepDecision) {
+        guard maneuver.kind == .left || maneuver.kind == .right else {
+            assertionFailure("Unexpected minor keep kind \(maneuver.kind)")
+            return (false, .minorSuppressed)
+        }
+        let splitLike = distanceM <= minorKeepSplitDistanceM || followUpGapM <= backToBackThresholdM
+        if !splitLike {
+            if distanceM <= minorKeepUrgencyDistanceM && !state.escalatedMinorKeepIds.contains(maneuver.id) {
+                return (true, .urgencyEscalated)
+            }
+            return (false, .minorSuppressed)
+        }
+        if let lastProgress = state.lastMinorKeepCueProgressByKind[maneuver.kind],
+           snapshot.progressDistanceM - lastProgress < minorKeepCooldownProgressM {
+            if distanceM <= minorKeepUrgencyDistanceM && !state.escalatedMinorKeepIds.contains(maneuver.id) {
+                return (true, .urgencyEscalated)
+            }
+            return (false, .cooldownSuppressed)
+        }
+        return (true, .splitPromoted)
+    }
+
+    private static func evaluateMinorKeepPreviewCue(
+        snapshot: CueSnapshot,
+        maneuver: CueManeuver,
+        distanceM: Double,
+        state: CueEngineState
+    ) -> (allow: Bool, decision: MinorKeepDecision) {
+        guard maneuver.kind == .left || maneuver.kind == .right else {
+            assertionFailure("Unexpected minor keep preview kind \(maneuver.kind)")
+            return (false, .minorSuppressed)
+        }
+        if let lastProgress = state.lastMinorKeepCueProgressByKind[maneuver.kind],
+           snapshot.progressDistanceM - lastProgress < minorKeepCooldownProgressM {
+            return (false, .cooldownSuppressed)
+        }
+        if distanceM < minorKeepNextTurnPreviewMinDistanceM {
+            return (false, .minorSuppressed)
+        }
+        return (true, .splitPromoted)
+    }
+
+    private static func logMinorKeepDecision(_ decision: MinorKeepDecision) {
+        #if DEBUG
+        print("[cue_policy] reason=\(decision.rawValue)")
+        #endif
     }
 
     static func tick(snapshot: CueSnapshot, state: CueEngineState) -> Result {
@@ -254,6 +329,8 @@ enum CueEngine {
             var announced50m = s.announced50m
             var announced10m = s.announced10m
             var announcedNextTurnAfter = s.announcedNextTurnAfter
+            var lastMinorKeepCueProgressByKind = s.lastMinorKeepCueProgressByKind
+            var escalatedMinorKeepIds = s.escalatedMinorKeepIds
 
             let upcoming = snapshot.maneuvers.first { $0.distanceFromStartM - snapshot.progressDistanceM >= 0 }
             let upcomingDistance = upcoming.map { $0.distanceFromStartM - snapshot.progressDistanceM }
@@ -296,17 +373,36 @@ enum CueEngine {
                             announced10m.insert(nextAfter.id)
                         }
                     } else {
-                        events.append(.nextTurnInAbout(
-                            turnKind: nextAfter.kind,
-                            distanceM: distanceToNext
-                        ))
-                        announcedNextTurnAfter.insert(lastPassed.id)
-                        // Pre-latch turn50m whenever the next turn is close enough
-                        // that the rider has already been told about it. Below
-                        // skip50mBelowDistanceM the "in X m" cue is redundant.
-                        if distanceToNext < Self.skip50mBelowDistanceM {
-                            announced50m.insert(nextAfter.id)
+                        var allowNextTurnPreview = true
+                        if nextAfter.isMinorKeep {
+                            var stateForDecision = s
+                            stateForDecision.lastMinorKeepCueProgressByKind = lastMinorKeepCueProgressByKind
+                            stateForDecision.escalatedMinorKeepIds = escalatedMinorKeepIds
+                            let decision = Self.evaluateMinorKeepPreviewCue(
+                                snapshot: snapshot,
+                                maneuver: nextAfter,
+                                distanceM: distanceToNext,
+                                state: stateForDecision
+                            )
+                            Self.logMinorKeepDecision(decision.decision)
+                            allowNextTurnPreview = decision.allow
                         }
+                        if allowNextTurnPreview {
+                            events.append(.nextTurnInAbout(
+                                turnKind: nextAfter.kind,
+                                distanceM: distanceToNext
+                            ))
+                            if nextAfter.isMinorKeep, (nextAfter.kind == .left || nextAfter.kind == .right) {
+                                lastMinorKeepCueProgressByKind[nextAfter.kind] = snapshot.progressDistanceM
+                            }
+                            // Pre-latch turn50m whenever the next turn is close enough
+                            // that the rider has already been told about it. Below
+                            // skip50mBelowDistanceM the "in X m" cue is redundant.
+                            if distanceToNext < Self.skip50mBelowDistanceM {
+                                announced50m.insert(nextAfter.id)
+                            }
+                        }
+                        announcedNextTurnAfter.insert(lastPassed.id)
                     }
                 } else if !s.approachingDestinationAnnounced && !snapshot.arrived {
                     // Bug 4: skip arrivingInM when the rider has already
@@ -326,7 +422,28 @@ enum CueEngine {
                 let followUp = (upcomingIdx >= 0 && upcomingIdx + 1 < snapshot.maneuvers.count)
                     ? snapshot.maneuvers[upcomingIdx + 1] : nil
                 let gapToFollowUp = followUp.map { $0.distanceFromStartM - m.distanceFromStartM } ?? .infinity
-                if let followUp = followUp, gapToFollowUp <= Self.backToBackThresholdM {
+                var allowMinorKeep = true
+                if m.isMinorKeep {
+                    var stateForDecision = s
+                    stateForDecision.lastMinorKeepCueProgressByKind = lastMinorKeepCueProgressByKind
+                    stateForDecision.escalatedMinorKeepIds = escalatedMinorKeepIds
+                    let decision = Self.evaluateMinorKeepCue(
+                        snapshot: snapshot,
+                        maneuver: m,
+                        distanceM: d,
+                        followUpGapM: gapToFollowUp,
+                        state: stateForDecision
+                    )
+                    Self.logMinorKeepDecision(decision.decision)
+                    allowMinorKeep = decision.allow
+                    if decision.allow {
+                        lastMinorKeepCueProgressByKind[m.kind] = snapshot.progressDistanceM
+                        if decision.decision == .urgencyEscalated { escalatedMinorKeepIds.insert(m.id) }
+                    } else {
+                        announced50m.insert(m.id)
+                    }
+                }
+                if allowMinorKeep, let followUp = followUp, gapToFollowUp <= Self.backToBackThresholdM {
                     // Carry the rider's actual distance into the cue
                     // instead of letting the catalog hardcode "50 m" —
                     // at route start the rider can be 15 m from the
@@ -337,7 +454,7 @@ enum CueEngine {
                     announced50m.insert(followUp.id)
                     announced10m.insert(followUp.id)
                     announcedNextTurnAfter.insert(m.id)
-                } else {
+                } else if allowMinorKeep {
                     events.append(.turn50m(m.kind, distanceM: d, followUpKind: nil))
                     announced50m.insert(m.id)
                 }
@@ -348,7 +465,28 @@ enum CueEngine {
                 let followUp = (upcomingIdx >= 0 && upcomingIdx + 1 < snapshot.maneuvers.count)
                     ? snapshot.maneuvers[upcomingIdx + 1] : nil
                 let gapToFollowUp = followUp.map { $0.distanceFromStartM - m.distanceFromStartM } ?? .infinity
-                if let followUp = followUp, gapToFollowUp <= Self.backToBackThresholdM {
+                var allowMinorKeep = true
+                if m.isMinorKeep {
+                    var stateForDecision = s
+                    stateForDecision.lastMinorKeepCueProgressByKind = lastMinorKeepCueProgressByKind
+                    stateForDecision.escalatedMinorKeepIds = escalatedMinorKeepIds
+                    let decision = Self.evaluateMinorKeepCue(
+                        snapshot: snapshot,
+                        maneuver: m,
+                        distanceM: d,
+                        followUpGapM: gapToFollowUp,
+                        state: stateForDecision
+                    )
+                    Self.logMinorKeepDecision(decision.decision)
+                    allowMinorKeep = decision.allow
+                    if decision.allow {
+                        lastMinorKeepCueProgressByKind[m.kind] = snapshot.progressDistanceM
+                        if decision.decision == .urgencyEscalated { escalatedMinorKeepIds.insert(m.id) }
+                    } else {
+                        announced10m.insert(m.id)
+                    }
+                }
+                if allowMinorKeep, let followUp = followUp, gapToFollowUp <= Self.backToBackThresholdM {
                     // Mirror the 50 m branch's fusion: when the rider's
                     // first in-range tick already landed inside 15 m, the
                     // 50 m combined cue is gated out — emitting the
@@ -359,7 +497,7 @@ enum CueEngine {
                     announced10m.insert(followUp.id)
                     announced50m.insert(followUp.id)
                     announcedNextTurnAfter.insert(m.id)
-                } else {
+                } else if allowMinorKeep {
                     events.append(.turn10m(m.kind, followUpKind: nil))
                     announced10m.insert(m.id)
                 }
@@ -368,6 +506,8 @@ enum CueEngine {
             s.announced50m = announced50m
             s.announced10m = announced10m
             s.announcedNextTurnAfter = announcedNextTurnAfter
+            s.lastMinorKeepCueProgressByKind = lastMinorKeepCueProgressByKind
+            s.escalatedMinorKeepIds = escalatedMinorKeepIds
         }
 
         if snapshot.arrived && !s.arrivedAnnounced {

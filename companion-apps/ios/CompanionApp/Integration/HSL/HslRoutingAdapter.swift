@@ -43,7 +43,8 @@ struct HslRoutingAdapter: RoutingProvider {
             return riderLocation
         }
         guard let speed = rerouteContext?.speedMps, speed.isFinite, speed >= Self.minHeadingSpeedMps else {
-            print("[reroute_heading] provider=\(providerLabel) reason=low_speed speed=\(rerouteContext?.speedMps.map(String.init) ?? "nil")")
+            let speedLog = rerouteContext?.speedMps.map { String($0) } ?? "nil"
+            print("[reroute_heading] provider=\(providerLabel) reason=low_speed speed=\(speedLog)")
             return riderLocation
         }
         let shifted = shiftPointByHeading(point: riderLocation, headingDegrees: heading, distanceMeters: Self.rerouteForwardShiftM)
@@ -688,6 +689,9 @@ extension HslRoutingAdapter {
         var instruction: String
     }
 
+    private static let minHeadingSpeedMps: Double = 2.0
+    private static let rerouteForwardShiftM: Double = 15.0
+
     static let routePlanQuery = """
     query RoutePlan($from: InputCoordinates!, $to: InputCoordinates!, $numItineraries: Int!, $transportModes: [TransportMode!]!, $optimize: OptimizeType!) {
       plan(
@@ -721,5 +725,3 @@ extension HslRoutingAdapter {
     }
     """
 }
-    private static let minHeadingSpeedMps: Double = 2.0
-    private static let rerouteForwardShiftM: Double = 15.0

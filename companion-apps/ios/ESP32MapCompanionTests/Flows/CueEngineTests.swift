@@ -7,6 +7,14 @@ final class CueEngineTests: XCTestCase {
         CueManeuver(id: id, kind: .left, distanceFromStartM: distance)
     }
 
+    private func mSlightLeft(_ id: String, _ distance: Double) -> CueManeuver {
+        CueManeuver(id: id, kind: .left, distanceFromStartM: distance, isMinorKeep: true)
+    }
+
+    private func mSlightRight(_ id: String, _ distance: Double) -> CueManeuver {
+        CueManeuver(id: id, kind: .right, distanceFromStartM: distance, isMinorKeep: true)
+    }
+
     private func base(
         routeId: String? = "r1",
         progressDistanceM: Double = 0,
@@ -136,6 +144,66 @@ final class CueEngineTests: XCTestCase {
             XCTAssertEqual(kind, .left)
             XCTAssertEqual(distance, 189, accuracy: 0.5)
         }
+    }
+
+    func test_suppressesNextTurnInAboutForKeepRightWhenTooCloseAfterPreviousTurn() {
+        let maneuvers = [
+            CueManeuver(id: "m1", kind: .left, distanceFromStartM: 200),
+            mSlightRight("m2", 230),
+        ]
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: maneuvers),
+            state: CueEngineState()
+        ).nextState
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 211, maneuvers: maneuvers),
+            state: s1
+        )
+        XCTAssertFalse(r2.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } })
+        XCTAssertTrue(r2.events.contains { if case .turn50m = $0 { return true } else { return false } })
+    }
+
+    func test_allowsNextTurnInAboutForKeepLeftWhenFarEnoughToBeUseful() {
+        let maneuvers = [
+            CueManeuver(id: "m1", kind: .left, distanceFromStartM: 200),
+            mSlightLeft("m2", 360),
+        ]
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: maneuvers),
+            state: CueEngineState()
+        ).nextState
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 211, maneuvers: maneuvers),
+            state: s1
+        )
+        let next = r2.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        XCTAssertNotNil(next)
+        if case .nextTurnInAbout(let kind, let distance) = next! {
+            XCTAssertEqual(kind, .left)
+            XCTAssertEqual(distance, 149, accuracy: 0.5)
+        }
+    }
+
+    func test_quickKeepThenTurnPrefersCombinedActionCueOverNextTurnInAbout() {
+        let maneuvers = [
+            CueManeuver(id: "m1", kind: .left, distanceFromStartM: 200),
+            mSlightRight("m2", 230),
+            CueManeuver(id: "m3", kind: .left, distanceFromStartM: 250),
+        ]
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: maneuvers),
+            state: CueEngineState()
+        ).nextState
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 211, maneuvers: maneuvers),
+            state: s1
+        )
+        XCTAssertFalse(r2.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } })
+        let combined = r2.events.first {
+            if case .turn50m(_, _, let followUp) = $0 { return followUp != nil }
+            return false
+        }
+        XCTAssertNotNil(combined)
     }
 
     func test_emitsArrivingInMWhenPastLastManeuver() {

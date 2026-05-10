@@ -49,13 +49,15 @@ class CueManeuverFilterTest {
     // Existing silence-by-design contract (regression guards)
 
     @Test
-    fun slightLeft_producesNoCue() {
-        assertNull(CueManeuverMapping.kindFor(RouteManeuverType.SLIGHT_LEFT))
+    fun slightLeft_mapsToLeftKind() {
+        assertEquals(ManeuverKind.LEFT, CueManeuverMapping.kindFor(RouteManeuverType.SLIGHT_LEFT))
+        assertEquals(true, CueManeuverMapping.isMinorKeepFor(RouteManeuverType.SLIGHT_LEFT))
     }
 
     @Test
-    fun slightRight_producesNoCue() {
-        assertNull(CueManeuverMapping.kindFor(RouteManeuverType.SLIGHT_RIGHT))
+    fun slightRight_mapsToRightKind() {
+        assertEquals(ManeuverKind.RIGHT, CueManeuverMapping.kindFor(RouteManeuverType.SLIGHT_RIGHT))
+        assertEquals(true, CueManeuverMapping.isMinorKeepFor(RouteManeuverType.SLIGHT_RIGHT))
     }
 
     @Test

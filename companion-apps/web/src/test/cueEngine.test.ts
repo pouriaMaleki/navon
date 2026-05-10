@@ -20,6 +20,18 @@ const M_RIGHT = (id: string, distance: number): CueManeuver => ({
   kind: "right",
   distanceFromStartM: distance,
 });
+const M_SLIGHT_LEFT = (id: string, distance: number): CueManeuver => ({
+  id,
+  kind: "left",
+  distanceFromStartM: distance,
+  isMinorKeep: true,
+});
+const M_SLIGHT_RIGHT = (id: string, distance: number): CueManeuver => ({
+  id,
+  kind: "right",
+  distanceFromStartM: distance,
+  isMinorKeep: true,
+});
 
 const baseSnapshot = (overrides: Partial<CueSnapshot> = {}): CueSnapshot => ({
   routeId: "r1",
@@ -209,6 +221,44 @@ describe("CueEngine — existing approach + arrival cues unchanged", () => {
     const next = t2.events.find((e) => e.kind === "nextTurnInAbout");
     expect(next).toMatchObject({ turnKind: "left" });
     expect((next as { distanceM: number }).distanceM).toBeCloseTo(189, 0);
+  });
+
+  it("suppresses nextTurnInAbout for keep-right when it is too close after previous turn", () => {
+    const maneuvers: CueManeuver[] = [
+      M_LEFT("m1", 200),
+      M_SLIGHT_RIGHT("m2", 230),
+    ];
+    const t1 = tick(initialCueEngineState(), baseSnapshot({ maneuvers, progressDistanceM: 100 }));
+    const t2 = tick(t1.next, baseSnapshot({ maneuvers, progressDistanceM: 211 }));
+    expect(t2.events.find((e) => e.kind === "nextTurnInAbout")).toBeUndefined();
+    expect(t2.events.find((e) => e.kind === "turn50m")).toBeDefined();
+  });
+
+  it("allows nextTurnInAbout for keep-left when it is far enough to be useful", () => {
+    const maneuvers: CueManeuver[] = [
+      M_LEFT("m1", 200),
+      M_SLIGHT_LEFT("m2", 360),
+    ];
+    const t1 = tick(initialCueEngineState(), baseSnapshot({ maneuvers, progressDistanceM: 100 }));
+    const t2 = tick(t1.next, baseSnapshot({ maneuvers, progressDistanceM: 211 }));
+    const next = t2.events.find((e) => e.kind === "nextTurnInAbout");
+    expect(next).toBeDefined();
+    expect((next as { distanceM: number }).distanceM).toBeCloseTo(149, 0);
+  });
+
+  it("quick keep+turn sequence prefers combined action cue over nextTurnInAbout chatter", () => {
+    const maneuvers: CueManeuver[] = [
+      M_LEFT("m1", 200),
+      M_SLIGHT_RIGHT("m2", 230),
+      M_LEFT("m3", 250),
+    ];
+    const t1 = tick(initialCueEngineState(), baseSnapshot({ maneuvers, progressDistanceM: 100 }));
+    const t2 = tick(t1.next, baseSnapshot({ maneuvers, progressDistanceM: 211 }));
+    expect(t2.events.find((e) => e.kind === "nextTurnInAbout")).toBeUndefined();
+    const combined = t2.events.find(
+      (e) => e.kind === "turn50m" && (e as { followUpKind?: string }).followUpKind !== undefined,
+    );
+    expect(combined).toBeDefined();
   });
 
   it("emits 'arriving at your destination in X meters' past the last maneuver when no more maneuvers follow", () => {
@@ -464,24 +514,53 @@ describe("CueEngine — skip turn50m cue when next turn is < 100m away", () => {
   });
 });
 
-describe("CueEngine — bear left/right (slight turns) produce NO audio cues", () => {
-  // User feedback: "Bear left/right" was being spoken on every minor curve in
-  // the road. There's no clear split — the rider would just naturally follow
-  // the road. The cue is noise. Suppress slight* maneuvers entirely.
-  it("maneuverKindFromType returns undefined for slightLeft (silent)", () => {
-    expect(maneuverKindFromType("slightLeft")).toBeUndefined();
+describe("CueEngine — bear left/right (slight turns) are context-gated", () => {
+  it("maneuverKindFromType marks slightLeft as minor-keep", () => {
+    expect(maneuverKindFromType("slightLeft")).toEqual({ kind: "left", isMinorKeep: true });
   });
 
-  it("maneuverKindFromType returns undefined for slightRight (silent)", () => {
-    expect(maneuverKindFromType("slightRight")).toBeUndefined();
+  it("maneuverKindFromType marks slightRight as minor-keep", () => {
+    expect(maneuverKindFromType("slightRight")).toEqual({ kind: "right", isMinorKeep: true });
   });
 
   it("sharpLeft still maps to left ManeuverKind (sharp turns are real cues)", () => {
-    expect(maneuverKindFromType("sharpLeft")).toBe("left");
+    expect(maneuverKindFromType("sharpLeft")).toEqual({ kind: "left" });
   });
 
   it("sharpRight still maps to right ManeuverKind", () => {
-    expect(maneuverKindFromType("sharpRight")).toBe("right");
+    expect(maneuverKindFromType("sharpRight")).toEqual({ kind: "right" });
+  });
+});
+
+describe("CueEngine — minor keep cue policy", () => {
+  it("suppresses minor keep when it is not split-like", () => {
+    const route = baseSnapshot({
+      maneuvers: [M_SLIGHT_LEFT("m1", 240)],
+      progressDistanceM: 200, // 40m: in 50m window, not split-promoted
+    });
+    const t1 = tick(initialCueEngineState(), route);
+    const t2 = tick(t1.next, route);
+    expect(t2.events.find((e) => e.kind === "turn50m")).toBeUndefined();
+  });
+
+  it("promotes minor keep near split distance", () => {
+    const route = baseSnapshot({
+      maneuvers: [M_SLIGHT_RIGHT("m1", 230)],
+      progressDistanceM: 180,
+    });
+    const t1 = tick(initialCueEngineState(), route);
+    const t2 = tick(t1.next, { ...route, progressDistanceM: 215 }); // 15m
+    expect(t2.events.find((e) => e.kind === "turn10m")).toBeDefined();
+  });
+
+  it("allows one urgency escalation at <=15m when cooldown blocks a repeated keep cue", () => {
+    const route = baseSnapshot({
+      maneuvers: [M_SLIGHT_LEFT("m1", 210)],
+      progressDistanceM: 180,
+    });
+    const t1 = tick(initialCueEngineState(), route); // first tick
+    const t2 = tick(t1.next, { ...route, progressDistanceM: 195 }); // 15m, urgency
+    expect(t2.events.find((e) => e.kind === "turn10m")).toBeDefined();
   });
 });
 
@@ -499,15 +578,15 @@ describe("CueEngine — maneuver-kind filter contract (bugs 1, 2, 3)", () => {
 
   // Bug 2: roundabout / merge / ramp are first-class kinds, not generic.
   it("maps roundabout to its own ManeuverKind (bug 2: was generic)", () => {
-    expect(maneuverKindFromType("roundabout")).toBe("roundabout");
+    expect(maneuverKindFromType("roundabout")).toEqual({ kind: "roundabout" });
   });
 
   it("maps merge to its own ManeuverKind (bug 2: was generic)", () => {
-    expect(maneuverKindFromType("merge")).toBe("merge");
+    expect(maneuverKindFromType("merge")).toEqual({ kind: "merge" });
   });
 
   it("maps ramp to its own ManeuverKind (bug 2: was generic)", () => {
-    expect(maneuverKindFromType("ramp")).toBe("ramp");
+    expect(maneuverKindFromType("ramp")).toEqual({ kind: "ramp" });
   });
 
   // Bug 3: keepLeft / keepRight removed entirely from ManeuverKind. The

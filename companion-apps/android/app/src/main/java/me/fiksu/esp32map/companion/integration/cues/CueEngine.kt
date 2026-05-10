@@ -24,6 +24,7 @@ data class CueManeuver(
     val id: String,
     val kind: ManeuverKind,
     val distanceFromStartM: Double,
+    val isMinorKeep: Boolean = false,
 )
 
 data class CueSnapshot(
@@ -94,6 +95,8 @@ data class CueEngineState(
      *  Reset only when the rider is confirmed on-track for
      *  ON_TRACK_CONFIRM_SAMPLES consecutive ticks. */
     val reroutingEpisodeCount: Int = 0,
+    val lastMinorKeepCueProgressByKind: Map<ManeuverKind, Double> = emptyMap(),
+    val escalatedMinorKeepIds: Set<String> = emptySet(),
 )
 
 object CueEngine {
@@ -125,8 +128,65 @@ object CueEngine {
      *  for any NextTurnInAbout or approach cues so the rider hears "arriving in Xm"
      *  rather than a phantom turn command. */
     private const val CLOSE_TO_DESTINATION_M = 30.0
+    private const val MINOR_KEEP_SPLIT_DISTANCE_M = 35.0
+    private const val MINOR_KEEP_COOLDOWN_PROGRESS_M = 120.0
+    private const val MINOR_KEEP_URGENCY_DISTANCE_M = 15.0
+    private const val MINOR_KEEP_NEXT_TURN_PREVIEW_MIN_DISTANCE_M = 100.0
 
     data class Result(val events: List<CueEvent>, val nextState: CueEngineState)
+
+    private enum class MinorKeepDecision {
+        SPLIT_PROMOTED,
+        MINOR_SUPPRESSED,
+        COOLDOWN_SUPPRESSED,
+        URGENCY_ESCALATED,
+    }
+
+    private fun evaluateMinorKeepCue(
+        snapshot: CueSnapshot,
+        maneuver: CueManeuver,
+        distanceM: Double,
+        followUpGapM: Double,
+        state: CueEngineState,
+    ): Pair<Boolean, MinorKeepDecision> {
+        if (maneuver.kind != ManeuverKind.LEFT && maneuver.kind != ManeuverKind.RIGHT) {
+            return false to MinorKeepDecision.MINOR_SUPPRESSED
+        }
+        val splitLike = distanceM <= MINOR_KEEP_SPLIT_DISTANCE_M || followUpGapM <= BACK_TO_BACK_THRESHOLD_M
+        if (!splitLike) {
+            if (distanceM <= MINOR_KEEP_URGENCY_DISTANCE_M && !state.escalatedMinorKeepIds.contains(maneuver.id)) {
+                return true to MinorKeepDecision.URGENCY_ESCALATED
+            }
+            return false to MinorKeepDecision.MINOR_SUPPRESSED
+        }
+        val lastProgress = state.lastMinorKeepCueProgressByKind[maneuver.kind]
+        if (lastProgress != null && snapshot.progressDistanceM - lastProgress < MINOR_KEEP_COOLDOWN_PROGRESS_M) {
+            if (distanceM <= MINOR_KEEP_URGENCY_DISTANCE_M && !state.escalatedMinorKeepIds.contains(maneuver.id)) {
+                return true to MinorKeepDecision.URGENCY_ESCALATED
+            }
+            return false to MinorKeepDecision.COOLDOWN_SUPPRESSED
+        }
+        return true to MinorKeepDecision.SPLIT_PROMOTED
+    }
+
+    private fun evaluateMinorKeepPreviewCue(
+        snapshot: CueSnapshot,
+        maneuver: CueManeuver,
+        distanceM: Double,
+        state: CueEngineState,
+    ): Pair<Boolean, MinorKeepDecision> {
+        if (maneuver.kind != ManeuverKind.LEFT && maneuver.kind != ManeuverKind.RIGHT) {
+            return false to MinorKeepDecision.MINOR_SUPPRESSED
+        }
+        val lastProgress = state.lastMinorKeepCueProgressByKind[maneuver.kind]
+        if (lastProgress != null && snapshot.progressDistanceM - lastProgress < MINOR_KEEP_COOLDOWN_PROGRESS_M) {
+            return false to MinorKeepDecision.COOLDOWN_SUPPRESSED
+        }
+        if (distanceM < MINOR_KEEP_NEXT_TURN_PREVIEW_MIN_DISTANCE_M) {
+            return false to MinorKeepDecision.MINOR_SUPPRESSED
+        }
+        return true to MinorKeepDecision.SPLIT_PROMOTED
+    }
 
     fun tick(snapshot: CueSnapshot, state: CueEngineState): Result {
         if (snapshot.pairedWithDevice) return Result(emptyList(), state)
@@ -287,6 +347,8 @@ object CueEngine {
             val announced50m = s.announced50m.toMutableSet()
             val announced10m = s.announced10m.toMutableSet()
             val announcedNextTurnAfter = s.announcedNextTurnAfter.toMutableSet()
+            val lastMinorKeepCueProgressByKind = s.lastMinorKeepCueProgressByKind.toMutableMap()
+            val escalatedMinorKeepIds = s.escalatedMinorKeepIds.toMutableSet()
 
             val upcoming = snapshot.maneuvers.firstOrNull {
                 it.distanceFromStartM - snapshot.progressDistanceM >= 0
@@ -301,7 +363,30 @@ object CueEngine {
                 val followUp = snapshot.maneuvers.getOrNull(upcomingIdx + 1)
                 val gap = followUp?.let { it.distanceFromStartM - upcoming.distanceFromStartM }
                     ?: Double.POSITIVE_INFINITY
-                if (followUp != null && gap <= BACK_TO_BACK_THRESHOLD_M) {
+                var allowMinorKeep = true
+                if (upcoming.isMinorKeep) {
+                    val stateForDecision = s.copy(
+                        lastMinorKeepCueProgressByKind = lastMinorKeepCueProgressByKind,
+                        escalatedMinorKeepIds = escalatedMinorKeepIds,
+                    )
+                    val decision = evaluateMinorKeepCue(
+                        snapshot = snapshot,
+                        maneuver = upcoming,
+                        distanceM = upcomingDistance,
+                        followUpGapM = gap,
+                        state = stateForDecision,
+                    )
+                    allowMinorKeep = decision.first
+                    if (allowMinorKeep) {
+                        lastMinorKeepCueProgressByKind[upcoming.kind] = snapshot.progressDistanceM
+                        if (decision.second == MinorKeepDecision.URGENCY_ESCALATED) {
+                            escalatedMinorKeepIds.add(upcoming.id)
+                        }
+                    } else {
+                        announced50m.add(upcoming.id)
+                    }
+                }
+                if (allowMinorKeep && followUp != null && gap <= BACK_TO_BACK_THRESHOLD_M) {
                     // Carry the rider's actual distance into the cue
                     // instead of letting the catalog hardcode "50 m" —
                     // at route start the rider can be 15 m from the
@@ -318,7 +403,7 @@ object CueEngine {
                     announced50m.add(followUp.id)
                     announced10m.add(followUp.id)
                     announcedNextTurnAfter.add(upcoming.id)
-                } else {
+                } else if (allowMinorKeep) {
                     events.add(
                         CueEvent.Turn50m(
                             turnKind = upcoming.kind,
@@ -336,7 +421,30 @@ object CueEngine {
                 val followUp = snapshot.maneuvers.getOrNull(upcomingIdx + 1)
                 val gap = followUp?.let { it.distanceFromStartM - upcoming.distanceFromStartM }
                     ?: Double.POSITIVE_INFINITY
-                if (followUp != null && gap <= BACK_TO_BACK_THRESHOLD_M) {
+                var allowMinorKeep = true
+                if (upcoming.isMinorKeep) {
+                    val stateForDecision = s.copy(
+                        lastMinorKeepCueProgressByKind = lastMinorKeepCueProgressByKind,
+                        escalatedMinorKeepIds = escalatedMinorKeepIds,
+                    )
+                    val decision = evaluateMinorKeepCue(
+                        snapshot = snapshot,
+                        maneuver = upcoming,
+                        distanceM = upcomingDistance,
+                        followUpGapM = gap,
+                        state = stateForDecision,
+                    )
+                    allowMinorKeep = decision.first
+                    if (allowMinorKeep) {
+                        lastMinorKeepCueProgressByKind[upcoming.kind] = snapshot.progressDistanceM
+                        if (decision.second == MinorKeepDecision.URGENCY_ESCALATED) {
+                            escalatedMinorKeepIds.add(upcoming.id)
+                        }
+                    } else {
+                        announced10m.add(upcoming.id)
+                    }
+                }
+                if (allowMinorKeep && followUp != null && gap <= BACK_TO_BACK_THRESHOLD_M) {
                     // Mirror the 50 m branch's fusion: when the rider's
                     // first in-range tick already landed inside 15 m, the
                     // 50 m combined cue is gated out — emitting the
@@ -352,7 +460,7 @@ object CueEngine {
                     announced10m.add(followUp.id)
                     announced50m.add(followUp.id)
                     announcedNextTurnAfter.add(upcoming.id)
-                } else {
+                } else if (allowMinorKeep) {
                     events.add(CueEvent.Turn10m(upcoming.kind))
                     announced10m.add(upcoming.id)
                 }
@@ -387,12 +495,32 @@ object CueEngine {
                             announced10m.add(nextAfter.id)
                         }
                     } else {
-                        events.add(
-                            CueEvent.NextTurnInAbout(
-                                turnKind = nextAfter.kind,
+                        var allowNextTurnPreview = true
+                        if (nextAfter.isMinorKeep) {
+                            val stateForDecision = s.copy(
+                                lastMinorKeepCueProgressByKind = lastMinorKeepCueProgressByKind,
+                                escalatedMinorKeepIds = escalatedMinorKeepIds,
+                            )
+                            allowNextTurnPreview = evaluateMinorKeepPreviewCue(
+                                snapshot = snapshot,
+                                maneuver = nextAfter,
                                 distanceM = distanceToNext,
-                            ),
-                        )
+                                state = stateForDecision,
+                            ).first
+                        }
+                        if (allowNextTurnPreview) {
+                            events.add(
+                                CueEvent.NextTurnInAbout(
+                                    turnKind = nextAfter.kind,
+                                    distanceM = distanceToNext,
+                                ),
+                            )
+                            if (nextAfter.isMinorKeep &&
+                                (nextAfter.kind == ManeuverKind.LEFT || nextAfter.kind == ManeuverKind.RIGHT)
+                            ) {
+                                lastMinorKeepCueProgressByKind[nextAfter.kind] = snapshot.progressDistanceM
+                            }
+                        }
                         announcedNextTurnAfter.add(lastPassed.id)
                         if (distanceToNext < SKIP_50M_BELOW_DISTANCE_M) {
                             announced50m.add(nextAfter.id)
@@ -416,6 +544,8 @@ object CueEngine {
                 announced50m = announced50m,
                 announced10m = announced10m,
                 announcedNextTurnAfter = announcedNextTurnAfter,
+                lastMinorKeepCueProgressByKind = lastMinorKeepCueProgressByKind,
+                escalatedMinorKeepIds = escalatedMinorKeepIds,
             )
         }
 

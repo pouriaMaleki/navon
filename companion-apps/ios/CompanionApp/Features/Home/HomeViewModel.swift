@@ -1465,7 +1465,8 @@ final class HomeViewModel: ObservableObject {
                 CueManeuver(
                     id: m.id,
                     kind: kind,
-                    distanceFromStartM: m.distanceFromStartMeters
+                    distanceFromStartM: m.distanceFromStartMeters,
+                    isMinorKeep: m.maneuverType == .slightLeft || m.maneuverType == .slightRight
                 )
             }
         }

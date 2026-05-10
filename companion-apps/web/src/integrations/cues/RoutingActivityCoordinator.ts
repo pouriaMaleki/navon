@@ -171,11 +171,14 @@ function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnaps
   const guidance = store.guidanceStore;
   const route = guidance.guidanceRoute;
   const maneuvers: CueManeuver[] = (route?.maneuvers ?? []).flatMap((m) => {
-    // `maneuverKindFromType` is the single point of truth for the
-    // silenced-by-design set (slight*, straight, depart, arrive).
-    const kind = maneuverKindFromType(m.maneuverType);
-    if (kind === undefined) return [];
-    return [{ id: m.id, kind, distanceFromStartM: m.distanceFromStartMeters }];
+    const mapped = maneuverKindFromType(m.maneuverType);
+    if (mapped === undefined) return [];
+    return [{
+      id: m.id,
+      kind: mapped.kind,
+      distanceFromStartM: m.distanceFromStartMeters,
+      isMinorKeep: mapped.isMinorKeep,
+    }];
   });
   const routeTotalDistanceM = route?.summary.totalDistanceMeters ?? 0;
   return {
@@ -205,24 +208,28 @@ function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnaps
  *     `arrivingInM` events, not maneuver entries.
  *  Unknown / future types fall through to the silenced default rather
  *  than masquerading as `generic` cues that don't match any UI. */
-export function maneuverKindFromType(type: string): ManeuverKind | undefined {
+export function maneuverKindFromType(
+  type: string,
+): { kind: ManeuverKind; isMinorKeep?: boolean } | undefined {
   switch (type) {
     case "left":
     case "sharpLeft":
-      return "left";
+      return { kind: "left" };
     case "right":
     case "sharpRight":
-      return "right";
+      return { kind: "right" };
     case "uturn":
-      return "uturn";
+      return { kind: "uturn" };
     case "roundabout":
-      return "roundabout";
+      return { kind: "roundabout" };
     case "merge":
-      return "merge";
+      return { kind: "merge" };
     case "ramp":
-      return "ramp";
+      return { kind: "ramp" };
     case "slightLeft":
+      return { kind: "left", isMinorKeep: true };
     case "slightRight":
+      return { kind: "right", isMinorKeep: true };
     case "straight":
     case "depart":
     case "arrive":

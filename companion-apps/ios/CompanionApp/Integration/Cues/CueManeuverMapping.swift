@@ -17,13 +17,12 @@ enum CueManeuverMapping {
         // adapter but produce no audio cue.
         //   - `.depart` / `.arrive` — the cue stream uses dedicated
         //     `arrived` / `arrivingInM` events, not maneuver entries.
-        //   - `.slightLeft` / `.slightRight` — minor splits the rider
-        //     follows naturally; "Bear left/right" on every gentle curve
-        //     is noise.
         //   - `.straight` — not a turn; "Next turn in about X meters" /
         //     "Follow the route" with no matching UI element is the bug
         //     this filter exists to prevent.
-        case .slightLeft, .slightRight,
+        case .slightLeft:                return .left
+        case .slightRight:               return .right
+        case
              .straight,
              .depart, .arrive:
             return nil
