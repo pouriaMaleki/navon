@@ -5,6 +5,14 @@ import Foundation
 /// so service- and AppModel-level tests can assert on the BLE traffic without
 /// touching CoreBluetooth.
 final class FakeRouteSyncBluetoothClient: RouteSyncBluetoothClient {
+    struct PhoneGpsWrite: Equatable {
+        let lat: Double
+        let lon: Double
+        let speed: Double
+        let course: Double?
+        let accuracy: Double?
+    }
+
     var onSyncMessage: ((RouteSyncMessage) -> Void)?
     var onConnectionStateChange: ((DeviceConnectionState, String?) -> Void)?
 
@@ -24,6 +32,7 @@ final class FakeRouteSyncBluetoothClient: RouteSyncBluetoothClient {
     private(set) var lastWrittenPacket: BleRouteSyncPacket?
     private(set) var lastWrittenPairingSecret: Data?
     private(set) var lastArmedDebugFault: RouteSyncFaultInjectionMode?
+    private(set) var phoneGpsWrites: [PhoneGpsWrite] = []
 
     /// What `scanForRouteSyncPeripheral` should produce: a device name on
     /// success or an error to throw. Defaults to a stub name.
@@ -84,6 +93,14 @@ final class FakeRouteSyncBluetoothClient: RouteSyncBluetoothClient {
     }
 
     func writePhoneGpsSample(lat: Double, lon: Double, speed: Double, course: Double?, accuracy: Double?) async throws {
-        // No-op for test fakes — phone GPS forwarding isn't tested through BLE.
+        phoneGpsWrites.append(
+            PhoneGpsWrite(
+                lat: lat,
+                lon: lon,
+                speed: speed,
+                course: course,
+                accuracy: accuracy
+            )
+        )
     }
 }

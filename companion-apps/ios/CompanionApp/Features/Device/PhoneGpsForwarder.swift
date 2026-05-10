@@ -9,26 +9,38 @@ import Foundation
 @MainActor
 final class PhoneGpsForwarder {
     private let bleClient: any RouteSyncBluetoothClient
-    private let locationService: CoreLocationService
+    private let locationService: any LocationService
     private var forwardingTask: Task<Void, Never>?
+    private var lastObservedLocation: CoordinatePoint?
+    private var lastMeaningfulMovementAt: Date?
+
+    /// Distance under which location jitter is treated as "still at the same
+    /// spot" for stale-speed decay.
+    private let movementThresholdMeters: Double = 3.0
 
     /// True while the forwarder is actively sending GPS data.
     @Published private(set) var isForwarding = false
 
-    init(bleClient: any RouteSyncBluetoothClient, locationService: CoreLocationService) {
+    init(bleClient: any RouteSyncBluetoothClient, locationService: any LocationService) {
         self.bleClient = bleClient
         self.locationService = locationService
     }
 
     /// Start forwarding phone GPS at the given interval.
-    func start(interval: TimeInterval = 1.0) {
+    func start(interval: TimeInterval = 1.0, staleSpeedAfter: TimeInterval = 5.0) {
         guard !isForwarding else { return }
         isForwarding = true
+        lastObservedLocation = nil
+        lastMeaningfulMovementAt = nil
         forwardingTask = Task { [weak self] in
             guard let self else { return }
             while !Task.isCancelled {
+                let now = Date()
                 if let location = self.locationService.currentLocation {
-                    let speed = self.locationService.currentSpeedMps ?? 0
+                    self.updateMovementWindow(for: location, now: now)
+                    let freshSpeed = self.locationService.currentSpeedMps ?? 0
+                    let secondsSinceMovement = now.timeIntervalSince(self.lastMeaningfulMovementAt ?? now)
+                    let speed = secondsSinceMovement >= staleSpeedAfter ? 0 : freshSpeed
                     try? await self.bleClient.writePhoneGpsSample(
                         lat: location.latitude,
                         lon: location.longitude,
@@ -53,9 +65,35 @@ final class PhoneGpsForwarder {
         }
     }
 
+    private func updateMovementWindow(for location: CoordinatePoint, now: Date) {
+        guard let previous = lastObservedLocation else {
+            lastObservedLocation = location
+            lastMeaningfulMovementAt = now
+            return
+        }
+        let movedMeters = distanceMeters(from: previous, to: location)
+        if movedMeters >= movementThresholdMeters {
+            lastMeaningfulMovementAt = now
+        }
+        lastObservedLocation = location
+    }
+
+    /// Equirectangular approximation, accurate enough for short rider-step
+    /// comparisons and much cheaper than full haversine.
+    private func distanceMeters(from a: CoordinatePoint, to b: CoordinatePoint) -> Double {
+        let metersPerDegLat = 111_320.0
+        let avgLatRad = ((a.latitude + b.latitude) * 0.5) * .pi / 180.0
+        let metersPerDegLon = metersPerDegLat * cos(avgLatRad)
+        let dLatMeters = (b.latitude - a.latitude) * metersPerDegLat
+        let dLonMeters = (b.longitude - a.longitude) * metersPerDegLon
+        return hypot(dLatMeters, dLonMeters)
+    }
+
     func stop() {
         forwardingTask?.cancel()
         forwardingTask = nil
         isForwarding = false
+        lastObservedLocation = nil
+        lastMeaningfulMovementAt = nil
     }
 }
