@@ -107,6 +107,19 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
     private let pairingRequestUUID = CBUUID(string: BleRouteSyncGattContract.pairingRequestCharacteristicUUID)
     private let phoneGpsUUID = CBUUID(string: BleRouteSyncGattContract.phoneGpsDataCharacteristicUUID)
 
+    private func isPairingAuthFailure(_ error: Error) -> Bool {
+        let nsError = error as NSError
+        let isAttAuthFailure = nsError.domain == CBATTErrorDomain
+            && nsError.code == CBATTError.insufficientAuthentication.rawValue
+        // CBError doesn't have a single "insufficient authentication"
+        // case — SMP/pairing failures surface as stale bond state
+        // (`peerRemovedPairingInformation`) or incomplete encryption.
+        let isSmpAuthFailure = nsError.domain == CBErrorDomain
+            && (nsError.code == CBError.peerRemovedPairingInformation.rawValue
+                || nsError.code == CBError.encryptionTimedOut.rawValue)
+        return isAttAuthFailure || isSmpAuthFailure
+    }
+
     var isReady: Bool {
         connectedPeripheral != nil && chunkWriteCharacteristic != nil && eventNotifyCharacteristic != nil
     }
@@ -388,13 +401,19 @@ extension CoreBluetoothRouteSyncClient: CBCentralManagerDelegate {
         eventNotifyCharacteristic = nil
         phoneGpsCharacteristic = nil
         let detail = error?.localizedDescription ?? "Disconnected from \(peripheral.name ?? "ESP32 device")"
+        let disconnectError: Error = {
+            if let error, isPairingAuthFailure(error) {
+                return CoreBluetoothRouteSyncError.pairingDenied
+            }
+            return CoreBluetoothRouteSyncError.disconnected(detail)
+        }()
         if let pendingConnectContinuation {
             self.pendingConnectContinuation = nil
-            pendingConnectContinuation.resume(throwing: CoreBluetoothRouteSyncError.disconnected(detail))
+            pendingConnectContinuation.resume(throwing: disconnectError)
         }
         if let pendingWriteContinuation {
             self.pendingWriteContinuation = nil
-            pendingWriteContinuation.resume(throwing: CoreBluetoothRouteSyncError.disconnected(detail))
+            pendingWriteContinuation.resume(throwing: disconnectError)
         }
         onConnectionStateChange?(.disconnected, peripheral.name)
     }
@@ -464,17 +483,7 @@ extension CoreBluetoothRouteSyncClient: CBPeripheralDelegate {
             // `CBError.insufficientAuthentication` (code 9 in CBError);
             // Bluedroid raises both depending on whether the rejection
             // is at the ATT layer or on the SMP layer.
-            let nsError = error as NSError
-            let isAttAuthFailure = nsError.domain == CBATTErrorDomain
-                && nsError.code == CBATTError.insufficientAuthentication.rawValue
-            // CBError doesn't have a single "insufficient authentication"
-            // case — SMP/pairing failures on iOS surface as the bond being
-            // gone (`peerRemovedPairingInformation`) or as encryption that
-            // never completed (`encryptionTimedOut`).
-            let isSmpAuthFailure = nsError.domain == CBErrorDomain
-                && (nsError.code == CBError.peerRemovedPairingInformation.rawValue
-                    || nsError.code == CBError.encryptionTimedOut.rawValue)
-            if isAttAuthFailure || isSmpAuthFailure {
+            if isPairingAuthFailure(error) {
                 pairingLog.error(
                     "writeValue rejected with INSUFFICIENT_AUTHENTICATION — SMP failed or stale bond on phone vs device"
                 )

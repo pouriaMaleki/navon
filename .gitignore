@@ -74,6 +74,8 @@
 /companion-apps/ios/ESP32MapCompanion.xcodeproj/
 /companion-apps/ios/build/
 /companion-apps/ios/DerivedData/
+/companion-apps/ios/.deriveddata-ios-build/
+/companion-apps/ios/.deriveddata-ios-build-nosign/
 /.deriveddata-ios-build/
 /.deriveddata-ios-build-nosign/
 /companion-apps/ios/Config/Signing.local.xcconfig
