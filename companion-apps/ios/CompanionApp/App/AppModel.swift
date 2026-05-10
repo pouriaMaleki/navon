@@ -181,7 +181,8 @@ final class AppModel: ObservableObject {
     /// Start or stop the phone GPS forwarder when the user toggles the
     /// GPS source picker in Device Settings. The firmware auto-detects
     /// phone GPS writes and switches source; when writes stop it falls
-    /// back to Internal GPS after a 3-second timeout.
+    /// back to Internal GPS after a timeout window (currently 120 seconds
+    /// in firmware).
     func handleGpsSourceChange(to source: GpsSourceSelection) {
         switch source {
         case .internal:

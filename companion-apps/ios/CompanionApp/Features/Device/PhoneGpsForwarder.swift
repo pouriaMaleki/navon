@@ -4,7 +4,8 @@ import Foundation
 /// it to the device's phone-GPS BLE characteristic at ~1 Hz while phone
 /// GPS mode is active. The firmware auto-detects sample writes and
 /// switches to Phone GPS mode; when samples stop (disconnect / toggle off),
-/// the firmware auto-falls back to Internal GPS after 3 seconds.
+/// the firmware auto-falls back to Internal GPS after a timeout window
+/// (currently 120 seconds in firmware).
 @MainActor
 final class PhoneGpsForwarder {
     private let bleClient: any RouteSyncBluetoothClient

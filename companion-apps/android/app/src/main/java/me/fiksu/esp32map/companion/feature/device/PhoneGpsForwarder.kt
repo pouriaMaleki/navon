@@ -15,7 +15,8 @@ import me.fiksu.esp32map.companion.integration.ble.RouteSyncBluetoothClient
  * it to the device's phone-GPS BLE characteristic at ~1 Hz while phone GPS
  * mode is active. The firmware auto-detects sample writes and switches to
  * Phone GPS mode; when samples stop (disconnect / toggle off), it auto-falls
- * back to Internal GPS after a 3-second timeout.
+ * back to Internal GPS after a timeout window (currently 120 seconds in
+ * firmware).
  */
 class PhoneGpsForwarder(
     private val bleClient: RouteSyncBluetoothClient,
@@ -47,7 +48,8 @@ class PhoneGpsForwarder(
                     } catch (_: Exception) {
                         // Swallow transient write errors; will retry on next
                         // interval. The firmware auto-falls back to Internal
-                        // GPS after a 3s gap, so a single missed write is
+                        // GPS after a longer timeout window, so a single
+                        // missed write is
                         // harmless.
                     }
                 }

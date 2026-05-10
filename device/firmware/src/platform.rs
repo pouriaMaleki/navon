@@ -313,8 +313,11 @@ where
             }
         }
 
-        // Auto-fallback: no phone sample for > 3 s → revert to Internal.
-        const PHONE_GPS_TIMEOUT: Duration = Duration::from_secs(3);
+        // Auto-fallback: no phone sample for > 120 s → revert to Internal.
+        // Route-transfer bursts and mobile scheduling can temporarily delay
+        // phone GPS writes; keep the timeout long enough to avoid false
+        // fallback during an active companion session.
+        const PHONE_GPS_TIMEOUT: Duration = Duration::from_secs(120);
         if self.app.gps_source() == GpsSource::Phone {
             if let Some(last) = self.phone_gps_last_received {
                 if last.elapsed() > PHONE_GPS_TIMEOUT {

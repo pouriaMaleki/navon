@@ -98,7 +98,14 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
     private var pendingPowerOnContinuation: CheckedContinuation<Void, Error>?
     private var pendingScanContinuation: CheckedContinuation<String, Error>?
     private var pendingConnectContinuation: CheckedContinuation<String, Error>?
-    private var pendingWriteContinuation: CheckedContinuation<Void, Error>?
+    private struct PendingWrite {
+        let peripheral: CBPeripheral
+        let characteristic: CBCharacteristic
+        let payload: Data
+        let continuation: CheckedContinuation<Void, Error>
+    }
+    private var pendingWrites: [PendingWrite] = []
+    private var activeWrite: PendingWrite?
 
     private let serviceUUID = CBUUID(string: BleRouteSyncGattContract.serviceUUID)
     private let chunkWriteUUID = CBUUID(string: BleRouteSyncGattContract.chunkWriteCharacteristicUUID)
@@ -126,6 +133,31 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
 
     func armDebugFault(_ mode: RouteSyncFaultInjectionMode) {
         armedDebugFault = mode
+    }
+
+    private func enqueueWriteWithResponse(
+        payload: Data,
+        peripheral: CBPeripheral,
+        characteristic: CBCharacteristic
+    ) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            pendingWrites.append(
+                PendingWrite(
+                    peripheral: peripheral,
+                    characteristic: characteristic,
+                    payload: payload,
+                    continuation: continuation
+                )
+            )
+            processNextPendingWrite()
+        }
+    }
+
+    private func processNextPendingWrite() {
+        guard activeWrite == nil, !pendingWrites.isEmpty else { return }
+        let next = pendingWrites.removeFirst()
+        activeWrite = next
+        next.peripheral.writeValue(next.payload, for: next.characteristic, type: .withResponse)
     }
 
     func scanForRouteSyncPeripheral(timeout: TimeInterval = 6.0) async throws -> String {
@@ -207,12 +239,13 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
             throw CoreBluetoothRouteSyncError.characteristicMissing
         }
         pairingLog.notice("BLE.writePairingRequest — 1 B to \(characteristic.uuid.uuidString, privacy: .public)")
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            pendingWriteContinuation = continuation
-            // The payload is ignored — the existence of the write is the
-            // signal. Single byte keeps the BLE packet tiny.
-            peripheral.writeValue(Data([0x01]), for: characteristic, type: .withResponse)
-        }
+        // The payload is ignored — the existence of the write is the
+        // signal. Single byte keeps the BLE packet tiny.
+        try await enqueueWriteWithResponse(
+            payload: Data([0x01]),
+            peripheral: peripheral,
+            characteristic: characteristic
+        )
     }
 
     /// Send the QR-OOB confirmation secret to the device's pairing-confirm
@@ -224,10 +257,11 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
             throw CoreBluetoothRouteSyncError.characteristicMissing
         }
         pairingLog.notice("BLE.writePairingConfirm — \(secret.count, privacy: .public) B to \(characteristic.uuid.uuidString, privacy: .public)")
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            pendingWriteContinuation = continuation
-            peripheral.writeValue(secret, for: characteristic, type: .withResponse)
-        }
+        try await enqueueWriteWithResponse(
+            payload: secret,
+            peripheral: peripheral,
+            characteristic: characteristic
+        )
     }
 
     /// Shared post-discovery connect chain so the scan path and fast path
@@ -262,10 +296,11 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
         let payload = BleRouteSyncCodec.encode(packet)
         let writeType: CBCharacteristicWriteType = characteristic.properties.contains(.write) ? .withResponse : .withoutResponse
         if writeType == .withResponse {
-            try await withCheckedThrowingContinuation { continuation in
-                pendingWriteContinuation = continuation
-                peripheral.writeValue(payload, for: characteristic, type: .withResponse)
-            }
+            try await enqueueWriteWithResponse(
+                payload: payload,
+                peripheral: peripheral,
+                characteristic: characteristic
+            )
         } else {
             peripheral.writeValue(payload, for: characteristic, type: .withoutResponse)
             try await Task.sleep(nanoseconds: 20_000_000)
@@ -287,10 +322,11 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
         guard let data = csv.data(using: .utf8) else {
             throw CoreBluetoothRouteSyncError.writeFailed("Failed to encode phone GPS sample")
         }
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            pendingWriteContinuation = continuation
-            peripheral.writeValue(data, for: characteristic, type: .withResponse)
-        }
+        try await enqueueWriteWithResponse(
+            payload: data,
+            peripheral: peripheral,
+            characteristic: characteristic
+        )
     }
 
     private func ensurePoweredOn() async throws {
@@ -411,9 +447,16 @@ extension CoreBluetoothRouteSyncClient: CBCentralManagerDelegate {
             self.pendingConnectContinuation = nil
             pendingConnectContinuation.resume(throwing: disconnectError)
         }
-        if let pendingWriteContinuation {
-            self.pendingWriteContinuation = nil
-            pendingWriteContinuation.resume(throwing: disconnectError)
+        if let activeWrite {
+            self.activeWrite = nil
+            activeWrite.continuation.resume(throwing: disconnectError)
+        }
+        if !pendingWrites.isEmpty {
+            let queued = pendingWrites
+            pendingWrites.removeAll()
+            for write in queued {
+                write.continuation.resume(throwing: disconnectError)
+            }
         }
         onConnectionStateChange?(.disconnected, peripheral.name)
     }
@@ -473,8 +516,8 @@ extension CoreBluetoothRouteSyncClient: CBPeripheralDelegate {
     }
 
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
-        guard let pendingWriteContinuation else { return }
-        self.pendingWriteContinuation = nil
+        guard let activeWrite else { return }
+        self.activeWrite = nil
         if let error {
             // Distinguish SMP authentication rejections from other write
             // failures so the pairing UI can surface a specific
@@ -487,13 +530,14 @@ extension CoreBluetoothRouteSyncClient: CBPeripheralDelegate {
                 pairingLog.error(
                     "writeValue rejected with INSUFFICIENT_AUTHENTICATION — SMP failed or stale bond on phone vs device"
                 )
-                pendingWriteContinuation.resume(throwing: CoreBluetoothRouteSyncError.pairingDenied)
+                activeWrite.continuation.resume(throwing: CoreBluetoothRouteSyncError.pairingDenied)
             } else {
-                pendingWriteContinuation.resume(throwing: CoreBluetoothRouteSyncError.writeFailed(error.localizedDescription))
+                activeWrite.continuation.resume(throwing: CoreBluetoothRouteSyncError.writeFailed(error.localizedDescription))
             }
         } else {
-            pendingWriteContinuation.resume()
+            activeWrite.continuation.resume()
         }
+        processNextPendingWrite()
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {

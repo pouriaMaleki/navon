@@ -49,7 +49,15 @@ class AndroidBleRouteSyncClient(
 
     private var pendingScanContinuation: kotlin.coroutines.Continuation<String>? = null
     private var pendingConnectContinuation: kotlin.coroutines.Continuation<String>? = null
-    private var pendingWriteContinuation: kotlin.coroutines.Continuation<Unit>? = null
+    private data class PendingWrite(
+        val gatt: BluetoothGatt,
+        val characteristic: BluetoothGattCharacteristic,
+        val payload: ByteArray,
+        val writeType: Int,
+        val continuation: kotlin.coroutines.Continuation<Unit>,
+    )
+    private val pendingWrites = ArrayDeque<PendingWrite>()
+    private var activeWrite: PendingWrite? = null
     private var armedDebugFaultMode: RouteSyncFaultInjectionMode? = null
 
     override val isReady: Boolean
@@ -57,6 +65,41 @@ class AndroidBleRouteSyncClient(
 
     override fun armDebugFault(mode: RouteSyncFaultInjectionMode) {
         armedDebugFaultMode = mode
+    }
+
+    private suspend fun enqueueWriteWithResponse(
+        gatt: BluetoothGatt,
+        characteristic: BluetoothGattCharacteristic,
+        payload: ByteArray,
+        writeType: Int = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT,
+        writeErrorLabel: String,
+    ) {
+        suspendCancellableCoroutine { continuation ->
+            pendingWrites.addLast(
+                PendingWrite(
+                    gatt = gatt,
+                    characteristic = characteristic,
+                    payload = payload,
+                    writeType = writeType,
+                    continuation = continuation,
+                )
+            )
+            processNextPendingWrite(writeErrorLabel)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun processNextPendingWrite(writeErrorLabel: String = "BluetoothGatt.writeCharacteristic returned false") {
+        if (activeWrite != null) return
+        val next = pendingWrites.removeFirstOrNull() ?: return
+        next.characteristic.value = next.payload
+        next.characteristic.writeType = next.writeType
+        activeWrite = next
+        if (!next.gatt.writeCharacteristic(next.characteristic)) {
+            activeWrite = null
+            next.continuation.resumeWithException(IllegalStateException(writeErrorLabel))
+            processNextPendingWrite()
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -186,17 +229,13 @@ class AndroidBleRouteSyncClient(
             "ESP32 pairing-request characteristic was not found — firmware may predate the " +
                 "Show-QR-on-demand contract; reflash from main",
         )
-        characteristic.value = byteArrayOf(0x01)
-        characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-        suspendCancellableCoroutine { continuation ->
-            pendingWriteContinuation = continuation
-            if (!gatt.writeCharacteristic(characteristic)) {
-                pendingWriteContinuation = null
-                continuation.resumeWithException(
-                    IllegalStateException("BluetoothGatt.writeCharacteristic returned false (pairing_request)"),
-                )
-            }
-        }
+        enqueueWriteWithResponse(
+            gatt = gatt,
+            characteristic = characteristic,
+            payload = byteArrayOf(0x01),
+            writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT,
+            writeErrorLabel = "BluetoothGatt.writeCharacteristic returned false (pairing_request)",
+        )
     }
 
     /**
@@ -219,17 +258,13 @@ class AndroidBleRouteSyncClient(
         val characteristic = service.getCharacteristic(
             java.util.UUID.fromString(BleRouteSyncGattContract.PAIRING_CONFIRM_CHARACTERISTIC_UUID),
         ) ?: error("ESP32 pairing-confirm characteristic was not found on connected peripheral")
-        characteristic.value = secret
-        characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-        suspendCancellableCoroutine { continuation ->
-            pendingWriteContinuation = continuation
-            if (!gatt.writeCharacteristic(characteristic)) {
-                pendingWriteContinuation = null
-                continuation.resumeWithException(
-                    IllegalStateException("BluetoothGatt.writeCharacteristic returned false (pairing_confirm)"),
-                )
-            }
-        }
+        enqueueWriteWithResponse(
+            gatt = gatt,
+            characteristic = characteristic,
+            payload = secret,
+            writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT,
+            writeErrorLabel = "BluetoothGatt.writeCharacteristic returned false (pairing_confirm)",
+        )
     }
 
     @SuppressLint("MissingPermission")
@@ -248,21 +283,23 @@ class AndroidBleRouteSyncClient(
             armedDebugFaultMode = null
         }
 
-        characteristic.value = BleRouteSyncCodec.encode(packet)
-        characteristic.writeType = if ((characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE) != 0) {
+        val payload = BleRouteSyncCodec.encode(packet)
+        val writeType = if ((characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE) != 0) {
             BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
         } else {
             BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
         }
-        if (characteristic.writeType == BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) {
-            suspendCancellableCoroutine { continuation ->
-                pendingWriteContinuation = continuation
-                if (!gatt.writeCharacteristic(characteristic)) {
-                    pendingWriteContinuation = null
-                    continuation.resumeWithException(IllegalStateException("BluetoothGatt.writeCharacteristic returned false"))
-                }
-            }
+        if (writeType == BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) {
+            enqueueWriteWithResponse(
+                gatt = gatt,
+                characteristic = characteristic,
+                payload = payload,
+                writeType = writeType,
+                writeErrorLabel = "BluetoothGatt.writeCharacteristic returned false",
+            )
         } else {
+            characteristic.value = payload
+            characteristic.writeType = writeType
             if (!gatt.writeCharacteristic(characteristic)) {
                 error("BluetoothGatt.writeCharacteristic returned false")
             }
@@ -281,15 +318,13 @@ class AndroidBleRouteSyncClient(
         val gatt = bluetoothGatt ?: error("BLE GATT connection is not ready")
         val characteristic = phoneGpsCharacteristic ?: error("Phone GPS characteristic not found")
         val csv = "$lat,$lon,$speed,${course ?: 0.0},${accuracy ?: 0.0}"
-        characteristic.value = csv.toByteArray()
-        characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-        suspendCancellableCoroutine { continuation ->
-            pendingWriteContinuation = continuation
-            if (!gatt.writeCharacteristic(characteristic)) {
-                pendingWriteContinuation = null
-                continuation.resumeWithException(IllegalStateException("writeCharacteristic returned false (phone_gps)"))
-            }
-        }
+        enqueueWriteWithResponse(
+            gatt = gatt,
+            characteristic = characteristic,
+            payload = csv.toByteArray(),
+            writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT,
+            writeErrorLabel = "writeCharacteristic returned false (phone_gps)",
+        )
     }
 
     private fun ensurePermissions() {
@@ -322,8 +357,16 @@ class AndroidBleRouteSyncClient(
                     )
                     pendingConnectContinuation = null
                 }
-                pendingWriteContinuation?.resumeWithException(IllegalStateException("Disconnected before BLE write completed"))
-                pendingWriteContinuation = null
+                activeWrite?.let { write ->
+                    activeWrite = null
+                    write.continuation.resumeWithException(IllegalStateException("Disconnected before BLE write completed"))
+                }
+                while (pendingWrites.isNotEmpty()) {
+                    val queued = pendingWrites.removeFirst()
+                    queued.continuation.resumeWithException(
+                        IllegalStateException("Disconnected before BLE write completed")
+                    )
+                }
                 onConnectionStateChange?.invoke(DeviceConnectionState.DISCONNECTED, gatt.device.nameOrFallback("ESP32 device"))
             }
         }
@@ -378,10 +421,11 @@ class AndroidBleRouteSyncClient(
         }
 
         override fun onCharacteristicWrite(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
-            val continuation = pendingWriteContinuation ?: return
-            pendingWriteContinuation = null
+            val write = activeWrite ?: return
+            activeWrite = null
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                continuation.resume(Unit)
+                write.continuation.resume(Unit)
+                processNextPendingWrite()
                 return
             }
             // Distinguish SMP-auth rejections from other write failures
@@ -395,7 +439,8 @@ class AndroidBleRouteSyncClient(
             } else {
                 "Characteristic write failed with status $status"
             }
-            continuation.resumeWithException(IllegalStateException(message))
+            write.continuation.resumeWithException(IllegalStateException(message))
+            processNextPendingWrite()
         }
 
         override fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray) {
