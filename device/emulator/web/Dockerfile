@@ -24,24 +24,26 @@ COPY Cargo.toml Cargo.lock rust-toolchain.toml ./
 COPY .cargo ./.cargo
 
 # Crates render-core-wasm pulls (transitively) at build time.
-COPY device/core/render-core ./render-core
-COPY device/core/render-core-wasm ./render-core-wasm
-COPY device/core/runtime-core ./runtime-core
-COPY device/core/map-runtime ./map-runtime
-COPY device/core/route-import-gpx ./route-import-gpx
+# Preserve original directory structure so workspace member paths in
+# Cargo.toml resolve correctly.
+COPY device/core/render-core ./device/core/render-core
+COPY device/core/render-core-wasm ./device/core/render-core-wasm
+COPY device/core/runtime-core ./device/core/runtime-core
+COPY device/core/map-runtime ./device/core/map-runtime
+COPY device/core/route-import-gpx ./device/core/route-import-gpx
 
 # `map-runtime` embeds a city map via `include_bytes!("../../../../data/map-data/...")`,
 # so the directory must be present at compile time even when the file is
 # the empty placeholder shipped in the repo.
-COPY data/map-data ./map-data
+COPY data/map-data ./data/map-data
 
 # Workspace members not in the wasm dependency graph but required for
 # `cargo` to parse the workspace manifest. Their sources are tiny and
 # never compiled here (wasm-pack targets render-core-wasm specifically).
-COPY device/firmware ./firmware
-COPY data/parity-fixtures ./parity-fixtures
-COPY tools/map-vector-cli ./map-vector-cli
-COPY tools/xtask ./xtask
+COPY device/firmware ./device/firmware
+COPY data/parity-fixtures ./data/parity-fixtures
+COPY tools/map-vector-cli ./tools/map-vector-cli
+COPY tools/xtask ./tools/xtask
 
 RUN wasm-pack build device/core/render-core-wasm --target web --out-dir /tmp/wasm-pkg --out-name render_core_wasm
 
