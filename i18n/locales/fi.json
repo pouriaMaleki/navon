@@ -689,11 +689,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "importDiagnostics.shareSubject": {
-      "value": "Kumppanin tuonnin vianmääritys",
+      "value": "Navon-tuontidiagnostiikka",
       "description": "Subject of the share sheet when sharing a debug package.",
-      "sourceHash": "sha256:8888ea0458fd0d03",
+      "sourceHash": "sha256:50a7a06939116472",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:39:03Z",
+      "translatedAt": "2026-05-11T06:37:35Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "pairing.alignQr": {
@@ -1166,10 +1166,10 @@
     },
     "settings.hub.device": {
       "value": "Laite",
-      "description": "Settings hub row: navigates to ESP32 device pairing/management.",
-      "sourceHash": "sha256:3de02b1fa84f6a0f",
+      "description": "Settings hub row: navigates to Navon device pairing/management.",
+      "sourceHash": "sha256:04b65ee23530d1b9",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T10:05:18Z",
+      "translatedAt": "2026-05-11T06:37:35Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.hub.importDiagnostics": {

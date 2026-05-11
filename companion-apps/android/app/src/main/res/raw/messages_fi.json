@@ -74,7 +74,7 @@
   "importDiagnostics.copyDebugInfo": "Kopioi vianmääritystiedot",
   "importDiagnostics.retry": "Yritä tuonti uudelleen",
   "importDiagnostics.sharePackage": "Jaa vianmäärityspaketti",
-  "importDiagnostics.shareSubject": "Kumppanin tuonnin vianmääritys",
+  "importDiagnostics.shareSubject": "Navon-tuontidiagnostiikka",
   "pairing.alignQr": "Kohdista QR-koodi kuvan sisällä",
   "pairing.cameraDenied": "Kameran käyttöoikeus tarvitaan parinmuodostuskoodin skannaamiseen.",
   "pairing.cancel": "Peruuta",

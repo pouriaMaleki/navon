@@ -74,7 +74,7 @@
   "importDiagnostics.copyDebugInfo": "نسخ معلومات التصحيح",
   "importDiagnostics.retry": "إعادة محاولة الاستيراد",
   "importDiagnostics.sharePackage": "مشاركة حزمة التصحيح",
-  "importDiagnostics.shareSubject": "تشخيصات استيراد Companion",
+  "importDiagnostics.shareSubject": "تشخيصات استيراد Navon",
   "pairing.alignQr": "قم بمحاذاة رمز QR داخل الإطار",
   "pairing.cameraDenied": "يُطلب الوصول إلى الكاميرا لمسح رمز الاقتران.",
   "pairing.cancel": "إلغاء",

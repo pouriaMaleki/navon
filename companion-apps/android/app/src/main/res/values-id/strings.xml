@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">Batal</string>
     <string name="common_cancel_role" formatted="false">Batal</string>
     <string name="common_close" formatted="false">Tutup</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">Salin info debug</string>
     <string name="importDiagnostics_retry" formatted="false">Coba impor lagi</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Bagikan paket debug</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">Diagnostik impor Companion</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Diagnostik impor Navon</string>
     <string name="pairing_alignQr" formatted="false">Sejajarkan kode QR di dalam bingkai</string>
     <string name="pairing_cameraDenied" formatted="false">Akses kamera diperlukan untuk memindai kode pasangan.</string>
     <string name="pairing_cancel" formatted="false">Batal</string>

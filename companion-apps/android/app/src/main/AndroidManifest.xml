@@ -32,7 +32,7 @@
         android:localeConfig="@xml/locale_config"
         android:usesCleartextTraffic="false"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ESP32MapCompanion"
+        android:theme="@style/Theme.Navon"
         tools:ignore="DataExtractionRules">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -72,6 +72,22 @@
                 <data android:scheme="http" />
                 <data android:scheme="https" />
                 <data android:scheme="content" />
+            </intent-filter>
+
+            <!-- navon:// custom scheme -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="navon" />
+            </intent-filter>
+
+            <!-- navon.bike App Links -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="navon.bike" />
             </intent-filter>
         </activity>
         <service

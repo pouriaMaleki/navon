@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">取消</string>
     <string name="common_cancel_role" formatted="false">取消</string>
     <string name="common_close" formatted="false">关闭</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">复制调试信息</string>
     <string name="importDiagnostics_retry" formatted="false">重试导入</string>
     <string name="importDiagnostics_sharePackage" formatted="false">分享调试包</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">伴侣导入诊断</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Navon 导入诊断信息</string>
     <string name="pairing_alignQr" formatted="false">将二维码对准画面</string>
     <string name="pairing_cameraDenied" formatted="false">需要相机权限才能扫描配对代码。</string>
     <string name="pairing_cancel" formatted="false">取消</string>

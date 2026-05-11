@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">रद्द करें</string>
     <string name="common_cancel_role" formatted="false">रद्द करें</string>
     <string name="common_close" formatted="false">बंद करें</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">डिबग जानकारी कॉपी करें</string>
     <string name="importDiagnostics_retry" formatted="false">इम्पोर्ट फिर से आज़माएँ</string>
     <string name="importDiagnostics_sharePackage" formatted="false">डिबग पैकेज साझा करें</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">कंपैनियन इम्पोर्ट डायग्नोस्टिक्स</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Navon इम्पोर्ट डायग्नॉस्टिक्स</string>
     <string name="pairing_alignQr" formatted="false">फ्रेम में QR कोड को संरेखित करें</string>
     <string name="pairing_cameraDenied" formatted="false">पेयरिंग कोड स्कैन करने के लिए कैमरा एक्सेस आवश्यक है।</string>
     <string name="pairing_cancel" formatted="false">रद्द करें</string>

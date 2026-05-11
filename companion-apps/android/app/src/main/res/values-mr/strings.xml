@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">रद्द करा</string>
     <string name="common_cancel_role" formatted="false">रद्द करा</string>
     <string name="common_close" formatted="false">बंद करा</string>
@@ -65,9 +65,9 @@
     <string name="home_routingFinished" formatted="false">रूटिंग पूर्ण झाले. पुन्हा नियोजनासाठी गंतव्यावर टॅप करा.</string>
     <string name="home_sendingPercent" formatted="false">{percent, number}% पाठवत आहे</string>
     <string name="home_start" formatted="false">प्रारंभ</string>
-    <string name="home_startOnDevice" formatted="false">डिव्हाइसवर प्रारंभ</string>
+    <string name="home_startOnDevice" formatted="false">डिव्हाइसवर सुरू करा</string>
     <string name="home_startRoute" formatted="false">मार्ग सुरू करा</string>
-    <string name="home_startingOnDevice" formatted="false">डिव्हाइसवर सुरू करत आहोत…</string>
+    <string name="home_startingOnDevice" formatted="false">डिव्हाइसवर सुरू करत आहे…</string>
     <string name="home_stop" formatted="false">थांबा</string>
     <string name="home_stopRoute" formatted="false">मार्ग थांबवा</string>
     <string name="home_suggestedRoutes" formatted="false">सुचवलेले मार्ग</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">डिबग माहिती कॉपी करा</string>
     <string name="importDiagnostics_retry" formatted="false">पुन्हा आयात करा</string>
     <string name="importDiagnostics_sharePackage" formatted="false">डिबग पॅकेज शेअर करा</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">कंपॅनियन आयात निदान</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Navon आयात निदान</string>
     <string name="pairing_alignQr" formatted="false">फ्रेममध्ये QR कोड सरळ करा</string>
     <string name="pairing_cameraDenied" formatted="false">जोडणी कोड स्कॅन करण्यासाठी कॅमेरा प्रवेश आवश्यक आहे.</string>
     <string name="pairing_cancel" formatted="false">रद्द करा</string>

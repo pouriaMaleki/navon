@@ -430,7 +430,7 @@ fn build_strings_xml(en: &Catalog, target: &Catalog) -> String {
     // App-level strings that are not part of the translatable catalog but are
     // required by AndroidManifest.xml. These are written to every locale so
     // the build always finds them; app_name is intentionally not translated.
-    s.push_str("    <string name=\"app_name\">ESP32MapCompanion</string>\n");
+    s.push_str("    <string name=\"app_name\">Navon</string>\n");
     for (key, en_entry) in &en.entries {
         let value = target
             .entries
@@ -747,7 +747,7 @@ fn translate_chunk(
     glossary: &Glossary,
 ) -> Result<Vec<(String, String)>, String> {
     let system = "\
-You translate ICU MessageFormat strings for a cycling navigation companion app. \
+You translate ICU MessageFormat strings for the Navon cycling navigation app. \
 Strict rules: \
 (1) preserve every {placeholder} EXACTLY — same names, same ICU types and arms; \
 (2) do not translate tokens listed in the glossary; \

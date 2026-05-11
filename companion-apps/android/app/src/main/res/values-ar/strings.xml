@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">إلغاء</string>
     <string name="common_cancel_role" formatted="false">إلغاء</string>
     <string name="common_close" formatted="false">إغلاق</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">نسخ معلومات التصحيح</string>
     <string name="importDiagnostics_retry" formatted="false">إعادة محاولة الاستيراد</string>
     <string name="importDiagnostics_sharePackage" formatted="false">مشاركة حزمة التصحيح</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">تشخيصات استيراد Companion</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">تشخيصات استيراد Navon</string>
     <string name="pairing_alignQr" formatted="false">قم بمحاذاة رمز QR داخل الإطار</string>
     <string name="pairing_cameraDenied" formatted="false">يُطلب الوصول إلى الكاميرا لمسح رمز الاقتران.</string>
     <string name="pairing_cancel" formatted="false">إلغاء</string>

@@ -1,4 +1,4 @@
-name: Companion iOS
+name: Navon iOS
 
 on:
   pull_request:
@@ -24,7 +24,7 @@ on:
       ios_bundle_id:
         description: 'Bundle identifier to sign and export'
         required: false
-        default: me.fiksu.esp32map.companion.ios
+        default: app.navon.bike
         type: string
       ios_development_team:
         description: 'Optional override for the Apple Development Team ID; falls back to repo variable IOS_DEVELOPMENT_TEAM'
@@ -80,8 +80,8 @@ jobs:
       - name: Build unsigned simulator app
         run: |
           xcodebuild \
-            -project ESP32MapCompanion.xcodeproj \
-            -scheme ESP32MapCompanion \
+            -project Navon.xcodeproj \
+            -scheme Navon \
             -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
@@ -136,13 +136,13 @@ jobs:
       - name: Archive signed iPhone build
         shell: bash
         run: |
-          rm -rf build/export build/ESP32MapCompanion.xcarchive
+          rm -rf build/export build/Navon.xcarchive
           xcodebuild \
-            -project ESP32MapCompanion.xcodeproj \
-            -scheme ESP32MapCompanion \
+            -project Navon.xcodeproj \
+            -scheme Navon \
             -configuration Release \
             -destination 'generic/platform=iOS' \
-            -archivePath build/ESP32MapCompanion.xcarchive \
+            -archivePath build/Navon.xcarchive \
             -allowProvisioningUpdates \
             -allowProvisioningDeviceRegistration \
             DEVELOPMENT_TEAM="$IOS_DEVELOPMENT_TEAM" \
@@ -174,7 +174,7 @@ jobs:
       - name: Export signed IPA
         run: |
           xcodebuild -exportArchive \
-            -archivePath build/ESP32MapCompanion.xcarchive \
+            -archivePath build/Navon.xcarchive \
             -exportOptionsPlist build/ExportOptions.plist \
             -exportPath build/export
 
@@ -199,5 +199,5 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: companion-apps/ios-xcarchive
-          path: companion-apps/ios/build/ESP32MapCompanion.xcarchive
+          path: companion-apps/ios/build/Navon.xcarchive
           if-no-files-found: error

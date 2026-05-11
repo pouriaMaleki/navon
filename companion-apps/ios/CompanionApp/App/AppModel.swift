@@ -5,9 +5,9 @@ import Combine
 import os.log
 
 /// Pairing-flow log channel. Filter Console.app with
-/// `subsystem:me.fiksu.esp32map.companion.ios category:pairing` to follow
+/// `subsystem:app.navon.bike category:pairing` to follow
 /// each step (begin → scan → connect → write → persist).
-let pairingLog = Logger(subsystem: "me.fiksu.esp32map.companion.ios", category: "pairing")
+let pairingLog = Logger(subsystem: "app.navon.bike", category: "pairing")
 
 @MainActor
 final class AppModel: ObservableObject {
@@ -359,9 +359,9 @@ final class AppModel: ObservableObject {
         locationService.manualSettingsHint
     }
 
-    /// Called by `ESP32MapCompanionApp` when the app enters the background.
+    /// Called by `NavonApp` when the app enters the background.
     /// True when the app is currently in `.background` scene phase. Set
-    /// by ESP32MapCompanionApp's scenePhase observer; consumed by the
+    /// by NavonApp's scenePhase observer; consumed by the
     /// cue dispatch path to honour the `audioCuesOnlyInBackground`
     /// setting (spec line 144).
     @Published var isAppInBackground: Bool = false

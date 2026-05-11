@@ -638,10 +638,10 @@
     },
     "home.startOnDevice": {
       "value": "डिवाइस पर शुरू करें",
-      "description": "Primary route-start button label when an ESP32 device is paired and connected — the route will be sent to the device instead of started on the phone.",
-      "sourceHash": "sha256:236747ff41044c24",
+      "description": "Primary route-start button label when a Navon device is paired and connected — the route will be sent to the device instead of started on the phone.",
+      "sourceHash": "sha256:e1171677c7eebe4d",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T11:59:24Z",
+      "translatedAt": "2026-05-11T06:37:38Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.startRoute": {
@@ -654,10 +654,10 @@
     },
     "home.startingOnDevice": {
       "value": "डिवाइस पर शुरू हो रहा है…",
-      "description": "Transient state on the start button while the route is being transferred to a paired ESP32 device.",
-      "sourceHash": "sha256:803bd0a685953942",
+      "description": "Transient state on the start button while the route is being transferred to a paired Navon device.",
+      "sourceHash": "sha256:1fab50cfbbbb756d",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T11:59:24Z",
+      "translatedAt": "2026-05-11T06:37:38Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.stop": {
@@ -725,11 +725,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "importDiagnostics.shareSubject": {
-      "value": "कंपैनियन इम्पोर्ट डायग्नोस्टिक्स",
+      "value": "Navon इम्पोर्ट डायग्नॉस्टिक्स",
       "description": "Subject of the share sheet when sharing a debug package.",
-      "sourceHash": "sha256:8888ea0458fd0d03",
+      "sourceHash": "sha256:50a7a06939116472",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T13:39:36Z",
+      "translatedAt": "2026-05-11T06:37:38Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "pairing.alignQr": {
@@ -1150,10 +1150,10 @@
     },
     "settings.device.title": {
       "value": "डिवाइस",
-      "description": "Navigation title of the Device settings page (paired ESP32 management).",
-      "sourceHash": "sha256:da8810f3f85d575c",
+      "description": "Navigation title of the Device settings page (paired Navon device management).",
+      "sourceHash": "sha256:224951520373ef36",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:54:20Z",
+      "translatedAt": "2026-05-11T06:37:38Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.device.transfer.activeRoute": {
@@ -1247,10 +1247,10 @@
     },
     "settings.hub.device": {
       "value": "डिवाइस",
-      "description": "Settings hub row: navigates to ESP32 device pairing/management.",
-      "sourceHash": "sha256:3de02b1fa84f6a0f",
+      "description": "Settings hub row: navigates to Navon device pairing/management.",
+      "sourceHash": "sha256:04b65ee23530d1b9",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T11:59:24Z",
+      "translatedAt": "2026-05-11T06:37:38Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.hub.importDiagnostics": {

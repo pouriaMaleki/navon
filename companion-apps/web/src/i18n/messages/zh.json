@@ -74,7 +74,7 @@
   "importDiagnostics.copyDebugInfo": "复制调试信息",
   "importDiagnostics.retry": "重试导入",
   "importDiagnostics.sharePackage": "分享调试包",
-  "importDiagnostics.shareSubject": "伴侣导入诊断",
+  "importDiagnostics.shareSubject": "Navon 导入诊断信息",
   "pairing.alignQr": "将二维码对准画面",
   "pairing.cameraDenied": "需要相机权限才能扫描配对代码。",
   "pairing.cancel": "取消",

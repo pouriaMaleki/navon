@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">Cancel</string>
     <string name="common_cancel_role" formatted="false">Cancel</string>
     <string name="common_close" formatted="false">Close</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">Copy debug info</string>
     <string name="importDiagnostics_retry" formatted="false">Retry import</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Share debug package</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">Companion import diagnostics</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Navon import diagnostics</string>
     <string name="pairing_alignQr" formatted="false">Align the QR code in the frame</string>
     <string name="pairing_cameraDenied" formatted="false">Camera access is required to scan the pairing code.</string>
     <string name="pairing_cancel" formatted="false">Cancel</string>

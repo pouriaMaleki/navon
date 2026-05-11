@@ -1,6 +1,6 @@
 # Multi-stage image that serves the companion-web app at `/` and the emulator-web
 # app at `/emulator/` from a single nginx container. The service name stays
-# `emulator-web` in compose.yaml so the existing edge routing (e.g. map.fiksu.me)
+# `emulator-web` in compose.yaml so the existing edge routing (e.g. navon.bike)
 # keeps working without any changes upstream.
 
 # ------ Stage 1: build the render-core wasm package the emulator needs. ------

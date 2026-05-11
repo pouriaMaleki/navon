@@ -1,4 +1,4 @@
-name: Companion Android
+name: Navon Android
 
 on:
   pull_request:

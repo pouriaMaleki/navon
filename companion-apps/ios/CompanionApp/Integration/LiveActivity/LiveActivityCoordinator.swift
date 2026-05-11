@@ -26,7 +26,7 @@ protocol LiveActivityDriver: AnyObject {
 @MainActor
 final class LiveActivityCoordinator {
     private static let log = Logger(
-        subsystem: "me.fiksu.esp32map.companion.ios",
+        subsystem: "app.navon.bike",
         category: "liveActivity"
     )
 
@@ -167,7 +167,7 @@ final class LiveActivityCoordinator {
 @MainActor
 final class ActivityKitLiveActivityDriver: LiveActivityDriver {
     private static let log = Logger(
-        subsystem: "me.fiksu.esp32map.companion.ios",
+        subsystem: "app.navon.bike",
         category: "liveActivity"
     )
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">Cancel</string>
     <string name="common_cancel_role" formatted="false">Kànṣélì</string>
     <string name="common_close" formatted="false">Close</string>
@@ -65,9 +65,9 @@
     <string name="home_routingFinished" formatted="false">Routing ti parí. Tẹ ibi tí o fẹ́ lọ kí o tún gbero.</string>
     <string name="home_sendingPercent" formatted="false">Mo ń rán {percent, number}% </string>
     <string name="home_start" formatted="false">Start</string>
-    <string name="home_startOnDevice" formatted="false">Start on device</string>
+    <string name="home_startOnDevice" formatted="false">Start am for device</string>
     <string name="home_startRoute" formatted="false">Start route</string>
-    <string name="home_startingOnDevice" formatted="false">Starting on device…</string>
+    <string name="home_startingOnDevice" formatted="false">De transfer route go device…</string>
     <string name="home_stop" formatted="false">Stop</string>
     <string name="home_stopRoute" formatted="false">Stop route</string>
     <string name="home_suggestedRoutes" formatted="false">Suggested routes</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">Kọ debug info</string>
     <string name="importDiagnostics_retry" formatted="false">Tún gbìyànjú import</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Pín debug package</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">Companion import diagnostics</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Navon import diagnostics</string>
     <string name="pairing_alignQr" formatted="false">Jẹ́ kí QR code wà dáadáa nínú fireemu</string>
     <string name="pairing_cameraDenied" formatted="false">Wọ́n nílò kí kamera lè ṣiṣẹ kí o lè ka kòdù pairing.</string>
     <string name="pairing_cancel" formatted="false">Fagilé</string>
@@ -126,7 +126,7 @@
     <string name="settings_device_pairNew" formatted="false">So ẹrọ tuntun pọ̀</string>
     <string name="settings_device_pairedDevice_section" formatted="false">Ẹrọ tí wọ́n so pọ̀</string>
     <string name="settings_device_reconnecting" formatted="false">N ń tún so pọ̀…</string>
-    <string name="settings_device_title" formatted="false">Ẹrọ</string>
+    <string name="settings_device_title" formatted="false">Device</string>
     <string name="settings_device_transfer_activeRoute" formatted="false">Active route: {id}</string>
     <string name="settings_device_transfer_clearActive" formatted="false">Clear active route</string>
     <string name="settings_device_transfer_lastSync" formatted="false">Last sync: {result}</string>

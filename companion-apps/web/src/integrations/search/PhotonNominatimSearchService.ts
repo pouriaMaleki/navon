@@ -3,7 +3,7 @@ import type { PlaceSearchService } from "../../domain/providers.js";
 
 const PHOTON_BASE = "https://photon.komoot.io/api/";
 const NOMINATIM_BASE = "https://nominatim.openstreetmap.org/reverse";
-const APP_USER_AGENT = "esp32-map-companion-web/0.1";
+const APP_USER_AGENT = "navon-bike-web/0.1";
 
 type PhotonFeature = {
   geometry?: { coordinates?: [number, number] };

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">キャンセル</string>
     <string name="common_cancel_role" formatted="false">キャンセル</string>
     <string name="common_close" formatted="false">閉じる</string>
@@ -67,7 +67,7 @@
     <string name="home_start" formatted="false">開始</string>
     <string name="home_startOnDevice" formatted="false">デバイスで開始</string>
     <string name="home_startRoute" formatted="false">ルートを開始</string>
-    <string name="home_startingOnDevice" formatted="false">デバイスで開始中…</string>
+    <string name="home_startingOnDevice" formatted="false">デバイスで開始しています…</string>
     <string name="home_stop" formatted="false">停止</string>
     <string name="home_stopRoute" formatted="false">ルートを停止</string>
     <string name="home_suggestedRoutes" formatted="false">おすすめルート</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">デバッグ情報をコピー</string>
     <string name="importDiagnostics_retry" formatted="false">再試行して取り込み</string>
     <string name="importDiagnostics_sharePackage" formatted="false">デバッグパッケージを共有</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">Companion の取り込み診断</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Navon のインポート診断</string>
     <string name="pairing_alignQr" formatted="false">フレーム内でQRコードを合わせてください</string>
     <string name="pairing_cameraDenied" formatted="false">ペアリングコードを読み取るにはカメラアクセスが必要です</string>
     <string name="pairing_cancel" formatted="false">キャンセル</string>

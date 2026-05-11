@@ -12,7 +12,7 @@ import os.log
 @MainActor
 final class RoutingActivityCoordinator {
     private static let log = Logger(
-        subsystem: "me.fiksu.esp32map.companion.ios",
+        subsystem: "app.navon.bike",
         category: "audio"
     )
     private let idleTimer: IdleTimerController

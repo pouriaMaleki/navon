@@ -2,7 +2,7 @@ services:
   # One container, one port, two apps:
   #   /            -> companion-web (Vite build, OSM-tiled planner)
   #   /emulator/   -> emulator-web (Vite + render-core WASM)
-  # Service name stays `emulator-web` so existing edge routing (e.g. map.fiksu.me)
+  # Service name stays `emulator-web` so existing edge routing (e.g. navon.bike)
   # keeps working without any upstream changes.
   emulator-web:
     build:

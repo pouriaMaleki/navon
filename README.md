@@ -1,6 +1,6 @@
-# ESP32 Bike Minimap
+# Navon
 
-This is a bike and hike map application, focused mainly on ease of use when on the bike. An ESP32 based map screen (like a bike computer or a handheld GPS) is an optional and aditional tool that should help navigating instead of using your phone.
+Navon is a bike and hike navigation app, focused on ease of use while riding. An optional handlebar display device provides glanceable navigation so you can keep your phone in your pocket.
 
 Main features of this application is:
 
@@ -16,8 +16,8 @@ Main features of this application is:
 
 ## Demo
 
-- Web version of the app (There might be issues with background locations, due to OS limitations): <https://map.fiksu.me>
-- ESP32 Web Emulator: <https://map.fiksu.me/emulator>
+- Web version of the app (There might be issues with background locations, due to OS limitations): <https://navon.bike>
+- ESP32 Web Emulator: <https://navon.bike/emulator>
 - iOS app: `companion-apps/ios/`
 - Android app: `companion-apps/android/`
 
@@ -56,7 +56,7 @@ Companion projects:
   brew install xcodegen
   cp Config/Signing.local.example.xcconfig Config/Signing.local.xcconfig
   xcodegen generate
-  open ESP32MapCompanion.xcodeproj
+  open Navon.xcodeproj
   ```
 - Android companion:
   ```bash

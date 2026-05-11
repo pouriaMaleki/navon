@@ -36,12 +36,12 @@ protocol SpeechPort: AnyObject {
 /// the same pattern.
 ///
 /// All steps emit `os_log` lines under the
-/// `me.fiksu.esp32map.companion.ios` subsystem with category `audio` so a
+/// `app.navon.bike` subsystem with category `audio` so a
 /// failing real-device run can be diagnosed from Console.app
-/// (`subsystem:me.fiksu.esp32map.companion.ios category:audio`).
+/// (`subsystem:app.navon.bike category:audio`).
 final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
     private static let log = Logger(
-        subsystem: "me.fiksu.esp32map.companion.ios",
+        subsystem: "app.navon.bike",
         category: "audio"
     )
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">Abbrechen</string>
     <string name="common_cancel_role" formatted="false">Abbrechen</string>
     <string name="common_close" formatted="false">Schließen</string>
@@ -65,9 +65,9 @@
     <string name="home_routingFinished" formatted="false">Routenplanung abgeschlossen. Tippe auf ein Ziel, um erneut zu planen.</string>
     <string name="home_sendingPercent" formatted="false">Sende {percent, number}%</string>
     <string name="home_start" formatted="false">Start</string>
-    <string name="home_startOnDevice" formatted="false">Start auf dem Gerät</string>
+    <string name="home_startOnDevice" formatted="false">Auf Gerät starten</string>
     <string name="home_startRoute" formatted="false">Route starten</string>
-    <string name="home_startingOnDevice" formatted="false">Start auf dem Gerät…</string>
+    <string name="home_startingOnDevice" formatted="false">Auf Gerät übertragen…</string>
     <string name="home_stop" formatted="false">Stopp</string>
     <string name="home_stopRoute" formatted="false">Stopp der Route</string>
     <string name="home_suggestedRoutes" formatted="false">Vorgeschlagene Routen</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">Debug-Infos kopieren</string>
     <string name="importDiagnostics_retry" formatted="false">Import erneut versuchen</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Debug-Paket teilen</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">Importdiagnose des Begleiters</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Navon-Importdiagnosen</string>
     <string name="pairing_alignQr" formatted="false">Richte den QR-Code im Bild aus</string>
     <string name="pairing_cameraDenied" formatted="false">Kamerazugriff ist erforderlich, um den Kopplungscode zu scannen.</string>
     <string name="pairing_cancel" formatted="false">Abbrechen</string>

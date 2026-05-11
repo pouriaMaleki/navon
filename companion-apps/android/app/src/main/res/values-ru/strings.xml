@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">Отмена</string>
     <string name="common_cancel_role" formatted="false">Отмена</string>
     <string name="common_close" formatted="false">Закрыть</string>
@@ -65,9 +65,9 @@
     <string name="home_routingFinished" formatted="false">Маршрут завершён. Нажмите на пункт назначения, чтобы проложить снова.</string>
     <string name="home_sendingPercent" formatted="false">Отправка {percent, number}%</string>
     <string name="home_start" formatted="false">Старт</string>
-    <string name="home_startOnDevice" formatted="false">Старт на устройстве</string>
+    <string name="home_startOnDevice" formatted="false">Запустить на устройстве</string>
     <string name="home_startRoute" formatted="false">Начать маршрут</string>
-    <string name="home_startingOnDevice" formatted="false">Начинается на устройстве…</string>
+    <string name="home_startingOnDevice" formatted="false">Передача на устройство…</string>
     <string name="home_stop" formatted="false">Стоп</string>
     <string name="home_stopRoute" formatted="false">Остановить маршрут</string>
     <string name="home_suggestedRoutes" formatted="false">Предложенные маршруты</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">Скопировать отладочную информацию</string>
     <string name="importDiagnostics_retry" formatted="false">Повторить импорт</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Поделиться отладочным пакетом</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">Диагностика импорта Companion</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Диагностика импорта Navon</string>
     <string name="pairing_alignQr" formatted="false">Выровняйте QR-код в кадре</string>
     <string name="pairing_cameraDenied" formatted="false">Для сканирования кода сопряжения требуется доступ к камере.</string>
     <string name="pairing_cancel" formatted="false">Отмена</string>

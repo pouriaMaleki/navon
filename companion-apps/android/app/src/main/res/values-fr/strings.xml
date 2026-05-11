@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">Annuler</string>
     <string name="common_cancel_role" formatted="false">Annuler</string>
     <string name="common_close" formatted="false">Fermer</string>
@@ -67,7 +67,7 @@
     <string name="home_start" formatted="false">Démarrer</string>
     <string name="home_startOnDevice" formatted="false">Démarrer sur l’appareil</string>
     <string name="home_startRoute" formatted="false">Démarrer l’itinéraire</string>
-    <string name="home_startingOnDevice" formatted="false">Démarrage sur l’appareil…</string>
+    <string name="home_startingOnDevice" formatted="false">Transfert vers l’appareil…</string>
     <string name="home_stop" formatted="false">Stop</string>
     <string name="home_stopRoute" formatted="false">Arrêter l’itinéraire</string>
     <string name="home_suggestedRoutes" formatted="false">Itinéraires proposés</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">Copier les infos de débogage</string>
     <string name="importDiagnostics_retry" formatted="false">Réessayer l’import</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Partager le package de débogage</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">Diagnostics d’import du compagnon</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Diagnostics d’importation Navon</string>
     <string name="pairing_alignQr" formatted="false">Alignez le code QR dans le cadre</string>
     <string name="pairing_cameraDenied" formatted="false">L’accès à la caméra est nécessaire pour scanner le code d’appairage.</string>
     <string name="pairing_cancel" formatted="false">Annuler</string>

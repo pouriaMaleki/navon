@@ -56,9 +56,9 @@ Repository secrets:
 - `APPSTORE_API_PRIVATE_KEY`
   - contents of the App Store Connect API key `.p8`
 - `IOS_APP_STORE_PROFILE_BASE64`
-  - base64-encoded App Store provisioning profile for `me.fiksu.esp32map.companion.ios`
+  - base64-encoded App Store provisioning profile for `app.navon.bike`
 - `IOS_SHARE_EXTENSION_PROFILE_BASE64`
-  - base64-encoded App Store provisioning profile for `me.fiksu.esp32map.companion.ios.share`
+  - base64-encoded App Store provisioning profile for `app.navon.bike.share`
 
 Signing requirements:
 - both the app target and the share extension need App Store provisioning profiles
@@ -118,8 +118,8 @@ On pushes to `main`, pull requests, or manual dispatch with `build_kind=simulato
 cd companion-apps/ios
 xcodegen generate
 xcodebuild \
-  -project ESP32MapCompanion.xcodeproj \
-  -scheme ESP32MapCompanion \
+  -project Navon.xcodeproj \
+  -scheme Navon \
   -configuration Debug \
   -destination 'generic/platform=iOS Simulator' \
   CODE_SIGNING_ALLOWED=NO \
@@ -131,7 +131,7 @@ This validates the app shell without requiring provisioning profiles or App Stor
 Run the `Companion iOS` workflow manually in GitHub Actions with:
 - `build_kind`: `signed_device`
 - `ios_bundle_id`: your chosen bundle id
-  - default: `me.fiksu.esp32map.companion.ios`
+  - default: `app.navon.bike`
 - `ios_development_team`: optional override for your Apple Team ID
   - if omitted, the workflow uses repository variable `IOS_DEVELOPMENT_TEAM`
 - `export_method`: `development` or `ad-hoc`

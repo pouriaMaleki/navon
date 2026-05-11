@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "me.fiksu.esp32map.companion"
+    namespace = "app.navon.bike"
     compileSdk = libs.versions.androidCompileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "me.fiksu.esp32map.companion"
+        applicationId = "app.navon.bike"
         minSdk = libs.versions.androidMinSdk.get().toInt()
         targetSdk = libs.versions.androidTargetSdk.get().toInt()
         versionCode = 1

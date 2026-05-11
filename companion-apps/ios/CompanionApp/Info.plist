@@ -44,10 +44,10 @@
     <array>
         <dict>
             <key>CFBundleURLName</key>
-            <string>me.fiksu.esp32map.companion.ios</string>
+            <string>app.navon.bike</string>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>esp32mapcompanion</string>
+                <string>navon</string>
             </array>
         </dict>
     </array>
@@ -56,11 +56,11 @@
     <key>NSBluetoothAlwaysUsageDescription</key>
     <string>The companion app uses Bluetooth to send routes to your ESP32 device and receive reroute events.</string>
     <key>NSCameraUsageDescription</key>
-    <string>Used to scan the pairing code shown by your ESP32 Bike Minimap device.</string>
+    <string>Used to scan the pairing code shown by your Navon device.</string>
     <key>NSBluetoothPeripheralUsageDescription</key>
     <string>The companion app uses Bluetooth to sync routes with your ESP32 device.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>ESP32 Bike Companion uses your location to plan and follow routes from where you are.</string>
+    <string>Navon uses your location to plan and follow routes from where you are.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>Allow background location so audio cues and reroute detection keep working when your phone screen is off.</string>
     <key>NSLocationAlwaysUsageDescription</key>

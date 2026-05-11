@@ -1,7 +1,7 @@
 import Foundation
 
 enum SharedImportStoreConfig {
-    static let appGroupIdentifier = "group.me.fiksu.esp32map.companion"
+    static let appGroupIdentifier = "group.app.navon.bike"
     static let queueKey = "share-import.queue"
     static let queueFileName = "share-import-queue.json"
 

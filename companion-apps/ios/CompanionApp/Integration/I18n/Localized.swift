@@ -69,7 +69,7 @@ enum SupportedLocale: String, CaseIterable {
 /// text appears.
 enum T {
     private static let log = Logger(
-        subsystem: "me.fiksu.esp32map.companion.ios",
+        subsystem: "app.navon.bike",
         category: "i18n"
     )
 

@@ -71,7 +71,7 @@
 /companion-apps/web/e2e-results.json
 
 # Native companion app artifacts
-/companion-apps/ios/ESP32MapCompanion.xcodeproj/
+/companion-apps/ios/Navon.xcodeproj/
 /companion-apps/ios/build/
 /companion-apps/ios/DerivedData/
 /companion-apps/ios/.deriveddata-ios-build/

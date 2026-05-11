@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">منسوخ کریں</string>
     <string name="common_cancel_role" formatted="false">منسوخ کریں</string>
     <string name="common_close" formatted="false">بند کریں</string>
@@ -67,7 +67,7 @@
     <string name="home_start" formatted="false">شروع کریں</string>
     <string name="home_startOnDevice" formatted="false">ڈیوائس پر شروع کریں</string>
     <string name="home_startRoute" formatted="false">راستہ شروع کریں</string>
-    <string name="home_startingOnDevice" formatted="false">ڈیوائس پر شروع ہو رہا ہے…</string>
+    <string name="home_startingOnDevice" formatted="false">ڈیوائس پر منتقل ہو رہا ہے…</string>
     <string name="home_stop" formatted="false">روکیں</string>
     <string name="home_stopRoute" formatted="false">راستہ روکیں</string>
     <string name="home_suggestedRoutes" formatted="false">تجویز کردہ راستے</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">ڈیبگ معلومات کاپی کریں</string>
     <string name="importDiagnostics_retry" formatted="false">درآمد دوبارہ کریں</string>
     <string name="importDiagnostics_sharePackage" formatted="false">ڈیبگ پیکج شیئر کریں</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">کمپینین درآمد کی ڈیبگ معلومات</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Navon درآمدی تشخیصی معلومات</string>
     <string name="pairing_alignQr" formatted="false">فریم میں QR کوڈ سیدھا کریں</string>
     <string name="pairing_cameraDenied" formatted="false">جوڑنے کے لیے کیمرہ تک رسائی ضروری ہے تاکہ جوڑنے والا کوڈ اسکین کیا جا سکے۔</string>
     <string name="pairing_cancel" formatted="false">منسوخ کریں</string>

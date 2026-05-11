@@ -74,7 +74,7 @@
   "importDiagnostics.copyDebugInfo": "Copiar información de depuración",
   "importDiagnostics.retry": "Reintentar importación",
   "importDiagnostics.sharePackage": "Compartir paquete de depuración",
-  "importDiagnostics.shareSubject": "Diagnósticos de importación del Companion",
+  "importDiagnostics.shareSubject": "Diagnósticos de importación de Navon",
   "pairing.alignQr": "Alinea el código QR en el encuadre",
   "pairing.cameraDenied": "Se requiere acceso a la cámara para escanear el código de emparejamiento.",
   "pairing.cancel": "Cancelar",

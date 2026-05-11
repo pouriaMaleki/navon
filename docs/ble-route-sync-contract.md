@@ -277,7 +277,7 @@ Remaining implementation work:
 Legacy BLE advertising is capped at 31 bytes per packet, so the route-sync service splits its identifying data across two packets:
 
 - **Main advertising packet** — flags (3 bytes) + the 128-bit service UUID (18 bytes). Nothing else: the device name, appearance, and connection-interval-range fields are deliberately omitted. With the 18-byte UUID + 3-byte flags + IDF's internal accounting overhead, even one extra optional field (the 6-byte Slave Connection Interval Range) was enough to push the packet over 31 bytes, at which point Bluedroid silently drops the trailing AD entries — typically the 128-bit UUID itself, which is the exact field iOS / Android filter on while scanning.
-- **Scan response** — device name (`ESP32 Bike Minimap`, 20 bytes) + appearance (4 bytes, `0x0480` "generic cycling"). Returned only when the central does an active scan, so there's no cost to including it.
+- **Scan response** — device name (`Navon`, 5 bytes) + appearance (4 bytes, `0x0480` "generic cycling"). Returned only when the central does an active scan, so there's no cost to including it.
 
 The iOS / Android companions filter scan results by the 128-bit service UUID. Make sure that field stays in the *main* packet across any future advertising changes; if you add another field there, recount the bytes.
 

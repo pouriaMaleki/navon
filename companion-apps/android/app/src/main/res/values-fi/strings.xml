@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">Peruuta</string>
     <string name="common_cancel_role" formatted="false">Peruuta</string>
     <string name="common_close" formatted="false">Sulje</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">Kopioi vianmääritystiedot</string>
     <string name="importDiagnostics_retry" formatted="false">Yritä tuonti uudelleen</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Jaa vianmäärityspaketti</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">Kumppanin tuonnin vianmääritys</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Navon-tuontidiagnostiikka</string>
     <string name="pairing_alignQr" formatted="false">Kohdista QR-koodi kuvan sisällä</string>
     <string name="pairing_cameraDenied" formatted="false">Kameran käyttöoikeus tarvitaan parinmuodostuskoodin skannaamiseen.</string>
     <string name="pairing_cancel" formatted="false">Peruuta</string>

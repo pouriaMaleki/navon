@@ -373,7 +373,7 @@
     },
     "home.startOnDevice": {
       "value": "Start on device",
-      "description": "Primary route-start button label when an ESP32 device is paired and connected — the route will be sent to the device instead of started on the phone.",
+      "description": "Primary route-start button label when a Navon device is paired and connected — the route will be sent to the device instead of started on the phone.",
       "placeholders": {}
     },
     "home.startRoute": {
@@ -383,7 +383,7 @@
     },
     "home.startingOnDevice": {
       "value": "Starting on device…",
-      "description": "Transient state on the start button while the route is being transferred to a paired ESP32 device.",
+      "description": "Transient state on the start button while the route is being transferred to a paired Navon device.",
       "placeholders": {}
     },
     "home.stop": {
@@ -424,7 +424,7 @@
       "description": "Button that shares the per-entry debug bundle."
     },
     "importDiagnostics.shareSubject": {
-      "value": "Companion import diagnostics",
+      "value": "Navon import diagnostics",
       "description": "Subject of the share sheet when sharing a debug package."
     },
     "pairing.alignQr": {
@@ -670,7 +670,7 @@
     },
     "settings.device.title": {
       "value": "Device",
-      "description": "Navigation title of the Device settings page (paired ESP32 management).",
+      "description": "Navigation title of the Device settings page (paired Navon device management).",
       "placeholders": {}
     },
     "settings.device.transfer.activeRoute": {
@@ -728,7 +728,7 @@
     },
     "settings.hub.device": {
       "value": "Device",
-      "description": "Settings hub row: navigates to ESP32 device pairing/management.",
+      "description": "Settings hub row: navigates to Navon device pairing/management.",
       "placeholders": {}
     },
     "settings.hub.importDiagnostics": {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">Cancelar</string>
     <string name="common_cancel_role" formatted="false">Cancelar</string>
     <string name="common_close" formatted="false">Cerrar</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">Copiar información de depuración</string>
     <string name="importDiagnostics_retry" formatted="false">Reintentar importación</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Compartir paquete de depuración</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">Diagnósticos de importación del Companion</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">Diagnósticos de importación de Navon</string>
     <string name="pairing_alignQr" formatted="false">Alinea el código QR en el encuadre</string>
     <string name="pairing_cameraDenied" formatted="false">Se requiere acceso a la cámara para escanear el código de emparejamiento.</string>
     <string name="pairing_cancel" formatted="false">Cancelar</string>

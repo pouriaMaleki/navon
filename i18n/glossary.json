@@ -1,7 +1,6 @@
 {
   "doNotTranslate": [
-    "ESP32",
-    "ESP32MapCompanion",
+    "Navon",
     "HSL",
     "Digitransit",
     "BLE",

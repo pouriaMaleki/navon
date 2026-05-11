@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ESP32MapCompanion</string>
+    <string name="app_name">Navon</string>
     <string name="common_cancel" formatted="false">لغو</string>
     <string name="common_cancel_role" formatted="false">لغو</string>
     <string name="common_close" formatted="false">بستن</string>
@@ -76,7 +76,7 @@
     <string name="importDiagnostics_copyDebugInfo" formatted="false">کپی اطلاعات دیباگ</string>
     <string name="importDiagnostics_retry" formatted="false">تلاش دوباره برای وارد کردن</string>
     <string name="importDiagnostics_sharePackage" formatted="false">اشتراک‌گذاری بسته دیباگ</string>
-    <string name="importDiagnostics_shareSubject" formatted="false">تشخیص وارد کردن Companion</string>
+    <string name="importDiagnostics_shareSubject" formatted="false">عیب‌یابیِ وارد کردن Navon</string>
     <string name="pairing_alignQr" formatted="false">کد QR را داخل کادر هم‌راستا کنید</string>
     <string name="pairing_cameraDenied" formatted="false">برای اسکن کد جفت‌سازی، دسترسی به دوربین لازم است.</string>
     <string name="pairing_cancel" formatted="false">لغو</string>

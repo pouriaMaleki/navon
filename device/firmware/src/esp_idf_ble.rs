@@ -48,7 +48,7 @@ mod imp {
     use std::marker::PhantomData;
 
     const APP_ID: u16 = 0x4553;
-    const DEVICE_NAME: &str = "ESP32 Bike Minimap";
+    const DEVICE_NAME: &str = "Navon";
     const SERVICE_UUID128: u128 = 0x8d0f3f307b4d4f7c8b242f8e7e4e1001;
     const CHUNK_UUID128: u128 = 0x8d0f3f307b4d4f7c8b242f8e7e4e1002;
     const EVENT_UUID128: u128 = 0x8d0f3f307b4d4f7c8b242f8e7e4e1003;

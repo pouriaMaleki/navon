@@ -165,7 +165,7 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
         pairingLog.notice("BLE.scanForRouteSyncPeripheral start (timeout \(timeout, privacy: .public)s, central state \(self.centralManager.state.rawValue, privacy: .public))")
         if let connectedPeripheral {
             pairingLog.notice("BLE.scan: already connected — returning \(connectedPeripheral.name ?? "?", privacy: .public)")
-            return connectedPeripheral.name ?? discoveredPeripheral?.name ?? "ESP32 Bike Minimap"
+            return connectedPeripheral.name ?? discoveredPeripheral?.name ?? "Navon"
         }
 
         onConnectionStateChange?(.scanning, nil)
@@ -188,7 +188,7 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
     func connectToScannedPeripheral() async throws -> String {
         try await ensurePoweredOn()
         if isReady, let connectedPeripheral {
-            return connectedPeripheral.name ?? "ESP32 Bike Minimap"
+            return connectedPeripheral.name ?? "Navon"
         }
         guard let peripheral = discoveredPeripheral ?? connectedPeripheral else {
             throw CoreBluetoothRouteSyncError.noDiscoveredPeripheral
@@ -374,7 +374,7 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
             peripheral.setNotifyValue(true, for: eventNotifyCharacteristic)
             return
         }
-        let name = peripheral.name ?? "ESP32 Bike Minimap"
+        let name = peripheral.name ?? "Navon"
         if let pendingConnectContinuation {
             self.pendingConnectContinuation = nil
             pendingConnectContinuation.resume(returning: name)
@@ -412,7 +412,7 @@ extension CoreBluetoothRouteSyncClient: CBCentralManagerDelegate {
         central.stopScan()
         if let pendingScanContinuation {
             self.pendingScanContinuation = nil
-            pendingScanContinuation.resume(returning: peripheral.name ?? "ESP32 Bike Minimap")
+            pendingScanContinuation.resume(returning: peripheral.name ?? "Navon")
         }
     }
 
@@ -504,7 +504,7 @@ extension CoreBluetoothRouteSyncClient: CBPeripheralDelegate {
             // operational reconnects re-trigger setNotifyValue and the
             // refreshed cache lets it succeed.
             pairingLog.error("setNotifyValue failed (\(error.localizedDescription, privacy: .public)) — resuming connect anyway; notifications will be off until a clean reconnect")
-            let name = peripheral.name ?? "ESP32 Bike Minimap"
+            let name = peripheral.name ?? "Navon"
             if let pendingConnectContinuation {
                 self.pendingConnectContinuation = nil
                 pendingConnectContinuation.resume(returning: name)

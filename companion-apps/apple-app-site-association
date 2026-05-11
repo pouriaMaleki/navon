@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "<TEAM_ID>.app.navon.bike",
+        "paths": ["*"]
+      }
+    ]
+  }
+}

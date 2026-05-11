@@ -1,6 +1,6 @@
-name: ESP32MapCompanion
+name: Navon
 options:
-  bundleIdPrefix: me.fiksu.esp32map
+  bundleIdPrefix: app.navon
 configs:
   Debug: debug
   Release: release
@@ -10,7 +10,7 @@ settings:
     # Local Signing.local.xcconfig remains the persisted fallback for Xcode.
     DEVELOPMENT_TEAM: ${IOS_DEVELOPMENT_TEAM}
 targets:
-  ESP32MapCompanion:
+  Navon:
     type: application
     platform: iOS
     deploymentTarget: "17.0"
@@ -22,14 +22,14 @@ targets:
       - CompanionSharedImport
       - CompanionLiveActivity/Shared
     dependencies:
-      - target: ESP32MapCompanionShare
+      - target: NavonShare
         embed: true
-      - target: ESP32MapCompanionLiveActivity
+      - target: NavonLiveActivity
         embed: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: me.fiksu.esp32map.companion.ios
-        PRODUCT_NAME: ESP32MapCompanion
+        PRODUCT_BUNDLE_IDENTIFIER: app.navon.bike
+        PRODUCT_NAME: Navon
         INFOPLIST_FILE: CompanionApp/Info.plist
         SWIFT_VERSION: 5.10
         CODE_SIGN_STYLE: Automatic
@@ -37,38 +37,38 @@ targets:
         CODE_SIGN_ENTITLEMENTS: CompanionApp/CompanionApp.entitlements
     scheme:
       testTargets:
-        - ESP32MapCompanionTests
-        - ESP32MapCompanionUITests
-  ESP32MapCompanionTests:
+        - NavonTests
+        - NavonUITests
+  NavonTests:
     type: bundle.unit-test
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - ESP32MapCompanionTests
+      - NavonTests
     dependencies:
-      - target: ESP32MapCompanion
+      - target: Navon
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: me.fiksu.esp32map.companion.ios.tests
+        PRODUCT_BUNDLE_IDENTIFIER: app.navon.bike.tests
         SWIFT_VERSION: 5.10
-        INFOPLIST_FILE: ESP32MapCompanionTests/Info.plist
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/ESP32MapCompanion.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ESP32MapCompanion"
+        INFOPLIST_FILE: NavonTests/Info.plist
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Navon.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Navon"
         BUNDLE_LOADER: "$(TEST_HOST)"
-  ESP32MapCompanionUITests:
+  NavonUITests:
     type: bundle.ui-testing
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - ESP32MapCompanionUITests
+      - NavonUITests
     dependencies:
-      - target: ESP32MapCompanion
+      - target: Navon
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: me.fiksu.esp32map.companion.ios.uitests
+        PRODUCT_BUNDLE_IDENTIFIER: app.navon.bike.uitests
         SWIFT_VERSION: 5.10
-        INFOPLIST_FILE: ESP32MapCompanionUITests/Info.plist
-        TEST_TARGET_NAME: ESP32MapCompanion
-  ESP32MapCompanionLiveActivity:
+        INFOPLIST_FILE: NavonUITests/Info.plist
+        TEST_TARGET_NAME: Navon
+  NavonLiveActivity:
     type: app-extension
     platform: iOS
     deploymentTarget: "17.0"
@@ -79,13 +79,13 @@ targets:
       - CompanionLiveActivity
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: me.fiksu.esp32map.companion.ios.liveactivity
-        PRODUCT_NAME: ESP32MapCompanionLiveActivity
+        PRODUCT_BUNDLE_IDENTIFIER: app.navon.bike.liveactivity
+        PRODUCT_NAME: NavonLiveActivity
         INFOPLIST_FILE: CompanionLiveActivity/Info.plist
         SWIFT_VERSION: 5.10
         CODE_SIGN_STYLE: Automatic
         APPLICATION_EXTENSION_API_ONLY: YES
-  ESP32MapCompanionShare:
+  NavonShare:
     type: app-extension
     platform: iOS
     deploymentTarget: "17.0"
@@ -97,8 +97,8 @@ targets:
       - CompanionSharedImport
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: me.fiksu.esp32map.companion.ios.share
-        PRODUCT_NAME: ESP32MapCompanionShare
+        PRODUCT_BUNDLE_IDENTIFIER: app.navon.bike.share
+        PRODUCT_NAME: NavonShare
         INFOPLIST_FILE: CompanionShareExtension/Info.plist
         SWIFT_VERSION: 5.10
         CODE_SIGN_STYLE: Automatic

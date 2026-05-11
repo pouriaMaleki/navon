@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ESP32MapCompanionAndroid"
+rootProject.name = "NavonAndroid"
 include(":app")

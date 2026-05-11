@@ -37,7 +37,7 @@
 static const char *TAG = "hosted_ble_rs";
 
 #define HOSTED_BLE_APP_ID 0x4553
-#define HOSTED_BLE_DEVICE_NAME "ESP32 Bike Minimap"
+#define HOSTED_BLE_DEVICE_NAME "Navon"
 // Each characteristic adds its declaration + value handle; the event
 // notify char also needs a CCCD. With four characteristics (chunk +
 // event-with-CCCD + pairing-confirm + pairing-request) we need 4*2 + 1

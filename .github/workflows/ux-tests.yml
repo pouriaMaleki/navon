@@ -86,9 +86,9 @@ jobs:
         run: |
           set -euo pipefail
           xcodebuild test \
-            -project ESP32MapCompanion.xcodeproj \
-            -scheme ESP32MapCompanion \
-            -only-testing:ESP32MapCompanionTests \
+            -project Navon.xcodeproj \
+            -scheme Navon \
+            -only-testing:NavonTests \
             -destination 'platform=iOS Simulator,name=iPhone 16' \
             CODE_SIGNING_ALLOWED=NO
 

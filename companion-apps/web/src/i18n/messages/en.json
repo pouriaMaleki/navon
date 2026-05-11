@@ -74,7 +74,7 @@
   "importDiagnostics.copyDebugInfo": "Copy debug info",
   "importDiagnostics.retry": "Retry import",
   "importDiagnostics.sharePackage": "Share debug package",
-  "importDiagnostics.shareSubject": "Companion import diagnostics",
+  "importDiagnostics.shareSubject": "Navon import diagnostics",
   "pairing.alignQr": "Align the QR code in the frame",
   "pairing.cameraDenied": "Camera access is required to scan the pairing code.",
   "pairing.cancel": "Cancel",

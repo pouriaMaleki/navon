@@ -1,8 +1,8 @@
 {
-  "name": "@esp32-map/companion-web",
+  "name": "@navon/companion-web",
   "private": true,
   "version": "0.1.0",
-  "description": "Web companion app for the ESP32 bike minimap. Mirrors iOS companion features minus device/BLE, using OSM tiles.",
+  "description": "Web companion app for Navon bike navigation. Mirrors iOS companion features minus device/BLE, using OSM tiles.",
   "license": "MIT",
   "type": "module",
   "engines": {

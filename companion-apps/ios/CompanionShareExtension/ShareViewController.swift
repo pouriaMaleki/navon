@@ -2,7 +2,7 @@ import UIKit
 import UniformTypeIdentifiers
 
 final class ShareViewController: UIViewController {
-    private static let companionURL = URL(string: "esp32mapcompanion://import")!
+    private static let companionURL = URL(string: "navon://import")!
     private struct LoadedSharedFile {
         let storedFilePath: String
         let fileName: String
