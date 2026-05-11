@@ -83,6 +83,7 @@ import app.navon.bike.app.markSharedIntentConsumed
 import app.navon.bike.domain.CoordinatePoint
 import app.navon.bike.domain.HomeCompassMode
 import app.navon.bike.domain.HomeMode
+import app.navon.bike.domain.RoutingDiagSession
 import app.navon.bike.domain.RouteHistoryItem
 import app.navon.bike.domain.RouteSourceMode
 import app.navon.bike.domain.SpeedUnit
@@ -124,6 +125,11 @@ class MainActivity : ComponentActivity() {
         androidTtsService = tts
         ttsPortRef = tts
         routingCoordinator = app.navon.bike.integration.cues.RoutingActivityCoordinator(keepScreenOnController, tts)
+        routingCoordinator?.onCueDispatched = { cueType, messageText ->
+            appState.routingDiagnosticsStore.recordEvent(
+                app.navon.bike.domain.RoutingDiagEventData.audioCueDispatched(cueType, messageText)
+            )
+        }
         setContent {
             MaterialTheme {
                 CompanionApp(appState = appState, onSettingsOrRoutingChange = ::syncRoutingActivityServices)
@@ -195,6 +201,7 @@ private enum class SettingsDestination {
     DEVICE,
     ROUTE_PLANNER,
     IMPORT_DIAGNOSTICS,
+    ROUTING_DIAGNOSTICS,
 }
 
 @Composable
@@ -261,6 +268,7 @@ private fun CompanionApp(
                         onDevice = { settingsDestination = SettingsDestination.DEVICE },
                         onRoutePlanner = { settingsDestination = SettingsDestination.ROUTE_PLANNER },
                         onImportDiagnostics = { settingsDestination = SettingsDestination.IMPORT_DIAGNOSTICS },
+                        onRoutingDiagnostics = { settingsDestination = SettingsDestination.ROUTING_DIAGNOSTICS },
                     )
                     SettingsDestination.ROUTES -> RoutesSettingsScreen(
                         appState = appState,
@@ -270,6 +278,7 @@ private fun CompanionApp(
                     SettingsDestination.DEVICE -> DeviceSettingsScreen(appState = appState, onBack = { settingsDestination = SettingsDestination.ROOT })
                     SettingsDestination.ROUTE_PLANNER -> RoutePlannerSettingsScreen(appState = appState, onBack = { settingsDestination = SettingsDestination.ROOT })
                     SettingsDestination.IMPORT_DIAGNOSTICS -> ImportDiagnosticsScreen(appState = appState, onBack = { settingsDestination = SettingsDestination.ROOT })
+                    SettingsDestination.ROUTING_DIAGNOSTICS -> RoutingDiagnosticsScreen(appState = appState, onBack = { settingsDestination = SettingsDestination.ROOT })
                 }
             }
         }
@@ -970,6 +979,7 @@ private fun SettingsRootScreen(
     onDevice: () -> Unit,
     onRoutePlanner: () -> Unit,
     onImportDiagnostics: () -> Unit,
+    onRoutingDiagnostics: () -> Unit,
 ) {
     ScreenColumn(PaddingValues(0.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -996,6 +1006,9 @@ private fun SettingsRootScreen(
         }
         Button(onClick = onImportDiagnostics, modifier = Modifier.fillMaxWidth()) {
             Text(app.navon.bike.integration.i18n.Strings.t("settings.hub.importDiagnostics"))
+        }
+        Button(onClick = onRoutingDiagnostics, modifier = Modifier.fillMaxWidth()) {
+            Text("Routing Diagnostics")
         }
     }
 }
@@ -1160,6 +1173,19 @@ private fun ActivitySettingsSection(appState: CompanionAppState) {
                 appState.persistSettings()
             },
         )
+        SettingToggleRow(
+            testTag = "setting-routingDiagnosticsEnabled",
+            title = "Record routing diagnostics",
+            subtitle = "Captures GPS, routes, cues, and UI events into shareable debug sessions.",
+            checked = settings.routingDiagnosticsEnabled,
+            enabled = true,
+            onChange = { next ->
+                appState.settings = appState.settings.copy(routingDiagnosticsEnabled = next)
+                appState.persistSettings()
+                if (next) appState.routingDiagnosticsStore.startRecording()
+                else appState.routingDiagnosticsStore.stopRecording()
+            },
+        )
     }
 }
 
@@ -1226,6 +1252,55 @@ private fun ImportDiagnosticsScreen(appState: CompanionAppState, onBack: () -> U
         }
     }
 }
+@Composable
+private fun RoutingDiagnosticsScreen(appState: CompanionAppState, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val clipboard = context.getSystemService(android.content.ClipboardManager::class.java)
+    val sessions = appState.routingDiagnosticsSessions
+    ScreenColumn(PaddingValues(0.dp)) {
+        BackHeader(title = "Routing Diagnostics", onBack = onBack)
+        if (sessions.isEmpty()) {
+            Text("No routing diagnostics recorded.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else {
+            sessions.forEach { session ->
+                val startTime = java.text.SimpleDateFormat("MMM d, HH:mm", java.util.Locale.getDefault())
+                    .format(java.util.Date(session.createdAtMs))
+                val durMs = session.durationMs
+                val durStr = if (durMs >= 60_000) "${durMs / 60_000} min" else "${(durMs + 500) / 1000} sec"
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant, shape = MaterialTheme.shapes.large)
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(startTime, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "${session.eventCount} events over $durStr",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = {
+                            val json = appState.routingDiagnosticsStore.debugPackageText(session.id)
+                            if (json != null) {
+                                clipboard?.setPrimaryClip(android.content.ClipData.newPlainText("routing-diagnostics", json))
+                            }
+                        }) { Text("Copy debug") }
+                        Button(onClick = {
+                            val json = appState.routingDiagnosticsStore.debugPackageText(session.id)
+                            if (json != null) shareDebugPackage(context, json)
+                        }) { Text("Share") }
+                    }
+                    Button(onClick = { appState.dismissRoutingDiagnosticsSession(session.id) }) {
+                        Text("Delete", color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun RoutesSettingsScreen(appState: CompanionAppState, onBack: () -> Unit, onOpenRoute: (String) -> Unit) {
     val context = LocalContext.current

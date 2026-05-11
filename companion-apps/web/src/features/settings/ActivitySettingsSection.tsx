@@ -76,6 +76,20 @@ export const ActivitySettingsSection = observer(({ store }: Props) => {
         disabled={!gpsOn}
         onChange={(v) => store.settingsStore.updateSettings({ liveActivityEnabled: v })}
       />
+      <ToggleRow
+        testId="setting-routingDiagnosticsEnabled"
+        title="Record routing diagnostics"
+        subtitle="Captures GPS, routes, cues, and UI events into shareable debug sessions."
+        checked={settings.routingDiagnosticsEnabled}
+        onChange={(v) => {
+          store.settingsStore.updateSettings({ routingDiagnosticsEnabled: v });
+          if (v) {
+            store.routingDiagnosticsStore.startRecording();
+          } else {
+            store.routingDiagnosticsStore.stopRecording();
+          }
+        }}
+      />
     </div>
   );
 });

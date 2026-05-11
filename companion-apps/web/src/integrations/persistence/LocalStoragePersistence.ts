@@ -10,6 +10,8 @@ import {
   type RouteHistoryItem,
   type RoutePlannerPreferences,
 } from "../../domain/models.js";
+import type { RoutingDiagSession } from "../../domain/routingDiagnosticsModels.js";
+import { ROUTING_DIAGNOSTICS_SESSION_LIMIT } from "../../domain/routingDiagnosticsModels.js";
 import { approximateDistanceMeters } from "../geo.js";
 
 const KEY_RECENT = "companion.recentDestinations";
@@ -21,6 +23,7 @@ const KEY_SETTINGS = "companion.settings";
 const KEY_PLANNER = "companion.routePlannerPreferences";
 const KEY_LAST_KNOWN_RIDER = "companion.lastKnownRider";
 const KEY_LOCATION_PROMPT_SHOWN = "companion.locationPromptShown";
+const KEY_ROUTING_DIAGNOSTICS = "companion.routingDiagnostics";
 
 const RECENT_LIMIT = 30;
 const HISTORY_LIMIT = 50;
@@ -93,6 +96,26 @@ export class LocalStoragePersistence {
   removeImportDiagnostics(id: string): ImportDiagnosticsEntry[] {
     const next = this.loadImportDiagnostics().filter((entry) => entry.id !== id);
     writeJson(KEY_DIAGNOSTICS, next);
+    return next;
+  }
+
+  loadRoutingDiagnosticsSessions(): RoutingDiagSession[] {
+    return readJson<RoutingDiagSession[]>(KEY_ROUTING_DIAGNOSTICS, []);
+  }
+  saveRoutingDiagnosticsSessions(sessions: RoutingDiagSession[]): void {
+    writeJson(KEY_ROUTING_DIAGNOSTICS, sessions.slice(0, ROUTING_DIAGNOSTICS_SESSION_LIMIT));
+  }
+  appendRoutingDiagnosticsSession(session: RoutingDiagSession): RoutingDiagSession[] {
+    const next = [session, ...this.loadRoutingDiagnosticsSessions()].slice(
+      0,
+      ROUTING_DIAGNOSTICS_SESSION_LIMIT,
+    );
+    writeJson(KEY_ROUTING_DIAGNOSTICS, next);
+    return next;
+  }
+  removeRoutingDiagnosticsSession(id: string): RoutingDiagSession[] {
+    const next = this.loadRoutingDiagnosticsSessions().filter((s) => s.id !== id);
+    writeJson(KEY_ROUTING_DIAGNOSTICS, next);
     return next;
   }
 

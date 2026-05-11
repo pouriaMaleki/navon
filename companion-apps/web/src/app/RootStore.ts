@@ -26,6 +26,8 @@ import { HistoryStore } from "../stores/HistoryStore.js";
 import { LocationStore } from "../stores/LocationStore.js";
 import { MapCameraStore } from "../stores/MapCameraStore.js";
 import { PlanningStore, type ProvidersMap } from "../stores/PlanningStore.js";
+import { RoutingDiagnosticsStore } from "../stores/RoutingDiagnosticsStore.js";
+import { installRoutingDiagnosticsHooks, recordRerouteCompleted } from "../stores/RoutingDiagnosticsHooks.js";
 import { SettingsStore } from "../stores/SettingsStore.js";
 
 export type AppRoute = "home" | "settings";
@@ -37,6 +39,7 @@ export class RootStore {
   readonly historyStore = new HistoryStore(this.persistence);
   readonly mapCameraStore = new MapCameraStore();
   readonly diagnosticsStore = new DiagnosticsStore();
+  readonly routingDiagnosticsStore = new RoutingDiagnosticsStore(this.persistence);
   readonly locationStore = new LocationStore(new BrowserLocationService(), this.persistence);
 
   private readonly gpxAdapter = new GpxRoutingAdapter();
@@ -84,6 +87,7 @@ export class RootStore {
       { autoBind: true },
     );
     autorun(() => this.diagnosticsStore.updateFromSession(this.guidanceStore.activeSession));
+    installRoutingDiagnosticsHooks(this, this.routingDiagnosticsStore);
     // Whenever HSL stops being usable (no key OR endpoints outside Finland), switch the
     // active source mode to OSM. Mixed/HSL collapse to a single OSM tab in those cases.
     autorun(() => {
@@ -260,9 +264,11 @@ export class RootStore {
         };
         this.guidanceStore.resetProgress(selected.normalizedPackage);
         this.diagnosticsStore.updateFromSession(this.guidanceStore.activeSession);
+        recordRerouteCompleted(this.routingDiagnosticsStore, "success");
       });
     } catch (err) {
       if ((err as Error)?.name === "AbortError") return;
+      recordRerouteCompleted(this.routingDiagnosticsStore, "failed");
       // Reroute failed — rider stays on current route with off-route state visible
     } finally {
       if (this.rerouteAbort === controller) this.rerouteAbort = undefined;

@@ -42,6 +42,7 @@ import app.navon.bike.feature.device.PhoneGpsForwarder
 import app.navon.bike.integration.ble.BleRouteSyncService
 import app.navon.bike.integration.ble.PairingQrPayload
 import app.navon.bike.integration.diagnostics.CompanionDiagnosticsStore
+import app.navon.bike.integration.diagnostics.RoutingDiagnosticsStore
 import app.navon.bike.integration.cycling.OsmCyclingRoutingAdapter
 import app.navon.bike.integration.gpx.GpxRoutingAdapter
 import app.navon.bike.integration.hsl.HslRoutingAdapter
@@ -115,6 +116,9 @@ class CompanionAppState(
     val diagnosticsStore = CompanionDiagnosticsStore()
     val persistence: CompanionPersistence =
         persistenceOverride ?: CompanionPersistence(application.applicationContext)
+    val routingDiagnosticsStore: RoutingDiagnosticsStore by lazy {
+        RoutingDiagnosticsStore(persistence)
+    }
     val bleService: BleRouteSyncService =
         bleServiceOverride ?: BleRouteSyncService(application.applicationContext)
     val locationService: LocationService =
@@ -221,10 +225,25 @@ class CompanionAppState(
         // Seed the route request origin from the last persisted fix if we have one.
         locationState.lastKnownLocation?.let { routeRequest = routeRequest.copy(origin = it) }
         viewModelScope.launch {
+            var lastRecordedLocationMs = 0L
             locationService.state.collectLatest { state ->
                 locationState = state
                 state.currentLocation?.let { fix ->
                     if (routeRequest.origin != fix) routeRequest = routeRequest.copy(origin = fix)
+                    if (routingDiagnosticsStore.isRecording) {
+                        val now = System.currentTimeMillis()
+                        if (now - lastRecordedLocationMs >= LOCATION_EVENT_THROTTLE_MS) {
+                            lastRecordedLocationMs = now
+                            routingDiagnosticsStore.recordEvent(
+                                RoutingDiagEventData.locationUpdate(
+                                    lat = fix.latitude,
+                                    lon = fix.longitude,
+                                    heading = state.currentHeadingDegrees,
+                                    speed = state.currentSpeedMps,
+                                )
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -345,6 +364,16 @@ class CompanionAppState(
             runCatching {
                 val nextPreview = buildPreview(routeRequest, effectiveMode, revisionOverride, rerouteContext)
                 preview = nextPreview
+                if (routingDiagnosticsStore.isRecording) {
+                    val alts = nextPreview.alternatives.map { alt ->
+                        RouteAltInfo(
+                            providerName = alt.normalizedPackage.provenance.providerId.name,
+                            routeId = alt.normalizedPackage.routeIdentifier,
+                            label = alt.title,
+                        )
+                    }
+                    routingDiagnosticsStore.recordEvent(RoutingDiagEventData.routeAlternativesSuggested(alts))
+                }
                 persistence.saveRecentDestination(routeRequest.destination)
                 applySelectedAlternativeToSession(effectiveMode, routeRequest.destination, preferredTitle)
                 refreshDiagnostics()
@@ -663,6 +692,14 @@ class CompanionAppState(
         notePersistenceChanged()
     }
 
+    val routingDiagnosticsSessions: List<RoutingDiagSession>
+        get() = routingDiagnosticsStore.sessions.value
+
+    fun dismissRoutingDiagnosticsSession(id: String) {
+        routingDiagnosticsStore.deleteSession(id)
+        notePersistenceChanged()
+    }
+
     fun handleSharedIntent(intent: Intent?, sourceApplication: String? = null): Boolean {
         return shareImportHandleIntent(this, intent, sourceApplication)
     }
@@ -754,7 +791,11 @@ class CompanionAppState(
                 lastRerouteReason = reason,
                 lastRerouteTimestamp = "Just now",
             )
-            sendSelectedRoute()
+            sendSelectedRoute { success ->
+                routingDiagnosticsStore.recordEvent(
+                    RoutingDiagEventData.rerouteCompleted(if (success) "success" else "failed")
+                )
+            }
         }
     }
 

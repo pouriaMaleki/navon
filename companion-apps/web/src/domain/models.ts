@@ -278,6 +278,12 @@ export type CompanionSettings = {
    */
   liveActivityEnabled: boolean;
   /**
+   * When enabled, routing activities are recorded into timestamped
+   * diagnostics sessions. Sessions persist across restarts and can be
+   * shared as JSON debug packages or deleted individually.
+   */
+  routingDiagnosticsEnabled: boolean;
+  /**
    * App language. `"system"` follows `navigator.languages`. Concrete values
    * (`"en"`, `"fi"`) override the OS default. New shipped locales must be
    * added to both this union and `i18n/catalog.config.json`.
@@ -302,6 +308,7 @@ export const DEFAULT_COMPANION_SETTINGS: CompanionSettings = {
   audioCuesEnabled: true,
   audioCuesOnlyInBackground: true,
   liveActivityEnabled: false,
+  routingDiagnosticsEnabled: false,
   language: "system",
   distanceUnit: "system",
 };

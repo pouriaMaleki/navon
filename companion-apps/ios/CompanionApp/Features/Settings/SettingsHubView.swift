@@ -29,6 +29,9 @@ struct SettingsHubView: View {
                     NavigationLink(T.string("settings.hub.importDiagnostics")) {
                         ImportDiagnosticsView()
                     }
+                    NavigationLink("Routing Diagnostics") {
+                        RoutingDiagnosticsView()
+                    }
                 }
             }
             .navigationTitle(T.string("settings.hub.title"))
@@ -141,6 +144,23 @@ private struct ActivitySettingsSection: View {
             }
             .disabled(!gpsOn)
             .accessibilityIdentifier("setting-liveActivityEnabled")
+
+            Toggle(isOn: Binding(
+                get: { appModel.settings.routingDiagnosticsEnabled },
+                set: { newValue in
+                    appModel.settings.routingDiagnosticsEnabled = newValue
+                    appModel.persistSettings()
+                    appModel.applyRoutingDiagnosticsRecording(enabled: newValue)
+                }
+            )) {
+                VStack(alignment: .leading) {
+                    Text("Record routing diagnostics")
+                    Text("Captures GPS, routes, cues, and UI events into shareable debug sessions.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .accessibilityIdentifier("setting-routingDiagnosticsEnabled")
         }
         .accessibilityIdentifier("activity-settings")
     }

@@ -52,6 +52,7 @@ describe("reroute heading bias", () => {
       audioCuesEnabled: true,
       audioCuesOnlyInBackground: true,
       liveActivityEnabled: false,
+      routingDiagnosticsEnabled: false,
       language: "en",
       distanceUnit: "metric",
     }));

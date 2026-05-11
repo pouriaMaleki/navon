@@ -87,7 +87,12 @@ struct CompanionHomeView: View {
                     refreshCameraForCurrentMode()
                 }
                 .onChange(of: viewModel.mapFollowRiderTick) { _, _ in
-                    refreshCameraForCurrentMode()
+                    // While the user is panning/zooming/rotating, suppress the
+                    // per-GPS-fix camera-follow so their manual framing isn't
+                    // overridden by every incoming location update.
+                    if !viewModel.isUserInteractingWithMap {
+                        refreshCameraForCurrentMode()
+                    }
                 }
                 .onChange(of: viewModel.progressDistanceM) { _, _ in
                     // Spec line 102 + 101: when progress crosses a vertex,
@@ -95,7 +100,9 @@ struct CompanionHomeView: View {
                     // re-orient. mapFollowRiderTick covers the GPS-fix
                     // case but not the "bearing changed because we crossed
                     // a corner" case during a single fix's processing.
-                    refreshCameraForCurrentMode()
+                    if !viewModel.isUserInteractingWithMap {
+                        refreshCameraForCurrentMode()
+                    }
                 }
                 .onChange(of: appModel.riderLocation) { _, newValue in
                     // Spec lines 84 + 110 + 108-118: every GPS fix feeds

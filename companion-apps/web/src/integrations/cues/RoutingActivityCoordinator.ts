@@ -1,5 +1,6 @@
 import { autorun, type IReactionDisposer, observable, runInAction } from "mobx";
 import type { RootStore } from "../../app/RootStore.js";
+import { recordAudioCue } from "../../stores/RoutingDiagnosticsHooks.js";
 import { resolveDistanceUnit, resolveLocale, setActiveLocale, t, tIn } from "../../i18n/index.js";
 import { hasVoiceForLocale } from "../audio/voiceAvailability.js";
 import type { WebTtsService } from "../audio/WebTtsService.js";
@@ -123,6 +124,7 @@ export function startRoutingActivityCoordinator(
         const text =
           ttsLocale === locale ? t(msg.key, msg.values) : tIn(ttsLocale, msg.key, msg.values);
         services.tts.speak(text);
+        recordAudioCue(store.routingDiagnosticsStore, event.kind, text);
       }
     } else if (!isRouting) {
       cueState = initialCueEngineState();

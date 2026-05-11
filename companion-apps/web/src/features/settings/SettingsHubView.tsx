@@ -8,8 +8,9 @@ import { LocaleSettingsSection } from "./LocaleSettingsSection.js";
 import { RouteDetailView } from "./RouteDetailView.js";
 import { RoutePlannerSettingsView } from "./RoutePlannerSettingsView.js";
 import { RoutesSettingsView } from "./RoutesSettingsView.js";
+import { RoutingDiagnosticsView } from "./RoutingDiagnosticsView.js";
 
-type SubScreen = "hub" | "routes" | "planner" | "diagnostics" | "routeDetail";
+type SubScreen = "hub" | "routes" | "planner" | "diagnostics" | "routingDiagnostics" | "routeDetail";
 
 type Props = { store: RootStore };
 
@@ -94,6 +95,13 @@ export const SettingsHubView = observer(({ store }: Props) => {
                 </div>
                 <span aria-hidden>›</span>
               </button>
+              <button type="button" className="list-row" onClick={() => setScreen("routingDiagnostics")}>
+                <div style={{ flex: 1, textAlign: "start" }}>
+                  <div className="list-row__title">Routing Diagnostics</div>
+                  <div className="list-row__subtitle">View recorded routing debug sessions</div>
+                </div>
+                <span aria-hidden>›</span>
+              </button>
             </div>
           </>
         ) : null}
@@ -109,6 +117,7 @@ export const SettingsHubView = observer(({ store }: Props) => {
         ) : null}
         {screen === "planner" ? <RoutePlannerSettingsView store={store} /> : null}
         {screen === "diagnostics" ? <ImportDiagnosticsView store={store} /> : null}
+        {screen === "routingDiagnostics" ? <RoutingDiagnosticsView store={store} /> : null}
         {screen === "routeDetail" && detailItemId ? (
           <RouteDetailView
             store={store}
@@ -135,6 +144,8 @@ function titleFor(screen: SubScreen, t: TFunction): string {
       return t("settings.hub.routePlanner");
     case "diagnostics":
       return t("settings.hub.importDiagnostics");
+    case "routingDiagnostics":
+      return "Routing Diagnostics";
     case "routeDetail":
       return "Route Detail";
   }

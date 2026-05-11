@@ -484,6 +484,17 @@ class HomeStateHolder(
             activeRoutePackage = selectedPreview?.normalizedPackage
             homeMode = HomeMode.PHONE_GUIDANCE
         }
+        appState.routingDiagnosticsStore.recordEvent(RoutingDiagEventData.routeStarted())
+        selectedPreview?.let { sel ->
+            appState.routingDiagnosticsStore.recordEvent(
+                RoutingDiagEventData.routeSelected(
+                    alternativeId = sel.id,
+                    providerName = sel.normalizedPackage.provenance.providerId.name,
+                    routeId = sel.normalizedPackage.routeIdentifier,
+                    label = sel.title,
+                )
+            )
+        }
     }
 
     /**
@@ -503,6 +514,7 @@ class HomeStateHolder(
         isExploringAlternativesFromGuidance = true
         explorationSelectedID = null
         compassMode = HomeCompassMode.NORTH_LOCKED
+        appState.routingDiagnosticsStore.recordEvent(RoutingDiagEventData.exploreAlternatives())
         appState.routeRequest = RoutePlanRequest(
             origin = appState.riderLocation,
             destination = destination,
@@ -572,6 +584,7 @@ class HomeStateHolder(
     }
 
     fun stopActiveNavigation() {
+        appState.routingDiagnosticsStore.recordEvent(RoutingDiagEventData.routeStopped())
         val destination = destinationCoordinate
         val sourceToReuse = appState.activeSession.sourceMode
         val shouldPreserveCurrentPreview = isPreviewLockedToImportedRoute
@@ -617,6 +630,7 @@ class HomeStateHolder(
         if (homeMode != HomeMode.PHONE_GUIDANCE) return
         // Spec line 39: companion compass tap also recenters the camera.
         mapRecenterRequestTick += 1
+        val prevMode = compassMode
         when (compassMode) {
             HomeCompassMode.AUTO_FOLLOW -> {
                 compassMode = HomeCompassMode.NORTH_PREVIEW
@@ -624,12 +638,18 @@ class HomeStateHolder(
                     delay(2500)
                     if (homeMode == HomeMode.PHONE_GUIDANCE && compassMode == HomeCompassMode.NORTH_PREVIEW) {
                         compassMode = HomeCompassMode.AUTO_FOLLOW
+                        appState.routingDiagnosticsStore.recordEvent(
+                            RoutingDiagEventData.compassModeChanged(from = "NORTH_PREVIEW", to = "AUTO_FOLLOW")
+                        )
                     }
                 }
             }
             HomeCompassMode.NORTH_PREVIEW -> compassMode = HomeCompassMode.NORTH_LOCKED
             HomeCompassMode.NORTH_LOCKED -> compassMode = HomeCompassMode.AUTO_FOLLOW
         }
+        appState.routingDiagnosticsStore.recordEvent(
+            RoutingDiagEventData.compassModeChanged(from = prevMode.name, to = compassMode.name)
+        )
     }
 
     fun handleCompassDoubleTap() {
@@ -753,6 +773,9 @@ class HomeStateHolder(
                     if (projection.distanceToRouteM <= OFF_ROUTE_EXIT_DISTANCE_M) offRoute = false
                 } else if (projection.distanceToRouteM >= OFF_ROUTE_ENTER_DISTANCE_M) {
                     offRoute = true
+                    appState.routingDiagnosticsStore.recordEvent(
+                        RoutingDiagEventData.offRouteDetected(projection.distanceToRouteM)
+                    )
                 }
                 if (offRoute) {
                     offRouteDurationMs = if (wasOffRoute) offRouteDurationMs + dt else dt
@@ -764,6 +787,7 @@ class HomeStateHolder(
                 }
                 if (rerouteRequested && !prevRerouteRequested && !autoReroutePending) {
                     autoReroutePending = true
+                    appState.routingDiagnosticsStore.recordEvent(RoutingDiagEventData.rerouteRequested())
                     val delayMs = recordReroutingAttempt(timestampMs.toDouble())
                     pendingAutoRerouteJob = autoRerouteScope.launch {
                         if (delayMs > 0.0) {
@@ -789,6 +813,12 @@ class HomeStateHolder(
             val destination = geometry?.lastOrNull()
             if (destination != null && straightLineMeters(destination, point) <= ARRIVAL_RADIUS_M) {
                 declareArrival()
+            }
+            // Record next turn UI update
+            nextInstructionLine?.let { line ->
+                appState.routingDiagnosticsStore.recordEvent(
+                    RoutingDiagEventData.nextTurnAlerted(line, 0.0)
+                )
             }
         }
     }

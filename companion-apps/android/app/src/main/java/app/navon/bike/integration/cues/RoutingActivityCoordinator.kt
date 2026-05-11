@@ -31,6 +31,9 @@ class RoutingActivityCoordinator(
     private val keepScreenOn: KeepScreenOnController,
     private val tts: TtsPort,
 ) {
+    /** Called each time a cue is dispatched to the TTS engine. */
+    var onCueDispatched: ((String, String) -> Unit)? = null
+
     private var cueState: CueEngineState = CueEngineState()
     private var foregroundServiceRunning = false
     /** BCP-47 tag the speech engine is currently configured with. Equals
@@ -118,6 +121,7 @@ class RoutingActivityCoordinator(
                 Strings.t(msg.key, msg.values)
             }
             tts.speak(phrase)
+            onCueDispatched?.invoke(event.toString(), phrase)
         }
     }
 }

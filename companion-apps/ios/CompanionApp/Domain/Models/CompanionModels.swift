@@ -259,6 +259,9 @@ struct CompanionSettings: Equatable, Codable {
     var audioCuesOnlyInBackground: Bool
     /// Lock-screen Live Activity (ActivityKit). Gated on `allowBackgroundGps`.
     var liveActivityEnabled: Bool
+    /// When enabled, routing activities are recorded into timestamped
+    /// diagnostics sessions stored on-device.
+    var routingDiagnosticsEnabled: Bool
     /// App language preference. `.system` follows
     /// `Bundle.main.preferredLocalizations`; concrete cases override it.
     /// New shipped locales must be added to both `AppLanguage` and
@@ -280,6 +283,7 @@ struct CompanionSettings: Equatable, Codable {
         audioCuesEnabled: true,
         audioCuesOnlyInBackground: true,
         liveActivityEnabled: false,
+        routingDiagnosticsEnabled: false,
         language: .system,
         distanceUnit: .system
     )
@@ -310,6 +314,8 @@ struct CompanionSettings: Equatable, Codable {
             ?? Self.defaults.audioCuesOnlyInBackground
         self.liveActivityEnabled = try container.decodeIfPresent(Bool.self, forKey: .liveActivityEnabled)
             ?? Self.defaults.liveActivityEnabled
+        self.routingDiagnosticsEnabled = try container.decodeIfPresent(Bool.self, forKey: .routingDiagnosticsEnabled)
+            ?? Self.defaults.routingDiagnosticsEnabled
         self.language = try container.decodeIfPresent(AppLanguage.self, forKey: .language)
             ?? Self.defaults.language
         self.distanceUnit = try container.decodeIfPresent(DistanceUnitPref.self, forKey: .distanceUnit)
@@ -328,6 +334,7 @@ struct CompanionSettings: Equatable, Codable {
         audioCuesEnabled: Bool = true,
         audioCuesOnlyInBackground: Bool = true,
         liveActivityEnabled: Bool = false,
+        routingDiagnosticsEnabled: Bool = false,
         language: AppLanguage = .system,
         distanceUnit: DistanceUnitPref = .system
     ) {
@@ -342,6 +349,7 @@ struct CompanionSettings: Equatable, Codable {
         self.audioCuesEnabled = audioCuesEnabled
         self.audioCuesOnlyInBackground = audioCuesOnlyInBackground
         self.liveActivityEnabled = liveActivityEnabled
+        self.routingDiagnosticsEnabled = routingDiagnosticsEnabled
         self.language = language
         self.distanceUnit = distanceUnit
     }
@@ -358,6 +366,7 @@ struct CompanionSettings: Equatable, Codable {
         case audioCuesEnabled
         case audioCuesOnlyInBackground
         case liveActivityEnabled
+        case routingDiagnosticsEnabled
         case language
         case distanceUnit
     }

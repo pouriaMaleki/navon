@@ -212,6 +212,8 @@ data class CompanionSettings(
      * route status. Gated on `allowBackgroundGps`.
      */
     val liveActivityEnabled: Boolean = false,
+    /** When enabled, routing activities are recorded into timestamped diagnostics sessions. */
+    val routingDiagnosticsEnabled: Boolean = false,
     /**
      * App language preference. SYSTEM follows `Locale.getDefault()`;
      * concrete cases override. Mirrors web/iOS settings; new shipped

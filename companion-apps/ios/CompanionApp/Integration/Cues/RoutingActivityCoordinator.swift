@@ -19,6 +19,10 @@ final class RoutingActivityCoordinator {
     private let speech: SpeechPort
     private var cueState = CueEngineState()
 
+    /// Called each time a cue is dispatched to the speech engine.
+    /// The routing diagnostics store uses this to record audio cue events.
+    var onCueDispatched: ((String, String) -> Void)?
+
     init(idleTimer: IdleTimerController, speech: SpeechPort) {
         self.idleTimer = idleTimer
         self.speech = speech
@@ -97,6 +101,7 @@ final class RoutingActivityCoordinator {
                 : T.string(msg.key, msg.values)
             Self.log.info("→ speak \"\(phrase, privacy: .public)\"")
             speech.speak(phrase)
+            onCueDispatched?("\(event)", phrase)
         }
     }
 }

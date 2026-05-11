@@ -53,6 +53,7 @@ maybeDescribe("live routing smoke (opt-in)", () => {
       audioCuesEnabled: true,
       audioCuesOnlyInBackground: true,
       liveActivityEnabled: false,
+      routingDiagnosticsEnabled: false,
       language: "en",
       distanceUnit: "metric",
     }));

@@ -13,6 +13,8 @@ import app.navon.bike.domain.CompanionSettings
 import app.navon.bike.domain.CoordinatePoint
 import app.navon.bike.domain.ImportDiagnosticsEntry
 import app.navon.bike.domain.PairedPeripheralRecord
+import app.navon.bike.domain.RoutingDiagSession
+import app.navon.bike.domain.ROUTING_DIAGNOSTICS_SESSION_LIMIT
 import app.navon.bike.domain.RouteHistoryItem
 import app.navon.bike.domain.RouteHistorySource
 import app.navon.bike.domain.RoutePlannerPreferences
@@ -30,6 +32,7 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
         const val PLANNER_PREFERENCES = "planner_preferences"
         const val LAST_KNOWN_RIDER = "last_known_rider"
         const val PAIRED_PERIPHERAL = "paired_peripheral"
+        const val ROUTING_DIAGNOSTICS = "routing_diagnostics"
     }
 
     private val defaults = context?.getSharedPreferences(Key.STORE, Context.MODE_PRIVATE)
@@ -247,6 +250,35 @@ class CompanionPersistence(context: Context? = null) : RouteSessionStore {
         } else {
             importDiagnostics.clear()
             importDiagnostics.addAll(items)
+        }
+    }
+
+    fun loadRoutingDiagnosticsSessions(): List<RoutingDiagSession> {
+        defaults?.let {
+            val stored = it.getString(Key.ROUTING_DIAGNOSTICS, null) ?: return emptyList()
+            val type = object : TypeToken<List<RoutingDiagSession>>() {}.type
+            return gson.fromJson(stored, type) ?: emptyList()
+        }
+        return emptyList()
+    }
+
+    fun saveRoutingDiagnosticsSession(session: RoutingDiagSession) {
+        val items = loadRoutingDiagnosticsSessions().toMutableList()
+        items.removeAll { it.id == session.id }
+        items.add(0, session)
+        while (items.size > ROUTING_DIAGNOSTICS_SESSION_LIMIT) items.removeAt(items.lastIndex)
+        persistRoutingDiagnostics(items)
+    }
+
+    fun dismissRoutingDiagnosticsSession(id: String) {
+        val items = loadRoutingDiagnosticsSessions().toMutableList()
+        items.removeAll { it.id == id }
+        persistRoutingDiagnostics(items)
+    }
+
+    private fun persistRoutingDiagnostics(items: List<RoutingDiagSession>) {
+        if (defaults != null) {
+            defaults.edit().putString(Key.ROUTING_DIAGNOSTICS, gson.toJson(items)).apply()
         }
     }
 

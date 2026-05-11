@@ -70,6 +70,7 @@ final class AppModel: ObservableObject {
     private var phoneGpsForwarder: PhoneGpsForwarder?
 
     let diagnosticsStore = CompanionDiagnosticsStore()
+    let routingDiagnosticsStore: RoutingDiagnosticsStore
     let persistence: CompanionPersistence
     let bleService: BleRouteSyncService
     let locationService: CoreLocationService
@@ -78,6 +79,7 @@ final class AppModel: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
     private var lastHandledRerouteSignature: String?
+    private var lastRecordedLocationMs: UInt64 = 0
 
     private lazy var providers: [RouteProviderID: RoutingProvider] = [
         .hsl: HslRoutingAdapter(settingsProvider: { [unowned self] in self.settings }),
@@ -90,6 +92,7 @@ final class AppModel: ObservableObject {
     init(persistence: CompanionPersistence = CompanionPersistence(), bleService: BleRouteSyncService? = nil) {
         // All stored properties must be initialized before any self-method call.
         self.persistence = persistence
+        self.routingDiagnosticsStore = RoutingDiagnosticsStore(persistence: persistence)
         self.bleService = bleService ?? BleRouteSyncService()
         let locationService = CoreLocationService(persistence: persistence)
         self.locationService = locationService
@@ -105,6 +108,9 @@ final class AppModel: ObservableObject {
             idleTimer: IdleTimerController(),
             speech: SpeechService()
         )
+        self.routingActivityCoordinator.onCueDispatched = { [weak self] cueType, messageText in
+            self?.routingDiagnosticsStore.recordEvent(.audioCueDispatched(cueType: cueType, messageText: messageText))
+        }
         self.liveActivityCoordinator = LiveActivityCoordinator(
             driver: ActivityKitLiveActivityDriver()
         )
@@ -371,16 +377,25 @@ final class AppModel: ObservableObject {
     /// keeping a planning-mode location feed alive while the user is away.
     func handleApplicationLifecycleEnteredBackground() {
         isAppInBackground = true
+        routingDiagnosticsStore.stopRecording()
         if !isRoutingInProgress {
             locationService.stop()
         }
     }
 
     /// Resumes GPS when the app comes back to the foreground (so the
-    /// where-to bar and the recenter button work again).
+    /// where-to bar and the recenter button work again). Also re-applies
+    /// the idle-timer gate: iOS resets `isIdleTimerDisabled` when the app
+    /// leaves the foreground, so a settings/routing transition won't fire
+    /// `didSet` on `isRoutingInProgress` and the screen would time out
+    /// even though the rider is mid-route with `keepScreenOn` enabled.
     func handleApplicationLifecycleEnteredForeground() {
         isAppInBackground = false
         locationService.start()
+        syncRoutingActivityServices()
+        if settings.routingDiagnosticsEnabled {
+            routingDiagnosticsStore.startRecording()
+        }
     }
 
     /// Test seam: rebuilds the routing-activity coordinator with the given
@@ -531,6 +546,16 @@ final class AppModel: ObservableObject {
                 revisionOverride: revisionOverride,
                 rerouteContext: rerouteContext
             )
+            if routingDiagnosticsStore.isRecording {
+                let alts = preview.alternatives.map { alt in
+                    RouteAltInfo(
+                        providerName: alt.normalizedPackage.provenance.providerID.rawValue,
+                        routeId: alt.normalizedPackage.routeIdentifier,
+                        label: alt.title
+                    )
+                }
+                routingDiagnosticsStore.recordEvent(.routeAlternativesSuggested(alternatives: alts))
+            }
             persistence.saveRecentDestination(routeRequest.destination)
             notePersistenceChanged()
             applySelectedAlternativeToSession(sourceMode: effectiveMode, destination: routeRequest.destination, preferredTitle: preferredTitle)
@@ -723,7 +748,8 @@ final class AppModel: ObservableObject {
         )
         activeSession.lastRerouteReason = reason
         activeSession.lastRerouteTimestamp = Date()
-        _ = await sendSelectedRoute()
+        let sendResult = await sendSelectedRoute()
+        routingDiagnosticsStore.recordEvent(.rerouteCompleted(result: sendResult ? "success" : "failed"))
     }
 
     private func bindLocationService() {
@@ -743,6 +769,20 @@ final class AppModel: ObservableObject {
             .sink { [weak self] point in
                 guard let self, let point else { return }
                 self.routeRequest.origin = point
+                // Throttled location recording for routing diagnostics
+                if self.routingDiagnosticsStore.isRecording {
+                    let now = UInt64(Date().timeIntervalSince1970 * 1000)
+                    if now - self.lastRecordedLocationMs >= LOCATION_EVENT_THROTTLE_MS {
+                        self.lastRecordedLocationMs = now
+                        self.routingDiagnosticsStore.recordEvent(.locationUpdate(
+                            lat: point.latitude,
+                            lon: point.longitude,
+                            heading: self.locationService.currentHeadingDegrees,
+                            speed: self.locationService.currentSpeedMps,
+                            accuracyM: nil
+                        ))
+                    }
+                }
             }
             .store(in: &cancellables)
     }

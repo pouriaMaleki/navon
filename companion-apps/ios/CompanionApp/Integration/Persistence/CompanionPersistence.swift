@@ -11,6 +11,7 @@ final class CompanionPersistence: RouteSessionStore {
         static let plannerPreferences = "companion.routePlannerPreferences"
         static let lastKnownRider = "companion.lastKnownRider"
         static let pairedPeripheral = "companion.pairedPeripheral"
+        static let routingDiagnostics = "companion.routingDiagnostics"
     }
 
     private let defaults: UserDefaults
@@ -170,6 +171,23 @@ final class CompanionPersistence: RouteSessionStore {
 
     func clearPairedPeripheral() {
         defaults.removeObject(forKey: Key.pairedPeripheral)
+    }
+
+    func loadRoutingDiagnosticsSessions() -> [RoutingDiagSession] {
+        load([RoutingDiagSession].self, forKey: Key.routingDiagnostics) ?? []
+    }
+
+    func saveRoutingDiagnosticsSession(_ session: RoutingDiagSession) {
+        var sessions = loadRoutingDiagnosticsSessions()
+        sessions.removeAll { $0.id == session.id }
+        sessions.insert(session, at: 0)
+        save(Array(sessions.prefix(ROUTING_DIAGNOSTICS_SESSION_LIMIT)), forKey: Key.routingDiagnostics)
+    }
+
+    func dismissRoutingDiagnosticsSession(id: String) {
+        var sessions = loadRoutingDiagnosticsSessions()
+        sessions.removeAll { $0.id == id }
+        save(sessions, forKey: Key.routingDiagnostics)
     }
 
     private func preferredDestinationTitle(newTitle: String, existingTitle: String) -> String {

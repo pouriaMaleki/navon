@@ -120,7 +120,12 @@ final class HomeViewModel: ObservableObject {
     /// Pinned auto-recenter delay for user map interactions during routing.
     /// Mirrors `recenter_inactivity_ms` in parity-fixtures/data/ux-constants.toml
     /// (spec line 104).
-    private let mapInteractionRecenterDelay: TimeInterval = 1.3
+    private let mapInteractionRecenterDelay: TimeInterval = 3.0
+
+    /// True while the user is actively panning/zooming/rotating the map during
+    /// routing. When set, the view layer skips GPS-driven camera-follow updates
+    /// so the user's manual camera position isn't overridden by every GPS fix.
+    @Published private(set) var isUserInteractingWithMap: Bool = false
 
     /// Default camera distance (m) for the riding-mode follow-rider camera
     /// when the rider hasn't overridden it via the on-map +/- buttons.
@@ -963,9 +968,19 @@ final class HomeViewModel: ObservableObject {
             // starts immediately, even before the first GPS fix lands.
             dispatchCueTick()
         }
+        appModel.routingDiagnosticsStore.recordEvent(.routeStarted)
+        if let sel = selectedPreview {
+            appModel.routingDiagnosticsStore.recordEvent(.routeSelected(
+                alternativeId: sel.id.uuidString,
+                providerName: sel.normalizedPackage.provenance.providerID.rawValue,
+                routeId: sel.normalizedPackage.routeIdentifier,
+                label: sel.title
+            ))
+        }
     }
 
     func stopActiveNavigation(afterArrival: Bool = false) {
+        appModel.routingDiagnosticsStore.recordEvent(.routeStopped(reason: afterArrival ? "arrival" : "manual"))
         Task {
             var shouldClearPlanningStatus = false
             let destination = destinationCoordinate
@@ -1092,6 +1107,7 @@ final class HomeViewModel: ObservableObject {
         isExploringAlternativesFromGuidance = true
         explorationSelectedID = nil
         planningStatus = "Looking for alternatives…"
+        appModel.routingDiagnosticsStore.recordEvent(.exploreAlternatives)
         appModel.routeRequest = RoutePlanRequest(
             origin: appModel.riderLocation,
             destination: destination,
@@ -1201,6 +1217,7 @@ final class HomeViewModel: ObservableObject {
         // toggle (north-preview/north-locked) is gated on phoneGuidance.
         mapRecenterRequestID &+= 1
         guard homeMode == .phoneGuidance else { return }
+        let prevCompassMode = String(describing: compassMode)
         switch compassMode {
         case .autoFollow:
             enterNorthLocked()
@@ -1210,6 +1227,10 @@ final class HomeViewModel: ObservableObject {
             northPreviewTask?.cancel()
             compassMode = .autoFollow
         }
+        let newCompassMode = String(describing: compassMode)
+        if newCompassMode != prevCompassMode {
+            appModel.routingDiagnosticsStore.recordEvent(.compassModeChanged(from: prevCompassMode, to: newCompassMode))
+        }
     }
 
     func handleCompassDoubleTap() {
@@ -1218,8 +1239,10 @@ final class HomeViewModel: ObservableObject {
     }
 
     private func enterNorthLocked() {
+        let prev = String(describing: compassMode)
         northPreviewTask?.cancel()
         compassMode = .northLocked
+        appModel.routingDiagnosticsStore.recordEvent(.compassModeChanged(from: prev, to: "northLocked"))
     }
 
     /// Compass-heading bearing (degrees clockwise from north) of the route
@@ -1378,6 +1401,7 @@ final class HomeViewModel: ObservableObject {
             }
         } else if projection.distanceToRouteM >= Self.offRouteEnterDistanceM {
             offRoute = true
+            appModel.routingDiagnosticsStore.recordEvent(.offRouteDetected(distanceM: projection.distanceToRouteM))
         }
         if offRoute {
             offRouteDurationMs = wasOffRoute ? offRouteDurationMs + dt : dt
@@ -1400,6 +1424,7 @@ final class HomeViewModel: ObservableObject {
         // when the rider keeps drifting in a short window.
         if rerouteRequested && !prevRerouteRequested && !autoReroutePending {
             autoReroutePending = true
+            appModel.routingDiagnosticsStore.recordEvent(.rerouteRequested)
             let now = Date().timeIntervalSince1970 * 1_000
             let delayMs = recordReroutingAttempt(now: now)
             let model = appModel
@@ -1440,6 +1465,16 @@ final class HomeViewModel: ObservableObject {
         // arrival, etc. The coordinator handles all gating (settings,
         // paired-with-device).
         dispatchCueTick()
+        // Record next turn UI updates for routing diagnostics
+        if let line = nextInstructionLine {
+            appModel.routingDiagnosticsStore.recordEvent(.nextTurnAlerted(
+                instructionText: line,
+                distanceRemainingM: guidanceRoute?.maneuvers.first { m in
+                    m.maneuverType != "depart" && m.maneuverType != "arrive" &&
+                    m.distanceFromStartMeters > progressDistanceM
+                }.map { $0.distanceFromStartMeters - progressDistanceM } ?? 0
+            ))
+        }
     }
 
     /// Builds a `CueSnapshot` from the current routing state and dispatches
@@ -1687,12 +1722,17 @@ final class HomeViewModel: ObservableObject {
     /// no-op. Successive interactions reset the timer.
     func noteUserMapInteraction() {
         guard homeMode == .phoneGuidance else { return }
+        isUserInteractingWithMap = true
         mapInteractionRecenterTask?.cancel()
         let delay = mapInteractionRecenterDelay
         mapInteractionRecenterTask = Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             guard let self, !Task.isCancelled else { return }
-            guard self.homeMode == .phoneGuidance else { return }
+            guard self.homeMode == .phoneGuidance else {
+                self.isUserInteractingWithMap = false
+                return
+            }
+            self.isUserInteractingWithMap = false
             self.mapRecenterRequestID &+= 1
         }
     }
