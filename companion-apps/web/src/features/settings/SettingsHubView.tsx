@@ -102,6 +102,13 @@ export const SettingsHubView = observer(({ store }: Props) => {
                 </div>
                 <span aria-hidden>›</span>
               </button>
+              <button type="button" className="list-row" onClick={() => store.goDebugger()}>
+                <div style={{ flex: 1, textAlign: "start" }}>
+                  <div className="list-row__title">Diagnostics Debugger</div>
+                  <div className="list-row__subtitle">Import and visualize diagnostic files from any device</div>
+                </div>
+                <span aria-hidden>›</span>
+              </button>
             </div>
           </>
         ) : null}
