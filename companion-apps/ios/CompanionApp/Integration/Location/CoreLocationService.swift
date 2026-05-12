@@ -10,6 +10,7 @@ final class CoreLocationService: NSObject, ObservableObject, LocationService {
     /// Instantaneous ground speed (m/s) from the most recent CLLocation fix.
     /// Negative `CLLocation.speed` means "unavailable" — we coerce that to nil.
     @Published private(set) var currentSpeedMps: Double?
+    @Published private(set) var currentHeadingDegrees: Double?
     /// True when the user has asked for "Always" but iOS only granted
     /// "When-In-Use". Spec line 130 — surface a hint pointing the user to
     /// the iOS Settings app to flip the toggle manually.
@@ -131,8 +132,9 @@ extension CoreLocationService: CLLocationManagerDelegate {
         guard let location = locations.last else { return }
         let point = CoordinatePoint(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude)
         let speed: Double? = location.speed >= 0 && location.speed.isFinite ? location.speed : nil
+        let heading: Double? = location.course >= 0 && location.course.isFinite ? location.course : nil
         Task { @MainActor in
-            self.handleFix(point, speedMps: speed)
+            self.handleFix(point, speedMps: speed, headingDegrees: heading)
         }
     }
 
@@ -167,10 +169,11 @@ extension CoreLocationService: CLLocationManagerDelegate {
     }
 
     @MainActor
-    private func handleFix(_ point: CoordinatePoint, speedMps: Double?) {
+    private func handleFix(_ point: CoordinatePoint, speedMps: Double?, headingDegrees: Double?) {
         currentLocation = point
         lastKnownLocation = point
         currentSpeedMps = speedMps
+        currentHeadingDegrees = headingDegrees
         isLocating = false
         lastError = nil
         persistence.saveLastKnownRider(point)

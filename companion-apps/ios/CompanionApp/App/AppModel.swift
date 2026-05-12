@@ -108,12 +108,12 @@ final class AppModel: ObservableObject {
             idleTimer: IdleTimerController(),
             speech: SpeechService()
         )
-        self.routingActivityCoordinator.onCueDispatched = { [weak self] cueType, messageText in
-            self?.routingDiagnosticsStore.recordEvent(.audioCueDispatched(cueType: cueType, messageText: messageText))
-        }
         self.liveActivityCoordinator = LiveActivityCoordinator(
             driver: ActivityKitLiveActivityDriver()
         )
+        self.routingActivityCoordinator.onCueDispatched = { [weak self] cueType, messageText in
+            self?.routingDiagnosticsStore.recordEvent(.audioCueDispatched(cueType: cueType, messageText: messageText))
+        }
         // Reflect forwarder state in published property.
         phoneGpsForwarder?.$isForwarding
             .receive(on: DispatchQueue.main)
@@ -377,7 +377,6 @@ final class AppModel: ObservableObject {
     /// keeping a planning-mode location feed alive while the user is away.
     func handleApplicationLifecycleEnteredBackground() {
         isAppInBackground = true
-        routingDiagnosticsStore.stopRecording()
         if !isRoutingInProgress {
             locationService.stop()
         }

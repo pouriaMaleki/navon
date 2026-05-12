@@ -969,14 +969,12 @@ final class HomeViewModel: ObservableObject {
             dispatchCueTick()
         }
         appModel.routingDiagnosticsStore.recordEvent(.routeStarted)
-        if let sel = selectedPreview {
-            appModel.routingDiagnosticsStore.recordEvent(.routeSelected(
-                alternativeId: sel.id.uuidString,
-                providerName: sel.normalizedPackage.provenance.providerID.rawValue,
-                routeId: sel.normalizedPackage.routeIdentifier,
-                label: sel.title
-            ))
-        }
+        appModel.routingDiagnosticsStore.recordEvent(.routeSelected(
+            alternativeId: selectedPreview.id.uuidString,
+            providerName: selectedPreview.normalizedPackage.provenance.providerID.rawValue,
+            routeId: selectedPreview.normalizedPackage.routeIdentifier,
+            label: selectedPreview.title
+        ))
     }
 
     func stopActiveNavigation(afterArrival: Bool = false) {
@@ -1470,7 +1468,7 @@ final class HomeViewModel: ObservableObject {
             appModel.routingDiagnosticsStore.recordEvent(.nextTurnAlerted(
                 instructionText: line,
                 distanceRemainingM: guidanceRoute?.maneuvers.first { m in
-                    m.maneuverType != "depart" && m.maneuverType != "arrive" &&
+                    m.maneuverType != .depart && m.maneuverType != .arrive &&
                     m.distanceFromStartMeters > progressDistanceM
                 }.map { $0.distanceFromStartMeters - progressDistanceM } ?? 0
             ))
