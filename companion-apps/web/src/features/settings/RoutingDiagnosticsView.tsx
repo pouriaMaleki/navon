@@ -34,6 +34,14 @@ export const RoutingDiagnosticsView = observer(({ store }: Props) => {
                 type="button"
                 className="icon-button"
                 style={{ width: "auto", padding: "8px 12px" }}
+                onClick={() => store.openDebuggerForSession(session.id)}
+              >
+                Open in Debugger
+              </button>
+              <button
+                type="button"
+                className="icon-button"
+                style={{ width: "auto", padding: "8px 12px" }}
                 onClick={() => {
                   const pkg = store.routingDiagnosticsStore.sessionDebugPackage(session.id);
                   if (pkg) navigator.clipboard?.writeText(pkg);

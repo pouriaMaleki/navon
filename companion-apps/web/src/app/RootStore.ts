@@ -20,6 +20,7 @@ import {
   classifyImport,
   type ImportInput,
 } from "../integrations/shareImport/UrlImportClassifier.js";
+import { DebuggerStore } from "../stores/DebuggerStore.js";
 import { DiagnosticsStore } from "../stores/DiagnosticsStore.js";
 import { GuidanceStore } from "../stores/GuidanceStore.js";
 import { HistoryStore } from "../stores/HistoryStore.js";
@@ -30,7 +31,7 @@ import { RoutingDiagnosticsStore } from "../stores/RoutingDiagnosticsStore.js";
 import { installRoutingDiagnosticsHooks, recordRerouteCompleted } from "../stores/RoutingDiagnosticsHooks.js";
 import { SettingsStore } from "../stores/SettingsStore.js";
 
-export type AppRoute = "home" | "settings";
+export type AppRoute = "home" | "settings" | "debugger";
 
 export class RootStore {
   readonly persistence = new LocalStoragePersistence();
@@ -39,6 +40,7 @@ export class RootStore {
   readonly historyStore = new HistoryStore(this.persistence);
   readonly mapCameraStore = new MapCameraStore();
   readonly diagnosticsStore = new DiagnosticsStore();
+  readonly debuggerStore = new DebuggerStore(this.persistence);
   readonly routingDiagnosticsStore = new RoutingDiagnosticsStore(this.persistence);
   readonly locationStore = new LocationStore(new BrowserLocationService(), this.persistence);
 
@@ -329,6 +331,18 @@ export class RootStore {
 
   goSettings(): void {
     this.route = "settings";
+  }
+
+  goDebugger(): void {
+    this.route = "debugger";
+  }
+
+  openDebuggerForSession(sessionId: string): void {
+    const session = this.routingDiagnosticsStore.sessions.find((s) => s.id === sessionId);
+    if (session) {
+      this.debuggerStore.loadSessionFromExisting(session);
+      this.goDebugger();
+    }
   }
 
   /** Import a dropped/picked GPX file. Routes through the planning preview directly. */

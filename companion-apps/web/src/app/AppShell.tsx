@@ -10,6 +10,9 @@ import type { RootStore } from "./RootStore.js";
 const SettingsHubView = lazy(() =>
   import("../features/settings/SettingsHubView.js").then((m) => ({ default: m.SettingsHubView })),
 );
+const DebuggerView = lazy(() =>
+  import("../features/debugger/DebuggerView.js").then((m) => ({ default: m.DebuggerView })),
+);
 
 type Props = { store: RootStore };
 
@@ -78,7 +81,13 @@ export const AppShell = observer(({ store }: Props) => {
 
   return (
     <div className="app-shell">
-      <HomeView store={store} />
+      {store.route === "debugger" ? (
+        <Suspense fallback={<div className="settings-overlay" />}>
+          <DebuggerView store={store} />
+        </Suspense>
+      ) : (
+        <HomeView store={store} />
+      )}
       {store.route === "settings" ? (
         <Suspense fallback={<div className="settings-overlay" />}>
           <SettingsHubView store={store} />

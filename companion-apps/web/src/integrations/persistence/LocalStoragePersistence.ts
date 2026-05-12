@@ -10,6 +10,7 @@ import {
   type RouteHistoryItem,
   type RoutePlannerPreferences,
 } from "../../domain/models.js";
+import type { Annotation } from "../../domain/debuggerModels.js";
 import type { RoutingDiagSession } from "../../domain/routingDiagnosticsModels.js";
 import { ROUTING_DIAGNOSTICS_SESSION_LIMIT } from "../../domain/routingDiagnosticsModels.js";
 import { approximateDistanceMeters } from "../geo.js";
@@ -131,6 +132,16 @@ export class LocalStoragePersistence {
   }
   saveLocationPromptShown(value: boolean): void {
     writeJson(KEY_LOCATION_PROMPT_SHOWN, value);
+  }
+
+  loadDebuggerAnnotations(sessionId: string): Annotation[] {
+    const all = readJson<Record<string, Annotation[]>>("companion.debuggerAnnotations", {});
+    return all[sessionId] ?? [];
+  }
+  saveDebuggerAnnotations(sessionId: string, annotations: Annotation[]): void {
+    const all = readJson<Record<string, Annotation[]>>("companion.debuggerAnnotations", {});
+    all[sessionId] = annotations;
+    writeJson("companion.debuggerAnnotations", all);
   }
 
   loadPendingHomePresentation(): PendingHomePresentation | undefined {
