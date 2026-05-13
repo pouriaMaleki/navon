@@ -15,6 +15,14 @@ final class CueEngineTests: XCTestCase {
         CueManeuver(id: id, kind: .right, distanceFromStartM: distance, isMinorKeep: true)
     }
 
+    private func mBearLeft(_ id: String, _ distance: Double) -> CueManeuver {
+        CueManeuver(id: id, kind: .bearLeft, distanceFromStartM: distance)
+    }
+
+    private func mBearRight(_ id: String, _ distance: Double) -> CueManeuver {
+        CueManeuver(id: id, kind: .bearRight, distanceFromStartM: distance)
+    }
+
     private func base(
         routeId: String? = "r1",
         progressDistanceM: Double = 0,
@@ -146,7 +154,9 @@ final class CueEngineTests: XCTestCase {
         }
     }
 
-    func test_suppressesNextTurnInAboutForKeepRightWhenTooCloseAfterPreviousTurn() {
+    func test_minorKeepSuppressesNextTurnInAboutAndTurn50m() {
+        // slightRight (isMinorKeep: true) is fully silent — no
+        // nextTurnInAbout preview after passing m1, no turn50m approach.
         let maneuvers = [
             CueManeuver(id: "m1", kind: .left, distanceFromStartM: 200),
             mSlightRight("m2", 230),
@@ -159,11 +169,14 @@ final class CueEngineTests: XCTestCase {
             snapshot: base(progressDistanceM: 211, maneuvers: maneuvers),
             state: s1
         )
-        XCTAssertFalse(r2.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } })
-        XCTAssertTrue(r2.events.contains { if case .turn50m = $0 { return true } else { return false } })
+        XCTAssertFalse(r2.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } },
+            "minor-keep must not get nextTurnInAbout — got \(r2.events)")
+        XCTAssertFalse(r2.events.contains { if case .turn50m = $0 { return true } else { return false } },
+            "minor-keep must not get turn50m — got \(r2.events)")
     }
 
-    func test_allowsNextTurnInAboutForKeepLeftWhenFarEnoughToBeUseful() {
+    func test_minorKeepSuppressesNextTurnInAboutEvenWhenFar() {
+        // isMinorKeep maneuvers stay silent regardless of distance.
         let maneuvers = [
             CueManeuver(id: "m1", kind: .left, distanceFromStartM: 200),
             mSlightLeft("m2", 360),
@@ -177,14 +190,12 @@ final class CueEngineTests: XCTestCase {
             state: s1
         )
         let next = r2.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
-        XCTAssertNotNil(next)
-        if case .nextTurnInAbout(let kind, let distance) = next! {
-            XCTAssertEqual(kind, .left)
-            XCTAssertEqual(distance, 149, accuracy: 0.5)
-        }
+        XCTAssertNil(next, "minor-keep must not fire nextTurnInAbout even when far — got \(r2.events)")
     }
 
-    func test_quickKeepThenTurnPrefersCombinedActionCueOverNextTurnInAbout() {
+    func test_minorKeepSkippedNextRealTurnGetsPreview() {
+        // m2 (slightRight isMinorKeep) is silently skipped. After passing
+        // the slightRight, the next real turn (m3) gets nextTurnInAbout.
         let maneuvers = [
             CueManeuver(id: "m1", kind: .left, distanceFromStartM: 200),
             mSlightRight("m2", 230),
@@ -194,16 +205,26 @@ final class CueEngineTests: XCTestCase {
             snapshot: base(progressDistanceM: 100, maneuvers: maneuvers),
             state: CueEngineState()
         ).nextState
+        // At 211m, just past m1. m2 is slightRight — suppressed.
         let r2 = CueEngine.tick(
             snapshot: base(progressDistanceM: 211, maneuvers: maneuvers),
             state: s1
         )
-        XCTAssertFalse(r2.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } })
-        let combined = r2.events.first {
-            if case .turn50m(_, _, let followUp) = $0 { return followUp != nil }
-            return false
+        XCTAssertFalse(r2.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } },
+            "minor-keep must suppress nextTurnInAbout — got \(r2.events)")
+        XCTAssertFalse(r2.events.contains { if case .turn50m = $0 { return true } else { return false } },
+            "minor-keep must suppress turn50m — got \(r2.events)")
+        // Advance past m2 (rider at 241, m2 at 230 passed by 11m).
+        // m3 (regular left) should get nextTurnInAbout.
+        let r3 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 241, maneuvers: maneuvers),
+            state: r2.nextState
+        )
+        let next = r3.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        XCTAssertNotNil(next, "after skipping minor-keep, next real turn must get preview — got \(r3.events)")
+        if case .nextTurnInAbout(let kind, _) = next! {
+            XCTAssertEqual(kind, .left)
         }
-        XCTAssertNotNil(combined)
     }
 
     func test_emitsArrivingInMWhenPastLastManeuver() {
@@ -607,5 +628,109 @@ final class CueEngineTests: XCTestCase {
         let r = CueEngine.tick(snapshot: reroutingSnap(true, routeId: "r3"), state: s)
         XCTAssertTrue(r.events.contains(.rerouting),
             "After confirmed on-track the rerouting cue counter must reset")
+    }
+
+    // MARK: - Bear range-hold cues
+
+    func test_bearLeftEmitsBearRangeWhenEnteringSegment() {
+        // Bear at 200m, rider at 100m on first tick (Case A — far orientation).
+        // Second tick at 195m (5m from bear) must fire bearRange, not approach cues.
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: [mBearLeft("m1", 200)]),
+            state: CueEngineState()
+        ).nextState
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 195, maneuvers: [mBearLeft("m1", 200)]),
+            state: s1
+        )
+        let bear = r2.events.first { if case .bearRange = $0 { return true } else { return false } }
+        XCTAssertNotNil(bear, "bearLeft at 5m must emit bearRange — got \(r2.events)")
+        if case .bearRange(let k, _) = bear! { XCTAssertEqual(k, .bearLeft) }
+        XCTAssertFalse(r2.events.contains { if case .turn50m = $0 { return true } else { return false } },
+            "must not emit turn50m for bear kind")
+        XCTAssertFalse(r2.events.contains { if case .turn10m = $0 { return true } else { return false } },
+            "must not emit turn10m for bear kind")
+    }
+
+    func test_bearRightEmitsBearRangeWithSegmentLength() {
+        // BearRight at 200, next maneuver at 350 → segment = 150m
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: [mBearRight("m1", 200), mLeft("m2", 350)]),
+            state: CueEngineState()
+        ).nextState
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 195, maneuvers: [mBearRight("m1", 200), mLeft("m2", 350)]),
+            state: s1
+        )
+        let bear = r2.events.first { if case .bearRange = $0 { return true } else { return false } }
+        XCTAssertNotNil(bear, "bearRight at 5m must emit bearRange — got \(r2.events)")
+        if case .bearRange(let k, let d) = bear! {
+            XCTAssertEqual(k, .bearRight)
+            XCTAssertEqual(d, 150, accuracy: 0.5, "segment length must be gap to next maneuver")
+        }
+    }
+
+    func test_bearKindDoesNotEmitTurn50m() {
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: [mBearLeft("m1", 200)]),
+            state: CueEngineState()
+        ).nextState
+        // Rider at 165m: 35m from bear — inside 50m approach window
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 165, maneuvers: [mBearLeft("m1", 200)]),
+            state: s1
+        )
+        XCTAssertFalse(r2.events.contains { if case .turn50m = $0 { return true } else { return false } },
+            "turn50m must not fire for bear kind — got \(r2.events)")
+    }
+
+    func test_bearKindDoesNotEmitTurn10m() {
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: [mBearRight("m1", 200)]),
+            state: CueEngineState()
+        ).nextState
+        // Rider at 195m: 5m from bear — inside 10m approach window
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 195, maneuvers: [mBearRight("m1", 200)]),
+            state: s1
+        )
+        XCTAssertFalse(r2.events.contains { if case .turn10m(let k, _) = $0 { return k == .bearRight } else { return false } },
+            "turn10m must not fire for bear kind — got \(r2.events)")
+    }
+
+    func test_bearKindDoesNotEmitNextTurnInAboutAfterPassing() {
+        // m1 (regular left at 200), m2 (bearLeft at 500). After passing m1, the
+        // after-passing block must not emit nextTurnInAbout for the bear maneuver.
+        let m1 = mLeft("m1", 200)
+        let m2 = mBearLeft("m2", 500)
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: [m1, m2]),
+            state: CueEngineState()
+        ).nextState
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 211, maneuvers: [m1, m2]),
+            state: s1
+        )
+        let nextTurn = r2.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        XCTAssertNil(nextTurn, "must not emit nextTurnInAbout for bear kind after passing — got \(r2.events)")
+    }
+
+    func test_unpromotedSlightLeftDoesNotEmitBearRange() {
+        // slightLeft (kind: .left, isMinorKeep: true) — NOT promoted to bear.
+        // Must stay completely silent in approach windows.
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: [mSlightLeft("m1", 200)]),
+            state: CueEngineState()
+        ).nextState
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 195, maneuvers: [mSlightLeft("m1", 200)]),
+            state: s1
+        )
+        XCTAssertFalse(r2.events.contains { if case .bearRange = $0 { return true } else { return false } },
+            "unpromoted slightLeft must not fire bearRange — got \(r2.events)")
+        XCTAssertFalse(r2.events.contains { if case .turn10m = $0 { return true } else { return false } },
+            "unpromoted slightLeft must not fire turn10m")
+        XCTAssertFalse(r2.events.contains { if case .turn50m = $0 { return true } else { return false } },
+            "unpromoted slightLeft must not fire turn50m")
     }
 }

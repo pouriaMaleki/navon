@@ -81,8 +81,6 @@ struct CueEngineState: Equatable {
     /// Reset only when the rider is confirmed on-track for
     /// `onTrackConfirmSamples` consecutive ticks.
     var reroutingEpisodeCount: Int = 0
-    // removed
-    // removed
 }
 
 enum CueEngine {
@@ -117,11 +115,6 @@ enum CueEngine {
     private static func isBearKind(_ k: ManeuverKind) -> Bool {
         k == .bearLeft || k == .bearRight
     }
-
-    // removed
-    // removed
-    // removed
-    // removed
 
     struct Result {
         let events: [CueEvent]
@@ -187,7 +180,7 @@ enum CueEngine {
                             s.announced50m.insert(firstNonDepart.id)
                             s.announced10m.insert(firstNonDepart.id)
                         }
-                    } else {
+                    } else if !firstNonDepart.isMinorKeep {
                         events.append(.nextTurnInAbout(turnKind: firstNonDepart.kind, distanceM: distanceM))
                         // Pre-latch turn50m when the first turn is already close: the rider
                         // has the orientation cue; a redundant "in 50 m" a few seconds later
@@ -210,7 +203,12 @@ enum CueEngine {
                         // before a back-to-back pair, leaving the rider
                         // with only `turn10m(first)` and no warning
                         // about the second turn.
-                        events.append(.turn50m(firstNonDepart.kind, distanceM: distanceM, followUpKind: follow.kind))
+                        // Bear kinds are excluded from the combined cue —
+                        // their bearRange segment-entry cue handles the
+                        // announcement instead.
+                        if !firstNonDepart.isMinorKeep && !Self.isBearKind(firstNonDepart.kind) {
+                            events.append(.turn50m(firstNonDepart.kind, distanceM: distanceM, followUpKind: follow.kind))
+                        }
                         s.announced50m.insert(firstNonDepart.id)
                         s.announced50m.insert(follow.id)
                         s.announced10m.insert(firstNonDepart.id)
@@ -315,7 +313,7 @@ enum CueEngine {
                             announced50m.insert(nextAfter.id)
                             announced10m.insert(nextAfter.id)
                         }
-                    } else {
+                    } else if !nextAfter.isMinorKeep && !Self.isBearKind(nextAfter.kind) {
                         events.append(.nextTurnInAbout(
                             turnKind: nextAfter.kind,
                             distanceM: distanceToNext
@@ -341,7 +339,8 @@ enum CueEngine {
             }
 
             if let m = upcoming, let d = upcomingDistance,
-               d <= Self.approach50M, d > Self.approach10M, !announced50m.contains(m.id) {
+               d <= Self.approach50M, d > Self.approach10M, !announced50m.contains(m.id),
+               !m.isMinorKeep, !Self.isBearKind(m.kind) {
                 let upcomingIdx = snapshot.maneuvers.firstIndex(where: { $0.id == m.id }) ?? -1
                 let followUp = (upcomingIdx >= 0 && upcomingIdx + 1 < snapshot.maneuvers.count)
                     ? snapshot.maneuvers[upcomingIdx + 1] : nil
@@ -363,7 +362,8 @@ enum CueEngine {
                 }
             }
             if let m = upcoming, let d = upcomingDistance,
-               d <= Self.approach10M, !announced10m.contains(m.id) {
+               d <= Self.approach10M, !announced10m.contains(m.id),
+               !m.isMinorKeep, !Self.isBearKind(m.kind) {
                 let upcomingIdx = snapshot.maneuvers.firstIndex(where: { $0.id == m.id }) ?? -1
                 let followUp = (upcomingIdx >= 0 && upcomingIdx + 1 < snapshot.maneuvers.count)
                     ? snapshot.maneuvers[upcomingIdx + 1] : nil
@@ -378,6 +378,22 @@ enum CueEngine {
                     events.append(.turn10m(m.kind, followUpKind: nil))
                     announced10m.insert(m.id)
                 }
+            }
+
+            // Bear-range cue: for bearLeft/bearRight, fire a single
+            // range-hold cue when the rider enters the segment. Latched
+            // per maneuver id — one cue total.
+            if let m = upcoming, let d = upcomingDistance,
+               Self.isBearKind(m.kind),
+               d <= Self.approach10M, !announced10m.contains(m.id) {
+                let upcomingIdx = snapshot.maneuvers.firstIndex(where: { $0.id == m.id }) ?? -1
+                let nextManeuver = (upcomingIdx >= 0 && upcomingIdx + 1 < snapshot.maneuvers.count)
+                    ? snapshot.maneuvers[upcomingIdx + 1] : nil
+                let rawSegmentLengthM = nextManeuver.map { $0.distanceFromStartM - m.distanceFromStartM }
+                    ?? (snapshot.routeTotalDistanceM - m.distanceFromStartM)
+                let segmentLengthM = min(rawSegmentLengthM, 500.0)
+                events.append(.bearRange(turnKind: m.kind, distanceM: segmentLengthM))
+                announced10m.insert(m.id)
             }
 
             s.announced50m = announced50m

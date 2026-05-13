@@ -15,7 +15,9 @@ final class PhoneGpsForwarderTests: XCTestCase {
         forwarder.stop()
 
         XCTAssertFalse(ble.phoneGpsWrites.isEmpty, "expected at least one forwarded phone GPS sample")
-        XCTAssertEqual(ble.phoneGpsWrites.last?.speed, 3.6, accuracy: 0.0001)
+        let lastSpeed = ble.phoneGpsWrites.last?.speed
+        XCTAssertNotNil(lastSpeed)
+        XCTAssertEqual(lastSpeed!, 3.6, accuracy: 0.0001)
     }
 
     func test_forwarder_zeroesSpeedWhenFixIsStale() async {
@@ -31,8 +33,10 @@ final class PhoneGpsForwarderTests: XCTestCase {
         forwarder.stop()
 
         XCTAssertFalse(ble.phoneGpsWrites.isEmpty, "expected forwarded phone GPS samples")
+        let staleSpeed = ble.phoneGpsWrites.last?.speed
+        XCTAssertNotNil(staleSpeed)
         XCTAssertEqual(
-            ble.phoneGpsWrites.last?.speed,
+            staleSpeed!,
             0.0,
             accuracy: 0.0001,
             "stale location fixes must not keep reporting stale moving speed"
