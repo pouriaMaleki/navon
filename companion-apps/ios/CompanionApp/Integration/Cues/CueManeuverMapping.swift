@@ -1,5 +1,9 @@
 import Foundation
 
+/// Threshold for promoting slightLeft/slightRight to bearLeft/bearRight
+/// based on actual route-geometry turn angle. Matches web's classifyTurn().
+let minorKeepPromotionAngleDeg = 25.0
+
 /// Single source of truth for "given a `RouteManeuverType`, what audio cue
 /// kind do we emit?" Returns `nil` for maneuver types that produce no cue
 /// at all — silence-by-design avoids on-route noise that doesn't match a

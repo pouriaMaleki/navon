@@ -9,6 +9,10 @@
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">Vous êtes arrivé à destination</string>
     <string name="cue_arrivingInM" formatted="false">Arrivée à destination dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_bearRange_bearLeft" formatted="false">Restez à gauche sur la prochaine distance de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_bearRange_bearRight" formatted="false">Restez à droite sur la prochaine distance de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_bearLeft" formatted="false">Restez à gauche dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_bearRight" formatted="false">Restez à droite dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">Prochain virage dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">Prochain virage à gauche dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">Prochaine fusion dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>

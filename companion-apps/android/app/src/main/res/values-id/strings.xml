@@ -9,6 +9,10 @@
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">Anda telah tiba di tujuan Anda</string>
     <string name="cue_arrivingInM" formatted="false">Tiba di tujuan Anda dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_bearRange_bearLeft" formatted="false">Ikuti ke kiri untuk {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} berikutnya</string>
+    <string name="cue_bearRange_bearRight" formatted="false">Ikuti ke kanan untuk {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} berikutnya</string>
+    <string name="cue_nextTurnInAbout_bearLeft" formatted="false">Ikuti ke kiri sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} lagi</string>
+    <string name="cue_nextTurnInAbout_bearRight" formatted="false">Ikuti ke kanan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} lagi</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">Belok berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">Belok kiri berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">Belok gabung berikutnya dalam sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>

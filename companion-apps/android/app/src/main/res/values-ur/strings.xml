@@ -9,6 +9,10 @@
     <string name="common_ok" formatted="false">ٹھیک ہے</string>
     <string name="cue_arrived" formatted="false">آپ اپنے منزل پر پہنچ گئے ہیں</string>
     <string name="cue_arrivingInM" formatted="false">آپ اپنی منزل پر {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں پہنچ رہے ہیں</string>
+    <string name="cue_bearRange_bearLeft" formatted="false">اگلے {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} کے لیے بائیں رہیں</string>
+    <string name="cue_bearRange_bearRight" formatted="false">اگلے {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} کے لیے دائیں رہیں</string>
+    <string name="cue_nextTurnInAbout_bearLeft" formatted="false">تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں رہیں</string>
+    <string name="cue_nextTurnInAbout_bearRight" formatted="false">تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں رہیں</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں اگلا موڑ</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں مڑیں گے</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں مرج کریں</string>

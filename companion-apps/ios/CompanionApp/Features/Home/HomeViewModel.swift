@@ -1495,11 +1495,24 @@ final class HomeViewModel: ObservableObject {
         // splits, .straight, .depart, .arrive).
         let cueManeuvers: [CueManeuver] = (guidanceRoute?.maneuvers ?? []).compactMap { m in
             CueManeuverMapping.kind(for: m.maneuverType).map { kind in
-                CueManeuver(
+                var isMinorKeep = m.maneuverType == .slightLeft || m.maneuverType == .slightRight
+                var resolvedKind = kind
+                if isMinorKeep, let geom = guidanceRoute?.geometry, geom.count >= 3 {
+                    let cumDist = cumulativeDistances(geom)
+                    if let idx = closestPointIndex(in: geom, to: m.location),
+                       idx > 0, idx < geom.count - 1 {
+                        let angle = abs(maneuverAngleDegrees(geom, cumDist, idx))
+                        if angle >= minorKeepPromotionAngleDeg {
+                            isMinorKeep = false
+                            resolvedKind = (kind == .left) ? .bearLeft : .bearRight
+                        }
+                    }
+                }
+                return CueManeuver(
                     id: m.id,
-                    kind: kind,
+                    kind: resolvedKind,
                     distanceFromStartM: m.distanceFromStartMeters,
-                    isMinorKeep: m.maneuverType == .slightLeft || m.maneuverType == .slightRight
+                    isMinorKeep: isMinorKeep
                 )
             }
         }

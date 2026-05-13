@@ -63,6 +63,54 @@
       "translatedAt": "2026-04-30T10:05:18Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "cue.bearRange.bearLeft": {
+      "value": "Pysy vasemmalla seuraavat {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue: follow/keep left along a gentle curve (NOT a sharp turn — use equivalent of 'keep left' or 'follow left', not 'turn left'). The rider stays on the same path; this is a bearing instruction, not a junction turn.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:9543b7cc895b1c85",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-12T22:15:27Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.bearRange.bearRight": {
+      "value": "Pysy oikealla seuraavat {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue: follow/keep right along a gentle curve (NOT a sharp turn — use equivalent of 'keep right' or 'follow right', not 'turn right'). The rider stays on the same path; this is a bearing instruction, not a junction turn.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:8e2b81828d07bcb8",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-12T22:15:27Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.nextTurnInAbout.bearLeft": {
+      "value": "Seuraa vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} päästä",
+      "description": "Voice cue: upcoming follow/keep left preview (NOT a turn — use equivalent of 'next keep left' or 'follow left ahead').",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:247c9ed59c72687d",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-12T22:15:27Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.nextTurnInAbout.bearRight": {
+      "value": "Seuraa oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} päästä",
+      "description": "Voice cue: upcoming follow/keep right preview (NOT a turn — use equivalent of 'next keep right' or 'follow right ahead').",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:6dbf019aa2d80464",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-12T22:15:27Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "cue.nextTurnInAbout.generic": {
       "value": "Seuraava käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
       "description": "Voice cue announcing a generic upcoming maneuver.",
@@ -76,7 +124,7 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.nextTurnInAbout.left": {
-      "value": "Käänny vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "value": "Seuraa vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
       "description": "Voice cue announcing the upcoming left turn distance ahead.",
       "placeholders": {
         "distance": "number",
@@ -112,7 +160,7 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.nextTurnInAbout.right": {
-      "value": "Käänny oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "value": "Seuraa oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
       "description": "Voice cue announcing the upcoming right turn distance ahead.",
       "placeholders": {
         "distance": "number",

@@ -16,6 +16,7 @@ import {
   tickCueEngine,
 } from "./CueEngine.js";
 import { shouldDispatchCues } from "./cueGating.js";
+import { cumulativeDistances, maneuverAngleDegrees } from "../geo.js";
 
 /**
  * Observable bridge over the Page Visibility API. The autorun below
@@ -172,14 +173,28 @@ export function buildRouteKey(
 function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnapshot {
   const guidance = store.guidanceStore;
   const route = guidance.guidanceRoute;
+  const geometry = route?.geometry;
+  const cumDist = geometry ? cumulativeDistances(geometry) : [];
   const maneuvers: CueManeuver[] = (route?.maneuvers ?? []).flatMap((m) => {
     const mapped = maneuverKindFromType(m.maneuverType);
     if (mapped === undefined) return [];
+    let { isMinorKeep } = mapped;
+    let { kind } = mapped;
+    if (isMinorKeep && geometry && cumDist.length > 0) {
+      const geomIdx = findClosestPointIndex(geometry, m.location);
+      if (geomIdx > 0 && geomIdx < geometry.length - 1) {
+        const angle = Math.abs(maneuverAngleDegrees(geometry, cumDist, geomIdx));
+        if (angle >= 25) {
+          isMinorKeep = false;
+          kind = kind === "left" ? "bearLeft" : "bearRight";
+        }
+      }
+    }
     return [{
       id: m.id,
-      kind: mapped.kind,
+      kind,
       distanceFromStartM: m.distanceFromStartMeters,
-      isMinorKeep: mapped.isMinorKeep,
+      isMinorKeep,
     }];
   });
   const routeTotalDistanceM = route?.summary.totalDistanceMeters ?? 0;

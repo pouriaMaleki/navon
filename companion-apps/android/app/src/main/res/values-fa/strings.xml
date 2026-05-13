@@ -9,6 +9,10 @@
     <string name="common_ok" formatted="false">باشه</string>
     <string name="cue_arrived" formatted="false">به مقصد رسیدید</string>
     <string name="cue_arrivingInM" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} به مقصد می‌رسید</string>
+    <string name="cue_bearRange_bearLeft" formatted="false">برای {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} بعدی به چپ برو</string>
+    <string name="cue_bearRange_bearRight" formatted="false">برای {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} بعدی به راست برو</string>
+    <string name="cue_nextTurnInAbout_bearLeft" formatted="false">حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} دیگر به چپ برو</string>
+    <string name="cue_nextTurnInAbout_bearRight" formatted="false">حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} دیگر به راست برو</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} نوبت بعدی</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} به چپ بپیچید</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">ادغام بعدی در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>

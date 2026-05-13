@@ -69,6 +69,54 @@
       "translatedAt": "2026-04-30T11:59:43Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "cue.bearRange.bearLeft": {
+      "value": "Ikuti ke kiri untuk {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} berikutnya",
+      "description": "Voice cue: follow/keep left along a gentle curve (NOT a sharp turn — use equivalent of 'keep left' or 'follow left', not 'turn left'). The rider stays on the same path; this is a bearing instruction, not a junction turn.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:9543b7cc895b1c85",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-12T22:15:33Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.bearRange.bearRight": {
+      "value": "Ikuti ke kanan untuk {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} berikutnya",
+      "description": "Voice cue: follow/keep right along a gentle curve (NOT a sharp turn — use equivalent of 'keep right' or 'follow right', not 'turn right'). The rider stays on the same path; this is a bearing instruction, not a junction turn.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:8e2b81828d07bcb8",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-12T22:15:33Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.nextTurnInAbout.bearLeft": {
+      "value": "Ikuti ke kiri sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} lagi",
+      "description": "Voice cue: upcoming follow/keep left preview (NOT a turn — use equivalent of 'next keep left' or 'follow left ahead').",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:247c9ed59c72687d",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-12T22:15:33Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.nextTurnInAbout.bearRight": {
+      "value": "Ikuti ke kanan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} lagi",
+      "description": "Voice cue: upcoming follow/keep right preview (NOT a turn — use equivalent of 'next keep right' or 'follow right ahead').",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:6dbf019aa2d80464",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-12T22:15:33Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "cue.nextTurnInAbout.generic": {
       "value": "Belok berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
       "description": "Voice cue announcing a generic upcoming maneuver.",

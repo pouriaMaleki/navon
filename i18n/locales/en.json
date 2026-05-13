@@ -43,6 +43,38 @@
         "distanceUnit": "select"
       }
     },
+    "cue.bearRange.bearLeft": {
+      "value": "Bear left for the next {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue: follow/keep left along a gentle curve (NOT a sharp turn — use equivalent of 'keep left' or 'follow left', not 'turn left'). The rider stays on the same path; this is a bearing instruction, not a junction turn.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.bearRange.bearRight": {
+      "value": "Bear right for the next {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue: follow/keep right along a gentle curve (NOT a sharp turn — use equivalent of 'keep right' or 'follow right', not 'turn right'). The rider stays on the same path; this is a bearing instruction, not a junction turn.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.nextTurnInAbout.bearLeft": {
+      "value": "Next bear left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue: upcoming follow/keep left preview (NOT a turn — use equivalent of 'next keep left' or 'follow left ahead').",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.nextTurnInAbout.bearRight": {
+      "value": "Next bear right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "description": "Voice cue: upcoming follow/keep right preview (NOT a turn — use equivalent of 'next keep right' or 'follow right ahead').",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
     "cue.nextTurnInAbout.generic": {
       "value": "Next turn ahead in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
       "description": "Voice cue announcing a generic upcoming maneuver.",

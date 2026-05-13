@@ -223,7 +223,7 @@ describe("CueEngine — existing approach + arrival cues unchanged", () => {
     expect((next as { distanceM: number }).distanceM).toBeCloseTo(189, 0);
   });
 
-  it("suppresses nextTurnInAbout for keep-right when it is too close after previous turn", () => {
+  it("suppresses all cues for keep-right (minor keeps never speak)", () => {
     const maneuvers: CueManeuver[] = [
       M_LEFT("m1", 200),
       M_SLIGHT_RIGHT("m2", 230),
@@ -231,22 +231,20 @@ describe("CueEngine — existing approach + arrival cues unchanged", () => {
     const t1 = tick(initialCueEngineState(), baseSnapshot({ maneuvers, progressDistanceM: 100 }));
     const t2 = tick(t1.next, baseSnapshot({ maneuvers, progressDistanceM: 211 }));
     expect(t2.events.find((e) => e.kind === "nextTurnInAbout")).toBeUndefined();
-    expect(t2.events.find((e) => e.kind === "turn50m")).toBeDefined();
+    expect(t2.events.find((e) => e.kind === "turn50m")).toBeUndefined();
   });
 
-  it("allows nextTurnInAbout for keep-left when it is far enough to be useful", () => {
+  it("suppresses nextTurnInAbout for minor-keep at any distance", () => {
     const maneuvers: CueManeuver[] = [
       M_LEFT("m1", 200),
       M_SLIGHT_LEFT("m2", 360),
     ];
     const t1 = tick(initialCueEngineState(), baseSnapshot({ maneuvers, progressDistanceM: 100 }));
     const t2 = tick(t1.next, baseSnapshot({ maneuvers, progressDistanceM: 211 }));
-    const next = t2.events.find((e) => e.kind === "nextTurnInAbout");
-    expect(next).toBeDefined();
-    expect((next as { distanceM: number }).distanceM).toBeCloseTo(149, 0);
+    expect(t2.events.find((e) => e.kind === "nextTurnInAbout")).toBeUndefined();
   });
 
-  it("quick keep+turn sequence prefers combined action cue over nextTurnInAbout chatter", () => {
+  it("suppresses combined cue when the first in pair is minor keep", () => {
     const maneuvers: CueManeuver[] = [
       M_LEFT("m1", 200),
       M_SLIGHT_RIGHT("m2", 230),
@@ -255,10 +253,7 @@ describe("CueEngine — existing approach + arrival cues unchanged", () => {
     const t1 = tick(initialCueEngineState(), baseSnapshot({ maneuvers, progressDistanceM: 100 }));
     const t2 = tick(t1.next, baseSnapshot({ maneuvers, progressDistanceM: 211 }));
     expect(t2.events.find((e) => e.kind === "nextTurnInAbout")).toBeUndefined();
-    const combined = t2.events.find(
-      (e) => e.kind === "turn50m" && (e as { followUpKind?: string }).followUpKind !== undefined,
-    );
-    expect(combined).toBeDefined();
+    expect(t2.events.find((e) => e.kind === "turn50m")).toBeUndefined();
   });
 
   it("emits 'arriving at your destination in X meters' past the last maneuver when no more maneuvers follow", () => {
@@ -543,24 +538,24 @@ describe("CueEngine — minor keep cue policy", () => {
     expect(t2.events.find((e) => e.kind === "turn50m")).toBeUndefined();
   });
 
-  it("promotes minor keep near split distance", () => {
+  it("never promotes minor keep (always suppressed regardless of distance)", () => {
     const route = baseSnapshot({
       maneuvers: [M_SLIGHT_RIGHT("m1", 230)],
       progressDistanceM: 180,
     });
     const t1 = tick(initialCueEngineState(), route);
     const t2 = tick(t1.next, { ...route, progressDistanceM: 215 }); // 15m
-    expect(t2.events.find((e) => e.kind === "turn10m")).toBeDefined();
+    expect(t2.events.find((e) => e.kind === "turn10m")).toBeUndefined();
   });
 
-  it("allows one urgency escalation at <=15m when cooldown blocks a repeated keep cue", () => {
+  it("never urgency-escalates minor keep (always suppressed)", () => {
     const route = baseSnapshot({
       maneuvers: [M_SLIGHT_LEFT("m1", 210)],
       progressDistanceM: 180,
     });
     const t1 = tick(initialCueEngineState(), route); // first tick
-    const t2 = tick(t1.next, { ...route, progressDistanceM: 195 }); // 15m, urgency
-    expect(t2.events.find((e) => e.kind === "turn10m")).toBeDefined();
+    const t2 = tick(t1.next, { ...route, progressDistanceM: 195 }); // 15m
+    expect(t2.events.find((e) => e.kind === "turn10m")).toBeUndefined();
   });
 });
 

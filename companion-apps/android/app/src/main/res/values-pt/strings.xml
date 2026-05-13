@@ -9,6 +9,10 @@
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">Você chegou ao seu destino</string>
     <string name="cue_arrivingInM" formatted="false">Chegando ao seu destino em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_bearRange_bearLeft" formatted="false">Mantenha-se à esquerda pelos próximos {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_bearRange_bearRight" formatted="false">Mantenha-se à direita pelos próximos {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_bearLeft" formatted="false">Mantenha-se à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_bearRight" formatted="false">Mantenha-se à direita em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">Próxima curva em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">Próxima curva à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">Próxima conversão à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>

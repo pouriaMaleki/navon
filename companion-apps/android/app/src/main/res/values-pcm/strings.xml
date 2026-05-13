@@ -9,6 +9,10 @@
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">Wetin you reach your destination</string>
     <string name="cue_arrivingInM" formatted="false">You go reach your destination for {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_bearRange_bearLeft" formatted="false">Kíyè̀kíyẹ̀ sí òsì fún ìgbà tó ń bọ̀ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_bearRange_bearRight" formatted="false">Kíyè̀kíyẹ̀ sí ọ̀tún fún ìgbà tó ń bọ̀ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_bearLeft" formatted="false">Tẹ̀lé/duro sí òsì lẹ́yìn ìgbà díẹ̀, ní {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_bearRight" formatted="false">Tẹ̀lé/duro sí ọ̀tún lẹ́yìn ìgbà díẹ̀, ní {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">Next turn for ahead for like {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">Turn left for ahead for like {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">Next merge for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>

@@ -52,6 +52,80 @@ export function turnDeltaDegrees(
 
 export type ClassifiedTurn = { type: RouteManeuverType; instruction: string };
 
+/** Distance to walk along the polyline for incoming/outgoing bearing at a
+ *  maneuver point. 10 m is enough to see the junction entry/exit angle
+ *  without blurring it with the approach curve. */
+const MANEUVER_ANGLE_LOOK_DISTANCE_M = 10;
+
+/** Find the index of the polyline point closest to a target coordinate. */
+export function findClosestPointIndex(
+  geometry: CoordinatePoint[],
+  target: CoordinatePoint,
+): number {
+  if (geometry.length === 0) return 0;
+  let best = 0;
+  let bestDistSq = Infinity;
+  for (let i = 0; i < geometry.length; i++) {
+    const dlat = geometry[i].latitude - target.latitude;
+    const dlon = geometry[i].longitude - target.longitude;
+    const distSq = dlat * dlat + dlon * dlon;
+    if (distSq < bestDistSq) {
+      bestDistSq = distSq;
+      best = i;
+    }
+  }
+  return best;
+}
+
+export function walkAlongPolyline(
+  geometry: CoordinatePoint[],
+  cumulative: number[],
+  startIndex: number,
+  distanceM: number,
+  direction: "backward" | "forward",
+): CoordinatePoint {
+  let remaining = distanceM;
+  let idx = startIndex;
+  while (remaining > 1e-6 && idx > 0 && idx < geometry.length - 1) {
+    const nextIdx = direction === "backward" ? idx - 1 : idx + 1;
+    if (nextIdx < 0 || nextIdx >= geometry.length) break;
+    const segLen =
+      direction === "backward"
+        ? cumulative[idx] - cumulative[nextIdx]
+        : cumulative[nextIdx] - cumulative[idx];
+    if (segLen <= 1e-9) {
+      idx = nextIdx;
+      continue;
+    }
+    if (remaining >= segLen) {
+      remaining -= segLen;
+      idx = nextIdx;
+    } else {
+      const t = direction === "backward" ? remaining / segLen : remaining / segLen;
+      const from = direction === "backward" ? geometry[idx] : geometry[idx];
+      const to = direction === "backward" ? geometry[nextIdx] : geometry[nextIdx];
+      return {
+        latitude: from.latitude + (to.latitude - from.latitude) * t,
+        longitude: from.longitude + (to.longitude - from.longitude) * t,
+      };
+    }
+  }
+  return geometry[idx];
+}
+
+/** Compute the turn angle at a maneuver location using points ~10m before
+ *  and after on the geometry. Positive = right turn, negative = left turn. */
+export function maneuverAngleDegrees(
+  geometry: CoordinatePoint[],
+  cumulative: number[],
+  maneuverIndex: number,
+): number {
+  const maneuverPoint = geometry[maneuverIndex];
+  const behind = walkAlongPolyline(geometry, cumulative, maneuverIndex, MANEUVER_ANGLE_LOOK_DISTANCE_M, "backward");
+  const ahead = walkAlongPolyline(geometry, cumulative, maneuverIndex, MANEUVER_ANGLE_LOOK_DISTANCE_M, "forward");
+  return turnDeltaDegrees(behind, maneuverPoint, ahead);
+}
+
 export function classifyTurn(deltaDegrees: number): ClassifiedTurn | null {
   const magnitude = Math.abs(deltaDegrees);
   if (magnitude < 25) return null;

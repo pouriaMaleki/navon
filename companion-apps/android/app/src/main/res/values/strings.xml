@@ -9,6 +9,10 @@
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">You have arrived at your destination</string>
     <string name="cue_arrivingInM" formatted="false">Arriving at your destination in {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_bearRange_bearLeft" formatted="false">Bear left for the next {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_bearRange_bearRight" formatted="false">Bear right for the next {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_bearLeft" formatted="false">Next bear left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_bearRight" formatted="false">Next bear right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">Next turn ahead in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">Next turn left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">Next merge in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>

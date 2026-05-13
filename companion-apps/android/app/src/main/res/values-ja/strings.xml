@@ -9,6 +9,10 @@
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">目的地に到着しました</string>
     <string name="cue_arrivingInM" formatted="false">目的地まで{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です</string>
+    <string name="cue_bearRange_bearLeft" formatted="false">次の{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}先は左に進んでください</string>
+    <string name="cue_bearRange_bearRight" formatted="false">次の{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}先は右に進んでください</string>
+    <string name="cue_nextTurnInAbout_bearLeft" formatted="false">約{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}先、左に進んでください</string>
+    <string name="cue_nextTurnInAbout_bearRight" formatted="false">約{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}先、右に進んでください</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">次の案内まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">次の左折まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で合流します</string>
