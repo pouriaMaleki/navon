@@ -23,7 +23,7 @@ esp_err_t hosted_ble_init(void)
     }
 
     // Bring up the SDIO transport to the ESP32-C6. esp_hosted negotiates
-    // the slave's capabilities (BT + Wi-Fi) and starts the rx/tx threads
+    // the co-processor's capabilities (BT + Wi-Fi) and starts the rx/tx threads
     // on the host side. Idempotent within esp_hosted itself, but we still
     // gate with `s_initialized` so repeated callers don't spin up extra
     // tasks.
@@ -34,16 +34,16 @@ esp_err_t hosted_ble_init(void)
     }
 
     // The "controller" on a hosted host is a thin RPC shim that asks the
-    // C6 to set up its BT subsystem. Older slave firmware (e.g. the
+    // C6 to set up its BT subsystem. Older co-processor firmware (e.g. the
     // v0.0.6 image Espressif and Waveshare pre-flash on dev kits) doesn't
     // implement the `Req_FeatureControl` RPC this maps to, but those
-    // slaves still boot BT automatically. Espressif's own
+    // they still boot BT automatically. Espressif's own
     // `host_bluedroid_host_only` reference treats both calls as advisory
     // (logs a warning and continues) — we mirror that so the HCI bridge
-    // below comes up cleanly against any slave version.
+    // below comes up cleanly against any co-processor version.
     err = esp_hosted_bt_controller_init();
     if (err != ESP_OK) {
-        ESP_LOGW(TAG, "esp_hosted_bt_controller_init returned %s — slave BT is "
+        ESP_LOGW(TAG, "esp_hosted_bt_controller_init returned %s — co-processor BT is "
                       "expected to be self-starting; continuing with HCI bridge",
                  esp_err_to_name(err));
     }
@@ -96,8 +96,8 @@ esp_err_t hosted_ble_init(void)
     // exchange has been failing with `auth_cmpl rsn 99` — Legacy
     // Just Works only needs key transport, which is more tolerant
     // of controller-firmware version skew. Once SMP is verified to
-    // work end-to-end against the matching slave (cargo xtask
-    // build-c6-slave), we can promote back to SC.
+    // work end-to-end against the matching co-processor (cargo xtask
+    // build-c6-coproc), we can promote back to SC.
     esp_ble_auth_req_t auth_req = ESP_LE_AUTH_BOND;
     esp_ble_io_cap_t iocap = ESP_IO_CAP_NONE;
     uint8_t key_size = 16;

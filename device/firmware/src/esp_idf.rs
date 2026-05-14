@@ -1007,7 +1007,7 @@ pub fn run_device_main() -> Result<(), String> {
     // characteristic, and subscribe to status / reroute notifications on
     // the event characteristic. See `docs/ble-route-sync-contract.md`.
     //
-    // If the C6 isn't running matching esp_hosted slave firmware,
+    // If the C6 isn't running matching esp_hosted co-processor firmware,
     // `start_or_fallback` logs a warning and returns an `Inactive`
     // transport; the runtime keeps rendering / GPS / touch alive while
     // BLE stays offline.

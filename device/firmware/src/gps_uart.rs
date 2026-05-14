@@ -13,7 +13,7 @@
 //! | 23      | GT911 touch controller reset                    |
 //! | 26, 27  | Panel backlight + JD9365 reset                  |
 //! | 39–44   | microSD slot (also CSI camera pads)             |
-//! | 54      | ESP32-C6 reset (`Slave_Reset` in esp_hosted)    |
+//! | 54      | ESP32-C6 reset (co-processor reset; named `Slave_Reset` in upstream esp_hosted)    |
 //!
 //! The standard Raspberry-Pi UART convention (header pin 8 = GPIO14 = TX,
 //! pin 10 = GPIO15 = RX) **does not work on this board**: GPIO14/15 are

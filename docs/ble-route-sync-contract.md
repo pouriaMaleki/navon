@@ -77,8 +77,8 @@ Characteristics:
 The host requests **Legacy Pairing + Bonding** (`ESP_LE_AUTH_REQ_BOND`),
 not LE Secure Connections. Legacy Just Works only needs key transport,
 which is more tolerant of controller-firmware version skew than SC's
-ECDH key agreement. Once the C6 slave is on a matching `network_adapter`
-build (`cargo xtask build-c6-slave`) and SC is verified end-to-end,
+ECDH key agreement. Once the C6 co-processor is on a matching `network_adapter`
+build (`cargo xtask build-c6-coproc`) and SC is verified end-to-end,
 this can be promoted to `ESP_LE_AUTH_REQ_SC_BOND`.
 
 ### SMP event sequence
@@ -234,8 +234,8 @@ Implemented for security:
   (`CONFIG_BT_BLE_SMP_ENABLE=y`,
   `CONFIG_BT_BLE_SMP_BOND_NVS_FLASH=y`). LE Secure Connections (SC)
   was attempted first but failed against the current C6 hosted-HCI
-  slave (`auth_cmpl rsn 99`); we use Legacy as the more compatible
-  variant until SC is verified against a matching slave.
+  co-processor (`auth_cmpl rsn 99`); we use Legacy as the more compatible
+  variant until SC is verified against a matching co-processor.
 - Bluedroid SMP-event handlers (`AUTH_CMPL_EVT`, `KEY_EVT`,
   `SEC_REQ_EVT`, `NC_REQ_EVT`) wired in
   `hosted_ble_route_sync.c::gap_event_handler` and bridged into Rust
@@ -276,35 +276,35 @@ Remaining implementation work:
 
 Legacy BLE advertising is capped at 31 bytes per packet, so the route-sync service splits its identifying data across two packets:
 
-- **Main advertising packet** — flags (3 bytes) + the 128-bit service UUID (18 bytes). Nothing else: the device name, appearance, and connection-interval-range fields are deliberately omitted. With the 18-byte UUID + 3-byte flags + IDF's internal accounting overhead, even one extra optional field (the 6-byte Slave Connection Interval Range) was enough to push the packet over 31 bytes, at which point Bluedroid silently drops the trailing AD entries — typically the 128-bit UUID itself, which is the exact field iOS / Android filter on while scanning.
+- **Main advertising packet** — flags (3 bytes) + the 128-bit service UUID (18 bytes). Nothing else: the device name, appearance, and connection-interval-range fields are deliberately omitted. With the 18-byte UUID + 3-byte flags + IDF's internal accounting overhead, even one extra optional field (the 6-byte BLE "Slave Connection Interval Range" AD type) was enough to push the packet over 31 bytes, at which point Bluedroid silently drops the trailing AD entries — typically the 128-bit UUID itself, which is the exact field iOS / Android filter on while scanning.
 - **Scan response** — device name (`Navon`, 5 bytes) + appearance (4 bytes, `0x0480` "generic cycling"). Returned only when the central does an active scan, so there's no cost to including it.
 
 The iOS / Android companions filter scan results by the 128-bit service UUID. Make sure that field stays in the *main* packet across any future advertising changes; if you add another field there, recount the bytes.
 
 ## Interrupt watchdog
 
-`CONFIG_ESP_INT_WDT_TIMEOUT_MS` is set to **1000 ms** (versus IDF's 300 ms default) on this build. Once the hosted-BLE stack is running, the v2.x host periodically retries the `Req_FeatureControl` RPC against the older v0.0.6 C6 slave; the synchronous wait holds the BTM task long enough that legacy-I2C touch polling stalls IRQ servicing past the 300 ms threshold and HP_WDT trips. 1 s is enough headroom to absorb the worst observed stalls without disabling the watchdog entirely; once the C6 slave is upgraded (or the failing RPC is stubbed at the host) we can tighten this back down.
+`CONFIG_ESP_INT_WDT_TIMEOUT_MS` is set to **1000 ms** (versus IDF's 300 ms default) on this build. Once the hosted-BLE stack is running, the v2.x host periodically retries the `Req_FeatureControl` RPC against the older v0.0.6 C6 co-processor; the synchronous wait holds the BTM task long enough that legacy-I2C touch polling stalls IRQ servicing past the 300 ms threshold and HP_WDT trips. 1 s is enough headroom to absorb the worst observed stalls without disabling the watchdog entirely; once the C6 co-processor is upgraded (or the failing RPC is stubbed at the host) we can tighten this back down.
 
-## ESP32-C6 slave firmware
+## ESP32-C6 co-processor firmware
 
-Espressif and Waveshare pre-flash the on-board C6 with the `esp_hosted` slave (typically `v0.0.6` on the 3.4C). That older firmware doesn't implement the `Req_FeatureControl` RPC the v2.x host stack issues, but it does auto-start BT on boot. We treat the controller-init/enable RPCs as advisory (matching Espressif's `host_bluedroid_host_only` reference), so BLE comes up against the pre-flashed slave anyway. You'll see this in the serial log:
+Espressif and Waveshare pre-flash the on-board C6 with the `esp_hosted` co-processor (typically `v0.0.6` on the 3.4C). That older firmware doesn't implement the `Req_FeatureControl` RPC the v2.x host stack issues, but it does auto-start BT on boot. We treat the controller-init/enable RPCs as advisory (matching Espressif's `host_bluedroid_host_only` reference), so BLE comes up against the pre-flashed co-processor anyway. You'll see this in the serial log:
 
 ```
 W (...) transport: Version mismatch: Host [2.x.x] > Co-proc [0.0.0]
-W (...) hosted_ble: esp_hosted_bt_controller_init returned ESP_FAIL — slave BT is expected to be self-starting; continuing with HCI bridge
+W (...) hosted_ble: esp_hosted_bt_controller_init returned ESP_FAIL — co-processor BT is expected to be self-starting; continuing with HCI bridge
 I (...) hosted_ble: BLE host stack online via ESP32-C6 over hosted SDIO
 I (...) firmware::hosted_ble: hosted-ble: route-sync GATT server online
 ```
 
-That's the expected steady state — no slave reflash required. If the version mismatch ever turns into a real incompatibility (HCI-bridge symptoms, missed advertisements, broken connections), the upgrade path below builds and flashes the matching slave image:
+That's the expected steady state — no co-processor reflash required. If the version mismatch ever turns into a real incompatibility (HCI-bridge symptoms, missed advertisements, broken connections), the upgrade path below builds and flashes the matching co-processor image:
 
-1. Build the slave image (after at least one `cargo xtask bundle-device` run, which unpacks the `esp_hosted` managed component):
+1. Build the co-processor image (after at least one `cargo xtask bundle-device` run, which unpacks the `esp_hosted` managed component):
    ```
-   cargo xtask build-c6-slave
+   cargo xtask build-c6-coproc
    ```
-   This produces `.xtask/c6-slave/c6-slave-merged.bin` — a single bootloader + partition-table + app image flashable at offset 0x0.
+   This produces `.xtask/c6-coproc/c6-coproc-merged.bin` — a single bootloader + partition-table + app image flashable at offset 0x0.
 2. Flash to the C6 over its UART. The C6 is **not** reachable over the same USB-JTAG port that flashes the P4 — the Waveshare 3.4C exposes the C6's UART on a separate connector / pad set (see the kit's schematic). Once that port shows up on your host:
    ```
-   espflash write-bin --chip esp32c6 --port <C6-PORT> 0x0 c6-slave-merged.bin
+   espflash write-bin --chip esp32c6 --port <C6-PORT> 0x0 c6-coproc-merged.bin
    ```
-3. Power-cycle the board. The next P4 boot should print `H_API: Transport active`, `Identified slave [esp32c6]`, and `Host BT Support: Enabled` without the version-mismatch warning, and `hosted-ble: route-sync GATT server online` from our wrapper.
+3. Power-cycle the board. The next P4 boot should print `H_API: Transport active`, `Identified co-processor [esp32c6]`, and `Host BT Support: Enabled` without the version-mismatch warning, and `hosted-ble: route-sync GATT server online` from our wrapper.

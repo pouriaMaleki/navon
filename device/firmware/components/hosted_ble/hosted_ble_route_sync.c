@@ -119,7 +119,7 @@ static bool s_scan_rsp_set;
 // appearance go in the scan response below — splitting them keeps both
 // payloads under the 31-byte legacy-adv budget. We deliberately leave
 // `min_interval` / `max_interval` at 0 so Bluedroid does NOT add a
-// "Slave Connection Interval Range" AD field; with the 18-byte 128-bit
+// BLE "Slave Connection Interval Range" AD field; with the 18-byte 128-bit
 // UUID + 3-byte flags, that range field's 6 bytes plus IDF's internal
 // overhead pushed the main adv over 31 bytes and the 128-bit UUID was
 // being dropped, which prevents iOS / Android scanners from finding us

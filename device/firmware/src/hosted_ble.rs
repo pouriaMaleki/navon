@@ -20,11 +20,11 @@
 //!
 //! `hosted_ble_init` will fail (most commonly with `ESP_FAIL` or an RPC
 //! timeout) when the on-board ESP32-C6 is running stock factory firmware
-//! instead of the matching `esp_hosted` slave image. We treat that as a
+//! instead of the matching `esp_hosted` co-processor image. We treat that as a
 //! soft failure: the device boots and runs the rendering / GPS / touch
 //! stack as usual, BLE stays offline, and the runtime sees a no-op
 //! `RouteSyncIo`. This keeps the rest of the device usable while the user
-//! flashes the C6 — see `docs/ble-route-sync-contract.md` for the slave
+//! flashes the C6 — see `docs/ble-route-sync-contract.md` for the co-processor
 //! firmware bring-up steps.
 
 use std::collections::VecDeque;
@@ -164,7 +164,7 @@ pub fn set_adv_filter_policy(whitelist_only: bool, peer_addr: &[u8; 6], addr_typ
 /// * `Active` — `hosted_ble_route_sync_start` returned `ESP_OK`; the GATT
 ///   service is advertising and chunk writes flow through.
 /// * `Inactive` — bring-up failed (typically because the on-board C6
-///   isn't running matching `esp_hosted` slave firmware). The runtime
+///   isn't running matching `esp_hosted` co-processor firmware). The runtime
 ///   sees a no-op transport so the rest of the device keeps working.
 ///
 /// Drop is intentionally a no-op — when active, the BLE stack stays up
@@ -208,7 +208,7 @@ impl HostedBleRouteSyncIo {
             log::warn!(
                 "hosted-ble: bring-up failed (err={err:#x}); device runs without BLE. \
                  Most common cause: the on-board ESP32-C6 isn't running matching \
-                 esp_hosted slave firmware. Flash it from \
+                 esp_hosted co-processor firmware. Flash it from \
                  `<build>/managed_components/espressif__esp_hosted/slave/` — see \
                  docs/ble-route-sync-contract.md for steps."
             );

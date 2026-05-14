@@ -104,7 +104,7 @@ fn install_legacy_master(sda_gpio: i32, scl_gpio: i32) -> Result<(), EspIdfError
         )));
     }
     // `i2c_driver_install(port, mode, 0, 0, 0)` — master needs no rx/tx
-    // buffer allocations (slave only), zero intr_alloc_flags is fine.
+    // buffer allocations (target only), zero intr_alloc_flags is fine.
     let status = unsafe { i2c_driver_install(port, i2c_mode_t_I2C_MODE_MASTER, 0, 0, 0) };
     if status == sys::ESP_ERR_INVALID_STATE as esp_err_t {
         // Driver already installed by someone else — reuse it.
@@ -126,7 +126,7 @@ fn probe_addr(addr: u8) -> bool {
             i2c_cmd_link_delete(cmd);
             return false;
         }
-        // (addr << 1) | 0 == 7-bit address + WRITE bit. If the slave ACKs
+        // (addr << 1) | 0 == 7-bit address + WRITE bit. If the target ACKs
         // we stop immediately — we only care about presence, not data.
         if i2c_master_write_byte(cmd, (addr << 1) | 0, true) != sys::ESP_OK as esp_err_t {
             i2c_cmd_link_delete(cmd);
