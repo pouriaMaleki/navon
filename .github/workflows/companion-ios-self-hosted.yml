@@ -189,7 +189,7 @@ jobs:
       - name: Upload signed IPA
         uses: actions/upload-artifact@v6
         with:
-          name: companion-apps/ios-signed-ipa
+          name: companion-apps-ios-signed-ipa
           path: |
             companion-apps/ios/build/export/*.ipa
             companion-apps/ios/build/export/*.plist
@@ -198,6 +198,6 @@ jobs:
       - name: Upload xcarchive
         uses: actions/upload-artifact@v6
         with:
-          name: companion-apps/ios-xcarchive
+          name: companion-apps-ios-xcarchive
           path: companion-apps/ios/build/Navon.xcarchive
           if-no-files-found: error
