@@ -13,6 +13,11 @@ export const DebuggerView = observer(({ store }: Props) => {
   const dStore = store.debuggerStore;
   const [importError, setImportError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mapPopup, setMapPopup] = useState<{
+    content: string;
+    lngLat: { lat: number; lng: number };
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileImport = useCallback(
@@ -203,11 +208,38 @@ export const DebuggerView = observer(({ store }: Props) => {
       {/* 3-panel body */}
       <div className="debugger-view__body">
         <div className="debugger-view__map">
-          <DebuggerMapSurface store={store} />
+          <DebuggerMapSurface store={store} onPopupOpen={setMapPopup} />
         </div>
-        <div className="debugger-view__sidebar">
-          <DebuggerEventPanel store={store} />
+
+        {mapPopup && (
+          <div className="debugger-view__popup-bar">
+            <div
+              className="debugger-view__popup-content"
+              dangerouslySetInnerHTML={{ __html: mapPopup.content }}
+            />
+            <button
+              type="button"
+              className="debugger-view__popup-close"
+              onClick={() => setMapPopup(null)}
+            >
+              &times;
+            </button>
+          </div>
+        )}
+
+        <div className={`debugger-view__sidebar${!sidebarOpen ? " debugger-view__sidebar--closed" : ""}`}>
+          <DebuggerEventPanel store={store} onCloseSidebar={() => setSidebarOpen(false)} />
         </div>
+        {!sidebarOpen && (
+          <button
+            type="button"
+            className="debugger-view__sidebar-toggle"
+            onClick={() => setSidebarOpen(true)}
+            title="Show sidebar"
+          >
+            <SidebarToggleIcon />
+          </button>
+        )}
       </div>
 
       {/* Annotation form overlay */}
@@ -230,6 +262,14 @@ export const DebuggerView = observer(({ store }: Props) => {
     </div>
   );
 });
+
+function SidebarToggleIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M6 4l4 4-4 4" />
+    </svg>
+  );
+}
 
 function parseGpx(content: string): { latitude: number; longitude: number }[] {
   const points: { latitude: number; longitude: number }[] = [];

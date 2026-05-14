@@ -544,6 +544,9 @@ textarea {
   flex-direction: column;
   background: var(--bg);
   z-index: 20;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
 }
 
 .debugger-view__drop-overlay {
@@ -623,11 +626,91 @@ textarea {
   flex: 1;
   position: relative;
   min-width: 0;
+  touch-action: pan-x pan-y;
 }
 
 .debugger-map-surface {
   position: absolute;
   inset: 0;
+  touch-action: pan-x pan-y;
+}
+
+/* MapLibre popup theme overrides for debugger dark theme */
+.debugger-view .maplibregl-popup-content {
+  background: var(--bg-elev);
+  color: var(--fg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+}
+.debugger-view .maplibregl-popup-tip {
+  border-top-color: var(--bg-elev) !important;
+}
+.debugger-view .maplibregl-popup-close-button {
+  color: var(--fg-faint);
+  font-size: 18px;
+  padding: 2px 6px;
+}
+.debugger-view .maplibregl-popup-close-button:hover {
+  color: var(--fg);
+  background: transparent;
+}
+.debugger-view .maplibregl-popup-content strong {
+  color: var(--fg);
+  font-weight: 700;
+}
+.debugger-view .maplibregl-popup-content code {
+  color: var(--accent-blue);
+  background: rgba(18, 163, 163, 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: monospace;
+}
+
+/* Custom popup bar pinned to top of body area */
+.debugger-view__popup-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--card-border);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.debugger-view__popup-content {
+  flex: 1;
+  font-size: 13px;
+  color: var(--fg);
+  min-width: 0;
+}
+.debugger-view__popup-content strong {
+  color: var(--fg);
+}
+.debugger-view__popup-content code {
+  color: var(--accent-blue);
+  background: rgba(18,163,163,0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+.debugger-view__popup-close {
+  padding: 4px 8px;
+  font-size: 18px;
+  color: var(--fg-faint);
+  line-height: 1;
+  flex-shrink: 0;
+}
+.debugger-view__popup-close:hover {
+  color: var(--fg);
 }
 
 .debugger-view__sidebar {
@@ -638,14 +721,49 @@ textarea {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: width 0.2s ease, opacity 0.2s ease;
+}
+
+.debugger-view__sidebar--closed {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  border-left: none;
+}
+
+.debugger-view__sidebar-toggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
+  width: 28px;
+  height: 48px;
+  border-radius: 8px 0 0 8px;
+  background: var(--bg-elev);
+  border: 1px solid var(--card-border);
+  border-right: none;
+  color: var(--fg-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.debugger-view__sidebar-toggle:hover {
+  color: var(--fg);
+  background: rgba(255,255,255,0.05);
 }
 
 .debugger-view__annotation-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 35;
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+  pointer-events: none;
 }
 
 .debugger-view__timeline {
@@ -754,6 +872,17 @@ textarea {
   display: flex;
   border-bottom: 1px solid var(--card-border);
   flex-shrink: 0;
+}
+
+.debugger-panel__close-btn {
+  margin-left: auto;
+  padding: 4px 12px;
+  font-size: 18px;
+  color: var(--fg-faint);
+  line-height: 1;
+}
+.debugger-panel__close-btn:hover {
+  color: var(--fg);
 }
 
 .debugger-panel__tab {
@@ -972,7 +1101,14 @@ textarea {
   border-radius: 14px;
   padding: 20px;
   width: 360px;
+  max-width: 480px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  pointer-events: auto;
+}
+.debugger-annotation-form input,
+.debugger-annotation-form textarea {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 .debugger-annotation-form__header {
@@ -1054,6 +1190,60 @@ textarea {
   color: #0c1320;
 }
 .debugger-annotation-form__btn--save:hover { opacity: 0.9; }
+
+/* ── Map follow-lock button ──────────────────────────────── */
+
+.debugger-map-surface__follow-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--bg-elev);
+  border: 1px solid var(--card-border);
+  color: var(--fg-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.debugger-map-surface__follow-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--fg);
+}
+.debugger-map-surface__follow-btn--active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(215,255,63,0.1);
+}
+
+/* ── Mobile responsive overrides ────────────────────────── */
+
+@media (max-width: 767px) {
+  .debugger-view__body {
+    position: relative;
+  }
+  .debugger-view__sidebar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(340px, 85vw);
+    z-index: 25;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.4);
+  }
+  .debugger-view__sidebar--closed {
+    width: 0;
+    box-shadow: none;
+  }
+  .debugger-annotation-form {
+    max-width: 100%;
+    border-radius: 14px 14px 0 0;
+  }
+}
 
 /* ── Timeline ───────────────────────────────────────────── */
 

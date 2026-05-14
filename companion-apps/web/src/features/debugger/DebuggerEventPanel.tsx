@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { RootStore } from "../../app/RootStore.js";
 import {
   type AnnotationTag,
@@ -8,7 +8,7 @@ import {
 } from "../../domain/debuggerModels.js";
 import type { RoutingDiagEvent } from "../../domain/routingDiagnosticsModels.js";
 
-type Props = { store: RootStore };
+type Props = { store: RootStore; onCloseSidebar?: () => void };
 type PanelTab = "events" | "annotations" | "export";
 
 const EVENT_KIND_LABELS: Record<string, string> = {
@@ -27,12 +27,35 @@ const EVENT_KIND_LABELS: Record<string, string> = {
   exploreAlternatives: "Explore",
 };
 
-export const DebuggerEventPanel = observer(({ store }: Props) => {
+export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) => {
   const dStore = store.debuggerStore;
   const session = dStore.session;
   const [tab, setTab] = useState<PanelTab>("events");
   const [filterKinds, setFilterKinds] = useState<Set<string>>(new Set());
   const [testStubsText, setTestStubsText] = useState<string | null>(null);
+  const eventsContainerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to active event when currentTimeMs changes during seeking
+  useEffect(() => {
+    if (!session || tab !== "events") return;
+    const events = session.diagSession.events;
+    let activeEvent: typeof events[number] | null = null;
+    for (const e of events) {
+      if (e.timestampMs <= dStore.currentTimeMs) {
+        activeEvent = e;
+      } else {
+        break;
+      }
+    }
+    if (activeEvent && eventsContainerRef.current) {
+      const el = eventsContainerRef.current.querySelector(
+        `[data-event-id="${activeEvent.id}"]`,
+      ) as HTMLElement | null;
+      if (el) {
+        el.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
+    }
+  }, [dStore.currentTimeMs, session, tab]);
 
   if (!session) {
     return (
@@ -105,6 +128,16 @@ export const DebuggerEventPanel = observer(({ store }: Props) => {
         >
           Export
         </button>
+        {onCloseSidebar && (
+          <button
+            type="button"
+            className="debugger-panel__close-btn"
+            onClick={onCloseSidebar}
+            title="Close sidebar"
+          >
+            &times;
+          </button>
+        )}
       </div>
 
       {tab === "events" && (
@@ -124,10 +157,11 @@ export const DebuggerEventPanel = observer(({ store }: Props) => {
           </div>
 
           {/* Event list */}
-          <div className="debugger-panel__events">
+          <div ref={eventsContainerRef} className="debugger-panel__events">
             {visibleEvents.map((e) => (
               <div
                 key={e.id}
+                data-event-id={e.id}
                 className={`debugger-panel__event${dStore.selectedEventId === e.id ? " debugger-panel__event--selected" : ""}${e.timestampMs <= dStore.currentTimeMs ? "" : " debugger-panel__event--future"}`}
                 onClick={() => dStore.selectEvent(e.id)}
               >

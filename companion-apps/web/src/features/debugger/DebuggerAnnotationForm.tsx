@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { RootStore } from "../../app/RootStore.js";
 import {
   type AnnotationSeverity,
@@ -24,6 +24,30 @@ export const DebuggerAnnotationForm = observer(({ store }: Props) => {
   const [startOffset, setStartOffset] = useState(0);
   const [endOffset, setEndOffset] = useState(5000);
   const [note, setNote] = useState("");
+  const formRef = useRef<HTMLDivElement>(null);
+
+  // Keep form visible above the on-screen keyboard via visualViewport API
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+
+    const handleResize = () => {
+      if (!formRef.current) return;
+      const visibleHeight = viewport.height;
+      if (visibleHeight < window.innerHeight * 0.8) {
+        formRef.current.style.setProperty("margin-bottom", `${window.innerHeight - visibleHeight + 8}px`);
+      } else {
+        formRef.current.style.removeProperty("margin-bottom");
+      }
+    };
+
+    viewport.addEventListener("resize", handleResize);
+    viewport.addEventListener("scroll", handleResize);
+    return () => {
+      viewport.removeEventListener("resize", handleResize);
+      viewport.removeEventListener("scroll", handleResize);
+    };
+  }, []);
 
   if (dStore.pendingAnnotationTimeMs === null || !dStore.session) return null;
 
@@ -59,7 +83,7 @@ export const DebuggerAnnotationForm = observer(({ store }: Props) => {
   };
 
   return (
-    <div className="debugger-annotation-form">
+    <div ref={formRef} className="debugger-annotation-form">
       <div className="debugger-annotation-form__header">New Annotation</div>
       <div className="debugger-annotation-form__time">
         At {formatMs(relMs)} (range: {formatMs(relMs + startOffset)} – {formatMs(relMs + endOffset)})

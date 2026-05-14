@@ -21,6 +21,7 @@ import app.navon.bike.domain.RouteAlternative
 import app.navon.bike.domain.RouteHistoryItem
 import app.navon.bike.domain.RouteHistorySource
 import app.navon.bike.domain.RouteManeuverType
+import app.navon.bike.integration.cues.filterGlitchClusters
 import app.navon.bike.domain.RoutePlanRequest
 import app.navon.bike.domain.RoutePreviewModel
 import app.navon.bike.domain.RouteProviderId
@@ -289,7 +290,8 @@ class HomeStateHolder(
     val nextInstructionLine: String?
         get() {
             val route = guidanceRoute ?: return null
-            val nextStep = route.maneuvers.firstOrNull { it.maneuverType != RouteManeuverType.DEPART }
+            val filtered = filterGlitchClusters(route.maneuvers, route.geometry)
+            val nextStep = filtered.firstOrNull { it.maneuverType != RouteManeuverType.DEPART }
             val instruction = nextStep?.instructionText ?: "Ride toward destination"
             return nextStep?.distanceFromStartMeters?.let { "$instruction • ${it.toInt()} m" } ?: instruction
         }

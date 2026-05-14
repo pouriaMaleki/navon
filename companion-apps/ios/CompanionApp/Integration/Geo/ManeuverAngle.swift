@@ -38,7 +38,7 @@ func maneuverAngleDegrees(_ geometry: [CoordinatePoint], _ cumulative: [Double],
     return turnDeltaDegrees(previous: behind, current: maneuverPoint, next: ahead)
 }
 
-private func walkAlongPolyline(
+func walkAlongPolyline(
     _ geometry: [CoordinatePoint],
     _ cumulative: [Double],
     _ startIndex: Int,
@@ -79,7 +79,7 @@ private func turnDeltaDegrees(previous: CoordinatePoint, current: CoordinatePoin
     return delta
 }
 
-private func bearingDegrees(from start: CoordinatePoint, to end: CoordinatePoint) -> Double {
+func bearingDegrees(from start: CoordinatePoint, to end: CoordinatePoint) -> Double {
     let latMeters = (end.latitude - start.latitude) * metersPerDegreeLat
     let meanLat = ((start.latitude + end.latitude) / 2) * (.pi / 180)
     let lonMeters = (end.longitude - start.longitude) * cos(meanLat) * metersPerDegreeLat

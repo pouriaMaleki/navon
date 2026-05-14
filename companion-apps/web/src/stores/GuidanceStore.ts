@@ -10,6 +10,7 @@ import {
   type RouteSourceMode,
   selectedAlternative,
 } from "../domain/models.js";
+import { filterGlitchClusters } from "../integrations/cues/glitchTurnFilter.js";
 import {
   approximateDistanceMeters,
   bearingDegrees,
@@ -86,7 +87,7 @@ function turnAlertKindFromManeuverType(type: RouteManeuverType): TurnAlertKind |
 }
 
 function buildStoredManeuvers(route: NormalizedRoutePackage): StoredManeuver[] {
-  return route.maneuvers.map((m) => ({
+  return filterGlitchClusters(route.maneuvers, route.geometry).map((m) => ({
     alertKind: turnAlertKindFromManeuverType(m.maneuverType),
     distanceAlongRouteM: m.distanceFromStartMeters,
     instructionText: m.instructionText,
@@ -209,7 +210,7 @@ export class GuidanceStore {
     }
     const route = this.guidanceRoute;
     if (!route) return undefined;
-    for (const m of route.maneuvers) {
+    for (const m of filterGlitchClusters(route.maneuvers, route.geometry)) {
       if (m.maneuverType === "depart" || m.maneuverType === "arrive") continue;
       const remaining = m.distanceFromStartMeters - this.progressDistanceM;
       if (remaining < 0) continue;
@@ -288,7 +289,7 @@ export class GuidanceStore {
     }
     const route = this.guidanceRoute;
     if (!route) return "On route";
-    for (const m of route.maneuvers) {
+    for (const m of filterGlitchClusters(route.maneuvers, route.geometry)) {
       if (m.maneuverType === "depart" || m.maneuverType === "arrive") continue;
       const remaining = m.distanceFromStartMeters - this.progressDistanceM;
       if (remaining < 0) continue;

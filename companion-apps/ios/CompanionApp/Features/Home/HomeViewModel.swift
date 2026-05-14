@@ -654,7 +654,7 @@ final class HomeViewModel: ObservableObject {
         // metric first (matches the new routing top card's other two
         // lines: "8.6 km to Alppila", "16 min remaining").
         guard let route = guidanceRoute else { return nil }
-        for m in route.maneuvers {
+        for m in filterGlitchClusters(route.maneuvers, geometry: route.geometry) {
             if m.maneuverType == .depart || m.maneuverType == .arrive { continue }
             let remaining = m.distanceFromStartMeters - progressDistanceM
             if remaining < 0 { continue }
@@ -1493,7 +1493,8 @@ final class HomeViewModel: ObservableObject {
         // single point of truth for which maneuver types reach the cue
         // stream. Returning nil silences a maneuver entirely (slight*
         // splits, .straight, .depart, .arrive).
-        let cueManeuvers: [CueManeuver] = (guidanceRoute?.maneuvers ?? []).compactMap { m in
+        let filteredManeuvers = guidanceRoute.map { filterGlitchClusters($0.maneuvers, geometry: $0.geometry) } ?? []
+        let cueManeuvers: [CueManeuver] = filteredManeuvers.compactMap { m in
             CueManeuverMapping.kind(for: m.maneuverType).map { kind in
                 var isMinorKeep = m.maneuverType == .slightLeft || m.maneuverType == .slightRight
                 var resolvedKind = kind

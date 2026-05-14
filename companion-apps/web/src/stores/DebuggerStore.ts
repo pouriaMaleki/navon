@@ -29,6 +29,7 @@ export class DebuggerStore {
   pendingAnnotationTimeMs: number | null = null;
   pendingAnnotationCoordinate: CoordinatePoint | null = null;
   pendingAnnotationEventIds: string[] = [];
+  mapFollowActive = false;
   private animFrameId: number | null = null;
   private lastTickRealMs: number = 0;
 
@@ -47,7 +48,7 @@ export class DebuggerStore {
 
   get currentPosition(): CoordinatePoint | null {
     if (!this.session) return null;
-    return interpolateGps(this.session.diagSession.events, this.currentTimeMs);
+    return interpolateGps(this.session.diagSession.events, this.currentElapsedMs);
   }
 
   get visibleEvents(): RoutingDiagEvent[] {
@@ -439,6 +440,10 @@ export class DebuggerStore {
     }
 
     return parts.join("\n");
+  }
+
+  setMapFollowActive(active: boolean): void {
+    this.mapFollowActive = active;
   }
 
   private scheduleTick(): void {

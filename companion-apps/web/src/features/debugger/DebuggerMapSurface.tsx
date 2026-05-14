@@ -48,9 +48,9 @@ const RIDER_LAYER = "debug-rider-layer";
 const ANNOTATION_SRC = "debug-annotations";
 const ANNOTATION_LAYER = "debug-annotations-layer";
 
-type Props = { store: RootStore };
+type Props = { store: RootStore; onPopupOpen?: (popup: { content: string; lngLat: { lat: number; lng: number } } | null) => void };
 
-export const DebuggerMapSurface = observer(({ store: _store }: Props) => {
+export const DebuggerMapSurface = observer(({ store: _store, onPopupOpen }: Props) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MaplibreMap | null>(null);
   const readyRef = useRef(false);
@@ -66,7 +66,7 @@ export const DebuggerMapSurface = observer(({ store: _store }: Props) => {
     });
     mapRef.current = map;
     map.on("load", () => {
-      addDebugLayers(map);
+      addDebugLayers(map, onPopupOpen);
       readyRef.current = true;
       pushAllData(map, _store);
     });
@@ -133,10 +133,37 @@ export const DebuggerMapSurface = observer(({ store: _store }: Props) => {
     );
   }, [_store]);
 
-  return <div ref={containerRef} className="debugger-map-surface" />;
+  // React to map-follow toggle — center map on active GPS position, preserving zoom
+  useEffect(() => {
+    return reaction(
+      () => _store.debuggerStore.mapFollowActive ? _store.debuggerStore.currentPosition : null,
+      (position) => {
+        const map = mapRef.current;
+        if (!map || !readyRef.current || !position) return;
+        map.easeTo({
+          center: [position.longitude, position.latitude],
+          duration: 300,
+        });
+      },
+    );
+  }, [_store]);
+
+  return (
+    <>
+      <div ref={containerRef} className="debugger-map-surface" />
+      <button
+        type="button"
+        className={`debugger-map-surface__follow-btn${_store.debuggerStore.mapFollowActive ? " debugger-map-surface__follow-btn--active" : ""}`}
+        onClick={() => _store.debuggerStore.setMapFollowActive(!_store.debuggerStore.mapFollowActive)}
+        title={_store.debuggerStore.mapFollowActive ? "Stop following GPS position" : "Follow GPS position"}
+      >
+        <LocateIcon />
+      </button>
+    </>
+  );
 });
 
-function addDebugLayers(map: MaplibreMap): void {
+function addDebugLayers(map: MaplibreMap, onPopupOpen?: Props["onPopupOpen"]): void {
   // Route line
   map.addSource(ROUTE_SRC, {
     type: "geojson",
@@ -248,25 +275,25 @@ function addDebugLayers(map: MaplibreMap): void {
     },
   });
 
-  // Popup on cue marker click
+  // Popup on cue marker click — use callback so popup renders as a fixed top bar
   map.on("click", CUE_LAYER, (e) => {
     const features = e.features ?? [];
     if (features.length === 0) return;
     const props = features[0].properties ?? {};
-    new maplibregl.Popup({ offset: [0, -12] })
-      .setLngLat(e.lngLat)
-      .setHTML(`<strong>${props.messageText ?? ""}</strong><br><code>${props.cueType ?? ""}</code>`)
-      .addTo(map);
+    onPopupOpen?.({
+      content: `<strong>${props.messageText ?? ""}</strong>&nbsp;&nbsp;<code>${props.cueType ?? ""}</code>`,
+      lngLat: { lat: e.lngLat.lat, lng: e.lngLat.lng },
+    });
   });
 
   map.on("click", OFFROUTE_LAYER, (e) => {
     const features = e.features ?? [];
     if (features.length === 0) return;
     const props = features[0].properties ?? {};
-    new maplibregl.Popup({ offset: [0, -12] })
-      .setLngLat(e.lngLat)
-      .setHTML(`Off route: ${props.distanceM ?? "?"}m`)
-      .addTo(map);
+    onPopupOpen?.({
+      content: `Off route: <strong>${props.distanceM ?? "?"}m</strong>`,
+      lngLat: { lat: e.lngLat.lat, lng: e.lngLat.lng },
+    });
   });
 
   // Hover cursors
@@ -298,6 +325,15 @@ function handleMapClick(
   const coordinate: CoordinatePoint = { latitude: e.lngLat.lat, longitude: e.lngLat.lng };
   const eventIds = eventId ? [eventId] : [];
   dStore.openAnnotationForm(dStore.currentTimeMs, coordinate, eventIds);
+}
+
+function LocateIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="10" cy="10" r="3" />
+      <path d="M10 1v3M10 16v3M1 10h3M16 10h3" />
+    </svg>
+  );
 }
 
 function pushAllData(map: MaplibreMap, store: RootStore): void {

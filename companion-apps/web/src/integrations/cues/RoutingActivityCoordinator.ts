@@ -17,6 +17,7 @@ import {
 } from "./CueEngine.js";
 import { shouldDispatchCues } from "./cueGating.js";
 import { cumulativeDistances, maneuverAngleDegrees } from "../geo.js";
+import { filterGlitchClusters } from "./glitchTurnFilter.js";
 
 /**
  * Observable bridge over the Page Visibility API. The autorun below
@@ -175,7 +176,8 @@ function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnaps
   const route = guidance.guidanceRoute;
   const geometry = route?.geometry;
   const cumDist = geometry ? cumulativeDistances(geometry) : [];
-  const maneuvers: CueManeuver[] = (route?.maneuvers ?? []).flatMap((m) => {
+  const filteredRouteManeuvers = route ? filterGlitchClusters(route.maneuvers, route.geometry) : [];
+  const maneuvers: CueManeuver[] = filteredRouteManeuvers.flatMap((m) => {
     const mapped = maneuverKindFromType(m.maneuverType);
     if (mapped === undefined) return [];
     let { isMinorKeep } = mapped;
