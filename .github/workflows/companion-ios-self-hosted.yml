@@ -21,6 +21,7 @@ on:
         options:
           - signed_device
           - simulator_validation
+          - simulator_test
       ios_bundle_id:
         description: 'Bundle identifier to sign and export'
         required: false
@@ -45,7 +46,7 @@ permissions:
 jobs:
   simulator-validation:
     name: Build iOS App Shell
-    if: github.event_name != 'workflow_dispatch' || github.event.inputs.build_kind == 'simulator_validation'
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.build_kind == 'simulator_validation' || github.event.inputs.build_kind == 'simulator_test'
     runs-on:
       - self-hosted
       - macOS
@@ -86,6 +87,16 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             build
+
+      - name: Run unit tests
+        if: github.event.inputs.build_kind == 'simulator_test'
+        run: |
+          xcodebuild test \
+            -project Navon.xcodeproj \
+            -scheme Navon \
+            -only-testing:NavonTests \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            CODE_SIGNING_ALLOWED=NO
 
   signed-device-build:
     name: Export Signed iPhone Build

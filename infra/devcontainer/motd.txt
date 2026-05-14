@@ -1,6 +1,6 @@
-Welcome to the ESP32 Rust dev container.
+ESP32 Rust dev container.
 
-Quick start:
-- Run `espup install` once to install Espressif toolchains
-- Then `source ~/export-esp.sh`
-- Build with `cargo build`
+Copy .env.example to .env and fill in your API keys.
+Use Claude Code (`claude`), Codex (`codex`), or `deepclaude` for AI-assisted development.
+
+See README.md for full dev setup and commands.

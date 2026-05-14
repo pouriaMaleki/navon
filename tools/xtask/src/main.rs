@@ -21,9 +21,10 @@ fn run(args: Vec<String>) -> Result<(), String> {
         Cli::DeployDevice { port, release } => run_deploy_device(&workspace, &port, release),
         Cli::CheckEspHalP4 => run_check_esp_hal_p4(),
         Cli::BuildC6Slave => run_build_c6_slave(&workspace),
+        Cli::CompanionIosTest => run_companion_ios_test(),
         Cli::I18n { args } => i18n::run(&args, &workspace.root),
         Cli::Stub { command } => Err(format!(
-            "{command} is not implemented yet; available commands: prepare-map, emu, bundle-device, deploy-device, check-esp-hal-p4, build-c6-slave, i18n-gen, i18n-sync"
+            "{command} is not implemented yet; available commands: prepare-map, emu, bundle-device, deploy-device, check-esp-hal-p4, build-c6-slave, companion-ios-test, i18n-gen, i18n-sync"
         )),
         Cli::Help => {
             print_help();
@@ -221,6 +222,7 @@ xtask commands:
   cargo xtask bundle-device [--debug]
   cargo xtask deploy-device --port <PORT> [--debug]
   cargo xtask build-c6-slave       # builds esp_hosted slave fw for the on-board ESP32-C6
+  cargo xtask companion-ios-test  # triggers self-hosted Mac runner to build + test iOS app
   cargo xtask check-esp-hal-p4     # checks whether esp-hal ecosystem has P4 support yet
   cargo xtask i18n-gen [--check]   # regenerate per-platform localization outputs
   cargo xtask i18n-sync --locale <code> [--dry-run] [--budget-usd <N>]
@@ -239,6 +241,26 @@ xtask commands:
 /// the ESP-IDF cmake build do the rest. The resulting flat image is
 /// dropped at `.xtask/c6-slave/c6-slave-merged.bin` for flashing onto
 /// the C6 over its UART.
+fn run_companion_ios_test() -> Result<(), String> {
+    ensure_tool("gh")?;
+    let status = std::process::Command::new("gh")
+        .args([
+            "workflow", "run", "Navon iOS",
+            "-f", "build_kind=simulator_test",
+        ])
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .status()
+        .map_err(|e| format!("failed to run gh: {e}"))?;
+    if status.success() {
+        println!("\nDispatched. Track progress with: gh run watch");
+        Ok(())
+    } else {
+        Err("gh workflow run failed".to_owned())
+    }
+}
+
 fn run_build_c6_slave(workspace: &Workspace) -> Result<(), String> {
     ensure_tool("ldproxy")?;
     ensure_tool("espflash")?;
@@ -492,6 +514,7 @@ enum Cli {
     DeployDevice { port: String, release: bool },
     CheckEspHalP4,
     BuildC6Slave,
+    CompanionIosTest,
     I18n { args: Vec<String> },
     Stub { command: String },
     Help,
@@ -508,6 +531,7 @@ fn parse_cli(args: &[String]) -> Result<Cli, String> {
         "deploy-device" => parse_deploy_device_args(&args[1..]),
         "check-esp-hal-p4" => Ok(Cli::CheckEspHalP4),
         "build-c6-slave" => Ok(Cli::BuildC6Slave),
+        "companion-ios-test" => Ok(Cli::CompanionIosTest),
         // i18n-gen / i18n-sync / i18n-extract — dispatch into the i18n module.
         c if c.starts_with("i18n-") => Ok(Cli::I18n { args: args.to_vec() }),
         "prepare-map" => Ok(Cli::Stub {
@@ -515,7 +539,7 @@ fn parse_cli(args: &[String]) -> Result<Cli, String> {
         }),
         "help" | "--help" | "-h" => Ok(Cli::Help),
         other => Err(format!(
-            "unknown command `{other}`; supported commands are prepare-map, emu, bundle-device, deploy-device, i18n-gen, i18n-sync"
+            "unknown command `{other}`; supported commands are prepare-map, emu, bundle-device, deploy-device, companion-ios-test, i18n-gen, i18n-sync"
         )),
     }
 }

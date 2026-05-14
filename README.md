@@ -50,7 +50,7 @@ Companion projects:
   npm install
   npm run dev
   ```
-- iOS companion:
+- iOS companion (from Mac):
   ```bash
   cd companion-apps/ios
   brew install xcodegen
@@ -80,6 +80,37 @@ docker compose down
 ```
 
 Default port is `4173` (override with `EMULATOR_PORT`).
+
+## Running Tests (from Dev Container)
+
+- Shared core (Rust — routing, GPS, fixtures):
+  ```bash
+  cargo run -p xtask --bin gen-gps-fixtures   # regenerate GPS fixture data
+  cargo test -p parity-fixtures              # cross-platform parity + flow tests
+  ```
+- Emulator (Rust + Web — device simulator):
+  ```bash
+  cd device/emulator/web
+  npm run test                                # Vitest (touch, geo, WASM)
+  ```
+- Web companion:
+  ```bash
+  cd companion-apps/web
+  npm run test              # unit tests (Vitest)
+  npm run test:e2e          # end-to-end (Playwright)
+  ```
+- Android companion:
+  ```bash
+  cd companion-apps/android
+  ./gradlew :app:testDebugUnitTest
+  ```
+- iOS companion (triggers self-hosted Mac runner):
+  ```bash
+  cargo xtask companion-ios-test   # build + XCTests on simulator
+  gh run watch                     # follow progress in terminal
+  ```
+
+Also available but not listed: `cargo test -p firmware` (needs ESP toolchain), `cargo test -p render-core|runtime-core|...` (individual crates), Android instrumented tests (needs emulator/device), iOS UI tests (`NavonUITests`).
 
 ## Translations (i18n)
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # deepclaude — Use Claude Code with DeepSeek V4 Pro or other cheap backends
+# Original: https://github.com/aattaran/deepclaude
 # Usage: deepclaude [--backend ds|or|fw|anthropic] [--remote] [--status] [--cost] [--benchmark]
 
 set -euo pipefail
