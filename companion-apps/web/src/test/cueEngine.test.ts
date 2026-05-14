@@ -8,6 +8,7 @@ import {
   initialCueEngineState,
   tickCueEngine,
 } from "../integrations/cues/CueEngine.js";
+import { distanceCueValues } from "../i18n/formatDistance.js";
 import { maneuverKindFromType } from "../integrations/cues/RoutingActivityCoordinator.js";
 
 const M_LEFT = (id: string, distance: number): CueManeuver => ({
@@ -272,10 +273,12 @@ describe("CueEngine — existing approach + arrival cues unchanged", () => {
     expect(t.events.find((e) => e.kind === "arrived")).toBeDefined();
   });
 
-  it("emits 'offtrack' on the first off-route episode rising edge", () => {
+  it("emits 'offtrack' after 3 consecutive off-route ticks", () => {
     const t1 = tick(initialCueEngineState(), baseSnapshot());
-    const t2 = tick(t1.next, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 }));
-    expect(t2.events.find((e) => e.kind === "offTrack")).toBeDefined();
+    let s = tick(t1.next, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 })).next;
+    s = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 })).next;
+    const t4 = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 }));
+    expect(t4.events.find((e) => e.kind === "offTrack")).toBeDefined();
   });
 
   it("emits 'rerouting' on rerouting rising edge", () => {
@@ -286,15 +289,71 @@ describe("CueEngine — existing approach + arrival cues unchanged", () => {
 
   it("after >2 off-route episodes, says 'off track' once and goes silent until on-track", () => {
     let s = initialCueEngineState();
+    // Episode 1: 3 consecutive off-route ticks → offTrack fires
     s = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 })).next;
-    s = tick(s, baseSnapshot({ offRoute: false, distanceFromRouteM: 5 })).next;
     s = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 })).next;
+    s = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 })).next;
+    // Reset: on-route
     s = tick(s, baseSnapshot({ offRoute: false, distanceFromRouteM: 5 })).next;
+    // Episode 2: 3 consecutive → offTrack
+    s = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 })).next;
+    s = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 })).next;
+    s = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 })).next;
+    // Reset: on-route
+    s = tick(s, baseSnapshot({ offRoute: false, distanceFromRouteM: 5 })).next;
+    // Episode 3: 3 consecutive → repeatedOffTrackSilence
+    s = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 })).next;
+    s = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 })).next;
     const t3 = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 40 }));
     expect(t3.events.find((e) => e.kind === "repeatedOffTrackSilence")).toBeDefined();
     s = t3.next;
     const t4 = tick(s, baseSnapshot({ offRoute: true, progressDistanceM: 155 }));
     expect(t4.events).toHaveLength(0);
+  });
+
+  // ─── off-track hysteresis: require 3 consecutive off-route ticks ───
+
+  it("single off-route tick does NOT fire offTrack", () => {
+    const t1 = tick(initialCueEngineState(), baseSnapshot());
+    const t2 = tick(t1.next, baseSnapshot({ offRoute: true, distanceFromRouteM: 15 }));
+    expect(t2.events.find((e) => e.kind === "offTrack")).toBeUndefined();
+  });
+
+  it("two consecutive off-route ticks do NOT fire offTrack", () => {
+    const t1 = tick(initialCueEngineState(), baseSnapshot());
+    let s = tick(t1.next, baseSnapshot({ offRoute: true, distanceFromRouteM: 15 })).next;
+    const t3 = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 15 }));
+    expect(t3.events.find((e) => e.kind === "offTrack")).toBeUndefined();
+  });
+
+  it("three consecutive off-route ticks fire offTrack", () => {
+    const t1 = tick(initialCueEngineState(), baseSnapshot());
+    let s = tick(t1.next, baseSnapshot({ offRoute: true, distanceFromRouteM: 15 })).next;
+    s = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 15 })).next;
+    const t4 = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 15 }));
+    expect(t4.events.find((e) => e.kind === "offTrack")).toBeDefined();
+  });
+
+  it("on-route tick resets the off-route consecutive counter", () => {
+    const t1 = tick(initialCueEngineState(), baseSnapshot());
+    // Two off-route ticks, then one on-route, then one off-route → counter reset
+    let s = tick(t1.next, baseSnapshot({ offRoute: true, distanceFromRouteM: 15 })).next;
+    s = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 15 })).next;
+    s = tick(s, baseSnapshot({ offRoute: false, distanceFromRouteM: 5 })).next;
+    const t5 = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 15 }));
+    // After reset: only 1 consecutive off-route, should not fire
+    expect(t5.events.find((e) => e.kind === "offTrack")).toBeUndefined();
+    // Two more off-route ticks → total 3 consecutive after reset → fires
+    s = tick(t5.next, baseSnapshot({ offRoute: true, distanceFromRouteM: 15 })).next;
+    const t7 = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 15 }));
+    expect(t7.events.find((e) => e.kind === "offTrack")).toBeDefined();
+  });
+
+  it("large distance from route fires offTrack immediately regardless of hysteresis", () => {
+    // When distanceFromRouteM > 50m, the rider is genuinely lost — fire immediately.
+    const t1 = tick(initialCueEngineState(), baseSnapshot());
+    const t2 = tick(t1.next, baseSnapshot({ offRoute: true, distanceFromRouteM: 60 }));
+    expect(t2.events.find((e) => e.kind === "offTrack")).toBeDefined();
   });
 
   it("after silence, emits 'on track' when 5 consecutive samples have distanceFromRouteM < 22", () => {
@@ -731,5 +790,113 @@ describe("CueEngine — rerouting cue silences after 2 episodes (across reroutes
     // After reset, a new rerouting episode should fire again
     const t = tick(s, reroutingSnapshot(true, "r3"));
     expect(t.events.find((e) => e.kind === "rerouting")).toBeDefined();
+  });
+});
+
+describe("CueEngine — silence during rerouting", () => {
+  it("rerouting suppresses turn50m", () => {
+    const t1 = tick(initialCueEngineState(), baseSnapshot({ progressDistanceM: 100 }));
+    const t2 = tick(t1.next, baseSnapshot({ progressDistanceM: 155, rerouting: true }));
+    expect(t2.events.find((e) => e.kind === "turn50m")).toBeUndefined();
+  });
+
+  it("rerouting suppresses turn10m", () => {
+    const t1 = tick(initialCueEngineState(), baseSnapshot({ progressDistanceM: 155 }));
+    const t2 = tick(t1.next, baseSnapshot({ progressDistanceM: 192, rerouting: true }));
+    expect(t2.events.find((e) => e.kind === "turn10m")).toBeUndefined();
+  });
+
+  it("rerouting suppresses nextTurnInAbout", () => {
+    const t1 = tick(initialCueEngineState(), baseSnapshot({ progressDistanceM: 200 }));
+    const t2 = tick(t1.next, baseSnapshot({ progressDistanceM: 211, rerouting: true }));
+    expect(t2.events.find((e) => e.kind === "nextTurnInAbout")).toBeUndefined();
+  });
+
+  it("rerouting suppresses arrivingInM", () => {
+    const snap = baseSnapshot({
+      progressDistanceM: 412,
+      maneuvers: [{ id: "m1", kind: "left", distanceFromStartM: 400 }],
+      routeTotalDistanceM: 600,
+      rerouting: true,
+    });
+    const t = tick(initialCueEngineState(), snap);
+    expect(t.events.find((e) => e.kind === "arrivingInM")).toBeUndefined();
+  });
+
+  it("rerouting suppresses bearRange", () => {
+    const t1 = tick(initialCueEngineState(), baseSnapshot({
+      progressDistanceM: 100,
+      maneuvers: [{ id: "m1", kind: "bearLeft", distanceFromStartM: 200 }],
+    }));
+    const t2 = tick(t1.next, baseSnapshot({
+      progressDistanceM: 192,
+      maneuvers: [{ id: "m1", kind: "bearLeft", distanceFromStartM: 200 }],
+      rerouting: true,
+    }));
+    expect(t2.events.find((e) => e.kind === "bearRange")).toBeUndefined();
+  });
+
+  it("rerouting cue itself still fires", () => {
+    const t1 = tick(initialCueEngineState(), baseSnapshot({ offRoute: true }));
+    const t2 = tick(t1.next, baseSnapshot({ offRoute: true, rerouting: true }));
+    expect(t2.events.find((e) => e.kind === "rerouting")).toBeDefined();
+  });
+
+  it("rerouting does NOT suppress arrived", () => {
+    const t = tick(initialCueEngineState(), baseSnapshot({ arrived: true, rerouting: true }));
+    expect(t.events.find((e) => e.kind === "arrived")).toBeDefined();
+  });
+
+  it("when rerouting becomes false, cues resume", () => {
+    // Rerouting was true, then new route arrives → first-tick announcement fires
+    let s = tick(initialCueEngineState(), baseSnapshot({
+      offRoute: true,
+      rerouting: true,
+    })).next;
+    // New route, rerouting false → first-tick nextTurnInAbout fires
+    const t = tick(s, baseSnapshot({
+      routeId: "r2",
+      progressDistanceM: 0,
+      offRoute: false,
+      rerouting: false,
+      maneuvers: [{ id: "m1", kind: "left", distanceFromStartM: 200 }],
+    }));
+    expect(t.events.find((e) => e.kind === "nextTurnInAbout")).toBeDefined();
+  });
+});
+
+describe("distanceCueValues — km formatting", () => {
+  it("returns kilometers for 1310m metric", () => {
+    const result = distanceCueValues(1310, "metric");
+    expect(result.distance).toBeCloseTo(1.3, 1);
+    expect(result.distanceUnit).toBe("kilometers");
+  });
+
+  it("returns meters for 500m metric", () => {
+    const result = distanceCueValues(500, "metric");
+    expect(result.distance).toBe(500);
+    expect(result.distanceUnit).toBe("meters");
+  });
+
+  it("returns kilometers for 1000m metric", () => {
+    const result = distanceCueValues(1000, "metric");
+    expect(result.distance).toBeCloseTo(1.0, 1);
+    expect(result.distanceUnit).toBe("kilometers");
+  });
+
+  it("returns 1.5 km for 1490m metric", () => {
+    const result = distanceCueValues(1490, "metric");
+    expect(result.distance).toBeCloseTo(1.5, 1);
+    expect(result.distanceUnit).toBe("kilometers");
+  });
+
+  it("imperial still uses feet for large distances", () => {
+    const result = distanceCueValues(2000, "imperial");
+    expect(result.distanceUnit).toBe("feet");
+  });
+
+  it("formatCueEvent uses km for nextTurnInAbout at 1310m", () => {
+    const text = formatCueEvent({ kind: "nextTurnInAbout", turnKind: "left", distanceM: 1310 });
+    expect(text).toBe("Next turn left in about 1.3 kilometers");
   });
 });

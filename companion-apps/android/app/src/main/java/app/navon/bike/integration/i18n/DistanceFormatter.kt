@@ -22,10 +22,20 @@ object DistanceFormatter {
             "distance" to roundTo10(meters * FT_PER_M),
             "distanceUnit" to "feet",
         )
-        DistanceMode.METRIC -> mapOf(
-            "distance" to roundTo10(meters),
-            "distanceUnit" to "meters",
-        )
+        DistanceMode.METRIC -> {
+            if (meters >= KM_THRESHOLD_M) {
+                val km = (meters / 100.0).roundToInt() / 10.0 // one decimal
+                mapOf(
+                    "distance" to km,
+                    "distanceUnit" to "kilometers",
+                )
+            } else {
+                mapOf(
+                    "distance" to roundTo10(meters),
+                    "distanceUnit" to "meters",
+                )
+            }
+        }
     }
 
     /** UI label for an arbitrary distance in meters. */

@@ -159,6 +159,14 @@ struct RouteAltInfo: Codable, Equatable {
     let label: String
 }
 
+// MARK: - Route Geometry Entry
+
+struct RouteGeometryEntry: Codable, Equatable {
+    let routeId: String
+    let providerName: String
+    let geometry: [CoordinatePoint]
+}
+
 // MARK: - Event
 
 struct RoutingDiagEvent: Identifiable, Codable, Equatable {
@@ -174,6 +182,7 @@ struct RoutingDiagSession: Identifiable, Codable, Equatable {
     let createdAtMs: UInt64
     var updatedAtMs: UInt64
     var events: [RoutingDiagEvent]
+    var routeGeometries: [RouteGeometryEntry]?
 
     var eventCount: Int { events.count }
     var durationMs: UInt64 {
@@ -187,7 +196,8 @@ struct RoutingDiagSession: Identifiable, Codable, Equatable {
             sessionId: id,
             createdAtMs: createdAtMs,
             eventCount: eventCount,
-            events: events
+            events: events,
+            routeGeometries: routeGeometries
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -207,6 +217,7 @@ struct RoutingDiagDebugPackage: Codable {
     let createdAtMs: UInt64
     let eventCount: Int
     let events: [RoutingDiagEvent]
+    let routeGeometries: [RouteGeometryEntry]?
 }
 
 // MARK: - Constants

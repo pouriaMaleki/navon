@@ -315,3 +315,82 @@ export function decodePolyline(encoded: string): CoordinatePoint[] {
   }
   return points;
 }
+
+// ── Maneuver collapse ──
+
+const COLLAPSE_DISTANCE_M = 5;
+const COLLAPSE_ANGLE_DEG = 30;
+const MANEUVER_LOOK_DIST_M = 10;
+
+function coordAtDistance(geometry: CoordinatePoint[], dist: number, cumul: number[]): CoordinatePoint {
+  if (dist <= 0) return geometry[0];
+  const total = cumul[cumul.length - 1];
+  if (dist >= total) return geometry[geometry.length - 1];
+  for (let i = 1; i < cumul.length; i++) {
+    if (cumul[i] >= dist) {
+      const segLen = cumul[i] - cumul[i - 1];
+      const t = segLen > 1e-9 ? (dist - cumul[i - 1]) / segLen : 0;
+      return {
+        latitude: geometry[i - 1].latitude + (geometry[i].latitude - geometry[i - 1].latitude) * t,
+        longitude: geometry[i - 1].longitude + (geometry[i].longitude - geometry[i - 1].longitude) * t,
+      };
+    }
+  }
+  return geometry[geometry.length - 1];
+}
+
+/**
+ * Collapse back-to-back maneuvers that are very close (<5m) when the net
+ * direction change through them is >30°. Shared pedestrian path entries/exits
+ * create multiple annotations but only the final real turn matters.
+ */
+export function collapseCloseManeuvers(
+  maneuvers: { id: string; distanceFromStartM: number }[],
+  geometry: CoordinatePoint[],
+): { id: string; distanceFromStartM: number }[] {
+  if (maneuvers.length < 2) return [...maneuvers];
+  if (geometry.length < 2) return [...maneuvers];
+
+  const cumul = cumulativeDistances(geometry);
+  const totalDist = cumul[cumul.length - 1];
+
+  function netAngleDeg(firstDist: number, lastDist: number): number {
+    const approachFrom = coordAtDistance(geometry, Math.max(0, firstDist - MANEUVER_LOOK_DIST_M), cumul);
+    const approachPt = coordAtDistance(geometry, firstDist, cumul);
+    const exitPt = coordAtDistance(geometry, lastDist, cumul);
+    const exitTo = coordAtDistance(geometry, Math.min(totalDist, lastDist + MANEUVER_LOOK_DIST_M), cumul);
+    const inBearing = bearingDegrees(approachFrom, approachPt);
+    const outBearing = bearingDegrees(exitPt, exitTo);
+    let delta = outBearing - inBearing;
+    while (delta <= -180) delta += 360;
+    while (delta > 180) delta -= 360;
+    return Math.abs(delta);
+  }
+
+  const result: typeof maneuvers = [];
+  let i = 0;
+  while (i < maneuvers.length) {
+    let j = i + 1;
+    while (
+      j < maneuvers.length &&
+      maneuvers[j].distanceFromStartM - maneuvers[j - 1].distanceFromStartM < COLLAPSE_DISTANCE_M
+    ) {
+      j++;
+    }
+
+    if (j - i > 1) {
+      const firstDist = maneuvers[i].distanceFromStartM;
+      const lastDist = maneuvers[j - 1].distanceFromStartM;
+      if (netAngleDeg(firstDist, lastDist) > COLLAPSE_ANGLE_DEG) {
+        result.push(maneuvers[j - 1]);
+      } else {
+        for (let k = i; k < j; k++) result.push(maneuvers[k]);
+      }
+    } else {
+      result.push(maneuvers[i]);
+    }
+    i = j;
+  }
+
+  return result;
+}

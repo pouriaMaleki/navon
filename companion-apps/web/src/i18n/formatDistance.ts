@@ -28,9 +28,13 @@ export function roundTo10(n: number): number {
 export function distanceCueValues(
   meters: number,
   mode: DistanceMode,
-): { distance: number; distanceUnit: "meters" | "feet" } {
+): { distance: number; distanceUnit: "meters" | "feet" | "kilometers" } {
   if (mode === "imperial") {
     return { distance: roundTo10(meters * FT_PER_M), distanceUnit: "feet" };
+  }
+  if (meters >= KM_THRESHOLD_M) {
+    const km = Math.round(meters / 100) / 10; // one decimal
+    return { distance: km, distanceUnit: "kilometers" };
   }
   return { distance: roundTo10(meters), distanceUnit: "meters" };
 }

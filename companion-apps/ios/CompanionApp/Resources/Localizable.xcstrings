@@ -798,7 +798,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Arriving at your destination in {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value" : "Arriving at your destination in {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "es" : {
@@ -906,7 +906,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bear left for the next {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value" : "Bear left for the next {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "es" : {
@@ -1014,7 +1014,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bear right for the next {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value" : "Bear right for the next {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "es" : {
@@ -1122,7 +1122,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Next bear left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value" : "Next bear left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "es" : {
@@ -1230,7 +1230,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Next bear right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value" : "Next bear right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "es" : {
@@ -1338,7 +1338,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Next turn ahead in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value" : "Next turn ahead in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "es" : {
@@ -1446,7 +1446,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Next turn left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value" : "Next turn left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "es" : {
@@ -1554,7 +1554,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Next merge in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value" : "Next merge in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "es" : {
@@ -1662,7 +1662,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Next ramp in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value" : "Next ramp in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "es" : {
@@ -1770,7 +1770,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Next turn right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value" : "Next turn right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "es" : {
@@ -1878,7 +1878,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Next roundabout in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value" : "Next roundabout in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "es" : {
@@ -1986,7 +1986,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Next turn u-turn in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value" : "Next turn u-turn in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "es" : {
@@ -3606,7 +3606,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the left exit"
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, take the left exit"
           }
         },
         "es" : {
@@ -3714,7 +3714,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the right exit"
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, take the right exit"
           }
         },
         "es" : {
@@ -3822,7 +3822,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, follow the route"
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, follow the route"
           }
         },
         "es" : {
@@ -3930,7 +3930,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn left"
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, turn left"
           }
         },
         "es" : {
@@ -4038,7 +4038,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, merge"
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, merge"
           }
         },
         "es" : {
@@ -4146,7 +4146,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the ramp"
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, take the ramp"
           }
         },
         "es" : {
@@ -4254,7 +4254,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn right"
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, turn right"
           }
         },
         "es" : {
@@ -4362,7 +4362,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, enter the roundabout"
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, enter the roundabout"
           }
         },
         "es" : {
@@ -4470,7 +4470,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, make a U-turn"
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, make a U-turn"
           }
         },
         "es" : {
@@ -4578,7 +4578,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {turn left} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} then quickly {second, select, left {left} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
+            "value" : "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {turn left} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} then quickly {second, select, left {left} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
           }
         },
         "es" : {

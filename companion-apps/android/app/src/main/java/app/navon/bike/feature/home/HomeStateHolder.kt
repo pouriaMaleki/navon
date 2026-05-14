@@ -21,6 +21,7 @@ import app.navon.bike.domain.RouteAlternative
 import app.navon.bike.domain.RouteHistoryItem
 import app.navon.bike.domain.RouteHistorySource
 import app.navon.bike.domain.RouteManeuverType
+import app.navon.bike.integration.cues.CueManeuverMapping
 import app.navon.bike.integration.cues.filterGlitchClusters
 import app.navon.bike.domain.RoutePlanRequest
 import app.navon.bike.domain.RoutePreviewModel
@@ -290,7 +291,7 @@ class HomeStateHolder(
     val nextInstructionLine: String?
         get() {
             val route = guidanceRoute ?: return null
-            val filtered = filterGlitchClusters(route.maneuvers, route.geometry)
+            val filtered = CueManeuverMapping.collapseCloseManeuvers(filterGlitchClusters(route.maneuvers, route.geometry), route.geometry)
             val nextStep = filtered.firstOrNull { it.maneuverType != RouteManeuverType.DEPART }
             val instruction = nextStep?.instructionText ?: "Ride toward destination"
             return nextStep?.distanceFromStartMeters?.let { "$instruction • ${it.toInt()} m" } ?: instruction
@@ -496,6 +497,14 @@ class HomeStateHolder(
                     label = sel.title,
                 )
             )
+            val geom = sel.normalizedPackage.geometry
+            if (geom.isNotEmpty()) {
+                appState.routingDiagnosticsStore.recordRouteGeometry(
+                    routeId = sel.normalizedPackage.routeIdentifier,
+                    providerName = sel.normalizedPackage.provenance.providerId.name,
+                    geometry = geom,
+                )
+            }
         }
     }
 
@@ -587,6 +596,13 @@ class HomeStateHolder(
 
     fun stopActiveNavigation() {
         appState.routingDiagnosticsStore.recordEvent(RoutingDiagEventData.routeStopped())
+        // Auto-stop diagnostics recording after a short delay so the final
+        // events are captured before the session closes.
+        if (appState.routingDiagnosticsStore.isRecording) {
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                appState.routingDiagnosticsStore.stopRecording()
+            }, 5_000)
+        }
         val destination = destinationCoordinate
         val sourceToReuse = appState.activeSession.sourceMode
         val shouldPreserveCurrentPreview = isPreviewLockedToImportedRoute
@@ -949,8 +965,6 @@ class HomeStateHolder(
     private fun declareArrival() {
         arrivalNotice = "Arrived at destination"
         scheduleArrivalNoticeAutoDismiss()
-        // Reuse the manual-stop teardown so persistence + UI stay consistent.
-        // arrivalNotice survives because stopActiveNavigation() doesn't clear it.
         stopActiveNavigation()
     }
 

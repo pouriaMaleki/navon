@@ -45,6 +45,22 @@ final class RoutingDiagnosticsStore: ObservableObject {
         currentSession?.updatedAtMs = nowMs()
     }
 
+    func recordRouteGeometry(
+        routeId: String,
+        providerName: String,
+        geometry: [CoordinatePoint]
+    ) {
+        guard let session = currentSession else { return }
+        let existing = session.routeGeometries ?? []
+        guard !existing.contains(where: { $0.routeId == routeId }) else { return }
+        let entry = RouteGeometryEntry(
+            routeId: routeId,
+            providerName: providerName,
+            geometry: geometry
+        )
+        currentSession?.routeGeometries = existing + [entry]
+    }
+
     func deleteSession(id: String) {
         persistence.dismissRoutingDiagnosticsSession(id: id)
         sessions = persistence.loadRoutingDiagnosticsSessions()

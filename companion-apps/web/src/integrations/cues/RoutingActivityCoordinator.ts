@@ -16,7 +16,7 @@ import {
   tickCueEngine,
 } from "./CueEngine.js";
 import { shouldDispatchCues } from "./cueGating.js";
-import { cumulativeDistances, maneuverAngleDegrees } from "../geo.js";
+import { collapseCloseManeuvers, cumulativeDistances, maneuverAngleDegrees } from "../geo.js";
 import { filterGlitchClusters } from "./glitchTurnFilter.js";
 
 /**
@@ -176,7 +176,9 @@ function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnaps
   const route = guidance.guidanceRoute;
   const geometry = route?.geometry;
   const cumDist = geometry ? cumulativeDistances(geometry) : [];
-  const filteredRouteManeuvers = route ? filterGlitchClusters(route.maneuvers, route.geometry) : [];
+  const filteredRouteManeuvers = route
+    ? collapseCloseManeuvers(filterGlitchClusters(route.maneuvers, route.geometry), route.geometry)
+    : [];
   const maneuvers: CueManeuver[] = filteredRouteManeuvers.flatMap((m) => {
     const mapped = maneuverKindFromType(m.maneuverType);
     if (mapped === undefined) return [];

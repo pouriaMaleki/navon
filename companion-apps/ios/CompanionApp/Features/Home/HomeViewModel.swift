@@ -654,7 +654,7 @@ final class HomeViewModel: ObservableObject {
         // metric first (matches the new routing top card's other two
         // lines: "8.6 km to Alppila", "16 min remaining").
         guard let route = guidanceRoute else { return nil }
-        for m in filterGlitchClusters(route.maneuvers, geometry: route.geometry) {
+        for m in collapseCloseManeuvers(filterGlitchClusters(route.maneuvers, geometry: route.geometry), geometry: route.geometry) {
             if m.maneuverType == .depart || m.maneuverType == .arrive { continue }
             let remaining = m.distanceFromStartMeters - progressDistanceM
             if remaining < 0 { continue }
@@ -975,10 +975,23 @@ final class HomeViewModel: ObservableObject {
             routeId: selectedPreview.normalizedPackage.routeIdentifier,
             label: selectedPreview.title
         ))
+        let geom = selectedPreview.normalizedPackage.geometry
+        if !geom.isEmpty {
+            appModel.routingDiagnosticsStore.recordRouteGeometry(
+                routeId: selectedPreview.normalizedPackage.routeIdentifier,
+                providerName: selectedPreview.normalizedPackage.provenance.providerID.rawValue,
+                geometry: geom
+            )
+        }
     }
 
     func stopActiveNavigation(afterArrival: Bool = false) {
         appModel.routingDiagnosticsStore.recordEvent(.routeStopped(reason: afterArrival ? "arrival" : "manual"))
+        if appModel.routingDiagnosticsStore.isRecording {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+                self?.appModel.routingDiagnosticsStore.stopRecording()
+            }
+        }
         Task {
             var shouldClearPlanningStatus = false
             let destination = destinationCoordinate
@@ -1493,7 +1506,7 @@ final class HomeViewModel: ObservableObject {
         // single point of truth for which maneuver types reach the cue
         // stream. Returning nil silences a maneuver entirely (slight*
         // splits, .straight, .depart, .arrive).
-        let filteredManeuvers = guidanceRoute.map { filterGlitchClusters($0.maneuvers, geometry: $0.geometry) } ?? []
+        let filteredManeuvers = guidanceRoute.map { collapseCloseManeuvers(filterGlitchClusters($0.maneuvers, geometry: $0.geometry), geometry: $0.geometry) } ?? []
         let cueManeuvers: [CueManeuver] = filteredManeuvers.compactMap { m in
             CueManeuverMapping.kind(for: m.maneuverType).map { kind in
                 var isMinorKeep = m.maneuverType == .slightLeft || m.maneuverType == .slightRight

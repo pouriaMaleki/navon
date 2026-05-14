@@ -5,6 +5,8 @@ import {
 } from "../domain/routingDiagnosticsModels.js";
 import type { RoutingDiagnosticsStore } from "./RoutingDiagnosticsStore.js";
 
+const AUTO_STOP_AFTER_ARRIVAL_MS = 5_000;
+
 /**
  * Installs MobX reactions that record routing diagnostics events.
  * Separate from the store so the store stays pure data+persistence.
@@ -114,8 +116,34 @@ export function installRoutingDiagnosticsHooks(
               routeId: alt.normalizedPackage.routeIdentifier,
               label: alt.title,
             });
+            // Record route geometry
+            const route = store.guidanceStore.guidanceRoute;
+            if (route?.geometry && route.geometry.length > 0) {
+              diagStore.recordRouteGeometry({
+                routeId: alt.normalizedPackage.routeIdentifier,
+                providerName: alt.normalizedPackage.provenance.providerID,
+                geometry: route.geometry,
+              });
+            }
           }
         }
+      },
+      { fireImmediately: false },
+    ),
+  );
+
+  // Auto-stop recording after arrival
+  let autoStopTimerId: ReturnType<typeof setTimeout> | undefined;
+  disposers.push(
+    reaction(
+      () => store.guidanceStore.arrivalNotice,
+      (notice) => {
+        if (!notice || !diagStore.isRecording) return;
+        if (autoStopTimerId) clearTimeout(autoStopTimerId);
+        autoStopTimerId = setTimeout(() => {
+          autoStopTimerId = undefined;
+          diagStore.stopRecording();
+        }, AUTO_STOP_AFTER_ARRIVAL_MS);
       },
       { fireImmediately: false },
     ),
@@ -131,6 +159,15 @@ export function installRoutingDiagnosticsHooks(
           kind: "routeStopped",
           reason: store.guidanceStore.arrivalNotice ?? undefined,
         });
+        // Auto-stop diagnostics recording on manual stop (stop button).
+        // Arrival auto-stop is handled separately by the arrivalNotice reaction.
+        if (!store.guidanceStore.arrivalNotice) {
+          if (autoStopTimerId) clearTimeout(autoStopTimerId);
+          autoStopTimerId = setTimeout(() => {
+            autoStopTimerId = undefined;
+            diagStore.stopRecording();
+          }, AUTO_STOP_AFTER_ARRIVAL_MS);
+        }
       },
       { fireImmediately: false },
     ),

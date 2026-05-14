@@ -1,7 +1,11 @@
 package app.navon.bike.integration.cues
 
+import app.navon.bike.domain.CoordinatePoint
+import app.navon.bike.domain.RouteManeuver
+import app.navon.bike.domain.RouteManeuverType
 import app.navon.bike.integration.i18n.Strings
 import app.navon.bike.integration.i18n.SupportedLocale
+import kotlin.math.cos
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -117,10 +121,12 @@ class CueEngineTest {
     }
 
     @Test
-    fun emitsOffTrackOnFirstEpisodeRisingEdge() {
+    fun emitsOffTrackAfter3ConsecutiveTicks() {
         val s1 = CueEngine.tick(base(), CueEngineState()).nextState
-        val s2 = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 40.0), s1)
-        assertNotNull(s2.events.firstOrNull { it is CueEvent.OffTrack })
+        var s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 40.0), s1).nextState
+        s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 40.0), s).nextState
+        val s4 = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 40.0), s)
+        assertNotNull(s4.events.firstOrNull { it is CueEvent.OffTrack })
     }
 
     @Test
@@ -133,16 +139,77 @@ class CueEngineTest {
     @Test
     fun afterMoreThanTwoOffRouteEpisodesGoesSilent() {
         var s = CueEngineState()
+        // Episode 1: 3 consecutive off-route ticks → OffTrack
         s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 40.0), s).nextState
-        s = CueEngine.tick(base(offRoute = false, distanceFromRouteM = 5.0), s).nextState
         s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 40.0), s).nextState
+        s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 40.0), s).nextState
+        // Reset: on-route
         s = CueEngine.tick(base(offRoute = false, distanceFromRouteM = 5.0), s).nextState
+        // Episode 2: 3 consecutive → OffTrack
+        s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 40.0), s).nextState
+        s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 40.0), s).nextState
+        s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 40.0), s).nextState
+        // Reset: on-route
+        s = CueEngine.tick(base(offRoute = false, distanceFromRouteM = 5.0), s).nextState
+        // Episode 3: 3 consecutive → RepeatedOffTrackSilence
+        s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 40.0), s).nextState
+        s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 40.0), s).nextState
         val r3 = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 40.0), s)
         assertNotNull(r3.events.firstOrNull { it is CueEvent.RepeatedOffTrackSilence })
         s = r3.nextState
         // While silenced, no events fire even on threshold crossings.
         val r4 = CueEngine.tick(base(offRoute = true, progressDistanceM = 155.0), s)
         assertEquals(0, r4.events.size)
+    }
+
+    // ─── off-track hysteresis ───
+
+    @Test
+    fun singleOffRouteTickDoesNotFireOffTrack() {
+        val s1 = CueEngine.tick(base(), CueEngineState()).nextState
+        val s2 = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 15.0), s1)
+        assertNull(s2.events.firstOrNull { it is CueEvent.OffTrack })
+    }
+
+    @Test
+    fun twoConsecutiveOffRouteTicksDoNotFireOffTrack() {
+        val s1 = CueEngine.tick(base(), CueEngineState()).nextState
+        var s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 15.0), s1).nextState
+        val s3 = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 15.0), s)
+        assertNull(s3.events.firstOrNull { it is CueEvent.OffTrack })
+    }
+
+    @Test
+    fun threeConsecutiveOffRouteTicksFireOffTrack() {
+        val s1 = CueEngine.tick(base(), CueEngineState()).nextState
+        var s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 15.0), s1).nextState
+        s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 15.0), s).nextState
+        val s4 = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 15.0), s)
+        assertNotNull(s4.events.firstOrNull { it is CueEvent.OffTrack })
+    }
+
+    @Test
+    fun onRouteTickResetsOffRouteConsecutiveCounter() {
+        val s1 = CueEngine.tick(base(), CueEngineState()).nextState
+        // Two off-route ticks, then one on-route (reset), then one off-route
+        var s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 15.0), s1).nextState
+        s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 15.0), s).nextState
+        s = CueEngine.tick(base(offRoute = false, distanceFromRouteM = 5.0), s).nextState
+        var r = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 15.0), s)
+        // After reset: only 1 consecutive off-route, should not fire
+        assertNull(r.events.firstOrNull { it is CueEvent.OffTrack })
+        // Two more → total 3 consecutive → fires
+        s = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 15.0), r.nextState).nextState
+        r = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 15.0), s)
+        assertNotNull(r.events.firstOrNull { it is CueEvent.OffTrack })
+    }
+
+    @Test
+    fun largeDistanceFromRouteFiresOffTrackImmediately() {
+        // When distanceFromRouteM > 50m, the rider is genuinely lost — fire immediately.
+        val s1 = CueEngine.tick(base(), CueEngineState()).nextState
+        val s2 = CueEngine.tick(base(offRoute = true, distanceFromRouteM = 60.0), s1)
+        assertNotNull(s2.events.firstOrNull { it is CueEvent.OffTrack })
     }
 
     @Test
@@ -563,5 +630,260 @@ class CueEngineTest {
         val r = CueEngine.tick(reroutingSnap(true, "r3"), s)
         assertNotNull("After confirmed on-track the rerouting cue counter must reset",
             r.events.firstOrNull { it is CueEvent.Rerouting })
+    }
+
+    // ─── silence during rerouting ───
+
+    @Test
+    fun reroutingSuppressesTurn50m() {
+        val s1 = CueEngine.tick(base(progressDistanceM = 100.0), CueEngineState()).nextState
+        val s2 = CueEngine.tick(base(progressDistanceM = 155.0, rerouting = true), s1)
+        assertNull(s2.events.firstOrNull { it is CueEvent.Turn50m })
+    }
+
+    @Test
+    fun reroutingSuppressesTurn10m() {
+        val s1 = CueEngine.tick(base(progressDistanceM = 155.0), CueEngineState()).nextState
+        val s2 = CueEngine.tick(base(progressDistanceM = 192.0, rerouting = true), s1)
+        assertNull(s2.events.firstOrNull { it is CueEvent.Turn10m })
+    }
+
+    @Test
+    fun reroutingSuppressesNextTurnInAbout() {
+        val s1 = CueEngine.tick(base(progressDistanceM = 200.0), CueEngineState()).nextState
+        val s2 = CueEngine.tick(base(progressDistanceM = 211.0, rerouting = true), s1)
+        assertNull(s2.events.firstOrNull { it is CueEvent.NextTurnInAbout })
+    }
+
+    @Test
+    fun reroutingSuppressesArrivingInM() {
+        val snap = base(
+            progressDistanceM = 412.0,
+            maneuvers = listOf(CueManeuver("m1", ManeuverKind.LEFT, 400.0)),
+            routeTotalDistanceM = 600.0,
+            rerouting = true,
+        )
+        val r = CueEngine.tick(snap, CueEngineState())
+        assertNull(r.events.firstOrNull { it is CueEvent.ArrivingInM })
+    }
+
+    @Test
+    fun reroutingSuppressesBearRange() {
+        val bear = CueManeuver("m1", ManeuverKind.BEAR_LEFT, 200.0)
+        val s1 = CueEngine.tick(
+            base(progressDistanceM = 100.0, maneuvers = listOf(bear)),
+            CueEngineState(),
+        ).nextState
+        val s2 = CueEngine.tick(
+            base(progressDistanceM = 192.0, maneuvers = listOf(bear), rerouting = true),
+            s1,
+        )
+        assertNull(s2.events.firstOrNull { it is CueEvent.BearRange })
+    }
+
+    @Test
+    fun reroutingCueItselfStillFires() {
+        val s1 = CueEngine.tick(base(offRoute = true), CueEngineState()).nextState
+        val s2 = CueEngine.tick(base(offRoute = true, rerouting = true), s1)
+        assertNotNull(s2.events.firstOrNull { it is CueEvent.Rerouting })
+    }
+
+    @Test
+    fun reroutingDoesNotSuppressArrived() {
+        val r = CueEngine.tick(base(arrived = true, rerouting = true), CueEngineState())
+        assertNotNull(r.events.firstOrNull { it is CueEvent.Arrived })
+    }
+
+    @Test
+    fun whenReroutingBecomesFalseCuesResume() {
+        var s = CueEngine.tick(
+            base(offRoute = true, rerouting = true),
+            CueEngineState(),
+        ).nextState
+        // New route, rerouting false → first-tick NextTurnInAbout fires
+        val r = CueEngine.tick(
+            base(
+                routeId = "r2",
+                progressDistanceM = 0.0,
+                offRoute = false,
+                rerouting = false,
+                maneuvers = listOf(CueManeuver("m1", ManeuverKind.LEFT, 200.0)),
+            ),
+            s,
+        )
+        assertNotNull(r.events.firstOrNull { it is CueEvent.NextTurnInAbout })
+    }
+
+    // ─── min bear segment ───
+
+    @Test
+    fun bearSegmentUnder50mDoesNotFire() {
+        val bear = CueManeuver("m1", ManeuverKind.BEAR_LEFT, 200.0)
+        val next = CueManeuver("m2", ManeuverKind.LEFT, 230.0)
+        val s1 = CueEngine.tick(
+            base(progressDistanceM = 100.0, maneuvers = listOf(bear, next), routeTotalDistanceM = 500.0),
+            CueEngineState(),
+        ).nextState
+        val s2 = CueEngine.tick(
+            base(progressDistanceM = 195.0, maneuvers = listOf(bear, next), routeTotalDistanceM = 500.0),
+            s1,
+        )
+        assertNull("bear segment under 50m must not fire BearRange",
+            s2.events.firstOrNull { it is CueEvent.BearRange })
+    }
+
+    @Test
+    fun bearSegmentAt50mFires() {
+        val bear = CueManeuver("m1", ManeuverKind.BEAR_LEFT, 200.0)
+        val next = CueManeuver("m2", ManeuverKind.LEFT, 250.0)
+        val s1 = CueEngine.tick(
+            base(progressDistanceM = 100.0, maneuvers = listOf(bear, next), routeTotalDistanceM = 500.0),
+            CueEngineState(),
+        ).nextState
+        val s2 = CueEngine.tick(
+            base(progressDistanceM = 195.0, maneuvers = listOf(bear, next), routeTotalDistanceM = 500.0),
+            s1,
+        )
+        assertNotNull("bear segment at 50m must fire BearRange",
+            s2.events.firstOrNull { it is CueEvent.BearRange })
+    }
+
+    @Test
+    fun bearAtEndOfRouteWithShortRemainingSegmentDoesNotFire() {
+        val bear = CueManeuver("m1", ManeuverKind.BEAR_LEFT, 980.0)
+        val s1 = CueEngine.tick(
+            base(progressDistanceM = 900.0, maneuvers = listOf(bear), routeTotalDistanceM = 1000.0),
+            CueEngineState(),
+        ).nextState
+        val s2 = CueEngine.tick(
+            base(progressDistanceM = 975.0, maneuvers = listOf(bear), routeTotalDistanceM = 1000.0),
+            s1,
+        )
+        assertNull("bear at end of route with short segment must not fire",
+            s2.events.firstOrNull { it is CueEvent.BearRange })
+    }
+
+    // ─── km distance formatting ───
+
+    @Test
+    fun distanceCueValues_1310m_metric_returnsKilometers() {
+        val result = app.navon.bike.integration.i18n.DistanceFormatter
+            .cueValues(1310.0, app.navon.bike.integration.i18n.DistanceMode.METRIC)
+        assertEquals("kilometers", result["distanceUnit"])
+        assertEquals(1.3, result["distance"] as Double, 0.1)
+    }
+
+    @Test
+    fun distanceCueValues_500m_metric_returnsMeters() {
+        val result = app.navon.bike.integration.i18n.DistanceFormatter
+            .cueValues(500.0, app.navon.bike.integration.i18n.DistanceMode.METRIC)
+        assertEquals("meters", result["distanceUnit"])
+        assertEquals(500L, result["distance"])
+    }
+
+    @Test
+    fun distanceCueValues_1000m_metric_returnsKilometers() {
+        val result = app.navon.bike.integration.i18n.DistanceFormatter
+            .cueValues(1000.0, app.navon.bike.integration.i18n.DistanceMode.METRIC)
+        assertEquals("kilometers", result["distanceUnit"])
+        assertEquals(1.0, result["distance"] as Double, 0.1)
+    }
+
+    @Test
+    fun formatCueEvent_nextTurnInAbout_1310m_showsKm() {
+        val text = CueEngine.format(CueEvent.NextTurnInAbout(ManeuverKind.LEFT, 1310.0))
+        assertEquals("Next turn left in about 1.3 kilometers", text)
+    }
+
+    // ─── collapse close maneuvers ───
+
+    private fun rm(id: String, dist: Double, type: RouteManeuverType = RouteManeuverType.SLIGHT_LEFT) =
+        RouteManeuver(
+            id = id,
+            maneuverType = type,
+            location = CoordinatePoint(latitude = 60.0 + dist / 111_320.0, longitude = 25.0),
+            distanceFromStartMeters = dist,
+        )
+
+    private fun northGeometry(lengthM: Double = 250.0): List<CoordinatePoint> {
+        val points = mutableListOf<CoordinatePoint>()
+        val step = 5.0
+        var d = 0.0
+        while (d <= lengthM) {
+            points.add(CoordinatePoint(latitude = 60.0 + d / 111_320.0, longitude = 25.0))
+            d += step
+        }
+        return points
+    }
+
+    @Test
+    fun collapse_singleManeuverUnchanged() {
+        val geom = northGeometry()
+        val maneuvers = listOf(rm("m1", 100.0))
+        val result = CueManeuverMapping.collapseCloseManeuvers(maneuvers, geom)
+        assertEquals(1, result.size)
+        assertEquals("m1", result[0].id)
+    }
+
+    @Test
+    fun collapse_emptyReturnsEmpty() {
+        val geom = northGeometry()
+        val result = CueManeuverMapping.collapseCloseManeuvers(emptyList(), geom)
+        assertEquals(0, result.size)
+    }
+
+    @Test
+    fun collapse_gapMoreThan5m_preservesBoth() {
+        val geom = northGeometry()
+        val maneuvers = listOf(rm("m1", 100.0), rm("m2", 110.0))
+        val result = CueManeuverMapping.collapseCloseManeuvers(maneuvers, geom)
+        assertEquals(2, result.size)
+    }
+
+    @Test
+    fun collapse_twoCloseManeuvers_netAngleSmall_preservesBoth() {
+        // Straight north geometry → net angle ~0° → preserve both
+        val geom = northGeometry()
+        val maneuvers = listOf(rm("m1", 100.0), rm("m2", 103.0))
+        val result = CueManeuverMapping.collapseCloseManeuvers(maneuvers, geom)
+        assertEquals(2, result.size)
+    }
+
+    private fun bendGeometry(bendDistanceM: Double, bendAngleDeg: Double, totalLengthM: Double = 250.0): List<CoordinatePoint> {
+        val metersPerDeg = 111_320.0
+        val step = 5.0
+        val points = mutableListOf<CoordinatePoint>()
+        var lat = 60.0
+        var lon = 25.0
+        points.add(CoordinatePoint(latitude = lat, longitude = lon))
+        var dist = 0.0
+        while (dist < totalLengthM) {
+            val segLen = minOf(step, totalLengthM - dist)
+            val bearing = if (dist >= bendDistanceM) bendAngleDeg else 0.0
+            val rad = bearing * Math.PI / 180.0
+            val cosLat = cos((lat + lat) / 2.0 * Math.PI / 180.0)
+            lat += segLen * cos(rad) / metersPerDeg
+            lon += segLen * sin(rad) / (metersPerDeg * cosLat)
+            dist += segLen
+            points.add(CoordinatePoint(latitude = lat, longitude = lon))
+        }
+        return points
+    }
+
+    @Test
+    fun collapse_twoCloseManeuvers_netAngleExceeds30deg_collapses() {
+        val geom = bendGeometry(bendDistanceM = 105.0, bendAngleDeg = 45.0)
+        val maneuvers = listOf(rm("m1", 100.0), rm("m2", 103.0))
+        val result = CueManeuverMapping.collapseCloseManeuvers(maneuvers, geom)
+        assertEquals(1, result.size)
+        assertEquals("m2", result[0].id)
+    }
+
+    @Test
+    fun collapse_gapExactly5m_noCollapse() {
+        val geom = northGeometry()
+        val maneuvers = listOf(rm("m1", 100.0), rm("m2", 105.0))
+        val result = CueManeuverMapping.collapseCloseManeuvers(maneuvers, geom)
+        assertEquals(2, result.size)
     }
 }

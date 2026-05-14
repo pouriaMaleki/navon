@@ -81,6 +81,9 @@ struct CueEngineState: Equatable {
     /// Reset only when the rider is confirmed on-track for
     /// `onTrackConfirmSamples` consecutive ticks.
     var reroutingEpisodeCount: Int = 0
+    /// Number of consecutive off-route ticks. Resets on any on-route tick.
+    /// offTrack only fires after `offRouteHysteresisTicks` consecutive.
+    var offRouteTickCount: Int = 0
 }
 
 enum CueEngine {
@@ -94,6 +97,11 @@ enum CueEngine {
     private static let onTrackConfirmSamples = 5
     private static let onTrackCorridorM = 22.0
     private static let repeatOffTrackSilenceThreshold = 2
+    /// Require this many consecutive off-route ticks before firing offTrack.
+    /// Prevents momentary GPS blips from triggering false off-track alerts.
+    private static let offRouteHysteresisTicks = 3
+    /// When the rider is this far from the route, skip hysteresis — they're genuinely lost.
+    private static let offRouteImmediateDistanceM = 50.0
     /// Cap on rerouting audio cues per "off-route session". After this many
     /// fires, stay silent until the rider is confirmed on-track.
     private static let reroutingCueCap = 2
@@ -111,6 +119,9 @@ enum CueEngine {
     /// `arrivingInM` for any `nextTurnInAbout` or approach cues so the
     /// rider hears "arriving in Xm" rather than a phantom turn command.
     private static let closeToDestinationM = 30.0
+    /// Bear range cues are only useful when the bear segment is long enough.
+    /// Below this threshold the rider is already there — silence the bear.
+    private static let minBearSegmentM = 50.0
 
     private static func isBearKind(_ k: ManeuverKind) -> Bool {
         k == .bearLeft || k == .bearRight
@@ -180,7 +191,7 @@ enum CueEngine {
                             s.announced50m.insert(firstNonDepart.id)
                             s.announced10m.insert(firstNonDepart.id)
                         }
-                    } else if !firstNonDepart.isMinorKeep {
+                    } else if !firstNonDepart.isMinorKeep && !Self.isBearKind(firstNonDepart.kind) {
                         events.append(.nextTurnInAbout(turnKind: firstNonDepart.kind, distanceM: distanceM))
                         // Pre-latch turn50m when the first turn is already close: the rider
                         // has the orientation cue; a redundant "in 50 m" a few seconds later
@@ -224,9 +235,28 @@ enum CueEngine {
             s.routeStartedAnnounced = true
         }
 
-        let offRouteRose = !s.prevOffRoute && snapshot.offRoute
+        // Off-route hysteresis: count consecutive off-route ticks. Fire
+        // offTrack only after offRouteHysteresisTicks consecutive, or
+        // immediately when the rider is far from the route (genuinely lost,
+        // not a GPS blip).
+        var offRouteTickCount = s.offRouteTickCount
+        if snapshot.offRoute {
+            offRouteTickCount += 1
+        } else {
+            offRouteTickCount = 0
+        }
+
         var offRouteEpisodeCount = s.offRouteEpisodeCount
-        if offRouteRose { offRouteEpisodeCount += 1 }
+
+        let immediateOffTrack =
+            snapshot.offRoute
+            && snapshot.distanceFromRouteM > Self.offRouteImmediateDistanceM
+            && offRouteTickCount == 1
+        let hysteresisOffTrack =
+            snapshot.offRoute && offRouteTickCount == Self.offRouteHysteresisTicks
+        let offTrackFired = immediateOffTrack || hysteresisOffTrack
+
+        if offTrackFired { offRouteEpisodeCount += 1 }
 
         var silenced = s.silenced
         var onTrackAnnounced = s.onTrackAnnounced
@@ -246,19 +276,15 @@ enum CueEngine {
             onTrackAnnounced = true
             offRouteEpisodeCount = 0
         }
-        // Independent reset of the rerouting cue counter: even without an
-        // off-route silence event, sustained on-track confirmation means the
-        // rider is back on the route and the next reroute episode (if any)
-        // deserves a fresh count.
         if consecutiveOnRouteSamples >= Self.onTrackConfirmSamples {
             reroutingEpisodeCount = 0
         }
 
-        if offRouteRose && offRouteEpisodeCount > Self.repeatOffTrackSilenceThreshold && !silenced {
+        if offTrackFired && offRouteEpisodeCount > Self.repeatOffTrackSilenceThreshold && !silenced {
             events.append(.repeatedOffTrackSilence)
             silenced = true
             onTrackAnnounced = false
-        } else if offRouteRose && !silenced {
+        } else if offTrackFired && !silenced {
             events.append(.offTrack)
         }
 
@@ -269,7 +295,7 @@ enum CueEngine {
             events.append(.rerouting)
         }
 
-        if !silenced && !snapshot.offRoute {
+        if !silenced && !snapshot.offRoute && !snapshot.rerouting {
             var announced50m = s.announced50m
             var announced10m = s.announced10m
             var announcedNextTurnAfter = s.announcedNextTurnAfter
@@ -391,8 +417,11 @@ enum CueEngine {
                     ? snapshot.maneuvers[upcomingIdx + 1] : nil
                 let rawSegmentLengthM = nextManeuver.map { $0.distanceFromStartM - m.distanceFromStartM }
                     ?? (snapshot.routeTotalDistanceM - m.distanceFromStartM)
-                let segmentLengthM = min(rawSegmentLengthM, 500.0)
-                events.append(.bearRange(turnKind: m.kind, distanceM: segmentLengthM))
+                // Only fire when the segment is long enough to be useful.
+                if rawSegmentLengthM >= Self.minBearSegmentM {
+                    let segmentLengthM = min(rawSegmentLengthM, 500.0)
+                    events.append(.bearRange(turnKind: m.kind, distanceM: segmentLengthM))
+                }
                 announced10m.insert(m.id)
             }
 
@@ -409,6 +438,7 @@ enum CueEngine {
         s.prevOffRoute = snapshot.offRoute
         s.prevRerouting = snapshot.rerouting
         s.offRouteEpisodeCount = offRouteEpisodeCount
+        s.offRouteTickCount = offRouteTickCount
         s.silenced = silenced
         s.consecutiveOnRouteSamples = consecutiveOnRouteSamples
         s.onTrackAnnounced = onTrackAnnounced
@@ -552,6 +582,10 @@ enum CueEngine {
             let ft = Double(DistanceFormatter.roundTo10(meters * 3.280839895))
             return (ft, "feet")
         case .metric:
+            if meters >= 1000 {
+                let km = (meters / 100.0).rounded() / 10.0
+                return (km, "kilometers")
+            }
             let m = Double(DistanceFormatter.roundTo10(meters))
             return (m, "meters")
         }

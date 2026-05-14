@@ -1,3 +1,5 @@
+import type { CoordinatePoint } from "./models.js";
+
 export type RoutingDiagEventData =
   | {
       kind: "locationUpdate";
@@ -72,6 +74,13 @@ export interface RoutingDiagSession {
   createdAtMs: number;
   updatedAtMs: number;
   events: RoutingDiagEvent[];
+  routeGeometries?: RouteGeometryEntry[];
+}
+
+export interface RouteGeometryEntry {
+  routeId: string;
+  providerName: string;
+  geometry: CoordinatePoint[];
 }
 
 export interface RoutingDiagDebugPackage {
@@ -80,6 +89,7 @@ export interface RoutingDiagDebugPackage {
   createdAtMs: number;
   eventCount: number;
   events: RoutingDiagEvent[];
+  routeGeometries?: RouteGeometryEntry[];
 }
 
 export function sessionDebugPackage(session: RoutingDiagSession): string {
@@ -89,6 +99,7 @@ export function sessionDebugPackage(session: RoutingDiagSession): string {
     createdAtMs: session.createdAtMs,
     eventCount: session.events.length,
     events: session.events,
+    routeGeometries: session.routeGeometries,
   };
   return JSON.stringify(pkg, null, 2);
 }

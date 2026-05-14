@@ -83,6 +83,14 @@ data class RoutingDiagEvent(
     val data: RoutingDiagEventData = RoutingDiagEventData(),
 )
 
+// MARK: - Route Geometry Entry
+
+data class RouteGeometryEntry(
+    val routeId: String = "",
+    val providerName: String = "",
+    val geometry: List<CoordinatePoint> = emptyList(),
+)
+
 // MARK: - Session
 
 data class RoutingDiagSession(
@@ -90,19 +98,21 @@ data class RoutingDiagSession(
     val createdAtMs: Long = 0L,
     val updatedAtMs: Long = 0L,
     val events: List<RoutingDiagEvent> = emptyList(),
+    val routeGeometries: List<RouteGeometryEntry>? = null,
 ) {
     val eventCount: Int get() = events.size
     val durationMs: Long get() = if (events.isEmpty()) 0L else updatedAtMs - createdAtMs
 
     fun debugPackageText(): String {
         val gson = com.google.gson.GsonBuilder().setPrettyPrinting().create()
-        val pkg = mapOf(
+        val pkg = mutableMapOf<String, Any?>(
             "formatVersion" to 1,
             "sessionId" to id,
             "createdAtMs" to createdAtMs,
             "eventCount" to eventCount,
             "events" to events,
         )
+        routeGeometries?.let { pkg["routeGeometries"] = it }
         return gson.toJson(pkg)
     }
 }

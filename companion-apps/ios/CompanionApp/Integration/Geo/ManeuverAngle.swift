@@ -92,3 +92,75 @@ private func haversineDistance(_ a: CoordinatePoint, _ b: CoordinatePoint) -> Do
     let dlon = (b.longitude - a.longitude) * cos(meanLat) * metersPerDegreeLat
     return sqrt(dlat * dlat + dlon * dlon)
 }
+
+// MARK: - Maneuver collapse
+
+private let collapseDistanceM = 5.0
+private let collapseAngleDeg = 30.0
+private let maneuverLookDistM = 10.0
+
+private func coordAtDistance(_ geometry: [CoordinatePoint], _ dist: Double, _ cumul: [Double]) -> CoordinatePoint {
+    if dist <= 0 { return geometry[0] }
+    let total = cumul[cumul.count - 1]
+    if dist >= total { return geometry[geometry.count - 1] }
+    for i in 1..<cumul.count {
+        if cumul[i] >= dist {
+            let segLen = cumul[i] - cumul[i - 1]
+            let t = segLen > 1e-9 ? (dist - cumul[i - 1]) / segLen : 0
+            return CoordinatePoint(
+                latitude: geometry[i - 1].latitude + (geometry[i].latitude - geometry[i - 1].latitude) * t,
+                longitude: geometry[i - 1].longitude + (geometry[i].longitude - geometry[i - 1].longitude) * t
+            )
+        }
+    }
+    return geometry[geometry.count - 1]
+}
+
+/// Collapse back-to-back maneuvers that are very close (<5m) when the net
+/// direction change through them is >30°. Shared pedestrian path entries/exits
+/// create multiple annotations but only the final real turn matters.
+func collapseCloseManeuvers(_ maneuvers: [RouteManeuver], geometry: [CoordinatePoint]) -> [RouteManeuver] {
+    if maneuvers.count < 2 { return maneuvers }
+    if geometry.count < 2 { return maneuvers }
+
+    let cumul = cumulativeDistances(geometry)
+    let totalDist = cumul[cumul.count - 1]
+
+    func netAngleDeg(firstDist: Double, lastDist: Double) -> Double {
+        let approachFrom = coordAtDistance(geometry, max(0, firstDist - maneuverLookDistM), cumul)
+        let approachPt = coordAtDistance(geometry, firstDist, cumul)
+        let exitPt = coordAtDistance(geometry, lastDist, cumul)
+        let exitTo = coordAtDistance(geometry, min(totalDist, lastDist + maneuverLookDistM), cumul)
+        let inBearing = bearingDegrees(from: approachFrom, to: approachPt)
+        let outBearing = bearingDegrees(from: exitPt, to: exitTo)
+        var delta = outBearing - inBearing
+        while delta <= -180 { delta += 360 }
+        while delta > 180 { delta -= 360 }
+        return abs(delta)
+    }
+
+    var result: [RouteManeuver] = []
+    var i = 0
+    while i < maneuvers.count {
+        var j = i + 1
+        while j < maneuvers.count &&
+                maneuvers[j].distanceFromStartMeters - maneuvers[j - 1].distanceFromStartMeters < collapseDistanceM {
+            j += 1
+        }
+
+        if j - i > 1 {
+            let firstDist = maneuvers[i].distanceFromStartMeters
+            let lastDist = maneuvers[j - 1].distanceFromStartMeters
+            if netAngleDeg(firstDist: firstDist, lastDist: lastDist) > collapseAngleDeg {
+                result.append(maneuvers[j - 1])
+            } else {
+                for k in i..<j { result.append(maneuvers[k]) }
+            }
+        } else {
+            result.append(maneuvers[i])
+        }
+        i = j
+    }
+
+    return result
+}

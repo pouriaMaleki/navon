@@ -242,10 +242,12 @@ final class CueEngineTests: XCTestCase {
         XCTAssertTrue(r.events.contains(.arrived))
     }
 
-    func test_emitsOffTrackOnFirstEpisode() {
+    func test_emitsOffTrackAfter3ConsecutiveTicks() {
         let s1 = CueEngine.tick(snapshot: base(), state: CueEngineState()).nextState
-        let r2 = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 40), state: s1)
-        XCTAssertTrue(r2.events.contains(.offTrack))
+        var s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 40), state: s1).nextState
+        s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 40), state: s).nextState
+        let r4 = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 40), state: s)
+        XCTAssertTrue(r4.events.contains(.offTrack))
     }
 
     func test_emitsReroutingOnRisingEdge() {
@@ -256,15 +258,71 @@ final class CueEngineTests: XCTestCase {
 
     func test_afterMoreThanTwoOffRouteEpisodesGoesSilent() {
         var s = CueEngineState()
+        // Episode 1: 3 consecutive off-route ticks → offTrack
         s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 40), state: s).nextState
-        s = CueEngine.tick(snapshot: base(offRoute: false, distanceFromRouteM: 5), state: s).nextState
         s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 40), state: s).nextState
+        s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 40), state: s).nextState
+        // Reset: on-route
         s = CueEngine.tick(snapshot: base(offRoute: false, distanceFromRouteM: 5), state: s).nextState
+        // Episode 2: 3 consecutive → offTrack
+        s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 40), state: s).nextState
+        s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 40), state: s).nextState
+        s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 40), state: s).nextState
+        // Reset: on-route
+        s = CueEngine.tick(snapshot: base(offRoute: false, distanceFromRouteM: 5), state: s).nextState
+        // Episode 3: 3 consecutive → repeatedOffTrackSilence
+        s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 40), state: s).nextState
+        s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 40), state: s).nextState
         let r3 = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 40), state: s)
         XCTAssertTrue(r3.events.contains(.repeatedOffTrackSilence))
         s = r3.nextState
         let r4 = CueEngine.tick(snapshot: base(progressDistanceM: 155, offRoute: true), state: s)
         XCTAssertEqual(r4.events.count, 0)
+    }
+
+    // MARK: - off-track hysteresis
+
+    func test_singleOffRouteTickDoesNotFireOffTrack() {
+        let s1 = CueEngine.tick(snapshot: base(), state: CueEngineState()).nextState
+        let r2 = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 15), state: s1)
+        XCTAssertFalse(r2.events.contains(.offTrack))
+    }
+
+    func test_twoConsecutiveOffRouteTicksDoNotFireOffTrack() {
+        let s1 = CueEngine.tick(snapshot: base(), state: CueEngineState()).nextState
+        var s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 15), state: s1).nextState
+        let r3 = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 15), state: s)
+        XCTAssertFalse(r3.events.contains(.offTrack))
+    }
+
+    func test_threeConsecutiveOffRouteTicksFireOffTrack() {
+        let s1 = CueEngine.tick(snapshot: base(), state: CueEngineState()).nextState
+        var s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 15), state: s1).nextState
+        s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 15), state: s).nextState
+        let r4 = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 15), state: s)
+        XCTAssertTrue(r4.events.contains(.offTrack))
+    }
+
+    func test_onRouteTickResetsOffRouteConsecutiveCounter() {
+        let s1 = CueEngine.tick(snapshot: base(), state: CueEngineState()).nextState
+        // Two off-route ticks, then one on-route (reset), then one off-route
+        var s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 15), state: s1).nextState
+        s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 15), state: s).nextState
+        s = CueEngine.tick(snapshot: base(offRoute: false, distanceFromRouteM: 5), state: s).nextState
+        let r5 = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 15), state: s)
+        // After reset: only 1 consecutive off-route, should not fire
+        XCTAssertFalse(r5.events.contains(.offTrack))
+        // Two more → total 3 consecutive → fires
+        s = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 15), state: r5.nextState).nextState
+        let r7 = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 15), state: s)
+        XCTAssertTrue(r7.events.contains(.offTrack))
+    }
+
+    func test_largeDistanceFromRouteFiresOffTrackImmediately() {
+        // When distanceFromRouteM > 50m, the rider is genuinely lost — fire immediately.
+        let s1 = CueEngine.tick(snapshot: base(), state: CueEngineState()).nextState
+        let r2 = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 60), state: s1)
+        XCTAssertTrue(r2.events.contains(.offTrack))
     }
 
     func test_emitsOnTrackAfterFiveConsecutiveOnRouteSamples() {
@@ -715,6 +773,55 @@ final class CueEngineTests: XCTestCase {
         XCTAssertNil(nextTurn, "must not emit nextTurnInAbout for bear kind after passing — got \(r2.events)")
     }
 
+    // MARK: - min bear segment
+
+    func test_bearSegmentUnder50mDoesNotFire() {
+        // Bear at 200m, next at 230m → segment 30m < 50m → no bearRange
+        let bear = mBearLeft("m1", 200)
+        let next = mLeft("m2", 230)
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: [bear, next], routeTotalDistanceM: 500),
+            state: CueEngineState()
+        ).nextState
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 195, maneuvers: [bear, next], routeTotalDistanceM: 500),
+            state: s1
+        )
+        XCTAssertFalse(r2.events.contains { if case .bearRange = $0 { return true } else { return false } },
+            "bear segment under 50m must not fire bearRange — got \(r2.events)")
+    }
+
+    func test_bearSegmentAt50mFires() {
+        // Bear at 200m, next at 250m → segment 50m → bearRange fires
+        let bear = mBearLeft("m1", 200)
+        let next = mLeft("m2", 250)
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: [bear, next], routeTotalDistanceM: 500),
+            state: CueEngineState()
+        ).nextState
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 195, maneuvers: [bear, next], routeTotalDistanceM: 500),
+            state: s1
+        )
+        XCTAssertTrue(r2.events.contains { if case .bearRange = $0 { return true } else { return false } },
+            "bear segment at 50m must fire bearRange")
+    }
+
+    func test_bearAtEndOfRouteWithShortRemainingSegmentDoesNotFire() {
+        // Bear at 980m, route ends at 1000m → segment 20m < 50m
+        let bear = mBearLeft("m1", 980)
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 900, maneuvers: [bear], routeTotalDistanceM: 1000),
+            state: CueEngineState()
+        ).nextState
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 975, maneuvers: [bear], routeTotalDistanceM: 1000),
+            state: s1
+        )
+        XCTAssertFalse(r2.events.contains { if case .bearRange = $0 { return true } else { return false } },
+            "bear at end of route with short segment must not fire — got \(r2.events)")
+    }
+
     func test_unpromotedSlightLeftDoesNotEmitBearRange() {
         // slightLeft (kind: .left, isMinorKeep: true) — NOT promoted to bear.
         // Must stay completely silent in approach windows.
@@ -732,5 +839,191 @@ final class CueEngineTests: XCTestCase {
             "unpromoted slightLeft must not fire turn10m")
         XCTAssertFalse(r2.events.contains { if case .turn50m = $0 { return true } else { return false } },
             "unpromoted slightLeft must not fire turn50m")
+    }
+
+    // MARK: - silence during rerouting
+
+    func test_reroutingSuppressesTurn50m() {
+        let s1 = CueEngine.tick(snapshot: base(progressDistanceM: 100), state: CueEngineState()).nextState
+        let r2 = CueEngine.tick(snapshot: base(progressDistanceM: 155, rerouting: true), state: s1)
+        XCTAssertFalse(r2.events.contains { if case .turn50m = $0 { return true } else { return false } })
+    }
+
+    func test_reroutingSuppressesTurn10m() {
+        let s1 = CueEngine.tick(snapshot: base(progressDistanceM: 155), state: CueEngineState()).nextState
+        let r2 = CueEngine.tick(snapshot: base(progressDistanceM: 192, rerouting: true), state: s1)
+        XCTAssertFalse(r2.events.contains { if case .turn10m = $0 { return true } else { return false } })
+    }
+
+    func test_reroutingSuppressesNextTurnInAbout() {
+        let s1 = CueEngine.tick(snapshot: base(progressDistanceM: 200), state: CueEngineState()).nextState
+        let r2 = CueEngine.tick(snapshot: base(progressDistanceM: 211, rerouting: true), state: s1)
+        XCTAssertFalse(r2.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } })
+    }
+
+    func test_reroutingSuppressesArrivingInM() {
+        let snap = base(
+            progressDistanceM: 412,
+            maneuvers: [mLeft("m1", 400)],
+            routeTotalDistanceM: 600,
+            rerouting: true
+        )
+        let r = CueEngine.tick(snapshot: snap, state: CueEngineState())
+        XCTAssertFalse(r.events.contains { if case .arrivingInM = $0 { return true } else { return false } })
+    }
+
+    func test_reroutingSuppressesBearRange() {
+        let bear = mBearLeft("m1", 200)
+        let s1 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 100, maneuvers: [bear]),
+            state: CueEngineState()
+        ).nextState
+        let r2 = CueEngine.tick(
+            snapshot: base(progressDistanceM: 192, maneuvers: [bear], rerouting: true),
+            state: s1
+        )
+        XCTAssertFalse(r2.events.contains { if case .bearRange = $0 { return true } else { return false } })
+    }
+
+    func test_reroutingCueItselfStillFires() {
+        let s1 = CueEngine.tick(snapshot: base(offRoute: true), state: CueEngineState()).nextState
+        let r2 = CueEngine.tick(snapshot: base(offRoute: true, rerouting: true), state: s1)
+        XCTAssertTrue(r2.events.contains(.rerouting))
+    }
+
+    func test_reroutingDoesNotSuppressArrived() {
+        let r = CueEngine.tick(snapshot: base(arrived: true, rerouting: true), state: CueEngineState())
+        XCTAssertTrue(r.events.contains(.arrived))
+    }
+
+    func test_whenReroutingBecomesFalse_cuesResume() {
+        var s = CueEngine.tick(
+            snapshot: base(offRoute: true, rerouting: true),
+            state: CueEngineState()
+        ).nextState
+        // New route, rerouting false → first-tick nextTurnInAbout fires
+        let r = CueEngine.tick(
+            snapshot: base(
+                routeId: "r2",
+                progressDistanceM: 0,
+                offRoute: false,
+                rerouting: false,
+                maneuvers: [mLeft("m1", 200)]
+            ),
+            state: s
+        )
+        XCTAssertTrue(r.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } })
+    }
+
+    // MARK: - km distance formatting
+
+    func test_distanceCueValues_1310m_metric_returnsKilometers() {
+        let result = DistanceFormatter.cueValues(meters: 1310, mode: .metric)
+        XCTAssertEqual(result["distanceUnit"], .string("kilometers"))
+        if case .number(let d) = result["distance"] { XCTAssertEqual(d, 1.3, accuracy: 0.1) }
+    }
+
+    func test_distanceCueValues_500m_metric_returnsMeters() {
+        let result = DistanceFormatter.cueValues(meters: 500, mode: .metric)
+        XCTAssertEqual(result["distanceUnit"], .string("meters"))
+        if case .number(let d) = result["distance"] { XCTAssertEqual(d, 500.0) }
+    }
+
+    func test_distanceCueValues_1000m_metric_returnsKilometers() {
+        let result = DistanceFormatter.cueValues(meters: 1000, mode: .metric)
+        XCTAssertEqual(result["distanceUnit"], .string("kilometers"))
+        if case .number(let d) = result["distance"] { XCTAssertEqual(d, 1.0, accuracy: 0.1) }
+    }
+
+    func test_formatCueEvent_nextTurnInAbout_1310m_showsKm() {
+        let text = CueEngine.format(.nextTurnInAbout(turnKind: .left, distanceM: 1310))
+        XCTAssertEqual(text, "Next turn left in about 1.3 kilometers")
+    }
+
+    // MARK: - Collapse close maneuvers
+
+    private func rm(_ id: String, _ dist: Double, _ type: RouteManeuverType = .slightLeft) -> RouteManeuver {
+        RouteManeuver(
+            id: id,
+            maneuverType: type,
+            location: CoordinatePoint(latitude: 60.0 + dist / 111_320.0, longitude: 25.0),
+            distanceFromStartMeters: dist
+        )
+    }
+
+    private func northGeometry(lengthM: Double = 250) -> [CoordinatePoint] {
+        var points: [CoordinatePoint] = []
+        let step = 5.0
+        var d = 0.0
+        while d <= lengthM {
+            points.append(CoordinatePoint(latitude: 60.0 + d / 111_320.0, longitude: 25.0))
+            d += step
+        }
+        return points
+    }
+
+    func test_collapse_singleManeuverUnchanged() {
+        let geom = northGeometry()
+        let maneuvers = [rm("m1", 100)]
+        let result = collapseCloseManeuvers(maneuvers, geometry: geom)
+        XCTAssertEqual(result.count, 1)
+        XCTAssertEqual(result[0].id, "m1")
+    }
+
+    func test_collapse_emptyReturnsEmpty() {
+        let geom = northGeometry()
+        let result = collapseCloseManeuvers([], geometry: geom)
+        XCTAssertEqual(result.count, 0)
+    }
+
+    func test_collapse_gapMoreThan5m_preservesBoth() {
+        let geom = northGeometry()
+        let maneuvers = [rm("m1", 100), rm("m2", 110)]
+        let result = collapseCloseManeuvers(maneuvers, geometry: geom)
+        XCTAssertEqual(result.count, 2)
+    }
+
+    func test_collapse_twoCloseManeuvers_netAngle30deg_preservesBoth() {
+        // Straight north geometry → net angle ~0° → preserve both
+        let geom = northGeometry()
+        let maneuvers = [rm("m1", 100), rm("m2", 103)]
+        let result = collapseCloseManeuvers(maneuvers, geometry: geom)
+        XCTAssertEqual(result.count, 2)
+    }
+
+    private func bendGeometry(bendDistanceM: Double, bendAngleDeg: Double, totalLengthM: Double = 250) -> [CoordinatePoint] {
+        let metersPerDeg = 111_320.0
+        let step = 5.0
+        var points: [CoordinatePoint] = []
+        var lat = 60.0
+        var lon = 25.0
+        points.append(CoordinatePoint(latitude: lat, longitude: lon))
+        var dist = 0.0
+        while dist < totalLengthM {
+            let segLen = min(step, totalLengthM - dist)
+            let bearing = dist >= bendDistanceM ? bendAngleDeg : 0.0
+            let rad = bearing * .pi / 180.0
+            let cosLat = cos((lat + lat) / 2.0 * .pi / 180.0)
+            lat += segLen * cos(rad) / metersPerDeg
+            lon += segLen * sin(rad) / (metersPerDeg * cosLat)
+            dist += segLen
+            points.append(CoordinatePoint(latitude: lat, longitude: lon))
+        }
+        return points
+    }
+
+    func test_collapse_twoCloseManeuvers_netAngleExceeds30deg_collapses() {
+        let geom = bendGeometry(bendDistanceM: 105, bendAngleDeg: 45)
+        let maneuvers = [rm("m1", 100), rm("m2", 103)]
+        let result = collapseCloseManeuvers(maneuvers, geometry: geom)
+        XCTAssertEqual(result.count, 1)
+        XCTAssertEqual(result[0].id, "m2")
+    }
+
+    func test_collapse_gapExactly5m_noCollapse() {
+        let geom = northGeometry()
+        let maneuvers = [rm("m1", 100), rm("m2", 105)]
+        let result = collapseCloseManeuvers(maneuvers, geometry: geom)
+        XCTAssertEqual(result.count, 2)
     }
 }

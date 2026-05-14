@@ -85,6 +85,9 @@ export type CueEngineState = {
    *  causes a route id change. Reset only when the rider is confirmed
    *  on-track for ON_TRACK_CONFIRM_SAMPLES consecutive ticks. */
   reroutingEpisodeCount: number;
+  /** Number of consecutive off-route ticks. Resets on any on-route tick.
+   *  offTrack only fires after OFF_ROUTE_HYSTERESIS_TICKS consecutive. */
+  offRouteTickCount: number;
 };
 
 const APPROACH_50_M = 50;
@@ -97,6 +100,9 @@ const SKIP_50M_BELOW_DISTANCE_M = 100;
 const PASSED_TURN_M = 10;
 const ON_TRACK_CONFIRM_SAMPLES = 5;
 const ON_TRACK_CORRIDOR_M = 22;
+const OFF_ROUTE_HYSTERESIS_TICKS = 3;
+/** When the rider is this far from the route, skip hysteresis — they're genuinely lost. */
+const OFF_ROUTE_IMMEDIATE_DISTANCE_M = 50;
 const REPEAT_OFFTRACK_SILENCE_THRESHOLD = 2;
 /** Cap on rerouting audio cues per "off-route session". After this many fires,
  *  stay silent until the rider is confirmed on-track. */
@@ -106,6 +112,9 @@ const REROUTING_CUE_CAP = 2;
  *  for any nextTurnInAbout or approach cues so the rider hears "arriving in Xm"
  *  rather than a phantom turn command. */
 const CLOSE_TO_DESTINATION_M = 30;
+/** Bear range cues are only useful when the bear segment is long enough.
+ *  Below this threshold the rider is already there — silence the bear. */
+const MIN_BEAR_SEGMENT_M = 50;
 /** Two maneuvers separated by less than this fold into a single
  *  "turn X then quickly Y" cue. 80 m at 25 km/h ≈ 11 s — enough for the
  *  rider to take both turns smoothly, not long enough for two
@@ -138,6 +147,7 @@ export function initialCueEngineState(): CueEngineState {
     consecutiveOnRouteSamples: 0,
     onTrackAnnounced: false,
     reroutingEpisodeCount: 0,
+    offRouteTickCount: 0,
   };
 }
 
@@ -214,7 +224,7 @@ export function tickCueEngine(
               announced10m: new Set([...s.announced10m, firstNonDepart.id]),
             };
           }
-        } else if (!firstNonDepart.isMinorKeep) {
+        } else if (!firstNonDepart.isMinorKeep && !isBearKind(firstNonDepart.kind)) {
           events.push({
             kind: "nextTurnInAbout",
             turnKind: firstNonDepart.kind,
@@ -275,10 +285,29 @@ export function tickCueEngine(
     };
   }
 
-  // Off-route episode tracking.
-  const offRouteRose = !s.prevOffRoute && snapshot.offRoute;
+  // Off-route hysteresis: count consecutive off-route ticks. Fire offTrack
+  // only after OFF_ROUTE_HYSTERESIS_TICKS consecutive, or immediately when
+  // the rider is far from the route (genuinely lost, not a GPS blip).
+  let offRouteTickCount = s.offRouteTickCount;
+  if (snapshot.offRoute) {
+    offRouteTickCount += 1;
+  } else {
+    offRouteTickCount = 0;
+  }
+
   let offRouteEpisodeCount = s.offRouteEpisodeCount;
-  if (offRouteRose) offRouteEpisodeCount += 1;
+
+  const immediateOffTrack =
+    snapshot.offRoute &&
+    snapshot.distanceFromRouteM > OFF_ROUTE_IMMEDIATE_DISTANCE_M &&
+    offRouteTickCount === 1;
+  const hysteresisOffTrack =
+    snapshot.offRoute && offRouteTickCount === OFF_ROUTE_HYSTERESIS_TICKS;
+  const offTrackFired = immediateOffTrack || hysteresisOffTrack;
+
+  if (offTrackFired) {
+    offRouteEpisodeCount += 1;
+  }
 
   // Silence triggers when the rider's THIRD episode begins (offRouteEpisodeCount > 2).
   let silenced = s.silenced;
@@ -308,11 +337,11 @@ export function tickCueEngine(
     reroutingEpisodeCount = 0;
   }
 
-  if (offRouteRose && offRouteEpisodeCount > REPEAT_OFFTRACK_SILENCE_THRESHOLD && !silenced) {
+  if (offTrackFired && offRouteEpisodeCount > REPEAT_OFFTRACK_SILENCE_THRESHOLD && !silenced) {
     events.push({ kind: "repeatedOffTrackSilence" });
     silenced = true;
     onTrackAnnounced = false;
-  } else if (offRouteRose && !silenced) {
+  } else if (offTrackFired && !silenced) {
     events.push({ kind: "offTrack" });
   }
 
@@ -324,7 +353,7 @@ export function tickCueEngine(
   }
 
   // While silenced, suppress maneuver/arrival cues.
-  if (!silenced && !snapshot.offRoute) {
+  if (!silenced && !snapshot.offRoute && !snapshot.rerouting) {
     const announced50m = new Set(s.announced50m);
     const announced10m = new Set(s.announced10m);
     const announcedNextTurnAfter = new Set(s.announcedNextTurnAfter);
@@ -425,12 +454,15 @@ export function tickCueEngine(
       const rawSegmentLengthM = nextManeuver
         ? nextManeuver.distanceFromStartM - upcoming.distanceFromStartM
         : snapshot.routeTotalDistanceM - upcoming.distanceFromStartM;
-      const segmentLengthM = Math.min(rawSegmentLengthM, 500);
-      events.push({
-        kind: "bearRange",
-        turnKind: upcoming.kind,
-        distanceM: segmentLengthM,
-      });
+      // Only fire when the segment is long enough to be useful.
+      if (rawSegmentLengthM >= MIN_BEAR_SEGMENT_M) {
+        const segmentLengthM = Math.min(rawSegmentLengthM, 500);
+        events.push({
+          kind: "bearRange",
+          turnKind: upcoming.kind,
+          distanceM: segmentLengthM,
+        });
+      }
       announced10m.add(upcoming.id);
     }
 
@@ -514,6 +546,7 @@ export function tickCueEngine(
       prevOffRoute: snapshot.offRoute,
       prevRerouting: snapshot.rerouting,
       offRouteEpisodeCount,
+      offRouteTickCount,
       silenced,
       consecutiveOnRouteSamples,
       onTrackAnnounced,

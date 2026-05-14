@@ -99,6 +99,9 @@ data class CueEngineState(
      *  Reset only when the rider is confirmed on-track for
      *  ON_TRACK_CONFIRM_SAMPLES consecutive ticks. */
     val reroutingEpisodeCount: Int = 0,
+    /** Number of consecutive off-route ticks. Resets on any on-route tick.
+     *  OffTrack only fires after OFF_ROUTE_HYSTERESIS_TICKS consecutive. */
+    val offRouteTickCount: Int = 0,
 )
 
 object CueEngine {
@@ -112,6 +115,11 @@ object CueEngine {
     private const val PASSED_TURN_M = 10.0
     private const val ON_TRACK_CONFIRM_SAMPLES = 5
     private const val ON_TRACK_CORRIDOR_M = 22.0
+    /** Require this many consecutive off-route ticks before firing OffTrack.
+     *  Prevents momentary GPS blips from triggering false off-track alerts. */
+    private const val OFF_ROUTE_HYSTERESIS_TICKS = 3
+    /** When the rider is this far from the route, skip hysteresis — they're genuinely lost. */
+    private const val OFF_ROUTE_IMMEDIATE_DISTANCE_M = 50.0
     private const val REPEAT_OFFTRACK_SILENCE_THRESHOLD = 2
     /** Cap on rerouting audio cues per "off-route session". After this many
      *  fires, stay silent until the rider is confirmed on-track. */
@@ -129,6 +137,9 @@ object CueEngine {
      *  approaching it is indistinguishable from arriving: substitute ArrivingInM
      *  for any NextTurnInAbout or approach cues so the rider hears "arriving in Xm"
      *  rather than a phantom turn command. */
+    /** Bear range cues are only useful when the bear segment is long enough.
+     *  Below this threshold the rider is already there — silence the bear. */
+    private const val MIN_BEAR_SEGMENT_M = 50.0
     private const val CLOSE_TO_DESTINATION_M = 30.0
 
     private fun isBearKind(kind: ManeuverKind): Boolean =
@@ -197,7 +208,7 @@ object CueEngine {
                                 announced10m = s.announced10m + firstNonDepart.id,
                             )
                         }
-                    } else if (!firstNonDepart.isMinorKeep) {
+                    } else if (!firstNonDepart.isMinorKeep && !isBearKind(firstNonDepart.kind)) {
                         events.add(
                             CueEvent.NextTurnInAbout(
                                 turnKind = firstNonDepart.kind,
@@ -249,9 +260,28 @@ object CueEngine {
             s = s.copy(routeStartedAnnounced = true, announced50m = nextAnnounced50m)
         }
 
-        val offRouteRose = !s.prevOffRoute && snapshot.offRoute
+        // Off-route hysteresis: count consecutive off-route ticks. Fire
+        // OffTrack only after OFF_ROUTE_HYSTERESIS_TICKS consecutive, or
+        // immediately when the rider is far from the route (genuinely lost,
+        // not a GPS blip).
+        var offRouteTickCount = s.offRouteTickCount
+        if (snapshot.offRoute) {
+            offRouteTickCount += 1
+        } else {
+            offRouteTickCount = 0
+        }
+
         var offRouteEpisodeCount = s.offRouteEpisodeCount
-        if (offRouteRose) offRouteEpisodeCount += 1
+
+        val immediateOffTrack =
+            snapshot.offRoute &&
+            snapshot.distanceFromRouteM > OFF_ROUTE_IMMEDIATE_DISTANCE_M &&
+            offRouteTickCount == 1
+        val hysteresisOffTrack =
+            snapshot.offRoute && offRouteTickCount == OFF_ROUTE_HYSTERESIS_TICKS
+        val offTrackFired = immediateOffTrack || hysteresisOffTrack
+
+        if (offTrackFired) offRouteEpisodeCount += 1
 
         var silenced = s.silenced
         var onTrackAnnounced = s.onTrackAnnounced
@@ -270,19 +300,15 @@ object CueEngine {
             onTrackAnnounced = true
             offRouteEpisodeCount = 0
         }
-        // Independent reset of the rerouting cue counter: even without an
-        // off-route silence event, sustained on-track confirmation means the
-        // rider is back on the route and the next reroute episode (if any)
-        // deserves a fresh count.
         if (consecutiveOnRouteSamples >= ON_TRACK_CONFIRM_SAMPLES) {
             reroutingEpisodeCount = 0
         }
 
-        if (offRouteRose && offRouteEpisodeCount > REPEAT_OFFTRACK_SILENCE_THRESHOLD && !silenced) {
+        if (offTrackFired && offRouteEpisodeCount > REPEAT_OFFTRACK_SILENCE_THRESHOLD && !silenced) {
             events.add(CueEvent.RepeatedOffTrackSilence)
             silenced = true
             onTrackAnnounced = false
-        } else if (offRouteRose && !silenced) {
+        } else if (offTrackFired && !silenced) {
             events.add(CueEvent.OffTrack)
         }
 
@@ -293,7 +319,7 @@ object CueEngine {
             events.add(CueEvent.Rerouting)
         }
 
-        if (!silenced && !snapshot.offRoute) {
+        if (!silenced && !snapshot.offRoute && !snapshot.rerouting) {
             val announced50m = s.announced50m.toMutableSet()
             val announced10m = s.announced10m.toMutableSet()
             val announcedNextTurnAfter = s.announcedNextTurnAfter.toMutableSet()
@@ -371,8 +397,11 @@ object CueEngine {
                 val rawSegmentLengthM = nextManeuver?.let {
                     it.distanceFromStartM - upcoming.distanceFromStartM
                 } ?: (snapshot.routeTotalDistanceM - upcoming.distanceFromStartM)
-                val segmentLengthM = minOf(rawSegmentLengthM, 500.0)
-                events.add(CueEvent.BearRange(upcoming.kind, segmentLengthM))
+                // Only fire when the segment is long enough to be useful.
+                if (rawSegmentLengthM >= MIN_BEAR_SEGMENT_M) {
+                    val segmentLengthM = minOf(rawSegmentLengthM, 500.0)
+                    events.add(CueEvent.BearRange(upcoming.kind, segmentLengthM))
+                }
                 announced10m.add(upcoming.id)
             }
 
@@ -448,6 +477,7 @@ object CueEngine {
                 prevOffRoute = snapshot.offRoute,
                 prevRerouting = snapshot.rerouting,
                 offRouteEpisodeCount = offRouteEpisodeCount,
+                offRouteTickCount = offRouteTickCount,
                 silenced = silenced,
                 consecutiveOnRouteSamples = consecutiveOnRouteSamples,
                 onTrackAnnounced = onTrackAnnounced,

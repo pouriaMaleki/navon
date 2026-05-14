@@ -1,5 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import {
+  type RouteGeometryEntry,
   type RoutingDiagEventData,
   type RoutingDiagSession,
   newEventId,
@@ -46,6 +47,14 @@ export class RoutingDiagnosticsStore {
       data,
     });
     this.currentSession.updatedAtMs = Date.now();
+  }
+
+  recordRouteGeometry(entry: RouteGeometryEntry): void {
+    const session = this.currentSession;
+    if (!session) return;
+    if (!session.routeGeometries) session.routeGeometries = [];
+    if (session.routeGeometries.some((g) => g.routeId === entry.routeId)) return;
+    session.routeGeometries.push(entry);
   }
 
   deleteSession(id: string): void {

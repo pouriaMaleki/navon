@@ -87,9 +87,9 @@ describe("CueEngine — bear range-hold cues", () => {
   });
 
   it("emits bearRange even when followed by a close turn", () => {
-    // Bear at 200m, regular left at 220m (gap = 20m). Bear should still fire.
+    // Bear at 200m, regular left at 270m (gap = 70m, segment >= 50m). Bear should still fire.
     const s = snap({
-      maneuvers: [M_BEAR_LEFT("m1", 200), M_LEFT("m2", 220)],
+      maneuvers: [M_BEAR_LEFT("m1", 200), M_LEFT("m2", 270)],
       // Progress at 100 so we're outside Case C's tight-start window.
       // Case A fires nextTurnInAbout first, then second tick enters the segment.
       progressDistanceM: 100,
@@ -97,23 +97,22 @@ describe("CueEngine — bear range-hold cues", () => {
     });
     const t1 = tick(initialCueEngineState(), s);
     // Second tick: rider enters the bear segment. Bear-range should fire
-    // even though m2 (regular turn) is only 20m ahead.
+    // even though m2 (regular turn) follows.
     const t2 = tick(t1.nextState, { ...s, progressDistanceM: 195 });
     const bear = t2.events.find((e) => e.kind === "bearRange");
     expect(bear).toBeDefined();
     expect(bear).toMatchObject({ turnKind: "bearLeft" });
   });
 
-  it("emits nextTurnInAbout for bearLeft at route start (Case A)", () => {
-    // Route starts 0m, first maneuver is bear at 200m (distance > 50m)
+  it("does NOT emit nextTurnInAbout for bear at route start (Case A)", () => {
+    // Route starts 0m, first maneuver is bear at 200m (distance > 50m).
+    // Bears should never get nextTurnInAbout — only bearRange when entering the segment.
     const s = snap({
       maneuvers: [M_BEAR_LEFT("m1", 200)],
       progressDistanceM: 0,
     });
     const { events } = tick(initialCueEngineState(), s);
-    const next = events.find((e) => e.kind === "nextTurnInAbout");
-    expect(next).toBeDefined();
-    expect(next).toMatchObject({ turnKind: "bearLeft" });
+    expect(events.find((e) => e.kind === "nextTurnInAbout")).toBeUndefined();
   });
 
   it("does NOT emit approach cues for bearLeft at close range", () => {
@@ -137,6 +136,54 @@ describe("CueEngine — bear range-hold cues", () => {
     expect(events.filter((e) => e.kind === "bearRange")).toHaveLength(0);
     expect(events.find((e) => e.kind === "turn10m")).toBeUndefined();
     expect(events.find((e) => e.kind === "turn50m")).toBeUndefined();
+  });
+
+  it("bearRange with segment under 50m does NOT fire", () => {
+    // Bear at 200m, next maneuver at 230m → segment 30m < 50m → no bearRange
+    const s = snap({
+      maneuvers: [M_BEAR_LEFT("m1", 200), M_LEFT("m2", 230)],
+      progressDistanceM: 195,
+      routeTotalDistanceM: 500,
+    });
+    const { events } = tick(initialCueEngineState(), s);
+    expect(events.find((e) => e.kind === "bearRange")).toBeUndefined();
+  });
+
+  it("bearRange with segment at 50m fires", () => {
+    // Bear at 200m, next maneuver at 250m → segment 50m → bearRange fires
+    const s = snap({
+      maneuvers: [M_BEAR_LEFT("m1", 200), M_LEFT("m2", 250)],
+      progressDistanceM: 195,
+      routeTotalDistanceM: 500,
+    });
+    const { events } = tick(initialCueEngineState(), s);
+    const bear = events.find((e) => e.kind === "bearRange");
+    expect(bear).toBeDefined();
+  });
+
+  it("bearRange with segment over 50m fires with correct distance", () => {
+    // Bear at 200m, next at 500m → segment 300m
+    const s = snap({
+      maneuvers: [M_BEAR_RIGHT("m1", 200), M_LEFT("m2", 500)],
+      progressDistanceM: 195,
+      routeTotalDistanceM: 1000,
+    });
+    const { events } = tick(initialCueEngineState(), s);
+    const bear = events.find((e) => e.kind === "bearRange");
+    expect(bear).toBeDefined();
+    expect(bear).toMatchObject({ turnKind: "bearRight" });
+    expect((bear as { distanceM: number }).distanceM).toBe(300);
+  });
+
+  it("bear at end of route with short remaining segment does NOT fire", () => {
+    // Bear at 980m, route ends at 1000m → segment 20m < 50m
+    const s = snap({
+      maneuvers: [M_BEAR_LEFT("m1", 980)],
+      progressDistanceM: 975,
+      routeTotalDistanceM: 1000,
+    });
+    const { events } = tick(initialCueEngineState(), s);
+    expect(events.find((e) => e.kind === "bearRange")).toBeUndefined();
   });
 });
 

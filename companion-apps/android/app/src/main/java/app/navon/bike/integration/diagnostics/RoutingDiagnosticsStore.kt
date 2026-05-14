@@ -55,6 +55,20 @@ class RoutingDiagnosticsStore(private val persistence: CompanionPersistence) {
         }
     }
 
+    fun recordRouteGeometry(routeId: String, providerName: String, geometry: List<CoordinatePoint>) {
+        _currentSession.update { session ->
+            if (session == null) return
+            val existing = session.routeGeometries ?: emptyList()
+            if (existing.any { it.routeId == routeId }) return
+            val entry = RouteGeometryEntry(
+                routeId = routeId,
+                providerName = providerName,
+                geometry = geometry,
+            )
+            session.copy(routeGeometries = existing + entry)
+        }
+    }
+
     fun deleteSession(id: String) {
         persistence.dismissRoutingDiagnosticsSession(id)
         _sessions.value = persistence.loadRoutingDiagnosticsSessions()

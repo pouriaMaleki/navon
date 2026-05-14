@@ -25,6 +25,13 @@ enum DistanceFormatter {
                 "distanceUnit": .string("feet"),
             ]
         case .metric:
+            if meters >= kmThresholdM {
+                let km = (meters / 100.0).rounded() / 10.0 // one decimal
+                return [
+                    "distance": .number(km),
+                    "distanceUnit": .string("kilometers"),
+                ]
+            }
             return [
                 "distance": .number(Double(roundTo10(meters))),
                 "distanceUnit": .string("meters"),
