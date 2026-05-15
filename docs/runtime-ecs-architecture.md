@@ -1,10 +1,14 @@
 # Runtime ECS Architecture
 
+Shared deterministic frame loop (bevy_ecs) driving map camera, input, and queries — identical on firmware and emulator.
+
 ## Decision
+
 - Architecture: **Design 1 (ECS runtime core)**.
 - Framework: `bevy_ecs` (`0.17.2` on Rust 1.88 toolchain).
 
 ## Crate Graph
+
 - `runtime-core`: owns runtime state/policy and map query/LOD decisions.
 - `render-core`: stateless renderer primitives (`CameraView` + queried world geometry -> framebuffer).
 - `map-runtime`: shared embedded `.svm` reader and coarse bbox/LOD query backend.
@@ -12,7 +16,9 @@
 - `render-core-wasm`: wasm adapter for browser/emulator input/output plus wasm bindings over the shared `map-runtime` query bridge.
 
 ## ECS Model
+
 ### Resources
+
 - `FrameTime`: deterministic frame clock (`dt`, `total`, `tick`).
 - `RuntimeConfig`: viewport, anchor defaults, zoom bounds, and resilience thresholds.
 - `PendingInput`: per-frame adapter sample ingress before shared contact interpretation.
@@ -23,6 +29,7 @@
 - `RuntimeOutput`: built output snapshot for adapters.
 
 ### Components
+
 - The current minimal ECS implementation keeps frame-global state in resources.
 - Entity/component state should be introduced once shared gesture state, follow-lock, and richer interaction lifecycles need per-domain isolation.
 - Planned component domains remain:
@@ -33,16 +40,19 @@
   - `MapQuery`
 
 ### Public Input Samples
+
 - `TouchContact`
 - `TouchContactFrame`
 - optional GPS samples
 
 ### Internal Derived Events
+
 - `GestureEvent` (`Pan`, `Pinch`, `Rotate`)
 - `TapEvent`
 - compass interaction requests derived from shared tap/control-hit handling or synthetic tests
 
 ## Deterministic Schedule Order
+
 1. `InputIngestSet`
 2. `MotionFusionSet`
 3. `CameraPolicySet`
@@ -50,6 +60,7 @@
 5. `OutputBuildSet`
 
 ## Runtime I/O Contract
+
 - Input: `RuntimeInputFrame` (dt + optional GPS + optional `TouchContactFrame` and other shared normalized samples). Adapters do not emit product gesture or control-hit semantics.
 - Output: `RuntimeFrameOutput` containing:
   - camera state snapshot
@@ -59,6 +70,7 @@
 - `RuntimeFrameOutput` does not contain queried geometry buffers.
 
 ## Current Foundation Guarantees
+
 - Internal execution uses a fixed `bevy_ecs` schedule order that matches the declared frame stages.
 - Shared Rust derives one-finger pan, two-finger pinch/rotate, and tap semantics from `TouchContactFrame`.
 - Follow-lock, auto-recenter, and compass preview/lock behavior live in shared runtime camera policy.
@@ -68,6 +80,7 @@
 - Firmware and wasm now both step shared runtime state, query shared embedded `.svm` geometry through `map-runtime`, and render deterministic framebuffers through shared Rust only.
 
 ## Query and Render Handoff
+
 1. `runtime-core` builds `MapQuerySpec` from camera state and LOD policy.
 2. A `MapSource` implementation performs coarse bbox + LOD candidate lookup.
 3. `render-core` applies final screen-space visibility/clipping and rasterizes the queried geometry.

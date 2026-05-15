@@ -4,10 +4,11 @@ Most important doc file is docs/ux-specs.md
 
 ## Product
 
-ESP32 bike minimap with a round, game-like map presentation for riding. The product follows GPS position, renders vector map data, and keeps firmware and emulator behavior aligned through shared Rust runtime code.
+A set of native mobile and web applications to make or import routes, and get navigation for walking and cycling. Plus a device (ESP32-P4) bike minimap with a round, game-like map presentation for riding. The product follows GPS position, renders vector map data, and keeps firmware and emulator behavior aligned through shared Rust runtime code.
 
-## User-Facing Behavior
+## [Mostly device] User-Facing Behavior
 
+- read: docs/ux-specs.md
 - The camera has two top-level motion modes:
   - `Riding`
   - `Stopped`
@@ -41,8 +42,9 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
   - the chosen unit should persist across restart in both firmware and emulator adapters
 - The canonical orientation UX lives in [`/work/docs/camera-rotation-design.md`](/work/docs/camera-rotation-design.md).
 
-## Visual Palette
+## [Mostly device] Visual Palette
 
+- iOS and Android apps are mostly using native elements and styles.
 - Shared map and overlay rendering use this palette:
   - `#050B12`
   - `#051E24`
@@ -55,7 +57,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - Rider markers use `#D7FF3F`.
 - Emulator and device should render from the same shared-Rust palette choices whenever possible.
 
-## Architecture Boundaries
+## [Device] Architecture Boundaries
 
 - `/work` owns runtime camera, motion, input, query, and render behavior.
 - `/work/tools/map-vector-cli` owns host-side map conversion and `.svm` format generation only.
@@ -76,7 +78,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
   - they translate platform I/O into shared contracts
   - they must not own product camera policy
 
-## Map Presentation Direction
+## [Device] Map Presentation Direction
 
 - The map system should evolve from a flat road-layer model into a zoom-aware presentation system with richer feature classes and declarative profiles.
 - The preferred direction is one generated regional map package with multiple internal feature classes and LOD slices, rather than many unrelated zoom-specific files.
@@ -85,7 +87,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - The current `bike` presentation should hide rail transit geometry and keep farther overview bands cleaner by preferring arterial-road and main-bike-route layers over dense street-level detail.
 - The canonical design lives in [`/work/docs/map-presentation-system-design.md`](/work/docs/map-presentation-system-design.md).
 
-## POI Layer Direction
+## [Device] POI Layer Direction
 
 - The current shared POI slice supports:
   - bicycle parking
@@ -98,7 +100,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - POI normalization belongs in the converter, not in runtime adapters.
 - The canonical POI UX and ownership design lives in [`/work/docs/poi-layer-design.md`](/work/docs/poi-layer-design.md).
 
-## Shared Runtime Contracts
+## [Device] Shared Runtime Contracts
 
 - `RuntimeInputFrame`: ordered per-frame input envelope containing `dt`, optional GPS, and optional normalized touch contacts.
 - `TouchContact` and `TouchContactFrame`: stable normalized touch input shared by firmware and wasm.
@@ -107,7 +109,7 @@ ESP32 bike minimap with a round, game-like map presentation for riding. The prod
 - `DiagnosticsSnapshot`: read-only debug surface for parity and runtime inspection.
 - Shared public contracts must stay small, adapter-safe, and free of platform handles or ECS internals.
 
-## Determinism And Validation
+## [Device] Determinism And Validation
 
 - The same ordered input frames must produce the same runtime behavior on firmware and wasm.
 - Camera policy must prefer trusted movement-derived heading over raw GPS course whenever possible.
