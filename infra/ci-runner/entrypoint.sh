@@ -1,9 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+CONFIG_DIR="/opt/actions-runner/_config"
+mkdir -p "${CONFIG_DIR}"
+
+# Restore persisted config on rebuilds
+for f in .runner .credentials .credentials_rsaparams; do
+  if [ -f "${CONFIG_DIR}/${f}" ] && [ ! -f "/opt/actions-runner/${f}" ]; then
+    cp "${CONFIG_DIR}/${f}" "/opt/actions-runner/${f}"
+  fi
+done
+
 cd /opt/actions-runner
 
-# Configure on first run with token
+# Register on first run
 if [ ! -f .runner ]; then
   if [ -z "${GITHUB_RUNNER_TOKEN:-}" ]; then
     echo "GITHUB_RUNNER_TOKEN not set. Get one at:"
@@ -17,7 +27,9 @@ if [ ! -f .runner ]; then
     --labels self-hosted,Linux \
     --unattended \
     --work _work
-  echo "Runner configured."
 fi
+
+# Persist config for next rebuild
+cp -f .runner .credentials .credentials_rsaparams "${CONFIG_DIR}/" 2>/dev/null || true
 
 exec ./run.sh
