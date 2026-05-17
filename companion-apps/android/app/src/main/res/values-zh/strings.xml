@@ -9,10 +9,10 @@
     <string name="common_ok" formatted="false">确定</string>
     <string name="cue_arrived" formatted="false">已到达目的地</string>
     <string name="cue_arrivingInM" formatted="false">将在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 抵达目的地</string>
-    <string name="cue_bearRange_bearLeft" formatted="false">沿前方轻微左转行驶，接下来{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_bearRange_bearRight" formatted="false">沿前方轻微右转行驶，接下来{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_bearLeft" formatted="false">约{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}后，向左保持（轻微左转）</string>
-    <string name="cue_nextTurnInAbout_bearRight" formatted="false">约{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}后，向右保持（轻微右转）</string>
+    <string name="cue_turn50m_slightLeft" formatted="false">沿前方轻微左转行驶，接下来{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_turn50m_slightRight" formatted="false">沿前方轻微右转行驶，接下来{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">约{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}后，向左保持（轻微左转）</string>
+    <string name="cue_nextTurnInAbout_slightRight" formatted="false">约{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}后，向右保持（轻微右转）</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 进行下一步操作</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 左转</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">大约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后并入</string>

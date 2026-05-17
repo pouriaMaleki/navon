@@ -9,10 +9,10 @@
     <string name="common_ok" formatted="false">ठीक है</string>
     <string name="cue_arrived" formatted="false">आप अपने गंतव्य पर पहुँच गए हैं</string>
     <string name="cue_arrivingInM" formatted="false">अपने गंतव्य पर {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में पहुँच रहे हैं</string>
-    <string name="cue_bearRange_bearLeft" formatted="false">अगले {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} के लिए बाएँ रहें</string>
-    <string name="cue_bearRange_bearRight" formatted="false">अगले {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} के लिए दाएँ रहें</string>
-    <string name="cue_nextTurnInAbout_bearLeft" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में बाएँ रहें</string>
-    <string name="cue_nextTurnInAbout_bearRight" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में दाएँ रहें</string>
+    <string name="cue_turn50m_slightLeft" formatted="false">अगले {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} के लिए बाएँ रहें</string>
+    <string name="cue_turn50m_slightRight" formatted="false">अगले {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} के लिए दाएँ रहें</string>
+    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में बाएँ रहें</string>
+    <string name="cue_nextTurnInAbout_slightRight" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में दाएँ रहें</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में अगला मोड़</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में बाएँ रहें</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में मर्ज करें</string>

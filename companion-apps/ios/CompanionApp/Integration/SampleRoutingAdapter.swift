@@ -274,13 +274,13 @@ struct SampleRoutingAdapter: RoutingProvider {
         case "right":
             return "Turn right"
         case "slight right":
-            return "Bear right"
+            return "Slight right"
         case "sharp left":
             return "Turn sharply left"
         case "left":
             return "Turn left"
         case "slight left":
-            return "Bear left"
+            return "Slight left"
         default:
             return step.name.isEmpty ? "Continue" : "Continue on \(step.name)"
         }
@@ -463,7 +463,7 @@ struct SampleRoutingAdapter: RoutingProvider {
         if magnitude >= 170 { return (.uturn, "Make a U-turn") }
         if magnitude >= 110 { return (deltaDegrees > 0 ? .sharpRight : .sharpLeft, deltaDegrees > 0 ? "Turn sharply right" : "Turn sharply left") }
         if magnitude >= 50 { return (deltaDegrees > 0 ? .right : .left, deltaDegrees > 0 ? "Turn right" : "Turn left") }
-        return (deltaDegrees > 0 ? .slightRight : .slightLeft, deltaDegrees > 0 ? "Bear right" : "Bear left")
+        return (deltaDegrees > 0 ? .slightRight : .slightLeft, deltaDegrees > 0 ? "Slight right" : "Slight left")
     }
 
     private func deduplicated(_ points: [CoordinatePoint]) -> [CoordinatePoint] {

@@ -265,8 +265,6 @@ Implemented for robustness:
 - single-connection guard via `_Atomic int32_t s_conn_id`
 
 Remaining implementation work:
-- iOS-side `PairingFlowView` (handed off to a Mac-resident agent
-  through `docs/_plan-ios-pairing.md`)
 - live packet-loss / interruption fault-injection tests against the
   concrete adapters
 - end-to-end hardware verification of the bonded flow on real ESP32-P4

@@ -31,6 +31,10 @@ import app.navon.bike.domain.RoutePlannerPreferences
 import app.navon.bike.domain.RouteProviderId
 import app.navon.bike.domain.RouteRerouteRequestMessage
 import app.navon.bike.domain.RerouteContext
+import app.navon.bike.domain.RoutingDiagEventData
+import app.navon.bike.domain.RoutingDiagSession
+import app.navon.bike.domain.RouteAltInfo
+import app.navon.bike.domain.LOCATION_EVENT_THROTTLE_MS
 import app.navon.bike.domain.RoutePreviewModel
 import app.navon.bike.domain.RouteSourceMode
 import app.navon.bike.domain.RoutingProvider
@@ -238,7 +242,7 @@ class CompanionAppState(
                                 RoutingDiagEventData.locationUpdate(
                                     lat = fix.latitude,
                                     lon = fix.longitude,
-                                    heading = state.currentHeadingDegrees,
+                                    heading = null,
                                     speed = state.currentSpeedMps,
                                 )
                             )

@@ -26,7 +26,7 @@ let cached: UxConstants | null = null;
 export function loadUxConstants(): UxConstants {
   if (cached) return cached;
   const thisFile = fileURLToPath(import.meta.url);
-  const path = resolve(dirname(thisFile), "../../../../parity-fixtures/data/ux-constants.toml");
+  const path = resolve(dirname(thisFile), "../../../../../data/parity-fixtures/data/ux-constants.toml");
   const text = readFileSync(path, "utf-8");
   const values: Record<string, number> = {};
   for (const line of text.split("\n")) {

@@ -156,7 +156,7 @@ struct GpxRoutingAdapter: RoutingProvider {
         if magnitude >= 50 {
             return delta > 0 ? (.right, "Turn right") : (.left, "Turn left")
         }
-        return delta > 0 ? (.slightRight, "Bear right") : (.slightLeft, "Bear left")
+        return delta > 0 ? (.slightRight, "Slight right") : (.slightLeft, "Slight left")
     }
 
     private func turnDeltaDegrees(previous: CoordinatePoint, current: CoordinatePoint, next: CoordinatePoint) -> Double {

@@ -4,7 +4,7 @@
 // `cargo xtask i18n-gen` so adding a new event in EN shows up here too.
 
 import { describe, expect, it } from "vitest";
-import fixture from "../../../i18n/parity/cue-en-snapshots.json";
+import fixture from "../i18n/parity/cue-en-snapshots.json";
 import { tIn } from "../i18n/index.js";
 import { type CueEvent, cueMessage } from "../integrations/cues/CueEngine.js";
 

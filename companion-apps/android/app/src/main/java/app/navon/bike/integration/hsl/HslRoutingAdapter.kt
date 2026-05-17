@@ -33,6 +33,48 @@ class HslRoutingAdapter(
     companion object {
         private const val MIN_HEADING_SPEED_MPS = 2.0
         private const val REROUTE_FORWARD_SHIFT_M = 15.0
+        fun overrideDurationSeconds(
+            totalDistanceMeters: Double,
+            cyclingSpeedKph: Double,
+            fallbackSeconds: Int,
+        ): Int {
+            if (!cyclingSpeedKph.isFinite() || cyclingSpeedKph <= 0.0) return fallbackSeconds
+            val mps = cyclingSpeedKph / 3.6
+            return kotlin.math.max(1L, kotlin.math.round(totalDistanceMeters / mps).toLong()).toInt()
+        }
+
+        val ROUTE_PLAN_QUERY = """
+            query RoutePlan(${'$'}from: InputCoordinates!, ${'$'}to: InputCoordinates!, ${'$'}numItineraries: Int!, ${'$'}transportModes: [TransportMode!]!, ${'$'}optimize: OptimizeType!) {
+              plan(
+                from: ${'$'}from,
+                to: ${'$'}to,
+                numItineraries: ${'$'}numItineraries,
+                transportModes: ${'$'}transportModes,
+                optimize: ${'$'}optimize
+              ) {
+                itineraries {
+                  duration
+                  legs {
+                    mode
+                    distance
+                    from {
+                      lat
+                      lon
+                      name
+                    }
+                    to {
+                      lat
+                      lon
+                      name
+                    }
+                    legGeometry {
+                      points
+                    }
+                  }
+                }
+              }
+            }
+        """.trimIndent()
     }
     override val providerId: RouteProviderId = RouteProviderId.HSL
     override val isAvailableInV1: Boolean = true
@@ -616,48 +658,4 @@ class HslRoutingAdapter(
         val instruction: String,
     )
 
-    companion object {
-        fun overrideDurationSeconds(
-            totalDistanceMeters: Double,
-            cyclingSpeedKph: Double,
-            fallbackSeconds: Int,
-        ): Int {
-            if (!cyclingSpeedKph.isFinite() || cyclingSpeedKph <= 0.0) return fallbackSeconds
-            val mps = cyclingSpeedKph / 3.6
-            return kotlin.math.max(1L, kotlin.math.round(totalDistanceMeters / mps).toLong()).toInt()
-        }
-
-        val ROUTE_PLAN_QUERY = """
-            query RoutePlan(${'$'}from: InputCoordinates!, ${'$'}to: InputCoordinates!, ${'$'}numItineraries: Int!, ${'$'}transportModes: [TransportMode!]!, ${'$'}optimize: OptimizeType!) {
-              plan(
-                from: ${'$'}from,
-                to: ${'$'}to,
-                numItineraries: ${'$'}numItineraries,
-                transportModes: ${'$'}transportModes,
-                optimize: ${'$'}optimize
-              ) {
-                itineraries {
-                  duration
-                  legs {
-                    mode
-                    distance
-                    from {
-                      lat
-                      lon
-                      name
-                    }
-                    to {
-                      lat
-                      lon
-                      name
-                    }
-                    legGeometry {
-                      points
-                    }
-                  }
-                }
-              }
-            }
-        """.trimIndent()
-    }
 }

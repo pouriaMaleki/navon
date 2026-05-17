@@ -9,10 +9,10 @@
     <string name="common_ok" formatted="false">حسنًا</string>
     <string name="cue_arrived" formatted="false">لقد وصلت إلى وجهتك</string>
     <string name="cue_arrivingInM" formatted="false">ستصل إلى وجهتك خلال {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_bearRange_bearLeft" formatted="false">اتبع/ابقِ يسارًا للّمسافة التالية {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_bearRange_bearRight" formatted="false">اتبع/ابقِ يمينًا للّمسافة التالية {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_bearLeft" formatted="false">اتبع/ابقِ يسارًا بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_bearRight" formatted="false">اتبع/ابقِ يمينًا بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_turn50m_slightLeft" formatted="false">اتبع/ابقِ يسارًا للّمسافة التالية {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_turn50m_slightRight" formatted="false">اتبع/ابقِ يمينًا للّمسافة التالية {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">اتبع/ابقِ يسارًا بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_slightRight" formatted="false">اتبع/ابقِ يمينًا بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">الانعطاف التالي أمامك بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">انعطف يسارًا بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">الاندماج التالي بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>

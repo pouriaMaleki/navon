@@ -17,8 +17,24 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     css: false,
-    // Playwright specs in e2e/ use @playwright/test; vitest must not try to
-    // load them. Keep them on a clearly separate path.
     exclude: ["**/node_modules/**", "e2e/**"],
+    // Fixture files in test/fixtures/ use Node built-ins (node:fs, node:path,
+    // node:url) to read data from parity-fixtures. Allow those built-ins in
+    // the test runner environment instead of treating them as bundler errors.
+    deps: {
+      optimizer: {
+        ssr: {
+          include: ["**/test/fixtures/**"],
+        },
+      },
+    },
+    // Attach a resolve alias so fixtures under test/fixtures/ can still
+    // reference these built-in Node modules that vitest's Vite pipeline would
+    // otherwise refuse to bundle.
+    server: {
+      deps: {
+        external: [/^node:/],
+      },
+    },
   },
 });

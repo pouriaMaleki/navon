@@ -1,0 +1,1783 @@
+{
+  "formatVersion": 1,
+  "sessionId": "rd-1778938590071-047AF1",
+  "exportedAtMs": 1778949444704,
+  "annotations": [
+    {
+      "id": "ann-1778949148941",
+      "tag": "other",
+      "severity": "bug",
+      "timeRangeMs": [
+        3161611,
+        3174011
+      ],
+      "linkedEventIds": [
+        "e2495",
+        "e2491",
+        "e2492",
+        "e2493",
+        "e2494",
+        "e2496",
+        "e2497",
+        "e2498",
+        "e2499",
+        "e2500",
+        "e2501",
+        "e2502",
+        "e2503",
+        "e2504",
+        "e2505",
+        "e2506",
+        "e2507"
+      ],
+      "coordinate": {
+        "latitude": 60.18166702232807,
+        "longitude": 24.93933898239945
+      },
+      "note": "way too close audio cues. when upcommit turn is very short, then it should just say one of these cues (there was attempts to have this fixed before check what went wrong)",
+      "createdAtMs": 1778949148941
+    },
+    {
+      "id": "ann-1778949264684",
+      "tag": "other",
+      "severity": "bug",
+      "timeRangeMs": [
+        3170115,
+        3190915
+      ],
+      "linkedEventIds": [
+        "e2516",
+        "e2504",
+        "e2505",
+        "e2506",
+        "e2507",
+        "e2508",
+        "e2509",
+        "e2510",
+        "e2511",
+        "e2512",
+        "e2513",
+        "e2514",
+        "e2515",
+        "e2517",
+        "e2518",
+        "e2519",
+        "e2520",
+        "e2521",
+        "e2522",
+        "e2523",
+        "e2524",
+        "e2525",
+        "e2526",
+        "e2527",
+        "e2528",
+        "e2529",
+        "e2530"
+      ],
+      "coordinate": {
+        "latitude": 60.1820123884747,
+        "longitude": 24.939592947610123
+      },
+      "note": "there are way too much stuff happening here, too many turn signals, but very specifically also check why it says next turn left in about ~10 meters here",
+      "createdAtMs": 1778949264684
+    },
+    {
+      "id": "ann-1778949363193",
+      "tag": "other",
+      "severity": "bug",
+      "timeRangeMs": [
+        3244112,
+        3267112
+      ],
+      "linkedEventIds": [
+        "e2606",
+        "e2597",
+        "e2598",
+        "e2599",
+        "e2600",
+        "e2601",
+        "e2602",
+        "e2603",
+        "e2604",
+        "e2605",
+        "e2607",
+        "e2608",
+        "e2609",
+        "e2610",
+        "e2611",
+        "e2612",
+        "e2613",
+        "e2614",
+        "e2615",
+        "e2616",
+        "e2617",
+        "e2618",
+        "e2619",
+        "e2620",
+        "e2621",
+        "e2622",
+        "e2623",
+        "e2624",
+        "e2625",
+        "e2626",
+        "e2627",
+        "e2628"
+      ],
+      "coordinate": {
+        "latitude": 60.18264300307763,
+        "longitude": 24.943159696473856
+      },
+      "note": "this is surely wrong audio cue. there shouldn't be announcement of next turn that is that short (sometimes it says negative numbers too)",
+      "createdAtMs": 1778949363193
+    },
+    {
+      "id": "ann-1778949420847",
+      "tag": "other",
+      "severity": "bug",
+      "timeRangeMs": [
+        3324822,
+        3332122
+      ],
+      "linkedEventIds": [
+        "e2703",
+        "e2700",
+        "e2701",
+        "e2702",
+        "e2704",
+        "e2705"
+      ],
+      "coordinate": {
+        "latitude": 60.183576734580214,
+        "longitude": 24.946502068049853
+      },
+      "note": "considering Route stop went before this, it shouldn't have fired this audio cue",
+      "createdAtMs": 1778949420847
+    }
+  ],
+  "eventContext": {
+    "ann-1778949148941": {
+      "before": [
+        {
+          "data": {
+            "distanceRemainingM": 28.9801213458067,
+            "instructionText": "29 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2479",
+          "timestampMs": 1778941742196
+        },
+        {
+          "data": {
+            "distanceRemainingM": 25.822027505915408,
+            "instructionText": "26 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2480",
+          "timestampMs": 1778941743195
+        },
+        {
+          "data": {
+            "distanceRemainingM": 22.87397082520455,
+            "instructionText": "23 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2481",
+          "timestampMs": 1778941744198
+        },
+        {
+          "data": {
+            "distanceRemainingM": 20.267371120887475,
+            "instructionText": "20 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2482",
+          "timestampMs": 1778941745193
+        },
+        {
+          "data": {
+            "heading": 87.657396132501,
+            "kind": "locationUpdate",
+            "lat": 60.18169812688304,
+            "lon": 24.938819089590247,
+            "speed": 2.4363014113717774
+          },
+          "id": "e2483",
+          "timestampMs": 1778941746086
+        },
+        {
+          "data": {
+            "distanceRemainingM": 17.862022519321975,
+            "instructionText": "18 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2484",
+          "timestampMs": 1778941746197
+        },
+        {
+          "data": {
+            "distanceRemainingM": 15.370404280542814,
+            "instructionText": "15 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2485",
+          "timestampMs": 1778941747194
+        },
+        {
+          "data": {
+            "distanceRemainingM": 13.20016235478947,
+            "instructionText": "13 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2486",
+          "timestampMs": 1778941748194
+        },
+        {
+          "data": {
+            "distanceRemainingM": 10.719735201084916,
+            "instructionText": "11 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2487",
+          "timestampMs": 1778941749196
+        },
+        {
+          "data": {
+            "distanceRemainingM": 8.095177960606037,
+            "instructionText": "8 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2488",
+          "timestampMs": 1778941750198
+        },
+        {
+          "data": {
+            "heading": 90.36673554493872,
+            "kind": "locationUpdate",
+            "lat": 60.181702994144025,
+            "lon": 24.939050555370798,
+            "speed": 2.696304960956448
+          },
+          "id": "e2489",
+          "timestampMs": 1778941751086
+        },
+        {
+          "data": {
+            "distanceRemainingM": 5.24736543366204,
+            "instructionText": "5 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2490",
+          "timestampMs": 1778941751196
+        }
+      ],
+      "during": [
+        {
+          "data": {
+            "distanceRemainingM": 2.2922672343613044,
+            "instructionText": "2 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2491",
+          "timestampMs": 1778941752198
+        },
+        {
+          "data": {
+            "cueType": "turn50m(Navon.ManeuverKind.left, distanceM: 21.13016341532905, followUpKind: Optional(Navon.ManeuverKind.left))",
+            "kind": "audioCueDispatched",
+            "messageText": "In 20 meters, turn left then quickly left"
+          },
+          "id": "e2492",
+          "timestampMs": 1778941753198
+        },
+        {
+          "data": {
+            "distanceRemainingM": 21.13016341532905,
+            "instructionText": "21 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2493",
+          "timestampMs": 1778941753199
+        },
+        {
+          "data": {
+            "distanceRemainingM": 17.848991352456068,
+            "instructionText": "18 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2494",
+          "timestampMs": 1778941754192
+        },
+        {
+          "data": {
+            "cueType": "turn10m(Navon.ManeuverKind.left, followUpKind: Optional(Navon.ManeuverKind.left))",
+            "kind": "audioCueDispatched",
+            "messageText": "Turn left then immediately left"
+          },
+          "id": "e2495",
+          "timestampMs": 1778941755188
+        },
+        {
+          "data": {
+            "distanceRemainingM": 13.895189175393753,
+            "instructionText": "14 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2496",
+          "timestampMs": 1778941755188
+        },
+        {
+          "data": {
+            "cueType": "nextTurnInAbout(turnKind: Navon.ManeuverKind.left, distanceM: 10.832910330983452)",
+            "kind": "audioCueDispatched",
+            "messageText": "Next turn left in about 10 meters"
+          },
+          "id": "e2497",
+          "timestampMs": 1778941756182
+        },
+        {
+          "data": {
+            "distanceRemainingM": 10.832910330983452,
+            "instructionText": "11 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2498",
+          "timestampMs": 1778941756184
+        },
+        {
+          "data": {
+            "heading": 147.0931923481194,
+            "kind": "locationUpdate",
+            "lat": 60.181567820215086,
+            "lon": 24.93928358840218,
+            "speed": 3.3121477540779374
+          },
+          "id": "e2499",
+          "timestampMs": 1778941757084
+        },
+        {
+          "data": {
+            "distanceRemainingM": 7.142600450496772,
+            "instructionText": "7 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2500",
+          "timestampMs": 1778941757189
+        },
+        {
+          "data": {
+            "distanceRemainingM": 3.670384967283624,
+            "instructionText": "4 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2501",
+          "timestampMs": 1778941758193
+        },
+        {
+          "data": {
+            "distanceRemainingM": 0.9170511530671774,
+            "instructionText": "1 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2502",
+          "timestampMs": 1778941759197
+        },
+        {
+          "data": {
+            "distanceRemainingM": 7.046648140609946,
+            "instructionText": "7 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2503",
+          "timestampMs": 1778941760187
+        },
+        {
+          "data": {
+            "distanceRemainingM": 3.2811387047062794,
+            "instructionText": "3 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2504",
+          "timestampMs": 1778941761190
+        },
+        {
+          "data": {
+            "heading": 46.44458642273687,
+            "kind": "locationUpdate",
+            "lat": 60.18156128948982,
+            "lon": 24.93950657447536,
+            "speed": 3.6534496834132795
+          },
+          "id": "e2505",
+          "timestampMs": 1778941762087
+        },
+        {
+          "data": {
+            "distanceRemainingM": 28.30627156916013,
+            "instructionText": "28 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2506",
+          "timestampMs": 1778941762200
+        },
+        {
+          "data": {
+            "distanceRemainingM": 22.976844903044935,
+            "instructionText": "23 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2507",
+          "timestampMs": 1778941763194
+        }
+      ],
+      "after": [
+        {
+          "data": {
+            "distanceRemainingM": 17.25635550491357,
+            "instructionText": "17 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2508",
+          "timestampMs": 1778941764200
+        },
+        {
+          "data": {
+            "distanceRemainingM": 11.367411999252823,
+            "instructionText": "11 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2509",
+          "timestampMs": 1778941765194
+        },
+        {
+          "data": {
+            "distanceRemainingM": 4.6564732125602575,
+            "instructionText": "5 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2510",
+          "timestampMs": 1778941766193
+        },
+        {
+          "data": {
+            "distanceRemainingM": 7.0802272599802905,
+            "instructionText": "7 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2511",
+          "timestampMs": 1778941767194
+        },
+        {
+          "data": {
+            "heading": 13.403734799518013,
+            "kind": "locationUpdate",
+            "lat": 60.18189937838877,
+            "lon": 24.939523463566257,
+            "speed": 7.075544436703668
+          },
+          "id": "e2512",
+          "timestampMs": 1778941768083
+        },
+        {
+          "data": {
+            "cueType": "turn10m(Navon.ManeuverKind.left, followUpKind: nil)",
+            "kind": "audioCueDispatched",
+            "messageText": "Turn left"
+          },
+          "id": "e2513",
+          "timestampMs": 1778941768198
+        },
+        {
+          "data": {
+            "distanceRemainingM": 5.347138972498215,
+            "instructionText": "5 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2514",
+          "timestampMs": 1778941768200
+        },
+        {
+          "data": {
+            "distanceRemainingM": 168.4421969833213,
+            "instructionText": "168 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2515",
+          "timestampMs": 1778941769192
+        },
+        {
+          "data": {
+            "cueType": "nextTurnInAbout(turnKind: Navon.ManeuverKind.left, distanceM: -7.304920330487903)",
+            "kind": "audioCueDispatched",
+            "messageText": "Next turn left in about -10 meters"
+          },
+          "id": "e2516",
+          "timestampMs": 1778941770192
+        },
+        {
+          "data": {
+            "distanceRemainingM": 163.43103907123205,
+            "instructionText": "163 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2517",
+          "timestampMs": 1778941770197
+        },
+        {
+          "data": {
+            "cueType": "nextTurnInAbout(turnKind: Navon.ManeuverKind.right, distanceM: 157.89291797032712)",
+            "kind": "audioCueDispatched",
+            "messageText": "Next turn right in about 160 meters"
+          },
+          "id": "e2518",
+          "timestampMs": 1778941771191
+        },
+        {
+          "data": {
+            "distanceRemainingM": 157.89291797032712,
+            "instructionText": "158 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2519",
+          "timestampMs": 1778941771192
+        },
+        {
+          "data": {
+            "distanceRemainingM": 151.49609211459924,
+            "instructionText": "151 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2520",
+          "timestampMs": 1778941772187
+        },
+        {
+          "data": {
+            "distanceRemainingM": 145.35247421147417,
+            "instructionText": "145 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2521",
+          "timestampMs": 1778941773188
+        },
+        {
+          "data": {
+            "heading": 359.55496171554626,
+            "kind": "locationUpdate",
+            "lat": 60.18220622998175,
+            "lon": 24.93957426946182,
+            "speed": 5.0153852271277914
+          },
+          "id": "e2522",
+          "timestampMs": 1778941774082
+        }
+      ]
+    },
+    "ann-1778949264684": {
+      "before": [
+        {
+          "data": {
+            "distanceRemainingM": 8.095177960606037,
+            "instructionText": "8 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2488",
+          "timestampMs": 1778941750198
+        },
+        {
+          "data": {
+            "heading": 90.36673554493872,
+            "kind": "locationUpdate",
+            "lat": 60.181702994144025,
+            "lon": 24.939050555370798,
+            "speed": 2.696304960956448
+          },
+          "id": "e2489",
+          "timestampMs": 1778941751086
+        },
+        {
+          "data": {
+            "distanceRemainingM": 5.24736543366204,
+            "instructionText": "5 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2490",
+          "timestampMs": 1778941751196
+        },
+        {
+          "data": {
+            "distanceRemainingM": 2.2922672343613044,
+            "instructionText": "2 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2491",
+          "timestampMs": 1778941752198
+        },
+        {
+          "data": {
+            "cueType": "turn50m(Navon.ManeuverKind.left, distanceM: 21.13016341532905, followUpKind: Optional(Navon.ManeuverKind.left))",
+            "kind": "audioCueDispatched",
+            "messageText": "In 20 meters, turn left then quickly left"
+          },
+          "id": "e2492",
+          "timestampMs": 1778941753198
+        },
+        {
+          "data": {
+            "distanceRemainingM": 21.13016341532905,
+            "instructionText": "21 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2493",
+          "timestampMs": 1778941753199
+        },
+        {
+          "data": {
+            "distanceRemainingM": 17.848991352456068,
+            "instructionText": "18 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2494",
+          "timestampMs": 1778941754192
+        },
+        {
+          "data": {
+            "cueType": "turn10m(Navon.ManeuverKind.left, followUpKind: Optional(Navon.ManeuverKind.left))",
+            "kind": "audioCueDispatched",
+            "messageText": "Turn left then immediately left"
+          },
+          "id": "e2495",
+          "timestampMs": 1778941755188
+        },
+        {
+          "data": {
+            "distanceRemainingM": 13.895189175393753,
+            "instructionText": "14 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2496",
+          "timestampMs": 1778941755188
+        },
+        {
+          "data": {
+            "cueType": "nextTurnInAbout(turnKind: Navon.ManeuverKind.left, distanceM: 10.832910330983452)",
+            "kind": "audioCueDispatched",
+            "messageText": "Next turn left in about 10 meters"
+          },
+          "id": "e2497",
+          "timestampMs": 1778941756182
+        },
+        {
+          "data": {
+            "distanceRemainingM": 10.832910330983452,
+            "instructionText": "11 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2498",
+          "timestampMs": 1778941756184
+        },
+        {
+          "data": {
+            "heading": 147.0931923481194,
+            "kind": "locationUpdate",
+            "lat": 60.181567820215086,
+            "lon": 24.93928358840218,
+            "speed": 3.3121477540779374
+          },
+          "id": "e2499",
+          "timestampMs": 1778941757084
+        },
+        {
+          "data": {
+            "distanceRemainingM": 7.142600450496772,
+            "instructionText": "7 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2500",
+          "timestampMs": 1778941757189
+        },
+        {
+          "data": {
+            "distanceRemainingM": 3.670384967283624,
+            "instructionText": "4 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2501",
+          "timestampMs": 1778941758193
+        },
+        {
+          "data": {
+            "distanceRemainingM": 0.9170511530671774,
+            "instructionText": "1 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2502",
+          "timestampMs": 1778941759197
+        },
+        {
+          "data": {
+            "distanceRemainingM": 7.046648140609946,
+            "instructionText": "7 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2503",
+          "timestampMs": 1778941760187
+        }
+      ],
+      "during": [
+        {
+          "data": {
+            "distanceRemainingM": 3.2811387047062794,
+            "instructionText": "3 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2504",
+          "timestampMs": 1778941761190
+        },
+        {
+          "data": {
+            "heading": 46.44458642273687,
+            "kind": "locationUpdate",
+            "lat": 60.18156128948982,
+            "lon": 24.93950657447536,
+            "speed": 3.6534496834132795
+          },
+          "id": "e2505",
+          "timestampMs": 1778941762087
+        },
+        {
+          "data": {
+            "distanceRemainingM": 28.30627156916013,
+            "instructionText": "28 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2506",
+          "timestampMs": 1778941762200
+        },
+        {
+          "data": {
+            "distanceRemainingM": 22.976844903044935,
+            "instructionText": "23 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2507",
+          "timestampMs": 1778941763194
+        },
+        {
+          "data": {
+            "distanceRemainingM": 17.25635550491357,
+            "instructionText": "17 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2508",
+          "timestampMs": 1778941764200
+        },
+        {
+          "data": {
+            "distanceRemainingM": 11.367411999252823,
+            "instructionText": "11 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2509",
+          "timestampMs": 1778941765194
+        },
+        {
+          "data": {
+            "distanceRemainingM": 4.6564732125602575,
+            "instructionText": "5 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2510",
+          "timestampMs": 1778941766193
+        },
+        {
+          "data": {
+            "distanceRemainingM": 7.0802272599802905,
+            "instructionText": "7 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2511",
+          "timestampMs": 1778941767194
+        },
+        {
+          "data": {
+            "heading": 13.403734799518013,
+            "kind": "locationUpdate",
+            "lat": 60.18189937838877,
+            "lon": 24.939523463566257,
+            "speed": 7.075544436703668
+          },
+          "id": "e2512",
+          "timestampMs": 1778941768083
+        },
+        {
+          "data": {
+            "cueType": "turn10m(Navon.ManeuverKind.left, followUpKind: nil)",
+            "kind": "audioCueDispatched",
+            "messageText": "Turn left"
+          },
+          "id": "e2513",
+          "timestampMs": 1778941768198
+        },
+        {
+          "data": {
+            "distanceRemainingM": 5.347138972498215,
+            "instructionText": "5 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2514",
+          "timestampMs": 1778941768200
+        },
+        {
+          "data": {
+            "distanceRemainingM": 168.4421969833213,
+            "instructionText": "168 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2515",
+          "timestampMs": 1778941769192
+        },
+        {
+          "data": {
+            "cueType": "nextTurnInAbout(turnKind: Navon.ManeuverKind.left, distanceM: -7.304920330487903)",
+            "kind": "audioCueDispatched",
+            "messageText": "Next turn left in about -10 meters"
+          },
+          "id": "e2516",
+          "timestampMs": 1778941770192
+        },
+        {
+          "data": {
+            "distanceRemainingM": 163.43103907123205,
+            "instructionText": "163 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2517",
+          "timestampMs": 1778941770197
+        },
+        {
+          "data": {
+            "cueType": "nextTurnInAbout(turnKind: Navon.ManeuverKind.right, distanceM: 157.89291797032712)",
+            "kind": "audioCueDispatched",
+            "messageText": "Next turn right in about 160 meters"
+          },
+          "id": "e2518",
+          "timestampMs": 1778941771191
+        },
+        {
+          "data": {
+            "distanceRemainingM": 157.89291797032712,
+            "instructionText": "158 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2519",
+          "timestampMs": 1778941771192
+        },
+        {
+          "data": {
+            "distanceRemainingM": 151.49609211459924,
+            "instructionText": "151 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2520",
+          "timestampMs": 1778941772187
+        },
+        {
+          "data": {
+            "distanceRemainingM": 145.35247421147417,
+            "instructionText": "145 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2521",
+          "timestampMs": 1778941773188
+        },
+        {
+          "data": {
+            "heading": 359.55496171554626,
+            "kind": "locationUpdate",
+            "lat": 60.18220622998175,
+            "lon": 24.93957426946182,
+            "speed": 5.0153852271277914
+          },
+          "id": "e2522",
+          "timestampMs": 1778941774082
+        },
+        {
+          "data": {
+            "distanceRemainingM": 140.46335988395387,
+            "instructionText": "140 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2523",
+          "timestampMs": 1778941774188
+        },
+        {
+          "data": {
+            "distanceRemainingM": 134.987078501888,
+            "instructionText": "135 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2524",
+          "timestampMs": 1778941775187
+        },
+        {
+          "data": {
+            "distanceRemainingM": 129.49881860458495,
+            "instructionText": "129 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2525",
+          "timestampMs": 1778941776147
+        },
+        {
+          "data": {
+            "distanceRemainingM": 123.53151020809918,
+            "instructionText": "124 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2526",
+          "timestampMs": 1778941777185
+        },
+        {
+          "data": {
+            "distanceRemainingM": 119.58331001513912,
+            "instructionText": "120 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2527",
+          "timestampMs": 1778941778196
+        },
+        {
+          "data": {
+            "heading": 12.843551261459782,
+            "kind": "locationUpdate",
+            "lat": 60.182417642436896,
+            "lon": 24.93958876391392,
+            "speed": 4.202000868614559
+          },
+          "id": "e2528",
+          "timestampMs": 1778941779086
+        },
+        {
+          "data": {
+            "distanceRemainingM": 114.99658479082152,
+            "instructionText": "115 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2529",
+          "timestampMs": 1778941779195
+        },
+        {
+          "data": {
+            "distanceRemainingM": 111.23510425170812,
+            "instructionText": "111 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2530",
+          "timestampMs": 1778941780193
+        }
+      ],
+      "after": [
+        {
+          "data": {
+            "distanceRemainingM": 106.05033938412467,
+            "instructionText": "106 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2531",
+          "timestampMs": 1778941781200
+        },
+        {
+          "data": {
+            "distanceRemainingM": 103.05428601667296,
+            "instructionText": "103 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2532",
+          "timestampMs": 1778941782195
+        },
+        {
+          "data": {
+            "distanceRemainingM": 99.6039365464319,
+            "instructionText": "100 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2533",
+          "timestampMs": 1778941783199
+        },
+        {
+          "data": {
+            "heading": 30.751375198364258,
+            "kind": "locationUpdate",
+            "lat": 60.18255283298189,
+            "lon": 24.939673647840387,
+            "speed": 1.6196956785237997
+          },
+          "id": "e2534",
+          "timestampMs": 1778941784087
+        },
+        {
+          "data": {
+            "distanceRemainingM": 98.40876576954608,
+            "instructionText": "98 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2535",
+          "timestampMs": 1778941784199
+        },
+        {
+          "data": {
+            "distanceRemainingM": 95.85571659152941,
+            "instructionText": "96 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2536",
+          "timestampMs": 1778941785193
+        },
+        {
+          "data": {
+            "distanceRemainingM": 91.76450891550388,
+            "instructionText": "92 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2537",
+          "timestampMs": 1778941786193
+        },
+        {
+          "data": {
+            "distanceRemainingM": 89.86577782613676,
+            "instructionText": "90 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2538",
+          "timestampMs": 1778941787204
+        },
+        {
+          "data": {
+            "distanceRemainingM": 86.61851880848829,
+            "instructionText": "87 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2539",
+          "timestampMs": 1778941788194
+        },
+        {
+          "data": {
+            "distanceRemainingM": 83.57364344862151,
+            "instructionText": "84 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2540",
+          "timestampMs": 1778941789191
+        },
+        {
+          "data": {
+            "heading": 30.751375198364258,
+            "kind": "locationUpdate",
+            "lat": 60.18267409647987,
+            "lon": 24.939847602099185,
+            "speed": 1.3442995285415664
+          },
+          "id": "e2541",
+          "timestampMs": 1778941790082
+        },
+        {
+          "data": {
+            "distanceRemainingM": 81.50415099154884,
+            "instructionText": "82 m Turn sharply right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2542",
+          "timestampMs": 1778941790193
+        }
+      ]
+    },
+    "ann-1778949363193": {
+      "before": [
+        {
+          "data": {
+            "distanceRemainingM": 70.2991500912546,
+            "instructionText": "70 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2585",
+          "timestampMs": 1778941824195
+        },
+        {
+          "data": {
+            "distanceRemainingM": 65.54090140653625,
+            "instructionText": "66 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2586",
+          "timestampMs": 1778941825197
+        },
+        {
+          "data": {
+            "distanceRemainingM": 60.48226288958688,
+            "instructionText": "60 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2587",
+          "timestampMs": 1778941826199
+        },
+        {
+          "data": {
+            "distanceRemainingM": 55.220273164154605,
+            "instructionText": "55 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2588",
+          "timestampMs": 1778941827193
+        },
+        {
+          "data": {
+            "distanceRemainingM": 50.15414441023671,
+            "instructionText": "50 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2589",
+          "timestampMs": 1778941828199
+        },
+        {
+          "data": {
+            "cueType": "turn50m(Navon.ManeuverKind.left, distanceM: 44.87721131188357, followUpKind: Optional(Navon.ManeuverKind.bearRight))",
+            "kind": "audioCueDispatched",
+            "messageText": "In 40 meters, turn left then quickly ahead"
+          },
+          "id": "e2590",
+          "timestampMs": 1778941829205
+        },
+        {
+          "data": {
+            "distanceRemainingM": 44.87721131188357,
+            "instructionText": "45 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2591",
+          "timestampMs": 1778941829206
+        },
+        {
+          "data": {
+            "heading": 128.00693599469386,
+            "kind": "locationUpdate",
+            "lat": 60.18279569682735,
+            "lon": 24.942083455982797,
+            "speed": 5.362360482750745
+          },
+          "id": "e2592",
+          "timestampMs": 1778941830082
+        },
+        {
+          "data": {
+            "distanceRemainingM": 39.50628979902433,
+            "instructionText": "40 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2593",
+          "timestampMs": 1778941830186
+        },
+        {
+          "data": {
+            "distanceRemainingM": 34.144319369479774,
+            "instructionText": "34 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2594",
+          "timestampMs": 1778941831190
+        },
+        {
+          "data": {
+            "distanceRemainingM": 28.70641252001485,
+            "instructionText": "29 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2595",
+          "timestampMs": 1778941832188
+        },
+        {
+          "data": {
+            "distanceRemainingM": 23.346322496161918,
+            "instructionText": "23 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2596",
+          "timestampMs": 1778941833198
+        }
+      ],
+      "during": [
+        {
+          "data": {
+            "distanceRemainingM": 18.008608835367852,
+            "instructionText": "18 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2597",
+          "timestampMs": 1778941834191
+        },
+        {
+          "data": {
+            "heading": 128.37347958289743,
+            "kind": "locationUpdate",
+            "lat": 60.182643539765955,
+            "lon": 24.942456299122387,
+            "speed": 5.17362737921439
+          },
+          "id": "e2598",
+          "timestampMs": 1778941835086
+        },
+        {
+          "data": {
+            "cueType": "turn10m(Navon.ManeuverKind.left, followUpKind: Optional(Navon.ManeuverKind.bearRight))",
+            "kind": "audioCueDispatched",
+            "messageText": "Turn left then immediately ahead"
+          },
+          "id": "e2599",
+          "timestampMs": 1778941835203
+        },
+        {
+          "data": {
+            "distanceRemainingM": 12.76970495945028,
+            "instructionText": "13 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2600",
+          "timestampMs": 1778941835205
+        },
+        {
+          "data": {
+            "distanceRemainingM": 7.892945863445618,
+            "instructionText": "8 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2601",
+          "timestampMs": 1778941836191
+        },
+        {
+          "data": {
+            "distanceRemainingM": 3.780262299063736,
+            "instructionText": "5 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2602",
+          "timestampMs": 1778941837185
+        },
+        {
+          "data": {
+            "distanceRemainingM": 2.631128833390619,
+            "instructionText": "4 m Bear right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2603",
+          "timestampMs": 1778941838195
+        },
+        {
+          "data": {
+            "cueType": "turn10m(Navon.ManeuverKind.left, followUpKind: nil)",
+            "kind": "audioCueDispatched",
+            "messageText": "Turn left"
+          },
+          "id": "e2604",
+          "timestampMs": 1778941839196
+        },
+        {
+          "data": {
+            "distanceRemainingM": 1.994615845992655,
+            "instructionText": "2 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2605",
+          "timestampMs": 1778941839198
+        },
+        {
+          "data": {
+            "cueType": "nextTurnInAbout(turnKind: Navon.ManeuverKind.left, distanceM: -3.960548608072884)",
+            "kind": "audioCueDispatched",
+            "messageText": "Next turn left in about 0 meters"
+          },
+          "id": "e2606",
+          "timestampMs": 1778941840189
+        },
+        {
+          "data": {
+            "distanceRemainingM": 203.9298206325695,
+            "instructionText": "204 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2607",
+          "timestampMs": 1778941840191
+        },
+        {
+          "data": {
+            "heading": 67.06773250087979,
+            "kind": "locationUpdate",
+            "lat": 60.18260669187729,
+            "lon": 24.942919156946594,
+            "speed": 4.447816982647954
+          },
+          "id": "e2608",
+          "timestampMs": 1778941841086
+        },
+        {
+          "data": {
+            "distanceRemainingM": 199.1250573585242,
+            "instructionText": "199 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2609",
+          "timestampMs": 1778941841194
+        },
+        {
+          "data": {
+            "cueType": "nextTurnInAbout(turnKind: Navon.ManeuverKind.right, distanceM: 194.81094076677226)",
+            "kind": "audioCueDispatched",
+            "messageText": "Next turn right in about 190 meters"
+          },
+          "id": "e2610",
+          "timestampMs": 1778941842191
+        },
+        {
+          "data": {
+            "distanceRemainingM": 194.81094076677226,
+            "instructionText": "195 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2611",
+          "timestampMs": 1778941842192
+        },
+        {
+          "data": {
+            "distanceRemainingM": 190.18399432412758,
+            "instructionText": "190 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2612",
+          "timestampMs": 1778941843190
+        },
+        {
+          "data": {
+            "distanceRemainingM": 184.82074208592155,
+            "instructionText": "185 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2613",
+          "timestampMs": 1778941844188
+        },
+        {
+          "data": {
+            "distanceRemainingM": 180.293068800152,
+            "instructionText": "180 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2614",
+          "timestampMs": 1778941845191
+        },
+        {
+          "data": {
+            "distanceRemainingM": 176.1810308310839,
+            "instructionText": "176 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2615",
+          "timestampMs": 1778941846187
+        },
+        {
+          "data": {
+            "heading": 36.17564775369287,
+            "kind": "locationUpdate",
+            "lat": 60.18280340720509,
+            "lon": 24.94323142652138,
+            "speed": 4.384760632708578
+          },
+          "id": "e2616",
+          "timestampMs": 1778941847081
+        },
+        {
+          "data": {
+            "distanceRemainingM": 171.37226123411472,
+            "instructionText": "171 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2617",
+          "timestampMs": 1778941847181
+        },
+        {
+          "data": {
+            "distanceRemainingM": 167.45217703591197,
+            "instructionText": "167 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2618",
+          "timestampMs": 1778941848193
+        },
+        {
+          "data": {
+            "distanceRemainingM": 163.7964644030618,
+            "instructionText": "164 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2619",
+          "timestampMs": 1778941849201
+        },
+        {
+          "data": {
+            "distanceRemainingM": 159.20085460272537,
+            "instructionText": "159 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2620",
+          "timestampMs": 1778941850198
+        },
+        {
+          "data": {
+            "distanceRemainingM": 154.78612806159765,
+            "instructionText": "155 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2621",
+          "timestampMs": 1778941851188
+        },
+        {
+          "data": {
+            "heading": 35.7701951595304,
+            "kind": "locationUpdate",
+            "lat": 60.18294671467695,
+            "lon": 24.943477527000542,
+            "speed": 4.204557025466769
+          },
+          "id": "e2622",
+          "timestampMs": 1778941852082
+        },
+        {
+          "data": {
+            "distanceRemainingM": 150.40437022189406,
+            "instructionText": "150 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2623",
+          "timestampMs": 1778941852195
+        },
+        {
+          "data": {
+            "distanceRemainingM": 145.5089138350089,
+            "instructionText": "146 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2624",
+          "timestampMs": 1778941853194
+        },
+        {
+          "data": {
+            "distanceRemainingM": 140.8878214730828,
+            "instructionText": "141 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2625",
+          "timestampMs": 1778941854197
+        },
+        {
+          "data": {
+            "distanceRemainingM": 137.38722550181922,
+            "instructionText": "137 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2626",
+          "timestampMs": 1778941855197
+        },
+        {
+          "data": {
+            "distanceRemainingM": 133.1136995366586,
+            "instructionText": "133 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2627",
+          "timestampMs": 1778941856195
+        },
+        {
+          "data": {
+            "heading": 39.770174025539816,
+            "kind": "locationUpdate",
+            "lat": 60.18309310656094,
+            "lon": 24.943732364262623,
+            "speed": 4.054895603878348
+          },
+          "id": "e2628",
+          "timestampMs": 1778941857084
+        }
+      ],
+      "after": [
+        {
+          "data": {
+            "distanceRemainingM": 128.86593007654506,
+            "instructionText": "129 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2629",
+          "timestampMs": 1778941857196
+        },
+        {
+          "data": {
+            "distanceRemainingM": 125.17401297351,
+            "instructionText": "125 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2630",
+          "timestampMs": 1778941858195
+        },
+        {
+          "data": {
+            "distanceRemainingM": 122.03468492753223,
+            "instructionText": "122 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2631",
+          "timestampMs": 1778941859196
+        },
+        {
+          "data": {
+            "distanceRemainingM": 118.30967786916153,
+            "instructionText": "118 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2632",
+          "timestampMs": 1778941860198
+        },
+        {
+          "data": {
+            "distanceRemainingM": 114.8082662483124,
+            "instructionText": "115 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2633",
+          "timestampMs": 1778941861196
+        },
+        {
+          "data": {
+            "distanceRemainingM": 112.98531856413354,
+            "instructionText": "113 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2634",
+          "timestampMs": 1778941862194
+        },
+        {
+          "data": {
+            "heading": 43.30540001556932,
+            "kind": "locationUpdate",
+            "lat": 60.18321940252995,
+            "lon": 24.94397076306363,
+            "speed": 2.512304423374701
+          },
+          "id": "e2635",
+          "timestampMs": 1778941863088
+        },
+        {
+          "data": {
+            "distanceRemainingM": 109.90403629915602,
+            "instructionText": "110 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2636",
+          "timestampMs": 1778941863200
+        },
+        {
+          "data": {
+            "distanceRemainingM": 106.94031148774616,
+            "instructionText": "107 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2637",
+          "timestampMs": 1778941864194
+        },
+        {
+          "data": {
+            "distanceRemainingM": 103.29281417329469,
+            "instructionText": "103 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2638",
+          "timestampMs": 1778941865198
+        },
+        {
+          "data": {
+            "distanceRemainingM": 99.51488390544216,
+            "instructionText": "100 m Turn right",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2639",
+          "timestampMs": 1778941866192
+        }
+      ]
+    },
+    "ann-1778949420847": {
+      "before": [
+        {
+          "data": {
+            "distanceRemainingM": 56.55978834965981,
+            "instructionText": "57 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2688",
+          "timestampMs": 1778941905188
+        },
+        {
+          "data": {
+            "distanceRemainingM": 51.95530834953934,
+            "instructionText": "52 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2689",
+          "timestampMs": 1778941906194
+        },
+        {
+          "data": {
+            "heading": 131.37169583600922,
+            "kind": "locationUpdate",
+            "lat": 60.18369208268608,
+            "lon": 24.945850169815806,
+            "speed": 4.647544814157196
+          },
+          "id": "e2690",
+          "timestampMs": 1778941907084
+        },
+        {
+          "data": {
+            "distanceRemainingM": 46.0338355857599,
+            "instructionText": "46 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2691",
+          "timestampMs": 1778941907194
+        },
+        {
+          "data": {
+            "distanceRemainingM": 41.031006163347456,
+            "instructionText": "41 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2692",
+          "timestampMs": 1778941908191
+        },
+        {
+          "data": {
+            "distanceRemainingM": 36.741229148105504,
+            "instructionText": "37 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2693",
+          "timestampMs": 1778941909195
+        },
+        {
+          "data": {
+            "distanceRemainingM": 32.13458103650089,
+            "instructionText": "32 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2694",
+          "timestampMs": 1778941910193
+        },
+        {
+          "data": {
+            "distanceRemainingM": 26.626583430483834,
+            "instructionText": "27 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2695",
+          "timestampMs": 1778941911195
+        },
+        {
+          "data": {
+            "distanceRemainingM": 22.886967605933933,
+            "instructionText": "23 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2696",
+          "timestampMs": 1778941912194
+        },
+        {
+          "data": {
+            "heading": 98.62423907913742,
+            "kind": "locationUpdate",
+            "lat": 60.183597269071846,
+            "lon": 24.94629557686643,
+            "speed": 3.6000630425698517
+          },
+          "id": "e2697",
+          "timestampMs": 1778941913084
+        },
+        {
+          "data": {
+            "distanceRemainingM": 20.208278414867777,
+            "instructionText": "20 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2698",
+          "timestampMs": 1778941913194
+        },
+        {
+          "data": {
+            "distanceRemainingM": 18.655405983702167,
+            "instructionText": "19 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2699",
+          "timestampMs": 1778941914194
+        }
+      ],
+      "during": [
+        {
+          "data": {
+            "distanceRemainingM": 17.564284293626883,
+            "instructionText": "18 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2700",
+          "timestampMs": 1778941915194
+        },
+        {
+          "data": {
+            "distanceRemainingM": 16.866026452010374,
+            "instructionText": "17 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2701",
+          "timestampMs": 1778941916196
+        },
+        {
+          "data": {
+            "kind": "routeStopped",
+            "reason": "arrival"
+          },
+          "id": "e2702",
+          "timestampMs": 1778941917097
+        },
+        {
+          "data": {
+            "cueType": "turn10m(Navon.ManeuverKind.left, followUpKind: Optional(Navon.ManeuverKind.left))",
+            "kind": "audioCueDispatched",
+            "messageText": "Turn left then immediately left"
+          },
+          "id": "e2703",
+          "timestampMs": 1778941917199
+        },
+        {
+          "data": {
+            "cueType": "arrived",
+            "kind": "audioCueDispatched",
+            "messageText": "You have arrived at your destination"
+          },
+          "id": "e2704",
+          "timestampMs": 1778941917200
+        },
+        {
+          "data": {
+            "distanceRemainingM": 14.995447703903665,
+            "instructionText": "15 m Turn left",
+            "kind": "nextTurnAlerted"
+          },
+          "id": "e2705",
+          "timestampMs": 1778941917207
+        }
+      ],
+      "after": []
+    }
+  }
+}

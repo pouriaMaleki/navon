@@ -1509,24 +1509,10 @@ final class HomeViewModel: ObservableObject {
         let filteredManeuvers = guidanceRoute.map { collapseCloseManeuvers(filterGlitchClusters($0.maneuvers, geometry: $0.geometry), geometry: $0.geometry) } ?? []
         let cueManeuvers: [CueManeuver] = filteredManeuvers.compactMap { m in
             CueManeuverMapping.kind(for: m.maneuverType).map { kind in
-                var isMinorKeep = m.maneuverType == .slightLeft || m.maneuverType == .slightRight
-                var resolvedKind = kind
-                if isMinorKeep, let geom = guidanceRoute?.geometry, geom.count >= 3 {
-                    let cumDist = cumulativeDistances(geom)
-                    if let idx = closestPointIndex(in: geom, to: m.location),
-                       idx > 0, idx < geom.count - 1 {
-                        let angle = abs(maneuverAngleDegrees(geom, cumDist, idx))
-                        if angle >= minorKeepPromotionAngleDeg {
-                            isMinorKeep = false
-                            resolvedKind = (kind == .left) ? .bearLeft : .bearRight
-                        }
-                    }
-                }
-                return CueManeuver(
+                CueManeuver(
                     id: m.id,
-                    kind: resolvedKind,
-                    distanceFromStartM: m.distanceFromStartMeters,
-                    isMinorKeep: isMinorKeep
+                    kind: kind,
+                    distanceFromStartM: m.distanceFromStartMeters
                 )
             }
         }

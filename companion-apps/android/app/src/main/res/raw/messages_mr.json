@@ -7,10 +7,6 @@
   "common.ok": "ठीक आहे",
   "cue.arrived": "तुम्ही तुमच्या गंतव्यस्थानी पोहोचलात",
   "cue.arrivingInM": "तुमच्या गंतव्यस्थानी {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये पोहोचत आहात",
-  "cue.bearRange.bearLeft": "पुढील {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} साठी डावीकडे राहा",
-  "cue.bearRange.bearRight": "पुढील {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} साठी उजवीकडे राहा",
-  "cue.nextTurnInAbout.bearLeft": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये डावीकडे राहा",
-  "cue.nextTurnInAbout.bearRight": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये उजवीकडे राहा",
   "cue.nextTurnInAbout.generic": "पुढचा वळण अंदाजे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये",
   "cue.nextTurnInAbout.left": "पुढचा डावीकडे वळण अंदाजे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये",
   "cue.nextTurnInAbout.merge": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये विलीनीकरण",
@@ -179,5 +175,11 @@
   "units.distance.mi": "{distance, number} mi",
   "units.duration.min": "{minutes, number} मिनिटे",
   "units.speed.kph": "किमी/ता",
-  "units.speed.mph": "मैल/ता"
+  "units.speed.mph": "मैल/ता",
+  "cue.nextTurnInAbout.slightLeft": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये डावीकडे राहा",
+  "cue.nextTurnInAbout.slightRight": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये उजवीकडे राहा",
+  "cue.turn50m.slightLeft": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, डावीकडे वळा",
+  "cue.turn50m.slightRight": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, उजवीकडे वळा",
+  "cue.turn10m.slightLeft": "डावीकडे वळा",
+  "cue.turn10m.slightRight": "उजवीकडे वळा"
 }

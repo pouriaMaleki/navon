@@ -7,10 +7,6 @@
   "common.ok": "ठीक है",
   "cue.arrived": "आप अपने गंतव्य पर पहुँच गए हैं",
   "cue.arrivingInM": "अपने गंतव्य पर {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में पहुँच रहे हैं",
-  "cue.bearRange.bearLeft": "अगले {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} के लिए बाएँ रहें",
-  "cue.bearRange.bearRight": "अगले {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} के लिए दाएँ रहें",
-  "cue.nextTurnInAbout.bearLeft": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में बाएँ रहें",
-  "cue.nextTurnInAbout.bearRight": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में दाएँ रहें",
   "cue.nextTurnInAbout.generic": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में अगला मोड़",
   "cue.nextTurnInAbout.left": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में बाएँ रहें",
   "cue.nextTurnInAbout.merge": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में मर्ज करें",
@@ -179,5 +175,11 @@
   "units.distance.mi": "{distance, number} mi",
   "units.duration.min": "{minutes, number} min",
   "units.speed.kph": "km/h",
-  "units.speed.mph": "mph"
+  "units.speed.mph": "mph",
+  "cue.nextTurnInAbout.slightLeft": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में बाएँ रहें",
+  "cue.nextTurnInAbout.slightRight": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में दाएँ रहें",
+  "cue.turn50m.slightLeft": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, बाएँ मुड़ें",
+  "cue.turn50m.slightRight": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, दाएँ मुड़ें",
+  "cue.turn10m.slightLeft": "बाएँ मुड़ें",
+  "cue.turn10m.slightRight": "दाएँ मुड़ें"
 }

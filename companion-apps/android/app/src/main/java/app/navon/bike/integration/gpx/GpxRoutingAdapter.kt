@@ -246,7 +246,7 @@ class GpxRoutingAdapter : RoutingProvider {
         if (magnitude >= 170.0) return RouteManeuverType.UTURN to "Make a U-turn"
         if (magnitude >= 110.0) return if (delta > 0) RouteManeuverType.SHARP_RIGHT to "Turn sharply right" else RouteManeuverType.SHARP_LEFT to "Turn sharply left"
         if (magnitude >= 50.0) return if (delta > 0) RouteManeuverType.RIGHT to "Turn right" else RouteManeuverType.LEFT to "Turn left"
-        return if (delta > 0) RouteManeuverType.SLIGHT_RIGHT to "Bear right" else RouteManeuverType.SLIGHT_LEFT to "Bear left"
+        return if (delta > 0) RouteManeuverType.SLIGHT_RIGHT to "Slight right" else RouteManeuverType.SLIGHT_LEFT to "Slight left"
     }
 
     private fun turnDeltaDegrees(previous: CoordinatePoint, current: CoordinatePoint, next: CoordinatePoint): Double {

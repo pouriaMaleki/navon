@@ -4,8 +4,8 @@
 export type ManeuverKind =
   | "left"
   | "right"
-  | "bearLeft"
-  | "bearRight"
+  | "slightLeft"
+  | "slightRight"
   | "exitLeft"
   | "exitRight"
   | "uturn"
@@ -18,7 +18,6 @@ export type CueManeuver = {
   id: string;
   kind: ManeuverKind;
   distanceFromStartM: number;
-  isMinorKeep?: boolean;
 };
 
 export type CueSnapshot = {
@@ -56,9 +55,6 @@ export type CueEvent =
    */
   | { kind: "turn10m"; turnKind: ManeuverKind; followUpKind?: ManeuverKind }
   | { kind: "nextTurnInAbout"; turnKind: ManeuverKind; distanceM: number }
-  /** Single range-hold cue for bearLeft/bearRight — fires once when the rider
-   *  enters the segment, instead of the two-stage approach pattern. */
-  | { kind: "bearRange"; turnKind: ManeuverKind; distanceM: number }
   | { kind: "arrivingInM"; distanceM: number }
   | { kind: "arrived" }
   | { kind: "offTrack" }
@@ -112,24 +108,10 @@ const REROUTING_CUE_CAP = 2;
  *  for any nextTurnInAbout or approach cues so the rider hears "arriving in Xm"
  *  rather than a phantom turn command. */
 const CLOSE_TO_DESTINATION_M = 30;
-/** Bear range cues are only useful when the bear segment is long enough.
- *  Below this threshold the rider is already there — silence the bear. */
-const MIN_BEAR_SEGMENT_M = 50;
-/** Two maneuvers separated by less than this fold into a single
- *  "turn X then quickly Y" cue. 80 m at 25 km/h ≈ 11 s — enough for the
- *  rider to take both turns smoothly, not long enough for two
- *  independent 50m/10m cue cycles to fit without colliding. */
-// Two maneuvers separated by less than this fold into a single "turn X
-// then quickly Y" cue. 30 m matches the spec phrase "then quickly" — at
-// cycling speeds that's ~4-7 s apart, the only window where coalescing
-// two turns into one cue actually feels natural. 50 m / 80 m both let
-// genuinely separate maneuvers ride along on a combined cue, which the
-// rider then misperceives as the routing engine inventing turns that
-// aren't really there.
+/** Two maneuvers separated by less than this fold into a single "turn X
+ *  then quickly Y" cue. 30 m at cycling speeds ≈ 4-7 s — the only window
+ *  where coalescing two turns into one cue feels natural. */
 const BACK_TO_BACK_THRESHOLD_M = 30;
-function isBearKind(kind: ManeuverKind): boolean {
-  return kind === "bearLeft" || kind === "bearRight";
-}
 
 export function initialCueEngineState(): CueEngineState {
   return {
@@ -224,7 +206,7 @@ export function tickCueEngine(
               announced10m: new Set([...s.announced10m, firstNonDepart.id]),
             };
           }
-        } else if (!firstNonDepart.isMinorKeep && !isBearKind(firstNonDepart.kind)) {
+        } else {
           events.push({
             kind: "nextTurnInAbout",
             turnKind: firstNonDepart.kind,
@@ -252,7 +234,7 @@ export function tickCueEngine(
           // `d > APPROACH_10_M` (15 m) and would skip routes starting
           // < 15 m before a back-to-back pair, leaving the rider with
           // only `turn10m(first)` and no warning about the second turn.
-          if (!firstNonDepart.isMinorKeep && !isBearKind(firstNonDepart.kind)) {
+          {
             events.push({
               kind: "turn50m",
               turnKind: firstNonDepart.kind,
@@ -352,8 +334,8 @@ export function tickCueEngine(
     events.push({ kind: "rerouting" });
   }
 
-  // While silenced, suppress maneuver/arrival cues.
-  if (!silenced && !snapshot.offRoute && !snapshot.rerouting) {
+  // While silenced or arrived, suppress maneuver/arrival cues.
+  if (!silenced && !snapshot.offRoute && !snapshot.rerouting && !snapshot.arrived) {
     const announced50m = new Set(s.announced50m);
     const announced10m = new Set(s.announced10m);
     const announcedNextTurnAfter = new Set(s.announcedNextTurnAfter);
@@ -373,8 +355,6 @@ export function tickCueEngine(
     // rider already heard about it.
     if (
       upcoming &&
-      !upcoming.isMinorKeep &&
-      !isBearKind(upcoming.kind) &&
       upcomingDistance !== undefined &&
       upcomingDistance <= APPROACH_50_M &&
       upcomingDistance > APPROACH_10_M &&
@@ -412,8 +392,6 @@ export function tickCueEngine(
     // fast cycling, or a tick that landed already inside 15 m).
     if (
       upcoming &&
-      !upcoming.isMinorKeep &&
-      !isBearKind(upcoming.kind) &&
       upcomingDistance !== undefined &&
       upcomingDistance <= APPROACH_10_M &&
       !announced10m.has(upcoming.id)
@@ -439,33 +417,6 @@ export function tickCueEngine(
       }
     }
 
-    // Bear-range cue: for promoted slightLeft/slightRight (bearLeft/bearRight
-    // kind), fire a single range-hold cue when the rider enters the segment.
-    // Latched per maneuver id — one cue total.
-    if (
-      upcoming &&
-      isBearKind(upcoming.kind) &&
-      upcomingDistance !== undefined &&
-      upcomingDistance <= APPROACH_10_M &&
-      !announced10m.has(upcoming.id)
-    ) {
-      const upcomingIdx = snapshot.maneuvers.findIndex((m) => m.id === upcoming.id);
-      const nextManeuver = snapshot.maneuvers[upcomingIdx + 1];
-      const rawSegmentLengthM = nextManeuver
-        ? nextManeuver.distanceFromStartM - upcoming.distanceFromStartM
-        : snapshot.routeTotalDistanceM - upcoming.distanceFromStartM;
-      // Only fire when the segment is long enough to be useful.
-      if (rawSegmentLengthM >= MIN_BEAR_SEGMENT_M) {
-        const segmentLengthM = Math.min(rawSegmentLengthM, 500);
-        events.push({
-          kind: "bearRange",
-          turnKind: upcoming.kind,
-          distanceM: segmentLengthM,
-        });
-      }
-      announced10m.add(upcoming.id);
-    }
-
     // Cue 4 + 5: passed last maneuver by 10m.
     // Find the maneuver immediately behind progress (largest distanceFromStartM
     // less than progressDistanceM) and check if rider is >= PASSED_TURN_M past it.
@@ -484,7 +435,18 @@ export function tickCueEngine(
         const distanceToNext = nextAfter.distanceFromStartM - snapshot.progressDistanceM;
         const isLastManeuver = indexOfLast + 1 === snapshot.maneuvers.length - 1;
         const distNextToEnd = snapshot.routeTotalDistanceM - nextAfter.distanceFromStartM;
-        if (isLastManeuver && distNextToEnd < CLOSE_TO_DESTINATION_M) {
+        if (distanceToNext <= 0) {
+          // Rider already passed the next maneuver (GPS jump in one tick).
+          // Only emit arrivingInM if this was the last maneuver before arrival.
+          if (isLastManeuver && !s.approachingDestinationAnnounced && !snapshot.arrived) {
+            events.push({
+              kind: "arrivingInM",
+              distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM,
+            });
+            s = { ...s, approachingDestinationAnnounced: true };
+          }
+          announcedNextTurnAfter.add(lastPassed.id);
+        } else if (isLastManeuver && distNextToEnd < CLOSE_TO_DESTINATION_M) {
           // Bug 4: when the rider has already crossed the arrival
           // radius, the dedicated `arrived` cue at the bottom of this
           // function speaks instead — emitting `arrivingInM` here too
@@ -500,7 +462,7 @@ export function tickCueEngine(
             announced50m.add(nextAfter.id);
             announced10m.add(nextAfter.id);
           }
-        } else if (!nextAfter.isMinorKeep && !isBearKind(nextAfter.kind)) {
+        } else {
           events.push({
             kind: "nextTurnInAbout",
             turnKind: nextAfter.kind,
@@ -608,11 +570,6 @@ export function cueMessage(event: CueEvent, distanceMode: DistanceMode = "metric
         key: `cue.nextTurnInAbout.${nextTurnDirection(event.turnKind)}`,
         values: distanceCueValues(event.distanceM, distanceMode),
       };
-    case "bearRange":
-      return {
-        key: `cue.bearRange.${event.turnKind}`,
-        values: distanceCueValues(event.distanceM, distanceMode),
-      };
     case "arrivingInM":
       return {
         key: "cue.arrivingInM",
@@ -645,7 +602,7 @@ export function formatCueEvent(event: CueEvent): string {
  *  dedicated kinds keep their own slug. */
 function nextTurnDirection(
   kind: ManeuverKind,
-): "left" | "right" | "bearLeft" | "bearRight" | "uturn" | "roundabout" | "merge" | "ramp" | "generic" {
+): ManeuverKind {
   switch (kind) {
     case "left":
     case "exitLeft":
@@ -653,10 +610,10 @@ function nextTurnDirection(
     case "right":
     case "exitRight":
       return "right";
-    case "bearLeft":
-      return "bearLeft";
-    case "bearRight":
-      return "bearRight";
+    case "slightLeft":
+      return "slightLeft";
+    case "slightRight":
+      return "slightRight";
     case "uturn":
       return "uturn";
     case "roundabout":

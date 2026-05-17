@@ -11,8 +11,8 @@ package app.navon.bike.integration.cues
 enum class ManeuverKind {
     LEFT,
     RIGHT,
-    BEAR_LEFT,
-    BEAR_RIGHT,
+    SLIGHT_LEFT,
+    SLIGHT_RIGHT,
     EXIT_LEFT,
     EXIT_RIGHT,
     UTURN,
@@ -26,7 +26,6 @@ data class CueManeuver(
     val id: String,
     val kind: ManeuverKind,
     val distanceFromStartM: Double,
-    val isMinorKeep: Boolean = false,
 )
 
 data class CueSnapshot(
@@ -69,8 +68,6 @@ sealed class CueEvent {
         val followUpKind: ManeuverKind? = null,
     ) : CueEvent()
     data class NextTurnInAbout(val turnKind: ManeuverKind, val distanceM: Double) : CueEvent()
-    /** Single range-hold cue for bearLeft/bearRight. */
-    data class BearRange(val turnKind: ManeuverKind, val distanceM: Double) : CueEvent()
     data class ArrivingInM(val distanceM: Double) : CueEvent()
     object Arrived : CueEvent()
     object OffTrack : CueEvent()
@@ -137,13 +134,8 @@ object CueEngine {
      *  approaching it is indistinguishable from arriving: substitute ArrivingInM
      *  for any NextTurnInAbout or approach cues so the rider hears "arriving in Xm"
      *  rather than a phantom turn command. */
-    /** Bear range cues are only useful when the bear segment is long enough.
-     *  Below this threshold the rider is already there — silence the bear. */
-    private const val MIN_BEAR_SEGMENT_M = 50.0
     private const val CLOSE_TO_DESTINATION_M = 30.0
 
-    private fun isBearKind(kind: ManeuverKind): Boolean =
-        kind == ManeuverKind.BEAR_LEFT || kind == ManeuverKind.BEAR_RIGHT
 
     data class Result(val events: List<CueEvent>, val nextState: CueEngineState)
 
@@ -208,7 +200,7 @@ object CueEngine {
                                 announced10m = s.announced10m + firstNonDepart.id,
                             )
                         }
-                    } else if (!firstNonDepart.isMinorKeep && !isBearKind(firstNonDepart.kind)) {
+                    } else {
                         events.add(
                             CueEvent.NextTurnInAbout(
                                 turnKind = firstNonDepart.kind,
@@ -236,7 +228,7 @@ object CueEngine {
                         // before a back-to-back pair, leaving the rider
                         // with only `Turn10m(first)` and no warning
                         // about the second turn.
-                        if (!firstNonDepart.isMinorKeep && !isBearKind(firstNonDepart.kind)) {
+                        {
                             events.add(
                                 CueEvent.Turn50m(
                                     turnKind = firstNonDepart.kind,
@@ -319,7 +311,7 @@ object CueEngine {
             events.add(CueEvent.Rerouting)
         }
 
-        if (!silenced && !snapshot.offRoute && !snapshot.rerouting) {
+        if (!silenced && !snapshot.offRoute && !snapshot.rerouting && !snapshot.arrived) {
             val announced50m = s.announced50m.toMutableSet()
             val announced10m = s.announced10m.toMutableSet()
             val announcedNextTurnAfter = s.announcedNextTurnAfter.toMutableSet()
@@ -331,7 +323,7 @@ object CueEngine {
 
             if (upcoming != null && upcomingDistance != null &&
                 upcomingDistance <= APPROACH_50_M && upcomingDistance > APPROACH_10_M &&
-                !announced50m.contains(upcoming.id) && !upcoming.isMinorKeep && !isBearKind(upcoming.kind)
+                !announced50m.contains(upcoming.id)
             ) {
                 val upcomingIdx = snapshot.maneuvers.indexOfFirst { it.id == upcoming.id }
                 val followUp = snapshot.maneuvers.getOrNull(upcomingIdx + 1)
@@ -362,7 +354,7 @@ object CueEngine {
             }
             if (upcoming != null && upcomingDistance != null &&
                 upcomingDistance <= APPROACH_10_M && !announced10m.contains(upcoming.id) &&
-                !upcoming.isMinorKeep && !isBearKind(upcoming.kind)
+                true
             ) {
                 val upcomingIdx = snapshot.maneuvers.indexOfFirst { it.id == upcoming.id }
                 val followUp = snapshot.maneuvers.getOrNull(upcomingIdx + 1)
@@ -385,26 +377,6 @@ object CueEngine {
                 }
             }
 
-            // Bear-range cue: for promoted slightLeft/slightRight, fire
-            // a single range-hold cue when the rider enters the segment.
-            if (upcoming != null && upcomingDistance != null &&
-                isBearKind(upcoming.kind) &&
-                upcomingDistance <= APPROACH_10_M &&
-                !announced10m.contains(upcoming.id)
-            ) {
-                val upcomingIdx = snapshot.maneuvers.indexOfFirst { it.id == upcoming.id }
-                val nextManeuver = snapshot.maneuvers.getOrNull(upcomingIdx + 1)
-                val rawSegmentLengthM = nextManeuver?.let {
-                    it.distanceFromStartM - upcoming.distanceFromStartM
-                } ?: (snapshot.routeTotalDistanceM - upcoming.distanceFromStartM)
-                // Only fire when the segment is long enough to be useful.
-                if (rawSegmentLengthM >= MIN_BEAR_SEGMENT_M) {
-                    val segmentLengthM = minOf(rawSegmentLengthM, 500.0)
-                    events.add(CueEvent.BearRange(upcoming.kind, segmentLengthM))
-                }
-                announced10m.add(upcoming.id)
-            }
-
             val lastPassed = snapshot.maneuvers
                 .filter { snapshot.progressDistanceM - it.distanceFromStartM >= PASSED_TURN_M }
                 .maxByOrNull { it.distanceFromStartM }
@@ -418,7 +390,16 @@ object CueEngine {
                     val distanceToNext = nextAfter.distanceFromStartM - snapshot.progressDistanceM
                     val isLastManeuver = indexOfLast + 1 == snapshot.maneuvers.size - 1
                     val distNextToEnd = snapshot.routeTotalDistanceM - nextAfter.distanceFromStartM
-                    if (isLastManeuver && distNextToEnd < CLOSE_TO_DESTINATION_M) {
+                    if (distanceToNext <= 0) {
+                        // Rider already passed the next maneuver (GPS jump in one tick).
+                        if (isLastManeuver && !s.approachingDestinationAnnounced && !snapshot.arrived) {
+                            events.add(CueEvent.ArrivingInM(
+                                distanceM = snapshot.routeTotalDistanceM - snapshot.progressDistanceM,
+                            ))
+                            s = s.copy(approachingDestinationAnnounced = true)
+                        }
+                        announcedNextTurnAfter.add(lastPassed.id)
+                    } else if (isLastManeuver && distNextToEnd < CLOSE_TO_DESTINATION_M) {
                         // Bug 4: when the rider has already crossed the
                         // arrival radius, the dedicated `Arrived` cue at
                         // the bottom of this function speaks instead —
@@ -433,7 +414,7 @@ object CueEngine {
                             announced50m.add(nextAfter.id)
                             announced10m.add(nextAfter.id)
                         }
-                    } else if (!nextAfter.isMinorKeep && !isBearKind(nextAfter.kind)) {
+                    } else {
                         events.add(
                             CueEvent.NextTurnInAbout(
                                 turnKind = nextAfter.kind,
@@ -543,11 +524,6 @@ object CueEngine {
             app.navon.bike.integration.i18n.DistanceFormatter
                 .cueValues(event.distanceM, distanceMode),
         )
-        is CueEvent.BearRange -> CueMessage(
-            "cue.bearRange.${maneuverSlug(event.turnKind)}",
-            app.navon.bike.integration.i18n.DistanceFormatter
-                .cueValues(event.distanceM, distanceMode),
-        )
         is CueEvent.ArrivingInM -> CueMessage(
             "cue.arrivingInM",
             app.navon.bike.integration.i18n.DistanceFormatter
@@ -560,23 +536,11 @@ object CueEngine {
         is CueEvent.OnTrack -> CueMessage("cue.onTrack", emptyMap())
     }
 
-    /** Legacy English formatter — kept as the exact-byte path that
-     *  existing tests assert against. New call sites should go through
-     *  `cueMessage(event)` + `Strings.t(...)` instead. */
-    fun format(event: CueEvent): String {
-        val msg = cueMessage(event, app.navon.bike.integration.i18n.DistanceMode.METRIC)
-        return app.navon.bike.integration.i18n.Strings.tIn(
-            app.navon.bike.integration.i18n.SupportedLocale.EN,
-            msg.key,
-            msg.values,
-        )
-    }
-
-    private fun maneuverSlug(kind: ManeuverKind): String = when (kind) {
+    private fun maneuverSlug(k: ManeuverKind): String = when (k) {
         ManeuverKind.LEFT -> "left"
         ManeuverKind.RIGHT -> "right"
-        ManeuverKind.BEAR_LEFT -> "bearLeft"
-        ManeuverKind.BEAR_RIGHT -> "bearRight"
+        ManeuverKind.SLIGHT_LEFT -> "slightLeft"
+        ManeuverKind.SLIGHT_RIGHT -> "slightRight"
         ManeuverKind.EXIT_LEFT -> "exitLeft"
         ManeuverKind.EXIT_RIGHT -> "exitRight"
         ManeuverKind.UTURN -> "uturn"
@@ -586,18 +550,25 @@ object CueEngine {
         ManeuverKind.GENERIC -> "generic"
     }
 
-    /** Collapse maneuver kinds into the slugs the `cue.nextTurnInAbout.*`
-     *  catalog supports. Exit ramps fold into their parent direction; the
-     *  dedicated kinds keep their own slug. */
-    private fun nextTurnDirection(kind: ManeuverKind): String = when (kind) {
+    private fun nextTurnDirection(k: ManeuverKind): String = when (k) {
         ManeuverKind.LEFT, ManeuverKind.EXIT_LEFT -> "left"
         ManeuverKind.RIGHT, ManeuverKind.EXIT_RIGHT -> "right"
-        ManeuverKind.BEAR_LEFT -> "bearLeft"
-        ManeuverKind.BEAR_RIGHT -> "bearRight"
+        ManeuverKind.SLIGHT_LEFT -> "slightLeft"
+        ManeuverKind.SLIGHT_RIGHT -> "slightRight"
         ManeuverKind.UTURN -> "uturn"
         ManeuverKind.ROUNDABOUT -> "roundabout"
         ManeuverKind.MERGE -> "merge"
         ManeuverKind.RAMP -> "ramp"
         ManeuverKind.GENERIC -> "generic"
+    }
+
+    /** Format a CueEvent to English text. Exposed for test assertions. */
+    fun format(event: CueEvent): String {
+        val msg = cueMessage(event)
+        return app.navon.bike.integration.i18n.Strings.tIn(
+            app.navon.bike.integration.i18n.SupportedLocale.EN,
+            msg.key,
+            msg.values,
+        )
     }
 }

@@ -146,10 +146,10 @@ private fun cmdToManeuver(cmd: Int): RouteManeuverType = when (cmd) {
 private fun cmdInstruction(cmd: Int): String = when (cmd) {
     1 -> "Continue"
     2 -> "Turn left"
-    3 -> "Bear left"
+    3 -> "Slight left"
     4 -> "Turn sharply left"
     5 -> "Turn right"
-    6 -> "Bear right"
+    6 -> "Slight right"
     7 -> "Turn sharply right"
     8 -> "Keep left"
     9 -> "Keep right"

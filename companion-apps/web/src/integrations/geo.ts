@@ -139,8 +139,8 @@ export function classifyTurn(deltaDegrees: number): ClassifiedTurn | null {
       ? { type: "right", instruction: "Turn right" }
       : { type: "left", instruction: "Turn left" };
   return deltaDegrees > 0
-    ? { type: "slightRight", instruction: "Bear right" }
-    : { type: "slightLeft", instruction: "Bear left" };
+    ? { type: "slightRight", instruction: "Slight right" }
+    : { type: "slightLeft", instruction: "Slight left" };
 }
 
 export function deduplicateConsecutive(points: CoordinatePoint[]): CoordinatePoint[] {

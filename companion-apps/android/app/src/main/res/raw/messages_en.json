@@ -7,10 +7,6 @@
   "common.ok": "OK",
   "cue.arrived": "You have arrived at your destination",
   "cue.arrivingInM": "Arriving at your destination in {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
-  "cue.bearRange.bearLeft": "Bear left for the next {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
-  "cue.bearRange.bearRight": "Bear right for the next {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
-  "cue.nextTurnInAbout.bearLeft": "Next bear left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
-  "cue.nextTurnInAbout.bearRight": "Next bear right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
   "cue.nextTurnInAbout.generic": "Next turn ahead in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
   "cue.nextTurnInAbout.left": "Next turn left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
   "cue.nextTurnInAbout.merge": "Next merge in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
@@ -179,5 +175,11 @@
   "units.distance.mi": "{distance, number} mi",
   "units.duration.min": "{minutes, number} min",
   "units.speed.kph": "km/h",
-  "units.speed.mph": "mph"
+  "units.speed.mph": "mph",
+  "cue.nextTurnInAbout.slightLeft": "Next bear left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
+  "cue.nextTurnInAbout.slightRight": "Next bear right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
+  "cue.turn50m.slightLeft": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, turn left",
+  "cue.turn50m.slightRight": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, turn right",
+  "cue.turn10m.slightLeft": "Turn left",
+  "cue.turn10m.slightRight": "Turn right"
 }

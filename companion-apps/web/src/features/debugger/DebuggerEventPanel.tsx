@@ -32,7 +32,6 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
   const session = dStore.session;
   const [tab, setTab] = useState<PanelTab>("events");
   const [filterKinds, setFilterKinds] = useState<Set<string>>(new Set());
-  const [testStubsText, setTestStubsText] = useState<string | null>(null);
   const eventsContainerRef = useRef<HTMLDivElement>(null);
 
   // Scroll to active event when currentTimeMs changes during seeking
@@ -247,35 +246,6 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
             </button>
           </div>
 
-          <div className="debugger-panel__export-section">
-            <h4>Generate Test Stubs</h4>
-            <p>Generate Vitest test stubs from your annotations to use as starting points for fixing issues.</p>
-            <button
-              type="button"
-              className="debugger-panel__export-btn"
-              onClick={() => {
-                const stubs = dStore.generateTestStubs();
-                setTestStubsText(stubs);
-              }}
-            >
-              Generate Test Stubs
-            </button>
-            {testStubsText !== null && (
-              <div className="debugger-panel__test-stubs">
-                <div className="debugger-panel__test-stubs-header">
-                  <span>Generated test stubs</span>
-                  <button
-                    type="button"
-                    className="debugger-panel__export-btn"
-                    onClick={() => navigator.clipboard?.writeText(testStubsText)}
-                  >
-                    Copy
-                  </button>
-                </div>
-                <pre className="debugger-panel__test-stubs-code">{testStubsText}</pre>
-              </div>
-            )}
-          </div>
         </div>
       )}
     </div>

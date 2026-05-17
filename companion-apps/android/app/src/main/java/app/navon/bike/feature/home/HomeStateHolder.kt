@@ -27,6 +27,7 @@ import app.navon.bike.domain.RoutePlanRequest
 import app.navon.bike.domain.RoutePreviewModel
 import app.navon.bike.domain.RouteProviderId
 import app.navon.bike.domain.RerouteContext
+import app.navon.bike.domain.RoutingDiagEventData
 import app.navon.bike.domain.RouteSourceMode
 import app.navon.bike.domain.RouteStartBehavior
 import app.navon.bike.domain.RouteSuggestionMode
@@ -36,18 +37,21 @@ import app.navon.bike.integration.location.HeadingTrail
 class HomeStateHolder(
     private val appState: CompanionAppState,
     private val placeSearchService: PlaceSearchService,
-    private val autoRerouteDispatcher: suspend (CoordinatePoint) -> Unit = { rider ->
-        appState.rerouteActiveSession(
-            rider,
-            "Off-route",
-            RerouteContext(
-                headingDegrees = travelHeadingDegrees,
-                speedMps = appState.locationState.currentSpeedMps,
-            ),
-        )
-    },
+    private val autoRerouteDispatcher: (suspend (CoordinatePoint) -> Unit)? = null,
     private val autoRerouteScope: CoroutineScope = MainScope(),
 ) {
+    internal val effectiveAutoRerouteDispatcher: suspend (CoordinatePoint) -> Unit
+        get() = autoRerouteDispatcher ?: { rider: CoordinatePoint ->
+            appState.rerouteActiveSession(
+                rider,
+                "Off-route",
+                RerouteContext(
+                    headingDegrees = travelHeadingDegrees,
+                    speedMps = appState.locationState.currentSpeedMps,
+                ),
+            )
+        }
+
     var query by mutableStateOf("")
     var isSearchOpen by mutableStateOf(false)
     var suggestions by mutableStateOf<List<DestinationSearchResult>>(emptyList())
@@ -818,7 +822,7 @@ class HomeStateHolder(
                         }
                         markAutoRerouteDispatched()
                         try {
-                            autoRerouteDispatcher(point)
+                            effectiveAutoRerouteDispatcher(point)
                         } finally {
                             autoReroutePending = false
                         }

@@ -7,7 +7,7 @@ Build the companion apps as map-first navigation products with the same logical 
 ## Product Shape
 - Home is the primary surface.
 - Home is a full-screen map with a top `Where to?` input and a secondary settings entry.
-- Settings is a full-screen hub that contains `Routes`, `Device`, `Route Planner`, and `Import Diagnostics`.
+- Settings is a full-screen modal overlay (not a tab) with activity toggles, locale settings, and navigation to sub-screens: `Routes`, `Device`, `Route Planner`, `Import Diagnostics`, and `Routing Diagnostics`.
 - Route detail is universal across imported and recent route intents, while unsupported share payloads fall back to `Import Diagnostics`.
 - Home has three clear user modes:
   - planning mode: compare route options, adjust route-source strategy, and choose one route
@@ -32,9 +32,11 @@ Build the companion apps as map-first navigation products with the same logical 
   - `Settings`
   - `Routes`
   - `Device`
+  - `Pairing`
   - `RoutePlanner`
   - `ShareImport`
   - `ImportDiagnostics`
+  - `RoutingDiagnostics`
 - Each feature owns only its own screen state and feature actions.
 - Features read repositories and use cases through interfaces; views never talk to integrations directly.
 
@@ -179,6 +181,25 @@ Refactor these aggressively:
     need to scan the pairing code again to use it. Your route history
     stays."`, destructive `"Forget"`, dismissive `"Cancel"`.
 
+### Audio cues
+- A shared `CueEngine` runs on both platforms, ticked from per-fix guidance state.
+- Cues fire from the phone only when the companion is **not actively connected** to the device. A paired-but-disconnected state still speaks; an active BLE link silences the phone since the device drives the UI.
+- TTS backend per platform: web `speechSynthesis`, iOS `AVSpeechSynthesizer`, Android `TextToSpeech`.
+- Audio cue settings live in the activity toggles section of Settings: on/off, background-only mode.
+
+### Route alternatives
+- OSM cycling routing is a multi-source orchestrator (`OsmCyclingRoutingAdapter`) that fans out in parallel to BRouter `fastbike` (paths-preferred), BRouter `trekking` (balanced), and OSRM `bike` (direct).
+- Each backend that succeeds becomes a `RouteAlternative` entry, letting the rider compare lines on the map. If a backend fails, its slot drops out with a planning notice. If all three fail, we fall back to the sample preview.
+- The emit order (fastbike → trekking → OSRM) maps to rider-meaningful labels: "Fastest", "Quieter", "Simpler". The default selection is fastbike so the path-aware option wins.
+- Route-source strategy is adjustable inline in planning mode, not hidden in Settings.
+- `Start` commits to one route and one source; reroutes stay within that source until the rider stops.
+
+### Locale
+- Language and distance unit are settable from the Settings root (activity/locale section).
+- Supported languages: English, Finnish (fi), Swedish (sv). The locale picker shows native names.
+- Distance unit (km/mi) defaults to the platform locale on first launch and persists to settings storage. All distance displays across Home, Route Detail, and guidance respect the unit pref.
+- I18n strings are per-platform: iOS uses `Localizable.xcstrings`, Android uses `strings.xml`, web uses a `translations/` JSON bundle. The key space is shared conceptually but each platform owns its own file.
+
 ### Persisted state
 - `PairedPeripheralRecord` (golden:
   `data/parity-fixtures/data/paired_peripheral.json`) — `{identifier,
@@ -199,14 +220,8 @@ Refactor these aggressively:
 - Shared route contracts must remain platform-parity tested whenever native domain models duplicate them.
 
 ## UX Rules
-- route options should be described in rider-meaningful terms first, such as `Fastest`, `Quieter`, or `Simpler`, with provider/source shown as secondary metadata
-- route-source strategy should be adjustable inline in planning mode rather than hidden only in Settings
-- `Start` commits to one route and transitions into the correct active-navigation mode
-- `Stop` exits phone guidance or device overview mode and returns the user to refreshed planning suggestions from the current location
-- The selected route and selected source remain locked for the active session; reroutes stay within that source until the rider stops
 - planning-mode UI and guidance-mode UI should feel distinct; route comparison chrome should not remain on screen after guidance begins
 - HSL routing is only offered when it is actually usable: both the Digitransit subscription key is configured AND both trip endpoints fall inside the Uusimaa region. Otherwise the source picker collapses to OSM and the Mixed / HSL tabs are hidden. Route Planner settings explains what HSL is and links to the Digitransit portal for key registration.
-- OSM cycling routing is a multi-source orchestrator (`OsmCyclingRoutingAdapter`) that fans out in parallel to BRouter `fastbike` (paths-preferred), BRouter `trekking` (balanced), and OSRM `bike` (direct) and exposes whichever succeed as up to 3 `RouteAlternative` entries — each with a different cycle-infrastructure trade-off. Showing all three lets the rider compare lines on the map and pick the one that looks right for their trip; the default selection is fastbike (paths-preferred) so the bug "OSRM picks driving streets even when bike paths exist" is fixed by default. If a backend fails its slot drops out (planningNotice flags it as `"N source(s) unavailable"`); if all three fail we fall back to the sample preview. BRouter requires `timode=2` to populate `voicehints`. Adapter file: [`companion-apps/web/src/integrations/osm/OsmCyclingRoutingAdapter.ts`](../companion-apps/web/src/integrations/osm/OsmCyclingRoutingAdapter.ts) with the BRouter parsing in [`brouter/`](../companion-apps/web/src/integrations/osm/brouter/). The existing `presentAlternatives` post-processing relabels by position to rider-meaningful "Fastest" / "Quieter" / "Simpler"; the orchestrator's emit order (fastbike → trekking → OSRM) intentionally maps fastbike to "Fastest" so the path-aware option is the default-selected one.
 - "Where to?" accepts http(s) URLs directly: pasted Google Maps / OSM links are followed to a destination (inline coords first; then redirect-following through the share-import classifier), with explicit loading and error rows in the search panel.
 - Rider position always comes from real device GPS through the `LocationService` seam. The locate/recenter control shows a spinner until the first fix arrives, then swaps to the normal control. When permission is denied or unavailable, planning falls back to the last persisted fix then to a static default so the planner still works.
 - Typeahead search debounces (250 ms) and passes the rider's current location to `PlaceSearchService.searchDestinations` as a bias so same-city results rank first (`docs/ux-specs.md` line 75). The store exposes `isTypeaheadSearching` (web) so the UI can render a spinner during the in-flight request.

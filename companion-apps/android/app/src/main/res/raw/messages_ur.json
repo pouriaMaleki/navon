@@ -7,10 +7,6 @@
   "common.ok": "ٹھیک ہے",
   "cue.arrived": "آپ اپنے منزل پر پہنچ گئے ہیں",
   "cue.arrivingInM": "آپ اپنی منزل پر {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں پہنچ رہے ہیں",
-  "cue.bearRange.bearLeft": "اگلے {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} کے لیے بائیں رہیں",
-  "cue.bearRange.bearRight": "اگلے {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} کے لیے دائیں رہیں",
-  "cue.nextTurnInAbout.bearLeft": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں رہیں",
-  "cue.nextTurnInAbout.bearRight": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں رہیں",
   "cue.nextTurnInAbout.generic": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں اگلا موڑ",
   "cue.nextTurnInAbout.left": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں مڑیں گے",
   "cue.nextTurnInAbout.merge": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں مرج کریں",
@@ -179,5 +175,11 @@
   "units.distance.mi": "{distance, number} mi",
   "units.duration.min": "{minutes, number} منٹ",
   "units.speed.kph": "km/h",
-  "units.speed.mph": "mph"
+  "units.speed.mph": "mph",
+  "cue.nextTurnInAbout.slightLeft": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں رہیں",
+  "cue.nextTurnInAbout.slightRight": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں رہیں",
+  "cue.turn50m.slightLeft": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں مڑیں",
+  "cue.turn50m.slightRight": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں مڑیں",
+  "cue.turn10m.slightLeft": "بائیں مڑیں",
+  "cue.turn10m.slightRight": "دائیں مڑیں"
 }

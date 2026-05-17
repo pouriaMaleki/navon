@@ -180,25 +180,12 @@ function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnaps
     ? collapseCloseManeuvers(filterGlitchClusters(route.maneuvers, route.geometry), route.geometry)
     : [];
   const maneuvers: CueManeuver[] = filteredRouteManeuvers.flatMap((m) => {
-    const mapped = maneuverKindFromType(m.maneuverType);
-    if (mapped === undefined) return [];
-    let { isMinorKeep } = mapped;
-    let { kind } = mapped;
-    if (isMinorKeep && geometry && cumDist.length > 0) {
-      const geomIdx = findClosestPointIndex(geometry, m.location);
-      if (geomIdx > 0 && geomIdx < geometry.length - 1) {
-        const angle = Math.abs(maneuverAngleDegrees(geometry, cumDist, geomIdx));
-        if (angle >= 25) {
-          isMinorKeep = false;
-          kind = kind === "left" ? "bearLeft" : "bearRight";
-        }
-      }
-    }
+    const kind = maneuverKindFromType(m.maneuverType);
+    if (kind === undefined) return [];
     return [{
       id: m.id,
       kind,
       distanceFromStartM: m.distanceFromStartMeters,
-      isMinorKeep,
     }];
   });
   const routeTotalDistanceM = route?.summary.totalDistanceMeters ?? 0;
@@ -219,38 +206,32 @@ function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnaps
 }
 
 /** Exported for testing. Returns `undefined` for maneuver types that
- *  should not produce any audio cue. Silenced kinds:
- *   - `slightLeft` / `slightRight` — minor splits the rider follows
- *     naturally; "Bear left/right" on every gentle curve is noise.
- *   - `straight` — not a turn; firing "Next turn in about X meters" /
- *     "Follow the route" with no matching UI element is the bug
- *     this filter exists to prevent.
- *   - `depart` / `arrive` — the cue stream uses dedicated `arrived` /
- *     `arrivingInM` events, not maneuver entries.
- *  Unknown / future types fall through to the silenced default rather
- *  than masquerading as `generic` cues that don't match any UI. */
+ *  should not produce any audio cue:
+ *   - `straight` — not a turn
+ *   - `depart` / `arrive` — handled by dedicated arrived/arrivingInM events
+ *  Unknown / future types fall through to the silenced default. */
 export function maneuverKindFromType(
   type: string,
-): { kind: ManeuverKind; isMinorKeep?: boolean } | undefined {
+): ManeuverKind | undefined {
   switch (type) {
     case "left":
     case "sharpLeft":
-      return { kind: "left" };
+      return "left";
     case "right":
     case "sharpRight":
-      return { kind: "right" };
-    case "uturn":
-      return { kind: "uturn" };
-    case "roundabout":
-      return { kind: "roundabout" };
-    case "merge":
-      return { kind: "merge" };
-    case "ramp":
-      return { kind: "ramp" };
+      return "right";
     case "slightLeft":
-      return { kind: "left", isMinorKeep: true };
+      return "slightLeft";
     case "slightRight":
-      return { kind: "right", isMinorKeep: true };
+      return "slightRight";
+    case "uturn":
+      return "uturn";
+    case "roundabout":
+      return "roundabout";
+    case "merge":
+      return "merge";
+    case "ramp":
+      return "ramp";
     case "straight":
     case "depart":
     case "arrive":

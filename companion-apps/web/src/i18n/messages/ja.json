@@ -7,10 +7,6 @@
   "common.ok": "OK",
   "cue.arrived": "目的地に到着しました",
   "cue.arrivingInM": "目的地まで{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です",
-  "cue.bearRange.bearLeft": "次の{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}先は左に進んでください",
-  "cue.bearRange.bearRight": "次の{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}先は右に進んでください",
-  "cue.nextTurnInAbout.bearLeft": "約{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}先、左に進んでください",
-  "cue.nextTurnInAbout.bearRight": "約{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}先、右に進んでください",
   "cue.nextTurnInAbout.generic": "次の案内まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です",
   "cue.nextTurnInAbout.left": "次の左折まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です",
   "cue.nextTurnInAbout.merge": "約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で合流します",
@@ -179,5 +175,11 @@
   "units.distance.mi": "{distance, number} mi",
   "units.duration.min": "{minutes, number} 分",
   "units.speed.kph": "km/h",
-  "units.speed.mph": "mph"
+  "units.speed.mph": "mph",
+  "cue.nextTurnInAbout.slightLeft": "約{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}先、左に進んでください",
+  "cue.nextTurnInAbout.slightRight": "約{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}先、右に進んでください",
+  "cue.turn50m.slightLeft": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左折してください",
+  "cue.turn50m.slightRight": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右折してください",
+  "cue.turn10m.slightLeft": "左折してください",
+  "cue.turn10m.slightRight": "右折してください"
 }

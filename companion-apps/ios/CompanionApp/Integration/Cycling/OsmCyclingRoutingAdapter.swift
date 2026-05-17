@@ -298,10 +298,10 @@ private func osrmInstruction(type: String, modifier: String, name: String) -> St
         case "uturn": return "Make a U-turn"
         case "sharp right": return "Turn sharply right"
         case "right": return "Turn right"
-        case "slight right": return "Bear right"
+        case "slight right": return "Slight right"
         case "sharp left": return "Turn sharply left"
         case "left": return "Turn left"
-        case "slight left": return "Bear left"
+        case "slight left": return "Slight left"
         default: return name.isEmpty ? "Continue" : "Continue on \(name)"
         }
     }

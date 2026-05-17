@@ -74,13 +74,15 @@ function turnAlertKindFromManeuverType(type: RouteManeuverType): TurnAlertKind |
     case "ramp":
       return "generic";
     case "left":
-    case "slightLeft":
     case "sharpLeft":
       return "left";
+    case "slightLeft":
+      return "slightLeft";
     case "right":
-    case "slightRight":
     case "sharpRight":
       return "right";
+    case "slightRight":
+      return "slightRight";
     case "uturn":
       return "uturn";
   }

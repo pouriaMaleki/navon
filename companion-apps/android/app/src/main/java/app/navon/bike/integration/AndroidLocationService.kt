@@ -84,7 +84,7 @@ class AndroidLocationService(
         _state.value = _state.value.copy(isLocating = false)
     }
 
-    fun hasLocationPermission(): Boolean {
+    override fun hasLocationPermission(): Boolean {
         val fine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
         val coarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
         return fine == PackageManager.PERMISSION_GRANTED || coarse == PackageManager.PERMISSION_GRANTED
