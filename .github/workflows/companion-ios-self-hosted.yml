@@ -95,7 +95,7 @@ jobs:
             -project Navon.xcodeproj \
             -scheme Navon \
             -only-testing:NavonTests \
-            -destination 'platform=iOS Simulator,name=iPad (10th generation)' \
+            -destination 'platform=iOS Simulator,name=iPad (A16),OS=26.5' \
             CODE_SIGNING_ALLOWED=NO
 
   signed-device-build:
