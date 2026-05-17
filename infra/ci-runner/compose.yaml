@@ -3,8 +3,7 @@ services:
     build:
       context: .
       dockerfile: Containerfile
-    environment:
-      - GITHUB_RUNNER_TOKEN=${GITHUB_RUNNER_TOKEN:-}
+    env_file: .env
     volumes:
       - runner-config:/opt/actions-runner
       - ../..:/work:ro

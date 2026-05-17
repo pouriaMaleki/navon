@@ -4,15 +4,16 @@
 
 **Linux** — Docker container. Label: `self-hosted, Linux`. Runs Rust, Web, Android, Playwright.
 
-## Setup (Linux)
+## Setup
 
 ```bash
 cd infra/ci-runner
-GITHUB_RUNNER_TOKEN=<token> docker compose up -d
+cp .env.example .env          # then edit .env with your token
+docker compose up -d
 ```
 
 Token from https://github.com/pouriaMaleki/navon/settings/actions/runners/new.
-Credentials persist in the `runner-config` Docker volume across rebuilds.
+Credentials persist in the `runner-config` Docker volume.
 
 ## Verify
 
