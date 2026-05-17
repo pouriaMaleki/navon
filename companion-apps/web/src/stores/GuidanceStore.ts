@@ -49,7 +49,7 @@ const REROUTING_BACKOFF_LONG_DELAY_MS = 10_000;
  */
 const ARRIVAL_RADIUS_M = 25;
 
-export type TurnAlertKind = "left" | "right" | "uturn" | "generic";
+export type TurnAlertKind = "left" | "right" | "slightLeft" | "slightRight" | "uturn" | "generic";
 
 export type UpcomingTurnAlert = {
   kind: TurnAlertKind;
@@ -842,6 +842,10 @@ function turnAlertLabel(kind: TurnAlertKind): string {
       return "Turn left";
     case "right":
       return "Turn right";
+    case "slightLeft":
+      return "Slight left";
+    case "slightRight":
+      return "Slight right";
     case "uturn":
       return "Make a U-turn";
     case "generic":

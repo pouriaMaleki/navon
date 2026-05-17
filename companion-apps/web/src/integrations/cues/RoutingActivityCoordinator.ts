@@ -16,7 +16,7 @@ import {
   tickCueEngine,
 } from "./CueEngine.js";
 import { shouldDispatchCues } from "./cueGating.js";
-import { collapseCloseManeuvers, cumulativeDistances, maneuverAngleDegrees } from "../geo.js";
+import { collapseCloseManeuvers } from "../geo.js";
 import { filterGlitchClusters } from "./glitchTurnFilter.js";
 
 /**
@@ -174,18 +174,21 @@ export function buildRouteKey(
 function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnapshot {
   const guidance = store.guidanceStore;
   const route = guidance.guidanceRoute;
-  const geometry = route?.geometry;
-  const cumDist = geometry ? cumulativeDistances(geometry) : [];
   const filteredRouteManeuvers = route
-    ? collapseCloseManeuvers(filterGlitchClusters(route.maneuvers, route.geometry), route.geometry)
+    ? collapseCloseManeuvers(
+        filterGlitchClusters(route.maneuvers, route.geometry) as unknown as { id: string; distanceFromStartM: number }[],
+        route.geometry,
+      )
     : [];
   const maneuvers: CueManeuver[] = filteredRouteManeuvers.flatMap((m) => {
-    const kind = maneuverKindFromType(m.maneuverType);
+    const rt = (route?.maneuvers ?? []).find((rm) => rm.id === m.id);
+    if (!rt) return [];
+    const kind = maneuverKindFromType(rt.maneuverType);
     if (kind === undefined) return [];
     return [{
-      id: m.id,
+      id: rt.id,
       kind,
-      distanceFromStartM: m.distanceFromStartMeters,
+      distanceFromStartM: rt.distanceFromStartMeters,
     }];
   });
   const routeTotalDistanceM = route?.summary.totalDistanceMeters ?? 0;
