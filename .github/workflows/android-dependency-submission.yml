@@ -19,9 +19,7 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on:
       - self-hosted
-      - macOS
-    container:
-      image: cimg/android:2025.04
+      - Linux
     permissions:
       contents: read
     steps:
@@ -43,9 +41,7 @@ jobs:
     if: github.event_name != 'pull_request'
     runs-on:
       - self-hosted
-      - macOS
-    container:
-      image: cimg/android:2025.04
+      - Linux
     permissions:
       contents: write
     steps:

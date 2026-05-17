@@ -23,7 +23,7 @@ jobs:
     name: Rust unit + fixture loader (fast)
     runs-on:
       - self-hosted
-      - macOS
+      - Linux
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -48,7 +48,7 @@ jobs:
     name: companion-apps/web vitest (fast)
     runs-on:
       - self-hosted
-      - macOS
+      - Linux
     defaults:
       run:
         working-directory: companion-apps/web
@@ -100,9 +100,7 @@ jobs:
     name: companion-apps/android JVM tests (fast)
     runs-on:
       - self-hosted
-      - macOS
-    container:
-      image: cimg/android:2025.04
+      - Linux
     defaults:
       run:
         working-directory: companion-apps/android
@@ -117,7 +115,7 @@ jobs:
     if: github.event_name == 'schedule' || github.ref == 'refs/heads/main'
     runs-on:
       - self-hosted
-      - macOS
+      - Linux
     defaults:
       run:
         working-directory: companion-apps/web

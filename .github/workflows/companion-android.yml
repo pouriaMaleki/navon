@@ -21,9 +21,7 @@ jobs:
     name: Validate Android Companion
     runs-on:
       - self-hosted
-      - macOS
-    container:
-      image: cimg/android:2025.04
+      - Linux
     defaults:
       run:
         working-directory: companion-apps/android
