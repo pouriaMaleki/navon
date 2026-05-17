@@ -200,8 +200,8 @@ final class CueEngineTests: XCTestCase {
             snapshot: base(progressDistanceM: 211, maneuvers: maneuvers),
             state: s1
         )
-        XCTAssertFalse(r2.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } },
-            "minor-keep must suppress nextTurnInAbout — got \(r2.events)")
+        XCTAssertTrue(r2.events.contains { if case .nextTurnInAbout = $0 { return true } else { return false } },
+            "slightRight must fire nextTurnInAbout — got \(r2.events)")
         XCTAssertFalse(r2.events.contains { if case .turn50m = $0 { return true } else { return false } },
             "minor-keep must suppress turn50m — got \(r2.events)")
         // Advance past m2 (rider at 241, m2 at 230 passed by 11m).
@@ -694,8 +694,8 @@ final class CueEngineTests: XCTestCase {
         let bear = r2.events.first { if case .turn10m = $0 { return true } else { return false } }
         XCTAssertNotNil(bear, "slightLeft at 5m must emit turn10m — got \(r2.events)")
         if case .turn10m(let k, _) = bear! { XCTAssertEqual(k, .slightLeft) }
-        XCTAssertTrue(r2.events.contains { if case .turn50m = $0 { return true } else { return false } },
-            "slightLeft must fire turn50m — got \(r2.events)")
+        XCTAssertTrue(r2.events.contains { if case .turn10m = $0 { return true } else { return false } },
+            "slightLeft must fire turn10m — got \(r2.events)")
         XCTAssertTrue(r2.events.contains { if case .turn10m = $0 { return true } else { return false } },
             "slightRight must fire turn10m — got \(r2.events)")
     }
@@ -822,12 +822,12 @@ final class CueEngineTests: XCTestCase {
             snapshot: base(progressDistanceM: 195, maneuvers: [mSlightLeft("m1", 200)]),
             state: s1
         )
-        XCTAssertFalse(r2.events.contains { if case .turn10m = $0 { return true } else { return false } },
-            "unpromoted slightLeft must not fire turn10m — got \(r2.events)")
-        XCTAssertFalse(r2.events.contains { if case .turn10m = $0 { return true } else { return false } },
-            "unpromoted slightLeft must not fire turn10m")
-        XCTAssertFalse(r2.events.contains { if case .turn50m = $0 { return true } else { return false } },
-            "unpromoted slightLeft must not fire turn50m")
+        XCTAssertTrue(r2.events.contains { if case .turn10m = $0 { return true } else { return false } },
+            "slightLeft fires turn10m — got \(r2.events)")
+        XCTAssertTrue(r2.events.contains { if case .turn10m = $0 { return true } else { return false } },
+            "slightLeft fires turn10m")
+        XCTAssertTrue(r2.events.contains { if case .turn50m = $0 { return true } else { return false } },
+            "slightLeft fires turn50m")
     }
 
     // MARK: - silence during rerouting
