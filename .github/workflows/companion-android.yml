@@ -19,7 +19,11 @@ permissions:
 jobs:
   build:
     name: Validate Android Companion
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - macOS
+    container:
+      image: cimg/android:2025.04
     defaults:
       run:
         working-directory: companion-apps/android
@@ -31,21 +35,8 @@ jobs:
       - name: Validate Gradle Wrapper
         uses: gradle/actions/wrapper-validation@v6
 
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: '21'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-
-      - name: Install Android SDK packages
-        run: |
-          sdkmanager --install \
-            'platform-tools' \
-            'platforms;android-35' \
-            'build-tools;35.0.0'
+      # Container image cimg/android:2025.04 provides JDK 21 + Android SDK.
+      # Only need the specific platform packages.
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6

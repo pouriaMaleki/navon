@@ -17,7 +17,11 @@ jobs:
   android-dependency-graph-pr:
     name: Android Dependency Graph
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - macOS
+    container:
+      image: cimg/android:2025.04
     permissions:
       contents: read
     steps:
@@ -26,22 +30,6 @@ jobs:
 
       - name: Validate Gradle Wrapper
         uses: gradle/actions/wrapper-validation@v6
-
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-
-      - name: Install Android SDK packages
-        run: |
-          sdkmanager --install \
-            'platform-tools' \
-            'platforms;android-35' \
-            'build-tools;35.0.0'
 
       - name: Generate Android dependency graph
         uses: gradle/actions/dependency-submission@v6
@@ -53,7 +41,11 @@ jobs:
   android-dependency-graph-main:
     name: Android Dependency Graph
     if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - macOS
+    container:
+      image: cimg/android:2025.04
     permissions:
       contents: write
     steps:
@@ -62,22 +54,6 @@ jobs:
 
       - name: Validate Gradle Wrapper
         uses: gradle/actions/wrapper-validation@v6
-
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-
-      - name: Install Android SDK packages
-        run: |
-          sdkmanager --install \
-            'platform-tools' \
-            'platforms;android-35' \
-            'build-tools;35.0.0'
 
       - name: Submit Android dependency graph
         uses: gradle/actions/dependency-submission@v6

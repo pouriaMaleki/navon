@@ -1,5 +1,7 @@
 # Agent Workspace Guide
 
+> Local overrides: `AGENTS.local.md` (gitignored, machine-specific).
+
 ## Canonical Specs
 - Main project spec: `/work/docs/project-spec.md`
 - Emulator spec: `/work/device/emulator/docs/project-spec.md`
@@ -20,6 +22,27 @@ cargo xtask prepare-map
 cargo xtask emu
 cargo xtask bundle-device
 cargo xtask deploy-device --port /dev/ttyUSB0
+```
+
+## Pre-Push Checks
+
+Run these before pushing any change. All must exit clean.
+
+```bash
+cd companion-apps/web
+npx tsc --noEmit                     # TS: 0 errors
+npx vitest run                       # Tests: all pass
+npx biome check                      # Lint + format: 0 errors
+npm audit --production               # CVEs: 0
+
+cargo xtask i18n-gen --check         # i18n: outputs match source
+cargo xtask companion-ios-test       # iOS: build + XCTests green
+```
+
+Android (requires JDK + SDK):
+```bash
+cd companion-apps/android
+./gradlew :app:testDebugUnitTest     # Tests: all pass
 ```
 
 ## Process
