@@ -680,7 +680,7 @@ final class CueEngineTests: XCTestCase {
 
     // MARK: - Bear range-hold cues
 
-    func test_slightLeftEmitsBearRangeWhenEnteringSegment() {
+    func test_slightLeftFiresTurn10mWhenEnteringSegment() {
         // Bear at 200m, rider at 100m on first tick (Case A — far orientation).
         // Second tick at 195m (5m from bear) must fire turn10m, not approach cues.
         let s1 = CueEngine.tick(
@@ -908,19 +908,19 @@ final class CueEngineTests: XCTestCase {
 
     func test_distanceCueValues_1310m_metric_returnsKilometers() {
         let result = DistanceFormatter.cueValues(meters: 1310, mode: .metric)
-        XCTAssertEqual(String(describing: result["distanceUnit"]), String(describing: MessageValue.string("kilometers")))
+        guard case .string("kilometers") = result["distanceUnit"] else { XCTFail("expected kilometers"); return }
         if case .number(let d) = result["distance"] { XCTAssertEqual(d, 1.3, accuracy: 0.1) }
     }
 
     func test_distanceCueValues_500m_metric_returnsMeters() {
         let result = DistanceFormatter.cueValues(meters: 500, mode: .metric)
-        XCTAssertEqual(String(describing: result["distanceUnit"]), String(describing: MessageValue.string("meters")))
+        guard case .string("meters") = result["distanceUnit"] else { XCTFail("expected meters"); return }
         if case .number(let d) = result["distance"] { XCTAssertEqual(d, 500.0) }
     }
 
     func test_distanceCueValues_1000m_metric_returnsKilometers() {
         let result = DistanceFormatter.cueValues(meters: 1000, mode: .metric)
-        XCTAssertEqual(String(describing: result["distanceUnit"]), String(describing: MessageValue.string("kilometers")))
+        guard case .string("kilometers") = result["distanceUnit"] else { XCTFail("expected kilometers"); return }
         if case .number(let d) = result["distance"] { XCTAssertEqual(d, 1.0, accuracy: 0.1) }
     }
 

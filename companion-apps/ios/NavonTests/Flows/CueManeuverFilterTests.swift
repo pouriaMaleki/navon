@@ -92,7 +92,7 @@ final class CueManeuverFilterTests: XCTestCase {
             .roundabout, .merge, .ramp, .arrive,
         ]
         let allowed: Set<ManeuverKind> = [
-            .left, .right, .exitLeft, .exitRight,
+            .left, .right, .slightLeft, .slightRight, .exitLeft, .exitRight,
             .uturn, .roundabout, .merge, .ramp, .generic,
         ]
         for type in allTypes {
