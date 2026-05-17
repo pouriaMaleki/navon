@@ -24,6 +24,19 @@ cargo xtask bundle-device
 cargo xtask deploy-device --port /dev/ttyUSB0
 ```
 
+## Self-Hosted CI
+
+The dev container runs a GitHub Actions runner (label `self-hosted, Linux`)
+for all non-iOS, non-CVE CI jobs. The Mac runner (label `self-hosted, macOS`)
+handles iOS only.
+
+**First-time setup:** add `GITHUB_RUNNER_TOKEN=<token>` to `/work/.env`,
+then rebuild. Get a token from:
+https://github.com/pouriaMaleki/navon/settings/actions/runners/new
+
+**Rebuilds:** the runner restarts automatically via `post-create.sh`.
+Credentials live in `~/actions-runner/` (persistent home volume).
+
 ## Pre-Push Checks
 
 Run these before pushing any change. All must exit clean.
