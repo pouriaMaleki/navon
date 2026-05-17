@@ -26,8 +26,9 @@ RUN rustup self update || true \
 RUN curl -sL -o /tmp/jdk21.tar.gz \
     "https://api.adoptium.net/v3/binary/latest/21/ga/linux/x64/jdk/hotspot/normal/eclipse" \
     && tar -C /usr/local -xzf /tmp/jdk21.tar.gz \
-    && rm /tmp/jdk21.tar.gz
-ENV JAVA_HOME=/usr/local/jdk-21.0.11+10
+    && rm /tmp/jdk21.tar.gz \
+    && ln -s /usr/local/jdk-21* /usr/local/jdk21
+ENV JAVA_HOME=/usr/local/jdk21
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Android SDK
