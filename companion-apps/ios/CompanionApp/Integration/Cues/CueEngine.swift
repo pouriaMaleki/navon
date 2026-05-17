@@ -204,11 +204,7 @@ enum CueEngine {
                         // with only `turn10m(first)` and no warning
                         // about the second turn.
                         // Bear kinds are excluded from the combined cue —
-                        // their bearRange segment-entry cue handles the
-                        // announcement instead.
-                        {
-                            events.append(.turn50m(firstNonDepart.kind, distanceM: distanceM, followUpKind: follow.kind))
-                        }
+                        events.append(.turn50m(firstNonDepart.kind, distanceM: distanceM, followUpKind: follow.kind))
                         s.announced50m.insert(firstNonDepart.id)
                         s.announced50m.insert(follow.id)
                         s.announced10m.insert(firstNonDepart.id)
