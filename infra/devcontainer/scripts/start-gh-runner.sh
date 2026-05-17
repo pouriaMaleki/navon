@@ -11,18 +11,10 @@ if [ ! -f "${RUNNER_DIR}/.runner" ]; then
   exit 1
 fi
 
-# Stop any existing runner process
-if [ -f "${RUNNER_DIR}/.run.pid" ]; then
-  old_pid=$(cat "${RUNNER_DIR}/.run.pid")
-  if kill -0 "${old_pid}" 2>/dev/null; then
-    echo "Stopping existing runner (pid ${old_pid}) ..."
-    kill "${old_pid}" 2>/dev/null || true
-    sleep 1
-  fi
-fi
+# Stop any existing Runner.Listener processes
+pkill -f "Runner.Listener" 2>/dev/null || true
+sleep 1
 
 echo "Starting runner ..."
-cd "${RUNNER_DIR}"
 nohup "${RUNNER_DIR}/run.sh" > "${RUNNER_DIR}/.run.log" 2>&1 &
-echo $! > "${RUNNER_DIR}/.run.pid"
 echo "Runner started (pid $!). Log: ${RUNNER_DIR}/.run.log"
