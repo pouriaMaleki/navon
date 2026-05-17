@@ -452,7 +452,7 @@ class HslRoutingAdapter(
         if (magnitude >= 170.0) return if (deltaDegrees > 0) "UTURN_RIGHT" to "Make a U-turn" else "UTURN_LEFT" to "Make a U-turn"
         if (magnitude >= 110.0) return if (deltaDegrees > 0) "HARD_RIGHT" to "Turn sharply right" else "HARD_LEFT" to "Turn sharply left"
         if (magnitude >= 50.0) return if (deltaDegrees > 0) "RIGHT" to "Turn right" else "LEFT" to "Turn left"
-        return if (deltaDegrees > 0) "SLIGHTLY_RIGHT" to "Bear right" else "SLIGHTLY_LEFT" to "Bear left"
+        return if (deltaDegrees > 0) "SLIGHTLY_RIGHT" to "Slight right" else "SLIGHTLY_LEFT" to "Slight left"
     }
 
     private fun deduplicatedGeometry(legs: List<DigitransitLeg>): List<CoordinatePoint> {

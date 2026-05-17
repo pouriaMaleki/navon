@@ -321,9 +321,9 @@ fn classify_turn(
         });
     }
     Some(if delta > 0.0 {
-        (RouteManeuverType::SlightRight, "Bear right".to_owned())
+        (RouteManeuverType::SlightRight, "Slight right".to_owned())
     } else {
-        (RouteManeuverType::SlightLeft, "Bear left".to_owned())
+        (RouteManeuverType::SlightLeft, "Slight left".to_owned())
     })
 }
 

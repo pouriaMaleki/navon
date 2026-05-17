@@ -189,7 +189,6 @@ export class GuidanceStore {
     makeAutoObservable(this, {}, { autoBind: true });
   }
 
-  /** Best estimate of where the rider currently is. Falls back to last-known then default. */
   get riderLocation(): CoordinatePoint {
     return this.location.bestKnownLocation() ?? DEFAULT_RIDER_FALLBACK;
   }
@@ -300,7 +299,6 @@ export class GuidanceStore {
     return "Arrive";
   }
 
-  /** iOS-parity routing top card line 3: "16 min remaining". */
   get minutesRemainingLine(): string {
     const seconds =
       this.remainingDurationSeconds > 0
@@ -311,13 +309,11 @@ export class GuidanceStore {
     return `${minutes} min remaining`;
   }
 
-  /** Remaining distance along the route from current progress. */
   get remainingDistanceM(): number {
     if (this.routeTotalDistanceM <= 0) return 0;
     return Math.max(0, this.routeTotalDistanceM - this.progressDistanceM);
   }
 
-  /** Estimated remaining duration based on proportion of route completed. */
   get remainingDurationSeconds(): number {
     const route = this.guidanceRoute;
     if (!route || this.routeTotalDistanceM <= 0) return 0;
@@ -325,7 +321,6 @@ export class GuidanceStore {
     return route.summary.estimatedDurationSeconds * fraction;
   }
 
-  /** Completed and remaining route geometry split at current progress. */
   get routeSplit(): { completed: CoordinatePoint[]; remaining: CoordinatePoint[] } | undefined {
     if (this.activeRouteGeometry.length === 0) return undefined;
     return splitPolylineAtDistance(this.activeRouteGeometry, this.progressDistanceM);
@@ -370,7 +365,6 @@ export class GuidanceStore {
     return icons;
   }
 
-  /** Off-route status label for UI display. */
   get offRouteLabel(): string | undefined {
     if (this.rerouteRequested) return "Rerouting…";
     if (this.offRoute) return "Off route";
@@ -408,7 +402,6 @@ export class GuidanceStore {
       }
       traversed += segLen;
     }
-    // Past the end: return the last segment's bearing.
     const last = geometry[geometry.length - 2];
     const end = geometry[geometry.length - 1];
     return bearingDegrees(last, end);
@@ -466,49 +459,34 @@ export class GuidanceStore {
     this.compassMode = "northLocked";
   }
 
-  /**
-   * Cancel browsing — dismiss the alternatives card, resume normal routing UI.
-   * The original route is still active; camera returns to autoFollow.
-   */
+  /** Dismiss the alternatives card and resume normal routing. */
   cancelAlternativesExploration(): void {
     this.isExploringAlternativesFromGuidance = false;
     this.explorationSelectedID = undefined;
     this.compassMode = "autoFollow";
   }
 
-  /**
-   * Deselect any explicitly-tapped alternative during exploration, moving
-   * the checkmark back to "Continue on current route".
-   */
   deselectForExploration(): void {
     if (!this.isExploringAlternativesFromGuidance) return;
     this.explorationSelectedID = undefined;
   }
 
-  /**
-   * Select an alternative for preview while exploring from guidance.
-   * Updates the planning selection (map highlight) and records the explicit
-   * user tap so selectedAlternativeIDForDisplay can show the checkmark.
-   */
+  /** Record the user's explicit alternative tap during exploration. */
   selectAlternativeForExploration(id: string): void {
     this.explorationSelectedID = id;
     this.planning.selectAlternative(id);
   }
 
   /**
-   * The alternative ID that should show a checkmark in the suggestions card.
-   * During exploration, returns the ID explicitly tapped by the user (nil
-   * until first tap). Outside exploration, returns the planning-selected ID.
+   * The alternative to checkmark in the suggestions card. During exploration
+   * returns the user's explicit tap (nil until first tap); otherwise the
+   * planning-selected ID.
    */
   get selectedAlternativeIDForDisplay(): string | undefined {
     if (this.isExploringAlternativesFromGuidance) return this.explorationSelectedID;
     return this.planning.preview.selectedAlternativeID;
   }
 
-  /**
-   * Alternative routes to render on the map during alternatives exploration.
-   * Returns an empty array outside of exploration so the map shows nothing extra.
-   */
   get guidanceAlternatives(): NormalizedRoutePackage[] {
     if (!this.isExploringAlternativesFromGuidance) return [];
     return this.planning.preview.alternatives.map((a) => a.normalizedPackage);
@@ -577,7 +555,6 @@ export class GuidanceStore {
     this.reroutingDelayedUntilMs = undefined;
   }
 
-  /** Called on every GPS update during guidance to advance route-follow state. */
   advanceProgress(riderLocation: CoordinatePoint, timestampMs: number): void {
     if (this.homeMode !== "phoneGuidance") return;
     if (this.activeRouteGeometry.length < 2) return;
@@ -585,17 +562,16 @@ export class GuidanceStore {
     const dt = this.lastAdvanceTimestampMs > 0 ? timestampMs - this.lastAdvanceTimestampMs : 0;
     this.lastAdvanceTimestampMs = timestampMs;
 
-    // Project rider onto route
     const projection = projectOntoPolyline(this.activeRouteGeometry, riderLocation);
 
-    // Monotonic progress (never regresses, like Rust implementation)
+    // Monotonic progress (never regresses, matching runtime-core)
     this.progressDistanceM = Math.min(
       Math.max(this.progressDistanceM, projection.progressDistanceM),
       this.routeTotalDistanceM,
     );
     this.offRouteDistanceM = projection.distanceToRouteM;
 
-    // Off-route detection with hysteresis
+    // Hysteresis: different enter/exit radii prevent rapid toggling
     const wasOffRoute = this.offRoute;
     if (this.offRoute) {
       if (projection.distanceToRouteM <= OFF_ROUTE_EXIT_DISTANCE_M) {
@@ -605,7 +581,6 @@ export class GuidanceStore {
       this.offRoute = true;
     }
 
-    // Reroute request after sustained off-route
     if (this.offRoute) {
       this.offRouteDurationMs = wasOffRoute ? this.offRouteDurationMs + dt : dt;
       if (this.offRouteDurationMs >= REROUTE_REQUEST_DELAY_MS) {
@@ -616,7 +591,6 @@ export class GuidanceStore {
       this.rerouteRequested = false;
     }
 
-    // Upcoming turn alert
     this.upcomingTurnAlert = computeUpcomingTurnAlert(
       this.storedManeuvers,
       this.progressDistanceM,
@@ -646,17 +620,12 @@ export class GuidanceStore {
   private declareArrival(): void {
     this.arrivalNotice = "Arrived at destination";
     this.scheduleArrivalNoticeAutoDismiss();
-    // Reuse the same teardown as a manual stop so persistence + UI camera
-    // intents stay consistent. The arrival banner survives because we set it
-    // before stopGuidance() (stopGuidance does not clear arrivalNotice).
+    // Banner must be set before stopGuidance() — the latter does not clear it.
     this.stopGuidance();
-    // Wipe the search field and all route alternatives so the map returns
-    // to a blank "Where to?" state. arrivalNotice persists until the rider
-    // dismisses it, the 60s timer fires, or starts a new route.
+    // Wipe search + alternatives so the map returns to a blank slate.
     this.planning.clearPreview();
   }
 
-  /** Manual dismissal from the banner's close button. */
   dismissArrivalNotice(): void {
     this.cancelArrivalNoticeTimer();
     this.arrivalNotice = undefined;
@@ -713,7 +682,6 @@ export class GuidanceStore {
     }
   }
 
-  /** Reset progress when a new or replacement route is loaded. */
   resetProgress(route: NormalizedRoutePackage): void {
     this.activeRouteGeometry = route.geometry;
     this.routeTotalDistanceM = totalDistanceMeters(route.geometry);
@@ -794,28 +762,23 @@ export class GuidanceStore {
     for (const cb of this.fitRouteListeners) cb();
   }
 
-  /** Compass single-tap: temporary north-preview, only meaningful in phone guidance. */
   handleCompassTap(): void {
     if (this.homeMode !== "phoneGuidance") return;
     if (this.compassMode === "northLocked") {
-      // Return to follow-rider mode — request a rider-centered camera.
       this.compassMode = "autoFollow";
       this.cancelNorthPreviewTimer();
       this.emitRecenterRequested();
       return;
     }
-    // Entering (or resetting) northPreview — show the route overview.
     this.compassMode = "northPreview";
     this.cancelNorthPreviewTimer();
     this.northPreviewTimeoutId = setTimeout(() => {
       this.compassMode = "autoFollow";
-      // Timer elapsed: camera should smoothly snap back to follow-rider.
       this.emitRecenterRequested();
     }, 2500);
     this.emitFitRouteRequested();
   }
 
-  /** Compass double-tap: lock north-up. */
   handleCompassDoubleTap(): void {
     if (this.homeMode !== "phoneGuidance") return;
     this.compassMode = "northLocked";

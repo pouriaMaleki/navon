@@ -662,13 +662,13 @@ class CueEngineTest {
 
     @Test
     fun reroutingSuppressesTurn10mForSlightLeft() {
-        val bear = CueManeuver("m1", ManeuverKind.SLIGHT_LEFT, 200.0)
+        val slight = CueManeuver("m1", ManeuverKind.SLIGHT_LEFT, 200.0)
         val s1 = CueEngine.tick(
-            base(progressDistanceM = 100.0, maneuvers = listOf(bear)),
+            base(progressDistanceM = 100.0, maneuvers = listOf(slight)),
             CueEngineState(),
         ).nextState
         val s2 = CueEngine.tick(
-            base(progressDistanceM = 192.0, maneuvers = listOf(bear), rerouting = true),
+            base(progressDistanceM = 192.0, maneuvers = listOf(slight), rerouting = true),
             s1,
         )
         assertNull(s2.events.firstOrNull { it is CueEvent.Turn10m })
@@ -727,14 +727,14 @@ class CueEngineTest {
 
     @Test
     fun slightLeftTurn10mFires() {
-        val bear = CueManeuver("m1", ManeuverKind.SLIGHT_LEFT, 200.0)
+        val slight = CueManeuver("m1", ManeuverKind.SLIGHT_LEFT, 200.0)
         val next = CueManeuver("m2", ManeuverKind.LEFT, 250.0)
         val s1 = CueEngine.tick(
-            base(progressDistanceM = 100.0, maneuvers = listOf(bear, next), routeTotalDistanceM = 500.0),
+            base(progressDistanceM = 100.0, maneuvers = listOf(slight, next), routeTotalDistanceM = 500.0),
             CueEngineState(),
         ).nextState
         val s2 = CueEngine.tick(
-            base(progressDistanceM = 195.0, maneuvers = listOf(bear, next), routeTotalDistanceM = 500.0),
+            base(progressDistanceM = 195.0, maneuvers = listOf(slight, next), routeTotalDistanceM = 500.0),
             s1,
         )
         assertNotNull("slight left at close range must fire Turn10m",
@@ -743,16 +743,16 @@ class CueEngineTest {
 
     @Test
     fun slightLeftNearEndSubstitutesArriving() {
-        val bear = CueManeuver("m1", ManeuverKind.SLIGHT_LEFT, 980.0)
+        val slight = CueManeuver("m1", ManeuverKind.SLIGHT_LEFT, 980.0)
         val s1 = CueEngine.tick(
-            base(progressDistanceM = 900.0, maneuvers = listOf(bear), routeTotalDistanceM = 1000.0),
+            base(progressDistanceM = 900.0, maneuvers = listOf(slight), routeTotalDistanceM = 1000.0),
             CueEngineState(),
         ).nextState
         val s2 = CueEngine.tick(
-            base(progressDistanceM = 975.0, maneuvers = listOf(bear), routeTotalDistanceM = 1000.0),
+            base(progressDistanceM = 975.0, maneuvers = listOf(slight), routeTotalDistanceM = 1000.0),
             s1,
         )
-        assertNull("bear at end of route with short segment must not fire",
+        assertNull("slight at end of route fires turn10m or arrivingInM",
             s2.events.firstOrNull { it is CueEvent.Turn10m })
     }
 
