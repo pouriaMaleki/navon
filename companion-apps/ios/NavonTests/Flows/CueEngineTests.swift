@@ -15,14 +15,6 @@ final class CueEngineTests: XCTestCase {
         CueManeuver(id: id, kind: .slightRight, distanceFromStartM: distance)
     }
 
-    private func mSlightLeft(_ id: String, _ distance: Double) -> CueManeuver {
-        CueManeuver(id: id, kind: .slightLeft, distanceFromStartM: distance)
-    }
-
-    private func mSlightRight(_ id: String, _ distance: Double) -> CueManeuver {
-        CueManeuver(id: id, kind: .slightRight, distanceFromStartM: distance)
-    }
-
     private func base(
         routeId: String? = "r1",
         progressDistanceM: Double = 0,
