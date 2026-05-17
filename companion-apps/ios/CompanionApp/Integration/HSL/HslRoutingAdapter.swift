@@ -392,7 +392,7 @@ struct HslRoutingAdapter: RoutingProvider {
         if magnitude >= 170 { return (deltaDegrees > 0 ? "UTURN_RIGHT" : "UTURN_LEFT", "Make a U-turn") }
         if magnitude >= 110 { return (deltaDegrees > 0 ? "HARD_RIGHT" : "HARD_LEFT", deltaDegrees > 0 ? "Turn sharply right" : "Turn sharply left") }
         if magnitude >= 50 { return (deltaDegrees > 0 ? "RIGHT" : "LEFT", deltaDegrees > 0 ? "Turn right" : "Turn left") }
-        return (deltaDegrees > 0 ? "SLIGHTLY_RIGHT" : "SLIGHTLY_LEFT", deltaDegrees > 0 ? "Bear right" : "Bear left")
+        return (deltaDegrees > 0 ? "SLIGHTLY_RIGHT" : "SLIGHTLY_LEFT", deltaDegrees > 0 ? "Slight right" : "Slight left")
     }
 
     private func deduplicatedGeometry(from legs: [DigitransitLeg]) -> [CoordinatePoint] {

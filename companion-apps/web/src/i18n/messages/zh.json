@@ -7,10 +7,6 @@
   "common.ok": "确定",
   "cue.arrived": "已到达目的地",
   "cue.arrivingInM": "将在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 抵达目的地",
-  "cue.bearRange.bearLeft": "沿前方轻微左转行驶，接下来{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.bearRange.bearRight": "沿前方轻微右转行驶，接下来{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.nextTurnInAbout.bearLeft": "约{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}后，向左保持（轻微左转）",
-  "cue.nextTurnInAbout.bearRight": "约{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}后，向右保持（轻微右转）",
   "cue.nextTurnInAbout.generic": "前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 进行下一步操作",
   "cue.nextTurnInAbout.left": "前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 左转",
   "cue.nextTurnInAbout.merge": "大约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后并入",
@@ -179,5 +175,11 @@
   "units.distance.mi": "{distance, number} 英里",
   "units.duration.min": "{minutes, number} 分钟",
   "units.speed.kph": "公里/小时",
-  "units.speed.mph": "英里/小时"
+  "units.speed.mph": "英里/小时",
+  "cue.nextTurnInAbout.slightLeft": "约{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}后，向左保持（轻微左转）",
+  "cue.nextTurnInAbout.slightRight": "约{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}后，向右保持（轻微右转）",
+  "cue.turn50m.slightLeft": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，左转",
+  "cue.turn50m.slightRight": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，右转",
+  "cue.turn10m.slightLeft": "左转",
+  "cue.turn10m.slightRight": "右转"
 }

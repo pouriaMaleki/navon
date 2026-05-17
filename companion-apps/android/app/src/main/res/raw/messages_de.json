@@ -7,10 +7,6 @@
   "common.ok": "OK",
   "cue.arrived": "Sie sind an Ihrem Ziel angekommen",
   "cue.arrivingInM": "Ankunft an Ihrem Ziel in {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.bearRange.bearLeft": "Halte links für die nächsten {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.bearRange.bearRight": "Halte rechts für die nächsten {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.nextTurnInAbout.bearLeft": "In etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} links halten",
-  "cue.nextTurnInAbout.bearRight": "In etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} rechts halten",
   "cue.nextTurnInAbout.generic": "Nächste Abbiege- oder Fahranweisung in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
   "cue.nextTurnInAbout.left": "Nächste Abzweigung links in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
   "cue.nextTurnInAbout.merge": "Nächste Einfahrt in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
@@ -179,5 +175,11 @@
   "units.distance.mi": "{distance, number} mi",
   "units.duration.min": "{minutes, number} Min",
   "units.speed.kph": "km/h",
-  "units.speed.mph": "mph"
+  "units.speed.mph": "mph",
+  "cue.nextTurnInAbout.slightLeft": "In etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} links halten",
+  "cue.nextTurnInAbout.slightRight": "In etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} rechts halten",
+  "cue.turn50m.slightLeft": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, links abbiegen",
+  "cue.turn50m.slightRight": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, rechts abbiegen",
+  "cue.turn10m.slightLeft": "Links abbiegen",
+  "cue.turn10m.slightRight": "Rechts abbiegen"
 }

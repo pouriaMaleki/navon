@@ -7,10 +7,6 @@
   "common.ok": "OK",
   "cue.arrived": "Você chegou ao seu destino",
   "cue.arrivingInM": "Chegando ao seu destino em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.bearRange.bearLeft": "Mantenha-se à esquerda pelos próximos {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.bearRange.bearRight": "Mantenha-se à direita pelos próximos {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.nextTurnInAbout.bearLeft": "Mantenha-se à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.nextTurnInAbout.bearRight": "Mantenha-se à direita em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
   "cue.nextTurnInAbout.generic": "Próxima curva em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
   "cue.nextTurnInAbout.left": "Próxima curva à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
   "cue.nextTurnInAbout.merge": "Próxima conversão à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
@@ -179,5 +175,11 @@
   "units.distance.mi": "{distance, number} mi",
   "units.duration.min": "{minutes, number} min",
   "units.speed.kph": "km/h",
-  "units.speed.mph": "mph"
+  "units.speed.mph": "mph",
+  "cue.nextTurnInAbout.slightLeft": "Mantenha-se à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+  "cue.nextTurnInAbout.slightRight": "Mantenha-se à direita em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+  "cue.turn50m.slightLeft": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, vire à esquerda",
+  "cue.turn50m.slightRight": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, vire à direita",
+  "cue.turn10m.slightLeft": "Vire à esquerda",
+  "cue.turn10m.slightRight": "Vire à direita"
 }

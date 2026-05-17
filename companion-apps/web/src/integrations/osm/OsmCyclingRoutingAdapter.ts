@@ -380,13 +380,13 @@ function osrmInstructionText(step: OsrmStep): string {
     case "right":
       return "Turn right";
     case "slight right":
-      return "Bear right";
+      return "Slight right";
     case "sharp left":
       return "Turn sharply left";
     case "left":
       return "Turn left";
     case "slight left":
-      return "Bear left";
+      return "Slight left";
     default:
       return step.name ? `Continue on ${step.name}` : "Continue";
   }

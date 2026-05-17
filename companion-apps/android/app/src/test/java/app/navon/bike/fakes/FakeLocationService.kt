@@ -16,6 +16,8 @@ class FakeLocationService : LocationService {
     private val _state = MutableStateFlow(LocationState())
     override val state: StateFlow<LocationState> = _state.asStateFlow()
 
+    override fun hasLocationPermission(): Boolean = true
+
     var startCount: Int = 0
         private set
     var stopCount: Int = 0

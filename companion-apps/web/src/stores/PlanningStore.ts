@@ -36,9 +36,7 @@ export class PlanningStore {
   visibleRecentCount = 10;
   planningStatus?: string;
   importActivityStatus?: string;
-  /** True while we are following a pasted URL (e.g. maps.app.goo.gl) to a destination. */
   isResolvingUrl = false;
-  /** Last URL-resolve error (e.g. proxy unreachable, no coords found). */
   urlResolveError?: string;
   preview: RoutePreviewModel = { alternatives: [] };
   routeRequest: RoutePlanRequest = {
@@ -47,10 +45,6 @@ export class PlanningStore {
     providerID: "hsl",
   };
   currentSourceMode: RouteSourceMode = "mixed";
-  /**
-   * True from the moment a keystroke starts a typeahead search until the
-   * adapter responds. Spec line 34 requires a loading indicator for search.
-   */
   isTypeaheadSearching = false;
   /**
    * True while `loadMoreRecentsIfNeeded` has in-flight async work. Today
@@ -77,32 +71,23 @@ export class PlanningStore {
     makeAutoObservable(this, {}, { autoBind: true });
   }
 
-  /** Resolve the best origin to plan from: live > last-known > default. */
   private bestOrigin(): CoordinatePoint {
     return this.location.bestKnownLocation() ?? this.routeRequest.origin ?? DEFAULT_ORIGIN;
   }
 
-  /** True only when both endpoints are inside Finland (Digitransit's coverage area). */
   get isHslApplicableForRequest(): boolean {
     return isInFinland(this.routeRequest.origin) && isInFinland(this.routeRequest.destination);
   }
 
-  /** True when HSL is both configured AND geographically usable for the current request. */
   get isHslAvailable(): boolean {
     return this.settings.isHslLiveConfigured && this.isHslApplicableForRequest;
   }
 
-  /**
-   * Source-mode tabs visible in the UI. With no Digitransit key, or when either endpoint
-   * is outside Finland, the only working provider is OSM, so we collapse the picker to
-   * a single OSM option (the UI hides it entirely when there is only one).
-   */
   get availableSourceModes(): RouteSourceMode[] {
     if (this.isHslAvailable) return ["mixed", "hsl", "osm"];
     return ["osm"];
   }
 
-  /** Resolve the effective source mode given current state: mixed/hsl → osm when HSL unavailable. */
   private effectiveSourceMode(mode: RouteSourceMode): RouteSourceMode {
     if (!this.isHslAvailable && mode !== "osm") return "osm";
     return mode;
@@ -148,11 +133,6 @@ export class PlanningStore {
     }
   }
 
-  /**
-   * Grow the visible recents slice, but only when the user has scrolled to
-   * the last visible item. Spec lines 72-73: "only shows a few until user
-   * scroll to the bottom of it then it loads more".
-   */
   loadMoreRecentsIfNeeded(lastId: string): void {
     const items = this.history?.routeHistoryItems ?? [];
     if (items.length === 0) return;
@@ -166,7 +146,6 @@ export class PlanningStore {
     this.query = text;
     const trimmed = text.trim();
 
-    // Cancel any pending debounce + in-flight request on every keystroke.
     if (this.typeaheadDebounceTimer !== undefined) {
       clearTimeout(this.typeaheadDebounceTimer);
       this.typeaheadDebounceTimer = undefined;
@@ -218,7 +197,6 @@ export class PlanningStore {
     }
   }
 
-  /** Follow a pasted URL (Google Maps short link, plain coords URL, etc.) to a destination. */
   async resolveUrlDestination(url: string): Promise<void> {
     this.currentUrlAbort?.abort();
     const controller = new AbortController();
@@ -288,13 +266,7 @@ export class PlanningStore {
     void this.planRoute(suggestion.title);
   }
 
-  /**
-   * Pin the input label and dismiss the dropdown after any kind of
-   * destination pick (typeahead suggestion, recent history item, dropped
-   * pin). Also arms the post-selection latch so the React onFocus replay
-   * that fires on the next render is absorbed instead of re-opening the
-   * panel. Single source of truth — every pick path goes through here.
-   */
+  /** Every destination-pick path goes through here — single source of truth. */
   markPickCompleted(label?: string): void {
     if (label !== undefined) this.query = label;
     this.isSearchOpen = false;
@@ -305,7 +277,6 @@ export class PlanningStore {
     void this.resolveAndPlan(coordinate, fallbackTitle);
   }
 
-  /** Update the routeRequest origin from the freshest known location. */
   refreshOriginFromLocation(): void {
     const origin = this.location.bestKnownLocation();
     if (!origin) return;
@@ -368,7 +339,6 @@ export class PlanningStore {
     this.currentPlanAbort = controller;
     this.planningStatus = "Planning route…";
     this.refreshOriginFromLocation();
-    // Collapse HSL → OSM if a route is requested under HSL mode but no key is configured.
     const sourceMode = this.effectiveSourceMode(this.currentSourceMode);
     if (sourceMode !== this.currentSourceMode) this.currentSourceMode = sourceMode;
     try {
@@ -379,12 +349,6 @@ export class PlanningStore {
           : await this.buildSinglePreview(sourceMode, request, controller.signal);
       runInAction(() => {
         if (this.currentPlanAbort === controller) {
-          // Note: a `preferredTitle` (typically the destination name) used
-          // to override the first alternative's title here. The displayed
-          // alternatives now use a numbered "<Provider> Route N" scheme,
-          // so the override is dropped — the destination is shown in the
-          // top "Selected destination" overlay instead, and route-history
-          // items keep their own title at recordPlannedPreview time.
           this.preview = preview;
         }
       });

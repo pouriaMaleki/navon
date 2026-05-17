@@ -120,10 +120,10 @@ private func cmdInstruction(_ cmd: Int) -> String {
     switch cmd {
     case 1: return "Continue"
     case 2: return "Turn left"
-    case 3: return "Bear left"
+    case 3: return "Slight left"
     case 4: return "Turn sharply left"
     case 5: return "Turn right"
-    case 6: return "Bear right"
+    case 6: return "Slight right"
     case 7: return "Turn sharply right"
     case 8: return "Keep left"
     case 9: return "Keep right"

@@ -343,10 +343,10 @@ private fun osrmInstructionText(type: String, modifier: String?, name: String): 
         "uturn" -> "Make a U-turn"
         "sharp right" -> "Turn sharply right"
         "right" -> "Turn right"
-        "slight right" -> "Bear right"
+        "slight right" -> "Slight right"
         "sharp left" -> "Turn sharply left"
         "left" -> "Turn left"
-        "slight left" -> "Bear left"
+        "slight left" -> "Slight left"
         else -> if (name.isBlank()) "Continue" else "Continue on $name"
     }
 }

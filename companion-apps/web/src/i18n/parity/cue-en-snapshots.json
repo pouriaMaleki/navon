@@ -1,0 +1,514 @@
+{
+  "rows": [
+    {
+      "event": {
+        "kind": "turn50m",
+        "turnKind": "left",
+        "distanceM": 50
+      },
+      "expected": {
+        "key": "cue.turn50m.left",
+        "values": {
+          "distance": 50,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn50m",
+        "turnKind": "right",
+        "distanceM": 45
+      },
+      "expected": {
+        "key": "cue.turn50m.right",
+        "values": {
+          "distance": 50,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn50m",
+        "turnKind": "slightLeft",
+        "distanceM": 40
+      },
+      "expected": {
+        "key": "cue.turn50m.slightLeft",
+        "values": {
+          "distance": 40,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn50m",
+        "turnKind": "slightRight",
+        "distanceM": 35
+      },
+      "expected": {
+        "key": "cue.turn50m.slightRight",
+        "values": {
+          "distance": 40,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn50m",
+        "turnKind": "uturn",
+        "distanceM": 50
+      },
+      "expected": {
+        "key": "cue.turn50m.uturn",
+        "values": {
+          "distance": 50,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn50m",
+        "turnKind": "roundabout",
+        "distanceM": 50
+      },
+      "expected": {
+        "key": "cue.turn50m.roundabout",
+        "values": {
+          "distance": 50,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn50m",
+        "turnKind": "merge",
+        "distanceM": 50
+      },
+      "expected": {
+        "key": "cue.turn50m.merge",
+        "values": {
+          "distance": 50,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn50m",
+        "turnKind": "ramp",
+        "distanceM": 50
+      },
+      "expected": {
+        "key": "cue.turn50m.ramp",
+        "values": {
+          "distance": 50,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn50m",
+        "turnKind": "generic",
+        "distanceM": 50
+      },
+      "expected": {
+        "key": "cue.turn50m.generic",
+        "values": {
+          "distance": 50,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn50m",
+        "turnKind": "exitLeft",
+        "distanceM": 50
+      },
+      "expected": {
+        "key": "cue.turn50m.exitLeft",
+        "values": {
+          "distance": 50,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn50m",
+        "turnKind": "exitRight",
+        "distanceM": 50
+      },
+      "expected": {
+        "key": "cue.turn50m.exitRight",
+        "values": {
+          "distance": 50,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn50m",
+        "turnKind": "left",
+        "distanceM": 30,
+        "followUpKind": "right"
+      },
+      "expected": {
+        "key": "cue.turn50mCombined",
+        "values": {
+          "distance": 30,
+          "distanceUnit": "meters",
+          "first": "left",
+          "second": "right"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn50m",
+        "turnKind": "right",
+        "distanceM": 25,
+        "followUpKind": "left"
+      },
+      "expected": {
+        "key": "cue.turn50mCombined",
+        "values": {
+          "distance": 30,
+          "distanceUnit": "meters",
+          "first": "right",
+          "second": "left"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn10m",
+        "turnKind": "left"
+      },
+      "expected": {
+        "key": "cue.turn10m.left",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "turn10m",
+        "turnKind": "right"
+      },
+      "expected": {
+        "key": "cue.turn10m.right",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "turn10m",
+        "turnKind": "slightLeft"
+      },
+      "expected": {
+        "key": "cue.turn10m.slightLeft",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "turn10m",
+        "turnKind": "slightRight"
+      },
+      "expected": {
+        "key": "cue.turn10m.slightRight",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "turn10m",
+        "turnKind": "uturn"
+      },
+      "expected": {
+        "key": "cue.turn10m.uturn",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "turn10m",
+        "turnKind": "roundabout"
+      },
+      "expected": {
+        "key": "cue.turn10m.roundabout",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "turn10m",
+        "turnKind": "merge"
+      },
+      "expected": {
+        "key": "cue.turn10m.merge",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "turn10m",
+        "turnKind": "ramp"
+      },
+      "expected": {
+        "key": "cue.turn10m.ramp",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "turn10m",
+        "turnKind": "generic"
+      },
+      "expected": {
+        "key": "cue.turn10m.generic",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "turn10m",
+        "turnKind": "exitLeft"
+      },
+      "expected": {
+        "key": "cue.turn10m.exitLeft",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "turn10m",
+        "turnKind": "exitRight"
+      },
+      "expected": {
+        "key": "cue.turn10m.exitRight",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "turn10m",
+        "turnKind": "left",
+        "followUpKind": "right"
+      },
+      "expected": {
+        "key": "cue.turn10mCombined",
+        "values": {
+          "first": "left",
+          "second": "right"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "turn10m",
+        "turnKind": "right",
+        "followUpKind": "left"
+      },
+      "expected": {
+        "key": "cue.turn10mCombined",
+        "values": {
+          "first": "right",
+          "second": "left"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "nextTurnInAbout",
+        "turnKind": "left",
+        "distanceM": 200
+      },
+      "expected": {
+        "key": "cue.nextTurnInAbout.left",
+        "values": {
+          "distance": 200,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "nextTurnInAbout",
+        "turnKind": "right",
+        "distanceM": 150
+      },
+      "expected": {
+        "key": "cue.nextTurnInAbout.right",
+        "values": {
+          "distance": 150,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "nextTurnInAbout",
+        "turnKind": "slightLeft",
+        "distanceM": 100
+      },
+      "expected": {
+        "key": "cue.nextTurnInAbout.slightLeft",
+        "values": {
+          "distance": 100,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "nextTurnInAbout",
+        "turnKind": "slightRight",
+        "distanceM": 80
+      },
+      "expected": {
+        "key": "cue.nextTurnInAbout.slightRight",
+        "values": {
+          "distance": 80,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "nextTurnInAbout",
+        "turnKind": "uturn",
+        "distanceM": 300
+      },
+      "expected": {
+        "key": "cue.nextTurnInAbout.uturn",
+        "values": {
+          "distance": 300,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "nextTurnInAbout",
+        "turnKind": "roundabout",
+        "distanceM": 250
+      },
+      "expected": {
+        "key": "cue.nextTurnInAbout.roundabout",
+        "values": {
+          "distance": 250,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "nextTurnInAbout",
+        "turnKind": "merge",
+        "distanceM": 200
+      },
+      "expected": {
+        "key": "cue.nextTurnInAbout.merge",
+        "values": {
+          "distance": 200,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "nextTurnInAbout",
+        "turnKind": "ramp",
+        "distanceM": 180
+      },
+      "expected": {
+        "key": "cue.nextTurnInAbout.ramp",
+        "values": {
+          "distance": 180,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "nextTurnInAbout",
+        "turnKind": "generic",
+        "distanceM": 200
+      },
+      "expected": {
+        "key": "cue.nextTurnInAbout.generic",
+        "values": {
+          "distance": 200,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "arrivingInM",
+        "distanceM": 100
+      },
+      "expected": {
+        "key": "cue.arrivingInM",
+        "values": {
+          "distance": 100,
+          "distanceUnit": "meters"
+        }
+      }
+    },
+    {
+      "event": {
+        "kind": "arrived"
+      },
+      "expected": {
+        "key": "cue.arrived",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "offTrack"
+      },
+      "expected": {
+        "key": "cue.offTrack",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "rerouting"
+      },
+      "expected": {
+        "key": "cue.rerouting",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "onTrack"
+      },
+      "expected": {
+        "key": "cue.onTrack",
+        "values": {}
+      }
+    },
+    {
+      "event": {
+        "kind": "repeatedOffTrackSilence"
+      },
+      "expected": {
+        "key": "cue.offTrack",
+        "values": {}
+      }
+    }
+  ]
+}

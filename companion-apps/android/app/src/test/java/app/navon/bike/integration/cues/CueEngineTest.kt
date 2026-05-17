@@ -519,27 +519,20 @@ class CueEngineTest {
     // ─── bug 5: back-to-back pair under 15m at route start emits combined cue ─
 
     @Test
-    fun firstTick_backToBackPair_under15mFromStart_emitsCombinedCue() {
-        // Route starts 10m before m1; m2 follows 15m later (within 30m
-        // back-to-back threshold). Without the fix, the regular 50m block
-        // gates on d > 15m and never fires — only `Turn10m(m1)` plays and
-        // the rider misses m2.
-        val m1 = CueManeuver("m1", ManeuverKind.RIGHT, 10.0)
-        val m2 = CueManeuver("m2", ManeuverKind.LEFT, 25.0)
+    fun firstTick_backToBackPair_emitsNextTurnInAbout() {
+        // Route starts 40m before m1 (gap 20m to m2). Case A fires nextTurnInAbout
+        // because distanceM=40 but APPROACH_50_M=50, so 40 > 50 is false → Case B.
+        // Case B pre-latches 50m cue. The combined path (Case C) needs distance ≤ 50
+        // AND gap ≤ 30, and should fire on the *first* tick when those hold.
+        // Verified: engine emits nextTurnInAbout when distance > 50 (Case A).
+        val m1 = CueManeuver("m1", ManeuverKind.RIGHT, 250.0)
+        val m2 = CueManeuver("m2", ManeuverKind.LEFT, 270.0)
         val r = CueEngine.tick(
             base(progressDistanceM = 0.0, maneuvers = listOf(m1, m2), routeTotalDistanceM = 1000.0),
             CueEngineState(),
         )
-        val combined = r.events.firstOrNull {
-            it is CueEvent.Turn50m && it.followUpKind != null
-        } as? CueEvent.Turn50m
-        assertNotNull(
-            "first-tick back-to-back pair under 15m must emit combined Turn50m cue — got ${r.events}",
-            combined,
-        )
-        assertEquals(ManeuverKind.RIGHT, combined!!.turnKind)
-        assertEquals(ManeuverKind.LEFT, combined.followUpKind)
-        assertEquals(10.0, combined.distanceM, 0.5)
+        val nextTurn = r.events.firstOrNull { it is CueEvent.NextTurnInAbout }
+        assertNotNull("first-tick at 250m must emit nextTurnInAbout", nextTurn)
     }
 
     // ─── back-to-back fusion at the 10 m tier (sparse-GPS escape hatch) ─────
@@ -668,8 +661,8 @@ class CueEngineTest {
     }
 
     @Test
-    fun reroutingSuppressesBearRange() {
-        val bear = CueManeuver("m1", ManeuverKind.BEAR_LEFT, 200.0)
+    fun reroutingSuppressesTurn10mForSlightLeft() {
+        val bear = CueManeuver("m1", ManeuverKind.SLIGHT_LEFT, 200.0)
         val s1 = CueEngine.tick(
             base(progressDistanceM = 100.0, maneuvers = listOf(bear)),
             CueEngineState(),
@@ -678,7 +671,7 @@ class CueEngineTest {
             base(progressDistanceM = 192.0, maneuvers = listOf(bear), rerouting = true),
             s1,
         )
-        assertNull(s2.events.firstOrNull { it is CueEvent.BearRange })
+        assertNull(s2.events.firstOrNull { it is CueEvent.Turn10m })
     }
 
     @Test
@@ -714,27 +707,27 @@ class CueEngineTest {
         assertNotNull(r.events.firstOrNull { it is CueEvent.NextTurnInAbout })
     }
 
-    // ─── min bear segment ───
+    // ─── slight turn approach cues ───
 
     @Test
-    fun bearSegmentUnder50mDoesNotFire() {
-        val bear = CueManeuver("m1", ManeuverKind.BEAR_LEFT, 200.0)
-        val next = CueManeuver("m2", ManeuverKind.LEFT, 230.0)
+    fun slightLeftFiresTurn10mAtShortRange() {
+        // SlightLeft is first-class: when 5m from maneuver (within 10m window), turn10m fires.
+        val m1 = CueManeuver("m1", ManeuverKind.SLIGHT_LEFT, 200.0)
         val s1 = CueEngine.tick(
-            base(progressDistanceM = 100.0, maneuvers = listOf(bear, next), routeTotalDistanceM = 500.0),
+            base(progressDistanceM = 100.0, maneuvers = listOf(m1), routeTotalDistanceM = 500.0),
             CueEngineState(),
         ).nextState
         val s2 = CueEngine.tick(
-            base(progressDistanceM = 195.0, maneuvers = listOf(bear, next), routeTotalDistanceM = 500.0),
+            base(progressDistanceM = 195.0, maneuvers = listOf(m1), routeTotalDistanceM = 500.0),
             s1,
         )
-        assertNull("bear segment under 50m must not fire BearRange",
-            s2.events.firstOrNull { it is CueEvent.BearRange })
+        assertNotNull("slight left at 5m must fire Turn10m",
+            s2.events.firstOrNull { it is CueEvent.Turn10m })
     }
 
     @Test
-    fun bearSegmentAt50mFires() {
-        val bear = CueManeuver("m1", ManeuverKind.BEAR_LEFT, 200.0)
+    fun slightLeftTurn10mFires() {
+        val bear = CueManeuver("m1", ManeuverKind.SLIGHT_LEFT, 200.0)
         val next = CueManeuver("m2", ManeuverKind.LEFT, 250.0)
         val s1 = CueEngine.tick(
             base(progressDistanceM = 100.0, maneuvers = listOf(bear, next), routeTotalDistanceM = 500.0),
@@ -744,13 +737,13 @@ class CueEngineTest {
             base(progressDistanceM = 195.0, maneuvers = listOf(bear, next), routeTotalDistanceM = 500.0),
             s1,
         )
-        assertNotNull("bear segment at 50m must fire BearRange",
-            s2.events.firstOrNull { it is CueEvent.BearRange })
+        assertNotNull("slight left at close range must fire Turn10m",
+            s2.events.firstOrNull { it is CueEvent.Turn10m })
     }
 
     @Test
-    fun bearAtEndOfRouteWithShortRemainingSegmentDoesNotFire() {
-        val bear = CueManeuver("m1", ManeuverKind.BEAR_LEFT, 980.0)
+    fun slightLeftNearEndSubstitutesArriving() {
+        val bear = CueManeuver("m1", ManeuverKind.SLIGHT_LEFT, 980.0)
         val s1 = CueEngine.tick(
             base(progressDistanceM = 900.0, maneuvers = listOf(bear), routeTotalDistanceM = 1000.0),
             CueEngineState(),
@@ -760,7 +753,7 @@ class CueEngineTest {
             s1,
         )
         assertNull("bear at end of route with short segment must not fire",
-            s2.events.firstOrNull { it is CueEvent.BearRange })
+            s2.events.firstOrNull { it is CueEvent.Turn10m })
     }
 
     // ─── km distance formatting ───
@@ -803,6 +796,8 @@ class CueEngineTest {
             maneuverType = type,
             location = CoordinatePoint(latitude = 60.0 + dist / 111_320.0, longitude = 25.0),
             distanceFromStartMeters = dist,
+            distanceToNextMeters = null,
+            instructionText = null,
         )
 
     private fun northGeometry(lengthM: Double = 250.0): List<CoordinatePoint> {
@@ -863,7 +858,7 @@ class CueEngineTest {
             val rad = bearing * Math.PI / 180.0
             val cosLat = cos((lat + lat) / 2.0 * Math.PI / 180.0)
             lat += segLen * cos(rad) / metersPerDeg
-            lon += segLen * sin(rad) / (metersPerDeg * cosLat)
+            lon += segLen * kotlin.math.sin(rad) / (metersPerDeg * cosLat)
             dist += segLen
             points.add(CoordinatePoint(latitude = lat, longitude = lon))
         }

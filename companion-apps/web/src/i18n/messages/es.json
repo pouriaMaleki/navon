@@ -7,10 +7,6 @@
   "common.ok": "OK",
   "cue.arrived": "Has llegado a tu destino",
   "cue.arrivingInM": "Llegas a tu destino en {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.bearRange.bearLeft": "Mantén la izquierda para la próxima {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.bearRange.bearRight": "Mantén la derecha para la próxima {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.nextTurnInAbout.bearLeft": "Mantén la izquierda en aproximadamente {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.nextTurnInAbout.bearRight": "Mantén la derecha en aproximadamente {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
   "cue.nextTurnInAbout.generic": "Siguiente giro en unos {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
   "cue.nextTurnInAbout.left": "Gira a la izquierda en unos {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
   "cue.nextTurnInAbout.merge": "Próxima incorporación en aproximadamente {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
@@ -179,5 +175,11 @@
   "units.distance.mi": "{distance, number} mi",
   "units.duration.min": "{minutes, number} min",
   "units.speed.kph": "km/h",
-  "units.speed.mph": "mph"
+  "units.speed.mph": "mph",
+  "cue.nextTurnInAbout.slightLeft": "Mantén la izquierda en aproximadamente {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+  "cue.nextTurnInAbout.slightRight": "Mantén la derecha en aproximadamente {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+  "cue.turn50m.slightLeft": "En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, gira a la izquierda",
+  "cue.turn50m.slightRight": "En {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, gira a la derecha",
+  "cue.turn10m.slightLeft": "Gira a la izquierda",
+  "cue.turn10m.slightRight": "Gira a la derecha"
 }

@@ -248,7 +248,7 @@ describe("routing session (plan flows #43, #44, #61, #62)", () => {
     // that looks right on the map for their trip.
     const fs = await import("node:fs/promises");
     const path = await import("node:path");
-    const fixturesDir = path.resolve(process.cwd(), "..", "parity-fixtures", "data", "cycling");
+    const fixturesDir = path.resolve(process.cwd(), "..", "..", "data", "parity-fixtures", "data", "cycling");
     const fastbike = JSON.parse(
       await fs.readFile(path.join(fixturesDir, "brouter-fastbike-helsinki-kallio.json"), "utf-8"),
     );
@@ -320,7 +320,8 @@ describe("routing session (plan flows #43, #44, #61, #62)", () => {
         await fs.readFile(
           path.resolve(
             process.cwd(),
-            "..",
+            "..", "..",
+            "data",
             "parity-fixtures",
             "data",
             "cycling",

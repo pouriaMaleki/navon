@@ -1,142 +1,151 @@
-# Framework Execution Guide
+# Framework Architecture
 
-Spec reference: [`project-spec.md`](./project-spec.md)
-## Goal
-Lead the project as a framework-first Rust buildout where shared runtime behavior is implemented once and consumed by both firmware and wasm adapters.
+## Architecture Principles
+The project is a framework-first Rust buildout: shared runtime behavior is implemented once in `runtime-core` and consumed by both the firmware and wasm adapters. The adapters are thin I/O shells — they own hardware/browser input acquisition and framebuffer presentation, nothing more.
 
-## Leadership Approach
-1. Make architecture constraints executable early.
-2. Prefer small stable public contracts over broad convenience APIs.
-3. Keep runtime behavior in shared Rust, not in adapter glue.
-4. Validate structure and behavior continuously so future features do not erode boundaries.
-5. Deliver in short milestones with hard exit criteria.
+1. **Framework-first.** Behavior lives in shared Rust. Adapters translate platform I/O into normalized inputs and route outputs to platform-specific presentation.
+2. **Small public contracts.** Prefer narrow, stable types over broad convenience APIs. Every public type must justify its existence across crate boundaries.
+3. **Stateless rendering.** `render-core` takes a `RenderScene` and draws it. It owns no mutable world state and makes no policy decisions.
+4. **Deterministic runtime.** `RuntimeCore::step(input) -> output` is pure: the same ordered input frames produce the same output. Timing, gesture classification, and camera policy all resolve inside the step.
+5. **Validate continuously.** Structure and behavior are guarded by contract tests, scenario tests, and parity checks between targets.
 
-## Where To Start
-1. Restore the declared workspace crate graph:
-   - `runtime-core`
-   - `render-core`
-   - `render-core-wasm`
-2. Make the workspace compile before implementing full product behavior.
-3. Define the core public contracts:
-   - `RuntimeInputFrame`
-   - `TouchContact`
-   - `TouchContactFrame`
-   - `RuntimeFrameOutput`
-   - `RuntimeConfig`
-   - `MapQuerySpec`
-   - `DiagnosticsSnapshot`
-   - map-source and map-query traits
-4. Build the deterministic frame schedule skeleton:
-   - input ingest and shared contact interpretation
-   - motion fusion
-   - camera policy
-   - map query
-   - output build
-5. Add scenario tests before deep adapter integration.
+## Crate Ownership Map
 
-## Recommended Project Sequence
-### Milestone 1: Skeleton
-- Create the missing crates and module skeletons.
-- Keep the code compiling with stubbed internals.
-- Freeze ownership boundaries before feature expansion.
+### `runtime-core` (`/work/device/core/runtime-core`)
+Owns all product behavior and mutable state:
+- touch contact interpretation and gesture recognition (pan, pinch, rotate, tap, recenter, compass)
+- motion fusion from GPS samples
+- camera policy and mode transitions
+- route state and navigation progress
+- diagnostics aggregation
+- producing `RuntimeFrameOutput` including `MapQuerySpec`
 
-### Milestone 2: Runtime Behavior
-- Move shared touch/contact interpretation, motion estimation, and camera policy into `runtime-core`.
-- Keep the runtime deterministic from ordered input frames.
-- Implement follow-lock, pan, pinch, rotate, tap handling, recenter, and compass interaction policy in shared Rust from normalized contact inputs.
+### `render-core` (`/work/device/core/render-core`)
+Owns pure, stateless rendering:
+- world-to-screen projection (`CameraView`)
+- geometry clipping and visibility
+- style resolution from feature class and presentation band
+- raster primitives (lines, points, framebuffer)
+- overlay and UI rendering
 
-### Milestone 3: Rendering Integration
-- Route `RuntimeFrameOutput` and queried geometry into `render-core`.
-- Keep rendering stateless and pure.
-- Keep `RuntimeFrameOutput` limited to camera/query/overlay state; do not embed geometry buffers in it.
-- Ensure coarse bbox + LOD lookup lives behind `MapSource` implementations while final visibility/clipping and styling stay in `render-core`.
+Takes a `RenderScene` (config + `RuntimeFrameOutput` + `MapQueryResult`) and a `Framebuffer`. Owns no decisions about what to show — only how to draw it.
 
-### Milestone 4: Adapter Hookup
-- Make firmware feed GPS and normalized touch contact frames into `RuntimeInputFrame`.
-- Make wasm feed browser/emulator inputs as the same normalized touch contact frames into `RuntimeInputFrame`.
-- Route both adapters through the same shared map query backend and stateless renderer.
-- Keep both adapters thin and behavior-free.
+### `map-runtime` (`/work/device/core/map-runtime`)
+Owns coarse map data lookup:
+- loading `.svm` packages
+- answering `MapQuerySpec` queries (bbox + LOD mask + feature class filter → `MapQueryResult`)
+- exposing map metadata (bounds, center)
 
-### Milestone 5: Hardening
-- Add diagnostics and regression fixtures.
-- Prepare the next shared `.svm` loading path beyond the current embedded `map-runtime` bridge.
-- Add performance checks and parity validation between targets.
+Implements the `MapSource` trait. Does not own visibility, styling, or camera logic.
 
-## What To Validate At Each Step
-### Structural Validation
-- Dependency direction is correct.
-- `runtime-core` owns behavior and state.
-- `render-core` owns pure rendering only.
-- `MapSource` implementations own coarse data lookup only.
-- Adapters do not own camera policy, LOD logic, gesture recognition, or product-control hit testing.
-- `RuntimeFrameOutput` carries query intent and overlay state, not queried geometry buffers.
-- Public APIs stay small and adapter-safe.
+### `map-vector-cli` (`/work/tools/map-vector-cli`)
+Owns offline map preparation:
+- source ingestion and feature classification
+- simplification and generalization
+- declarative profile parsing
+- emitting `.svm` packages
 
-### Behavioral Validation
-- Ordered input frames produce expected runtime outputs.
-- Identical normalized contact-frame fixtures resolve to the same gesture/tap semantics.
-- Scenario tests cover transitions and edge cases:
-  - ride to stop
-  - stop to ride
-  - pan to idle to recenter
-  - compass preview, lock, unlock, and acknowledgement
-  - zoom bucket changes
+### `render-core-wasm` (`/work/device/core/render-core-wasm`)
+Wasm-specific rendering backend. Consumes the same `RenderScene` contract as the firmware render path.
 
-### Parity Validation
-- The same input sequence should produce the same runtime output semantics for wasm and firmware paths.
-- Adapter differences must stop at hardware/browser I/O and output presentation.
+### Adapters (`/work/device/firmware`, `/work/companion-apps/web`)
+Thin I/O shells:
+- acquire GPS, touch, BLE, and route-sync events from platform hardware or browser APIs
+- normalize them into `RuntimeInputFrame`
+- feed the frame into `RuntimeCore::step()`
+- hand the resulting `RuntimeFrameOutput` + `MapQueryResult` to `render_frame()`
 
-### Operational Validation
-- `cargo check` at the workspace level.
-- Unit tests for pure math and policy logic.
-- Scenario tests for runtime behavior.
-- Emulator web lint/typecheck/build when wasm-facing code changes.
+Adapters do not own camera policy, gesture recognition, LOD logic, or product-control hit testing.
 
-## Invariant-Driven Implementation Rules
-1. Use a single source of truth for behavior-critical semantics.
-   - Do not let timing come from one representation and classification or labels come from another unless there is an explicit validation or canonicalization step.
-   - If multiple representations exist, document which one is authoritative before editing logic.
-2. Prefer derived state over duplicated state.
-   - When direction, classification, or progress can be derived from geometry or canonical runtime state, derive it instead of hand-maintaining duplicate labels.
-3. Design state machines for re-entry, not only first activation.
-   - Any `pending`, `applied`, `active`, or `locked` flag must have explicit reset conditions and tested re-entry behavior.
-4. Hold demo and test fixtures to production-like invariants.
-   - Demo routes, emulator helpers, and fixtures must satisfy the same invariants as shared-core inputs.
-   - Fixture builders should fail fast when geometry, metadata, or state assumptions drift.
-5. Define ordered-geometry progression rules explicitly.
-   - When rejoining, snapping, or projecting onto ordered geometry, choose whether behavior prefers nearest, previous, or next progress and add edge tests near boundaries.
-6. Close every bugfix with an executable guard.
-   - Any bugfix that changes logic must add or extend at least one regression test for the failure mode.
+## Public Contract Surface
 
-## Regression Test Patterns
-Use the smallest test that can lock the invariant:
-- Contract tests: schema, normalization, and canonical fixture validity.
-- State-machine regression tests: repeated activation, reset, and re-entry behavior.
-- Fixture-validity tests: fail fast when demo or bridge data drifts from shared-core expectations.
-- End-to-end scenario tests: cross-subsystem behaviors such as reroute loops, alert transitions, and bridge orchestration.
+These types form the API boundary between crates. They are stable and adapter-safe.
 
-Keep tests colocated with the subsystem they protect. Prefer deterministic scenario inputs over manual visual verification whenever behavior depends on ordering, timing, or progression thresholds.
+**Input side** (`runtime-core::api`):
+- `RuntimeInputFrame` — a single frame's worth of normalized input (dt, GPS, touch contacts, route sync, viewport)
+- `TouchContact` / `TouchContactFrame` — normalized touch events with phase tracking
+- `GpsSample` — position, speed, bearing, accuracy
+- `ViewportSize` — framebuffer dimensions in device pixels
 
-## Architecture Review Rules
-Every implementation PR should be checked against these rules:
+**Output side** (`runtime-core::api`):
+- `RuntimeFrameOutput` — camera state, overlay state, and `MapQuerySpec` (does **not** carry geometry buffers)
+- `CameraStateSnapshot` — world center, zoom, rotation, tilt, camera mode
+- `OverlayState` — speed, distance, navigation cues, alert state
+- `MapQuerySpec` — bbox, LOD mask, and feature class filter for the current frame
+
+**Configuration** (`runtime-core::api`):
+- `RuntimeConfig` — speed unit, route alert verbosity, zoom bounds
+- `ZoomBounds` — min/max zoom clamp
+
+**Map source** (`runtime-core::api`):
+- `MapQueryResult` — polyline and point candidates returned by a `MapSource`
+- `MapLayer` / `MapPresentationBand` / `LodMask` — feature class and LOD enums
+- `WorldBounds` / `WorldPoint` — spatial primitives
+
+**Diagnostics** (`runtime-core::api`):
+- `DiagnosticsSnapshot` — frame index, frame timing, GPS fix status, touch state
+
+## Invariants
+
+1. **Single source of truth for behavior-critical semantics.** If multiple representations of the same concept exist, document which one is authoritative. Do not let timing come from one representation and classification from another without an explicit canonicalization step.
+
+2. **Derived state over duplicated state.** When direction, classification, or progress can be derived from canonical runtime state or geometry, derive it. Do not hand-maintain duplicate labels.
+
+3. **State machines must handle re-entry.** Any `pending`, `applied`, `active`, or `locked` flag needs explicit reset conditions and tested re-entry behavior. A state machine that only works on first activation is incomplete.
+
+4. **Demo and test fixtures must satisfy production invariants.** Demo routes, emulator helpers, and fixtures must satisfy the same invariants as shared-core inputs. Fixture builders should fail fast when assumptions drift.
+
+5. **Ordered-geometry progression must be explicit.** When rejoining, snapping, or projecting onto ordered geometry, choose whether behavior prefers nearest, previous, or next progress. Add edge tests near boundaries.
+
+6. **Every bugfix includes a regression test.** Any change to runtime logic must add or extend at least one regression test for the failure mode.
+
+## Extension Points
+
+New functionality enters through one of these paths:
+- a new field on `RuntimeInputFrame` (new input event type)
+- a new field on `RuntimeConfig` (new configuration)
+- a new bevy ECS resource or system within the frame schedule
+- a new `MapLayer` variant or LOD rule
+- a new overlay primitive in `OverlayState`
+- a new field on `DiagnosticsSnapshot`
+
+Prefer expanding an existing extension point over bypassing the design with a new cross-cutting mechanism.
+
+## PR Review Checklist
+
+Every implementation PR should be checked against these questions:
+
 1. Does this logic live in the correct crate?
 2. Does it expand an existing extension point instead of bypassing the design?
 3. Is any adapter starting to own product behavior?
 4. Is a new public type actually required?
 5. Can this logic be tested without browser or device APIs?
 6. Would wasm and firmware still behave the same after this change?
-7. Does runtime output expose query intent instead of geometry buffers?
+7. Does `RuntimeFrameOutput` expose query intent instead of geometry buffers?
 
-## Extension Points
-New functionality should enter through one of these paths:
-- a new input event type
-- a new config/resource field
-- a new ECS system within the frame schedule
-- a new map metadata or LOD rule
-- a new render overlay primitive
+## Regression Test Patterns
+
+Use the smallest test that can lock the invariant:
+- **Contract tests:** schema, normalization, and canonical fixture validity.
+- **State-machine regression tests:** repeated activation, reset, and re-entry behavior.
+- **Fixture-validity tests:** fail fast when demo or bridge data drifts from shared-core expectations.
+- **End-to-end scenario tests:** cross-subsystem behaviors (reroute loops, alert transitions, bridge orchestration).
+
+Keep tests colocated with the subsystem they protect. Prefer deterministic scenario inputs over manual visual verification when behavior depends on ordering, timing, or progression thresholds.
+
+## Anti-Patterns
+
+- Adapter-local camera state machines
+- Adapter-local gesture recognition or control hit testing
+- Product policy in TypeScript or board code
+- Monolithic shared state structs mixing motion, camera, input, and rendering
+- Public APIs that expose ECS internals
+- Features that require edits across all crates to land one behavior
 
 ## Companion App Guardrails
-When editing `companion-apps/ios` or `companion-apps/android`, preserve these rules:
+
+When editing `companion-apps/ios` or `companion-apps/android`:
+
 1. Keep Home as the single primary surface; do not reintroduce tabbed primary navigation.
 2. Keep feature state in feature-scoped view models or state holders, not in one monolithic app object.
 3. Keep views free of provider, import, BLE, and persistence logic.
@@ -144,17 +153,3 @@ When editing `companion-apps/ios` or `companion-apps/android`, preserve these ru
 5. Keep Settings `Routes` lightweight and recent-oriented; do not turn it into a heavy route library.
 6. Keep one universal route detail page for imports and recents unless a source genuinely requires a different recovery surface.
 7. Keep share/import handling on the fast path to Home route preview when parsing is clear, and use Route Detail as the fallback.
-
-## Anti-Patterns To Reject
-- Adapter-local camera state machines
-- Adapter-local gesture recognition or control hit testing
-- Product policy inside TypeScript or board code
-- Monolithic shared state structs mixing motion, camera, input, and rendering
-- Public APIs that expose ECS internals
-- Features that require edits across all crates to land one behavior
-
-## Immediate Next Actions
-1. Wire actual ESP-IDF peripheral acquisition and live hardware handles into the firmware provider layer without moving behavior out of shared Rust.
-2. Replace the remaining device-side `xtask` placeholders once bundling and deploy flows have real implementations behind them.
-3. Profile the shared embedded `.svm` bridge so later direct loading work is driven by measured cost rather than guesswork.
-4. Design the next direct `.svm` runtime loading path after the embedded bridge is stable enough to compare against.

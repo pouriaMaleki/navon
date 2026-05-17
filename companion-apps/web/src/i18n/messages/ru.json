@@ -7,10 +7,6 @@
   "common.ok": "ОК",
   "cue.arrived": "Вы прибыли в пункт назначения",
   "cue.arrivingInM": "Прибытие в пункт назначения через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.bearRange.bearLeft": "Держитесь левее на следующие {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.bearRange.bearRight": "Держитесь правее на следующие {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.nextTurnInAbout.bearLeft": "Скоро держитесь левее примерно на {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.nextTurnInAbout.bearRight": "Скоро держитесь правее примерно на {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
   "cue.nextTurnInAbout.generic": "Следующий поворот через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
   "cue.nextTurnInAbout.left": "Поворот налево через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
   "cue.nextTurnInAbout.merge": "Слияние через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
@@ -179,5 +175,11 @@
   "units.distance.mi": "{distance, number} mi",
   "units.duration.min": "{minutes, number} мин",
   "units.speed.kph": "км/ч",
-  "units.speed.mph": "миль/ч"
+  "units.speed.mph": "миль/ч",
+  "cue.nextTurnInAbout.slightLeft": "Скоро держитесь левее примерно на {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+  "cue.nextTurnInAbout.slightRight": "Скоро держитесь правее примерно на {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+  "cue.turn50m.slightLeft": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните налево",
+  "cue.turn50m.slightRight": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните направо",
+  "cue.turn10m.slightLeft": "Поверните налево",
+  "cue.turn10m.slightRight": "Поверните направо"
 }

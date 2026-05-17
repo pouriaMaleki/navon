@@ -9,10 +9,10 @@
     <string name="common_ok" formatted="false">ठीक आहे</string>
     <string name="cue_arrived" formatted="false">तुम्ही तुमच्या गंतव्यस्थानी पोहोचलात</string>
     <string name="cue_arrivingInM" formatted="false">तुमच्या गंतव्यस्थानी {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये पोहोचत आहात</string>
-    <string name="cue_bearRange_bearLeft" formatted="false">पुढील {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} साठी डावीकडे राहा</string>
-    <string name="cue_bearRange_bearRight" formatted="false">पुढील {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} साठी उजवीकडे राहा</string>
-    <string name="cue_nextTurnInAbout_bearLeft" formatted="false">सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये डावीकडे राहा</string>
-    <string name="cue_nextTurnInAbout_bearRight" formatted="false">सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये उजवीकडे राहा</string>
+    <string name="cue_turn50m_slightLeft" formatted="false">पुढील {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} साठी डावीकडे राहा</string>
+    <string name="cue_turn50m_slightRight" formatted="false">पुढील {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} साठी उजवीकडे राहा</string>
+    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये डावीकडे राहा</string>
+    <string name="cue_nextTurnInAbout_slightRight" formatted="false">सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये उजवीकडे राहा</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">पुढचा वळण अंदाजे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">पुढचा डावीकडे वळण अंदाजे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये विलीनीकरण</string>

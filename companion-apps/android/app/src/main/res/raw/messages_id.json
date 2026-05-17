@@ -7,10 +7,6 @@
   "common.ok": "OK",
   "cue.arrived": "Anda telah tiba di tujuan Anda",
   "cue.arrivingInM": "Tiba di tujuan Anda dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.bearRange.bearLeft": "Ikuti ke kiri untuk {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} berikutnya",
-  "cue.bearRange.bearRight": "Ikuti ke kanan untuk {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} berikutnya",
-  "cue.nextTurnInAbout.bearLeft": "Ikuti ke kiri sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} lagi",
-  "cue.nextTurnInAbout.bearRight": "Ikuti ke kanan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} lagi",
   "cue.nextTurnInAbout.generic": "Belok berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
   "cue.nextTurnInAbout.left": "Belok kiri berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
   "cue.nextTurnInAbout.merge": "Belok gabung berikutnya dalam sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
@@ -179,5 +175,11 @@
   "units.distance.mi": "{distance, number} mi",
   "units.duration.min": "{minutes, number} mnt",
   "units.speed.kph": "km/jam",
-  "units.speed.mph": "mph"
+  "units.speed.mph": "mph",
+  "cue.nextTurnInAbout.slightLeft": "Ikuti ke kiri sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} lagi",
+  "cue.nextTurnInAbout.slightRight": "Ikuti ke kanan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} lagi",
+  "cue.turn50m.slightLeft": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kiri",
+  "cue.turn50m.slightRight": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kanan",
+  "cue.turn10m.slightLeft": "Belok kiri",
+  "cue.turn10m.slightRight": "Belok kanan"
 }

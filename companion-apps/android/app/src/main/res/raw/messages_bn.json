@@ -7,10 +7,6 @@
   "common.ok": "ঠিক আছে",
   "cue.arrived": "আপনি গন্তব্যে পৌঁছেছেন",
   "cue.arrivingInM": "আপনার গন্তব্যে পৌঁছাতে আর {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-  "cue.bearRange.bearLeft": "পরবর্তী {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} এর জন্য বামে থাকুন",
-  "cue.bearRange.bearRight": "পরবর্তী {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} এর জন্য ডানে থাকুন",
-  "cue.nextTurnInAbout.bearLeft": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে থাকুন",
-  "cue.nextTurnInAbout.bearRight": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে থাকুন",
   "cue.nextTurnInAbout.generic": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর পরবর্তী মোড়",
   "cue.nextTurnInAbout.left": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে মোড়",
   "cue.nextTurnInAbout.merge": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে মার্জ করুন",
@@ -179,5 +175,11 @@
   "units.distance.mi": "{distance, number} mi",
   "units.duration.min": "{minutes, number} মিনিট",
   "units.speed.kph": "কিমি/ঘণ্টা",
-  "units.speed.mph": "মাইল/ঘণ্টা"
+  "units.speed.mph": "মাইল/ঘণ্টা",
+  "cue.nextTurnInAbout.slightLeft": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে থাকুন",
+  "cue.nextTurnInAbout.slightRight": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে থাকুন",
+  "cue.turn50m.slightLeft": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে ঘুরুন",
+  "cue.turn50m.slightRight": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে ঘুরুন",
+  "cue.turn10m.slightLeft": "বামে ঘুরুন",
+  "cue.turn10m.slightRight": "ডানে ঘুরুন"
 }

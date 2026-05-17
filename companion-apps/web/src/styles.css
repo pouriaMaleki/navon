@@ -1065,33 +1065,7 @@ textarea {
 }
 .debugger-panel__export-btn:hover { opacity: 0.9; }
 
-.debugger-panel__test-stubs {
-  margin-top: 12px;
-}
 
-.debugger-panel__test-stubs-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-  font-size: 12px;
-  color: var(--fg-soft);
-}
-
-.debugger-panel__test-stubs-code {
-  background: rgba(0,0,0,0.3);
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  padding: 12px;
-  font-size: 11px;
-  font-family: monospace;
-  line-height: 1.5;
-  color: var(--fg-soft);
-  max-height: 360px;
-  overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
 
 /* ── Annotation form ────────────────────────────────────── */
 

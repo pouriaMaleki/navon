@@ -9,10 +9,10 @@
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">Sie sind an Ihrem Ziel angekommen</string>
     <string name="cue_arrivingInM" formatted="false">Ankunft an Ihrem Ziel in {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_bearRange_bearLeft" formatted="false">Halte links für die nächsten {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_bearRange_bearRight" formatted="false">Halte rechts für die nächsten {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_bearLeft" formatted="false">In etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} links halten</string>
-    <string name="cue_nextTurnInAbout_bearRight" formatted="false">In etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} rechts halten</string>
+    <string name="cue_turn50m_slightLeft" formatted="false">Halte links für die nächsten {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_turn50m_slightRight" formatted="false">Halte rechts für die nächsten {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">In etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} links halten</string>
+    <string name="cue_nextTurnInAbout_slightRight" formatted="false">In etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} rechts halten</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">Nächste Abbiege- oder Fahranweisung in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">Nächste Abzweigung links in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">Nächste Einfahrt in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>

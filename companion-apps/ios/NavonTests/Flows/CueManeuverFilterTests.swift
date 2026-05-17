@@ -39,12 +39,12 @@ final class CueManeuverFilterTests: XCTestCase {
 
     // MARK: - Existing silence-by-design contract (regression guards)
 
-    func test_slightLeft_mapsToLeftKind() {
-        XCTAssertEqual(CueManeuverMapping.kind(for: .slightLeft), .left)
+    func test_slightLeft_mapsToSlightLeftKind() {
+        XCTAssertEqual(CueManeuverMapping.kind(for: .slightLeft), .slightLeft)
     }
 
-    func test_slightRight_mapsToRightKind() {
-        XCTAssertEqual(CueManeuverMapping.kind(for: .slightRight), .right)
+    func test_slightRight_mapsToSlightRightKind() {
+        XCTAssertEqual(CueManeuverMapping.kind(for: .slightRight), .slightRight)
     }
 
     func test_depart_producesNoCue() {

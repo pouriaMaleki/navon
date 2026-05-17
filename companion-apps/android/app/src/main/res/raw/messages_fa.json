@@ -7,10 +7,6 @@
   "common.ok": "باشه",
   "cue.arrived": "به مقصد رسیدید",
   "cue.arrivingInM": "در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} به مقصد می‌رسید",
-  "cue.bearRange.bearLeft": "برای {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} بعدی به چپ برو",
-  "cue.bearRange.bearRight": "برای {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} بعدی به راست برو",
-  "cue.nextTurnInAbout.bearLeft": "حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} دیگر به چپ برو",
-  "cue.nextTurnInAbout.bearRight": "حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} دیگر به راست برو",
   "cue.nextTurnInAbout.generic": "در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} نوبت بعدی",
   "cue.nextTurnInAbout.left": "در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} به چپ بپیچید",
   "cue.nextTurnInAbout.merge": "ادغام بعدی در حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
@@ -179,5 +175,11 @@
   "units.distance.mi": "{distance, number} mi",
   "units.duration.min": "{minutes, number} دقیقه",
   "units.speed.kph": "کیلومتر بر ساعت",
-  "units.speed.mph": "مایل بر ساعت"
+  "units.speed.mph": "مایل بر ساعت",
+  "cue.nextTurnInAbout.slightLeft": "حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} دیگر به چپ برو",
+  "cue.nextTurnInAbout.slightRight": "حدود {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} دیگر به راست برو",
+  "cue.turn50m.slightLeft": "در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، به چپ بپیچید",
+  "cue.turn50m.slightRight": "در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، به راست بپیچید",
+  "cue.turn10m.slightLeft": "به چپ بپیچید",
+  "cue.turn10m.slightRight": "به راست بپیچید"
 }
