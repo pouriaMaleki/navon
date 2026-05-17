@@ -48,7 +48,10 @@ const RIDER_LAYER = "debug-rider-layer";
 const ANNOTATION_SRC = "debug-annotations";
 const ANNOTATION_LAYER = "debug-annotations-layer";
 
-type Props = { store: RootStore; onPopupOpen?: (popup: { content: string; lngLat: { lat: number; lng: number } } | null) => void };
+type Props = {
+  store: RootStore;
+  onPopupOpen?: (popup: { content: string; lngLat: { lat: number; lng: number } } | null) => void;
+};
 
 export const DebuggerMapSurface = observer(({ store: _store, onPopupOpen }: Props) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -136,7 +139,7 @@ export const DebuggerMapSurface = observer(({ store: _store, onPopupOpen }: Prop
   // React to map-follow toggle — center map on active GPS position, preserving zoom
   useEffect(() => {
     return reaction(
-      () => _store.debuggerStore.mapFollowActive ? _store.debuggerStore.currentPosition : null,
+      () => (_store.debuggerStore.mapFollowActive ? _store.debuggerStore.currentPosition : null),
       (position) => {
         const map = mapRef.current;
         if (!map || !readyRef.current || !position) return;
@@ -154,8 +157,14 @@ export const DebuggerMapSurface = observer(({ store: _store, onPopupOpen }: Prop
       <button
         type="button"
         className={`debugger-map-surface__follow-btn${_store.debuggerStore.mapFollowActive ? " debugger-map-surface__follow-btn--active" : ""}`}
-        onClick={() => _store.debuggerStore.setMapFollowActive(!_store.debuggerStore.mapFollowActive)}
-        title={_store.debuggerStore.mapFollowActive ? "Stop following GPS position" : "Follow GPS position"}
+        onClick={() =>
+          _store.debuggerStore.setMapFollowActive(!_store.debuggerStore.mapFollowActive)
+        }
+        title={
+          _store.debuggerStore.mapFollowActive
+            ? "Stop following GPS position"
+            : "Follow GPS position"
+        }
       >
         <LocateIcon />
       </button>
@@ -192,9 +201,12 @@ function addDebugLayers(map: MaplibreMap, onPopupOpen?: Props["onPopupOpen"]): v
         "interpolate",
         ["linear"],
         ["get", "timeFraction"],
-        0, "#1e90ff",
-        0.5, "#ffa500",
-        1, "#ff4040",
+        0,
+        "#1e90ff",
+        0.5,
+        "#ffa500",
+        1,
+        "#ff4040",
       ],
       "circle-opacity": 0.7,
     },
@@ -266,8 +278,10 @@ function addDebugLayers(map: MaplibreMap, onPopupOpen?: Props["onPopupOpen"]): v
       "circle-color": [
         "match",
         ["get", "severity"],
-        "bug", "#ff4040",
-        "improvement", "#ffa500",
+        "bug",
+        "#ff4040",
+        "improvement",
+        "#ffa500",
         "#12A3A3",
       ],
       "circle-stroke-color": "#050B12",
@@ -297,17 +311,21 @@ function addDebugLayers(map: MaplibreMap, onPopupOpen?: Props["onPopupOpen"]): v
   });
 
   // Hover cursors
-  map.on("mouseenter", CUE_LAYER, () => { map.getCanvas().style.cursor = "pointer"; });
-  map.on("mouseleave", CUE_LAYER, () => { map.getCanvas().style.cursor = ""; });
-  map.on("mouseenter", OFFROUTE_LAYER, () => { map.getCanvas().style.cursor = "pointer"; });
-  map.on("mouseleave", OFFROUTE_LAYER, () => { map.getCanvas().style.cursor = ""; });
+  map.on("mouseenter", CUE_LAYER, () => {
+    map.getCanvas().style.cursor = "pointer";
+  });
+  map.on("mouseleave", CUE_LAYER, () => {
+    map.getCanvas().style.cursor = "";
+  });
+  map.on("mouseenter", OFFROUTE_LAYER, () => {
+    map.getCanvas().style.cursor = "pointer";
+  });
+  map.on("mouseleave", OFFROUTE_LAYER, () => {
+    map.getCanvas().style.cursor = "";
+  });
 }
 
-function handleMapClick(
-  store: RootStore,
-  map: MaplibreMap,
-  e: maplibregl.MapMouseEvent,
-): void {
+function handleMapClick(store: RootStore, map: MaplibreMap, e: maplibregl.MapMouseEvent): void {
   const dStore = store.debuggerStore;
   if (!dStore.session) return;
 
@@ -329,7 +347,14 @@ function handleMapClick(
 
 function LocateIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <circle cx="10" cy="10" r="3" />
       <path d="M10 1v3M10 16v3M1 10h3M16 10h3" />
     </svg>
@@ -360,7 +385,10 @@ function pushGpsTrail(map: MaplibreMap, store: RootStore): void {
   if (!source) return;
   const session = store.debuggerStore.session;
   if (!session) return;
-  const features = buildGpsTrailFeatures(session.diagSession.events, store.debuggerStore.currentTimeMs);
+  const features = buildGpsTrailFeatures(
+    session.diagSession.events,
+    store.debuggerStore.currentTimeMs,
+  );
   source.setData({ type: "FeatureCollection", features });
 }
 
@@ -369,7 +397,10 @@ function pushCueMarkers(map: MaplibreMap, store: RootStore): void {
   if (!source) return;
   const session = store.debuggerStore.session;
   if (!session) return;
-  const features = buildCueMarkerFeatures(session.diagSession.events, store.debuggerStore.currentTimeMs);
+  const features = buildCueMarkerFeatures(
+    session.diagSession.events,
+    store.debuggerStore.currentTimeMs,
+  );
   source.setData({ type: "FeatureCollection", features });
 }
 
@@ -378,7 +409,10 @@ function pushOffRouteMarkers(map: MaplibreMap, store: RootStore): void {
   if (!source) return;
   const session = store.debuggerStore.session;
   if (!session) return;
-  const features = buildOffRouteSegmentFeatures(session.diagSession.events, store.debuggerStore.currentTimeMs);
+  const features = buildOffRouteSegmentFeatures(
+    session.diagSession.events,
+    store.debuggerStore.currentTimeMs,
+  );
   source.setData({ type: "FeatureCollection", features });
 }
 

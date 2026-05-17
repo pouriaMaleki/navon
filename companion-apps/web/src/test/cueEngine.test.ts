@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { distanceCueValues } from "../i18n/formatDistance.js";
 import {
   type CueEngineState,
   type CueEvent,
@@ -8,7 +9,6 @@ import {
   initialCueEngineState,
   tickCueEngine,
 } from "../integrations/cues/CueEngine.js";
-import { distanceCueValues } from "../i18n/formatDistance.js";
 import { maneuverKindFromType } from "../integrations/cues/RoutingActivityCoordinator.js";
 
 const M_LEFT = (id: string, distance: number): CueManeuver => ({
@@ -216,9 +216,6 @@ describe("CueEngine — existing approach + arrival cues unchanged", () => {
     expect((next as { distanceM: number }).distanceM).toBeCloseTo(189, 0);
   });
 
-
-
-
   it("emits 'arriving at your destination in X meters' past the last maneuver when no more maneuvers follow", () => {
     const snap = baseSnapshot({
       progressDistanceM: 412,
@@ -283,7 +280,7 @@ describe("CueEngine — existing approach + arrival cues unchanged", () => {
 
   it("two consecutive off-route ticks do NOT fire offTrack", () => {
     const t1 = tick(initialCueEngineState(), baseSnapshot());
-    let s = tick(t1.next, baseSnapshot({ offRoute: true, distanceFromRouteM: 15 })).next;
+    const s = tick(t1.next, baseSnapshot({ offRoute: true, distanceFromRouteM: 15 })).next;
     const t3 = tick(s, baseSnapshot({ offRoute: true, distanceFromRouteM: 15 }));
     expect(t3.events.find((e) => e.kind === "offTrack")).toBeUndefined();
   });
@@ -768,15 +765,21 @@ describe("CueEngine — silence during rerouting", () => {
   });
 
   it("rerouting suppresses turn10m for slight turns", () => {
-    const t1 = tick(initialCueEngineState(), baseSnapshot({
-      progressDistanceM: 100,
-      maneuvers: [{ id: "m1", kind: "slightLeft", distanceFromStartM: 200 }],
-    }));
-    const t2 = tick(t1.next, baseSnapshot({
-      progressDistanceM: 192,
-      maneuvers: [{ id: "m1", kind: "slightLeft", distanceFromStartM: 200 }],
-      rerouting: true,
-    }));
+    const t1 = tick(
+      initialCueEngineState(),
+      baseSnapshot({
+        progressDistanceM: 100,
+        maneuvers: [{ id: "m1", kind: "slightLeft", distanceFromStartM: 200 }],
+      }),
+    );
+    const t2 = tick(
+      t1.next,
+      baseSnapshot({
+        progressDistanceM: 192,
+        maneuvers: [{ id: "m1", kind: "slightLeft", distanceFromStartM: 200 }],
+        rerouting: true,
+      }),
+    );
     expect(t2.events.find((e) => e.kind === "turn50m")).toBeUndefined();
     expect(t2.events.find((e) => e.kind === "turn10m")).toBeUndefined();
   });
@@ -794,18 +797,24 @@ describe("CueEngine — silence during rerouting", () => {
 
   it("when rerouting becomes false, cues resume", () => {
     // Rerouting was true, then new route arrives → first-tick announcement fires
-    let s = tick(initialCueEngineState(), baseSnapshot({
-      offRoute: true,
-      rerouting: true,
-    })).next;
+    const s = tick(
+      initialCueEngineState(),
+      baseSnapshot({
+        offRoute: true,
+        rerouting: true,
+      }),
+    ).next;
     // New route, rerouting false → first-tick nextTurnInAbout fires
-    const t = tick(s, baseSnapshot({
-      routeId: "r2",
-      progressDistanceM: 0,
-      offRoute: false,
-      rerouting: false,
-      maneuvers: [{ id: "m1", kind: "left", distanceFromStartM: 200 }],
-    }));
+    const t = tick(
+      s,
+      baseSnapshot({
+        routeId: "r2",
+        progressDistanceM: 0,
+        offRoute: false,
+        rerouting: false,
+        maneuvers: [{ id: "m1", kind: "left", distanceFromStartM: 200 }],
+      }),
+    );
     expect(t.events.find((e) => e.kind === "nextTurnInAbout")).toBeDefined();
   });
 });

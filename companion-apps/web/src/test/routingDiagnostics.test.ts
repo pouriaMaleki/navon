@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  newSessionId,
   type RouteGeometryEntry,
   type RoutingDiagSession,
-  newSessionId,
   sessionDebugPackage,
 } from "../domain/routingDiagnosticsModels.js";
 

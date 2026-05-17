@@ -17,10 +17,11 @@ const SESSION: ActiveRouteSession = {
 describe("reroute heading bias", () => {
   it("applies forward-shifted origin for OSM when heading is confident", async () => {
     const adapter = new OsmCyclingRoutingAdapter();
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockRejectedValue(new Error("network down"));
-    const preview = await adapter.replanRoute(SESSION, RIDER, { headingDegrees: 90, speedMps: 4.0 });
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("network down"));
+    const preview = await adapter.replanRoute(SESSION, RIDER, {
+      headingDegrees: 90,
+      speedMps: 4.0,
+    });
     fetchSpy.mockRestore();
     const route = preview.alternatives[0]?.normalizedPackage;
     expect(route).toBeDefined();
@@ -29,10 +30,11 @@ describe("reroute heading bias", () => {
 
   it("falls back to legacy origin for OSM when speed is low", async () => {
     const adapter = new OsmCyclingRoutingAdapter();
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockRejectedValue(new Error("network down"));
-    const preview = await adapter.replanRoute(SESSION, RIDER, { headingDegrees: 90, speedMps: 0.5 });
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("network down"));
+    const preview = await adapter.replanRoute(SESSION, RIDER, {
+      headingDegrees: 90,
+      speedMps: 0.5,
+    });
     fetchSpy.mockRestore();
     const route = preview.alternatives[0]?.normalizedPackage;
     expect(route).toBeDefined();

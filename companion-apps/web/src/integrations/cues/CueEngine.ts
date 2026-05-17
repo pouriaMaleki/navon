@@ -229,19 +229,12 @@ export function tickCueEngine(
           ? follow.distanceFromStartM - firstNonDepart.distanceFromStartM
           : Number.POSITIVE_INFINITY;
         if (follow && gap <= BACK_TO_BACK_THRESHOLD_M) {
-          // Case C: emit the combined cue here directly with the actual
-          // distance. The regular 50 m block downstream gates on
-          // `d > APPROACH_10_M` (15 m) and would skip routes starting
-          // < 15 m before a back-to-back pair, leaving the rider with
-          // only `turn10m(first)` and no warning about the second turn.
-          {
-            events.push({
-              kind: "turn50m",
-              turnKind: firstNonDepart.kind,
-              distanceM,
-              followUpKind: follow.kind,
-            });
-          }
+          events.push({
+            kind: "turn50m",
+            turnKind: firstNonDepart.kind,
+            distanceM,
+            followUpKind: follow.kind,
+          });
           const set50 = new Set(nextAnnounced50m);
           set50.add(firstNonDepart.id);
           set50.add(follow.id);
@@ -283,8 +276,7 @@ export function tickCueEngine(
     snapshot.offRoute &&
     snapshot.distanceFromRouteM > OFF_ROUTE_IMMEDIATE_DISTANCE_M &&
     offRouteTickCount === 1;
-  const hysteresisOffTrack =
-    snapshot.offRoute && offRouteTickCount === OFF_ROUTE_HYSTERESIS_TICKS;
+  const hysteresisOffTrack = snapshot.offRoute && offRouteTickCount === OFF_ROUTE_HYSTERESIS_TICKS;
   const offTrackFired = immediateOffTrack || hysteresisOffTrack;
 
   if (offTrackFired) {
@@ -600,9 +592,7 @@ export function formatCueEvent(event: CueEvent): string {
 /** Collapse maneuver kinds into the slugs the `cue.nextTurnInAbout.*`
  *  catalog supports. Exit ramps fold into their parent direction; the
  *  dedicated kinds keep their own slug. */
-function nextTurnDirection(
-  kind: ManeuverKind,
-): ManeuverKind {
+function nextTurnDirection(kind: ManeuverKind): ManeuverKind {
   switch (kind) {
     case "left":
     case "exitLeft":

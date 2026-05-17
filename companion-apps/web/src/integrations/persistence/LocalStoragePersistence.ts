@@ -1,3 +1,4 @@
+import type { Annotation } from "../../domain/debuggerModels.js";
 import {
   type ActiveRouteSession,
   type CompanionSettings,
@@ -10,7 +11,6 @@ import {
   type RouteHistoryItem,
   type RoutePlannerPreferences,
 } from "../../domain/models.js";
-import type { Annotation } from "../../domain/debuggerModels.js";
 import type { RoutingDiagSession } from "../../domain/routingDiagnosticsModels.js";
 import { ROUTING_DIAGNOSTICS_SESSION_LIMIT } from "../../domain/routingDiagnosticsModels.js";
 import { approximateDistanceMeters } from "../geo.js";

@@ -579,7 +579,10 @@ textarea {
   font-size: 13px;
   color: var(--fg-soft);
 }
-.debugger-view__back-btn:hover { color: var(--fg); background: rgba(255,255,255,0.05); }
+.debugger-view__back-btn:hover {
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.05);
+}
 
 .debugger-view__session-id {
   font-size: 12px;
@@ -604,14 +607,16 @@ textarea {
   border-radius: 8px;
   font-size: 12px;
   color: var(--accent-blue);
-  background: rgba(18,163,163,0.1);
+  background: rgba(18, 163, 163, 0.1);
 }
-.debugger-view__header-btn:hover { background: rgba(18,163,163,0.2); }
+.debugger-view__header-btn:hover {
+  background: rgba(18, 163, 163, 0.2);
+}
 
 .debugger-view__gpx-badge {
   font-size: 11px;
   color: var(--accent);
-  background: rgba(215,255,63,0.1);
+  background: rgba(215, 255, 63, 0.1);
   padding: 2px 8px;
   border-radius: 6px;
 }
@@ -684,7 +689,7 @@ textarea {
   padding: 10px 12px;
   background: var(--bg-elev);
   border-bottom: 1px solid var(--card-border);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 .debugger-view__popup-content {
   flex: 1;
@@ -697,7 +702,7 @@ textarea {
 }
 .debugger-view__popup-content code {
   color: var(--accent-blue);
-  background: rgba(18,163,163,0.1);
+  background: rgba(18, 163, 163, 0.1);
   padding: 1px 6px;
   border-radius: 4px;
   font-size: 11px;
@@ -721,7 +726,9 @@ textarea {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: width 0.2s ease, opacity 0.2s ease;
+  transition:
+    width 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .debugger-view__sidebar--closed {
@@ -751,7 +758,7 @@ textarea {
 }
 .debugger-view__sidebar-toggle:hover {
   color: var(--fg);
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .debugger-view__annotation-overlay {
@@ -806,11 +813,13 @@ textarea {
   border-radius: 20px;
   padding: 48px 64px;
   text-align: center;
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
 }
 .debugger-empty__dropzone--active {
   border-color: var(--accent-blue);
-  background: rgba(18,163,163,0.08);
+  background: rgba(18, 163, 163, 0.08);
 }
 
 .debugger-empty__icon {
@@ -845,7 +854,9 @@ textarea {
   font-weight: 700;
   font-size: 14px;
 }
-.debugger-empty__btn:hover { opacity: 0.9; }
+.debugger-empty__btn:hover {
+  opacity: 0.9;
+}
 
 .debugger-empty__error {
   margin-top: 12px;
@@ -857,7 +868,9 @@ textarea {
   color: var(--fg-soft);
   font-size: 13px;
 }
-.debugger-empty__back:hover { color: var(--fg); }
+.debugger-empty__back:hover {
+  color: var(--fg);
+}
 
 /* ── Panel ──────────────────────────────────────────────── */
 
@@ -893,9 +906,13 @@ textarea {
   color: var(--fg-faint);
   text-align: center;
   border-bottom: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
 }
-.debugger-panel__tab:hover { color: var(--fg-soft); }
+.debugger-panel__tab:hover {
+  color: var(--fg-soft);
+}
 .debugger-panel__tab--active {
   color: var(--accent);
   border-bottom-color: var(--accent);
@@ -932,8 +949,12 @@ textarea {
   padding: 2px 6px;
   border-radius: 4px;
 }
-.debugger-panel__filter:hover { background: rgba(255,255,255,0.04); }
-.debugger-panel__filter input { accent-color: var(--accent); }
+.debugger-panel__filter:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.debugger-panel__filter input {
+  accent-color: var(--accent);
+}
 
 .debugger-panel__events {
   overflow-y: auto;
@@ -945,13 +966,15 @@ textarea {
   gap: 8px;
   padding: 5px 10px;
   cursor: pointer;
-  border-bottom: 1px solid rgba(255,255,255,0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
   font-size: 12px;
   transition: background 0.1s;
 }
-.debugger-panel__event:hover { background: rgba(255,255,255,0.03); }
+.debugger-panel__event:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
 .debugger-panel__event--selected {
-  background: rgba(215,255,63,0.1);
+  background: rgba(215, 255, 63, 0.1);
 }
 .debugger-panel__event--future {
   opacity: 0.35;
@@ -992,9 +1015,11 @@ textarea {
   cursor: pointer;
   transition: background 0.1s;
 }
-.debugger-panel__annotation:hover { background: rgba(255,255,255,0.03); }
+.debugger-panel__annotation:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
 .debugger-panel__annotation--selected {
-  background: rgba(215,255,63,0.08);
+  background: rgba(215, 255, 63, 0.08);
 }
 
 .debugger-panel__annotation-header {
@@ -1012,10 +1037,22 @@ textarea {
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
-.debugger-panel__badge--bug { background: rgba(255,64,64,0.15); color: #f87171; }
-.debugger-panel__badge--improvement { background: rgba(251,146,60,0.15); color: #fb923c; }
-.debugger-panel__badge--note { background: rgba(18,163,163,0.15); color: #12a3a3; }
-.debugger-panel__badge--tag { background: rgba(148,163,184,0.1); color: var(--fg-soft); }
+.debugger-panel__badge--bug {
+  background: rgba(255, 64, 64, 0.15);
+  color: #f87171;
+}
+.debugger-panel__badge--improvement {
+  background: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+}
+.debugger-panel__badge--note {
+  background: rgba(18, 163, 163, 0.15);
+  color: #12a3a3;
+}
+.debugger-panel__badge--tag {
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--fg-soft);
+}
 
 .debugger-panel__annotation-time {
   margin-left: auto;
@@ -1036,7 +1073,10 @@ textarea {
   font-size: 11px;
   color: var(--fg-faint);
 }
-.debugger-panel__delete-btn:hover { color: var(--danger); background: rgba(255,95,95,0.1); }
+.debugger-panel__delete-btn:hover {
+  color: var(--danger);
+  background: rgba(255, 95, 95, 0.1);
+}
 
 /* ── Export tab ─────────────────────────────────────────── */
 
@@ -1063,9 +1103,9 @@ textarea {
   font-weight: 700;
   margin-bottom: 8px;
 }
-.debugger-panel__export-btn:hover { opacity: 0.9; }
-
-
+.debugger-panel__export-btn:hover {
+  opacity: 0.9;
+}
 
 /* ── Annotation form ────────────────────────────────────── */
 
@@ -1076,7 +1116,7 @@ textarea {
   padding: 20px;
   width: 360px;
   max-width: 480px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   pointer-events: auto;
 }
 .debugger-annotation-form input,
@@ -1113,7 +1153,7 @@ textarea {
   padding: 6px 10px;
   border-radius: 8px;
   border: 1px solid var(--card-border);
-  background: rgba(0,0,0,0.25);
+  background: rgba(0, 0, 0, 0.25);
   color: var(--fg);
   font-size: 13px;
 }
@@ -1157,13 +1197,17 @@ textarea {
   font-weight: 600;
   color: var(--fg-soft);
 }
-.debugger-annotation-form__btn:hover { background: rgba(255,255,255,0.06); }
+.debugger-annotation-form__btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
 
 .debugger-annotation-form__btn--save {
   background: var(--accent);
   color: #0c1320;
 }
-.debugger-annotation-form__btn--save:hover { opacity: 0.9; }
+.debugger-annotation-form__btn--save:hover {
+  opacity: 0.9;
+}
 
 /* ── Map follow-lock button ──────────────────────────────── */
 
@@ -1182,16 +1226,16 @@ textarea {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 .debugger-map-surface__follow-btn:hover {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--fg);
 }
 .debugger-map-surface__follow-btn--active {
   color: var(--accent);
   border-color: var(--accent);
-  background: rgba(215,255,63,0.1);
+  background: rgba(215, 255, 63, 0.1);
 }
 
 /* ── Mobile responsive overrides ────────────────────────── */
@@ -1207,7 +1251,7 @@ textarea {
     bottom: 0;
     width: min(340px, 85vw);
     z-index: 25;
-    box-shadow: -4px 0 24px rgba(0,0,0,0.4);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
   }
   .debugger-view__sidebar--closed {
     width: 0;
@@ -1239,8 +1283,13 @@ textarea {
   display: flex;
   align-items: center;
 }
-.debugger-timeline__btn:hover { background: rgba(255,255,255,0.08); color: var(--fg); }
-.debugger-timeline__btn--play { color: var(--accent); }
+.debugger-timeline__btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--fg);
+}
+.debugger-timeline__btn--play {
+  color: var(--accent);
+}
 
 .debugger-timeline__time {
   font-size: 12px;
@@ -1262,20 +1311,24 @@ textarea {
   color: var(--fg-faint);
   font-weight: 600;
 }
-.debugger-timeline__speed-btn:hover { color: var(--fg-soft); }
+.debugger-timeline__speed-btn:hover {
+  color: var(--fg-soft);
+}
 .debugger-timeline__speed-btn--active {
-  background: rgba(215,255,63,0.15);
+  background: rgba(215, 255, 63, 0.15);
   color: var(--accent);
 }
 
 .debugger-timeline__track {
   position: relative;
   height: 36px;
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
   cursor: pointer;
 }
-.debugger-timeline__track--dragging { cursor: grabbing; }
+.debugger-timeline__track--dragging {
+  cursor: grabbing;
+}
 
 .debugger-timeline__strip {
   position: absolute;
@@ -1314,9 +1367,15 @@ textarea {
   cursor: pointer;
   z-index: 3;
 }
-.debugger-timeline__pin--bug { background: #f87171; }
-.debugger-timeline__pin--improvement { background: #fb923c; }
-.debugger-timeline__pin--note { background: #12a3a3; }
+.debugger-timeline__pin--bug {
+  background: #f87171;
+}
+.debugger-timeline__pin--improvement {
+  background: #fb923c;
+}
+.debugger-timeline__pin--note {
+  background: #12a3a3;
+}
 
 .debugger-timeline__click-target {
   position: absolute;

@@ -10,7 +10,13 @@ import { RoutePlannerSettingsView } from "./RoutePlannerSettingsView.js";
 import { RoutesSettingsView } from "./RoutesSettingsView.js";
 import { RoutingDiagnosticsView } from "./RoutingDiagnosticsView.js";
 
-type SubScreen = "hub" | "routes" | "planner" | "diagnostics" | "routingDiagnostics" | "routeDetail";
+type SubScreen =
+  | "hub"
+  | "routes"
+  | "planner"
+  | "diagnostics"
+  | "routingDiagnostics"
+  | "routeDetail";
 
 type Props = { store: RootStore };
 
@@ -95,7 +101,11 @@ export const SettingsHubView = observer(({ store }: Props) => {
                 </div>
                 <span aria-hidden>›</span>
               </button>
-              <button type="button" className="list-row" onClick={() => setScreen("routingDiagnostics")}>
+              <button
+                type="button"
+                className="list-row"
+                onClick={() => setScreen("routingDiagnostics")}
+              >
                 <div style={{ flex: 1, textAlign: "start" }}>
                   <div className="list-row__title">Routing Diagnostics</div>
                   <div className="list-row__subtitle">View recorded routing debug sessions</div>
@@ -105,7 +115,9 @@ export const SettingsHubView = observer(({ store }: Props) => {
               <button type="button" className="list-row" onClick={() => store.goDebugger()}>
                 <div style={{ flex: 1, textAlign: "start" }}>
                   <div className="list-row__title">Diagnostics Debugger</div>
-                  <div className="list-row__subtitle">Import and visualize diagnostic files from any device</div>
+                  <div className="list-row__subtitle">
+                    Import and visualize diagnostic files from any device
+                  </div>
                 </div>
                 <span aria-hidden>›</span>
               </button>

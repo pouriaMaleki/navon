@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite";
 import { useCallback, useRef, useState } from "react";
 import type { RootStore } from "../../app/RootStore.js";
-import { sessionElapsed, sessionStartTime, sessionEndTime } from "../../domain/debuggerModels.js";
+import { sessionElapsed, sessionEndTime, sessionStartTime } from "../../domain/debuggerModels.js";
 import type { RoutingDiagEvent } from "../../domain/routingDiagnosticsModels.js";
 
 type Props = { store: RootStore };
@@ -30,7 +30,9 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [dragging, setDragging] = useState(false);
 
-  const durationMs = session ? sessionEndTime(session.diagSession) - sessionStartTime(session.diagSession) : 0;
+  const durationMs = session
+    ? sessionEndTime(session.diagSession) - sessionStartTime(session.diagSession)
+    : 0;
   const elapsedMs = session ? sessionElapsed(session.diagSession, dStore.currentTimeMs) : 0;
   const fraction = durationMs > 0 ? elapsedMs / durationMs : 0;
   const isPlaying = dStore.playbackState === "playing";
@@ -68,7 +70,12 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
   }, []);
 
   // Build bucketed event strips
-  const buckets = buildEventBuckets(events, session ? sessionStartTime(session.diagSession) : 0, durationMs, 200);
+  const buckets = buildEventBuckets(
+    events,
+    session ? sessionStartTime(session.diagSession) : 0,
+    durationMs,
+    200,
+  );
 
   const formatTime = (ms: number): string => {
     const totalSec = Math.floor(ms / 1000);
@@ -141,8 +148,13 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
         <div className="debugger-timeline__strip">
           {buckets.map((bucket, i) => {
             if (bucket.events.length === 0) return null;
-            const colors = [...new Set(bucket.events.map((e) => EVENT_COLORS[e.data.kind] ?? "#94a3b8"))];
-            const bg = colors.length === 1 ? colors[0] : `linear-gradient(to bottom, ${colors.slice(0, 4).join(", ")})`;
+            const colors = [
+              ...new Set(bucket.events.map((e) => EVENT_COLORS[e.data.kind] ?? "#94a3b8")),
+            ];
+            const bg =
+              colors.length === 1
+                ? colors[0]
+                : `linear-gradient(to bottom, ${colors.slice(0, 4).join(", ")})`;
             return (
               <div
                 key={i}
@@ -152,15 +164,21 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
                   width: `${((bucket.endFraction - bucket.startFraction) * 100).toFixed(2)}%`,
                   background: bg,
                 }}
-                title={bucket.events.map((e) => {
-                  const d = e.data;
-                  switch (d.kind) {
-                    case "audioCueDispatched": return d.messageText;
-                    case "nextTurnAlerted": return d.instructionText;
-                    case "locationUpdate": return `${d.lat.toFixed(4)}, ${d.lon.toFixed(4)}`;
-                    default: return d.kind;
-                  }
-                }).join("\n")}
+                title={bucket.events
+                  .map((e) => {
+                    const d = e.data;
+                    switch (d.kind) {
+                      case "audioCueDispatched":
+                        return d.messageText;
+                      case "nextTurnAlerted":
+                        return d.instructionText;
+                      case "locationUpdate":
+                        return `${d.lat.toFixed(4)}, ${d.lon.toFixed(4)}`;
+                      default:
+                        return d.kind;
+                    }
+                  })
+                  .join("\n")}
               />
             );
           })}
@@ -204,14 +222,19 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
 
       {/* Time axis labels */}
       <div className="debugger-timeline__axis">
-        {durationMs > 0 && Array.from({ length: 6 }).map((_, i) => {
-          const ms = (durationMs / 5) * i;
-          return (
-            <span key={i} className="debugger-timeline__tick" style={{ left: `${(i * 20).toFixed(0)}%` }}>
-              {formatTime(ms)}
-            </span>
-          );
-        })}
+        {durationMs > 0 &&
+          Array.from({ length: 6 }).map((_, i) => {
+            const ms = (durationMs / 5) * i;
+            return (
+              <span
+                key={i}
+                className="debugger-timeline__tick"
+                style={{ left: `${(i * 20).toFixed(0)}%` }}
+              >
+                {formatTime(ms)}
+              </span>
+            );
+          })}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
-import type { CoordinatePoint } from "../../domain/models.js";
 import type { Annotation } from "../../domain/debuggerModels.js";
+import type { CoordinatePoint } from "../../domain/models.js";
 import type { RoutingDiagEvent } from "../../domain/routingDiagnosticsModels.js";
 
 export function buildDebugRouteFeature(gpxGeometry?: CoordinatePoint[]): GeoJSON.Feature | null {
@@ -84,9 +84,7 @@ export function buildOffRouteSegmentFeatures(
   return features;
 }
 
-export function buildRiderFeature(
-  riderPosition: CoordinatePoint | null,
-): GeoJSON.Feature[] {
+export function buildRiderFeature(riderPosition: CoordinatePoint | null): GeoJSON.Feature[] {
   if (!riderPosition) return [];
   return [
     {

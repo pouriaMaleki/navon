@@ -20,8 +20,8 @@ export function loadHelsinkiGravelStream(): RideSample[] {
   const text = readFileSync(fixturePath("stream.jsonl"), "utf-8");
   streamCache = text
     .split("\n")
-    .filter((line) => line.trim().length > 0)
-    .map((line) => {
+    .filter((line: string) => line.trim().length > 0)
+    .map((line: string) => {
       const parsed = JSON.parse(line);
       return {
         latitude: parsed.lat_deg,
@@ -32,7 +32,7 @@ export function loadHelsinkiGravelStream(): RideSample[] {
         timeOffsetMs: parsed.t_ms,
       } satisfies RideSample;
     });
-  return streamCache;
+  return streamCache as RideSample[];
 }
 
 export function loadHelsinkiGravelRoute(): CoordinatePoint[] {
@@ -49,5 +49,9 @@ export function loadHelsinkiGravelRoute(): CoordinatePoint[] {
 
 function fixturePath(name: string): string {
   const thisFile = fileURLToPath(import.meta.url);
-  return resolve(dirname(thisFile), "../../../../../data/parity-fixtures/data/helsinki-gravel", name);
+  return resolve(
+    dirname(thisFile),
+    "../../../../../data/parity-fixtures/data/helsinki-gravel",
+    name,
+  );
 }

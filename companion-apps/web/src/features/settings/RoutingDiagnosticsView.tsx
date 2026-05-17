@@ -18,7 +18,8 @@ export const RoutingDiagnosticsView = observer(({ store }: Props) => {
       {sessions.map((session) => {
         const startTime = new Date(session.createdAtMs).toLocaleString();
         const dur = sessionDurationMs(session);
-        const durStr = dur >= 60000 ? `${Math.round(dur / 60000)} min` : `${Math.round(dur / 1000)} sec`;
+        const durStr =
+          dur >= 60000 ? `${Math.round(dur / 60000)} min` : `${Math.round(dur / 1000)} sec`;
         return (
           <div
             key={session.id}

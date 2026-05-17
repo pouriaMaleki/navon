@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { filterGlitchClusters } from "../integrations/cues/glitchTurnFilter.js";
 import type { CoordinatePoint, RouteManeuver } from "../domain/models.js";
+import { filterGlitchClusters } from "../integrations/cues/glitchTurnFilter.js";
 import { cumulativeDistances } from "../integrations/geo.js";
 
 const METERS_PER_DEG_LAT = 111_320;
@@ -81,7 +81,9 @@ describe("filterGlitchClusters", () => {
 
   it("returns unchanged when geometry has < 2 points", () => {
     const maneuvers = [m("m1", "left", 100), m("m2", "left", 107)];
-    expect(filterGlitchClusters(maneuvers, [{ latitude: 60.17, longitude: 24.94 }])).toEqual(maneuvers);
+    expect(filterGlitchClusters(maneuvers, [{ latitude: 60.17, longitude: 24.94 }])).toEqual(
+      maneuvers,
+    );
   });
 
   it("removes two close maneuvers on a straight path", () => {
@@ -104,11 +106,7 @@ describe("filterGlitchClusters", () => {
   });
 
   it("removes a three-maneuver cluster on a straight path", () => {
-    const maneuvers = [
-      m("m1", "left", 100),
-      m("m2", "right", 105),
-      m("m3", "left", 112),
-    ];
+    const maneuvers = [m("m1", "left", 100), m("m2", "right", 105), m("m3", "left", 112)];
     const geom = straightGeometry(200);
     const result = filterGlitchClusters(maneuvers, geom);
     expect(result).toHaveLength(0);
@@ -126,10 +124,7 @@ describe("filterGlitchClusters", () => {
   });
 
   it("does not group maneuvers more than 10m apart", () => {
-    const maneuvers = [
-      m("m1", "left", 100),
-      m("m2", "left", 115),
-    ];
+    const maneuvers = [m("m1", "left", 100), m("m2", "left", 115)];
     const geom = straightGeometry(200);
     const result = filterGlitchClusters(maneuvers, geom);
     expect(ids(result)).toEqual(["m1", "m2"]);
@@ -148,11 +143,7 @@ describe("filterGlitchClusters", () => {
   });
 
   it("keeps the non-clustered maneuver after a removed cluster", () => {
-    const maneuvers = [
-      m("m1", "left", 100),
-      m("m2", "right", 107),
-      m("m3", "left", 300),
-    ];
+    const maneuvers = [m("m1", "left", 100), m("m2", "right", 107), m("m3", "left", 300)];
     const geom = straightGeometry(500);
     const result = filterGlitchClusters(maneuvers, geom);
     expect(ids(result)).toEqual(["m3"]);
@@ -169,21 +160,14 @@ describe("filterGlitchClusters", () => {
   });
 
   it("handles cluster at route start", () => {
-    const maneuvers = [
-      m("depart", "depart", 0),
-      m("m1", "left", 5),
-    ];
+    const maneuvers = [m("depart", "depart", 0), m("m1", "left", 5)];
     const geom = straightGeometry(200);
     const result = filterGlitchClusters(maneuvers, geom);
     expect(result).toHaveLength(0);
   });
 
   it("handles cluster at route end", () => {
-    const maneuvers = [
-      m("m1", "left", 180),
-      m("m2", "right", 187),
-      m("arrive", "arrive", 200),
-    ];
+    const maneuvers = [m("m1", "left", 180), m("m2", "right", 187), m("arrive", "arrive", 200)];
     const geom = straightGeometry(200);
     const result = filterGlitchClusters(maneuvers, geom);
     expect(ids(result)).toEqual(["arrive"]);

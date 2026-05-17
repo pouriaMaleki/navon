@@ -2,8 +2,8 @@ import { autorun, makeAutoObservable, reaction, runInAction } from "mobx";
 import {
   type CoordinatePoint,
   type ImportClassification,
-  type RerouteContext,
   primaryProviderID,
+  type RerouteContext,
   type RouteHistoryItem,
   type RouteHistorySource,
 } from "../domain/models.js";
@@ -27,8 +27,11 @@ import { HistoryStore } from "../stores/HistoryStore.js";
 import { LocationStore } from "../stores/LocationStore.js";
 import { MapCameraStore } from "../stores/MapCameraStore.js";
 import { PlanningStore, type ProvidersMap } from "../stores/PlanningStore.js";
+import {
+  installRoutingDiagnosticsHooks,
+  recordRerouteCompleted,
+} from "../stores/RoutingDiagnosticsHooks.js";
 import { RoutingDiagnosticsStore } from "../stores/RoutingDiagnosticsStore.js";
-import { installRoutingDiagnosticsHooks, recordRerouteCompleted } from "../stores/RoutingDiagnosticsHooks.js";
 import { SettingsStore } from "../stores/SettingsStore.js";
 
 export type AppRoute = "home" | "settings" | "debugger";

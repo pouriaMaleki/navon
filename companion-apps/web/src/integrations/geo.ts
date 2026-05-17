@@ -121,8 +121,20 @@ export function maneuverAngleDegrees(
   maneuverIndex: number,
 ): number {
   const maneuverPoint = geometry[maneuverIndex];
-  const behind = walkAlongPolyline(geometry, cumulative, maneuverIndex, MANEUVER_ANGLE_LOOK_DISTANCE_M, "backward");
-  const ahead = walkAlongPolyline(geometry, cumulative, maneuverIndex, MANEUVER_ANGLE_LOOK_DISTANCE_M, "forward");
+  const behind = walkAlongPolyline(
+    geometry,
+    cumulative,
+    maneuverIndex,
+    MANEUVER_ANGLE_LOOK_DISTANCE_M,
+    "backward",
+  );
+  const ahead = walkAlongPolyline(
+    geometry,
+    cumulative,
+    maneuverIndex,
+    MANEUVER_ANGLE_LOOK_DISTANCE_M,
+    "forward",
+  );
   return turnDeltaDegrees(behind, maneuverPoint, ahead);
 }
 
@@ -322,7 +334,11 @@ const COLLAPSE_DISTANCE_M = 5;
 const COLLAPSE_ANGLE_DEG = 30;
 const MANEUVER_LOOK_DIST_M = 10;
 
-function coordAtDistance(geometry: CoordinatePoint[], dist: number, cumul: number[]): CoordinatePoint {
+function coordAtDistance(
+  geometry: CoordinatePoint[],
+  dist: number,
+  cumul: number[],
+): CoordinatePoint {
   if (dist <= 0) return geometry[0];
   const total = cumul[cumul.length - 1];
   if (dist >= total) return geometry[geometry.length - 1];
@@ -332,7 +348,8 @@ function coordAtDistance(geometry: CoordinatePoint[], dist: number, cumul: numbe
       const t = segLen > 1e-9 ? (dist - cumul[i - 1]) / segLen : 0;
       return {
         latitude: geometry[i - 1].latitude + (geometry[i].latitude - geometry[i - 1].latitude) * t,
-        longitude: geometry[i - 1].longitude + (geometry[i].longitude - geometry[i - 1].longitude) * t,
+        longitude:
+          geometry[i - 1].longitude + (geometry[i].longitude - geometry[i - 1].longitude) * t,
       };
     }
   }
@@ -355,10 +372,18 @@ export function collapseCloseManeuvers(
   const totalDist = cumul[cumul.length - 1];
 
   function netAngleDeg(firstDist: number, lastDist: number): number {
-    const approachFrom = coordAtDistance(geometry, Math.max(0, firstDist - MANEUVER_LOOK_DIST_M), cumul);
+    const approachFrom = coordAtDistance(
+      geometry,
+      Math.max(0, firstDist - MANEUVER_LOOK_DIST_M),
+      cumul,
+    );
     const approachPt = coordAtDistance(geometry, firstDist, cumul);
     const exitPt = coordAtDistance(geometry, lastDist, cumul);
-    const exitTo = coordAtDistance(geometry, Math.min(totalDist, lastDist + MANEUVER_LOOK_DIST_M), cumul);
+    const exitTo = coordAtDistance(
+      geometry,
+      Math.min(totalDist, lastDist + MANEUVER_LOOK_DIST_M),
+      cumul,
+    );
     const inBearing = bearingDegrees(approachFrom, approachPt);
     const outBearing = bearingDegrees(exitPt, exitTo);
     let delta = outBearing - inBearing;
