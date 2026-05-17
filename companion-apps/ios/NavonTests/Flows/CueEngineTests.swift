@@ -909,19 +909,19 @@ final class CueEngineTests: XCTestCase {
 
     func test_distanceCueValues_1310m_metric_returnsKilometers() {
         let result = DistanceFormatter.cueValues(meters: 1310, mode: .metric)
-        XCTAssertEqual(result["distanceUnit"], .string("kilometers"))
+        XCTAssertEqual(String(describing: result["distanceUnit"]), String(describing: MessageValue.string("kilometers")))
         if case .number(let d) = result["distance"] { XCTAssertEqual(d, 1.3, accuracy: 0.1) }
     }
 
     func test_distanceCueValues_500m_metric_returnsMeters() {
         let result = DistanceFormatter.cueValues(meters: 500, mode: .metric)
-        XCTAssertEqual(result["distanceUnit"], .string("meters"))
+        XCTAssertEqual(String(describing: result["distanceUnit"]), String(describing: MessageValue.string("meters")))
         if case .number(let d) = result["distance"] { XCTAssertEqual(d, 500.0) }
     }
 
     func test_distanceCueValues_1000m_metric_returnsKilometers() {
         let result = DistanceFormatter.cueValues(meters: 1000, mode: .metric)
-        XCTAssertEqual(result["distanceUnit"], .string("kilometers"))
+        XCTAssertEqual(String(describing: result["distanceUnit"]), String(describing: MessageValue.string("kilometers")))
         if case .number(let d) = result["distance"] { XCTAssertEqual(d, 1.0, accuracy: 0.1) }
     }
 
