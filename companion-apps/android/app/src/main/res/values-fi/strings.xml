@@ -9,16 +9,14 @@
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">Olet saapunut määränpäähäsi</string>
     <string name="cue_arrivingInM" formatted="false">Saavut määränpäähäsi {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_turn50m_slightLeft" formatted="false">Pysy vasemmalla seuraavat {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_turn50m_slightRight" formatted="false">Pysy oikealla seuraavat {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">Seuraa vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} päästä</string>
-    <string name="cue_nextTurnInAbout_slightRight" formatted="false">Seuraa oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} päästä</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">Seuraava käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">Seuraa vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">Sulautuminen noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_ramp" formatted="false">Ramppi noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_right" formatted="false">Seuraa oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_nextTurnInAbout_roundabout" formatted="false">Pyöröliittymä noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">Seuraa vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} päästä</string>
+    <string name="cue_nextTurnInAbout_slightRight" formatted="false">Seuraa oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} päästä</string>
     <string name="cue_nextTurnInAbout_uturn" formatted="false">Tee U-käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
     <string name="cue_offTrack" formatted="false">Reitiltä pois</string>
     <string name="cue_onTrack" formatted="false">Reitillä</string>
@@ -32,6 +30,8 @@
     <string name="cue_turn10m_ramp" formatted="false">Ota ramppi</string>
     <string name="cue_turn10m_right" formatted="false">Käänny oikealle</string>
     <string name="cue_turn10m_roundabout" formatted="false">Aja pyöröliittymään</string>
+    <string name="cue_turn10m_slightLeft" formatted="false">Käänny vasemmalle</string>
+    <string name="cue_turn10m_slightRight" formatted="false">Käänny oikealle</string>
     <string name="cue_turn10m_uturn" formatted="false">Tee U-käännös</string>
     <string name="cue_turn10mCombined" formatted="false">{first, select, left {Käänny vasemmalle} right {Käänny oikealle} exitLeft {Ota vasen liittymä} exitRight {Ota oikea liittymä} uturn {Tee U-käännös} roundabout {Aja ympyrään} merge {Yhdistä} ramp {Ota ramppi} other {Jatka}} sitten heti {second, select, left {vasemmalle} right {oikealle} exitLeft {vasen liittymä} exitRight {oikea liittymä} uturn {U-käännös} roundabout {ympyrään} merge {yhdistä} ramp {ramppi} other {eteenpäin}}</string>
     <string name="cue_turn50m_exitLeft" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, ota vasen liittymä</string>
@@ -42,6 +42,8 @@
     <string name="cue_turn50m_ramp" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ota ramppi</string>
     <string name="cue_turn50m_right" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny oikealle</string>
     <string name="cue_turn50m_roundabout" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, aja pyöröliittymään</string>
+    <string name="cue_turn50m_slightLeft" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny vasemmalle</string>
+    <string name="cue_turn50m_slightRight" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny oikealle</string>
     <string name="cue_turn50m_uturn" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, tee U-käännös</string>
     <string name="cue_turn50mCombined" formatted="false">Kun {distance, number} {distanceUnit, select, meters {metriä} feet {jalkaa} other {metriä}}, {first, select, left {käänny vasemmalle} right {käänny oikealle} exitLeft {ota vasen ulosajo} exitRight {ota oikea ulosajo} uturn {tee U-käännös} roundabout {aja kiertoliittymään} merge {yhdistä} ramp {ota ramppi} other {noudata reittiä}} sitten nopeasti {second, select, left {vasemmalle} right {oikealle} exitLeft {vasen ulosajo} exitRight {oikea ulosajo} uturn {U-käännös} roundabout {kiertoliittymä} merge {yhdistä} ramp {ramppi} other {eteenpäin}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} kohteeseen {destination}</string>

@@ -69,54 +69,6 @@
       "translatedAt": "2026-04-30T12:06:31Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
-    "cue.bearRange.bearLeft": {
-      "value": "पुढील {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} साठी डावीकडे राहा",
-      "description": "Voice cue: follow/keep left along a gentle curve (NOT a sharp turn — use equivalent of 'keep left' or 'follow left', not 'turn left'). The rider stays on the same path; this is a bearing instruction, not a junction turn.",
-      "placeholders": {
-        "distance": "number",
-        "distanceUnit": "select"
-      },
-      "sourceHash": "sha256:9543b7cc895b1c85",
-      "status": "ai-translated",
-      "translatedAt": "2026-05-12T22:15:37Z",
-      "translatedBy": "openai/gpt-5.4-nano"
-    },
-    "cue.bearRange.bearRight": {
-      "value": "पुढील {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} साठी उजवीकडे राहा",
-      "description": "Voice cue: follow/keep right along a gentle curve (NOT a sharp turn — use equivalent of 'keep right' or 'follow right', not 'turn right'). The rider stays on the same path; this is a bearing instruction, not a junction turn.",
-      "placeholders": {
-        "distance": "number",
-        "distanceUnit": "select"
-      },
-      "sourceHash": "sha256:8e2b81828d07bcb8",
-      "status": "ai-translated",
-      "translatedAt": "2026-05-12T22:15:37Z",
-      "translatedBy": "openai/gpt-5.4-nano"
-    },
-    "cue.nextTurnInAbout.bearLeft": {
-      "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये डावीकडे राहा",
-      "description": "Voice cue: upcoming follow/keep left preview (NOT a turn — use equivalent of 'next keep left' or 'follow left ahead').",
-      "placeholders": {
-        "distance": "number",
-        "distanceUnit": "select"
-      },
-      "sourceHash": "sha256:247c9ed59c72687d",
-      "status": "ai-translated",
-      "translatedAt": "2026-05-12T22:15:37Z",
-      "translatedBy": "openai/gpt-5.4-nano"
-    },
-    "cue.nextTurnInAbout.bearRight": {
-      "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये उजवीकडे राहा",
-      "description": "Voice cue: upcoming follow/keep right preview (NOT a turn — use equivalent of 'next keep right' or 'follow right ahead').",
-      "placeholders": {
-        "distance": "number",
-        "distanceUnit": "select"
-      },
-      "sourceHash": "sha256:6dbf019aa2d80464",
-      "status": "ai-translated",
-      "translatedAt": "2026-05-12T22:15:37Z",
-      "translatedBy": "openai/gpt-5.4-nano"
-    },
     "cue.nextTurnInAbout.generic": {
       "value": "पुढचा वळण अंदाजे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये",
       "description": "Voice cue announcing a generic upcoming maneuver.",
@@ -1640,6 +1592,70 @@
       "sourceHash": "sha256:3a086c822b6029cd",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:06:31Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn50m.slightLeft": {
+      "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, डावीकडे वळा",
+      "description": "Voice cue ~50m before a slight left turn. {distance} is the rounded distance to the maneuver.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:a527a059214cb118",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:31Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn50m.slightRight": {
+      "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, उजवीकडे वळा",
+      "description": "Voice cue ~50m before a slight right turn.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:43900e5a2a6e01b1",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:31Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn10m.slightLeft": {
+      "value": "डावीकडे वळा",
+      "description": "Imperative voice cue at the moment of a slight slight left turn (within ~10m).",
+      "sourceHash": "sha256:88f7cc75091b897e",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:31Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn10m.slightRight": {
+      "value": "उजवीकडे वळा",
+      "description": "Imperative voice cue at the moment of a slight slight right turn.",
+      "sourceHash": "sha256:478caebf59dd7fd0",
+      "status": "ai-translated",
+      "translatedAt": "2026-04-30T12:06:31Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.nextTurnInAbout.slightLeft": {
+      "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये डावीकडे राहा",
+      "description": "Voice cue: upcoming follow/slight left preview (NOT a turn — use equivalent of 'next slight left' or 'slight left ahead').",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:247c9ed59c72687d",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-12T22:15:37Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.nextTurnInAbout.slightRight": {
+      "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये उजवीकडे राहा",
+      "description": "Voice cue: upcoming follow/slight right preview (NOT a turn — use equivalent of 'next slight right' or 'slight right ahead').",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:6dbf019aa2d80464",
+      "status": "ai-translated",
+      "translatedAt": "2026-05-12T22:15:37Z",
       "translatedBy": "openai/gpt-5.4-nano"
     }
   }

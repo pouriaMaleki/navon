@@ -43,38 +43,6 @@
         "distanceUnit": "select"
       }
     },
-    "cue.bearRange.bearLeft": {
-      "value": "Bear left for the next {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
-      "description": "Voice cue: follow/keep left along a gentle curve (NOT a sharp turn — use equivalent of 'keep left' or 'follow left', not 'turn left'). The rider stays on the same path; this is a bearing instruction, not a junction turn.",
-      "placeholders": {
-        "distance": "number",
-        "distanceUnit": "select"
-      }
-    },
-    "cue.bearRange.bearRight": {
-      "value": "Bear right for the next {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
-      "description": "Voice cue: follow/keep right along a gentle curve (NOT a sharp turn — use equivalent of 'keep right' or 'follow right', not 'turn right'). The rider stays on the same path; this is a bearing instruction, not a junction turn.",
-      "placeholders": {
-        "distance": "number",
-        "distanceUnit": "select"
-      }
-    },
-    "cue.nextTurnInAbout.bearLeft": {
-      "value": "Next bear left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
-      "description": "Voice cue: upcoming follow/keep left preview (NOT a turn — use equivalent of 'next keep left' or 'follow left ahead').",
-      "placeholders": {
-        "distance": "number",
-        "distanceUnit": "select"
-      }
-    },
-    "cue.nextTurnInAbout.bearRight": {
-      "value": "Next bear right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
-      "description": "Voice cue: upcoming follow/keep right preview (NOT a turn — use equivalent of 'next keep right' or 'follow right ahead').",
-      "placeholders": {
-        "distance": "number",
-        "distanceUnit": "select"
-      }
-    },
     "cue.nextTurnInAbout.generic": {
       "value": "Next turn ahead in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
       "description": "Voice cue announcing a generic upcoming maneuver.",
@@ -261,7 +229,7 @@
       }
     },
     "cue.turn10mCombined": {
-      "value": "{first, select, left {Turn left} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} then immediately {second, select, left {left} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}",
+      "value": "{first, select, left {Turn left} slightLeft {Slight left} slightRight {Slight right} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} then immediately {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}",
       "description": "Voice cue for back-to-back turns when the rider's first in-range tick already landed inside the 10 m approach window — replaces the unsuffixed turn10m so the rider still hears about both turns.",
       "placeholders": {
         "first": "select",
@@ -269,7 +237,7 @@
       }
     },
     "cue.turn50mCombined": {
-      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {turn left} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} then quickly {second, select, left {left} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}",
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {turn left} slightLeft {slight left} slightRight {slight right} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} then quickly {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}",
       "description": "Voice cue for back-to-back turns within ~80m: replaces two overlapping cues with one combined phrase.",
       "placeholders": {
         "distance": "number",
@@ -965,6 +933,48 @@
       "value": "mph",
       "description": "Speed unit label: miles per hour.",
       "placeholders": {}
+    },
+    "cue.turn50m.slightLeft": {
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, slight left",
+      "description": "Voice cue ~50m before a slight left turn. {distance} is the rounded distance to the maneuver.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.turn50m.slightRight": {
+      "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, slight right",
+      "description": "Voice cue ~50m before a slight right turn.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.turn10m.slightLeft": {
+      "value": "Slight left",
+      "description": "Imperative voice cue at the moment of a slight slight left turn (within ~10m).",
+      "placeholders": {}
+    },
+    "cue.turn10m.slightRight": {
+      "value": "Slight right",
+      "description": "Imperative voice cue at the moment of a slight slight right turn.",
+      "placeholders": {}
+    },
+    "cue.nextTurnInAbout.slightLeft": {
+      "value": "Next slight left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
+      "description": "Voice cue: upcoming follow/slight left preview (NOT a turn — use equivalent of 'next slight left' or 'slight left ahead').",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
+    },
+    "cue.nextTurnInAbout.slightRight": {
+      "value": "Next slight right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
+      "description": "Voice cue: upcoming follow/slight right preview (NOT a turn — use equivalent of 'next slight right' or 'slight right ahead').",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      }
     }
   }
 }

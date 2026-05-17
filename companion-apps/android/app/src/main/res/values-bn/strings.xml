@@ -9,16 +9,14 @@
     <string name="common_ok" formatted="false">ঠিক আছে</string>
     <string name="cue_arrived" formatted="false">আপনি গন্তব্যে পৌঁছেছেন</string>
     <string name="cue_arrivingInM" formatted="false">আপনার গন্তব্যে পৌঁছাতে আর {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_turn50m_slightLeft" formatted="false">পরবর্তী {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} এর জন্য বামে থাকুন</string>
-    <string name="cue_turn50m_slightRight" formatted="false">পরবর্তী {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} এর জন্য ডানে থাকুন</string>
-    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে থাকুন</string>
-    <string name="cue_nextTurnInAbout_slightRight" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে থাকুন</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর পরবর্তী মোড়</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে মোড়</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে মার্জ করুন</string>
     <string name="cue_nextTurnInAbout_ramp" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে র‌্যাম্প</string>
     <string name="cue_nextTurnInAbout_right" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে মোড়</string>
     <string name="cue_nextTurnInAbout_roundabout" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে রাউন্ডঅ্যাবাউট</string>
+    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে থাকুন</string>
+    <string name="cue_nextTurnInAbout_slightRight" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে থাকুন</string>
     <string name="cue_nextTurnInAbout_uturn" formatted="false">প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর U-টার্ন</string>
     <string name="cue_offTrack" formatted="false">পথের বাইরে</string>
     <string name="cue_onTrack" formatted="false">পথে ফিরে এসেছেন</string>
@@ -32,6 +30,8 @@
     <string name="cue_turn10m_ramp" formatted="false">র‌্যাম্প নিন</string>
     <string name="cue_turn10m_right" formatted="false">ডানে ঘুরুন</string>
     <string name="cue_turn10m_roundabout" formatted="false">রাউন্ডঅ্যাবাউটে ঢুকুন</string>
+    <string name="cue_turn10m_slightLeft" formatted="false">বামে ঘুরুন</string>
+    <string name="cue_turn10m_slightRight" formatted="false">ডানে ঘুরুন</string>
     <string name="cue_turn10m_uturn" formatted="false">U-টার্ন করুন</string>
     <string name="cue_turn10mCombined" formatted="false">{first, select, left {বাঁদিকে ঘুরুন} right {ডানদিকে ঘুরুন} exitLeft {বাম প্রস্থান নিন} exitRight {ডান প্রস্থান নিন} uturn {একটি U-turn করুন} roundabout {রাউন্ডঅ্যাবাউটে প্রবেশ করুন} merge {মার্জ করুন} ramp {র‌্যাম্প নিন} other {চালিয়ে যান}} তারপর সাথে সাথে {second, select, left {বাম} right {ডান} exitLeft {বাম প্রস্থান} exitRight {ডান প্রস্থান} uturn {U-turn} roundabout {রাউন্ডঅ্যাবাউট} merge {মার্জ} ramp {র‌্যাম্প} other {সামনে}}</string>
     <string name="cue_turn50m_exitLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বাম দিকের এক্সিট নিন</string>
@@ -42,6 +42,8 @@
     <string name="cue_turn50m_ramp" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে, র‌্যাম্প নিন</string>
     <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে ঘুরুন</string>
     <string name="cue_turn50m_roundabout" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে, রাউন্ডঅ্যাবাউটে ঢুকুন</string>
+    <string name="cue_turn50m_slightLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে ঘুরুন</string>
+    <string name="cue_turn50m_slightRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে ঘুরুন</string>
     <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর U-টার্ন করুন</string>
     <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {মিটার} feet {ফুট} other {মিটার}}, তারপর দ্রুত {first, select, left {বাঁ দিকে ঘুরুন} right {ডান দিকে ঘুরুন} exitLeft {বাম এক্সিট নিন} exitRight {ডান এক্সিট নিন} uturn {একটি U-turn করুন} roundabout {রাউন্ডঅ্যাবাউটে ঢোকুন} merge {মার্জ করুন} ramp {র‌্যাম্প নিন} other {পথ অনুসরণ করুন}} তারপর দ্রুত {second, select, left {বামে} right {ডানে} exitLeft {বাম এক্সিট} exitRight {ডান এক্সিট} uturn {U-turn} roundabout {রাউন্ডঅ্যাবাউট} merge {মার্জ} ramp {র‌্যাম্প} other {সামনে}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} থেকে {destination}</string>

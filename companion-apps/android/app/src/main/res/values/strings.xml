@@ -9,16 +9,14 @@
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">You have arrived at your destination</string>
     <string name="cue_arrivingInM" formatted="false">Arriving at your destination in {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
-    <string name="cue_turn50m_slightLeft" formatted="false">Bear left for the next {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
-    <string name="cue_turn50m_slightRight" formatted="false">Bear right for the next {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">Next bear left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_slightRight" formatted="false">Next bear right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
     <string name="cue_nextTurnInAbout_generic" formatted="false">Next turn ahead in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
     <string name="cue_nextTurnInAbout_left" formatted="false">Next turn left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
     <string name="cue_nextTurnInAbout_merge" formatted="false">Next merge in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
     <string name="cue_nextTurnInAbout_ramp" formatted="false">Next ramp in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
     <string name="cue_nextTurnInAbout_right" formatted="false">Next turn right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
     <string name="cue_nextTurnInAbout_roundabout" formatted="false">Next roundabout in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">Next slight left in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_slightRight" formatted="false">Next slight right in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
     <string name="cue_nextTurnInAbout_uturn" formatted="false">Next turn u-turn in about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
     <string name="cue_offTrack" formatted="false">Off track</string>
     <string name="cue_onTrack" formatted="false">On track</string>
@@ -32,8 +30,10 @@
     <string name="cue_turn10m_ramp" formatted="false">Take the ramp</string>
     <string name="cue_turn10m_right" formatted="false">Turn right</string>
     <string name="cue_turn10m_roundabout" formatted="false">Enter the roundabout</string>
+    <string name="cue_turn10m_slightLeft" formatted="false">Slight left</string>
+    <string name="cue_turn10m_slightRight" formatted="false">Slight right</string>
     <string name="cue_turn10m_uturn" formatted="false">Make a U-turn</string>
-    <string name="cue_turn10mCombined" formatted="false">{first, select, left {Turn left} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} then immediately {second, select, left {left} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}</string>
+    <string name="cue_turn10mCombined" formatted="false">{first, select, left {Turn left} slightLeft {Slight left} slightRight {Slight right} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} then immediately {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}</string>
     <string name="cue_turn50m_exitLeft" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, take the left exit</string>
     <string name="cue_turn50m_exitRight" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, take the right exit</string>
     <string name="cue_turn50m_generic" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, follow the route</string>
@@ -42,8 +42,10 @@
     <string name="cue_turn50m_ramp" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, take the ramp</string>
     <string name="cue_turn50m_right" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, turn right</string>
     <string name="cue_turn50m_roundabout" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, enter the roundabout</string>
+    <string name="cue_turn50m_slightLeft" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, slight left</string>
+    <string name="cue_turn50m_slightRight" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, slight right</string>
     <string name="cue_turn50m_uturn" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, make a U-turn</string>
-    <string name="cue_turn50mCombined" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {turn left} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} then quickly {second, select, left {left} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}</string>
+    <string name="cue_turn50mCombined" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {turn left} slightLeft {slight left} slightRight {slight right} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} then quickly {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} to {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Clear destination</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">Close arrival message</string>
