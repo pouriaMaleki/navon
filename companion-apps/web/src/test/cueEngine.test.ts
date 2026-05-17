@@ -26,12 +26,6 @@ const M_SLIGHT_LEFT = (id: string, distance: number): CueManeuver => ({
   kind: "slightLeft",
   distanceFromStartM: distance,
 });
-const M_SLIGHT_RIGHT = (id: string, distance: number): CueManeuver => ({
-  id,
-  kind: "slightRight",
-  distanceFromStartM: distance,
-});
-
 const baseSnapshot = (overrides: Partial<CueSnapshot> = {}): CueSnapshot => ({
   routeId: "r1",
   pairedWithDevice: false,
