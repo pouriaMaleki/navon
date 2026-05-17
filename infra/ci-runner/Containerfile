@@ -1,0 +1,58 @@
+FROM mcr.microsoft.com/devcontainers/rust:1-1-bookworm
+
+USER root
+
+# System deps + Node 22
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl git gh bash sudo \
+    build-essential pkg-config \
+    python3 python3-pip \
+    gpg \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+    | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" \
+    > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends nodejs \
+    && ln -sf /usr/bin/python3 /usr/bin/python \
+    && rm -rf /var/lib/apt/lists/*
+
+# Rust toolchain
+RUN rustup self update || true \
+    && rustup default stable \
+    && rustup component add clippy
+
+# JDK 21
+RUN curl -sL -o /tmp/jdk21.tar.gz \
+    "https://api.adoptium.net/v3/binary/latest/21/ga/linux/x64/jdk/hotspot/normal/eclipse" \
+    && tar -C /usr/local -xzf /tmp/jdk21.tar.gz \
+    && rm /tmp/jdk21.tar.gz
+ENV JAVA_HOME=/usr/local/jdk-21.0.11+10
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+# Android SDK
+RUN curl -sL -o /tmp/cmdline-tools.zip \
+    "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" \
+    && mkdir -p /usr/local/android-sdk/cmdline-tools \
+    && unzip -q /tmp/cmdline-tools.zip -d /usr/local/android-sdk/cmdline-tools \
+    && rm /tmp/cmdline-tools.zip \
+    && mv /usr/local/android-sdk/cmdline-tools/cmdline-tools /usr/local/android-sdk/cmdline-tools/latest
+ENV ANDROID_HOME=/usr/local/android-sdk
+ENV PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${PATH}"
+RUN yes 2>/dev/null | sdkmanager --licenses > /dev/null || true \
+    && sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+# GitHub Actions runner
+ARG RUNNER_VERSION=2.334.0
+RUN curl -sL -o /tmp/runner.tar.gz \
+    "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" \
+    && mkdir -p /opt/actions-runner \
+    && tar xzf /tmp/runner.tar.gz -C /opt/actions-runner \
+    && rm /tmp/runner.tar.gz \
+    && /opt/actions-runner/bin/installdependencies.sh
+
+COPY entrypoint.sh /opt/actions-runner/
+RUN chmod +x /opt/actions-runner/entrypoint.sh
+
+WORKDIR /work
+ENTRYPOINT ["/opt/actions-runner/entrypoint.sh"]

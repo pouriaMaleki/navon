@@ -1,0 +1,14 @@
+services:
+  ci-runner:
+    build:
+      context: .
+      dockerfile: Containerfile
+    environment:
+      - GITHUB_RUNNER_TOKEN=${GITHUB_RUNNER_TOKEN:-}
+    volumes:
+      - runner-config:/opt/actions-runner
+      - ../..:/work:ro
+    restart: unless-stopped
+
+volumes:
+  runner-config:

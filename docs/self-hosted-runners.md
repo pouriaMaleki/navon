@@ -2,10 +2,20 @@
 
 **macOS** — Apple Silicon Mac. Label: `self-hosted, macOS`. Runs iOS builds and XCTests.
 
-**Linux** — Dev container. Label: `self-hosted, Linux`. Runs Rust, Web, Android, Playwright.
+**Linux** — Docker container. Label: `self-hosted, Linux`. Runs Rust, Web, Android, Playwright.
 
-## Setup
+## Setup (Linux)
 
-Mac: install Xcode, xcodegen. Already configured.
+```bash
+cd infra/ci-runner
+GITHUB_RUNNER_TOKEN=<token> docker compose up -d
+```
 
-Dev container: add `GITHUB_RUNNER_TOKEN=<token>` to `/work/.env`, rebuild. Token from github's URL navon/settings/actions/runners/new. Credentials survive rebuilds in `~/actions-runner/`.
+Token from https://github.com/pouriaMaleki/navon/settings/actions/runners/new.
+Credentials persist in the `runner-config` Docker volume across rebuilds.
+
+## Verify
+
+```bash
+gh api repos/pouriaMaleki/navon/actions/runners --jq '.runners[] | {name, status}'
+```
