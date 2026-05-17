@@ -52,8 +52,13 @@ RUN curl -sL -o /tmp/runner.tar.gz \
     && rm /tmp/runner.tar.gz \
     && /opt/actions-runner/bin/installdependencies.sh
 
+# Non-root user for the runner (refuses to run as root)
+RUN useradd -m runner \
+    && chown -R runner:runner /opt/actions-runner /usr/local/android-sdk
+
 COPY entrypoint.sh /opt/actions-runner/
 RUN chmod +x /opt/actions-runner/entrypoint.sh
 
+USER runner
 WORKDIR /work
 ENTRYPOINT ["/opt/actions-runner/entrypoint.sh"]
