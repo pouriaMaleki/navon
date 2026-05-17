@@ -103,14 +103,3 @@ if [ -f "${ANDROID_SETUP}" ]; then
   bash "${ANDROID_SETUP}"
 fi
 
-# GitHub Actions self-hosted runner. Install binary if missing, register
-# on first run with a token, then start as a background daemon.
-RUNNER_SETUP="/work/infra/devcontainer/scripts/install-gh-runner.sh"
-RUNNER_START="/work/infra/devcontainer/scripts/start-gh-runner.sh"
-if [ -f "${RUNNER_SETUP}" ]; then
-  # Pass token from env if set (GITHUB_RUNNER_TOKEN), empty string otherwise.
-  bash "${RUNNER_SETUP}" "${GITHUB_RUNNER_TOKEN:-}" || true
-fi
-if [ -f "${RUNNER_START}" ] && [ -f "${HOME}/actions-runner/.runner" ]; then
-  bash "${RUNNER_START}" || true
-fi
