@@ -3,16 +3,14 @@ import {
   type CoordinatePoint,
   CURRENT_ROUTE_PACKAGE_VERSION,
   type RouteAlternative,
+  type RouteProviderID,
 } from "../domain/models.js";
 import { friendlyAlternativeLabel } from "../stores/PlanningStore.js";
 
 const start: CoordinatePoint = { latitude: 60.17, longitude: 24.94 };
 const end: CoordinatePoint = { latitude: 60.18, longitude: 24.95 };
 
-function alt(
-  providerID: "osm" | "hsl" | "gpx",
-  sourceReference: string | undefined,
-): RouteAlternative {
+function alt(providerID: RouteProviderID, sourceReference: string | undefined): RouteAlternative {
   return {
     id: `id-${sourceReference ?? "anon"}`,
     title: "x",

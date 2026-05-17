@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { DebuggerStore } from "../stores/DebuggerStore.js";
-import { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
 import type { RoutingDiagDebugPackage } from "../domain/routingDiagnosticsModels.js";
+import { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
+import { DebuggerStore } from "../stores/DebuggerStore.js";
 
-function makeTestPackage(overrides: Partial<RoutingDiagDebugPackage> = {}): RoutingDiagDebugPackage {
+function makeTestPackage(
+  overrides: Partial<RoutingDiagDebugPackage> = {},
+): RoutingDiagDebugPackage {
   const events: RoutingDiagDebugPackage["events"] = [
     {
       id: "ev-1",
@@ -27,7 +29,7 @@ function makeTestPackage(overrides: Partial<RoutingDiagDebugPackage> = {}): Rout
     {
       id: "ev-4",
       timestampMs: 1003000,
-      data: { kind: "locationUpdate", lat: 60.1705, lon: 24.9390 },
+      data: { kind: "locationUpdate", lat: 60.1705, lon: 24.939 },
     },
   ];
   return {

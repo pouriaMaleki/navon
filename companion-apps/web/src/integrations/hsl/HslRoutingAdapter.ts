@@ -146,7 +146,9 @@ function headingBiasedOrigin(
     return riderLocation;
   }
   if (speedMps == null || !Number.isFinite(speedMps) || speedMps < MIN_HEADING_SPEED_MPS) {
-    console.debug(`[reroute_heading] provider=${providerLabel} reason=low_speed speed=${speedMps ?? "nil"}`);
+    console.debug(
+      `[reroute_heading] provider=${providerLabel} reason=low_speed speed=${speedMps ?? "nil"}`,
+    );
     return riderLocation;
   }
   const shifted = shiftPointByHeading(riderLocation, heading, REROUTE_FORWARD_SHIFT_M);

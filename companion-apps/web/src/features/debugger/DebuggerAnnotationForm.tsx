@@ -2,17 +2,23 @@ import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
 import type { RootStore } from "../../app/RootStore.js";
 import {
-  type AnnotationSeverity,
-  type AnnotationTag,
   ANNOTATION_SEVERITY_LABELS,
   ANNOTATION_TAG_LABELS,
+  type AnnotationSeverity,
+  type AnnotationTag,
 } from "../../domain/debuggerModels.js";
 
 type Props = { store: RootStore };
 
 const TAGS: AnnotationTag[] = [
-  "wrong_cue", "missing_cue", "wrong_ui", "missing_ui",
-  "wrong_timing", "gps_issue", "reroute_issue", "other",
+  "wrong_cue",
+  "missing_cue",
+  "wrong_ui",
+  "missing_ui",
+  "wrong_timing",
+  "gps_issue",
+  "reroute_issue",
+  "other",
 ];
 
 const SEVERITIES: AnnotationSeverity[] = ["bug", "improvement", "note"];
@@ -35,7 +41,10 @@ export const DebuggerAnnotationForm = observer(({ store }: Props) => {
       if (!formRef.current) return;
       const visibleHeight = viewport.height;
       if (visibleHeight < window.innerHeight * 0.8) {
-        formRef.current.style.setProperty("margin-bottom", `${window.innerHeight - visibleHeight + 8}px`);
+        formRef.current.style.setProperty(
+          "margin-bottom",
+          `${window.innerHeight - visibleHeight + 8}px`,
+        );
       } else {
         formRef.current.style.removeProperty("margin-bottom");
       }
@@ -51,16 +60,12 @@ export const DebuggerAnnotationForm = observer(({ store }: Props) => {
 
   if (dStore.pendingAnnotationTimeMs === null || !dStore.session) return null;
 
-  const sessionStart = dStore.session.diagSession.events[0]?.timestampMs ?? dStore.session.diagSession.createdAtMs;
+  const sessionStart =
+    dStore.session.diagSession.events[0]?.timestampMs ?? dStore.session.diagSession.createdAtMs;
   const relMs = Math.max(0, dStore.pendingAnnotationTimeMs - sessionStart);
 
   const handleSave = () => {
-    dStore.addAnnotation(
-      tag,
-      severity,
-      [relMs + startOffset, relMs + endOffset],
-      note,
-    );
+    dStore.addAnnotation(tag, severity, [relMs + startOffset, relMs + endOffset], note);
     resetForm();
   };
 
@@ -86,23 +91,31 @@ export const DebuggerAnnotationForm = observer(({ store }: Props) => {
     <div ref={formRef} className="debugger-annotation-form">
       <div className="debugger-annotation-form__header">New Annotation</div>
       <div className="debugger-annotation-form__time">
-        At {formatMs(relMs)} (range: {formatMs(relMs + startOffset)} – {formatMs(relMs + endOffset)})
+        At {formatMs(relMs)} (range: {formatMs(relMs + startOffset)} – {formatMs(relMs + endOffset)}
+        )
       </div>
 
       <label className="debugger-annotation-form__label">
         Tag
         <select value={tag} onChange={(e) => setTag(e.target.value as AnnotationTag)}>
           {TAGS.map((t) => (
-            <option key={t} value={t}>{ANNOTATION_TAG_LABELS[t]}</option>
+            <option key={t} value={t}>
+              {ANNOTATION_TAG_LABELS[t]}
+            </option>
           ))}
         </select>
       </label>
 
       <label className="debugger-annotation-form__label">
         Severity
-        <select value={severity} onChange={(e) => setSeverity(e.target.value as AnnotationSeverity)}>
+        <select
+          value={severity}
+          onChange={(e) => setSeverity(e.target.value as AnnotationSeverity)}
+        >
           {SEVERITIES.map((s) => (
-            <option key={s} value={s}>{ANNOTATION_SEVERITY_LABELS[s]}</option>
+            <option key={s} value={s}>
+              {ANNOTATION_SEVERITY_LABELS[s]}
+            </option>
           ))}
         </select>
       </label>
@@ -118,7 +131,10 @@ export const DebuggerAnnotationForm = observer(({ store }: Props) => {
             value={startOffset}
             onChange={(e) => setStartOffset(Number(e.target.value))}
           />
-          <span>{startOffset > 0 ? "+" : ""}{formatMs(startOffset)}</span>
+          <span>
+            {startOffset > 0 ? "+" : ""}
+            {formatMs(startOffset)}
+          </span>
         </label>
         <label className="debugger-annotation-form__label">
           End offset
@@ -130,7 +146,10 @@ export const DebuggerAnnotationForm = observer(({ store }: Props) => {
             value={endOffset}
             onChange={(e) => setEndOffset(Number(e.target.value))}
           />
-          <span>{endOffset > 0 ? "+" : ""}{formatMs(endOffset)}</span>
+          <span>
+            {endOffset > 0 ? "+" : ""}
+            {formatMs(endOffset)}
+          </span>
         </label>
       </div>
 
@@ -151,7 +170,11 @@ export const DebuggerAnnotationForm = observer(({ store }: Props) => {
       )}
 
       <div className="debugger-annotation-form__actions">
-        <button type="button" className="debugger-annotation-form__btn debugger-annotation-form__btn--save" onClick={handleSave}>
+        <button
+          type="button"
+          className="debugger-annotation-form__btn debugger-annotation-form__btn--save"
+          onClick={handleSave}
+        >
           Save
         </button>
         <button type="button" className="debugger-annotation-form__btn" onClick={handleCancel}>

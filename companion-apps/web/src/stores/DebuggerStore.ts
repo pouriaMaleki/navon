@@ -2,13 +2,13 @@ import { makeAutoObservable } from "mobx";
 import {
   type Annotation,
   type AnnotationExport,
-  type AnnotationTag,
   type AnnotationSeverity,
-  type DebuggerSession,
+  type AnnotationTag,
   type CoordinatePoint,
+  type DebuggerSession,
   interpolateGps,
-  sessionStartTime,
   sessionEndTime,
+  sessionStartTime,
 } from "../domain/debuggerModels.js";
 import type {
   RoutingDiagDebugPackage,
@@ -82,7 +82,8 @@ export class DebuggerStore {
     const diagSession: RoutingDiagSession = {
       id: pkg.sessionId,
       createdAtMs: pkg.createdAtMs,
-      updatedAtMs: pkg.events.length > 0 ? pkg.events[pkg.events.length - 1].timestampMs : pkg.createdAtMs,
+      updatedAtMs:
+        pkg.events.length > 0 ? pkg.events[pkg.events.length - 1].timestampMs : pkg.createdAtMs,
       events: pkg.events,
     };
     const savedAnnotations = this.persistence.loadDebuggerAnnotations(diagSession.id);
@@ -201,16 +202,13 @@ export class DebuggerStore {
     if (annotationId) {
       const ann = this.annotations.find((a) => a.id === annotationId);
       if (ann) {
-        this.currentTimeMs = ann.timeRangeMs[0] + (this.session ? sessionStartTime(this.session.diagSession) : 0);
+        this.currentTimeMs =
+          ann.timeRangeMs[0] + (this.session ? sessionStartTime(this.session.diagSession) : 0);
       }
     }
   }
 
-  openAnnotationForm(
-    timeMs: number,
-    coordinate?: CoordinatePoint,
-    eventIds?: string[],
-  ): void {
+  openAnnotationForm(timeMs: number, coordinate?: CoordinatePoint, eventIds?: string[]): void {
     this.pendingAnnotationTimeMs = timeMs;
     this.pendingAnnotationCoordinate = coordinate ?? null;
     this.pendingAnnotationEventIds = eventIds ?? [];
@@ -327,9 +325,6 @@ export class DebuggerStore {
 
   private persistAnnotations(): void {
     if (!this.session) return;
-    this.persistence.saveDebuggerAnnotations(
-      this.session.diagSession.id,
-      this.session.annotations,
-    );
+    this.persistence.saveDebuggerAnnotations(this.session.diagSession.id, this.session.annotations);
   }
 }

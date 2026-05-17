@@ -31,7 +31,10 @@ const maybeDescribe = LIVE_ENABLED ? describe : describe.skip;
 maybeDescribe("live routing smoke (opt-in)", () => {
   it("OSM reroute with heading context returns at least one alternative", async () => {
     const adapter = new OsmCyclingRoutingAdapter();
-    const preview = await adapter.replanRoute(OSM_SESSION, ORIGIN, { headingDegrees: 90, speedMps: 4.0 });
+    const preview = await adapter.replanRoute(OSM_SESSION, ORIGIN, {
+      headingDegrees: 90,
+      speedMps: 4.0,
+    });
     expect(preview.alternatives.length).toBeGreaterThan(0);
     expect(preview.alternatives[0]?.normalizedPackage.geometry.length ?? 0).toBeGreaterThan(1);
   });
@@ -57,7 +60,10 @@ maybeDescribe("live routing smoke (opt-in)", () => {
       language: "en",
       distanceUnit: "metric",
     }));
-    const preview = await adapter.replanRoute(HSL_SESSION, ORIGIN, { headingDegrees: 90, speedMps: 4.0 });
+    const preview = await adapter.replanRoute(HSL_SESSION, ORIGIN, {
+      headingDegrees: 90,
+      speedMps: 4.0,
+    });
     expect(preview.alternatives.length).toBeGreaterThan(0);
     expect(preview.alternatives[0]?.normalizedPackage.geometry.length ?? 0).toBeGreaterThan(1);
   });

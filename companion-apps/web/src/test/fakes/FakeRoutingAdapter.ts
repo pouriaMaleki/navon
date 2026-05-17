@@ -20,7 +20,11 @@ export class FakeRoutingAdapter implements RoutingProvider {
   nextPreview?: RoutePreviewModel;
   planFactory?: (request: RoutePlanRequest) => RoutePreviewModel;
   planCalls: RoutePlanRequest[] = [];
-  replanCalls: Array<{ session: ActiveRouteSession; rider: CoordinatePoint; context?: RerouteContext }> = [];
+  replanCalls: Array<{
+    session: ActiveRouteSession;
+    rider: CoordinatePoint;
+    context?: RerouteContext;
+  }> = [];
 
   constructor(providerID: RouteProviderID = "osm") {
     this.providerID = providerID;

@@ -1,19 +1,21 @@
 import { describe, expect, it } from "vitest";
+import type { CoordinatePoint } from "../domain/models.js";
 import {
   approximateDistanceMeters,
-  bearingDegrees,
   classifyTurn,
   collapseCloseManeuvers,
-  cumulativeDistances,
   decodePolyline,
   deduplicateConsecutive,
 } from "../integrations/geo.js";
-import type { CoordinatePoint } from "../domain/models.js";
 
 const METERS_PER_DEG = 111320;
 
 /** Build a polyline that goes north until bendDistanceM, then turns right by bendAngleDeg. */
-function makeBendGeometry(bendDistanceM: number, bendAngleDeg: number, totalLengthM: number): CoordinatePoint[] {
+function makeBendGeometry(
+  bendDistanceM: number,
+  bendAngleDeg: number,
+  totalLengthM: number,
+): CoordinatePoint[] {
   const points: CoordinatePoint[] = [];
   const step = 5;
   let lat = 60.0;

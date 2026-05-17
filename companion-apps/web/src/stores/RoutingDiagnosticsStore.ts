@@ -1,10 +1,10 @@
 import { makeAutoObservable } from "mobx";
 import {
+  newEventId,
+  newSessionId,
   type RouteGeometryEntry,
   type RoutingDiagEventData,
   type RoutingDiagSession,
-  newEventId,
-  newSessionId,
   sessionDebugPackage,
 } from "../domain/routingDiagnosticsModels.js";
 import type { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";

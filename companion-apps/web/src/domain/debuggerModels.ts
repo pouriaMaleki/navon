@@ -1,5 +1,5 @@
-import type { RoutingDiagEvent, RoutingDiagSession } from "./routingDiagnosticsModels.js";
 import type { CoordinatePoint } from "./models.js";
+import type { RoutingDiagEvent, RoutingDiagSession } from "./routingDiagnosticsModels.js";
 
 export type { CoordinatePoint };
 
@@ -54,11 +54,14 @@ export interface AnnotationExport {
   sessionId: string;
   exportedAtMs: number;
   annotations: Annotation[];
-  eventContext: Record<string, {
-    before: RoutingDiagEvent[];
-    during: RoutingDiagEvent[];
-    after: RoutingDiagEvent[];
-  }>;
+  eventContext: Record<
+    string,
+    {
+      before: RoutingDiagEvent[];
+      during: RoutingDiagEvent[];
+      after: RoutingDiagEvent[];
+    }
+  >;
 }
 
 export function sessionStartTime(session: RoutingDiagSession): number {
@@ -82,7 +85,10 @@ export function interpolateGps(
   const locations = events
     .filter((e) => e.data.kind === "locationUpdate")
     .map((e) => ({
-      ts: sessionElapsed({ events, createdAtMs: 0, updatedAtMs: 0, id: "" } as RoutingDiagSession, e.timestampMs),
+      ts: sessionElapsed(
+        { events, createdAtMs: 0, updatedAtMs: 0, id: "" } as RoutingDiagSession,
+        e.timestampMs,
+      ),
       lat: (e.data as { kind: "locationUpdate"; lat: number; lon: number }).lat,
       lon: (e.data as { kind: "locationUpdate"; lat: number; lon: number }).lon,
     }));

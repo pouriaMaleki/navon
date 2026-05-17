@@ -53,15 +53,20 @@ export function filterGlitchClusters(
     const firstIdx = findClosestPointIndex(geometry, result[i].location);
     const lastIdx = findClosestPointIndex(geometry, result[clusterEnd].location);
 
-    if (
-      firstIdx >= 0 && firstIdx < geometry.length &&
-      lastIdx >= 0 && lastIdx < geometry.length
-    ) {
+    if (firstIdx >= 0 && firstIdx < geometry.length && lastIdx >= 0 && lastIdx < geometry.length) {
       const entryApproach = walkAlongPolyline(
-        geometry, cumDist, firstIdx, GLITCH_ANGLE_LOOK_DISTANCE_M, "backward",
+        geometry,
+        cumDist,
+        firstIdx,
+        GLITCH_ANGLE_LOOK_DISTANCE_M,
+        "backward",
       );
       const exitDepart = walkAlongPolyline(
-        geometry, cumDist, lastIdx, GLITCH_ANGLE_LOOK_DISTANCE_M, "forward",
+        geometry,
+        cumDist,
+        lastIdx,
+        GLITCH_ANGLE_LOOK_DISTANCE_M,
+        "forward",
       );
       const entryBearing = bearingDegrees(entryApproach, geometry[firstIdx]);
       const exitBearing = bearingDegrees(geometry[lastIdx], exitDepart);

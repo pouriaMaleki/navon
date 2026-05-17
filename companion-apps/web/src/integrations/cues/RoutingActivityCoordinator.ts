@@ -1,9 +1,10 @@
 import { autorun, type IReactionDisposer, observable, runInAction } from "mobx";
 import type { RootStore } from "../../app/RootStore.js";
-import { recordAudioCue } from "../../stores/RoutingDiagnosticsHooks.js";
 import { resolveDistanceUnit, resolveLocale, setActiveLocale, t, tIn } from "../../i18n/index.js";
+import { recordAudioCue } from "../../stores/RoutingDiagnosticsHooks.js";
 import { hasVoiceForLocale } from "../audio/voiceAvailability.js";
 import type { WebTtsService } from "../audio/WebTtsService.js";
+import { collapseCloseManeuvers } from "../geo.js";
 import type { LiveNotificationService } from "../notifications/LiveNotificationService.js";
 import type { WakeLockService } from "../screen/WakeLockService.js";
 import {
@@ -16,7 +17,6 @@ import {
   tickCueEngine,
 } from "./CueEngine.js";
 import { shouldDispatchCues } from "./cueGating.js";
-import { collapseCloseManeuvers } from "../geo.js";
 import { filterGlitchClusters } from "./glitchTurnFilter.js";
 
 /**
@@ -176,7 +176,10 @@ function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnaps
   const route = guidance.guidanceRoute;
   const filteredRouteManeuvers = route
     ? collapseCloseManeuvers(
-        filterGlitchClusters(route.maneuvers, route.geometry) as unknown as { id: string; distanceFromStartM: number }[],
+        filterGlitchClusters(route.maneuvers, route.geometry) as unknown as {
+          id: string;
+          distanceFromStartM: number;
+        }[],
         route.geometry,
       )
     : [];
@@ -185,11 +188,13 @@ function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnaps
     if (!rt) return [];
     const kind = maneuverKindFromType(rt.maneuverType);
     if (kind === undefined) return [];
-    return [{
-      id: rt.id,
-      kind,
-      distanceFromStartM: rt.distanceFromStartMeters,
-    }];
+    return [
+      {
+        id: rt.id,
+        kind,
+        distanceFromStartM: rt.distanceFromStartMeters,
+      },
+    ];
   });
   const routeTotalDistanceM = route?.summary.totalDistanceMeters ?? 0;
   return {
@@ -213,9 +218,7 @@ function buildCueSnapshot(store: RootStore, pairedWithDevice: boolean): CueSnaps
  *   - `straight` — not a turn
  *   - `depart` / `arrive` — handled by dedicated arrived/arrivingInM events
  *  Unknown / future types fall through to the silenced default. */
-export function maneuverKindFromType(
-  type: string,
-): ManeuverKind | undefined {
+export function maneuverKindFromType(type: string): ManeuverKind | undefined {
   switch (type) {
     case "left":
     case "sharpLeft":

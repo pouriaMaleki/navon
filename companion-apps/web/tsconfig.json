@@ -20,7 +20,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "experimentalDecorators": false,
-    "types": ["vite/client", "vitest/globals"],
+    "types": ["vite/client", "vitest/globals", "node"],
     "noEmit": true
   },
   "include": ["src", "vite.config.ts"]

@@ -2,9 +2,9 @@ import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
 import type { RootStore } from "../../app/RootStore.js";
 import {
-  type AnnotationTag,
   ANNOTATION_SEVERITY_LABELS,
   ANNOTATION_TAG_LABELS,
+  type AnnotationTag,
 } from "../../domain/debuggerModels.js";
 import type { RoutingDiagEvent } from "../../domain/routingDiagnosticsModels.js";
 
@@ -38,7 +38,7 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
   useEffect(() => {
     if (!session || tab !== "events") return;
     const events = session.diagSession.events;
-    let activeEvent: typeof events[number] | null = null;
+    let activeEvent: (typeof events)[number] | null = null;
     for (const e of events) {
       if (e.timestampMs <= dStore.currentTimeMs) {
         activeEvent = e;
@@ -59,15 +59,18 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
   if (!session) {
     return (
       <div className="debugger-panel">
-        <div className="debugger-panel__empty">No session loaded. Import a diagnostic file to begin.</div>
+        <div className="debugger-panel__empty">
+          No session loaded. Import a diagnostic file to begin.
+        </div>
       </div>
     );
   }
 
   const allKinds = [...new Set(session.diagSession.events.map((e) => e.data.kind))];
-  const visibleEvents = filterKinds.size === 0
-    ? session.diagSession.events
-    : session.diagSession.events.filter((e) => filterKinds.has(e.data.kind));
+  const visibleEvents =
+    filterKinds.size === 0
+      ? session.diagSession.events
+      : session.diagSession.events.filter((e) => filterKinds.has(e.data.kind));
 
   const formatTime = (ts: number): string => {
     const start = session.diagSession.events[0]?.timestampMs ?? ts;
@@ -80,16 +83,26 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
   const eventSummary = (e: RoutingDiagEvent): string => {
     const d = e.data;
     switch (d.kind) {
-      case "audioCueDispatched": return d.messageText;
-      case "nextTurnAlerted": return d.instructionText;
-      case "locationUpdate": return `${d.lat.toFixed(4)}, ${d.lon.toFixed(4)}`;
-      case "offRouteDetected": return `${d.distanceM}m off route`;
-      case "routeStopped": return d.reason ?? "stopped";
-      case "rerouteCompleted": return d.result;
-      case "routeAlternativesSuggested": return `${d.alternatives.length} options`;
-      case "routeSelected": return d.label;
-      case "compassModeChanged": return `${d.from} → ${d.to}`;
-      default: return "";
+      case "audioCueDispatched":
+        return d.messageText;
+      case "nextTurnAlerted":
+        return d.instructionText;
+      case "locationUpdate":
+        return `${d.lat.toFixed(4)}, ${d.lon.toFixed(4)}`;
+      case "offRouteDetected":
+        return `${d.distanceM}m off route`;
+      case "routeStopped":
+        return d.reason ?? "stopped";
+      case "rerouteCompleted":
+        return d.result;
+      case "routeAlternativesSuggested":
+        return `${d.alternatives.length} options`;
+      case "routeSelected":
+        return d.label;
+      case "compassModeChanged":
+        return `${d.from} → ${d.to}`;
+      default:
+        return "";
     }
   };
 
@@ -165,7 +178,9 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
                 onClick={() => dStore.selectEvent(e.id)}
               >
                 <span className="debugger-panel__event-time">{formatTime(e.timestampMs)}</span>
-                <span className="debugger-panel__event-kind">{EVENT_KIND_LABELS[e.data.kind] ?? e.data.kind}</span>
+                <span className="debugger-panel__event-kind">
+                  {EVENT_KIND_LABELS[e.data.kind] ?? e.data.kind}
+                </span>
                 <span className="debugger-panel__event-summary">{eventSummary(e)}</span>
               </div>
             ))}
@@ -191,7 +206,9 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
                   onClick={() => dStore.selectAnnotation(ann.id)}
                 >
                   <div className="debugger-panel__annotation-header">
-                    <span className={`debugger-panel__badge debugger-panel__badge--${ann.severity}`}>
+                    <span
+                      className={`debugger-panel__badge debugger-panel__badge--${ann.severity}`}
+                    >
                       {ANNOTATION_SEVERITY_LABELS[ann.severity]}
                     </span>
                     <span className="debugger-panel__badge debugger-panel__badge--tag">
@@ -245,7 +262,6 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
               Download Annotations JSON
             </button>
           </div>
-
         </div>
       )}
     </div>

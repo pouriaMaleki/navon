@@ -1,8 +1,6 @@
 import { type IReactionDisposer, reaction } from "mobx";
 import type { RootStore } from "../app/RootStore.js";
-import {
-  LOCATION_EVENT_THROTTLE_MS,
-} from "../domain/routingDiagnosticsModels.js";
+import { LOCATION_EVENT_THROTTLE_MS } from "../domain/routingDiagnosticsModels.js";
 import type { RoutingDiagnosticsStore } from "./RoutingDiagnosticsStore.js";
 
 const AUTO_STOP_AFTER_ARRIVAL_MS = 5_000;

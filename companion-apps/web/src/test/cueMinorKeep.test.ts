@@ -9,20 +9,33 @@ import {
 } from "../integrations/cues/CueEngine.js";
 
 const M_SLIGHT_LEFT = (id: string, distance: number): CueManeuver => ({
-  id, kind: "slightLeft", distanceFromStartM: distance,
+  id,
+  kind: "slightLeft",
+  distanceFromStartM: distance,
 });
 const M_SLIGHT_RIGHT = (id: string, distance: number): CueManeuver => ({
-  id, kind: "slightRight", distanceFromStartM: distance,
+  id,
+  kind: "slightRight",
+  distanceFromStartM: distance,
 });
 const M_LEFT = (id: string, distance: number): CueManeuver => ({
-  id, kind: "left", distanceFromStartM: distance,
+  id,
+  kind: "left",
+  distanceFromStartM: distance,
 });
 
 function base(overrides: Partial<CueSnapshot> = {}): CueSnapshot {
   return {
-    routeId: "r1", pairedWithDevice: false, progressDistanceM: 0,
-    maneuvers: [M_LEFT("m1", 200)], offRoute: false, rerouting: false,
-    arrived: false, distanceFromRouteM: 0, routeTotalDistanceM: 1000, ...overrides,
+    routeId: "r1",
+    pairedWithDevice: false,
+    progressDistanceM: 0,
+    maneuvers: [M_LEFT("m1", 200)],
+    offRoute: false,
+    rerouting: false,
+    arrived: false,
+    distanceFromRouteM: 0,
+    routeTotalDistanceM: 1000,
+    ...overrides,
   };
 }
 function tick(s: CueEngineState, snap: CueSnapshot): { events: CueEvent[]; next: CueEngineState } {

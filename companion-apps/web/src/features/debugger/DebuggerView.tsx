@@ -93,7 +93,12 @@ export const DebuggerView = observer(({ store }: Props) => {
   // Keyboard shortcuts
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement
+      )
+        return;
       if (e.key === " ") {
         e.preventDefault();
         dStore.playbackState === "playing" ? dStore.pause() : dStore.play();
@@ -119,9 +124,18 @@ export const DebuggerView = observer(({ store }: Props) => {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div className={`debugger-empty__dropzone${isDragOver ? " debugger-empty__dropzone--active" : ""}`}>
+        <div
+          className={`debugger-empty__dropzone${isDragOver ? " debugger-empty__dropzone--active" : ""}`}
+        >
           <div className="debugger-empty__icon">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 48 48"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M24 4v28M14 18l10-10 10 10M8 36v4a4 4 0 004 4h24a4 4 0 004-4v-4" />
             </svg>
           </div>
@@ -153,11 +167,7 @@ export const DebuggerView = observer(({ store }: Props) => {
           />
           {importError && <div className="debugger-empty__error">{importError}</div>}
         </div>
-        <button
-          type="button"
-          className="debugger-empty__back"
-          onClick={() => store.goSettings()}
-        >
+        <button type="button" className="debugger-empty__back" onClick={() => store.goSettings()}>
           Back to Settings
         </button>
       </div>
@@ -175,11 +185,20 @@ export const DebuggerView = observer(({ store }: Props) => {
 
       {/* Header bar */}
       <div className="debugger-view__header">
-        <button type="button" className="debugger-view__back-btn" onClick={() => { dStore.stopPlayback(); store.goSettings(); }}>
+        <button
+          type="button"
+          className="debugger-view__back-btn"
+          onClick={() => {
+            dStore.stopPlayback();
+            store.goSettings();
+          }}
+        >
           &larr; Settings
         </button>
         <span className="debugger-view__session-id">{dStore.session.diagSession.id}</span>
-        <span className="debugger-view__event-count">{dStore.session.diagSession.events.length} events</span>
+        <span className="debugger-view__event-count">
+          {dStore.session.diagSession.events.length} events
+        </span>
         <div className="debugger-view__header-actions">
           <button
             type="button"
@@ -227,7 +246,9 @@ export const DebuggerView = observer(({ store }: Props) => {
           </div>
         )}
 
-        <div className={`debugger-view__sidebar${!sidebarOpen ? " debugger-view__sidebar--closed" : ""}`}>
+        <div
+          className={`debugger-view__sidebar${!sidebarOpen ? " debugger-view__sidebar--closed" : ""}`}
+        >
           <DebuggerEventPanel store={store} onCloseSidebar={() => setSidebarOpen(false)} />
         </div>
         {!sidebarOpen && (
@@ -265,7 +286,14 @@ export const DebuggerView = observer(({ store }: Props) => {
 
 function SidebarToggleIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
       <path d="M6 4l4 4-4 4" />
     </svg>
   );
