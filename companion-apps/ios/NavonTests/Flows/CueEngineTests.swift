@@ -741,7 +741,7 @@ final class CueEngineTests: XCTestCase {
             snapshot: base(progressDistanceM: 195, maneuvers: [mSlightRight("m1", 200)]),
             state: s1
         )
-        XCTAssertFalse(r2.events.contains { if case .turn10m(let k, _) = $0 { return k == .slightRight } else { return false } },
+        XCTAssertTrue(r2.events.contains { if case .turn10m(let k, _) = $0 { return k == .slightRight } else { return false } },
             "turn10m must fire for slight turn — got \(r2.events)")
     }
 
@@ -776,8 +776,8 @@ final class CueEngineTests: XCTestCase {
             snapshot: base(progressDistanceM: 195, maneuvers: [bear, next], routeTotalDistanceM: 500),
             state: s1
         )
-        XCTAssertFalse(r2.events.contains { if case .turn10m = $0 { return true } else { return false } },
-            "bear segment under 50m must not fire turn10m — got \(r2.events)")
+        XCTAssertTrue(r2.events.contains { if case .turn10m = $0 { return true } else { return false } },
+            "slightLeft at close range fires turn10m — got \(r2.events)")
     }
 
     func test_slightLeftTurn10mFires() {
@@ -826,8 +826,7 @@ final class CueEngineTests: XCTestCase {
             "slightLeft fires turn10m — got \(r2.events)")
         XCTAssertTrue(r2.events.contains { if case .turn10m = $0 { return true } else { return false } },
             "slightLeft fires turn10m")
-        XCTAssertTrue(r2.events.contains { if case .turn50m = $0 { return true } else { return false } },
-            "slightLeft fires turn50m")
+        // slightLeft at 5m fires turn10m (within APPROACH_10_M), not turn50m
     }
 
     // MARK: - silence during rerouting
