@@ -12,7 +12,7 @@ test.describe("Settings expansion — top-of-page toggles + gating", () => {
     await injectFakeGeolocation(page);
   });
 
-  test("renders the four activity toggles in spec order at the top", async ({ page }) => {
+  test("renders the activity toggles in spec order at the top", async ({ page }) => {
     await page.goto("/");
     await page.evaluate(() => window.localStorage.clear());
     await page.reload();
@@ -28,6 +28,7 @@ test.describe("Settings expansion — top-of-page toggles + gating", () => {
       "setting-allowBackgroundGps",
       "setting-audioCuesEnabled",
       "setting-liveActivityEnabled",
+      "setting-routingDiagnosticsEnabled",
     ]);
   });
 
@@ -60,7 +61,7 @@ test.describe("Settings expansion — top-of-page toggles + gating", () => {
     await expect(cuesCheckbox).toBeChecked();
   });
 
-  test("the four toggles persist across page reload", async ({ page }) => {
+  test("the activity toggles persist across page reload", async ({ page }) => {
     await page.goto("/");
     await page.evaluate(() => window.localStorage.clear());
     await page.reload();
