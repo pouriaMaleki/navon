@@ -527,6 +527,42 @@ describe("CueEngine — skip turn50m cue when next turn is < 100m away", () => {
   });
 });
 
+describe("CueEngine — nextTurnInAbout distance gate", () => {
+  it("suppresses nextTurnInAbout when next maneuver is within 50m (left)", () => {
+    const m1 = M_LEFT("m1", 400);
+    const m2 = M_LEFT("m2", 445);
+    const snap = (progress: number) =>
+      baseSnapshot({ maneuvers: [m1, m2], progressDistanceM: progress, routeTotalDistanceM: 1000 });
+    const s1 = tick(initialCueEngineState(), snap(100));
+    const s2 = tick(s1.next, snap(411)); // 11m past m1, m2 at 34m ≤ 50m
+    expect(s2.events.find((e) => e.kind === "nextTurnInAbout")).toBeUndefined();
+    expect(s2.events.find((e) => e.kind === "turn50m")).toBeDefined();
+  });
+
+  it("suppresses nextTurnInAbout when next maneuver is within 50m (slightLeft)", () => {
+    const m1 = M_SLIGHT_LEFT("m1", 400);
+    const m2 = M_SLIGHT_LEFT("m2", 445);
+    const snap = (progress: number) =>
+      baseSnapshot({ maneuvers: [m1, m2], progressDistanceM: progress, routeTotalDistanceM: 1000 });
+    const s1 = tick(initialCueEngineState(), snap(100));
+    const s2 = tick(s1.next, snap(411)); // 11m past m1, m2 at 34m ≤ 50m
+    expect(s2.events.find((e) => e.kind === "nextTurnInAbout")).toBeUndefined();
+    expect(s2.events.find((e) => e.kind === "turn50m")).toBeDefined();
+  });
+
+  it("emits nextTurnInAbout when next maneuver is beyond 50m (right)", () => {
+    const m1 = M_RIGHT("m1", 400);
+    const m2 = M_RIGHT("m2", 500);
+    const snap = (progress: number) =>
+      baseSnapshot({ maneuvers: [m1, m2], progressDistanceM: progress, routeTotalDistanceM: 1000 });
+    const s1 = tick(initialCueEngineState(), snap(100));
+    const s2 = tick(s1.next, snap(411)); // 11m past m1, m2 at 89m > 50m
+    expect(s2.events.find((e) => e.kind === "nextTurnInAbout")).toBeDefined();
+    // turn50m should be pre-latched (89 < 100)
+    expect(s2.events.find((e) => e.kind === "turn50m")).toBeUndefined();
+  });
+});
+
 describe("CueEngine — slight turns are first-class cues", () => {
   it("maneuverKindFromType maps slightLeft to slightLeft", () => {
     expect(maneuverKindFromType("slightLeft")).toEqual("slightLeft");

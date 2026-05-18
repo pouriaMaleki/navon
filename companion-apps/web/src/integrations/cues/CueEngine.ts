@@ -454,7 +454,7 @@ export function tickCueEngine(
             announced50m.add(nextAfter.id);
             announced10m.add(nextAfter.id);
           }
-        } else {
+        } else if (distanceToNext > APPROACH_50_M) {
           events.push({
             kind: "nextTurnInAbout",
             turnKind: nextAfter.kind,
@@ -463,6 +463,8 @@ export function tickCueEngine(
           if (distanceToNext < SKIP_50M_BELOW_DISTANCE_M) {
             announced50m.add(nextAfter.id);
           }
+          announcedNextTurnAfter.add(lastPassed.id);
+        } else {
           announcedNextTurnAfter.add(lastPassed.id);
         }
       } else if (!s.approachingDestinationAnnounced && !snapshot.arrived) {

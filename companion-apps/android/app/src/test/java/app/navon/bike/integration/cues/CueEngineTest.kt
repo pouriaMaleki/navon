@@ -444,6 +444,48 @@ class CueEngineTest {
             s3.events.firstOrNull { it is CueEvent.Turn50m })
     }
 
+    // ─── nextTurnInAbout distance gate: suppressed when next ≤ 50m ────────────
+
+    @Test
+    fun nextTurnInAbout_suppressed_whenNextManeuverWithin50m() {
+        val m1 = CueManeuver("m1", ManeuverKind.LEFT, 400.0)
+        val m2 = CueManeuver("m2", ManeuverKind.LEFT, 445.0)
+        val maneuvers = listOf(m1, m2)
+        val s1 = CueEngine.tick(base(progressDistanceM = 100.0, maneuvers = maneuvers), CueEngineState()).nextState
+        val s2 = CueEngine.tick(base(progressDistanceM = 411.0, maneuvers = maneuvers), s1)
+        assertNull("nextTurnInAbout must NOT fire when next is 34m away (≤ 50m)",
+            s2.events.firstOrNull { it is CueEvent.NextTurnInAbout })
+        assertNotNull("turn50m must fire from upcoming section",
+            s2.events.firstOrNull { it is CueEvent.Turn50m })
+    }
+
+    @Test
+    fun nextTurnInAbout_suppressed_whenNextManeuverWithin50m_slightLeft() {
+        val m1 = CueManeuver("m1", ManeuverKind.SLIGHT_LEFT, 400.0)
+        val m2 = CueManeuver("m2", ManeuverKind.SLIGHT_LEFT, 445.0)
+        val maneuvers = listOf(m1, m2)
+        val s1 = CueEngine.tick(base(progressDistanceM = 100.0, maneuvers = maneuvers), CueEngineState()).nextState
+        val s2 = CueEngine.tick(base(progressDistanceM = 411.0, maneuvers = maneuvers), s1)
+        assertNull("nextTurnInAbout must NOT fire when next is 34m away (≤ 50m)",
+            s2.events.firstOrNull { it is CueEvent.NextTurnInAbout })
+        assertNotNull("turn50m must fire from upcoming section",
+            s2.events.firstOrNull { it is CueEvent.Turn50m })
+    }
+
+    @Test
+    fun nextTurnInAbout_emits_whenNextManeuverBeyond50m() {
+        val m1 = CueManeuver("m1", ManeuverKind.RIGHT, 400.0)
+        val m2 = CueManeuver("m2", ManeuverKind.RIGHT, 500.0)
+        val maneuvers = listOf(m1, m2)
+        val s1 = CueEngine.tick(base(progressDistanceM = 100.0, maneuvers = maneuvers), CueEngineState()).nextState
+        val s2 = CueEngine.tick(base(progressDistanceM = 411.0, maneuvers = maneuvers), s1)
+        assertNotNull("nextTurnInAbout must fire when next is 89m away (> 50m)",
+            s2.events.firstOrNull { it is CueEvent.NextTurnInAbout })
+        // turn50m must be pre-latched (89 < 100)
+        assertNull("turn50m must not fire — was pre-latched by nextTurnInAbout",
+            s2.events.firstOrNull { it is CueEvent.Turn50m })
+    }
+
     // ─── first-class roundabout / merge / ramp cues (bug 2) ──────────────────
 
     @Test

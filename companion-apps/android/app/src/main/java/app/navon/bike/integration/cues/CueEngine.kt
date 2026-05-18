@@ -414,7 +414,7 @@ object CueEngine {
                             announced50m.add(nextAfter.id)
                             announced10m.add(nextAfter.id)
                         }
-                    } else {
+                    } else if (distanceToNext > APPROACH_50_M) {
                         events.add(
                             CueEvent.NextTurnInAbout(
                                 turnKind = nextAfter.kind,
@@ -425,6 +425,8 @@ object CueEngine {
                         if (distanceToNext < SKIP_50M_BELOW_DISTANCE_M) {
                             announced50m.add(nextAfter.id)
                         }
+                    } else {
+                        announcedNextTurnAfter.add(lastPassed.id)
                     }
                 } else if (!s.approachingDestinationAnnounced && !snapshot.arrived) {
                     // Bug 4: skip ArrivingInM when the rider has already

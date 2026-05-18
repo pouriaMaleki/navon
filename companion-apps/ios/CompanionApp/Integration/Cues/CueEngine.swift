@@ -333,7 +333,7 @@ enum CueEngine {
                             announced50m.insert(nextAfter.id)
                             announced10m.insert(nextAfter.id)
                         }
-                    } else {
+                    } else if distanceToNext > Self.approach50M {
                         events.append(.nextTurnInAbout(
                             turnKind: nextAfter.kind,
                             distanceM: distanceToNext
@@ -344,6 +344,8 @@ enum CueEngine {
                         if distanceToNext < Self.skip50mBelowDistanceM {
                             announced50m.insert(nextAfter.id)
                         }
+                        announcedNextTurnAfter.insert(lastPassed.id)
+                    } else {
                         announcedNextTurnAfter.insert(lastPassed.id)
                     }
                 } else if !s.approachingDestinationAnnounced && !snapshot.arrived {
