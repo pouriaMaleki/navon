@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 
+env:
+  ANDROID_HOME: /usr/local/android-sdk
+  JAVA_HOME: /usr/local/jdk21
+
 jobs:
   build:
     name: Validate Android Companion
