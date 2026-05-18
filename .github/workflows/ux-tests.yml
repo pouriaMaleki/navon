@@ -27,7 +27,7 @@ jobs:
       - self-hosted
       - Linux
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Generate map-data placeholder
         run: |
           mkdir -p data/map-data
@@ -53,7 +53,7 @@ jobs:
       run:
         working-directory: companion-apps/web
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Regenerate GPS fixtures
         working-directory: .
         run: |
@@ -78,7 +78,7 @@ jobs:
       run:
         working-directory: companion-apps/android
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run JVM tests
         run: ./gradlew :app:testDebugUnitTest --no-daemon --no-build-cache --rerun-tasks --tests "app.navon.bike.integration.cues.*"
 
@@ -93,7 +93,7 @@ jobs:
       run:
         working-directory: companion-apps/web
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: npm ci
       - run: npx playwright install chromium
       - run: npm run test:e2e
