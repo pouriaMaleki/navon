@@ -6,10 +6,8 @@ services:
     env_file: .env
     volumes:
       - runner-config:/opt/actions-runner/_config
-      - playwright-browsers:/opt/playwright-browsers
       - ../..:/work
     restart: unless-stopped
 
 volumes:
   runner-config:
-  playwright-browsers:
