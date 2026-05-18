@@ -95,6 +95,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: npm ci
+      - run: npx playwright install chromium
       - run: npm run test:e2e
 
   android-instrumented:

@@ -39,11 +39,8 @@ ENV PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tool
 RUN yes 2>/dev/null | sdkmanager --licenses > /dev/null || true \
     && sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-# Playwright browsers in a shared path so the runner user can find them
-ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers
-RUN npm install -g playwright@latest \
-    && npx playwright install-deps chromium \
-    && npx playwright install chromium
+# Playwright system deps only (browsers downloaded by CI step to match package-lock version)
+RUN npx playwright install-deps chromium 2>/dev/null || true
 
 # GitHub Actions runner
 ARG RUNNER_VERSION=2.334.0
@@ -54,8 +51,6 @@ RUN curl -sL -o /tmp/runner.tar.gz \
     && rm /tmp/runner.tar.gz \
     && /opt/actions-runner/bin/installdependencies.sh
 
-# Runner config persists in a volume; binaries stay in the image.
-# Entrypoint copies config into place if missing, then execs.
 COPY entrypoint.sh /opt/actions-runner/
 RUN chmod +x /opt/actions-runner/entrypoint.sh \
     && useradd -m runner \

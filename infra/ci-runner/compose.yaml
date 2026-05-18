@@ -6,7 +6,6 @@ services:
     env_file: .env
     volumes:
       - runner-config:/opt/actions-runner/_config
-      - ../..:/work
     restart: unless-stopped
 
 volumes:
