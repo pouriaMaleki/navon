@@ -79,15 +79,17 @@ jobs:
       - name: Regenerate Xcode project
         working-directory: companion-apps/ios
         run: xcodegen generate
-      - name: Build for simulator
+      - name: Build unsigned simulator app
         working-directory: companion-apps/ios
         run: |
-          xcodebuild build \
+          xcodebuild \
             -project Navon.xcodeproj \
             -scheme Navon \
+            -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO
-      - name: Run tests
+            CODE_SIGNING_ALLOWED=NO \
+            build
+      - name: Run unit tests
         working-directory: companion-apps/ios
         run: |
           xcodebuild test \
