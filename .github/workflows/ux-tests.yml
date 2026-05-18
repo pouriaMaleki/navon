@@ -95,10 +95,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: npm ci
-      - run: |
-          npx playwright test --reporter=list 2>&1
-        env:
-          DEBUG: pw:webserver
+      - run: npm run test:e2e
 
   android-instrumented:
     name: companion-apps/android Espresso (slow — NOT WIRED)
