@@ -79,11 +79,17 @@ jobs:
       - name: Regenerate Xcode project
         working-directory: companion-apps/ios
         run: xcodegen generate
-      - name: Run tests (JVM-style, no device)
+      - name: Build for simulator
         working-directory: companion-apps/ios
-        shell: bash
         run: |
-          set -euo pipefail
+          xcodebuild build \
+            -project Navon.xcodeproj \
+            -scheme Navon \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Run tests
+        working-directory: companion-apps/ios
+        run: |
           xcodebuild test \
             -project Navon.xcodeproj \
             -scheme Navon \
