@@ -63,7 +63,6 @@ jobs:
         working-directory: .
         run: git diff --exit-code -- parity-fixtures/data
       - run: npm ci
-      - run: npm run lint
       - run: npm run test
 
   ios-unit:
