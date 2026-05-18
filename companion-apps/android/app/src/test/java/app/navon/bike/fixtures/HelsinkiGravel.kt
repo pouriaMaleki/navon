@@ -21,6 +21,7 @@ object HelsinkiGravel {
         val root = File(System.getProperty("user.dir") ?: ".").absoluteFile
         // user.dir for a JVM test is `companion-android/app` — go up to repo root.
         val candidates = listOf(
+            File(root, "../../../data/parity-fixtures/data/helsinki-gravel/stream.jsonl"),
             File(root, "../../parity-fixtures/data/helsinki-gravel/stream.jsonl"),
             File(root, "../parity-fixtures/data/helsinki-gravel/stream.jsonl"),
             File(root, "parity-fixtures/data/helsinki-gravel/stream.jsonl"),

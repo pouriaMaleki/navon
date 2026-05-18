@@ -25,12 +25,13 @@ import org.junit.Test
 class CyclingRoutingTest {
 
     private fun fixtureRoot(): File {
-        // The test runs from companion-android/app; parity-fixtures is two up.
+        // The test runs from companion-android/app; parity-fixtures is at repo-root/data/.
         return File(System.getProperty("user.dir") ?: ".")
             .parentFile
             ?.parentFile
-            ?.resolve("parity-fixtures/data/cycling")
-            ?: error("parity-fixtures/data/cycling not found")
+            ?.parentFile
+            ?.resolve("data/parity-fixtures/data/cycling")
+            ?: error("data/parity-fixtures/data/cycling not found")
     }
 
     private fun loadFixture(name: String): JSONObject {

@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.annotation.SuppressLint
 import java.util.UUID
 import app.navon.bike.domain.SharedImportClassification
 import app.navon.bike.domain.SharedImportDisposition
@@ -22,6 +23,7 @@ class AndroidShareImportParser(private val contentResolver: ContentResolver) {
         }
     }
 
+    @SuppressLint("NewApi")
     private fun rawItemsFrom(intent: Intent): List<RawSharedItem> {
         val action = intent.action.orEmpty()
         val multiple = mutableListOf<RawSharedItem>()

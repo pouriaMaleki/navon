@@ -102,7 +102,7 @@ class PairingQrPayloadTest {
         // documented schema.
         // Tests run with cwd = `companion-android/app/`; the parity fixtures
         // live two levels up at the repo root.
-        val fixture = File("../../parity-fixtures/data/pairing_qr_v1.json").readText()
+        val fixture = File("../../../data/parity-fixtures/data/pairing_qr_v1.json").readText()
         val decoded = PairingQrPayload.decode(fixture)
         assertEquals("AA:BB:CC:DD:EE:FF", decoded.peripheralIdentifier)
         assertArrayEquals(ByteArray(32) { 0x42 }, decoded.ephemeralSecret)

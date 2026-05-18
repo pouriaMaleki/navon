@@ -63,7 +63,7 @@ jobs:
         working-directory: .
         run: git diff --exit-code -- parity-fixtures/data
       - run: npm ci
-      - run: npm run lint || true
+      - run: npm run lint
       - run: npm run test
 
   # iOS XCTest runs in the dedicated Navon iOS workflow (companion-ios-self-hosted.yml)
@@ -80,7 +80,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Run JVM tests
-        run: ./gradlew :app:testDebugUnitTest --no-daemon --no-build-cache --rerun-tasks --tests "app.navon.bike.integration.cues.*"
+        run: ./gradlew :app:testDebugUnitTest --no-daemon --no-build-cache --rerun-tasks 
 
   # ─── Slow lane (main + nightly) ─────────────────────────────────────────
   web-e2e:

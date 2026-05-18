@@ -44,9 +44,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Lint
-        run: ./gradlew lintDebug --no-daemon || true
+        run: ./gradlew lintDebug --no-daemon
       - name: Unit tests
-        run: ./gradlew :app:testDebugUnitTest --no-daemon --tests "app.navon.bike.integration.cues.*"
+        run: ./gradlew :app:testDebugUnitTest --no-daemon 
       - name: Assemble debug APK
         run: ./gradlew assembleDebug --no-daemon
 

@@ -69,7 +69,7 @@ configurations.all {
         force("org.bouncycastle:bcprov-jdk18on:1.84")
         force("org.bouncycastle:bcpkix-jdk18on:1.84")
         force("org.bouncycastle:bcutil-jdk18on:1.84")
-        force("com.google.guava:guava:32.0.1-android")
+        force("com.google.guava:guava:33.4.8-android")
     }
 }
 
@@ -113,6 +113,7 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.ext.junit)
+    testImplementation(libs.json)
 
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)

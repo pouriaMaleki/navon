@@ -68,7 +68,7 @@ class AutoRerouteTest {
             appState = state,
             placeSearchService = FakePlaceSearch(),
             autoRerouteDispatcher = { rider -> rerouteAttempts += rider },
-            autoRerouteScope = backgroundScope,
+            autoRerouteScope = this,
         )
         val route = straightRoute()
         state.preview = RoutePreviewModel(

@@ -1,10 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { tIn } from "../i18n/index.js";
-import { type CueEvent, type ManeuverKind, cueMessage } from "../integrations/cues/CueEngine.js";
+import { type CueEvent, cueMessage, type ManeuverKind } from "../integrations/cues/CueEngine.js";
 
 const ALL_KINDS: ManeuverKind[] = [
-  "left", "right", "slightLeft", "slightRight",
-  "exitLeft", "exitRight", "uturn", "roundabout", "merge", "ramp", "generic",
+  "left",
+  "right",
+  "slightLeft",
+  "slightRight",
+  "exitLeft",
+  "exitRight",
+  "uturn",
+  "roundabout",
+  "merge",
+  "ramp",
+  "generic",
 ];
 
 const ALL_KIND_PAIRS: [ManeuverKind, ManeuverKind][] = [];
@@ -20,8 +29,8 @@ function enText(event: CueEvent): string {
 }
 
 /** ICU select fallback values that indicate a missing branch in the i18n catalog. */
-const ICU_FALLBACKS = /^Continue$|^follow the route$|^ahead$|^Continue then immediately ahead$|^In .*follow the route then quickly ahead$/;
-
+const ICU_FALLBACKS =
+  /^Continue$|^follow the route$|^ahead$|^Continue then immediately ahead$|^In .*follow the route then quickly ahead$/;
 
 describe("cueMessage coverage — every ManeuverKind produces valid EN text", () => {
   for (const k of ALL_KINDS) {
@@ -52,7 +61,12 @@ describe("cueMessage coverage — every ManeuverKind produces valid EN text", ()
 describe("cueMessage coverage — combined cues for every kind pair", () => {
   for (const [first, second] of ALL_KIND_PAIRS) {
     it(`turn50mCombined first=${first} second=${second}`, () => {
-      const text = enText({ kind: "turn50m", turnKind: first, distanceM: 30, followUpKind: second });
+      const text = enText({
+        kind: "turn50m",
+        turnKind: first,
+        distanceM: 30,
+        followUpKind: second,
+      });
       expect(text.length).toBeGreaterThan(0);
       // generic is a catch-all — its other branch is intentional
       if (first !== "generic" && second !== "generic") {
