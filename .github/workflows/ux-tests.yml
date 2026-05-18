@@ -30,12 +30,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Generate map-data placeholder
         run: |
-          mkdir -p map-data
+          mkdir -p data/map-data
           python3 - <<'PY'
           import struct
           out = (b'SVM1' + struct.pack('<i', 12) + struct.pack('<iiii', 0,0,0,0)
                  + struct.pack('<H', 0) + struct.pack('<I', 0))
-          open('map-data/city.svm', 'wb').write(out)
+          open('data/map-data/city.svm', 'wb').write(out)
           PY
       - name: Regenerate GPS fixtures
         run: cargo run -p xtask --bin gen-gps-fixtures
@@ -57,7 +57,7 @@ jobs:
       - name: Regenerate GPS fixtures
         working-directory: .
         run: |
-          mkdir -p map-data && python3 -c "import struct; open('map-data/city.svm','wb').write(b'SVM1'+struct.pack('<i',12)+struct.pack('<iiii',0,0,0,0)+struct.pack('<H',0)+struct.pack('<I',0))"
+          mkdir -p data/map-data && python3 -c "import struct; open('data/map-data/city.svm','wb').write(b'SVM1'+struct.pack('<i',12)+struct.pack('<iiii',0,0,0,0)+struct.pack('<H',0)+struct.pack('<I',0))"
           cargo run -p xtask --bin gen-gps-fixtures
       - name: Verify committed GPS fixtures are up to date
         working-directory: .
