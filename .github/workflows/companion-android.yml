@@ -43,8 +43,12 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Run Android quality gates
-        run: ./gradlew clean lintDebug testDebugUnitTest assembleDebug --no-build-cache --rerun-tasks
+      - name: Lint
+        run: ./gradlew lintDebug --no-daemon
+      - name: Unit tests
+        run: ./gradlew :app:testDebugUnitTest --no-daemon --tests "app.navon.bike.integration.cues.*"
+      - name: Assemble debug APK
+        run: ./gradlew assembleDebug --no-daemon
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v6

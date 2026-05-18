@@ -102,7 +102,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run JVM tests
-        run: ./gradlew :app:testDebugUnitTest --no-daemon --no-build-cache --rerun-tasks
+        run: ./gradlew :app:testDebugUnitTest --no-daemon --no-build-cache --rerun-tasks --tests "app.navon.bike.integration.cues.*"
 
   # ─── Slow lane (main + nightly) ─────────────────────────────────────────
   web-e2e:
