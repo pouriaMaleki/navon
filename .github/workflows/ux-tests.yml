@@ -66,38 +66,8 @@ jobs:
       - run: npm run lint || true
       - run: npm run test
 
-  ios-unit:
-    name: companion-apps/ios XCTest (fast)
-    runs-on:
-      - self-hosted
-      - macOS
-    if: github.repository_owner == github.repository_owner  # always, but leaves a seam
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install xcodegen
-        run: brew install xcodegen
-      - name: Regenerate Xcode project
-        working-directory: companion-apps/ios
-        run: xcodegen generate
-      - name: Build unsigned simulator app
-        working-directory: companion-apps/ios
-        run: |
-          xcodebuild \
-            -project Navon.xcodeproj \
-            -scheme Navon \
-            -configuration Debug \
-            -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO \
-            build
-      - name: Run unit tests
-        working-directory: companion-apps/ios
-        run: |
-          xcodebuild test \
-            -project Navon.xcodeproj \
-            -scheme Navon \
-            -only-testing:NavonTests \
-            -destination 'platform=iOS Simulator,name=iPad (A16),OS=26.5' \
-            CODE_SIGNING_ALLOWED=NO
+  # iOS XCTest runs in the dedicated Navon iOS workflow (companion-ios-self-hosted.yml)
+  # to avoid duplicating the xcodegen/xcodebuild setup on the macOS runner.
 
   android-jvm:
     name: companion-apps/android JVM tests (fast)
