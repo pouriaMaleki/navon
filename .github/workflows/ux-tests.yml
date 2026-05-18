@@ -98,20 +98,4 @@ jobs:
       - run: npx playwright install chromium
       - run: npm run test:e2e
 
-  android-instrumented:
-    name: companion-apps/android Espresso (slow — NOT WIRED)
-    # Explicitly disabled until the emulator runner is wired up (plan flow #46,
-    # #32, #33, #34). Do not flip `if:` to true before adding
-    # reactivecircus/android-emulator-runner@v2 to the steps below, otherwise
-    # the placeholder step fails hard instead of passing silently.
-    if: false
-    runs-on: ubuntu-latest
-    # Fail hard on purpose if this job is ever enabled without real coverage.
-    continue-on-error: false
-    steps:
-      - uses: actions/checkout@v4
-      - name: Not wired — fails on purpose if run
-        run: |
-          echo "android-instrumented is NOT WIRED. Add reactivecircus/android-emulator-runner@v2 here before flipping \`if:\` to true."
-          exit 1
 
