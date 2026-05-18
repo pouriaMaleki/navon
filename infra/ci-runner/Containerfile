@@ -39,7 +39,8 @@ ENV PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tool
 RUN yes 2>/dev/null | sdkmanager --licenses > /dev/null || true \
     && sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-# Playwright browsers (installed at build time so CI step doesn't need root)
+# Playwright browsers in a shared path so the runner user can find them
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers
 RUN npm install -g playwright@latest \
     && npx playwright install-deps chromium \
     && npx playwright install chromium
