@@ -25,6 +25,8 @@ jobs:
 
           unsupported_manifests="$(
             find . -type f \
+              -not -path '*/.embuild/*' \
+              -not -path '*/target/*' \
               \( \
                 -name 'Package.swift' -o \
                 -name 'Package.resolved' -o \

@@ -26,7 +26,7 @@ log = "0.4"
 
 [target.'cfg(target_os = "espidf")'.dependencies]
 esp-idf-svc = { version = "0.52.1", features = ["binstart"] }
-enumset = "1.1.10"
+enumset = "1.1.13"
 
 [build-dependencies]
 embuild = { version = "0.33", features = ["espidf"] }
