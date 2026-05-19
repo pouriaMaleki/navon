@@ -27,11 +27,12 @@ describe("classifyTurn produces valid instruction text for all angle ranges", ()
         expect(result).toBeNull();
       } else {
         expect(result).not.toBeNull();
-        expect(result!.type).toBe(expectedType);
-        expect(result!.instruction.length).toBeGreaterThan(0);
+        const r = result as NonNullable<typeof result>;
+        expect(r.type).toBe(expectedType);
+        expect(r.instruction.length).toBeGreaterThan(0);
         // Instruction must not contain "Bear" — should be "Slight" for slights
         if (expectedType.startsWith("slight")) {
-          expect(result!.instruction).toMatch(/^Slight/);
+          expect(r.instruction).toMatch(/^Slight/);
         }
       }
     });

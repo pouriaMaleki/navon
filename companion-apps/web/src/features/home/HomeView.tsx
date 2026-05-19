@@ -155,9 +155,9 @@ const SpeedBadge = observer(({ store }: { store: RootStore }) => {
     return null;
   const unit = store.settingsStore.settings.speedUnit;
   return (
-    <div className="speed-badge" aria-label="Current speed" role="status">
+    <output className="speed-badge" aria-label="Current speed">
       {formatSpeedLabel(store.locationStore.currentSpeedMps, unit)}
-    </div>
+    </output>
   );
 });
 

@@ -112,7 +112,10 @@ export function buildAnnotationPinFeatures(annotations: Annotation[]): GeoJSON.F
       },
       geometry: {
         type: "Point" as const,
-        coordinates: [a.coordinate!.longitude, a.coordinate!.latitude],
+        coordinates: [
+          (a.coordinate as CoordinatePoint).longitude,
+          (a.coordinate as CoordinatePoint).latitude,
+        ],
       },
     }));
 }

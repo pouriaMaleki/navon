@@ -171,7 +171,8 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
           {/* Event list */}
           <div ref={eventsContainerRef} className="debugger-panel__events">
             {visibleEvents.map((e) => (
-              <div
+              <button
+                type="button"
                 key={e.id}
                 data-event-id={e.id}
                 className={`debugger-panel__event${dStore.selectedEventId === e.id ? " debugger-panel__event--selected" : ""}${e.timestampMs <= dStore.currentTimeMs ? "" : " debugger-panel__event--future"}`}
@@ -182,7 +183,7 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
                   {EVENT_KIND_LABELS[e.data.kind] ?? e.data.kind}
                 </span>
                 <span className="debugger-panel__event-summary">{eventSummary(e)}</span>
-              </div>
+              </button>
             ))}
             {visibleEvents.length === 0 && (
               <div className="debugger-panel__empty">No events match filters.</div>
@@ -200,7 +201,8 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
           ) : (
             <div className="debugger-panel__annotations">
               {dStore.annotations.map((ann) => (
-                <div
+                <button
+                  type="button"
                   key={ann.id}
                   className={`debugger-panel__annotation${dStore.selectedAnnotationId === ann.id ? " debugger-panel__annotation--selected" : ""}`}
                   onClick={() => dStore.selectAnnotation(ann.id)}
@@ -232,7 +234,7 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
                     </button>
                   </div>
                   <div className="debugger-panel__annotation-note">{ann.note}</div>
-                </div>
+                </button>
               ))}
             </div>
           )}

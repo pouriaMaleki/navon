@@ -80,7 +80,8 @@ describe("DebuggerStore", () => {
       const pkg = makeTestPackage();
       store.loadSessionFromPackage(pkg);
       expect(store.session).not.toBeNull();
-      expect(store.session!.diagSession.id).toBe("test-session-1");
+      const s = store.session as NonNullable<typeof store.session>;
+      expect(s.diagSession.id).toBe("test-session-1");
       expect(store.currentTimeMs).toBe(1000000);
     });
   });

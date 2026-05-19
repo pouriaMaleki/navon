@@ -139,10 +139,26 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
       <div
         ref={trackRef}
         className={`debugger-timeline__track${dragging ? " debugger-timeline__track--dragging" : ""}`}
+        role="slider"
+        tabIndex={0}
+        aria-label="Seek"
+        aria-valuenow={Math.round(elapsedMs)}
+        aria-valuemin={0}
+        aria-valuemax={Math.round(durationMs)}
         onMouseDown={onTrackMouseDown}
         onMouseMove={onTrackMouseMove}
         onMouseUp={onTrackMouseUp}
         onMouseLeave={onTrackMouseUp}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowRight") {
+            dStore.stepForward();
+            e.preventDefault();
+          }
+          if (e.key === "ArrowLeft") {
+            dStore.stepBackward();
+            e.preventDefault();
+          }
+        }}
       >
         {/* Event strip */}
         <div className="debugger-timeline__strip">
@@ -194,7 +210,8 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
         {dStore.annotations.map((ann) => {
           const annFrac = durationMs > 0 ? ann.timeRangeMs[0] / durationMs : 0;
           return (
-            <div
+            <button
+              type="button"
               key={ann.id}
               className={`debugger-timeline__pin debugger-timeline__pin--${ann.severity}`}
               style={{ left: `${(annFrac * 100).toFixed(2)}%` }}
@@ -208,13 +225,15 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
         })}
 
         {/* Click-anywhere annotation trigger */}
-        <div
+        <button
+          type="button"
           className="debugger-timeline__click-target"
+          aria-label="Add annotation at position"
           onDoubleClick={(e) => {
-            if (!trackRef.current || durationMs <= 0) return;
+            if (!trackRef.current || durationMs <= 0 || !session) return;
             const rect = trackRef.current.getBoundingClientRect();
             const x = (e.clientX - rect.left) / rect.width;
-            const timeMs = sessionStartTime(session!.diagSession) + x * durationMs;
+            const timeMs = sessionStartTime(session.diagSession) + x * durationMs;
             dStore.openAnnotationForm(timeMs);
           }}
         />
@@ -273,35 +292,40 @@ function buildEventBuckets(
 // Minimal SVG icons inline
 function PlayIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <title>Play</title>
       <path d="M4 2.5v11l9-5.5z" />
     </svg>
   );
 }
 function PauseIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <title>Pause</title>
       <path d="M5 2h2v12H5V2zm4 0h2v12H9V2z" />
     </svg>
   );
 }
 function StopIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <title>Stop</title>
       <rect x="3" y="3" width="10" height="10" rx="1" />
     </svg>
   );
 }
 function StepForwardIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <title>Step forward</title>
       <path d="M4 2.5v11l6-5.5-6-5.5zM12 2v12h1.5V2H12z" />
     </svg>
   );
 }
 function StepBackIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <title>Step back</title>
       <path d="M12 13.5v-11l-6 5.5 6 5.5zM4 14V2H2.5v12H4z" />
     </svg>
   );

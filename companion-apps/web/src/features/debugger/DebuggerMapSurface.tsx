@@ -354,7 +354,9 @@ function LocateIcon() {
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
+      aria-hidden="true"
     >
+      <title>Locate</title>
       <circle cx="10" cy="10" r="3" />
       <path d="M10 1v3M10 16v3M1 10h3M16 10h3" />
     </svg>

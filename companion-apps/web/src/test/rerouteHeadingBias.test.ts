@@ -25,7 +25,8 @@ describe("reroute heading bias", () => {
     fetchSpy.mockRestore();
     const route = preview.alternatives[0]?.normalizedPackage;
     expect(route).toBeDefined();
-    expect(route!.geometry[0]).not.toEqual(RIDER);
+    const r = route as NonNullable<typeof route>;
+    expect(r.geometry[0]).not.toEqual(RIDER);
   });
 
   it("falls back to legacy origin for OSM when speed is low", async () => {
@@ -38,7 +39,8 @@ describe("reroute heading bias", () => {
     fetchSpy.mockRestore();
     const route = preview.alternatives[0]?.normalizedPackage;
     expect(route).toBeDefined();
-    expect(route!.geometry[0]).toEqual(RIDER);
+    const r = route as NonNullable<typeof route>;
+    expect(r.geometry[0]).toEqual(RIDER);
   });
 
   it("applies forward-shifted origin for HSL sample reroute when heading is confident", async () => {
@@ -65,6 +67,7 @@ describe("reroute heading bias", () => {
     );
     const route = preview.alternatives[0]?.normalizedPackage;
     expect(route).toBeDefined();
-    expect(route!.geometry[0]).not.toEqual(RIDER);
+    const r = route as NonNullable<typeof route>;
+    expect(r.geometry[0]).not.toEqual(RIDER);
   });
 });

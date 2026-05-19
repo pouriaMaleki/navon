@@ -135,7 +135,9 @@ export const DebuggerView = observer(({ store }: Props) => {
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
+              aria-hidden="true"
             >
+              <title>Upload diagnostic file</title>
               <path d="M24 4v28M14 18l10-10 10 10M8 36v4a4 4 0 004 4h24a4 4 0 004-4v-4" />
             </svg>
           </div>
@@ -276,9 +278,9 @@ export const DebuggerView = observer(({ store }: Props) => {
       </div>
 
       {importError && (
-        <div className="debugger-view__toast" onClick={() => setImportError(null)}>
+        <button type="button" className="debugger-view__toast" onClick={() => setImportError(null)}>
           {importError}
-        </div>
+        </button>
       )}
     </div>
   );
@@ -293,7 +295,9 @@ function SidebarToggleIcon() {
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
+      aria-hidden="true"
     >
+      <title>Show sidebar</title>
       <path d="M6 4l4 4-4 4" />
     </svg>
   );
