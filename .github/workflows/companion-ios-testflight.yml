@@ -9,7 +9,9 @@ permissions:
 jobs:
   upload-testflight:
     name: Build and Upload TestFlight IPA
-    runs-on: macos-latest
+    runs-on:
+      - self-hosted
+      - macOS
     defaults:
       run:
         working-directory: companion-apps/ios
@@ -163,14 +165,14 @@ jobs:
       - name: Upload TestFlight IPA artifact
         uses: actions/upload-artifact@v6
         with:
-          name: companion-apps/ios-testflight-ipa
+          name: ios-testflight-ipa
           path: companion-apps/ios/build/export/*.ipa
           if-no-files-found: error
 
       - name: Upload xcarchive artifact
         uses: actions/upload-artifact@v6
         with:
-          name: companion-apps/ios-testflight-xcarchive
+          name: ios-testflight-xcarchive
           path: companion-apps/ios/build/Navon.xcarchive
           if-no-files-found: error
 

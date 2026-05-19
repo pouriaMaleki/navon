@@ -14,7 +14,8 @@ permissions:
 jobs:
   codeql-availability:
     name: CodeQL Availability
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
     outputs:
       run_codeql: ${{ steps.decide.outputs.run_codeql }}
     steps:
@@ -40,7 +41,8 @@ jobs:
     needs: codeql-availability
     if: needs.codeql-availability.outputs.run_codeql == 'true'
     name: Analyze (${{ matrix.language }})
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
     strategy:
       fail-fast: false
       matrix:
@@ -65,7 +67,8 @@ jobs:
     needs: codeql-availability
     if: needs.codeql-availability.outputs.run_codeql != 'true'
     name: CodeQL Unavailable
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
     steps:
       - name: Explain skip
         run: |
