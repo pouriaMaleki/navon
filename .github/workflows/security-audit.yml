@@ -76,7 +76,8 @@ jobs:
 
   cargo-audit:
     name: Cargo Audit
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
     env:
       SECURITY_ENFORCE: ${{ vars.SECURITY_ENFORCE || 'true' }}
     steps:
