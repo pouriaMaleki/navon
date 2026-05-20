@@ -7,6 +7,7 @@ import {
   type AnnotationTag,
 } from "../../domain/debuggerModels.js";
 import type { RoutingDiagEvent } from "../../domain/routingDiagnosticsModels.js";
+import styles from "./DebuggerEventPanel.module.css";
 
 type Props = { store: RootStore; onCloseSidebar?: () => void };
 type PanelTab = "events" | "annotations" | "export";
@@ -58,10 +59,8 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
 
   if (!session) {
     return (
-      <div className="debugger-panel">
-        <div className="debugger-panel__empty">
-          No session loaded. Import a diagnostic file to begin.
-        </div>
+      <div className={styles.panel}>
+        <div className={styles.empty}>No session loaded. Import a diagnostic file to begin.</div>
       </div>
     );
   }
@@ -117,25 +116,27 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
   };
 
   return (
-    <div className="debugger-panel">
-      <div className="debugger-panel__tabs">
+    <div className={styles.panel}>
+      <div className={styles.tabs}>
         <button
           type="button"
-          className={`debugger-panel__tab${tab === "events" ? " debugger-panel__tab--active" : ""}`}
+          className={[styles.tab, tab === "events" && styles.tabActive].filter(Boolean).join(" ")}
           onClick={() => setTab("events")}
         >
           Events ({session.diagSession.events.length})
         </button>
         <button
           type="button"
-          className={`debugger-panel__tab${tab === "annotations" ? " debugger-panel__tab--active" : ""}`}
+          className={[styles.tab, tab === "annotations" && styles.tabActive]
+            .filter(Boolean)
+            .join(" ")}
           onClick={() => setTab("annotations")}
         >
           Notes ({dStore.annotations.length})
         </button>
         <button
           type="button"
-          className={`debugger-panel__tab${tab === "export" ? " debugger-panel__tab--active" : ""}`}
+          className={[styles.tab, tab === "export" && styles.tabActive].filter(Boolean).join(" ")}
           onClick={() => setTab("export")}
         >
           Export
@@ -143,7 +144,7 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
         {onCloseSidebar && (
           <button
             type="button"
-            className="debugger-panel__close-btn"
+            className={styles.closeBtn}
             onClick={onCloseSidebar}
             title="Close sidebar"
           >
@@ -153,11 +154,11 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
       </div>
 
       {tab === "events" && (
-        <div className="debugger-panel__content">
+        <div className={styles.content}>
           {/* Filters */}
-          <div className="debugger-panel__filters">
+          <div className={styles.filters}>
             {allKinds.map((kind) => (
-              <label key={kind} className="debugger-panel__filter">
+              <label key={kind} className={styles.filter}>
                 <input
                   type="checkbox"
                   checked={filterKinds.has(kind)}
@@ -169,61 +170,77 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
           </div>
 
           {/* Event list */}
-          <div ref={eventsContainerRef} className="debugger-panel__events">
+          <div ref={eventsContainerRef} className={styles.events}>
             {visibleEvents.map((e) => (
               <button
                 type="button"
                 key={e.id}
                 data-event-id={e.id}
-                className={`debugger-panel__event${dStore.selectedEventId === e.id ? " debugger-panel__event--selected" : ""}${e.timestampMs <= dStore.currentTimeMs ? "" : " debugger-panel__event--future"}`}
+                className={[
+                  styles.event,
+                  dStore.selectedEventId === e.id && styles.eventSelected,
+                  e.timestampMs > dStore.currentTimeMs && styles.eventFuture,
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
                 onClick={() => dStore.selectEvent(e.id)}
               >
-                <span className="debugger-panel__event-time">{formatTime(e.timestampMs)}</span>
-                <span className="debugger-panel__event-kind">
+                <span className={styles.eventTime}>{formatTime(e.timestampMs)}</span>
+                <span className={styles.eventKind}>
                   {EVENT_KIND_LABELS[e.data.kind] ?? e.data.kind}
                 </span>
-                <span className="debugger-panel__event-summary">{eventSummary(e)}</span>
+                <span className={styles.eventSummary}>{eventSummary(e)}</span>
               </button>
             ))}
             {visibleEvents.length === 0 && (
-              <div className="debugger-panel__empty">No events match filters.</div>
+              <div className={styles.empty}>No events match filters.</div>
             )}
           </div>
         </div>
       )}
 
       {tab === "annotations" && (
-        <div className="debugger-panel__content">
+        <div className={styles.content}>
           {dStore.annotations.length === 0 ? (
-            <div className="debugger-panel__empty">
+            <div className={styles.empty}>
               No annotations yet. Double-click the timeline or click map markers to add notes.
             </div>
           ) : (
-            <div className="debugger-panel__annotations">
+            <div className={styles.annotations}>
               {dStore.annotations.map((ann) => (
                 <button
                   type="button"
                   key={ann.id}
-                  className={`debugger-panel__annotation${dStore.selectedAnnotationId === ann.id ? " debugger-panel__annotation--selected" : ""}`}
+                  className={[
+                    styles.annotation,
+                    dStore.selectedAnnotationId === ann.id && styles.annotationSelected,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                   onClick={() => dStore.selectAnnotation(ann.id)}
                 >
-                  <div className="debugger-panel__annotation-header">
+                  <div className={styles.annotationHeader}>
                     <span
-                      className={`debugger-panel__badge debugger-panel__badge--${ann.severity}`}
+                      className={[
+                        styles.badge,
+                        styles[
+                          `badge${ann.severity.charAt(0).toUpperCase() + ann.severity.slice(1)}`
+                        ],
+                      ].join(" ")}
                     >
                       {ANNOTATION_SEVERITY_LABELS[ann.severity]}
                     </span>
-                    <span className="debugger-panel__badge debugger-panel__badge--tag">
+                    <span className={[styles.badge, styles.badgeTag].join(" ")}>
                       {ANNOTATION_TAG_LABELS[ann.tag]}
                     </span>
-                    <span className="debugger-panel__annotation-time">
+                    <span className={styles.annotationTime}>
                       {formatTime(
                         (session.diagSession.events[0]?.timestampMs ?? 0) + ann.timeRangeMs[0],
                       )}
                     </span>
                     <button
                       type="button"
-                      className="debugger-panel__delete-btn"
+                      className={styles.deleteBtn}
                       onClick={(e) => {
                         e.stopPropagation();
                         dStore.deleteAnnotation(ann.id);
@@ -233,7 +250,7 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
                       x
                     </button>
                   </div>
-                  <div className="debugger-panel__annotation-note">{ann.note}</div>
+                  <div className={styles.annotationNote}>{ann.note}</div>
                 </button>
               ))}
             </div>
@@ -242,13 +259,13 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
       )}
 
       {tab === "export" && (
-        <div className="debugger-panel__content">
-          <div className="debugger-panel__export-section">
+        <div className={styles.content}>
+          <div className={styles.exportSection}>
             <h4>Export Annotations</h4>
             <p>Download a JSON file with all annotations and event context for version control.</p>
             <button
               type="button"
-              className="debugger-panel__export-btn"
+              className={styles.exportBtn}
               onClick={() => {
                 const exp = dStore.exportAnnotations();
                 if (!exp) return;

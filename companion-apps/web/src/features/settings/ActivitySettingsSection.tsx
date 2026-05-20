@@ -2,6 +2,7 @@ import { observer } from "mobx-react-lite";
 import type { RootStore } from "../../app/RootStore.js";
 import { useT } from "../../i18n/useT.js";
 import { BackgroundGpsService } from "../../integrations/permissions/BackgroundGpsService.js";
+import styles from "./ActivitySettingsSection.module.css";
 import { platformGpsHintKey } from "./PlatformHints.js";
 
 type Props = { store: RootStore };
@@ -29,7 +30,7 @@ export const ActivitySettingsSection = observer(({ store }: Props) => {
   };
 
   return (
-    <div className="settings-section" data-testid="activity-settings">
+    <div className={styles.section} data-testid="activity-settings">
       <ToggleRow
         testId="setting-keepScreenOn"
         title={t("settings.activity.keepScreenOn.title")}
@@ -106,14 +107,13 @@ type ToggleRowProps = {
 function ToggleRow({ testId, title, subtitle, checked, disabled, onChange }: ToggleRowProps) {
   return (
     <label
-      className="list-row"
+      className={[styles.row, disabled && styles.disabled].filter(Boolean).join(" ")}
       data-testid={testId}
       data-disabled={disabled ? "true" : "false"}
-      style={{ opacity: disabled ? 0.5 : 1 }}
     >
       <div style={{ flex: 1, textAlign: "start" }}>
-        <div className="list-row__title">{title}</div>
-        <div className="list-row__subtitle">{subtitle}</div>
+        <div className={styles.title}>{title}</div>
+        <div className={styles.subtitle}>{subtitle}</div>
       </div>
       <input
         type="checkbox"

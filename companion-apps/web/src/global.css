@@ -1,0 +1,75 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior: none;
+  overflow: hidden;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* MapLibre popup dark-theme overrides for debugger */
+[data-view="debugger"] .maplibregl-popup-content {
+  background: var(--bg-elev);
+  color: var(--fg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+}
+[data-view="debugger"] .maplibregl-popup-tip {
+  border-top-color: var(--bg-elev) !important;
+}
+[data-view="debugger"] .maplibregl-popup-close-button {
+  color: var(--fg-faint);
+  font-size: 18px;
+  padding: 2px 6px;
+}
+[data-view="debugger"] .maplibregl-popup-close-button:hover {
+  color: var(--fg);
+  background: transparent;
+}
+[data-view="debugger"] .maplibregl-popup-content strong {
+  color: var(--fg);
+  font-weight: 700;
+}
+[data-view="debugger"] .maplibregl-popup-content code {
+  color: var(--accent-blue);
+  background: rgba(18, 163, 163, 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: monospace;
+}

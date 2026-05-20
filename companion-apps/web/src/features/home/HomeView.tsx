@@ -5,6 +5,7 @@ import type { RootStore } from "../../app/RootStore.js";
 import { useT } from "../../i18n/useT.js";
 import { formatSpeedLabel } from "../../integrations/speed.js";
 import { ActiveGuidanceCard } from "./ActiveGuidanceCard.js";
+import styles from "./HomeView.module.css";
 import { MapSurface } from "./MapSurface.js";
 import { RouteSuggestionsCard } from "./RouteSuggestionsCard.js";
 import { refreshCameraForCurrentMode } from "./refreshCamera.js";
@@ -93,7 +94,7 @@ export const HomeView = observer(({ store }: Props) => {
   // here means visible map area, not absolute viewport.
   useEffect(() => {
     const update = () => {
-      const el = document.querySelector(".overlay-bottom") as HTMLElement | null;
+      const el = document.querySelector('[data-overlay="bottom"]') as HTMLElement | null;
       const h = el ? el.getBoundingClientRect().height : 0;
       // Add the bottom safe-area-inset slack so the card's visual edge,
       // not its DOM box, defines the reserved area.
@@ -101,12 +102,12 @@ export const HomeView = observer(({ store }: Props) => {
     };
     update();
     const observer = new ResizeObserver(update);
-    const el = document.querySelector(".overlay-bottom");
+    const el = document.querySelector('[data-overlay="bottom"]');
     if (el) observer.observe(el);
     // The overlay element is conditional (different cards for different
     // modes), so re-attach on every mode/preview change.
     const mo = new MutationObserver(() => {
-      const next = document.querySelector(".overlay-bottom");
+      const next = document.querySelector('[data-overlay="bottom"]');
       if (next && next !== el) {
         observer.disconnect();
         observer.observe(next);
@@ -155,7 +156,7 @@ const SpeedBadge = observer(({ store }: { store: RootStore }) => {
     return null;
   const unit = store.settingsStore.settings.speedUnit;
   return (
-    <output className="speed-badge" aria-label="Current speed">
+    <output className={styles.speedBadge} aria-label="Current speed">
       {formatSpeedLabel(store.locationStore.currentSpeedMps, unit)}
     </output>
   );
@@ -166,22 +167,22 @@ const LocationBanner = observer(({ store }: { store: RootStore }) => {
   if (store.locationBannerDismissed) return null;
   if (loc.permission === "granted" || loc.promptShown) return null;
   return (
-    <div className="overlay-top" style={{ top: "calc(env(safe-area-inset-top) + 78px)" }}>
-      <div className="location-banner">
-        <div className="location-banner__text">
+    <div className={styles.overlayTop} style={{ top: "calc(env(safe-area-inset-top) + 78px)" }}>
+      <div className={styles.locBanner}>
+        <div className={styles.locText}>
           Allow location access so routes start from where you are.
         </div>
-        <div className="location-banner__actions">
+        <div className={styles.locActions}>
           <button
             type="button"
-            className="location-banner__button location-banner__button--ghost"
+            className={styles.locBtnGhost}
             onClick={() => store.dismissLocationBanner()}
           >
             Not now
           </button>
           <button
             type="button"
-            className="location-banner__button location-banner__button--primary"
+            className={styles.locBtnPrimary}
             onClick={() => store.requestLocationFromBanner()}
           >
             Allow
@@ -228,8 +229,8 @@ const TopOverlay = observer(({ store }: { store: RootStore }) => {
       // rider always sees where they're headed while comparing alternatives.
       const dest = planning.query || guidance.activeNavigationTitle;
       return (
-        <div className="overlay-top">
-          <div className="search-bar">
+        <div className={styles.overlayTop}>
+          <div className={styles.searchBar}>
             <span aria-hidden>🔍</span>
             <input
               type="text"
@@ -248,15 +249,15 @@ const TopOverlay = observer(({ store }: { store: RootStore }) => {
     // "X km to <destination>", then "Y min remaining".
     const headline = guidance.nextInstructionLine ?? guidance.activeNavigationTitle;
     return (
-      <div className="overlay-top">
-        <div className="card guidance-header">
-          <div className="guidance-header__text">
-            <div className="list-row__title">{headline}</div>
+      <div className={styles.overlayTop}>
+        <div className={[styles.card, styles.guidanceHeader].join(" ")}>
+          <div className={styles.guidanceText}>
+            <div className={styles.title}>{headline}</div>
             {guidance.distanceToDestinationLine && (
-              <div className="list-row__subtitle">{guidance.distanceToDestinationLine}</div>
+              <div className={styles.subtitle}>{guidance.distanceToDestinationLine}</div>
             )}
             {guidance.minutesRemainingLine && (
-              <div className="list-row__subtitle">{guidance.minutesRemainingLine}</div>
+              <div className={styles.subtitle}>{guidance.minutesRemainingLine}</div>
             )}
           </div>
         </div>
@@ -266,8 +267,8 @@ const TopOverlay = observer(({ store }: { store: RootStore }) => {
   // Planning: full-width where-to bar. Settings cog lives on the
   // right rail (iOS parity) — no longer inline with the search input.
   return (
-    <div className="overlay-top" ref={containerRef}>
-      <div className="search-bar">
+    <div className={styles.overlayTop} ref={containerRef}>
+      <div className={styles.searchBar}>
         <span aria-hidden>🔍</span>
         <input
           type="text"
@@ -301,53 +302,46 @@ const BottomOverlay = observer(({ store }: { store: RootStore }) => {
   if (guidance.homeMode === "phoneGuidance") {
     if (guidance.isExploringAlternativesFromGuidance) {
       return (
-        <div className="overlay-bottom">
+        <div className={styles.overlayBottom} data-overlay="bottom">
           <RouteSuggestionsCard store={store} />
         </div>
       );
     }
     return (
-      <div className="overlay-bottom">
+      <div className={styles.overlayBottom} data-overlay="bottom">
         <ActiveGuidanceCard store={store} />
       </div>
     );
   }
   if (status) {
     return (
-      <div className="overlay-bottom">
-        <div className="card">
-          <div className="list-row__title">Working on route</div>
-          <div className="list-row__subtitle">{status}</div>
+      <div className={styles.overlayBottom} data-overlay="bottom">
+        <div className={styles.card}>
+          <div className={styles.title}>Working on route</div>
+          <div className={styles.subtitle}>{status}</div>
         </div>
       </div>
     );
   }
   if (guidance.arrivalNotice) {
     return (
-      <div className="overlay-bottom">
+      <div className={styles.overlayBottom} data-overlay="bottom">
         <div
-          className="card"
+          className={styles.card}
           role="status"
           style={{ display: "flex", alignItems: "flex-start", gap: 12 }}
         >
           <div style={{ flex: 1 }}>
-            <div className="list-row__title">{guidance.arrivalNotice}</div>
-            <div className="list-row__subtitle">
+            <div className={styles.title}>{guidance.arrivalNotice}</div>
+            <div className={styles.subtitle}>
               Routing finished. Tap a destination to plan again.
             </div>
           </div>
           <button
             type="button"
+            className={styles.closeBtn}
             aria-label="Close arrival message"
             onClick={() => guidance.dismissArrivalNotice()}
-            style={{
-              background: "transparent",
-              border: "none",
-              fontSize: 20,
-              lineHeight: 1,
-              cursor: "pointer",
-              padding: 4,
-            }}
           >
             ×
           </button>
@@ -357,7 +351,7 @@ const BottomOverlay = observer(({ store }: { store: RootStore }) => {
   }
   if (planning.preview.alternatives.length > 0) {
     return (
-      <div className="overlay-bottom">
+      <div className={styles.overlayBottom} data-overlay="bottom">
         <RouteSuggestionsCard store={store} />
       </div>
     );
@@ -376,14 +370,14 @@ const RightSideRail = observer(({ store }: { store: RootStore }) => {
   if (store.planningStore.isSearchOpen) return null;
   const guidance = store.guidanceStore;
   return (
-    <div className="rail rail--right">
+    <div className={styles.railRight}>
       {guidance.topRightIconStack.map((item) => {
         if (item === "settings") {
           return (
             <button
               key="settings"
               type="button"
-              className="rail__icon"
+              className={styles.railIcon}
               aria-label="Settings"
               onClick={() => store.goSettings()}
             >
@@ -396,7 +390,7 @@ const RightSideRail = observer(({ store }: { store: RootStore }) => {
             <button
               key="compass"
               type="button"
-              className="rail__icon"
+              className={styles.railIcon}
               aria-label="Recenter map"
               title="Tap = recenter / north-up; double-tap = lock north-up"
               onClick={() => {
@@ -434,14 +428,14 @@ const LeftSideRail = observer(({ store }: { store: RootStore }) => {
   if (store.planningStore.isSearchOpen) return null;
   const guidance = store.guidanceStore;
   return (
-    <div className="rail rail--left">
+    <div className={styles.railLeft}>
       {guidance.topLeftIconStack.map((item) => {
         if (item === "zoomIn") {
           return (
             <button
               key="zoomIn"
               type="button"
-              className="rail__icon"
+              className={styles.railIcon}
               aria-label="Zoom in"
               onClick={() => store.mapCameraStore.requestZoomDelta(1)}
             >
@@ -454,7 +448,7 @@ const LeftSideRail = observer(({ store }: { store: RootStore }) => {
             <button
               key="zoomOut"
               type="button"
-              className="rail__icon"
+              className={styles.railIcon}
               aria-label="Zoom out"
               onClick={() => store.mapCameraStore.requestZoomDelta(-1)}
             >
@@ -468,7 +462,7 @@ const LeftSideRail = observer(({ store }: { store: RootStore }) => {
           <button
             key="alternateRoutes"
             type="button"
-            className="rail__icon"
+            className={styles.railIcon}
             aria-label="Find alternate routes"
             title="Find alternate routes from here"
             onClick={() => void store.exploreAlternateRoutes()}
@@ -495,12 +489,12 @@ const LocatingIndicator = observer(({ store }: { store: RootStore }) => {
   if (loc.isWaitingForFirstFix) {
     return (
       <div
-        className="rail__icon locating-indicator"
+        className={[styles.railIcon, styles.locatingIndicator].join(" ")}
         role="status"
         aria-label="Locating"
         title="Finding your location…"
       >
-        <span className="spinner" aria-hidden />
+        <span className={styles.spinner} aria-hidden />
       </div>
     );
   }
@@ -508,7 +502,7 @@ const LocatingIndicator = observer(({ store }: { store: RootStore }) => {
     return (
       <button
         type="button"
-        className="rail__icon locating-indicator"
+        className={[styles.railIcon, styles.locatingIndicator].join(" ")}
         aria-label="Location blocked"
         title="Location is blocked. Enable it in your browser settings to plan from your real position."
         onClick={() => store.dismissLocationBanner()}

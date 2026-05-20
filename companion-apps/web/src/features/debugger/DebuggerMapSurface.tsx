@@ -4,6 +4,7 @@ import { observer } from "mobx-react-lite";
 import { useEffect, useRef } from "react";
 import type { RootStore } from "../../app/RootStore.js";
 import type { CoordinatePoint } from "../../domain/models.js";
+import styles from "./DebuggerMapSurface.module.css";
 import {
   buildAnnotationPinFeatures,
   buildCueMarkerFeatures,
@@ -153,10 +154,15 @@ export const DebuggerMapSurface = observer(({ store: _store, onPopupOpen }: Prop
 
   return (
     <>
-      <div ref={containerRef} className="debugger-map-surface" />
+      <div ref={containerRef} className={styles.surface} />
       <button
         type="button"
-        className={`debugger-map-surface__follow-btn${_store.debuggerStore.mapFollowActive ? " debugger-map-surface__follow-btn--active" : ""}`}
+        className={[
+          styles.followBtn,
+          _store.debuggerStore.mapFollowActive && styles.followBtnActive,
+        ]
+          .filter(Boolean)
+          .join(" ")}
         onClick={() =>
           _store.debuggerStore.setMapFollowActive(!_store.debuggerStore.mapFollowActive)
         }

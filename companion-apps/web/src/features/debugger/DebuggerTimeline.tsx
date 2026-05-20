@@ -3,6 +3,7 @@ import { useCallback, useRef, useState } from "react";
 import type { RootStore } from "../../app/RootStore.js";
 import { sessionElapsed, sessionEndTime, sessionStartTime } from "../../domain/debuggerModels.js";
 import type { RoutingDiagEvent } from "../../domain/routingDiagnosticsModels.js";
+import styles from "./DebuggerTimeline.module.css";
 
 type Props = { store: RootStore };
 
@@ -85,11 +86,11 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
   };
 
   return (
-    <div className="debugger-timeline">
-      <div className="debugger-timeline__controls">
+    <div className={styles.timeline}>
+      <div className={styles.controls}>
         <button
           type="button"
-          className="debugger-timeline__btn"
+          className={styles.btn}
           onClick={() => dStore.stepBackward()}
           title="Step back"
         >
@@ -97,7 +98,7 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
         </button>
         <button
           type="button"
-          className="debugger-timeline__btn debugger-timeline__btn--play"
+          className={[styles.btn, styles.btnPlay].join(" ")}
           onClick={() => (isPlaying ? dStore.pause() : dStore.play())}
           title={isPlaying ? "Pause" : "Play"}
         >
@@ -105,7 +106,7 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
         </button>
         <button
           type="button"
-          className="debugger-timeline__btn"
+          className={styles.btn}
           onClick={() => dStore.stepForward()}
           title="Step forward"
         >
@@ -113,21 +114,23 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
         </button>
         <button
           type="button"
-          className="debugger-timeline__btn"
+          className={styles.btn}
           onClick={() => dStore.stopPlayback()}
           title="Stop"
         >
           <StopIcon />
         </button>
-        <span className="debugger-timeline__time">
+        <span className={styles.time}>
           {formatTime(elapsedMs)} / {formatTime(durationMs)}
         </span>
-        <div className="debugger-timeline__speed">
+        <div className={styles.speed}>
           {SPEED_OPTIONS.map((s) => (
             <button
               key={s}
               type="button"
-              className={`debugger-timeline__speed-btn${dStore.playbackSpeed === s ? " debugger-timeline__speed-btn--active" : ""}`}
+              className={[styles.speedBtn, dStore.playbackSpeed === s && styles.speedBtnActive]
+                .filter(Boolean)
+                .join(" ")}
               onClick={() => dStore.setPlaybackSpeed(s)}
             >
               {s}x
@@ -138,7 +141,7 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
 
       <div
         ref={trackRef}
-        className={`debugger-timeline__track${dragging ? " debugger-timeline__track--dragging" : ""}`}
+        className={[styles.track, dragging && styles.trackDragging].filter(Boolean).join(" ")}
         role="slider"
         tabIndex={0}
         aria-label="Seek"
@@ -161,7 +164,7 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
         }}
       >
         {/* Event strip */}
-        <div className="debugger-timeline__strip">
+        <div className={styles.strip}>
           {buckets.map((bucket, i) => {
             if (bucket.events.length === 0) return null;
             const colors = [
@@ -174,7 +177,7 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
             return (
               <div
                 key={i}
-                className="debugger-timeline__bucket"
+                className={styles.bucket}
                 style={{
                   left: `${(bucket.startFraction * 100).toFixed(2)}%`,
                   width: `${((bucket.endFraction - bucket.startFraction) * 100).toFixed(2)}%`,
@@ -201,10 +204,7 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
         </div>
 
         {/* Scrubber head */}
-        <div
-          className="debugger-timeline__scrubber"
-          style={{ left: `${(fraction * 100).toFixed(2)}%` }}
-        />
+        <div className={styles.scrubber} style={{ left: `${(fraction * 100).toFixed(2)}%` }} />
 
         {/* Annotation pins */}
         {dStore.annotations.map((ann) => {
@@ -213,7 +213,10 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
             <button
               type="button"
               key={ann.id}
-              className={`debugger-timeline__pin debugger-timeline__pin--${ann.severity}`}
+              className={[
+                styles.pin,
+                styles[`pin${ann.severity.charAt(0).toUpperCase() + ann.severity.slice(1)}`],
+              ].join(" ")}
               style={{ left: `${(annFrac * 100).toFixed(2)}%` }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -227,7 +230,7 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
         {/* Click-anywhere annotation trigger */}
         <button
           type="button"
-          className="debugger-timeline__click-target"
+          className={styles.clickTarget}
           aria-label="Add annotation at position"
           onDoubleClick={(e) => {
             if (!trackRef.current || durationMs <= 0 || !session) return;
@@ -240,16 +243,12 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
       </div>
 
       {/* Time axis labels */}
-      <div className="debugger-timeline__axis">
+      <div className={styles.axis}>
         {durationMs > 0 &&
           Array.from({ length: 6 }).map((_, i) => {
             const ms = (durationMs / 5) * i;
             return (
-              <span
-                key={i}
-                className="debugger-timeline__tick"
-                style={{ left: `${(i * 20).toFixed(0)}%` }}
-              >
+              <span key={i} className={styles.tick} style={{ left: `${(i * 20).toFixed(0)}%` }}>
                 {formatTime(ms)}
               </span>
             );

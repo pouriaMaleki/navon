@@ -1,6 +1,7 @@
 import { observer } from "mobx-react-lite";
 import { useRef } from "react";
 import type { RootStore } from "../../app/RootStore.js";
+import styles from "./RoutesSettingsView.module.css";
 
 type Props = { store: RootStore; onOpenDetail: (id: string) => void };
 
@@ -9,16 +10,16 @@ export const RoutesSettingsView = observer(({ store, onOpenDetail }: Props) => {
 
   return (
     <>
-      <div className="settings-section">
+      <div className={styles.section}>
         <h2>Import</h2>
-        <div className="settings-row">
+        <div className={styles.row}>
           <div>
-            <div className="settings-row__label">Import GPX file</div>
-            <div className="settings-row__hint">Drag-and-drop also works anywhere on the map.</div>
+            <div className={styles.label}>Import GPX file</div>
+            <div className={styles.hint}>Drag-and-drop also works anywhere on the map.</div>
           </div>
           <button
             type="button"
-            className="primary-button"
+            className={styles.primaryBtn}
             style={{ width: "auto" }}
             onClick={() => fileInputRef.current?.click()}
           >
@@ -40,27 +41,27 @@ export const RoutesSettingsView = observer(({ store, onOpenDetail }: Props) => {
         />
       </div>
 
-      <div className="settings-section">
+      <div className={styles.section}>
         <h2>Recent routes</h2>
         {store.historyStore.routeHistoryItems.length === 0 ? (
-          <div className="empty-state">No recent routes yet.</div>
+          <div className={styles.empty}>No recent routes yet.</div>
         ) : (
           store.historyStore.routeHistoryItems.map((item) => (
-            <div key={item.id} className="settings-row">
+            <div key={item.id} className={styles.row}>
               <button
                 type="button"
                 style={{ flex: 1, textAlign: "start" }}
                 onClick={() => void store.activateRouteHistoryItem(item, false)}
               >
-                <div className="settings-row__label">{item.title}</div>
-                <div className="settings-row__hint">
+                <div className={styles.label}>{item.title}</div>
+                <div className={styles.hint}>
                   {item.subtitle ? `${item.subtitle} • ` : ""}
                   {item.sourceLabel}
                 </div>
               </button>
               <button
                 type="button"
-                className="icon-button"
+                className={styles.iconBtn}
                 aria-label="Route detail"
                 onClick={() => onOpenDetail(item.id)}
               >

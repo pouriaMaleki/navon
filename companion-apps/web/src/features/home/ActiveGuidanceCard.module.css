@@ -1,0 +1,62 @@
+.floating {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.dangerBtn {
+  width: 100%;
+  background: var(--danger);
+  color: white;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.dangerBtnFloating {
+  composes: dangerBtn;
+  width: auto;
+  align-self: center;
+  min-width: 120px;
+  border-radius: 999px;
+  padding: 12px 22px;
+  box-shadow: 0 8px 24px rgba(255, 95, 95, 0.35);
+}
+
+.alert {
+  background: #12a3a3;
+  color: #050b12;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.alertText {
+  flex: 1;
+}
+
+.rerouteBtn {
+  background: #050b12;
+  color: #d7ff3f;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.offRouteAlert {
+  color: #050b12;
+  font-weight: 700;
+  text-align: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}

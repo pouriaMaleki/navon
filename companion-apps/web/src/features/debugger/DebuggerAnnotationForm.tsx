@@ -7,6 +7,7 @@ import {
   type AnnotationSeverity,
   type AnnotationTag,
 } from "../../domain/debuggerModels.js";
+import styles from "./DebuggerAnnotationForm.module.css";
 
 type Props = { store: RootStore };
 
@@ -88,14 +89,14 @@ export const DebuggerAnnotationForm = observer(({ store }: Props) => {
   };
 
   return (
-    <div ref={formRef} className="debugger-annotation-form">
-      <div className="debugger-annotation-form__header">New Annotation</div>
-      <div className="debugger-annotation-form__time">
+    <div ref={formRef} className={styles.form}>
+      <div className={styles.header}>New Annotation</div>
+      <div className={styles.time}>
         At {formatMs(relMs)} (range: {formatMs(relMs + startOffset)} – {formatMs(relMs + endOffset)}
         )
       </div>
 
-      <label className="debugger-annotation-form__label">
+      <label className={styles.label}>
         Tag
         <select value={tag} onChange={(e) => setTag(e.target.value as AnnotationTag)}>
           {TAGS.map((t) => (
@@ -106,7 +107,7 @@ export const DebuggerAnnotationForm = observer(({ store }: Props) => {
         </select>
       </label>
 
-      <label className="debugger-annotation-form__label">
+      <label className={styles.label}>
         Severity
         <select
           value={severity}
@@ -120,8 +121,8 @@ export const DebuggerAnnotationForm = observer(({ store }: Props) => {
         </select>
       </label>
 
-      <div className="debugger-annotation-form__range">
-        <label className="debugger-annotation-form__label">
+      <div className={styles.range}>
+        <label className={styles.label}>
           Start offset
           <input
             type="range"
@@ -136,7 +137,7 @@ export const DebuggerAnnotationForm = observer(({ store }: Props) => {
             {formatMs(startOffset)}
           </span>
         </label>
-        <label className="debugger-annotation-form__label">
+        <label className={styles.label}>
           End offset
           <input
             type="range"
@@ -153,7 +154,7 @@ export const DebuggerAnnotationForm = observer(({ store }: Props) => {
         </label>
       </div>
 
-      <label className="debugger-annotation-form__label">
+      <label className={styles.label}>
         Note
         <textarea
           value={note}
@@ -164,20 +165,20 @@ export const DebuggerAnnotationForm = observer(({ store }: Props) => {
       </label>
 
       {dStore.pendingAnnotationEventIds.length > 0 && (
-        <div className="debugger-annotation-form__linked">
+        <div className={styles.linked}>
           Linked events: {dStore.pendingAnnotationEventIds.join(", ")}
         </div>
       )}
 
-      <div className="debugger-annotation-form__actions">
+      <div className={styles.actions}>
         <button
           type="button"
-          className="debugger-annotation-form__btn debugger-annotation-form__btn--save"
+          className={[styles.btn, styles.btnSave].join(" ")}
           onClick={handleSave}
         >
           Save
         </button>
-        <button type="button" className="debugger-annotation-form__btn" onClick={handleCancel}>
+        <button type="button" className={styles.btn} onClick={handleCancel}>
           Cancel
         </button>
       </div>

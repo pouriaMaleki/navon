@@ -1,0 +1,21 @@
+:root {
+  color-scheme: dark;
+  --bg: #050b12;
+  --bg-elev: #10132b;
+  --fg: #f5f7fb;
+  --fg-soft: rgba(245, 247, 251, 0.7);
+  --fg-faint: rgba(245, 247, 251, 0.45);
+  --accent: #d7ff3f;
+  --accent-blue: #12a3a3;
+  --danger: #ff5f5f;
+  --card-bg: rgba(16, 19, 43, 0.85);
+  --card-border: rgba(245, 247, 251, 0.08);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+}
+
+:root {
+  --rail-icon-size: 50px;
+  --rail-icon-corner: 18px;
+  --rail-icon-gap: 8px;
+  --rail-top: 130px;
+}

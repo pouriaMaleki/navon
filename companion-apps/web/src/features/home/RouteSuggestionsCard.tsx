@@ -2,6 +2,7 @@ import { observer } from "mobx-react-lite";
 import type { RootStore } from "../../app/RootStore.js";
 import { ROUTE_SOURCE_MODE_DISPLAY_NAME, summaryLine } from "../../domain/models.js";
 import { useT } from "../../i18n/useT.js";
+import styles from "./RouteSuggestionsCard.module.css";
 
 type Props = { store: RootStore };
 
@@ -18,9 +19,9 @@ export const RouteSuggestionsCard = observer(({ store }: Props) => {
   const sourceMode = planning.currentSourceMode;
 
   return (
-    <div className="card suggestions-card">
+    <div className={styles.card}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div className="list-row__title">{t("home.routeOptions")}</div>
+        <div className={styles.title}>{t("home.routeOptions")}</div>
         <button
           type="button"
           onClick={() =>
@@ -34,27 +35,29 @@ export const RouteSuggestionsCard = observer(({ store }: Props) => {
       {exploring ? (
         <button
           type="button"
-          className={`alternative${selectedId === undefined ? " alternative--selected" : ""}`}
+          className={[styles.alternative, selectedId === undefined && styles.selected]
+            .filter(Boolean)
+            .join(" ")}
           onClick={() => guidance.deselectForExploration()}
         >
           <div style={{ textAlign: "start" }}>
-            <div className="list-row__title">{t("home.continueOnCurrentRoute")}</div>
+            <div className={styles.title}>{t("home.continueOnCurrentRoute")}</div>
           </div>
           {selectedId === undefined ? <span aria-hidden>✓</span> : null}
         </button>
       ) : null}
       {planning.preview.planningNotice ? (
-        <div className="notice">{planning.preview.planningNotice}</div>
+        <div className={styles.notice}>{planning.preview.planningNotice}</div>
       ) : null}
       {showSourceControl ? (
-        <div className="source-picker" role="tablist">
+        <div className={styles.sourcePicker} role="tablist">
           {planning.availableSourceModes.map((mode) => (
             <button
               key={mode}
               type="button"
               role="tab"
               aria-selected={sourceMode === mode}
-              className={sourceMode === mode ? "active" : ""}
+              className={sourceMode === mode ? styles.sourceBtnActive : styles.sourceBtn}
               onClick={() => {
                 planning.setSourceMode(mode);
                 store.settingsStore.updatePlannerPreferences({ defaultSourceMode: mode });
@@ -72,7 +75,9 @@ export const RouteSuggestionsCard = observer(({ store }: Props) => {
           <button
             key={alt.id}
             type="button"
-            className={`alternative${isSelected ? " alternative--selected" : ""}`}
+            className={[styles.alternative, isSelected && styles.selected]
+              .filter(Boolean)
+              .join(" ")}
             onClick={() =>
               exploring
                 ? guidance.selectAlternativeForExploration(alt.id)
@@ -80,13 +85,13 @@ export const RouteSuggestionsCard = observer(({ store }: Props) => {
             }
           >
             <div style={{ textAlign: "start" }}>
-              <div className="list-row__title">{alt.title}</div>
+              <div className={styles.title}>{alt.title}</div>
               {/* iOS parity: drop the redundant subtitle (now empty
                   after the friendlyAlternativeLabel rename). The row
                   collapses to title + km/min summary so it's a tight
                   two-line block. */}
-              {alt.subtitle ? <div className="list-row__subtitle">{alt.subtitle}</div> : null}
-              <div className="list-row__subtitle">{summaryLine(alt.normalizedPackage)}</div>
+              {alt.subtitle ? <div className={styles.subtitle}>{alt.subtitle}</div> : null}
+              <div className={styles.subtitle}>{summaryLine(alt.normalizedPackage)}</div>
             </div>
             {isSelected ? <span aria-hidden>✓</span> : null}
           </button>
@@ -94,7 +99,7 @@ export const RouteSuggestionsCard = observer(({ store }: Props) => {
       })}
       <button
         type="button"
-        className="primary-button"
+        className={styles.primaryBtn}
         onClick={() => {
           if (exploring && selectedId === undefined) {
             guidance.cancelAlternativesExploration();

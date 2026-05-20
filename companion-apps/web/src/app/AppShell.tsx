@@ -5,6 +5,7 @@ import { WebTtsService } from "../integrations/audio/WebTtsService.js";
 import { startRoutingActivityCoordinator } from "../integrations/cues/RoutingActivityCoordinator.js";
 import { LiveNotificationService } from "../integrations/notifications/LiveNotificationService.js";
 import { WakeLockService } from "../integrations/screen/WakeLockService.js";
+import styles from "./AppShell.module.css";
 import type { RootStore } from "./RootStore.js";
 
 const SettingsHubView = lazy(() =>
@@ -80,20 +81,20 @@ export const AppShell = observer(({ store }: Props) => {
   }, [store]);
 
   return (
-    <div className="app-shell">
+    <div className={styles.shell}>
       {store.route === "debugger" ? (
-        <Suspense fallback={<div className="settings-overlay" />}>
+        <Suspense fallback={<div className={styles.settingsFallback} />}>
           <DebuggerView store={store} />
         </Suspense>
       ) : (
         <HomeView store={store} />
       )}
       {store.route === "settings" ? (
-        <Suspense fallback={<div className="settings-overlay" />}>
+        <Suspense fallback={<div className={styles.settingsFallback} />}>
           <SettingsHubView store={store} />
         </Suspense>
       ) : null}
-      {isDragging ? <div className="drop-overlay">Drop a .gpx file to import</div> : null}
+      {isDragging ? <div className={styles.dropOverlay}>Drop a .gpx file to import</div> : null}
     </div>
   );
 });

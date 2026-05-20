@@ -1,0 +1,65 @@
+.section {
+  margin-bottom: 24px;
+  background: var(--bg-elev);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.label {
+  font-weight: 600;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--fg-soft);
+}
+
+.primaryBtn {
+  width: 100%;
+  background: var(--accent);
+  color: #0c1320;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.dangerBtn {
+  width: 100%;
+  background: var(--danger);
+  color: white;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.notice {
+  font-size: 12px;
+  color: var(--fg-soft);
+}
+
+.bigLabel {
+  font-size: 18px;
+}
+
+.meta {
+  margin-top: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.flexBtn {
+  flex: 1;
+}

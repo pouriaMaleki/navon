@@ -58,24 +58,21 @@
       }
     },
     {
-      "includes": ["src/test/**"],
+      "includes": ["src/global.css", "src/features/debugger/DebuggerView.module.css"],
       "linter": {
         "rules": {
-          "style": {
-            "noNonNullAssertion": "off"
+          "complexity": {
+            "noImportantStyles": "off"
           }
         }
       }
     },
     {
-      "includes": ["src/styles.css"],
+      "includes": ["src/test/**"],
       "linter": {
         "rules": {
-          "complexity": {
-            "noImportantStyles": "off"
-          },
           "style": {
-            "noDescendingSpecificity": "off"
+            "noNonNullAssertion": "off"
           }
         }
       }

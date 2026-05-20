@@ -6,6 +6,7 @@ import type { RootStore } from "../../app/RootStore.js";
 import { type CoordinatePoint, selectedAlternative } from "../../domain/models.js";
 import { dispatchCameraTarget } from "./cameraDispatcher.js";
 import { MapInteractionGate } from "./MapInteractionGate.js";
+import styles from "./MapSurface.module.css";
 import { buildRouteFeatures as _buildRouteFeatures } from "./mapRouteFeatures.js";
 
 const OSM_STYLE: maplibregl.StyleSpecification = {
@@ -205,7 +206,7 @@ export const MapSurface = observer(({ store }: Props) => {
     };
   }, [store]);
 
-  return <div ref={containerRef} className="map-surface" />;
+  return <div ref={containerRef} className={styles.surface} />;
 });
 
 function addCompanionLayers(map: MaplibreMap): void {

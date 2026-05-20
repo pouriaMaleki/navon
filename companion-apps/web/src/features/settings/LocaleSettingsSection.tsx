@@ -4,6 +4,7 @@ import type { AppLanguagePref, DistanceUnitPref } from "../../domain/models.js";
 import { NATIVE_LANGUAGE_NAMES, resolveLocale, SUPPORTED_LOCALES } from "../../i18n/index.js";
 import { useT } from "../../i18n/useT.js";
 import { hasVoiceForLocale } from "../../integrations/audio/voiceAvailability.js";
+import styles from "./LocaleSettingsSection.module.css";
 
 type Props = { store: RootStore };
 
@@ -28,16 +29,15 @@ export const LocaleSettingsSection = observer(({ store }: Props) => {
   const showVoiceHint = !hasVoiceForLocale(resolvedLocale);
 
   return (
-    <div className="settings-section" data-testid="locale-settings">
-      <label className="list-row" data-testid="setting-language">
+    <div className={styles.section} data-testid="locale-settings">
+      <label className={styles.row} data-testid="setting-language">
         <div style={{ flex: 1, textAlign: "start" }}>
-          <div className="list-row__title">{t("settings.language.title")}</div>
-          <div className="list-row__subtitle">{t("settings.language.subtitle")}</div>
+          <div className={styles.title}>{t("settings.language.title")}</div>
+          <div className={styles.subtitle}>{t("settings.language.subtitle")}</div>
           {showVoiceHint && (
             <div
-              className="list-row__subtitle"
+              className={[styles.subtitle, styles.warnHint].join(" ")}
               data-testid="setting-language-no-voice-hint"
-              style={{ color: "var(--warn, #c98a00)", marginTop: 4 }}
             >
               {t("settings.language.noVoiceFallback", {
                 language: NATIVE_LANGUAGE_NAMES[resolvedLocale],
@@ -63,9 +63,9 @@ export const LocaleSettingsSection = observer(({ store }: Props) => {
         </select>
       </label>
 
-      <label className="list-row" data-testid="setting-distanceUnit">
+      <label className={styles.row} data-testid="setting-distanceUnit">
         <div style={{ flex: 1, textAlign: "start" }}>
-          <div className="list-row__title">{t("settings.distanceUnit.title")}</div>
+          <div className={styles.title}>{t("settings.distanceUnit.title")}</div>
         </div>
         <select
           aria-label={t("settings.distanceUnit.title")}

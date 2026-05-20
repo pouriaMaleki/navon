@@ -1,39 +1,37 @@
 import { observer } from "mobx-react-lite";
 import type { RootStore } from "../../app/RootStore.js";
 import { summaryLine } from "../../domain/models.js";
+import styles from "./RouteDetailView.module.css";
 
 type Props = { store: RootStore; itemId: string; onClose: () => void };
 
 export const RouteDetailView = observer(({ store, itemId, onClose }: Props) => {
   const item = store.historyStore.routeHistoryItems.find((i) => i.id === itemId);
   if (!item) {
-    return <div className="settings-section">Route not found.</div>;
+    return <div className={styles.section}>Route not found.</div>;
   }
   const package_ = item.routePackage;
   return (
-    <div className="settings-section">
-      <div className="settings-row__label" style={{ fontSize: 18 }}>
-        {item.title}
-      </div>
-      <div className="settings-row__hint">{item.sourceLabel}</div>
+    <div className={styles.section}>
+      <div className={[styles.label, styles.bigLabel].join(" ")}>{item.title}</div>
+      <div className={styles.hint}>{item.sourceLabel}</div>
       {item.subtitle ? (
-        <div className="notice" style={{ marginTop: 6 }}>
+        <div className={styles.notice} style={{ marginTop: 6 }}>
           {item.subtitle}
         </div>
       ) : null}
       {package_ ? (
-        <div style={{ marginTop: 12 }}>
-          <div className="notice">{summaryLine(package_)}</div>
-          <div className="notice">
+        <div className={styles.meta}>
+          <div className={styles.notice}>{summaryLine(package_)}</div>
+          <div className={styles.notice}>
             {package_.geometry.length} geometry points • {package_.maneuvers.length} maneuvers
           </div>
         </div>
       ) : null}
-      <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+      <div className={styles.actions}>
         <button
           type="button"
-          className="primary-button"
-          style={{ flex: 1 }}
+          className={[styles.primaryBtn, styles.flexBtn].join(" ")}
           onClick={() => {
             void store.activateRouteHistoryItem(item, false);
             onClose();
@@ -43,8 +41,7 @@ export const RouteDetailView = observer(({ store, itemId, onClose }: Props) => {
         </button>
         <button
           type="button"
-          className="primary-button"
-          style={{ flex: 1 }}
+          className={[styles.primaryBtn, styles.flexBtn].join(" ")}
           onClick={() => {
             void store.activateRouteHistoryItem(item, true);
             onClose();
@@ -54,8 +51,7 @@ export const RouteDetailView = observer(({ store, itemId, onClose }: Props) => {
         </button>
         <button
           type="button"
-          className="danger-button"
-          style={{ flex: 1 }}
+          className={[styles.dangerBtn, styles.flexBtn].join(" ")}
           onClick={() => {
             store.historyStore.removeRouteHistoryItem(item.id);
             onClose();

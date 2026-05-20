@@ -6,6 +6,7 @@ import { DebuggerAnnotationForm } from "./DebuggerAnnotationForm.js";
 import { DebuggerEventPanel } from "./DebuggerEventPanel.js";
 import { DebuggerMapSurface } from "./DebuggerMapSurface.js";
 import { DebuggerTimeline } from "./DebuggerTimeline.js";
+import styles from "./DebuggerView.module.css";
 
 type Props = { store: RootStore };
 
@@ -119,15 +120,17 @@ export const DebuggerView = observer(({ store }: Props) => {
   if (!dStore.session) {
     return (
       <div
-        className="debugger-empty"
+        className={styles.empty}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <div
-          className={`debugger-empty__dropzone${isDragOver ? " debugger-empty__dropzone--active" : ""}`}
+          className={[styles.dropzone, isDragOver && styles.dropzoneActive]
+            .filter(Boolean)
+            .join(" ")}
         >
-          <div className="debugger-empty__icon">
+          <div className={styles.emptyIcon}>
             <svg
               width="48"
               height="48"
@@ -143,10 +146,10 @@ export const DebuggerView = observer(({ store }: Props) => {
           </div>
           <h3>Navon Diagnostics Debugger</h3>
           <p>Drop a diagnostic JSON file here to visualize the session</p>
-          <p className="debugger-empty__hint">Or drop a .gpx file to add route geometry</p>
+          <p className={styles.emptyHint}>Or drop a .gpx file to add route geometry</p>
           <button
             type="button"
-            className="debugger-empty__btn"
+            className={styles.emptyBtn}
             onClick={() => fileInputRef.current?.click()}
           >
             Choose File
@@ -167,9 +170,9 @@ export const DebuggerView = observer(({ store }: Props) => {
               e.target.value = "";
             }}
           />
-          {importError && <div className="debugger-empty__error">{importError}</div>}
+          {importError && <div className={styles.emptyError}>{importError}</div>}
         </div>
-        <button type="button" className="debugger-empty__back" onClick={() => store.goSettings()}>
+        <button type="button" className={styles.emptyBack} onClick={() => store.goSettings()}>
           Back to Settings
         </button>
       </div>
@@ -178,18 +181,19 @@ export const DebuggerView = observer(({ store }: Props) => {
 
   return (
     <div
-      className="debugger-view"
+      className={styles.view}
+      data-view="debugger"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {isDragOver && <div className="debugger-view__drop-overlay">Drop file to import</div>}
+      {isDragOver && <div className={styles.dropOverlay}>Drop file to import</div>}
 
       {/* Header bar */}
-      <div className="debugger-view__header">
+      <div className={styles.header}>
         <button
           type="button"
-          className="debugger-view__back-btn"
+          className={styles.backBtn}
           onClick={() => {
             dStore.stopPlayback();
             store.goSettings();
@@ -197,14 +201,12 @@ export const DebuggerView = observer(({ store }: Props) => {
         >
           &larr; Settings
         </button>
-        <span className="debugger-view__session-id">{dStore.session.diagSession.id}</span>
-        <span className="debugger-view__event-count">
-          {dStore.session.diagSession.events.length} events
-        </span>
-        <div className="debugger-view__header-actions">
+        <span className={styles.sessionId}>{dStore.session.diagSession.id}</span>
+        <span className={styles.count}>{dStore.session.diagSession.events.length} events</span>
+        <div className={styles.headerActions}>
           <button
             type="button"
-            className="debugger-view__header-btn"
+            className={styles.headerBtn}
             onClick={() => fileInputRef.current?.click()}
           >
             Load GPX
@@ -220,43 +222,39 @@ export const DebuggerView = observer(({ store }: Props) => {
               e.target.value = "";
             }}
           />
-          {dStore.session.gpxGeometry && (
-            <span className="debugger-view__gpx-badge">GPX loaded</span>
-          )}
+          {dStore.session.gpxGeometry && <span className={styles.gpxBadge}>GPX loaded</span>}
         </div>
       </div>
 
       {/* 3-panel body */}
-      <div className="debugger-view__body">
-        <div className="debugger-view__map">
+      <div className={styles.body}>
+        <div className={styles.map}>
           <DebuggerMapSurface store={store} onPopupOpen={setMapPopup} />
         </div>
 
         {mapPopup && (
-          <div className="debugger-view__popup-bar">
+          <div className={styles.popupBar}>
             <div
-              className="debugger-view__popup-content"
+              className={styles.popupContent}
               dangerouslySetInnerHTML={{ __html: mapPopup.content }}
             />
-            <button
-              type="button"
-              className="debugger-view__popup-close"
-              onClick={() => setMapPopup(null)}
-            >
+            <button type="button" className={styles.popupClose} onClick={() => setMapPopup(null)}>
               &times;
             </button>
           </div>
         )}
 
         <div
-          className={`debugger-view__sidebar${!sidebarOpen ? " debugger-view__sidebar--closed" : ""}`}
+          className={[styles.sidebar, !sidebarOpen && styles.sidebarClosed]
+            .filter(Boolean)
+            .join(" ")}
         >
           <DebuggerEventPanel store={store} onCloseSidebar={() => setSidebarOpen(false)} />
         </div>
         {!sidebarOpen && (
           <button
             type="button"
-            className="debugger-view__sidebar-toggle"
+            className={styles.sidebarToggle}
             onClick={() => setSidebarOpen(true)}
             title="Show sidebar"
           >
@@ -267,18 +265,18 @@ export const DebuggerView = observer(({ store }: Props) => {
 
       {/* Annotation form overlay */}
       {dStore.pendingAnnotationTimeMs !== null && (
-        <div className="debugger-view__annotation-overlay">
+        <div className={styles.annotationOverlay}>
           <DebuggerAnnotationForm store={store} />
         </div>
       )}
 
       {/* Bottom timeline */}
-      <div className="debugger-view__timeline">
+      <div className={styles.timeline}>
         <DebuggerTimeline store={store} />
       </div>
 
       {importError && (
-        <button type="button" className="debugger-view__toast" onClick={() => setImportError(null)}>
+        <button type="button" className={styles.toast} onClick={() => setImportError(null)}>
           {importError}
         </button>
       )}

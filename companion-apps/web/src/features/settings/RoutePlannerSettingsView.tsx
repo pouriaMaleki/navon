@@ -8,6 +8,7 @@ import {
   type RouteStartBehavior,
   type RouteSuggestionMode,
 } from "../../domain/models.js";
+import styles from "./RoutePlannerSettingsView.module.css";
 
 const DIGITRANSIT_PORTAL_URL = "https://portal-api.digitransit.fi/";
 
@@ -19,16 +20,16 @@ export const RoutePlannerSettingsView = observer(({ store }: Props) => {
 
   return (
     <>
-      <div className="settings-section">
+      <div className={styles.section}>
         <h2>Defaults</h2>
         {store.planningStore.availableSourceModes.length > 1 ? (
-          <div className="settings-row">
+          <div className={styles.row}>
             <div>
-              <div className="settings-row__label">Default route source</div>
-              <div className="settings-row__hint">Used for new planning sessions.</div>
+              <div className={styles.label}>Default route source</div>
+              <div className={styles.hint}>Used for new planning sessions.</div>
             </div>
             <select
-              className="text-input"
+              className={styles.textInput}
               style={{ maxWidth: 180 }}
               value={planner.defaultSourceMode}
               onChange={(event) =>
@@ -46,13 +47,13 @@ export const RoutePlannerSettingsView = observer(({ store }: Props) => {
           </div>
         ) : null}
 
-        <div className="settings-row">
+        <div className={styles.row}>
           <div>
-            <div className="settings-row__label">Suggestions</div>
-            <div className="settings-row__hint">Best route only or up to three.</div>
+            <div className={styles.label}>Suggestions</div>
+            <div className={styles.hint}>Best route only or up to three.</div>
           </div>
           <select
-            className="text-input"
+            className={styles.textInput}
             style={{ maxWidth: 180 }}
             value={planner.suggestionMode}
             onChange={(event) =>
@@ -66,13 +67,13 @@ export const RoutePlannerSettingsView = observer(({ store }: Props) => {
           </select>
         </div>
 
-        <div className="settings-row">
+        <div className={styles.row}>
           <div>
-            <div className="settings-row__label">Start behavior</div>
-            <div className="settings-row__hint">When picking a recent route or import.</div>
+            <div className={styles.label}>Start behavior</div>
+            <div className={styles.hint}>When picking a recent route or import.</div>
           </div>
           <select
-            className="text-input"
+            className={styles.textInput}
             style={{ maxWidth: 180 }}
             value={planner.startBehavior}
             onChange={(event) =>
@@ -87,23 +88,23 @@ export const RoutePlannerSettingsView = observer(({ store }: Props) => {
         </div>
       </div>
 
-      <div className="settings-section">
+      <div className={styles.section}>
         <h2>Riding</h2>
-        <div className="settings-row">
+        <div className={styles.row}>
           <div>
-            <div className="settings-row__label">Cycling speed</div>
-            <div className="settings-row__hint">
+            <div className={styles.label}>Cycling speed</div>
+            <div className={styles.hint}>
               Used to compute route ETAs. HSL defaults to a slow bike speed; bump this if its
               estimates feel too long.
             </div>
           </div>
-          <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <label className={styles.toggleLabel}>
             <input
               type="number"
               min={1}
               max={50}
               step={1}
-              className="text-input"
+              className={styles.textInput}
               style={{ width: 80 }}
               value={settings.cyclingSpeedKph}
               onChange={(event) => {
@@ -112,16 +113,16 @@ export const RoutePlannerSettingsView = observer(({ store }: Props) => {
                 store.settingsStore.updateSettings({ cyclingSpeedKph: next });
               }}
             />
-            <span style={{ fontSize: 13, color: "var(--fg-soft)" }}>kph</span>
+            <span className={styles.checkboxStatus}>kph</span>
           </label>
         </div>
-        <div className="settings-row">
+        <div className={styles.row}>
           <div>
-            <div className="settings-row__label">Speed unit</div>
-            <div className="settings-row__hint">How live speed is shown on the map.</div>
+            <div className={styles.label}>Speed unit</div>
+            <div className={styles.hint}>How live speed is shown on the map.</div>
           </div>
           <select
-            className="text-input"
+            className={styles.textInput}
             style={{ maxWidth: 120 }}
             value={settings.speedUnit}
             onChange={(event) =>
@@ -136,18 +137,15 @@ export const RoutePlannerSettingsView = observer(({ store }: Props) => {
         </div>
       </div>
 
-      <div className="settings-section">
+      <div className={styles.section}>
         <h2>HSL Digitransit</h2>
-        <div
-          className="settings-row__hint"
-          style={{ paddingBottom: 8, borderBottom: "1px solid var(--card-border)" }}
-        >
+        <div className={[styles.hint, styles.hintBlock].join(" ")}>
           HSL is the Helsinki Region Transport authority. Their{" "}
           <a
             href={DIGITRANSIT_PORTAL_URL}
             target="_blank"
             rel="noreferrer noopener"
-            style={{ color: "var(--accent)" }}
+            className={styles.link}
           >
             Digitransit
           </a>{" "}
@@ -155,12 +153,12 @@ export const RoutePlannerSettingsView = observer(({ store }: Props) => {
           sign in at the portal, register an app, and copy the subscription key into the field
           below. Outside the Helsinki area, leave HSL off and the planner uses OSM routing globally.
         </div>
-        <div className="settings-row">
+        <div className={styles.row}>
           <div>
-            <div className="settings-row__label">Prefer live HSL routing</div>
-            <div className="settings-row__hint">Falls back to sample if request fails.</div>
+            <div className={styles.label}>Prefer live HSL routing</div>
+            <div className={styles.hint}>Falls back to sample if request fails.</div>
           </div>
-          <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <label className={styles.checkboxLabel}>
             <input
               type="checkbox"
               checked={settings.preferLiveHslRouting}
@@ -168,17 +166,17 @@ export const RoutePlannerSettingsView = observer(({ store }: Props) => {
                 store.settingsStore.updateSettings({ preferLiveHslRouting: event.target.checked })
               }
             />
-            <span style={{ fontSize: 13, color: "var(--fg-soft)" }}>
+            <span className={styles.checkboxStatus}>
               {settings.preferLiveHslRouting ? "On" : "Off"}
             </span>
           </label>
         </div>
 
-        <div className="settings-row" style={{ flexDirection: "column", alignItems: "stretch" }}>
-          <div className="settings-row__label">Digitransit subscription key</div>
+        <div className={[styles.row, styles.columnRow].join(" ")}>
+          <div className={styles.label}>Digitransit subscription key</div>
           <input
             type="password"
-            className="text-input"
+            className={styles.textInput}
             value={settings.hslSubscriptionKey}
             placeholder="Paste your Digitransit key"
             autoComplete="off"
@@ -188,11 +186,11 @@ export const RoutePlannerSettingsView = observer(({ store }: Props) => {
           />
         </div>
 
-        <div className="settings-row" style={{ flexDirection: "column", alignItems: "stretch" }}>
-          <div className="settings-row__label">Endpoint URL</div>
+        <div className={[styles.row, styles.columnRow].join(" ")}>
+          <div className={styles.label}>Endpoint URL</div>
           <input
             type="url"
-            className="text-input"
+            className={styles.textInput}
             value={settings.hslEndpointURL}
             onChange={(event) =>
               store.settingsStore.updateSettings({ hslEndpointURL: event.target.value })

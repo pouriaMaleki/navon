@@ -1,0 +1,139 @@
+.timeline {
+  user-select: none;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.btn {
+  padding: 4px 6px;
+  border-radius: 6px;
+  color: var(--fg-soft);
+  display: flex;
+  align-items: center;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--fg);
+}
+
+.btnPlay {
+  color: var(--accent);
+}
+
+.time {
+  font-size: 12px;
+  color: var(--fg-soft);
+  font-family: monospace;
+  margin-left: 8px;
+}
+
+.speed {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+}
+
+.speedBtn {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--fg-faint);
+  font-weight: 600;
+}
+
+.speedBtn:hover {
+  color: var(--fg-soft);
+}
+
+.speedBtnActive {
+  background: rgba(215, 255, 63, 0.15);
+  color: var(--accent);
+}
+
+.track {
+  position: relative;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.trackDragging {
+  cursor: grabbing;
+}
+
+.strip {
+  position: absolute;
+  inset: 4px 10px;
+  display: flex;
+  pointer-events: none;
+}
+
+.bucket {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 2px;
+  opacity: 0.7;
+  min-width: 2px;
+}
+
+.scrubber {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.pin {
+  position: absolute;
+  top: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  cursor: pointer;
+  z-index: 3;
+}
+
+.pinBug {
+  background: #f87171;
+}
+
+.pinImprovement {
+  background: #fb923c;
+}
+
+.pinNote {
+  background: #12a3a3;
+}
+
+.clickTarget {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.axis {
+  position: relative;
+  height: 16px;
+  margin-top: 2px;
+}
+
+.tick {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--fg-faint);
+  font-family: monospace;
+}
