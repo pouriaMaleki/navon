@@ -6,8 +6,9 @@ import {
   sessionEndTime,
   sessionStartTime,
 } from "../../../domain/debuggerModels.js";
-import type { RoutingDiagEvent } from "../../../domain/routingDiagnosticsModels.js";
+import { buildEventBuckets } from "./buildEventBuckets.js";
 import styles from "./index.module.css";
+import { PauseIcon, PlayIcon, StepBackIcon, StepForwardIcon, StopIcon } from "./TimelineIcons.js";
 
 type Props = { store: RootStore };
 
@@ -261,75 +262,3 @@ export const DebuggerTimeline = observer(({ store }: Props) => {
     </div>
   );
 });
-
-interface EventBucket {
-  startFraction: number;
-  endFraction: number;
-  events: RoutingDiagEvent[];
-}
-
-function buildEventBuckets(
-  events: RoutingDiagEvent[],
-  startTimeMs: number,
-  durationMs: number,
-  bucketCount: number,
-): EventBucket[] {
-  const buckets: EventBucket[] = [];
-  const bucketWidth = durationMs / bucketCount;
-  for (let i = 0; i < bucketCount; i++) {
-    buckets.push({
-      startFraction: i / bucketCount,
-      endFraction: (i + 1) / bucketCount,
-      events: [],
-    });
-  }
-  for (const e of events) {
-    const idx = Math.min(bucketCount - 1, Math.floor((e.timestampMs - startTimeMs) / bucketWidth));
-    if (idx >= 0) {
-      buckets[idx].events.push(e);
-    }
-  }
-  return buckets;
-}
-
-// Minimal SVG icons inline
-function PlayIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-      <title>Play</title>
-      <path d="M4 2.5v11l9-5.5z" />
-    </svg>
-  );
-}
-function PauseIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-      <title>Pause</title>
-      <path d="M5 2h2v12H5V2zm4 0h2v12H9V2z" />
-    </svg>
-  );
-}
-function StopIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-      <title>Stop</title>
-      <rect x="3" y="3" width="10" height="10" rx="1" />
-    </svg>
-  );
-}
-function StepForwardIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-      <title>Step forward</title>
-      <path d="M4 2.5v11l6-5.5-6-5.5zM12 2v12h1.5V2H12z" />
-    </svg>
-  );
-}
-function StepBackIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-      <title>Step back</title>
-      <path d="M12 13.5v-11l-6 5.5 6 5.5zM4 14V2H2.5v12H4z" />
-    </svg>
-  );
-}

@@ -1,0 +1,35 @@
+.content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.exportSection {
+  padding: 16px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.exportSection h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.exportSection p {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--fg-soft);
+}
+
+.exportBtn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #0c1320;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.exportBtn:hover {
+  opacity: 0.9;
+}

@@ -1,0 +1,92 @@
+.content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.empty {
+  padding: 24px 16px;
+  font-size: 13px;
+  color: var(--fg-faint);
+  text-align: center;
+}
+
+.annotations {
+  overflow-y: auto;
+}
+
+.annotation {
+  padding: 10px;
+  border-bottom: 1px solid var(--card-border);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.annotation:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.annotationSelected {
+  background: rgba(215, 255, 63, 0.08);
+}
+
+.annotationHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.badge {
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badgeBug {
+  background: rgba(255, 64, 64, 0.15);
+  color: #f87171;
+}
+
+.badgeImprovement {
+  background: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+}
+
+.badgeNote {
+  background: rgba(18, 163, 163, 0.15);
+  color: #12a3a3;
+}
+
+.badgeTag {
+  background: rgba(148, 163, 184, 0.1);
+  color: var(--fg-soft);
+}
+
+.annotationTime {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--fg-faint);
+  font-family: monospace;
+}
+
+.annotationNote {
+  font-size: 12px;
+  color: var(--fg-soft);
+  line-height: 1.4;
+}
+
+.deleteBtn {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--fg-faint);
+}
+
+.deleteBtn:hover {
+  color: var(--danger);
+  background: rgba(255, 95, 95, 0.1);
+}

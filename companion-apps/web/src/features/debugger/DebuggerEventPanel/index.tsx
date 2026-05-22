@@ -1,32 +1,14 @@
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef, useState } from "react";
 import type { RootStore } from "../../../app/RootStore.js";
-import {
-  ANNOTATION_SEVERITY_LABELS,
-  ANNOTATION_TAG_LABELS,
-  type AnnotationTag,
-} from "../../../domain/debuggerModels.js";
-import type { RoutingDiagEvent } from "../../../domain/routingDiagnosticsModels.js";
+import { AnnotationList } from "./AnnotationList.js";
+import { EventList } from "./EventList.js";
+import { ExportTab } from "./ExportTab.js";
+import { EVENT_KIND_LABELS } from "./helpers.js";
 import styles from "./index.module.css";
 
 type Props = { store: RootStore; onCloseSidebar?: () => void };
 type PanelTab = "events" | "annotations" | "export";
-
-const EVENT_KIND_LABELS: Record<string, string> = {
-  locationUpdate: "GPS",
-  audioCueDispatched: "Audio cue",
-  nextTurnAlerted: "Turn alert",
-  offRouteDetected: "Off route",
-  rerouteRequested: "Reroute req",
-  rerouteCompleted: "Reroute ok",
-  routeStarted: "Route start",
-  routeStopped: "Route stop",
-  routeAlternativesSuggested: "Alternatives",
-  routeSelected: "Route selected",
-  compassModeChanged: "Compass",
-  destinationChanged: "Dest changed",
-  exploreAlternatives: "Explore",
-};
 
 export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) => {
   const dStore = store.debuggerStore;
@@ -35,7 +17,6 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
   const [filterKinds, setFilterKinds] = useState<Set<string>>(new Set());
   const eventsContainerRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to active event when currentTimeMs changes during seeking
   useEffect(() => {
     if (!session || tab !== "events") return;
     const events = session.diagSession.events;
@@ -79,32 +60,6 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
     return `${min}:${sec.toString().padStart(2, "0")}`;
   };
 
-  const eventSummary = (e: RoutingDiagEvent): string => {
-    const d = e.data;
-    switch (d.kind) {
-      case "audioCueDispatched":
-        return d.messageText;
-      case "nextTurnAlerted":
-        return d.instructionText;
-      case "locationUpdate":
-        return `${d.lat.toFixed(4)}, ${d.lon.toFixed(4)}`;
-      case "offRouteDetected":
-        return `${d.distanceM}m off route`;
-      case "routeStopped":
-        return d.reason ?? "stopped";
-      case "rerouteCompleted":
-        return d.result;
-      case "routeAlternativesSuggested":
-        return `${d.alternatives.length} options`;
-      case "routeSelected":
-        return d.label;
-      case "compassModeChanged":
-        return `${d.from} → ${d.to}`;
-      default:
-        return "";
-    }
-  };
-
   const toggleKind = (kind: string) => {
     const next = new Set(filterKinds);
     if (next.has(kind)) {
@@ -114,6 +69,8 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
     }
     setFilterKinds(next);
   };
+
+  const sessionStartMs = session.diagSession.events[0]?.timestampMs ?? 0;
 
   return (
     <div className={styles.panel}>
@@ -154,139 +111,27 @@ export const DebuggerEventPanel = observer(({ store, onCloseSidebar }: Props) =>
       </div>
 
       {tab === "events" && (
-        <div className={styles.content}>
-          {/* Filters */}
-          <div className={styles.filters}>
-            {allKinds.map((kind) => (
-              <label key={kind} className={styles.filter}>
-                <input
-                  type="checkbox"
-                  checked={filterKinds.has(kind)}
-                  onChange={() => toggleKind(kind)}
-                />
-                {EVENT_KIND_LABELS[kind] ?? kind}
-              </label>
-            ))}
-          </div>
-
-          {/* Event list */}
-          <div ref={eventsContainerRef} className={styles.events}>
-            {visibleEvents.map((e) => (
-              <button
-                type="button"
-                key={e.id}
-                data-event-id={e.id}
-                className={[
-                  styles.event,
-                  dStore.selectedEventId === e.id && styles.eventSelected,
-                  e.timestampMs > dStore.currentTimeMs && styles.eventFuture,
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-                onClick={() => dStore.selectEvent(e.id)}
-              >
-                <span className={styles.eventTime}>{formatTime(e.timestampMs)}</span>
-                <span className={styles.eventKind}>
-                  {EVENT_KIND_LABELS[e.data.kind] ?? e.data.kind}
-                </span>
-                <span className={styles.eventSummary}>{eventSummary(e)}</span>
-              </button>
-            ))}
-            {visibleEvents.length === 0 && (
-              <div className={styles.empty}>No events match filters.</div>
-            )}
-          </div>
-        </div>
+        <EventList
+          allKinds={allKinds}
+          filterKinds={filterKinds}
+          visibleEvents={visibleEvents}
+          selectedEventId={dStore.selectedEventId}
+          currentTimeMs={dStore.currentTimeMs}
+          eventsContainerRef={eventsContainerRef}
+          onToggleKind={toggleKind}
+          onSelectEvent={(id) => dStore.selectEvent(id)}
+          formatTime={formatTime}
+        />
       )}
 
       {tab === "annotations" && (
-        <div className={styles.content}>
-          {dStore.annotations.length === 0 ? (
-            <div className={styles.empty}>
-              No annotations yet. Double-click the timeline or click map markers to add notes.
-            </div>
-          ) : (
-            <div className={styles.annotations}>
-              {dStore.annotations.map((ann) => (
-                <button
-                  type="button"
-                  key={ann.id}
-                  className={[
-                    styles.annotation,
-                    dStore.selectedAnnotationId === ann.id && styles.annotationSelected,
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  onClick={() => dStore.selectAnnotation(ann.id)}
-                >
-                  <div className={styles.annotationHeader}>
-                    <span
-                      className={[
-                        styles.badge,
-                        styles[
-                          `badge${ann.severity.charAt(0).toUpperCase() + ann.severity.slice(1)}`
-                        ],
-                      ].join(" ")}
-                    >
-                      {ANNOTATION_SEVERITY_LABELS[ann.severity]}
-                    </span>
-                    <span className={[styles.badge, styles.badgeTag].join(" ")}>
-                      {ANNOTATION_TAG_LABELS[ann.tag]}
-                    </span>
-                    <span className={styles.annotationTime}>
-                      {formatTime(
-                        (session.diagSession.events[0]?.timestampMs ?? 0) + ann.timeRangeMs[0],
-                      )}
-                    </span>
-                    <button
-                      type="button"
-                      className={styles.deleteBtn}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        dStore.deleteAnnotation(ann.id);
-                      }}
-                      title="Delete"
-                    >
-                      x
-                    </button>
-                  </div>
-                  <div className={styles.annotationNote}>{ann.note}</div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <AnnotationList dStore={dStore} formatTime={formatTime} sessionStartMs={sessionStartMs} />
       )}
 
-      {tab === "export" && (
-        <div className={styles.content}>
-          <div className={styles.exportSection}>
-            <h4>Export Annotations</h4>
-            <p>Download a JSON file with all annotations and event context for version control.</p>
-            <button
-              type="button"
-              className={styles.exportBtn}
-              onClick={() => {
-                const exp = dStore.exportAnnotations();
-                if (!exp) return;
-                const blob = new Blob([JSON.stringify(exp, null, 2)], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `annotations-${exp.sessionId}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-              }}
-            >
-              Download Annotations JSON
-            </button>
-          </div>
-        </div>
-      )}
+      {tab === "export" && <ExportTab dStore={dStore} />}
     </div>
   );
 });
 
-// Re-export for use in tests
 export { EVENT_KIND_LABELS };
-export type { AnnotationTag };
+export type { AnnotationTag } from "../../../domain/debuggerModels.js";
