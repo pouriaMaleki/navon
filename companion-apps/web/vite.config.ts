@@ -18,19 +18,16 @@ export default defineConfig({
     globals: true,
     css: false,
     exclude: ["**/node_modules/**", "e2e/**"],
-    // Fixture files in test/fixtures/ use Node built-ins (node:fs, node:path,
+    // Fixture files in __testlib__/fixtures/ use Node built-ins (node:fs, node:path,
     // node:url) to read data from parity-fixtures. Allow those built-ins in
     // the test runner environment instead of treating them as bundler errors.
     deps: {
       optimizer: {
         ssr: {
-          include: ["**/test/fixtures/**"],
+          include: ["**/__testlib__/fixtures/**"],
         },
       },
     },
-    // Attach a resolve alias so fixtures under test/fixtures/ can still
-    // reference these built-in Node modules that vitest's Vite pipeline would
-    // otherwise refuse to bundle.
     server: {
       deps: {
         external: [/^node:/],
