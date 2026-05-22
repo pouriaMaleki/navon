@@ -1,7 +1,11 @@
 import { observer } from "mobx-react-lite";
 import { useCallback, useRef, useState } from "react";
 import type { RootStore } from "../../../app/RootStore.js";
-import { sessionElapsed, sessionEndTime, sessionStartTime } from "../../../domain/debuggerModels.js";
+import {
+  sessionElapsed,
+  sessionEndTime,
+  sessionStartTime,
+} from "../../../domain/debuggerModels.js";
 import type { RoutingDiagEvent } from "../../../domain/routingDiagnosticsModels.js";
 import styles from "./index.module.css";
 

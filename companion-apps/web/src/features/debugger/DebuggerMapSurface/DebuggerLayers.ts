@@ -23,7 +23,9 @@ export const RIDER_LAYER = "debug-rider-layer";
 export const ANNOTATION_SRC = "debug-annotations";
 export const ANNOTATION_LAYER = "debug-annotations-layer";
 
-type PopupOpenFn = (popup: { content: string; lngLat: { lat: number; lng: number } } | null) => void;
+type PopupOpenFn = (
+  popup: { content: string; lngLat: { lat: number; lng: number } } | null,
+) => void;
 
 export function addDebugLayers(map: MaplibreMap, onPopupOpen?: PopupOpenFn): void {
   // Route line
@@ -178,7 +180,11 @@ export function addDebugLayers(map: MaplibreMap, onPopupOpen?: PopupOpenFn): voi
   });
 }
 
-export function handleMapClick(store: RootStore, map: MaplibreMap, e: maplibregl.MapMouseEvent): void {
+export function handleMapClick(
+  store: RootStore,
+  map: MaplibreMap,
+  e: maplibregl.MapMouseEvent,
+): void {
   const dStore = store.debuggerStore;
   if (!dStore.session) return;
 
@@ -218,7 +224,10 @@ export function pushGpsTrail(map: MaplibreMap, store: RootStore): void {
   if (!source) return;
   const session = store.debuggerStore.session;
   if (!session) return;
-  const features = buildGpsTrailFeatures(session.diagSession.events, store.debuggerStore.currentTimeMs);
+  const features = buildGpsTrailFeatures(
+    session.diagSession.events,
+    store.debuggerStore.currentTimeMs,
+  );
   source.setData({ type: "FeatureCollection", features });
 }
 
@@ -227,7 +236,10 @@ export function pushCueMarkers(map: MaplibreMap, store: RootStore): void {
   if (!source) return;
   const session = store.debuggerStore.session;
   if (!session) return;
-  const features = buildCueMarkerFeatures(session.diagSession.events, store.debuggerStore.currentTimeMs);
+  const features = buildCueMarkerFeatures(
+    session.diagSession.events,
+    store.debuggerStore.currentTimeMs,
+  );
   source.setData({ type: "FeatureCollection", features });
 }
 
@@ -236,7 +248,10 @@ export function pushOffRouteMarkers(map: MaplibreMap, store: RootStore): void {
   if (!source) return;
   const session = store.debuggerStore.session;
   if (!session) return;
-  const features = buildOffRouteSegmentFeatures(session.diagSession.events, store.debuggerStore.currentTimeMs);
+  const features = buildOffRouteSegmentFeatures(
+    session.diagSession.events,
+    store.debuggerStore.currentTimeMs,
+  );
   source.setData({ type: "FeatureCollection", features });
 }
 

@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
+import { LocationStore } from "../stores/LocationStore.js";
 import type {
   LocationListener,
   LocationService,
   LocationUpdate,
 } from "./location/BrowserLocationService.js";
-import { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
 import { formatSpeedLabel, mpsToUnit } from "./speed.js";
-import { LocationStore } from "../stores/LocationStore.js";
 
 // Why existing tests didn't cover this: speed wasn't tracked anywhere — the
 // old `LocationUpdate` had no `speedMps` and the LocationStore had no

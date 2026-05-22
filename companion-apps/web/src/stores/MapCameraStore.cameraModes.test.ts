@@ -1,4 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  FakeLocationService,
+  FakePlaceSearch,
+  FakeRoutingAdapter,
+} from "../__testlib__/fakes/index.js";
 import { type CoordinatePoint, CURRENT_ROUTE_PACKAGE_VERSION } from "../domain/models.js";
 import { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
 import { GuidanceStore } from "./GuidanceStore.js";
@@ -6,7 +11,6 @@ import { LocationStore } from "./LocationStore.js";
 import { MapCameraStore } from "./MapCameraStore.js";
 import { PlanningStore, type ProvidersMap } from "./PlanningStore.js";
 import { SettingsStore } from "./SettingsStore.js";
-import { FakeLocationService, FakePlaceSearch, FakeRoutingAdapter } from "../__testlib__/fakes/index.js";
 
 const HELSINKI = { latitude: 60.1699, longitude: 24.9384 };
 const HELSINKI_DEST = { latitude: 60.1921, longitude: 24.9458 };

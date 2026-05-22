@@ -1,5 +1,4 @@
-import type { Map as MaplibreMap } from "maplibre-gl";
-import type { GeoJSONSource } from "maplibre-gl";
+import type { GeoJSONSource, Map as MaplibreMap } from "maplibre-gl";
 import type { RootStore } from "../../app/RootStore.js";
 import { type CoordinatePoint, selectedAlternative } from "../../domain/models.js";
 import { buildRouteFeatures } from "./mapRouteFeatures.js";

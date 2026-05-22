@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
-import { LocationStore } from "./LocationStore.js";
 import { FakeLocationService } from "../__testlib__/fakes/index.js";
 import { loadHelsinkiGravelStream } from "../__testlib__/fixtures/helsinkiGravel.js";
 import { loadUxConstants } from "../__testlib__/fixtures/uxConstants.js";
+import { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
+import { LocationStore } from "./LocationStore.js";
 
 describe("rider lifecycle replay (flow #63)", () => {
   beforeEach(() => {

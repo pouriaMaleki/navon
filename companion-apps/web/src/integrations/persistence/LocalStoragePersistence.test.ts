@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RouteHistoryItem } from "../../domain/models.js";
-import {
-  mergeRecentDestinations,
-  mergeRouteHistory,
-} from "./LocalStoragePersistence.js";
+import { mergeRecentDestinations, mergeRouteHistory } from "./LocalStoragePersistence.js";
 
 describe("persistence merging", () => {
   it("dedupes recent destinations within 80 m", () => {

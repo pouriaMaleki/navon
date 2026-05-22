@@ -1,18 +1,16 @@
 import type {
-  NormalizedRoutePackage,
-  RouteAlternative,
-  RoutePreviewModel,
-} from "./models.js";
-import type {
   ActiveRouteSession,
   CompanionSettings,
+  NormalizedRoutePackage,
+  RouteAlternative,
+  RoutePackageVersion,
   RoutePlannerPreferences,
+  RoutePreviewModel,
   RouteProviderID,
   RouteSourceMode,
+  RouteStartBehavior,
   RouteSuggestionKind,
   RouteSuggestionMode,
-  RouteStartBehavior,
-  RoutePackageVersion,
 } from "./models.js";
 
 export const ROUTE_PROVIDER_DISPLAY_NAME: Record<RouteProviderID, string> = {

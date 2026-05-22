@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ActiveRouteSession, CoordinatePoint } from "../../domain/models.js";
-import { HslRoutingAdapter } from "./HslRoutingAdapter.js";
 import { OsmCyclingRoutingAdapter } from "../osm/OsmCyclingRoutingAdapter.js";
+import { HslRoutingAdapter } from "./HslRoutingAdapter.js";
 
 const RIDER: CoordinatePoint = { latitude: 60.17, longitude: 24.94 };
 const DEST: CoordinatePoint = { latitude: 60.175, longitude: 24.95 };

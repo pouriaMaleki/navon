@@ -1,10 +1,14 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  FakeLocationService,
+  FakePlaceSearch,
+  FakeRoutingAdapter,
+} from "../__testlib__/fakes/index.js";
 import { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
 import { LocationStore } from "./LocationStore.js";
 import type { ProvidersMap } from "./PlanningStore.js";
 import { PlanningStore } from "./PlanningStore.js";
 import { SettingsStore } from "./SettingsStore.js";
-import { FakeLocationService, FakePlaceSearch, FakeRoutingAdapter } from "../__testlib__/fakes/index.js";
 
 // Helsinki (inside Finland) and Stockholm (outside Finland) anchors used below.
 const HELSINKI = { latitude: 60.1699, longitude: 24.9384 };

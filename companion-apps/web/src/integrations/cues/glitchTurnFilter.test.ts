@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { CoordinatePoint, RouteManeuver } from "../../domain/models.js";
-import { filterGlitchClusters } from "./glitchTurnFilter.js";
 import { cumulativeDistances } from "../geo.js";
+import { filterGlitchClusters } from "./glitchTurnFilter.js";
 
 const METERS_PER_DEG_LAT = 111_320;
 

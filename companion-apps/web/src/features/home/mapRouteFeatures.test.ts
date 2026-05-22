@@ -4,16 +4,20 @@
  * exposes guidanceAlternatives" and "the map actually renders them".
  */
 import { describe, expect, it } from "vitest";
+import {
+  FakeLocationService,
+  FakePlaceSearch,
+  FakeRoutingAdapter,
+} from "../../__testlib__/fakes/index.js";
 import type { RootStore } from "../../app/RootStore.js";
 import type { CoordinatePoint } from "../../domain/models.js";
 import { CURRENT_ROUTE_PACKAGE_VERSION } from "../../domain/models.js";
-import { buildRouteFeatures } from "./mapRouteFeatures.js";
 import { LocalStoragePersistence } from "../../integrations/persistence/LocalStoragePersistence.js";
 import { GuidanceStore } from "../../stores/GuidanceStore.js";
 import { LocationStore } from "../../stores/LocationStore.js";
 import { PlanningStore, type ProvidersMap } from "../../stores/PlanningStore.js";
 import { SettingsStore } from "../../stores/SettingsStore.js";
-import { FakeLocationService, FakePlaceSearch, FakeRoutingAdapter } from "../../__testlib__/fakes/index.js";
+import { buildRouteFeatures } from "./mapRouteFeatures.js";
 
 const HELSINKI: CoordinatePoint = { latitude: 60.1699, longitude: 24.9384 };
 const ESPOO: CoordinatePoint = { latitude: 60.2055, longitude: 24.6559 };

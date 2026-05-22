@@ -1,9 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  FakeLocationService,
+  FakePlaceSearch,
+  FakeRoutingAdapter,
+} from "../../__testlib__/fakes/index.js";
 import { LocalStoragePersistence } from "../../integrations/persistence/LocalStoragePersistence.js";
 import { LocationStore } from "../../stores/LocationStore.js";
 import { PlanningStore, type ProvidersMap } from "../../stores/PlanningStore.js";
 import { SettingsStore } from "../../stores/SettingsStore.js";
-import { FakeLocationService, FakePlaceSearch, FakeRoutingAdapter } from "../../__testlib__/fakes/index.js";
 
 const HELSINKI = { latitude: 60.1699, longitude: 24.9384 };
 const HELSINKI_DEST = { latitude: 60.1921, longitude: 24.9458 };

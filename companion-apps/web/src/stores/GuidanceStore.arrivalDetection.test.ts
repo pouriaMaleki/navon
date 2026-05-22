@@ -1,11 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  FakeLocationService,
+  FakePlaceSearch,
+  FakeRoutingAdapter,
+} from "../__testlib__/fakes/index.js";
 import { CURRENT_ROUTE_PACKAGE_VERSION } from "../domain/models.js";
 import { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
 import { GuidanceStore } from "./GuidanceStore.js";
 import { LocationStore } from "./LocationStore.js";
 import { PlanningStore, type ProvidersMap } from "./PlanningStore.js";
 import { SettingsStore } from "./SettingsStore.js";
-import { FakeLocationService, FakePlaceSearch, FakeRoutingAdapter } from "../__testlib__/fakes/index.js";
 
 const ORIGIN = { latitude: 60.1699, longitude: 24.9384 };
 const DEST = { latitude: 60.1721, longitude: 24.9404 }; // ~280 m NE

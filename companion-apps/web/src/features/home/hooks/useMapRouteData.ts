@@ -22,7 +22,7 @@ export function useMapRouteData(
         pushMarkers(map, store);
       },
     );
-  }, [store]);
+  }, [store, mapReadyRef.current, mapRef.current]);
 }
 
 function routeSignature(store: RootStore): string {

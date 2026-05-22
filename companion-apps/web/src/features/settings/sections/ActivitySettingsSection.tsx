@@ -2,8 +2,8 @@ import { observer } from "mobx-react-lite";
 import type { RootStore } from "../../../app/RootStore.js";
 import { useT } from "../../../i18n/useT.js";
 import { BackgroundGpsService } from "../../../integrations/permissions/BackgroundGpsService.js";
-import styles from "./ActivitySettingsSection.module.css";
 import { platformGpsHintKey } from "../PlatformHints.js";
+import styles from "./ActivitySettingsSection.module.css";
 
 type Props = { store: RootStore };
 

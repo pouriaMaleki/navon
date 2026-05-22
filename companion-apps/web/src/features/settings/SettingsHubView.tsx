@@ -2,14 +2,14 @@ import { observer } from "mobx-react-lite";
 import { useState } from "react";
 import type { RootStore } from "../../app/RootStore.js";
 import { type TFunction, useT } from "../../i18n/useT.js";
-import { ActivitySettingsSection } from "./sections/ActivitySettingsSection.js";
 import { ImportDiagnosticsView } from "./diagnostics/ImportDiagnosticsView.js";
-import { LocaleSettingsSection } from "./sections/LocaleSettingsSection.js";
-import { RouteDetailView } from "./routes/RouteDetailView.js";
-import { RoutePlannerSettingsView } from "./RoutePlannerSettingsView.js";
-import { RoutesSettingsView } from "./routes/RoutesSettingsView.js";
 import { RoutingDiagnosticsView } from "./diagnostics/RoutingDiagnosticsView.js";
+import { RoutePlannerSettingsView } from "./RoutePlannerSettingsView.js";
+import { RouteDetailView } from "./routes/RouteDetailView.js";
+import { RoutesSettingsView } from "./routes/RoutesSettingsView.js";
 import styles from "./SettingsHubView.module.css";
+import { ActivitySettingsSection } from "./sections/ActivitySettingsSection.js";
+import { LocaleSettingsSection } from "./sections/LocaleSettingsSection.js";
 
 type SubScreen =
   | "hub"

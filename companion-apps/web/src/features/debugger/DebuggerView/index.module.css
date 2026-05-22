@@ -266,9 +266,9 @@
 }
 
 .emptyHint {
-  font-size: 12px !important;
-  color: var(--fg-faint) !important;
-  margin-top: 4px !important;
+  font-size: 12px;
+  color: var(--fg-faint);
+  margin-top: 4px;
 }
 
 .emptyBtn {

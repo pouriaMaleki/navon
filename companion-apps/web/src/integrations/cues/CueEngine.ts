@@ -21,15 +21,15 @@ import {
 } from "./cueTypes.js";
 
 export {
+  APPROACH_10_M,
+  APPROACH_50_M,
+  BACK_TO_BACK_THRESHOLD_M,
+  CLOSE_TO_DESTINATION_M,
   type CueEngineState,
   type CueEvent,
   type CueManeuver,
   type CueSnapshot,
   type ManeuverKind,
-  APPROACH_10_M,
-  APPROACH_50_M,
-  BACK_TO_BACK_THRESHOLD_M,
-  CLOSE_TO_DESTINATION_M,
   OFF_ROUTE_HYSTERESIS_TICKS,
   OFF_ROUTE_IMMEDIATE_DISTANCE_M,
   ON_TRACK_CONFIRM_SAMPLES,

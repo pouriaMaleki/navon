@@ -8,9 +8,9 @@ import {
   EMPTY_ACTIVE_SESSION,
   type ImportDiagnosticsEntry,
   type PendingHomePresentation,
+  ROUTING_DIAGNOSTICS_SESSION_LIMIT,
   type RouteHistoryItem,
   type RoutePlannerPreferences,
-  ROUTING_DIAGNOSTICS_SESSION_LIMIT,
   type RoutingDiagSession,
 } from "../../domain/index.js";
 import { approximateDistanceMeters } from "../geo.js";

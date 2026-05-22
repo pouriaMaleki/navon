@@ -8,8 +8,8 @@ import { DebuggerMapSurface } from "../DebuggerMapSurface/index.js";
 import { DebuggerTimeline } from "../DebuggerTimeline/index.js";
 import { DebuggerEmptyState } from "./DebuggerEmptyState.js";
 import { DebuggerHeader } from "./DebuggerHeader.js";
-import { parseGpx } from "./parseGpx.js";
 import styles from "./index.module.css";
+import { parseGpx } from "./parseGpx.js";
 
 type Props = { store: RootStore };
 

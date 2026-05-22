@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  extractCoordinateFromText,
-  looksLikeUrl,
-} from "./UrlExpander.js";
+import { extractCoordinateFromText, looksLikeUrl } from "./UrlExpander.js";
 
 describe("UrlExpander", () => {
   it("extracts inline @lat,lng from a Google Maps URL", () => {

@@ -19,5 +19,5 @@ export function useMapRouteProgress(
         pushRouteData(map, store);
       },
     );
-  }, [store]);
+  }, [store, mapReadyRef.current, mapRef.current]);
 }

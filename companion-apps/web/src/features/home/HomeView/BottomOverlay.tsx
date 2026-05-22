@@ -37,9 +37,8 @@ export const BottomOverlay = observer(({ store }: Props) => {
   if (guidance.arrivalNotice) {
     return (
       <div className={styles.overlayBottom} data-overlay="bottom">
-        <div
+        <output
           className={styles.card}
-          role="status"
           style={{ display: "flex", alignItems: "flex-start", gap: 12 }}
         >
           <div style={{ flex: 1 }}>
@@ -56,7 +55,7 @@ export const BottomOverlay = observer(({ store }: Props) => {
           >
             ×
           </button>
-        </div>
+        </output>
       </div>
     );
   }

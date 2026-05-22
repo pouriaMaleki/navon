@@ -1,6 +1,6 @@
+import type { AnnotationSeverity, AnnotationTag } from "./debuggerModels.js";
 import type { CoordinatePoint } from "./models.js";
 import type { RoutingDiagEvent, RoutingDiagSession } from "./routingDiagnosticsModels.js";
-import type { AnnotationSeverity, AnnotationTag } from "./debuggerModels.js";
 
 export const ANNOTATION_TAG_LABELS: Record<AnnotationTag, string> = {
   wrong_cue: "Wrong cue",

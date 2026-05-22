@@ -23,5 +23,5 @@ export function useMapZoom(
         }
       },
     );
-  }, [store]);
+  }, [store, mapReadyRef.current, mapRef.current]);
 }

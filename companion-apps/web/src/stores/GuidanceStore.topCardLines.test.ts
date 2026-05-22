@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
+  FakeLocationService,
+  FakePlaceSearch,
+  FakeRoutingAdapter,
+} from "../__testlib__/fakes/index.js";
+import {
   type CoordinatePoint,
   CURRENT_ROUTE_PACKAGE_VERSION,
   type NormalizedRoutePackage,
@@ -9,7 +14,6 @@ import { GuidanceStore } from "./GuidanceStore.js";
 import { LocationStore } from "./LocationStore.js";
 import { PlanningStore, type ProvidersMap } from "./PlanningStore.js";
 import { SettingsStore } from "./SettingsStore.js";
-import { FakeLocationService, FakePlaceSearch, FakeRoutingAdapter } from "../__testlib__/fakes/index.js";
 
 const HELSINKI: CoordinatePoint = { latitude: 60.17, longitude: 24.94 };
 const METERS_PER_DEG_LAT = 111_320.0;

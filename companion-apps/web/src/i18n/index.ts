@@ -1,5 +1,5 @@
-import { formatMessage, type MessageValues } from "./messageFormat.js";
 import { CATALOGS, getActiveLocale } from "./locale.js";
+import { formatMessage, type MessageValues } from "./messageFormat.js";
 
 export {
   type AppLanguage,
@@ -10,8 +10,8 @@ export {
   NATIVE_LANGUAGE_NAMES,
   resolveDistanceUnit,
   resolveLocale,
-  setActiveLocale,
   SUPPORTED_LOCALES,
+  setActiveLocale,
 } from "./locale.js";
 export { applyDocumentDirection, isRtlLocale } from "./rtl.js";
 
@@ -26,7 +26,11 @@ export function t(key: string, values?: MessageValues): string {
   }
 }
 
-export function tIn(locale: import("./locale.js").Locale, key: string, values?: MessageValues): string {
+export function tIn(
+  locale: import("./locale.js").Locale,
+  key: string,
+  values?: MessageValues,
+): string {
   const template = CATALOGS[locale][key] ?? CATALOGS.en[key] ?? key;
   if (!values || Object.keys(values).length === 0) return template;
   try {

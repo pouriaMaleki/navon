@@ -21,5 +21,10 @@ export function useMapCamera(
         dispatchCameraTarget(map, store, true);
       },
     );
-  }, [store]);
+  }, [
+    store,
+    interactionGateRef.current.recordProgrammaticMove,
+    mapReadyRef.current,
+    mapRef.current,
+  ]);
 }

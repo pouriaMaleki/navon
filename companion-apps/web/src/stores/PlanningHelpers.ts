@@ -1,11 +1,14 @@
 import {
+  ROUTE_PROVIDER_DISPLAY_NAME,
   type RouteAlternative,
   type RoutePreviewModel,
   type RouteSourceMode,
-  ROUTE_PROVIDER_DISPLAY_NAME,
 } from "../domain/index.js";
 
-export function decoratePreview(preview: RoutePreviewModel, mode: RouteSourceMode): RoutePreviewModel {
+export function decoratePreview(
+  preview: RoutePreviewModel,
+  mode: RouteSourceMode,
+): RoutePreviewModel {
   return {
     ...preview,
     alternatives: presentAlternatives(preview.alternatives, mode),

@@ -1,10 +1,14 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+  FakeLocationService,
+  FakePlaceSearch,
+  FakeRoutingAdapter,
+} from "../__testlib__/fakes/index.js";
 import { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
 import { GuidanceStore } from "./GuidanceStore.js";
 import { LocationStore } from "./LocationStore.js";
 import { PlanningStore, type ProvidersMap } from "./PlanningStore.js";
 import { SettingsStore } from "./SettingsStore.js";
-import { FakeLocationService, FakePlaceSearch, FakeRoutingAdapter } from "../__testlib__/fakes/index.js";
 
 // User feedback: when the rider keeps drifting off-route, the planner spams
 // reroute attempts. After the 3rd attempt in a short window, hold the next

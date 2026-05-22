@@ -4,7 +4,7 @@ export { GuidanceStore } from "./GuidanceStore.js";
 export { HistoryStore } from "./HistoryStore.js";
 export { LocationStore } from "./LocationStore.js";
 export { MapCameraStore } from "./MapCameraStore.js";
-export { PlanningStore } from "./PlanningStore.js";
 export type { ProvidersMap } from "./PlanningStore.js";
+export { PlanningStore } from "./PlanningStore.js";
 export { RoutingDiagnosticsStore } from "./RoutingDiagnosticsStore.js";
 export { SettingsStore } from "./SettingsStore.js";

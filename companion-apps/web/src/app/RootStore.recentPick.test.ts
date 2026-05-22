@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { RootStore } from "./RootStore.js";
 import type { RouteHistoryItem } from "../domain/models.js";
+import { RootStore } from "./RootStore.js";
 
 const HELSINKI_DEST = { latitude: 60.1921, longitude: 24.9458 };
 

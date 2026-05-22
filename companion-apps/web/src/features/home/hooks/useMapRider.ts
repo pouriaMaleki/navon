@@ -18,5 +18,5 @@ export function useMapRider(
         pushRider(map, store);
       },
     );
-  }, [store]);
+  }, [store, mapReadyRef.current, mapRef.current]);
 }

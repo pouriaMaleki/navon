@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { detectSafariOnIOS, platformGpsHintKey } from "./PlatformHints.js";
 import { tIn } from "../../i18n/index.js";
 import { BackgroundGpsService } from "../../integrations/permissions/BackgroundGpsService.js";
+import { detectSafariOnIOS, platformGpsHintKey } from "./PlatformHints.js";
 
 describe("BackgroundGpsService", () => {
   const originalGeolocation = navigator.geolocation;

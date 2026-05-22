@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ActiveRouteSession, CoordinatePoint } from "../../domain/models.js";
-import { HslRoutingAdapter } from "./HslRoutingAdapter.js";
 import { OsmCyclingRoutingAdapter } from "../osm/OsmCyclingRoutingAdapter.js";
+import { HslRoutingAdapter } from "./HslRoutingAdapter.js";
 
 const env =
   (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};

@@ -17,14 +17,13 @@ export const LocatingIndicator = observer(({ store }: Props) => {
   const loc = store.locationStore;
   if (loc.isWaitingForFirstFix) {
     return (
-      <div
+      <output
         className={[styles.railIcon, styles.locatingIndicator].join(" ")}
-        role="status"
         aria-label="Locating"
         title="Finding your location…"
       >
         <span className={styles.spinner} aria-hidden />
-      </div>
+      </output>
     );
   }
   if (loc.lastError === "denied") {

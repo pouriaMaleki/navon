@@ -1,4 +1,8 @@
-import type { CoordinatePoint, NormalizedRoutePackage, RouteManeuverType } from "../domain/models.js";
+import type {
+  CoordinatePoint,
+  NormalizedRoutePackage,
+  RouteManeuverType,
+} from "../domain/models.js";
 import { filterGlitchClusters } from "../integrations/cues/glitchTurnFilter.js";
 
 export const DEFAULT_RIDER_FALLBACK: CoordinatePoint = {
@@ -91,11 +95,17 @@ export function formatDistanceLabel(meters: number): string {
 
 export function turnAlertLabel(kind: TurnAlertKind): string {
   switch (kind) {
-    case "left": return "Turn left";
-    case "right": return "Turn right";
-    case "slightLeft": return "Slight left";
-    case "slightRight": return "Slight right";
-    case "uturn": return "U-turn";
-    case "generic": return "Turn";
+    case "left":
+      return "Turn left";
+    case "right":
+      return "Turn right";
+    case "slightLeft":
+      return "Slight left";
+    case "slightRight":
+      return "Slight right";
+    case "uturn":
+      return "U-turn";
+    case "generic":
+      return "Turn";
   }
 }

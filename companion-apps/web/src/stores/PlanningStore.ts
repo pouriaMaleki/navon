@@ -13,19 +13,19 @@ import {
 } from "../domain/index.js";
 import { isInFinland } from "../integrations/geo.js";
 import {
-  decoratePreview,
-  isSamplePreview,
-  mergeMixedAlternatives,
-  mixedNotice,
-  presentAlternatives,
-} from "./PlanningHelpers.js";
-import {
   expandShortLink,
   extractCoordinateFromText,
   looksLikeUrl,
 } from "../integrations/shareImport/UrlExpander.js";
 import type { HistoryStore } from "./HistoryStore.js";
 import type { LocationStore } from "./LocationStore.js";
+import {
+  decoratePreview,
+  isSamplePreview,
+  mergeMixedAlternatives,
+  mixedNotice,
+  presentAlternatives,
+} from "./PlanningHelpers.js";
 import type { SettingsStore } from "./SettingsStore.js";
 
 const SWITCHABLE_PROVIDERS: ReadonlySet<RouteProviderID> = new Set(["hsl", "osm"]);

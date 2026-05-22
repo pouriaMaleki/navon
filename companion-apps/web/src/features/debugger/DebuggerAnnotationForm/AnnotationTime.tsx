@@ -9,7 +9,6 @@ type Props = {
 
 export const AnnotationTime = ({ relMs, startOffset, endOffset, formatMs }: Props) => (
   <div className={styles.time}>
-    At {formatMs(relMs)} (range: {formatMs(relMs + startOffset)} – {formatMs(relMs + endOffset)}
-    )
+    At {formatMs(relMs)} (range: {formatMs(relMs + startOffset)} – {formatMs(relMs + endOffset)})
   </div>
 );

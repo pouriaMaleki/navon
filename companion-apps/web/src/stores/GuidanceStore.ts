@@ -9,6 +9,7 @@ import {
   type RouteSourceMode,
   selectedAlternative,
 } from "../domain/models.js";
+import { filterGlitchClusters } from "../integrations/cues/glitchTurnFilter.js";
 import {
   approximateDistanceMeters,
   bearingDegrees,
@@ -17,7 +18,6 @@ import {
   totalDistanceMeters,
 } from "../integrations/geo.js";
 import type { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
-import { computeRerouteBackoff } from "./GuidanceReroute.js";
 import {
   ARRIVAL_RADIUS_M,
   buildStoredManeuvers,
@@ -33,7 +33,7 @@ import {
   turnAlertLabel,
   type UpcomingTurnAlert,
 } from "./GuidanceHelpers.js";
-import { filterGlitchClusters } from "../integrations/cues/glitchTurnFilter.js";
+import { computeRerouteBackoff } from "./GuidanceReroute.js";
 import type { LocationStore } from "./LocationStore.js";
 import type { PlanningStore } from "./PlanningStore.js";
 

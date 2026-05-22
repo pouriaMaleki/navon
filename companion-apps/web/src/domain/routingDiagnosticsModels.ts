@@ -94,9 +94,9 @@ export interface RoutingDiagDebugPackage {
 
 export {
   LOCATION_EVENT_THROTTLE_MS,
-  ROUTING_DIAGNOSTICS_SESSION_LIMIT,
   newEventId,
   newSessionId,
+  ROUTING_DIAGNOSTICS_SESSION_LIMIT,
   sessionDebugPackage,
   sessionDurationMs,
 } from "./routingDiagnosticsHelpers.js";

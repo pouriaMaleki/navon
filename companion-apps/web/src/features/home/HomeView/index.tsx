@@ -1,5 +1,11 @@
 import { observer } from "mobx-react-lite";
 import type { RootStore } from "../../../app/RootStore.js";
+import { useAutoStartRoute } from "../hooks/useAutoStartRoute.js";
+import { useBottomOverlayMeasurement } from "../hooks/useBottomOverlayMeasurement.js";
+import { useCameraFollowTrigger } from "../hooks/useCameraFollowTrigger.js";
+import { useFirstFixRecenter } from "../hooks/useFirstFixRecenter.js";
+import { useHomePresentationReveal } from "../hooks/useHomePresentationReveal.js";
+import { MapSurface } from "../MapSurface.js";
 import { BottomOverlay } from "./BottomOverlay.js";
 import { LeftSideRail } from "./LeftSideRail.js";
 import { LocatingIndicator } from "./LocatingIndicator.js";
@@ -7,12 +13,6 @@ import { LocationBanner } from "./LocationBanner.js";
 import { RightSideRail } from "./RightSideRail.js";
 import { SpeedBadge } from "./SpeedBadge.js";
 import { TopOverlay } from "./TopOverlay.js";
-import { MapSurface } from "../MapSurface.js";
-import { useAutoStartRoute } from "../hooks/useAutoStartRoute.js";
-import { useBottomOverlayMeasurement } from "../hooks/useBottomOverlayMeasurement.js";
-import { useCameraFollowTrigger } from "../hooks/useCameraFollowTrigger.js";
-import { useFirstFixRecenter } from "../hooks/useFirstFixRecenter.js";
-import { useHomePresentationReveal } from "../hooks/useHomePresentationReveal.js";
 
 type Props = { store: RootStore };
 

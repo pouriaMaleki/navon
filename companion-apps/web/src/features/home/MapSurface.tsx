@@ -2,16 +2,16 @@ import maplibregl, { type Map as MaplibreMap } from "maplibre-gl";
 import { observer } from "mobx-react-lite";
 import { useEffect, useRef } from "react";
 import type { RootStore } from "../../app/RootStore.js";
-import { MapInteractionGate } from "./MapInteractionGate.js";
+import { dispatchCameraTarget } from "./cameraDispatcher.js";
 import { useLongPressPin } from "./hooks/useLongPressPin.js";
 import { useMapCamera } from "./hooks/useMapCamera.js";
 import { useMapRider } from "./hooks/useMapRider.js";
 import { useMapRouteData } from "./hooks/useMapRouteData.js";
 import { useMapRouteProgress } from "./hooks/useMapRouteProgress.js";
 import { useMapZoom } from "./hooks/useMapZoom.js";
-import { addCompanionLayers, pushMarkers, pushRider, pushRouteData } from "./mapLayerSetup.js";
-import { dispatchCameraTarget } from "./cameraDispatcher.js";
+import { MapInteractionGate } from "./MapInteractionGate.js";
 import styles from "./MapSurface.module.css";
+import { addCompanionLayers, pushMarkers, pushRider, pushRouteData } from "./mapLayerSetup.js";
 
 const OSM_STYLE: maplibregl.StyleSpecification = {
   version: 8,
