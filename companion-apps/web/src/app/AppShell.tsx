@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { HomeView } from "../features/home/HomeView.js";
+import { HomeView } from "../features/home/HomeView/index.js";
 import { WebTtsService } from "../integrations/audio/WebTtsService.js";
 import { startRoutingActivityCoordinator } from "../integrations/cues/RoutingActivityCoordinator.js";
 import { LiveNotificationService } from "../integrations/notifications/LiveNotificationService.js";
@@ -12,7 +12,7 @@ const SettingsHubView = lazy(() =>
   import("../features/settings/SettingsHubView.js").then((m) => ({ default: m.SettingsHubView })),
 );
 const DebuggerView = lazy(() =>
-  import("../features/debugger/DebuggerView.js").then((m) => ({ default: m.DebuggerView })),
+  import("../features/debugger/DebuggerView/index.js").then((m) => ({ default: m.DebuggerView })),
 );
 
 type Props = { store: RootStore };

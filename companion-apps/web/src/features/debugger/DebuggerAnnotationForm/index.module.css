@@ -1,0 +1,23 @@
+.form {
+  background: var(--bg-elev);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 20px;
+  width: 360px;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+.form input,
+.form textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+@media (max-width: 767px) {
+  .form {
+    max-width: 100%;
+    border-radius: 14px 14px 0 0;
+  }
+}

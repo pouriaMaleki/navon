@@ -7,14 +7,12 @@ import {
   type CoordinatePoint,
   type DebuggerSession,
   interpolateGps,
+  type RoutingDiagDebugPackage,
+  type RoutingDiagEvent,
+  type RoutingDiagSession,
   sessionEndTime,
   sessionStartTime,
-} from "../domain/debuggerModels.js";
-import type {
-  RoutingDiagDebugPackage,
-  RoutingDiagEvent,
-  RoutingDiagSession,
-} from "../domain/routingDiagnosticsModels.js";
+} from "../domain/index.js";
 import type { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
 
 export type PlaybackState = "playing" | "paused" | "stopped";

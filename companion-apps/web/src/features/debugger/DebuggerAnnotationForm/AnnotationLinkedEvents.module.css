@@ -1,0 +1,6 @@
+.linked {
+  font-size: 11px;
+  color: var(--fg-faint);
+  margin-bottom: 10px;
+  font-family: monospace;
+}

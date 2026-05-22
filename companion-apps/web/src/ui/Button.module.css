@@ -1,0 +1,24 @@
+.btn {
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ghost {
+  color: var(--fg-soft);
+}
+
+.ghost:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.primary {
+  background: var(--accent);
+  color: #0c1320;
+}
+
+.primary:hover {
+  opacity: 0.9;
+}

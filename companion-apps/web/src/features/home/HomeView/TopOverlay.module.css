@@ -1,0 +1,69 @@
+.overlayTop {
+  position: absolute;
+  top: max(env(safe-area-inset-top), 12px);
+  left: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.overlayTop > * {
+  pointer-events: auto;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 12px 14px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.searchBar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 16px;
+}
+
+.searchBar input::placeholder {
+  color: var(--fg-faint);
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 14px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  color: var(--fg);
+}
+
+.title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--fg-soft);
+}
+
+.guidanceHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.guidanceText {
+  flex: 1;
+  min-width: 0;
+}

@@ -1,0 +1,62 @@
+.overlayTop {
+  position: absolute;
+  top: max(env(safe-area-inset-top), 12px);
+  left: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.overlayTop > * {
+  pointer-events: auto;
+}
+
+.locBanner {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 12px 14px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.locText {
+  flex: 1;
+  font-size: 13px;
+  color: var(--fg-soft);
+  line-height: 1.35;
+}
+
+.locActions {
+  display: flex;
+  gap: 6px;
+}
+
+.locBtn {
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.locBtnPrimary {
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #0c1320;
+}
+
+.locBtnGhost {
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-soft);
+}

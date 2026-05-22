@@ -1,0 +1,59 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--card-border);
+  flex-shrink: 0;
+}
+
+.backBtn {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--fg-soft);
+}
+
+.backBtn:hover {
+  color: var(--fg);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sessionId {
+  font-size: 12px;
+  color: var(--fg-faint);
+  font-family: monospace;
+}
+
+.count {
+  font-size: 12px;
+  color: var(--fg-soft);
+}
+
+.headerActions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.headerBtn {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--accent-blue);
+  background: rgba(18, 163, 163, 0.1);
+}
+
+.headerBtn:hover {
+  background: rgba(18, 163, 163, 0.2);
+}
+
+.gpxBadge {
+  font-size: 11px;
+  color: var(--accent);
+  background: rgba(215, 255, 63, 0.1);
+  padding: 2px 8px;
+  border-radius: 6px;
+}

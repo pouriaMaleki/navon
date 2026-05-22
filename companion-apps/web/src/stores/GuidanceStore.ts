@@ -6,11 +6,9 @@ import {
   type HomeCompassMode,
   type HomeMode,
   type NormalizedRoutePackage,
-  type RouteManeuverType,
   type RouteSourceMode,
   selectedAlternative,
 } from "../domain/models.js";
-import { filterGlitchClusters } from "../integrations/cues/glitchTurnFilter.js";
 import {
   approximateDistanceMeters,
   bearingDegrees,
@@ -19,101 +17,25 @@ import {
   totalDistanceMeters,
 } from "../integrations/geo.js";
 import type { LocalStoragePersistence } from "../integrations/persistence/LocalStoragePersistence.js";
+import { computeRerouteBackoff } from "./GuidanceReroute.js";
+import {
+  ARRIVAL_RADIUS_M,
+  buildStoredManeuvers,
+  computeUpcomingTurnAlert,
+  DEFAULT_RIDER_FALLBACK,
+  formatDistanceLabel,
+  MAJOR_TURN_ALERT_DISTANCE_M,
+  OFF_ROUTE_ENTER_DISTANCE_M,
+  OFF_ROUTE_EXIT_DISTANCE_M,
+  REROUTE_REQUEST_DELAY_MS,
+  REROUTING_BACKOFF_WINDOW_MS,
+  type StoredManeuver,
+  turnAlertLabel,
+  type UpcomingTurnAlert,
+} from "./GuidanceHelpers.js";
+import { filterGlitchClusters } from "../integrations/cues/glitchTurnFilter.js";
 import type { LocationStore } from "./LocationStore.js";
 import type { PlanningStore } from "./PlanningStore.js";
-
-export const DEFAULT_RIDER_FALLBACK: CoordinatePoint = {
-  latitude: 60.1699,
-  longitude: 24.9384,
-};
-
-// Thresholds matching runtime-core defaults
-const OFF_ROUTE_ENTER_DISTANCE_M = 35;
-const OFF_ROUTE_EXIT_DISTANCE_M = 22;
-const MAJOR_TURN_ALERT_DISTANCE_M = 80;
-const REROUTE_REQUEST_DELAY_MS = 2000;
-/** Sliding window over which past reroute attempts contribute to the backoff
- *  delay. Older attempts age out and stop counting. */
-const REROUTING_BACKOFF_WINDOW_MS = 30_000;
-/** Throttle threshold: at this many attempts in the window, hold the next
- *  auto-reroute by REROUTING_BACKOFF_DELAY_MS. */
-const REROUTING_THROTTLE_AT_ATTEMPTS = 3;
-/** Escalation threshold: at this many attempts, hold for REROUTING_BACKOFF_LONG_DELAY_MS. */
-const REROUTING_ESCALATE_AT_ATTEMPTS = 5;
-const REROUTING_BACKOFF_DELAY_MS = 5_000;
-const REROUTING_BACKOFF_LONG_DELAY_MS = 10_000;
-/**
- * Arrival is declared when the rider is within this many metres of the route
- * destination. Larger than the off-route exit distance so a rider drifting
- * around the destination doesn't bounce between "off route" and "arrived".
- */
-const ARRIVAL_RADIUS_M = 25;
-
-export type TurnAlertKind = "left" | "right" | "slightLeft" | "slightRight" | "uturn" | "generic";
-
-export type UpcomingTurnAlert = {
-  kind: TurnAlertKind;
-  distanceRemainingM: number;
-  instructionText?: string;
-};
-
-type StoredManeuver = {
-  alertKind: TurnAlertKind | undefined;
-  distanceAlongRouteM: number;
-  instructionText?: string;
-};
-
-function turnAlertKindFromManeuverType(type: RouteManeuverType): TurnAlertKind | undefined {
-  switch (type) {
-    case "depart":
-    case "straight":
-    case "arrive":
-      return undefined;
-    case "roundabout":
-    case "merge":
-    case "ramp":
-      return "generic";
-    case "left":
-    case "sharpLeft":
-      return "left";
-    case "slightLeft":
-      return "slightLeft";
-    case "right":
-    case "sharpRight":
-      return "right";
-    case "slightRight":
-      return "slightRight";
-    case "uturn":
-      return "uturn";
-  }
-}
-
-function buildStoredManeuvers(route: NormalizedRoutePackage): StoredManeuver[] {
-  return filterGlitchClusters(route.maneuvers, route.geometry).map((m) => ({
-    alertKind: turnAlertKindFromManeuverType(m.maneuverType),
-    distanceAlongRouteM: m.distanceFromStartMeters,
-    instructionText: m.instructionText,
-  }));
-}
-
-function computeUpcomingTurnAlert(
-  maneuvers: StoredManeuver[],
-  progressDistanceM: number,
-  thresholdM: number,
-): UpcomingTurnAlert | undefined {
-  for (const m of maneuvers) {
-    if (!m.alertKind) continue;
-    const remaining = m.distanceAlongRouteM - progressDistanceM;
-    if (remaining < 0) continue;
-    if (remaining > thresholdM) return undefined;
-    return {
-      kind: m.alertKind,
-      distanceRemainingM: remaining,
-      instructionText: m.instructionText,
-    };
-  }
-  return undefined;
-}
 
 export class GuidanceStore {
   homeMode: HomeMode = "planning";
@@ -522,12 +444,9 @@ export class GuidanceStore {
       (t) => now - t < REROUTING_BACKOFF_WINDOW_MS,
     );
     this.reroutingAttemptTimestamps.push(now);
-    const count = this.reroutingAttemptTimestamps.length;
-    let delayMs = 0;
-    if (count >= REROUTING_ESCALATE_AT_ATTEMPTS) delayMs = REROUTING_BACKOFF_LONG_DELAY_MS;
-    else if (count >= REROUTING_THROTTLE_AT_ATTEMPTS) delayMs = REROUTING_BACKOFF_DELAY_MS;
-    this.reroutingDelayedUntilMs = delayMs > 0 ? now + delayMs : undefined;
-    return delayMs;
+    const { delayedUntilMs } = computeRerouteBackoff(this.reroutingAttemptTimestamps, now);
+    this.reroutingDelayedUntilMs = delayedUntilMs;
+    return delayedUntilMs ? delayedUntilMs - now : 0;
   }
 
   /** True while an auto-reroute is being held back by the throttle. The view
@@ -791,27 +710,5 @@ export class GuidanceStore {
       clearTimeout(this.northPreviewTimeoutId);
       this.northPreviewTimeoutId = undefined;
     }
-  }
-}
-
-function formatDistanceLabel(meters: number): string {
-  if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
-  return `${Math.round(meters)} m`;
-}
-
-function turnAlertLabel(kind: TurnAlertKind): string {
-  switch (kind) {
-    case "left":
-      return "Turn left";
-    case "right":
-      return "Turn right";
-    case "slightLeft":
-      return "Slight left";
-    case "slightRight":
-      return "Slight right";
-    case "uturn":
-      return "Make a U-turn";
-    case "generic":
-      return "Maneuver ahead";
   }
 }

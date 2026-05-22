@@ -1,6 +1,6 @@
-import type { Annotation } from "../../domain/debuggerModels.js";
 import {
   type ActiveRouteSession,
+  type Annotation,
   type CompanionSettings,
   type CoordinatePoint,
   DEFAULT_COMPANION_SETTINGS,
@@ -10,9 +10,9 @@ import {
   type PendingHomePresentation,
   type RouteHistoryItem,
   type RoutePlannerPreferences,
-} from "../../domain/models.js";
-import type { RoutingDiagSession } from "../../domain/routingDiagnosticsModels.js";
-import { ROUTING_DIAGNOSTICS_SESSION_LIMIT } from "../../domain/routingDiagnosticsModels.js";
+  ROUTING_DIAGNOSTICS_SESSION_LIMIT,
+  type RoutingDiagSession,
+} from "../../domain/index.js";
 import { approximateDistanceMeters } from "../geo.js";
 
 const KEY_RECENT = "companion.recentDestinations";

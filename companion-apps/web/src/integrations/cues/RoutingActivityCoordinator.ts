@@ -1,7 +1,7 @@
 import { autorun, type IReactionDisposer, observable, runInAction } from "mobx";
 import type { RootStore } from "../../app/RootStore.js";
 import { resolveDistanceUnit, resolveLocale, setActiveLocale, t, tIn } from "../../i18n/index.js";
-import { recordAudioCue } from "../../stores/RoutingDiagnosticsHooks.js";
+import { recordAudioCue } from "../../app/routingDiagnosticsReactions.js";
 import { hasVoiceForLocale } from "../audio/voiceAvailability.js";
 import type { WebTtsService } from "../audio/WebTtsService.js";
 import { collapseCloseManeuvers } from "../geo.js";

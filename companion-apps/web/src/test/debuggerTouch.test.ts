@@ -117,7 +117,7 @@ describe("DebuggerStore", () => {
 // Verify DebuggerEventPanel module exports are loadable
 describe("DebuggerEventPanel exports", () => {
   it("EVENT_KIND_LABELS has expected entries", async () => {
-    const mod = await import("../features/debugger/DebuggerEventPanel.js");
+    const mod = await import("../features/debugger/DebuggerEventPanel/index.js");
     expect(mod.EVENT_KIND_LABELS).toBeDefined();
     expect(mod.EVENT_KIND_LABELS["locationUpdate"]).toBe("GPS");
     expect(mod.EVENT_KIND_LABELS["audioCueDispatched"]).toBe("Audio cue");

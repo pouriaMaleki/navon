@@ -1,0 +1,26 @@
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.btn {
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-soft);
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.btnSave {
+  background: var(--accent);
+  color: #0c1320;
+}
+
+.btnSave:hover {
+  opacity: 0.9;
+}

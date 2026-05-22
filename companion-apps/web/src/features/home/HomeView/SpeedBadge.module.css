@@ -1,0 +1,16 @@
+.speedBadge {
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom) + 12px);
+  left: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  pointer-events: none;
+  z-index: 5;
+}

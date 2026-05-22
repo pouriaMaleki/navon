@@ -2,17 +2,23 @@ import { makeAutoObservable, runInAction } from "mobx";
 import {
   type CoordinatePoint,
   type DestinationSearchResult,
+  type PlaceSearchService,
   primaryProviderID,
-  ROUTE_PROVIDER_DISPLAY_NAME,
-  type RouteAlternative,
   type RoutePlanRequest,
   type RoutePreviewModel,
   type RouteProviderID,
   type RouteSourceMode,
+  type RoutingProvider,
   selectedAlternative,
-} from "../domain/models.js";
-import type { PlaceSearchService, RoutingProvider } from "../domain/providers.js";
+} from "../domain/index.js";
 import { isInFinland } from "../integrations/geo.js";
+import {
+  decoratePreview,
+  isSamplePreview,
+  mergeMixedAlternatives,
+  mixedNotice,
+  presentAlternatives,
+} from "./PlanningHelpers.js";
 import {
   expandShortLink,
   extractCoordinateFromText,
@@ -445,100 +451,11 @@ export class PlanningStore {
   }
 }
 
-function decoratePreview(preview: RoutePreviewModel, mode: RouteSourceMode): RoutePreviewModel {
-  return {
-    ...preview,
-    alternatives: presentAlternatives(preview.alternatives, mode),
-    selectedAlternativeID: preview.alternatives[0]?.id,
-  };
-}
-
-function isSamplePreview(preview: RoutePreviewModel): boolean {
-  return (preview.planningNotice ?? "").toLowerCase().includes("sample");
-}
-
-function mixedNotice(
-  previews: RoutePreviewModel[],
-  effective: RoutePreviewModel[],
-  includeHsl: boolean,
-): string {
-  if (effective.length === 1 && effective[0].planningNotice) return effective[0].planningNotice;
-  if (effective.length < previews.length) {
-    return "Showing live routes while sample fallback providers are hidden.";
-  }
-  return includeHsl ? "Mixed routes from HSL and OSM" : "OSM bike routes";
-}
-
-export function mergeMixedAlternatives(alternatives: RouteAlternative[]): RouteAlternative[] {
-  if (alternatives.length === 0) return [];
-  const sorted = [...alternatives].sort((a, b) => {
-    if (a.durationSeconds === b.durationSeconds) return a.distanceMeters - b.distanceMeters;
-    return a.durationSeconds - b.durationSeconds;
-  });
-  const remaining = [...sorted];
-  const chosen: RouteAlternative[] = [];
-  const takeFirstMatching = (predicate: (a: RouteAlternative) => boolean): void => {
-    const idx = remaining.findIndex(predicate);
-    if (idx >= 0) {
-      chosen.push(remaining[idx]);
-      remaining.splice(idx, 1);
-    } else if (remaining.length > 0) {
-      chosen.push(remaining.shift() as RouteAlternative);
-    }
-  };
-  if (remaining.length > 0) {
-    chosen.push(remaining.shift() as RouteAlternative);
-  }
-  takeFirstMatching((a) => a.normalizedPackage.provenance.providerID === "osm");
-  takeFirstMatching(() => true);
-  while (chosen.length < 3 && remaining.length > 0) {
-    chosen.push(remaining.shift() as RouteAlternative);
-  }
-  return presentAlternatives(chosen, "mixed");
-}
-
-/**
- * Label every visible alternative as "<Provider> Route N", where N is a
- * per-provider counter (so OSM Route 1, OSM Route 2, HSL Route 1, …).
- * This replaces the prior "Fastest / Quieter / Simpler" scheme which
- * implied semantics the routing backends don't actually deliver — the
- * order is just whatever the provider returned.
- */
-export function presentAlternatives(
-  alternatives: RouteAlternative[],
-  _mode: RouteSourceMode,
-): RouteAlternative[] {
-  return alternatives.slice(0, 3).map((alt) => {
-    const label = friendlyAlternativeLabel(alt);
-    return { ...alt, title: label.title, subtitle: label.subtitle };
-  });
-}
-
-/**
- * iOS-parity helper. Maps a route alternative's provider + sourceReference
- * onto the short engine-derived title shown in the suggested-routes card.
- * Drops the per-provider counter and the redundant "via …" subtitle.
- *
- *   - OSM via BRouter `fastbike` → "BRouter fastbike"
- *   - OSM via BRouter `trekking` → "BRouter trekking"
- *   - OSM via OSRM bike          → "OSM Route"
- *   - HSL Digitransit live / fastest     → "HSL Fastest"
- *   - HSL Digitransit live / alternative → "HSL Route"
- */
-export function friendlyAlternativeLabel(alt: RouteAlternative): {
-  title: string;
-  subtitle: string;
-} {
-  const providerID = alt.normalizedPackage.provenance.providerID;
-  const sourceRef = (alt.normalizedPackage.provenance.sourceReference ?? "").toLowerCase();
-  if (providerID === "osm") {
-    if (sourceRef.includes("fastbike")) return { title: "BRouter fastbike", subtitle: "" };
-    if (sourceRef.includes("trekking")) return { title: "BRouter trekking", subtitle: "" };
-    return { title: "OSM Route", subtitle: "" };
-  }
-  if (providerID === "hsl") {
-    if (sourceRef.includes("fastest")) return { title: "HSL Fastest", subtitle: "" };
-    return { title: "HSL Route", subtitle: "" };
-  }
-  return { title: ROUTE_PROVIDER_DISPLAY_NAME[providerID], subtitle: "" };
-}
+export {
+  decoratePreview,
+  friendlyAlternativeLabel,
+  isSamplePreview,
+  mergeMixedAlternatives,
+  mixedNotice,
+  presentAlternatives,
+} from "./PlanningHelpers.js";

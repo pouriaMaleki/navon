@@ -1,117 +1,44 @@
 // Audio cue trigger engine — pure function consumed by the wiring layer.
 // Spec: docs/ux-specs.md lines 133-143.
 
-export type ManeuverKind =
-  | "left"
-  | "right"
-  | "slightLeft"
-  | "slightRight"
-  | "exitLeft"
-  | "exitRight"
-  | "uturn"
-  | "roundabout"
-  | "merge"
-  | "ramp"
-  | "generic";
+import {
+  APPROACH_10_M,
+  APPROACH_50_M,
+  BACK_TO_BACK_THRESHOLD_M,
+  CLOSE_TO_DESTINATION_M,
+  type CueEngineState,
+  type CueEvent,
+  type CueSnapshot,
+  type ManeuverKind,
+  OFF_ROUTE_HYSTERESIS_TICKS,
+  OFF_ROUTE_IMMEDIATE_DISTANCE_M,
+  ON_TRACK_CONFIRM_SAMPLES,
+  ON_TRACK_CORRIDOR_M,
+  PASSED_TURN_M,
+  REPEAT_OFFTRACK_SILENCE_THRESHOLD,
+  REROUTING_CUE_CAP,
+  SKIP_50M_BELOW_DISTANCE_M,
+} from "./cueTypes.js";
 
-export type CueManeuver = {
-  id: string;
-  kind: ManeuverKind;
-  distanceFromStartM: number;
-};
-
-export type CueSnapshot = {
-  routeId: string | undefined;
-  pairedWithDevice: boolean;
-  progressDistanceM: number;
-  /** Excluding depart/arrive; ordered by distanceFromStartM ascending. */
-  maneuvers: CueManeuver[];
-  offRoute: boolean;
-  rerouting: boolean;
-  arrived: boolean;
-  /** Straight-line distance from the rider to the projected route. */
-  distanceFromRouteM: number;
-  routeTotalDistanceM: number;
-};
-
-export type CueEvent =
-  /** Approaching a turn (within ~50m). `distanceM` is the rider's actual
-   *  distance to the maneuver — the catalog uses it instead of hardcoding
-   *  "50 meters", because the rider can enter this window with d much
-   *  smaller (route starting close to the turn) and "in 50 meters turn
-   *  left" while actually 15 m away is jarringly inaccurate. When the
-   *  next maneuver is within ~30 m of this one (a back-to-back pair),
-   *  `followUpKind` carries that maneuver's direction so the engine emits
-   *  a single combined cue ("In 20 meters, turn right then quickly left")
-   *  instead of two overlapping cue chains. */
-  | { kind: "turn50m"; turnKind: ManeuverKind; distanceM: number; followUpKind?: ManeuverKind }
-  /**
-   * Immediate-action 10 m cue. `followUpKind` is set when the next maneuver
-   * is within `BACK_TO_BACK_THRESHOLD_M` of this one — covers the
-   * sparse-GPS / fast-cycling case where the 50 m combined cue was missed
-   * because the first in-range tick already landed inside 15 m of M1. Without
-   * this fold, the rider would hear only "turn <first>" with no mention of
-   * the immediately-following turn.
-   */
-  | { kind: "turn10m"; turnKind: ManeuverKind; followUpKind?: ManeuverKind }
-  | { kind: "nextTurnInAbout"; turnKind: ManeuverKind; distanceM: number }
-  | { kind: "arrivingInM"; distanceM: number }
-  | { kind: "arrived" }
-  | { kind: "offTrack" }
-  | { kind: "rerouting" }
-  | { kind: "repeatedOffTrackSilence" }
-  | { kind: "onTrack" };
-
-export type CueEngineState = {
-  lastRouteId: string | undefined;
-  routeStartedAnnounced: boolean;
-  announced50m: ReadonlySet<string>;
-  announced10m: ReadonlySet<string>;
-  announcedNextTurnAfter: ReadonlySet<string>;
-  approachingDestinationAnnounced: boolean;
-  arrivedAnnounced: boolean;
-  offRouteEpisodeCount: number;
-  prevOffRoute: boolean;
-  prevRerouting: boolean;
-  silenced: boolean;
-  consecutiveOnRouteSamples: number;
-  onTrackAnnounced: boolean;
-  /** Number of rerouting cues that have fired (counts rising edges).
-   *  Persists across route id changes, since each successful reroute itself
-   *  causes a route id change. Reset only when the rider is confirmed
-   *  on-track for ON_TRACK_CONFIRM_SAMPLES consecutive ticks. */
-  reroutingEpisodeCount: number;
-  /** Number of consecutive off-route ticks. Resets on any on-route tick.
-   *  offTrack only fires after OFF_ROUTE_HYSTERESIS_TICKS consecutive. */
-  offRouteTickCount: number;
-};
-
-const APPROACH_50_M = 50;
-const APPROACH_10_M = 15;
-/** When the next turn is closer than this at the time of the nextTurnInAbout
- *  announcement, pre-latch the turn50m cue so it never fires. The rider has
- *  already been told the turn is near; a redundant "in 50 m" announcement
- *  before they can even hear the first one is jarring. */
-const SKIP_50M_BELOW_DISTANCE_M = 100;
-const PASSED_TURN_M = 10;
-const ON_TRACK_CONFIRM_SAMPLES = 5;
-const ON_TRACK_CORRIDOR_M = 22;
-const OFF_ROUTE_HYSTERESIS_TICKS = 3;
-/** When the rider is this far from the route, skip hysteresis — they're genuinely lost. */
-const OFF_ROUTE_IMMEDIATE_DISTANCE_M = 50;
-const REPEAT_OFFTRACK_SILENCE_THRESHOLD = 2;
-/** Cap on rerouting audio cues per "off-route session". After this many fires,
- *  stay silent until the rider is confirmed on-track. */
-const REROUTING_CUE_CAP = 2;
-/** If the last cue maneuver sits within this distance of the route end,
- *  approaching it is indistinguishable from arriving: substitute arrivingInM
- *  for any nextTurnInAbout or approach cues so the rider hears "arriving in Xm"
- *  rather than a phantom turn command. */
-const CLOSE_TO_DESTINATION_M = 30;
-/** Two maneuvers separated by less than this fold into a single "turn X
- *  then quickly Y" cue. 30 m at cycling speeds ≈ 4-7 s — the only window
- *  where coalescing two turns into one cue feels natural. */
-const BACK_TO_BACK_THRESHOLD_M = 30;
+export {
+  type CueEngineState,
+  type CueEvent,
+  type CueManeuver,
+  type CueSnapshot,
+  type ManeuverKind,
+  APPROACH_10_M,
+  APPROACH_50_M,
+  BACK_TO_BACK_THRESHOLD_M,
+  CLOSE_TO_DESTINATION_M,
+  OFF_ROUTE_HYSTERESIS_TICKS,
+  OFF_ROUTE_IMMEDIATE_DISTANCE_M,
+  ON_TRACK_CONFIRM_SAMPLES,
+  ON_TRACK_CORRIDOR_M,
+  PASSED_TURN_M,
+  REPEAT_OFFTRACK_SILENCE_THRESHOLD,
+  REROUTING_CUE_CAP,
+  SKIP_50M_BELOW_DISTANCE_M,
+} from "./cueTypes.js";
 
 export function initialCueEngineState(): CueEngineState {
   return {

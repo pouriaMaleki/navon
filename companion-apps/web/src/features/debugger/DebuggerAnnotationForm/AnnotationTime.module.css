@@ -1,0 +1,6 @@
+.time {
+  font-size: 12px;
+  color: var(--fg-faint);
+  margin-bottom: 14px;
+  font-family: monospace;
+}

@@ -2,12 +2,12 @@ import { autorun, makeAutoObservable, reaction, runInAction } from "mobx";
 import {
   type CoordinatePoint,
   type ImportClassification,
+  type PlaceSearchService,
   primaryProviderID,
   type RerouteContext,
   type RouteHistoryItem,
   type RouteHistorySource,
-} from "../domain/models.js";
-import type { PlaceSearchService } from "../domain/providers.js";
+} from "../domain/index.js";
 import { GpxRoutingAdapter } from "../integrations/gpx/GpxRoutingAdapter.js";
 import { HslRoutingAdapter } from "../integrations/hsl/HslRoutingAdapter.js";
 import { BrowserLocationService } from "../integrations/location/BrowserLocationService.js";
@@ -20,19 +20,22 @@ import {
   classifyImport,
   type ImportInput,
 } from "../integrations/shareImport/UrlImportClassifier.js";
-import { DebuggerStore } from "../stores/DebuggerStore.js";
-import { DiagnosticsStore } from "../stores/DiagnosticsStore.js";
-import { GuidanceStore } from "../stores/GuidanceStore.js";
-import { HistoryStore } from "../stores/HistoryStore.js";
-import { LocationStore } from "../stores/LocationStore.js";
-import { MapCameraStore } from "../stores/MapCameraStore.js";
-import { PlanningStore, type ProvidersMap } from "../stores/PlanningStore.js";
+import {
+  DebuggerStore,
+  DiagnosticsStore,
+  GuidanceStore,
+  HistoryStore,
+  LocationStore,
+  MapCameraStore,
+  PlanningStore,
+  type ProvidersMap,
+  RoutingDiagnosticsStore,
+  SettingsStore,
+} from "../stores/index.js";
 import {
   installRoutingDiagnosticsHooks,
   recordRerouteCompleted,
-} from "../stores/RoutingDiagnosticsHooks.js";
-import { RoutingDiagnosticsStore } from "../stores/RoutingDiagnosticsStore.js";
-import { SettingsStore } from "../stores/SettingsStore.js";
+} from "./routingDiagnosticsReactions.js";
 
 export type AppRoute = "home" | "settings" | "debugger";
 

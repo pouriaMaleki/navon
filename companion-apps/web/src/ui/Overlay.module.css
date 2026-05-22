@@ -1,0 +1,26 @@
+.top {
+  position: absolute;
+  top: max(env(safe-area-inset-top), 12px);
+  left: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.top > * {
+  pointer-events: auto;
+}
+
+.bottom {
+  position: absolute;
+  bottom: max(env(safe-area-inset-bottom), 12px);
+  left: 12px;
+  right: 12px;
+  pointer-events: none;
+}
+
+.bottom > * {
+  pointer-events: auto;
+}

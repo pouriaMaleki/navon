@@ -1,0 +1,38 @@
+.railIcon {
+  width: var(--rail-icon-size);
+  height: var(--rail-icon-size);
+  border-radius: var(--rail-icon-corner);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.locatingIndicator {
+  position: absolute;
+  top: var(--rail-top);
+  right: calc(12px + var(--rail-icon-size) + var(--rail-icon-gap));
+  pointer-events: auto;
+  z-index: 5;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(245, 247, 251, 0.25);
+  border-top-color: var(--accent);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

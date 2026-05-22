@@ -1,0 +1,40 @@
+.overlayBottom {
+  position: absolute;
+  bottom: max(env(safe-area-inset-bottom), 12px);
+  left: 12px;
+  right: 12px;
+  pointer-events: none;
+}
+
+.overlayBottom > * {
+  pointer-events: auto;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 14px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  color: var(--fg);
+}
+
+.title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--fg-soft);
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+}
