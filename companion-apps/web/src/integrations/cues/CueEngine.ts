@@ -293,7 +293,6 @@ export function tickCueEngine(
         });
         announced50m.add(upcoming.id);
         announced50m.add(followUp.id);
-        announced10m.add(followUp.id);
         announcedNextTurnAfter.add(upcoming.id);
       } else {
         events.push({
