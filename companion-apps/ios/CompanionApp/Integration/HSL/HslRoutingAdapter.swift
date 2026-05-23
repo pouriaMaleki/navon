@@ -572,23 +572,7 @@ struct HslRoutingAdapter: RoutingProvider {
         let lonMeters = (end.longitude - start.longitude) * lonScale
         return (latMeters * latMeters + lonMeters * lonMeters).squareRoot()
     }
-}
 
-enum HslRoutingAdapterError: LocalizedError {
-    case noAlternativesAvailable
-    case invalidEndpoint(String)
-    case networkFailure(String)
-
-    var errorDescription: String? {
-        switch self {
-        case .noAlternativesAvailable:
-            return "No HSL route alternatives were returned."
-        case .invalidEndpoint(let endpoint):
-            return "Invalid HSL endpoint: \(endpoint)"
-        case .networkFailure(let message):
-            return message
-        }
-    }
     private static let minHeadingSpeedMps: Double = 2.0
     private static let rerouteForwardShiftM: Double = 15.0
 
@@ -625,3 +609,17 @@ enum HslRoutingAdapterError: LocalizedError {
     }
     """
 }
+
+enum HslRoutingAdapterError: LocalizedError {
+    case noAlternativesAvailable
+    case invalidEndpoint(String)
+    case networkFailure(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .noAlternativesAvailable:
+            return "No HSL route alternatives were returned."
+        case .invalidEndpoint(let endpoint):
+            return "Invalid HSL endpoint: \(endpoint)"
+        case .networkFailure(let message):
+            return message
