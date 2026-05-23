@@ -73,6 +73,7 @@ final class PairingFlowViewModel: ObservableObject {
     }
 
     func enterScanningStep() async {
+        pairingLog.notice("PairingFlowViewModel.enterScanningStep")
         // Tell the device to show its QR before opening the camera.
         // The device defaults to the map; without this write the
         // panel stays on the map and there's nothing to scan.
@@ -80,6 +81,7 @@ final class PairingFlowViewModel: ObservableObject {
             do {
                 try await appModel.prepareDeviceForPairing()
             } catch {
+                pairingLog.error("prepareDeviceForPairing failed before camera: \(error.localizedDescription, privacy: .public)")
                 pairingState = .failed(error.localizedDescription)
                 return
             }
@@ -87,9 +89,11 @@ final class PairingFlowViewModel: ObservableObject {
         pairingState = .scanning
         appModel?.pairingState = .scanning
         await refreshPermissionDescriptor()
+        pairingLog.notice("PairingFlowViewModel permission → \(String(describing: self.permissionDescriptor), privacy: .public)")
     }
 
     func cancel() {
+        pairingLog.notice("PairingFlowViewModel.cancel from step \(String(describing: self.pairingState), privacy: .public)")
         session.tearDown()
         appModel?.pairingState = .idle
         pairingState = .instructions
@@ -105,10 +109,13 @@ final class PairingFlowViewModel: ObservableObject {
         // matters; ignore everything that arrives after we've already
         // moved past the scanning step.
         guard pairingState == .scanning else {
+            pairingLog.debug("handleScannedQr ignored — past scanning step (state=\(String(describing: self.pairingState), privacy: .public))")
             return
         }
+        pairingLog.notice("PairingFlowViewModel.handleScannedQr (\(raw.count, privacy: .public) chars)")
         do {
             let payload = try PairingQrPayload.decode(raw)
+            pairingLog.notice("QR decoded — secret \(payload.ephemeralSecret.count, privacy: .public) B")
             lastDecodedPayload = payload
             scanErrorMessage = nil
             scanGuidance = .none
@@ -120,8 +127,10 @@ final class PairingFlowViewModel: ObservableObject {
                 Task { await appModel.completePairing(payload: payload) }
             }
         } catch let error as PairingQrError {
+            pairingLog.error("QR decode failed: \(error.errorDescription ?? "?", privacy: .public)")
             registerInvalidScan(message: error.errorDescription ?? "Pairing QR could not be read.")
         } catch {
+            pairingLog.error("QR decode failed (other): \(error.localizedDescription, privacy: .public)")
             registerInvalidScan(message: error.localizedDescription)
         }
     }

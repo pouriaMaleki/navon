@@ -1,4 +1,5 @@
 import Foundation
+import os.log
 
 /// Bridges app state to the routing-time side-effect services. The caller
 /// assembles a `CueSnapshot` each guidance tick and calls
@@ -10,6 +11,10 @@ import Foundation
 ///  - Cues active iff `audioCuesEnabled && allowBackgroundGps && !pairedWithDevice && isRouting`
 @MainActor
 final class RoutingActivityCoordinator {
+    private static let log = Logger(
+        subsystem: "app.navon.bike",
+        category: "audio"
+    )
     private let idleTimer: IdleTimerController
     private let speech: SpeechPort
     private var cueState = CueEngineState()
@@ -63,10 +68,14 @@ final class RoutingActivityCoordinator {
             settings.allowBackgroundGps &&
             !snapshot.pairedWithDevice &&
             (!settings.audioCuesOnlyInBackground || isAppInBackground)
+        Self.log.debug(
+            "onGuidanceTick — isRouting=\(isRouting) audioCues=\(settings.audioCuesEnabled) bgGps=\(settings.allowBackgroundGps) paired=\(snapshot.pairedWithDevice) onlyBg=\(settings.audioCuesOnlyInBackground) bg=\(isAppInBackground) → cuesActive=\(cuesActive) progressM=\(snapshot.progressDistanceM, privacy: .public) routeId=\(snapshot.routeId ?? "nil", privacy: .public)"
+        )
         guard cuesActive else { return }
         let result = CueEngine.tick(snapshot: snapshot, state: cueState)
         cueState = result.nextState
         if !result.events.isEmpty {
+            Self.log.info("CueEngine emitted \(result.events.count) event(s) on this tick")
         }
         let distanceMode = T.resolveDistanceUnit(settings.distanceUnit)
         // Recompute every tick. `onSettingsOrRoutingChange` only fires
@@ -90,6 +99,7 @@ final class RoutingActivityCoordinator {
             let phrase = renderInFallback
                 ? T.stringIn(.en, msg.key, msg.values)
                 : T.string(msg.key, msg.values)
+            Self.log.info("→ speak \"\(phrase, privacy: .public)\"")
             speech.speak(phrase)
             onCueDispatched?("\(event)", phrase)
         }

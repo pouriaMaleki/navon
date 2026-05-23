@@ -25,6 +25,7 @@ final class AVFoundationQrCaptureSession: NSObject, ObservableObject, QrCaptureS
               session.canAddInput(input),
               session.canAddOutput(metadataOutput)
         else {
+            pairingLog.error("AVFoundationQrCaptureSession.configure failed — no camera available or input/output rejected")
             return
         }
         session.addInput(input)
@@ -32,10 +33,12 @@ final class AVFoundationQrCaptureSession: NSObject, ObservableObject, QrCaptureS
         metadataOutput.setMetadataObjectsDelegate(self, queue: .main)
         metadataOutput.metadataObjectTypes = [.qr]
         configureDidSucceed = true
+        pairingLog.notice("AVFoundationQrCaptureSession configured (preset=\(self.session.sessionPreset.rawValue, privacy: .public))")
     }
 
     func start() {
         guard configureDidSucceed else {
+            pairingLog.error("AVFoundationQrCaptureSession.start skipped — configure failed earlier")
             return
         }
         guard !session.isRunning else { return }
@@ -45,6 +48,7 @@ final class AVFoundationQrCaptureSession: NSObject, ObservableObject, QrCaptureS
         Task.detached { [session] in
             session.startRunning()
             await MainActor.run {
+                pairingLog.notice("AVFoundationQrCaptureSession.start — running=\(session.isRunning, privacy: .public)")
             }
         }
     }
@@ -54,6 +58,7 @@ final class AVFoundationQrCaptureSession: NSObject, ObservableObject, QrCaptureS
             session.stopRunning()
         }
         onScan = nil
+        pairingLog.notice("AVFoundationQrCaptureSession.tearDown — running=\(self.session.isRunning, privacy: .public)")
     }
 
     nonisolated func metadataOutput(
