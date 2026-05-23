@@ -623,3 +623,7 @@ enum HslRoutingAdapterError: LocalizedError {
             return "Invalid HSL endpoint: \(endpoint)"
         case .networkFailure(let message):
             return message
+        }
+    }
+}
+
