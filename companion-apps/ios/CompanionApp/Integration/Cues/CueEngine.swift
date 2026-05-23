@@ -375,7 +375,6 @@ enum CueEngine {
                     events.append(.turn50m(m.kind, distanceM: d, followUpKind: followUp.kind))
                     announced50m.insert(m.id)
                     announced50m.insert(followUp.id)
-                    announced10m.insert(followUp.id)
                     announcedNextTurnAfter.insert(m.id)
                 } else {
                     events.append(.turn50m(m.kind, distanceM: d, followUpKind: nil))

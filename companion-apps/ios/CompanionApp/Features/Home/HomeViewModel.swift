@@ -490,6 +490,7 @@ final class HomeViewModel: ObservableObject {
         rerouteRequested = false
         offRouteDurationMs = 0
         reroutingDelayedUntilMs = nil
+        autoReroutePending = false
     }
 
     /// The most recently dispatched auto-reroute task. Tests await this
