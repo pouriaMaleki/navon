@@ -589,8 +589,6 @@ enum HslRoutingAdapterError: LocalizedError {
             return message
         }
     }
-}
-
     private static let minHeadingSpeedMps: Double = 2.0
     private static let rerouteForwardShiftM: Double = 15.0
 
