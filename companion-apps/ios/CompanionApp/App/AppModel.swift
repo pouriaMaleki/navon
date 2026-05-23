@@ -74,6 +74,7 @@ final class AppModel: ObservableObject {
     let persistence: CompanionPersistence
     let bleService: BleRouteSyncService
     let locationService: CoreLocationService
+    let deviceManager: DeviceManager
     private(set) var routingActivityCoordinator: RoutingActivityCoordinator
     private(set) var liveActivityCoordinator: LiveActivityCoordinator
 
@@ -96,8 +97,9 @@ final class AppModel: ObservableObject {
         self.bleService = bleService ?? BleRouteSyncService()
         let locationService = CoreLocationService(persistence: persistence)
         self.locationService = locationService
-        self.phoneGpsForwarder = PhoneGpsForwarder(
-            bleClient: self.bleService.bluetoothClient,
+        self.deviceManager = DeviceManager(
+            bleService: self.bleService,
+            persistence: persistence,
             locationService: locationService
         )
         let loadedSettings = persistence.loadSettings()
@@ -115,9 +117,9 @@ final class AppModel: ObservableObject {
             self?.routingDiagnosticsStore.recordEvent(.audioCueDispatched(cueType: cueType, messageText: messageText))
         }
 
-        phoneGpsForwarder?.$isForwarding
+        deviceManager.objectWillChange
             .receive(on: DispatchQueue.main)
-            .assign(to: \.isPhoneGpsForwarding, on: self)
+            .sink { [weak self] in self?.objectWillChange.send() }
             .store(in: &cancellables)
 
         // Push the persisted language preference to the i18n runtime before
