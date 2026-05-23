@@ -1,6 +1,5 @@
 import Foundation
 import CoreBluetooth
-import os.log
 
 /// Identification of the peripheral the client is currently connected to.
 /// Returned from `connectToAdvertisedPeripheral` so the caller can persist
@@ -147,8 +146,6 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
                     characteristic: characteristic,
                     payload: payload,
                     continuation: continuation
-                )
-            )
             processNextPendingWrite()
         }
     }
@@ -162,9 +159,7 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
 
     func scanForRouteSyncPeripheral(timeout: TimeInterval = 6.0) async throws -> String {
         try await ensurePoweredOn()
-        pairingLog.notice("BLE.scanForRouteSyncPeripheral start (timeout \(timeout, privacy: .public)s, central state \(self.centralManager.state.rawValue, privacy: .public))")
         if let connectedPeripheral {
-            pairingLog.notice("BLE.scan: already connected — returning \(connectedPeripheral.name ?? "?", privacy: .public)")
             return connectedPeripheral.name ?? discoveredPeripheral?.name ?? "Navon"
         }
 
@@ -177,7 +172,6 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
                 if let pendingScanContinuation {
                     self.pendingScanContinuation = nil
                     self.centralManager.stopScan()
-                    pairingLog.error("BLE.scan timed out after \(timeout, privacy: .public)s — no peripheral advertising service \(BleRouteSyncGattContract.serviceUUID, privacy: .public)")
                     pendingScanContinuation.resume(throwing: CoreBluetoothRouteSyncError.scanTimedOut)
                     self.onConnectionStateChange?(.disconnected, nil)
                 }
@@ -235,17 +229,14 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
     /// Unencrypted write — works without prior SMP pairing.
     func writePairingRequest() async throws {
         guard let peripheral = connectedPeripheral, let characteristic = pairingRequestCharacteristic else {
-            pairingLog.error("BLE.writePairingRequest: characteristic missing (connectedPeripheral? \(self.connectedPeripheral != nil, privacy: .public), pairingRequestChar? \(self.pairingRequestCharacteristic != nil, privacy: .public))")
             throw CoreBluetoothRouteSyncError.characteristicMissing
         }
-        pairingLog.notice("BLE.writePairingRequest — 1 B to \(characteristic.uuid.uuidString, privacy: .public)")
         // The payload is ignored — the existence of the write is the
         // signal. Single byte keeps the BLE packet tiny.
         try await enqueueWriteWithResponse(
             payload: Data([0x01]),
             peripheral: peripheral,
             characteristic: characteristic
-        )
     }
 
     /// Send the QR-OOB confirmation secret to the device's pairing-confirm
@@ -253,15 +244,12 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
     /// transition from pairing mode to operational mode.
     func writePairingConfirm(secret: Data) async throws {
         guard let peripheral = connectedPeripheral, let characteristic = pairingConfirmCharacteristic else {
-            pairingLog.error("BLE.writePairingConfirm: characteristic missing (connectedPeripheral? \(self.connectedPeripheral != nil, privacy: .public), pairingConfirmChar? \(self.pairingConfirmCharacteristic != nil, privacy: .public))")
             throw CoreBluetoothRouteSyncError.characteristicMissing
         }
-        pairingLog.notice("BLE.writePairingConfirm — \(secret.count, privacy: .public) B to \(characteristic.uuid.uuidString, privacy: .public)")
         try await enqueueWriteWithResponse(
             payload: secret,
             peripheral: peripheral,
             characteristic: characteristic
-        )
     }
 
     /// Shared post-discovery connect chain so the scan path and fast path
@@ -300,7 +288,6 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
                 payload: payload,
                 peripheral: peripheral,
                 characteristic: characteristic
-            )
         } else {
             peripheral.writeValue(payload, for: characteristic, type: .withoutResponse)
             try await Task.sleep(nanoseconds: 20_000_000)
@@ -326,7 +313,6 @@ final class CoreBluetoothRouteSyncClient: NSObject, RouteSyncBluetoothClient {
             payload: data,
             peripheral: peripheral,
             characteristic: characteristic
-        )
     }
 
     private func ensurePoweredOn() async throws {
@@ -407,7 +393,6 @@ extension CoreBluetoothRouteSyncClient: CBCentralManagerDelegate {
     }
 
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-        pairingLog.notice("BLE.didDiscover \(peripheral.name ?? "(no name)", privacy: .public) [\(peripheral.identifier.uuidString, privacy: .public)] rssi=\(RSSI.intValue, privacy: .public)")
         discoveredPeripheral = peripheral
         central.stopScan()
         if let pendingScanContinuation {
@@ -477,7 +462,6 @@ extension CoreBluetoothRouteSyncClient: CBPeripheralDelegate {
         peripheral.discoverCharacteristics(
             [chunkWriteUUID, eventNotifyUUID, pairingConfirmUUID, pairingRequestUUID, phoneGpsUUID],
             for: routeSyncService,
-        )
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
@@ -503,7 +487,6 @@ extension CoreBluetoothRouteSyncClient: CBPeripheralDelegate {
             // notifications during the QR-OOB handshake. Subsequent
             // operational reconnects re-trigger setNotifyValue and the
             // refreshed cache lets it succeed.
-            pairingLog.error("setNotifyValue failed (\(error.localizedDescription, privacy: .public)) — resuming connect anyway; notifications will be off until a clean reconnect")
             let name = peripheral.name ?? "Navon"
             if let pendingConnectContinuation {
                 self.pendingConnectContinuation = nil
@@ -527,9 +510,6 @@ extension CoreBluetoothRouteSyncClient: CBPeripheralDelegate {
             // Bluedroid raises both depending on whether the rejection
             // is at the ATT layer or on the SMP layer.
             if isPairingAuthFailure(error) {
-                pairingLog.error(
-                    "writeValue rejected with INSUFFICIENT_AUTHENTICATION — SMP failed or stale bond on phone vs device"
-                )
                 activeWrite.continuation.resume(throwing: CoreBluetoothRouteSyncError.pairingDenied)
             } else {
                 activeWrite.continuation.resume(throwing: CoreBluetoothRouteSyncError.writeFailed(error.localizedDescription))

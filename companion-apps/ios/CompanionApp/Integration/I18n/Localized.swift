@@ -11,7 +11,6 @@
 // every platform's `cueMessage(event, …)` resolves to the same text.
 
 import Foundation
-import os.log
 
 enum AppLanguage: String, Codable, CaseIterable {
     case system
@@ -56,7 +55,6 @@ enum SupportedLocale: String, CaseIterable {
         }
     }
 
-    /// Right-to-left script. Mirror of catalog.config.json:localeOptions.
     var isRtl: Bool {
         switch self {
         case .ar, .fa, .ur: return true
@@ -68,10 +66,6 @@ enum SupportedLocale: String, CaseIterable {
 /// Translation namespace. Use `T.string("key")` everywhere user-visible
 /// text appears.
 enum T {
-    private static let log = Logger(
-        subsystem: "app.navon.bike",
-        category: "i18n"
-    )
 
     private static var catalogs: [SupportedLocale: [String: String]] = loadCatalogs()
     private static var active: SupportedLocale = .en
@@ -154,7 +148,6 @@ enum T {
             guard let url = Bundle.main.url(forResource: locale.rawValue, withExtension: "json", subdirectory: "Messages")
                 ?? Bundle.main.url(forResource: locale.rawValue, withExtension: "json")
             else {
-                log.error("missing i18n catalog for locale \(locale.rawValue, privacy: .public)")
                 out[locale] = [:]
                 continue
             }
@@ -162,9 +155,7 @@ enum T {
                 let data = try Data(contentsOf: url)
                 let decoded = try JSONDecoder().decode([String: String].self, from: data)
                 out[locale] = decoded
-                log.info("loaded \(decoded.count) keys for \(locale.rawValue, privacy: .public)")
             } catch {
-                log.error("failed to load \(url.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)")
                 out[locale] = [:]
             }
         }

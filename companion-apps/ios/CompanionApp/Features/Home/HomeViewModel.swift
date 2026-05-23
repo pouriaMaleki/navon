@@ -120,7 +120,7 @@ final class HomeViewModel: ObservableObject {
     /// Pinned auto-recenter delay for user map interactions during routing.
     /// Mirrors `recenter_inactivity_ms` in parity-fixtures/data/ux-constants.toml
     /// (spec line 104).
-    private let mapInteractionRecenterDelay: TimeInterval = 3.0
+    private let mapInteractionRecenterDelay: TimeInterval = 1.3
 
     /// True while the user is actively panning/zooming/rotating the map during
     /// routing. When set, the view layer skips GPS-driven camera-follow updates

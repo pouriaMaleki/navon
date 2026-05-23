@@ -30,7 +30,6 @@ struct PairingFlowView: View {
         .padding()
         .interactiveDismissDisabled(true)
         .onAppear {
-            pairingLog.notice("PairingFlowView.onAppear — sheet rendered, step=\(String(describing: self.controller.viewModel.pairingState), privacy: .public)")
         }
         .onDisappear {
             controller.session.tearDown()

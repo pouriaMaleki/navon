@@ -1,5 +1,4 @@
 import AVFoundation
-import os.log
 
 /// Audio cue port consumed by the cue engine wiring. The default
 /// implementation uses `AVSpeechSynthesizer`; tests inject `SpeechSpy` (or
@@ -40,11 +39,6 @@ protocol SpeechPort: AnyObject {
 /// failing real-device run can be diagnosed from Console.app
 /// (`subsystem:app.navon.bike category:audio`).
 final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
-    private static let log = Logger(
-        subsystem: "app.navon.bike",
-        category: "audio"
-    )
-
     /// Delay between the last utterance finishing and us deactivating
     /// the audio session. 1.5 s is long enough that the typical
     /// "in 50 m, turn left" → "turn left" pair stays under one duck
@@ -71,11 +65,9 @@ final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
 
     override init() {
         super.init()
-        Self.log.info("SpeechService.init — synthesizer + audio session deferred until first speak()")
     }
 
     func setLanguage(_ bcp47: String) {
-        Self.log.info("setLanguage(\(bcp47, privacy: .public))")
         activeLanguage = bcp47
     }
 
@@ -99,7 +91,6 @@ final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
     }
 
     func speak(_ text: String) {
-        Self.log.info("speak(\"\(text, privacy: .public)\")")
         // Cancel any pending session-deactivation: a fresh utterance
         // means we want the duck to keep holding music down rather than
         // ramp music up just before the next cue speaks.
@@ -109,8 +100,7 @@ final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
             activateAudioSession()
         }
         if synth.isSpeaking {
-            Self.log.debug("cancelling in-flight utterance before speaking new cue")
-            synth.stopSpeaking(at: .immediate)
+                synth.stopSpeaking(at: .immediate)
         }
         let utterance = AVSpeechUtterance(string: text)
         // Picks the OS's preferred voice for `activeLanguage`. If no voice
@@ -121,14 +111,10 @@ final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
         synth.speak(utterance)
         #if os(iOS)
         let session = AVAudioSession.sharedInstance()
-        Self.log.info(
-            "AVAudioSession after speak — category=\(session.category.rawValue, privacy: .public) mode=\(session.mode.rawValue, privacy: .public) outputVolume=\(session.outputVolume) otherAudioPlaying=\(session.isOtherAudioPlaying)"
-        )
         #endif
     }
 
     func shutdown() {
-        Self.log.info("shutdown")
         cancelPendingDeactivation()
         if let synth = synthesizer, synth.isSpeaking {
             synth.stopSpeaking(at: .immediate)
@@ -138,7 +124,6 @@ final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
 
     private func ensureSynthesizer() -> AVSpeechSynthesizer {
         if let synth = synthesizer { return synth }
-        Self.log.info("ensureSynthesizer — first speak(), constructing AVSpeechSynthesizer + configuring audio session")
         configureAudioSession()
         let synth = AVSpeechSynthesizer()
         // Becoming the delegate is what wires `didFinish` (and friends)
@@ -160,10 +145,7 @@ final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
                 .playback,
                 mode: .voicePrompt,
                 options: [.duckOthers, .interruptSpokenAudioAndMixWithOthers]
-            )
-            Self.log.info("setCategory(.playback, .voicePrompt, [.duckOthers, .interruptSpokenAudioAndMixWithOthers]) — OK")
         } catch {
-            Self.log.error("setCategory failed: \(error.localizedDescription, privacy: .public)")
         }
         #endif
         hasActivatedAudioSession = true
@@ -179,9 +161,7 @@ final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
         do {
             try session.setActive(true, options: [])
             hasActivatedAudioSessionRouting = true
-            Self.log.info("setActive(true) — OK")
         } catch {
-            Self.log.error("setActive(true) failed: \(error.localizedDescription, privacy: .public)")
         }
         #else
         hasActivatedAudioSessionRouting = true
@@ -197,13 +177,11 @@ final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
         let session = AVAudioSession.sharedInstance()
         do {
             try session.setActive(false, options: [.notifyOthersOnDeactivation])
-            Self.log.info("setActive(false, .notifyOthersOnDeactivation) — OK (\(reason, privacy: .public))")
         } catch {
             // A common-and-harmless failure: setActive(false) raises
             // `kAudioSessionIncompatibleCategory` when iOS thinks
             // someone else still has the session interrupted. Logged
             // and ignored — the next speak() will re-activate cleanly.
-            Self.log.error("setActive(false) failed (\(reason, privacy: .public)): \(error.localizedDescription, privacy: .public)")
         }
         #endif
         hasActivatedAudioSessionRouting = false
@@ -229,8 +207,7 @@ final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
                 // braces guard against a rapid speak() that didn't
                 // race the cancel.
                 if let synth = self.synthesizer, synth.isSpeaking {
-                    Self.log.debug("deactivation skipped — synthesizer is mid-utterance again")
-                    return
+                                return
                 }
                 self.deactivateAudioSession(reason: reason)
             }
@@ -243,7 +220,6 @@ final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
         _ synthesizer: AVSpeechSynthesizer,
         didFinish utterance: AVSpeechUtterance
     ) {
-        Self.log.debug("didFinish — scheduling debounced deactivation")
         scheduleDeactivation(reason: "didFinish")
     }
 
@@ -256,6 +232,5 @@ final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
         // arrived. Don't schedule deactivation here: the `speak()` that
         // triggered the cancel will start a new utterance and we want
         // the session to stay hot for it.
-        Self.log.debug("didCancel — leaving session active for the cue that just queued")
     }
 }

@@ -2,12 +2,6 @@ import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 import Combine
-import os.log
-
-/// Pairing-flow log channel. Filter Console.app with
-/// `subsystem:app.navon.bike category:pairing` to follow
-/// each step (begin → scan → connect → write → persist).
-let pairingLog = Logger(subsystem: "app.navon.bike", category: "pairing")
 
 @MainActor
 final class AppModel: ObservableObject {
@@ -160,7 +154,6 @@ final class AppModel: ObservableObject {
         // action (the chip's tap target or Settings → Connect).
         if let paired = pairedPeripheral {
             Task { [weak self] in
-                pairingLog.notice("AppModel.init — auto-reconnect to paired peripheral [\(paired.identifier, privacy: .public)]")
                 await self?.bleService.connectToPairedPeripheral(identifier: paired.identifier)
                 await self?.refreshDiagnostics()
             }
@@ -180,7 +173,6 @@ final class AppModel: ObservableObject {
     /// Surfaces the instructions step before the camera sheet opens so the
     /// user knows what to do with the QR.
     func beginPairingFlow() {
-        pairingLog.notice("beginPairingFlow tapped — pairingState → .instructions")
         pairingState = .instructions
     }
 
@@ -210,14 +202,11 @@ final class AppModel: ObservableObject {
     /// pairing-flow view-model can surface a user-visible error before
     /// switching the screen to the camera.
     func prepareDeviceForPairing() async throws {
-        pairingLog.notice("prepareDeviceForPairing — scan + connect + writePairingRequest")
         pairingState = .connecting
         do {
             _ = try await bleService.connectToAdvertisedPeripheral()
             try await bleService.writePairingRequest()
-            pairingLog.notice("prepareDeviceForPairing OK — device should now show QR")
         } catch {
-            pairingLog.error("prepareDeviceForPairing failed: \(error.localizedDescription, privacy: .public)")
             pairingState = .failed(error.localizedDescription)
             throw error
         }
@@ -236,17 +225,14 @@ final class AppModel: ObservableObject {
     /// Auto-dismiss timing: 1.5 s after `.succeeded` we drop back to `.idle`.
     /// Tests can drive this synchronously by waiting on `pairingState`.
     func completePairing(payload: PairingQrPayload) async {
-        pairingLog.notice("completePairing — confirming (secret \(payload.ephemeralSecret.count, privacy: .public) B)")
         // We should already be connected from `prepareDeviceForPairing`.
         // If something dropped the connection in between (rare), fall
         // back to a fresh scan+connect — but the QR may no longer be
         // visible on the device by then.
         do {
             let info = try await bleService.connectToAdvertisedPeripheral()
-            pairingLog.notice("completePairing — connection ready: \(info.name, privacy: .public) [\(info.identifier, privacy: .public)]")
             pairingState = .confirming
             try await bleService.writePairingConfirm(secret: payload.ephemeralSecret)
-            pairingLog.notice("completePairing — pairing-confirm write OK")
             let record = PairedPeripheralRecord(
                 identifier: info.identifier,
                 friendlyName: info.name,
@@ -262,7 +248,6 @@ final class AppModel: ObservableObject {
                 pairingState = .idle
             }
         } catch {
-            pairingLog.error("completePairing failed: \(error.localizedDescription, privacy: .public)")
             pairingState = .failed(error.localizedDescription)
         }
     }

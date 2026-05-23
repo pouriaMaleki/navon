@@ -1,5 +1,4 @@
 import Foundation
-import os.log
 #if canImport(ActivityKit)
 import ActivityKit
 #endif
@@ -17,7 +16,6 @@ protocol LiveActivityDriver: AnyObject {
     func start(
         attributes: RouteGuidanceActivityAttributes,
         state: RouteGuidanceActivityAttributes.ContentState
-    )
     @available(iOS 16.1, *)
     func update(state: RouteGuidanceActivityAttributes.ContentState, routeId: String)
     func end(routeId: String?)
@@ -25,11 +23,6 @@ protocol LiveActivityDriver: AnyObject {
 
 @MainActor
 final class LiveActivityCoordinator {
-    private static let log = Logger(
-        subsystem: "app.navon.bike",
-        category: "liveActivity"
-    )
-
     private let driver: LiveActivityDriver
 
     init(driver: LiveActivityDriver) {
@@ -68,7 +61,6 @@ final class LiveActivityCoordinator {
             offRoute: false,
             rerouting: false,
             arrived: false
-        )
     }
 
     /// Called once per guidance tick from the same call site that drives
@@ -104,7 +96,6 @@ final class LiveActivityCoordinator {
                 arrived: arrived,
                 isImperial: isImperial,
                 now: now
-            )
             return
         }
 
@@ -156,7 +147,6 @@ final class LiveActivityCoordinator {
         ) else { return }
         let attributes = RouteGuidanceActivityAttributes(routeId: route.routeIdentifier)
         driver.start(attributes: attributes, state: state)
-        Self.log.info("Live Activity started for routeId=\(route.routeIdentifier, privacy: .public)")
     }
 }
 
@@ -166,11 +156,6 @@ final class LiveActivityCoordinator {
 /// started locally (no APNs); the coordinator pushes updates each tick.
 @MainActor
 final class ActivityKitLiveActivityDriver: LiveActivityDriver {
-    private static let log = Logger(
-        subsystem: "app.navon.bike",
-        category: "liveActivity"
-    )
-
     private(set) var activeRouteId: String?
 
     #if canImport(ActivityKit)
@@ -206,19 +191,16 @@ final class ActivityKitLiveActivityDriver: LiveActivityDriver {
     ) {
         #if canImport(ActivityKit)
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            Self.log.notice("Live Activities disabled in OS settings — skipping start")
-            return
+                return
         }
         do {
             let activity = try Activity.request(
                 attributes: attributes,
                 content: .init(state: state, staleDate: nil),
                 pushType: nil
-            )
             self.activity = activity
             self.activeRouteId = attributes.routeId
         } catch {
-            Self.log.error("Activity.request failed: \(String(describing: error), privacy: .public)")
         }
         #endif
     }
