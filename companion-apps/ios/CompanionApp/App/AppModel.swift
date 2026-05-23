@@ -90,7 +90,7 @@ final class AppModel: ObservableObject {
     ]
 
     init(persistence: CompanionPersistence = CompanionPersistence(), bleService: BleRouteSyncService? = nil) {
-        // All stored properties must be initialized before any self-method call.
+    
         self.persistence = persistence
         self.routingDiagnosticsStore = RoutingDiagnosticsStore(persistence: persistence)
         self.bleService = bleService ?? BleRouteSyncService()
@@ -114,7 +114,7 @@ final class AppModel: ObservableObject {
         self.routingActivityCoordinator.onCueDispatched = { [weak self] cueType, messageText in
             self?.routingDiagnosticsStore.recordEvent(.audioCueDispatched(cueType: cueType, messageText: messageText))
         }
-        // Reflect forwarder state in published property.
+
         phoneGpsForwarder?.$isForwarding
             .receive(on: DispatchQueue.main)
             .assign(to: \.isPhoneGpsForwarding, on: self)
@@ -272,7 +272,6 @@ final class AppModel: ObservableObject {
     }
 
     /// True only when the user has enabled live HSL routing AND configured a Digitransit key.
-    /// Mirrors `companion-web` `SettingsStore.isHslLiveConfigured`.
     var isHslLiveConfigured: Bool {
         settings.preferLiveHslRouting
             && !settings.hslSubscriptionKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -284,7 +283,7 @@ final class AppModel: ObservableObject {
         AppModel.isInFinland(routeRequest.origin) && AppModel.isInFinland(routeRequest.destination)
     }
 
-    /// True when HSL is both configured AND geographically usable for the current request.
+
     var isHslAvailable: Bool { isHslLiveConfigured && isHslApplicableForRequest }
 
     /// Source-mode tabs visible in the UI. With no Digitransit key, or when either endpoint
@@ -351,7 +350,7 @@ final class AppModel: ObservableObject {
     /// `guidanceRoute` changes.
     var activeGuidanceRoute: NormalizedRoutePackage?
 
-    /// Spec line 130: when the user toggles "Allow GPS in background" on,
+    /// When the user toggles "Allow GPS in background" on,
     /// escalate the CoreLocation authorization to Always. iOS only offers
     /// the prompt once; if it fails to escalate, [locationManualSettingsHint]
     /// becomes true so the UI can point the user to Settings.app.
@@ -397,9 +396,7 @@ final class AppModel: ObservableObject {
         }
     }
 
-    /// Test seam: rebuilds the routing-activity coordinator with the given
-    /// fakes so unit tests can assert that cues are dispatched without
-    /// invoking AVSpeechSynthesizer.
+#if DEBUG
     func replaceRoutingActivityCoordinatorForTesting(speech: SpeechPort) {
         routingActivityCoordinator = RoutingActivityCoordinator(
             idleTimer: IdleTimerController(),
@@ -407,35 +404,29 @@ final class AppModel: ObservableObject {
         )
     }
 
-    /// Test seam: swap in a fake driver so the coordinator can be exercised
-    /// without touching ActivityKit.
     func replaceLiveActivityCoordinatorForTesting(driver: LiveActivityDriver) {
         liveActivityCoordinator = LiveActivityCoordinator(driver: driver)
     }
 
-    /// Test seam: stamps the paired-peripheral state without going through
-    /// the persistence + BLE pairing flow.
     func replacePairedPeripheralForTesting(_ record: PairedPeripheralRecord?) {
         pairedPeripheral = record
     }
 
-    /// Test override for `isDeviceConnected`. Production reads the BLE
-    /// session; tests stand in a known boolean so the audio-cue gating
-    /// contract (cues silenced ONLY when actually connected, not just
-    /// paired) can be exercised without a real BLE link.
     private var deviceConnectedTestOverride: Bool?
 
     func replaceDeviceConnectedForTesting(_ value: Bool?) {
         deviceConnectedTestOverride = value
     }
+#endif
 
     /// True iff the companion is actively connected to the ESP32 device.
-    /// Spec lines 7 / 131 — when the device is the on-screen UI, the
-    /// phone goes silent (no cues) and the live activity is suppressed.
-    /// A previously paired peripheral that is currently DISCONNECTED
-    /// does not count: the rider is using the phone alone.
+    /// When the device is the on-screen UI, the phone goes silent (no
+    /// cues) and the live activity is suppressed. A previously paired
+    /// peripheral that is currently DISCONNECTED does not count.
     var isDeviceConnectedForCueSuppression: Bool {
+        #if DEBUG
         if let override = deviceConnectedTestOverride { return override }
+        #endif
         return isDeviceConnected
     }
 
@@ -646,6 +637,7 @@ final class AppModel: ObservableObject {
         }
     }
 
+#if DEBUG
     func armRetryableInterruptionOnNextTransfer() {
         bleService.armRetryableInterruptionOnNextTransfer()
         refreshDiagnostics()
@@ -665,6 +657,7 @@ final class AppModel: ObservableObject {
         bleService.armFaultInjection(.dropNextInboundStatus)
         refreshDiagnostics()
     }
+#endif
 
     func connectToDevice() async {
         if let paired = pairedPeripheral {

@@ -20,7 +20,8 @@ enum HelsinkiGravelFixture {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
-            .appendingPathComponent("parity-fixtures/data/helsinki-gravel/stream.jsonl")
+            .deletingLastPathComponent()
+            .appendingPathComponent("data/parity-fixtures/data/helsinki-gravel/stream.jsonl")
         guard let text = try? String(contentsOf: fixtureURL, encoding: .utf8) else {
             fatalError("helsinki-gravel fixture missing — run `cargo run -p xtask --bin gen-gps-fixtures`")
         }

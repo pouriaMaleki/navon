@@ -74,7 +74,8 @@ final class PairingQrPayloadTests: XCTestCase {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
-            .appendingPathComponent("parity-fixtures/data/pairing_qr_v1.json")
+            .deletingLastPathComponent()
+            .appendingPathComponent("data/parity-fixtures/data/pairing_qr_v1.json")
         let data = try Data(contentsOf: fixtureURL)
         let json = String(data: data, encoding: .utf8)!
         let payload = try PairingQrPayload.decode(json)

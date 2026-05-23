@@ -125,81 +125,6 @@ struct NormalizedRoutePackage: Equatable, Codable {
     }
 }
 
-enum RouteSyncStatusCode: String, Equatable, Codable {
-    case accepted
-    case applying
-    case active
-    case cleared
-    case rejected
-    case retryableFailure
-    case fatalFailure
-}
-
-struct RouteSetMessage: Equatable, Codable {
-    var route: NormalizedRoutePackage
-}
-
-struct RouteUpdateMessage: Equatable, Codable {
-    var routeIdentifier: String
-    var revision: Int
-    var route: NormalizedRoutePackage
-}
-
-struct RouteClearMessage: Equatable, Codable {
-    var routeIdentifier: String?
-}
-
-struct RouteStatusMessage: Equatable, Codable {
-    var routeIdentifier: String?
-    var revision: Int?
-    var status: RouteSyncStatusCode
-    var detail: String?
-}
-
-struct RouteRerouteRequestMessage: Equatable, Codable {
-    var routeIdentifier: String
-    var riderLocation: CoordinatePoint
-    var reason: String
-}
-
-enum RouteSyncMessage: Equatable, Codable {
-    case set(RouteSetMessage)
-    case update(RouteUpdateMessage)
-    case clear(RouteClearMessage)
-    case status(RouteStatusMessage)
-    case rerouteRequest(RouteRerouteRequestMessage)
-
-    var kindLabel: String {
-        switch self {
-        case .set:
-            return "set"
-        case .update:
-            return "update"
-        case .clear:
-            return "clear"
-        case .status:
-            return "status"
-        case .rerouteRequest:
-            return "reroute_request"
-        }
-    }
-
-    var debugSummary: String {
-        switch self {
-        case .set(let message):
-            return "set \(message.route.routeIdentifier) rev \(message.route.revision)"
-        case .update(let message):
-            return "update \(message.routeIdentifier) rev \(message.revision)"
-        case .clear(let message):
-            return "clear \(message.routeIdentifier ?? "current")"
-        case .status(let message):
-            return "status \(message.status.rawValue) \(message.routeIdentifier ?? "none")"
-        case .rerouteRequest(let message):
-            return "reroute_request \(message.routeIdentifier)"
-        }
-    }
-}
-
 struct RoutePlanRequest: Equatable {
     var origin: CoordinatePoint
     var destination: CoordinatePoint
@@ -239,23 +164,22 @@ struct CompanionSettings: Equatable, Codable {
     /// Persistent camera distance (meters) for riding-mode follow-rider.
     /// The on-map zoom +/- buttons write here; `nil` falls back to the
     /// built-in default of 1200 m. Overview/planning zooms are NOT
-    /// persisted (spec line 10).
+    /// persisted.
     var ridingCameraDistanceM: Double?
     /// Prevents the screen from sleeping while a route is active
     /// (`UIApplication.shared.isIdleTimerDisabled = true`).
     var keepScreenOn: Bool
-    /// Permission gate for Always location authorization. Spec line 130:
-    /// the user must flip to "Always" in iOS Settings; surface a hint when
-    /// the OS keeps the app on When-In-Use after our request.
+    /// Permission gate for Always location authorization. The user must
+    /// flip to "Always" in iOS Settings; surface a hint when the OS keeps
+    /// the app on When-In-Use after our request.
     var allowBackgroundGps: Bool
-    /// Audio cues during routing. Default true (spec: "on by default")
-    /// but gated on `allowBackgroundGps` at the UI and runtime layer.
+    /// Audio cues during routing. On by default, but gated on
+    /// `allowBackgroundGps` at the UI and runtime layer.
     var audioCuesEnabled: Bool
-    /// Spec line 144: when true (the default), audio cues are suppressed
-    /// while the rider has the app foregrounded — their phone screen is
-    /// already showing the map — and only fire after the screen locks
-    /// or they switch apps. Toggle off to hear cues even when the app
-    /// is open.
+    /// When true (the default), audio cues are suppressed while the rider
+    /// has the app foregrounded — their phone screen is already showing
+    /// the map — and only fire after the screen locks or they switch
+    /// apps. Toggle off to hear cues even when the app is open.
     var audioCuesOnlyInBackground: Bool
     /// Lock-screen Live Activity (ActivityKit). Gated on `allowBackgroundGps`.
     var liveActivityEnabled: Bool
@@ -264,8 +188,7 @@ struct CompanionSettings: Equatable, Codable {
     var routingDiagnosticsEnabled: Bool
     /// App language preference. `.system` follows
     /// `Bundle.main.preferredLocalizations`; concrete cases override it.
-    /// New shipped locales must be added to both `AppLanguage` and
-    /// `i18n/catalog.config.json:locales`.
+    /// New shipped locales must be added to `AppLanguage`.
     var language: AppLanguage
     /// Distance unit used for both UI labels and spoken voice cues.
     /// `.system` resolves at format time from the user's locale.
@@ -404,7 +327,6 @@ struct PairedPeripheralRecord: Codable, Equatable {
     let pairedAt: Date
 }
 
-/// Pairing flow UI state machine surfaced from `AppModel` to `PairingFlowView`.
 enum PairingFlowState: Equatable {
     case idle
     case instructions

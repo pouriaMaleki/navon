@@ -447,29 +447,7 @@ struct CompanionHomeView: View {
     }
 
     private func arrivalCard(_ message: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(message)
-                    .font(.headline)
-                Text(T.string("home.routingFinished"))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            Button {
-                viewModel.dismissArrivalNotice()
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(.secondary)
-            }
-            .accessibilityLabel(T.string("home.a11y.closeArrivalNotice"))
-            .buttonStyle(.plain)
-        }
-        .padding(16)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
+        ArrivalCardView(message: message, onDismiss: { viewModel.dismissArrivalNotice() })
     }
 
     private var planningTopOverlay: some View {
@@ -512,46 +490,18 @@ struct CompanionHomeView: View {
         })
     }
 
-    /// "Waiting to reroute" pill with a manual-override button. Shown when
-    /// the throttle is holding back an auto-reroute. The TimelineView ticks
-    /// the seconds-remaining label without manual scheduling.
     private var rerouteWaitingPill: some View {
-        TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
-            let nowMs = ctx.date.timeIntervalSince1970 * 1_000
-            let secondsRemaining = max(0, Int(((viewModel.reroutingDelayedUntilMs ?? nowMs) - nowMs) / 1_000))
-            HStack(spacing: 12) {
-                Text("Waiting to reroute • \(secondsRemaining)s")
-                    .font(.subheadline.weight(.bold))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Button("Reroute now") {
-                    viewModel.requestManualReroute()
-                }
-                .font(.subheadline.weight(.bold))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(Color.black, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                .foregroundStyle(Color.yellow)
-            }
-            .foregroundStyle(.black)
-            .padding(.vertical, 6)
-            .padding(.horizontal, 12)
-            .background(Color.cyan, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-        }
+        RerouteWaitingPillView(
+            delayedUntilMs: viewModel.reroutingDelayedUntilMs,
+            onRerouteNow: { viewModel.requestManualReroute() }
+        )
     }
 
-    /// Read-only "Where to" bar shown during alternatives exploration.
-    /// Mirrors the planning topBar appearance but is not interactive.
     private var explorationDestinationBar: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-            let dest = viewModel.query.isEmpty ? viewModel.activeNavigationTitle : viewModel.query
-            Text(dest)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(14)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        ExplorationDestinationBarView(
+            query: viewModel.query,
+            navigationTitle: viewModel.activeNavigationTitle
+        )
     }
 
     private func phoneGuidanceTopCard(
@@ -559,45 +509,14 @@ struct CompanionHomeView: View {
         distanceLine: String,
         minutesLine: String
     ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(headline)
-                .font(.headline)
-                .lineLimit(2)
-            if !distanceLine.isEmpty {
-                Text(distanceLine)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-            if !minutesLine.isEmpty {
-                Text(minutesLine)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        PhoneGuidanceTopCardView(headline: headline, distanceLine: distanceLine, minutesLine: minutesLine)
     }
 
-    /// Routing-mode side rail. Stacks the device-pairing chip, the
     private var deviceOverviewTopOverlay: some View {
-        // Text-only top card; the device chip and settings glyph live on
-        // the persistent right-side rail (which sits BELOW this card,
-        // not beside it, so the card spans full width).
-        VStack(alignment: .leading, spacing: 4) {
-            Text(viewModel.activeNavigationTitle)
-                .font(.headline)
-                .lineLimit(1)
-            Text(viewModel.activeNavigationSubtitle)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .lineLimit(2)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        DeviceOverviewCardView(
+            title: viewModel.activeNavigationTitle,
+            subtitle: viewModel.activeNavigationSubtitle
+        )
     }
 
     private var topBar: some View {
@@ -638,26 +557,11 @@ struct CompanionHomeView: View {
     }
 
     private var sourceModePicker: some View {
-        HStack(spacing: 8) {
-            ForEach(appModel.sourceModeOptions) { mode in
-                Button {
-                    viewModel.setSourceMode(mode)
-                } label: {
-                    Text(mode.displayName)
-                        .font(.subheadline.weight(.semibold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            viewModel.sourceMode == mode ? Color.blue.opacity(0.16) : Color.clear,
-                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        )
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(8)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        SourceModePickerView(
+            modes: appModel.sourceModeOptions,
+            currentMode: viewModel.sourceMode,
+            onSelect: { viewModel.setSourceMode($0) }
+        )
     }
 
     private var searchPanel: some View {
@@ -801,24 +705,9 @@ struct CompanionHomeView: View {
     }
 
     private var planningProgressCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
-                ProgressView()
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(T.string("home.workingOnRoute"))
-                        .font(.headline)
-                    Text(viewModel.planningStatus ?? appModel.importActivityStatus ?? "Planning route…")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                }
-                Spacer()
-            }
-        }
-        .padding(16)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
+        PlanningProgressCardView(
+            status: viewModel.planningStatus ?? appModel.importActivityStatus ?? "Planning route…"
+        )
     }
 
     private var routeSuggestionsCard: some View {
@@ -938,20 +827,7 @@ struct CompanionHomeView: View {
     }
 
     private func activeGuidanceCard(_ active: NormalizedRoutePackage) -> some View {
-        // The destination + remaining + ETA all live in the top card now
-        // (see `guidanceSubtitleLine`). The bottom slot is intentionally
-        // minimal: a floating Stop button (and the speed badge sits next
-        // to it via the surrounding overlay).
-        Button(role: .destructive, action: { viewModel.stopActiveNavigation() }) {
-            Text(T.string("home.stop"))
-                .font(.headline)
-                .padding(.horizontal, 24)
-        }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
-        .padding(.bottom, 24)
-        .padding(.horizontal, 16)
-        .frame(maxWidth: .infinity, alignment: .trailing)
+        ActiveGuidanceCardView(onStop: { viewModel.stopActiveNavigation() })
     }
 
     private func deviceOverviewCard(_ active: NormalizedRoutePackage) -> some View {

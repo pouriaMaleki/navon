@@ -19,9 +19,10 @@ final class CyclingRoutingTests: XCTestCase {
         let repoRoot = thisFile
             .deletingLastPathComponent() // Flows
             .deletingLastPathComponent() // NavonTests
-            .deletingLastPathComponent() // companion-ios
+            .deletingLastPathComponent() // ios
+            .deletingLastPathComponent() // companion-apps
             .deletingLastPathComponent() // repo root
-        return repoRoot.appendingPathComponent("parity-fixtures/data/cycling")
+        return repoRoot.appendingPathComponent("data/parity-fixtures/data/cycling")
     }
 
     private func loadFixture(_ name: String) throws -> [String: Any] {
