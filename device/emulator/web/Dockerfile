@@ -84,7 +84,7 @@ COPY companion-apps/web/src ./src
 RUN npm run build
 
 # ------ Stage 4: build the homepage (Astro static site with React islands). ------
-FROM node:20-bookworm-slim AS homepage-builder
+FROM node:lts-bookworm-slim AS homepage-builder
 
 WORKDIR /app
 
