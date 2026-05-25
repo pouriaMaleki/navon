@@ -94,6 +94,7 @@ RUN npm ci
 COPY homepage/astro.config.mjs ./
 COPY homepage/tsconfig.json ./
 COPY homepage/biome.json ./
+COPY homepage/public ./public
 COPY homepage/src ./src
 
 RUN npm run build
