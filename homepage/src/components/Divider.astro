@@ -1,0 +1,57 @@
+---
+export interface Props {
+  image?: string;
+  transparent?: boolean;
+}
+
+const { image, transparent } = Astro.props;
+---
+
+<section
+  class={image ? "divider has-image" : transparent ? "divider is-transparent" : "divider"}
+  style={image ? `background-image: url('${image}');` : ""}
+  aria-hidden="true"
+>
+</section>
+
+<style>
+  .divider {
+    min-height: 40vh;
+    background: var(--color-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 0 var(--section-pad-x);
+    scroll-snap-align: none;
+    animation-name: none;
+  }
+
+  @media (max-width: 768px) {
+    .divider {
+      display: none;
+    }
+  }
+
+  .is-transparent {
+    background: transparent;
+  }
+
+  .has-image {
+    min-height: 40vh;
+    background-attachment: fixed;
+    background-position: center 45%;
+    background-size: cover;
+    scroll-snap-align: none;
+    animation-name: divider-shift;
+    animation-timeline: view();
+    animation-range: entry 0% exit 100%;
+  }
+
+  @keyframes divider-shift {
+    from { background-position: center 25%; }
+    to   { background-position: center 85%; }
+  }
+</style>

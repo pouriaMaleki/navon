@@ -1,0 +1,323 @@
+<canvas class="road" aria-hidden="true"></canvas>
+
+<style>
+  .road {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+</style>
+
+<script>
+  function lerp(a: number, b: number, t: number): number {
+    return a + (b - a) * t;
+  }
+
+  const canvas = document.querySelector<HTMLCanvasElement>(".road")!;
+  const ctx = canvas.getContext("2d")!;
+
+  let w = 0;
+  let h = 0;
+  let mouseNorm = 0.5;
+  let lean = 0.5;
+  let currentNorm = 0.5;
+  // ── road scroll — one offset drives all markings ──
+  let scroll = 0; // world-space offset: increases as camera moves forward
+  const BIKE_POS = 0.55; // bike's fixed world position (ahead of camera)
+
+  // ── load bike SVG, tint white ──
+  const bikeSprite = document.createElement("canvas");
+  const bikeImg = new Image();
+  bikeImg.src = "/bike.svg";
+  bikeImg.onload = () => {
+    bikeSprite.width = bikeImg.naturalWidth;
+    bikeSprite.height = bikeImg.naturalHeight;
+    const bs = bikeSprite.getContext("2d")!;
+    bs.drawImage(bikeImg, 0, 0);
+    bs.globalCompositeOperation = "source-in";
+    bs.fillStyle = "white";
+    bs.fillRect(0, 0, bikeSprite.width, bikeSprite.height);
+  };
+
+
+  // ── procedural asphalt texture ──
+  const texSize = 64;
+  const texCanvas = document.createElement("canvas");
+  texCanvas.width = texSize;
+  texCanvas.height = texSize;
+  const tctx = texCanvas.getContext("2d")!;
+  const grain = 4;
+  for (let gy = 0; gy < texSize; gy += grain) {
+    for (let gx = 0; gx < texSize; gx += grain) {
+      const v = 118 + Math.random() * 18;
+      tctx.fillStyle = `rgb(${v},${v},${v})`;
+      tctx.fillRect(gx, gy, grain, grain);
+    }
+  }
+  const asphPattern = ctx.createPattern(texCanvas, "repeat")!;
+  function resize(): void {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    w = canvas.width;
+    h = canvas.height;
+  }
+
+  window.addEventListener("resize", resize);
+  resize();
+
+  document.addEventListener("mousemove", (e) => {
+    mouseNorm = e.clientX / w;
+  });
+
+  // ── gyroscope steering (mobile) ──
+  let gyroTarget = 0.5;
+  let hasGyro = false;
+
+  function onOrientation(e: DeviceOrientationEvent) {
+    if (e.gamma == null) return;
+    hasGyro = true;
+    const clamped = Math.max(-30, Math.min(30, e.gamma));
+    gyroTarget = 0.5 + clamped / 60;
+  }
+
+  // iOS 13+ requires user-gesture-triggered permission
+  if (typeof DeviceOrientationEvent !== "undefined" &&
+      typeof (DeviceOrientationEvent as any).requestPermission === "function") {
+    // iOS: wait for a tap, then request permission
+    const requestBtn = document.createElement("button");
+    requestBtn.textContent = "Enable tilt steering";
+    Object.assign(requestBtn.style, {
+      position: "fixed", bottom: "16px", left: "50%", transform: "translateX(-50%)",
+      zIndex: "10", padding: "12px 24px", fontSize: "14px",
+      border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px",
+      background: "rgba(5,11,18,0.85)", color: "#f0f0f0",
+      cursor: "pointer", fontFamily: "inherit",
+    });
+    requestBtn.addEventListener("click", async () => {
+      try {
+        const perm = await (DeviceOrientationEvent as any).requestPermission();
+        if (perm === "granted") {
+          window.addEventListener("deviceorientation", onOrientation);
+          requestBtn.remove();
+        }
+      } catch { /* denied — gyro won't work */ }
+    });
+    document.body.appendChild(requestBtn);
+
+    // only show button on the hero page
+    const heroEl = document.querySelector(".hero");
+    if (heroEl) {
+      const visObs = new IntersectionObserver(
+        (entries) => {
+          requestBtn.style.display = entries[0].isIntersecting ? "" : "none";
+        },
+        { threshold: 0 },
+      );
+      visObs.observe(heroEl);
+    }
+  } else {
+    // Android / desktop — just listen
+    window.addEventListener("deviceorientation", onOrientation);
+  }
+
+  /** Draw a filled strip along one edge of the road. The manual cubic bezier
+   *  evaluation (mt**3 etc.) is deliberate — ctx.bezierCurveTo() draws the
+   *  curve but does not expose per-point normals, which we need here to
+   *  compute the perpendicular edge offsets for the road-width strip. */
+  function edgeStrip(
+    x0: number, x1: number, x2: number, x3: number,
+    y1: number, y2: number,
+    hwBot: number, hwTop: number,
+  ) {
+    const N = 40;
+    const botY = h, topY = 0;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const mt = 1 - t;
+      const px = mt**3 * x0 + 3*mt**2*t * x1 + 3*mt*t**2 * x2 + t**3 * x3;
+      const py = mt**3 * botY + 3*mt**2*t * y1 + 3*mt*t**2 * y2 + t**3 * topY;
+      const dx = 3*mt**2 * (x1 - x0) + 6*mt*t * (x2 - x1) + 3*t**2 * (x3 - x2);
+      const dy = 3*mt**2 * (y1 - botY) + 6*mt*t * (y2 - y1) + 3*t**2 * (topY - y2);
+      const len = Math.sqrt(dx*dx + dy*dy) || 1;
+      const nx = -dy / len, ny = dx / len;
+      const hw = hwBot + (hwTop - hwBot) * t;
+      if (i === 0) ctx.moveTo(px + nx * hw, py + ny * hw);
+      ctx.lineTo(px - nx * hw, py - ny * hw);
+    }
+    for (let i = N; i >= 0; i--) {
+      const t = i / N;
+      const mt = 1 - t;
+      const px = mt**3 * x0 + 3*mt**2*t * x1 + 3*mt*t**2 * x2 + t**3 * x3;
+      const py = mt**3 * botY + 3*mt**2*t * y1 + 3*mt*t**2 * y2 + t**3 * topY;
+      const dx = 3*mt**2 * (x1 - x0) + 6*mt*t * (x2 - x1) + 3*t**2 * (x3 - x2);
+      const dy = 3*mt**2 * (y1 - botY) + 6*mt*t * (y2 - y1) + 3*t**2 * (topY - y2);
+      const len = Math.sqrt(dx*dx + dy*dy) || 1;
+      const nx = -dy / len, ny = dx / len;
+      const hw = hwBot + (hwTop - hwBot) * t;
+      ctx.lineTo(px + nx * hw, py + ny * hw);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function draw() {
+    // gyro: gently chase tilt, return to center when near level
+    if (hasGyro) {
+      mouseNorm = lerp(mouseNorm, gyroTarget, 0.06);
+      if (Math.abs(gyroTarget - 0.5) < 0.04) {
+        mouseNorm = lerp(mouseNorm, 0.5, 0.02);
+      }
+    }
+
+    lean = lerp(lean, mouseNorm, 0.09);
+    currentNorm = lerp(currentNorm, lean, 0.035);
+
+    ctx.clearRect(0, 0, w, h);
+
+    // fill the entire canvas so the hero stays dark around the road
+    ctx.fillStyle = "#050b12";
+    ctx.fillRect(0, 0, w, h);
+
+    const cx = w / 2;
+    const bottomW = w * 0.7;
+    const topW = bottomW * 0.2;
+
+    const bend = (currentNorm - 0.5) * w * 0.85;
+
+    const cp1Y = h * 0.58;
+    const cp2Y = h * 0.10;
+
+    const bend1 = bend * 0.05;
+    const bend2 = bend * 0.95;
+
+    const wBot = bottomW;
+    const wCp1 = bottomW * 0.75;
+    const wCp2 = bottomW * 0.35;
+    const wTop = topW;
+
+    const lxBot = cx - wBot / 2;
+    const lxCp1 = cx - wCp1 / 2 + bend1;
+    const lxCp2 = cx - wCp2 / 2 + bend2;
+    const lxTop = cx - wTop / 2 + bend;
+
+    const rxBot = cx + wBot / 2;
+    const rxCp1 = cx + wCp1 / 2 + bend1;
+    const rxCp2 = cx + wCp2 / 2 + bend2;
+    const rxTop = cx + wTop / 2 + bend;
+
+    // ── red asphalt fill ──
+    const fillGrad = ctx.createLinearGradient(0, h, 0, 0);
+    fillGrad.addColorStop(0, "rgba(175, 55, 45, 0.28)");
+    fillGrad.addColorStop(0.3, "rgba(175, 55, 45, 0.20)");
+    fillGrad.addColorStop(1, "rgba(175, 55, 45, 0.18)");
+
+    ctx.fillStyle = fillGrad;
+    ctx.beginPath();
+    ctx.moveTo(lxBot, h);
+    ctx.bezierCurveTo(lxCp1, cp1Y, lxCp2, cp2Y, lxTop, 0);
+    ctx.lineTo(rxTop, 0);
+    ctx.bezierCurveTo(rxCp2, cp2Y, rxCp1, cp1Y, rxBot, h);
+    ctx.closePath();
+    ctx.fill();
+
+
+    // ── camera scroll — drives all road markings ──
+    scroll += 0.0015;
+    if (scroll > 1) scroll -= 1;
+
+    // ── asphalt texture (scrolling) ──
+    ctx.save();
+    ctx.translate(0, scroll * h);
+    ctx.fillStyle = asphPattern;
+    ctx.globalAlpha = 0.10;
+    ctx.fill();
+    ctx.restore();
+    // fade texture toward top
+    ctx.save();
+    const texMask = ctx.createLinearGradient(0, h, 0, 0);
+    texMask.addColorStop(0, "rgba(5,11,18, 0)");
+    texMask.addColorStop(0.4, "rgba(5,11,18, 0.65)");
+    texMask.addColorStop(1, "rgba(5,11,18, 0.50)");
+    ctx.fillStyle = texMask;
+    ctx.globalAlpha = 1;
+    ctx.fill();
+    ctx.restore();
+
+    // ── bike (road marking at fixed world position) ──
+    if (bikeSprite.width > 0) {
+      let bikeRaw = (BIKE_POS - scroll + 1) % 1;
+      const bikeScreen = bikeRaw ** 0.7; // map to bezier t (0=bottom, 1=top)
+      const closeness = 1 - bikeScreen; // 0=far, 1=near
+      const bz = bikeScreen;
+      const bzMt = 1 - bz;
+      const bkcx = bzMt**3 * cx     + 3*bzMt**2*bz * (cx + bend1) + 3*bzMt*bz**2 * (cx + bend2) + bz**3 * (cx + bend);
+      const bkcy = bzMt**3 * h     + 3*bzMt**2*bz * cp1Y + 3*bzMt*bz**2 * cp2Y;
+      const roadW = wBot + (wTop - wBot) * bz;
+      const bikeSz = roadW * 0.35 + 6;
+      ctx.save();
+      ctx.globalAlpha = 0.03 + 0.27 * closeness;
+      ctx.translate(bkcx, bkcy);
+      ctx.transform(1, 0, 0, 0.18 + 0.42 * closeness, 0, 0);
+      ctx.drawImage(bikeSprite, -bikeSz / 2, -bikeSz / 2, bikeSz, bikeSz);
+      ctx.restore();
+    }
+
+    // ── scale line widths to viewport so mobile isn't chunky ──
+    const vw = Math.min(w, 1440);
+    const S = vw / 1440;
+
+    // ── edge lines with soft glow via shadowBlur ──
+    ctx.shadowColor = "rgba(255, 255, 255, 0.18)";
+    ctx.shadowBlur = 14 * S;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.40)";
+    edgeStrip(lxBot, lxCp1, lxCp2, lxTop, cp1Y, cp2Y, 8 * S, 1.5 * S);
+    edgeStrip(rxBot, rxCp1, rxCp2, rxTop, cp1Y, cp2Y, 8 * S, 1.5 * S);
+    ctx.shadowBlur = 0;
+
+    // ── dashed center line — driven by same scroll offset ──
+    const cMid1 = cx + bend1;
+    const cMid2 = cx + bend2;
+    const cTop = cx + bend;
+    const DASHES = 12;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
+
+    function drawDash(rawA: number, rawB: number) {
+      const ta = rawA ** 0.7;
+      const tb = rawB ** 0.7;
+      if (ta > 1 || tb < 0) return;
+      const tm = (ta + tb) / 2;
+      const mta = 1 - ta, mtb = 1 - tb;
+      const pax = mta**3 * cx   + 3*mta**2*ta * cMid1 + 3*mta*ta**2 * cMid2 + ta**3 * cTop;
+      const pay = mta**3 * h    + 3*mta**2*ta * cp1Y  + 3*mta*ta**2 * cp2Y;
+      const pbx = mtb**3 * cx   + 3*mtb**2*tb * cMid1 + 3*mtb*tb**2 * cMid2 + tb**3 * cTop;
+      const pby = mtb**3 * h    + 3*mtb**2*tb * cp1Y  + 3*mtb*tb**2 * cp2Y;
+      ctx.lineWidth = (14 + (2 - 14) * tm) * S;
+      ctx.beginPath();
+      ctx.moveTo(pax, pay);
+      ctx.lineTo(pbx, pby);
+      ctx.stroke();
+    }
+
+    for (let i = -2; i < DASHES + 3; i++) {
+      let raw0 = ((i / DASHES) - scroll + 1) % 1;
+      if (raw0 < 0) raw0 += 1;
+      let raw1 = (((i + 0.5) / DASHES) - scroll + 1) % 1;
+      if (raw1 < 0) raw1 += 1;
+      if (raw1 < raw0) {
+        // dash crosses wrap boundary — draw in two pieces
+        drawDash(raw0, 1);
+        drawDash(0, raw1);
+      } else {
+        drawDash(raw0, raw1);
+      }
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  requestAnimationFrame(draw);
+</script>

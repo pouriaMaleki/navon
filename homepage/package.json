@@ -1,0 +1,30 @@
+{
+  "name": "@navon/homepage",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Marketing homepage for Navon bike navigation.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "astro dev --host 0.0.0.0 --port 5173",
+    "build": "astro build",
+    "preview": "astro preview --host 0.0.0.0 --port 5173",
+    "typecheck": "astro check",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write ."
+  },
+  "overrides": {
+    "yaml": "2.9.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.9",
+    "@biomejs/biome": "2.4.6",
+    "@vitejs/plugin-basic-ssl": "2.3.0",
+    "astro": "6.3.7",
+    "typescript": "5.8.3"
+  }
+}

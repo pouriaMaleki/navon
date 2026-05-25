@@ -1,0 +1,142 @@
+<section class="footer">
+  <div class="content">
+    <div class="about">
+      <h2>Built in Helsinki</h2>
+      <p>
+        Navon started in Helsinki, Finland. The developer believes bikes are the best thing that has happened to
+        cities. They make streets quieter, air cleaner, and neighbourhoods more connected.
+        A good bike route isn&rsquo;t just transport. It&rsquo;s a daily ritual, a moment
+        of calm, a way to belong to the place you live in.
+      </p>
+      <p>
+        Navon is a small contribution to that vision. A tool for people who ride, built by
+        someone who rides.
+      </p>
+    </div>
+
+    <div class="links">
+      <div class="footer-col">
+        <p class="footer-heading">App</p>
+        <a href="/app/">Web App</a>
+        <a
+          href="https://apps.apple.com/app/navon/id6736647969"
+          target="_blank"
+          rel="noopener"
+        >
+          App Store
+        </a>
+        <span class="muted">Android: coming soon</span>
+      </div>
+
+      <div class="footer-col">
+        <p class="footer-heading">Project</p>
+        <a
+          href="https://github.com/pouriaMaleki/navon"
+          target="_blank"
+          rel="noopener"
+        >
+          GitHub
+        </a>
+        <a
+          href="https://github.com/pouriaMaleki/navon/blob/main/LICENSE"
+          target="_blank"
+          rel="noopener"
+        >
+          License (AGPL-3.0)
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <p class="footer-copy">&copy; 2026 Navon. Free and open-source software.</p>
+</section>
+
+<style>
+  .footer {
+    min-height: auto;
+    background: var(--color-bg-alt);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-lg);
+    padding: var(--section-pad-y) var(--section-pad-x);
+  }
+
+  .content {
+    max-width: var(--content-wide);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+  }
+
+  .about {
+    max-width: var(--content-max);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .about h2 {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+    color: var(--color-fg);
+  }
+
+  .about p {
+    font-size: var(--text-md);
+    line-height: var(--leading-relaxed);
+    color: var(--color-fg-muted);
+  }
+
+  .links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-lg);
+  }
+
+  .footer-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .footer-heading {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--color-fg-dim);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    margin-bottom: var(--space-xs);
+  }
+
+  .footer-col a {
+    font-size: var(--text-sm);
+    color: var(--color-fg-muted);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .footer-col a:hover,
+  .footer-col a:focus-visible {
+    color: var(--color-fg);
+  }
+
+  .footer-copy {
+    font-size: var(--text-xs);
+    color: var(--color-fg-dim);
+    margin-top: var(--space-lg);
+  }
+
+  .muted {
+    font-size: var(--text-sm);
+    color: var(--color-fg-dim);
+    line-height: var(--leading-snug);
+  }
+
+  .muted small {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-normal);
+  }
+</style>

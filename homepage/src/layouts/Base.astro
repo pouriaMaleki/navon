@@ -1,0 +1,111 @@
+---
+import "../styles/vars.css";
+
+interface Props {
+  title?: string;
+}
+
+const { title = "Navon — Bike navigation" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#faf7f2" />
+    <meta
+      name="description"
+      content="Navon — privacy-first bike navigation with turn-by-turn cues, offline maps, and no tracking."
+    />
+    <link rel="icon" type="image/svg+xml" href="/bike.svg" />
+    <link rel="canonical" href="https://navon.bike" />
+    <meta property="og:title" content={title} />
+    <meta
+      property="og:description"
+      content="Privacy-first bike navigation with turn-by-turn cues, offline maps, and no tracking."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://navon.bike" />
+    <meta property="og:image" content="https://navon.bike/bike.svg" />
+    <meta property="og:image:alt" content="Navon bike navigation logo" />
+    <meta name="twitter:card" content="summary" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  *,
+  *::before,
+  *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  @media (min-width: 769px) {
+    html {
+      scroll-snap-type: y mandatory;
+    }
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+    letter-spacing: var(--tracking-normal);
+    min-height: 100dvh;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* ── section base ── */
+  section {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: var(--section-pad-y) var(--section-pad-x);
+    position: relative;
+    background: var(--color-bg);
+  }
+
+  @media (min-width: 769px) {
+    section {
+      scroll-snap-align: start;
+    }
+  }
+
+  /* ── subtle parallax rise as section enters view ── */
+  @supports (animation-timeline: view()) {
+    section {
+      animation: section-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+
+    @keyframes section-rise {
+      from {
+        opacity: 0.85;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  }
+</style>

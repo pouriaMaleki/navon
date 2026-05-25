@@ -16,7 +16,7 @@ Main features of this application is:
 
 ## Demo
 
-- Web version of the app (There might be issues with background locations, due to OS limitations): <https://navon.bike>
+- Web version of the app (There might be issues with background locations, due to OS limitations): <https://navon.bike/app>
 - ESP32 Web Emulator: <https://navon.bike/emulator>
 - iOS app: `companion-apps/ios/`
 - Android app: `companion-apps/android/`
@@ -62,6 +62,12 @@ Companion projects:
   ```bash
   cd companion-apps/android
   ./gradlew lintDebug testDebugUnitTest assembleDebug
+  ```
+- Homepage (landing page):
+  ```bash
+  cd homepage
+  npm install
+  npm run dev
   ```
 
 ## Docker Compose
@@ -211,6 +217,7 @@ Copy city.svm to SD Card if you want larger size map. Flashed map is very small 
 │  ├─ xtask/                  Workspace task runner (build, emu, fixtures, i18n).
 │  └─ map-vector-cli/         Map conversion CLI (.mbtiles -> .svm and shrink).
 │
+├─ homepage/                  Marketing site (Astro).
 ├─ docs/                      Product specs, plans, architecture notes, contracts.
 ├─ i18n/                      Translation catalogs and localization tooling data.
 ├─ infra/                     Devcontainer and local environment setup scripts.

@@ -1,0 +1,96 @@
+<section class="hero">
+  <div class="hero-title">
+    <h1 class="title">Navon</h1>
+    <p class="subtitle">Bike navigation</p>
+  </div>
+
+  <nav class="hero-links" aria-label="App stores">
+    <div class="links-row">
+      <a href="/app/" class="store-link">Web App</a>
+      <a
+        href="https://apps.apple.com/app/navon/id6736647969"
+        class="store-link"
+        target="_blank"
+        rel="noopener"
+      >
+        App Store
+      </a>
+      <span class="store-link muted android-soon">Android: coming soon</span>
+    </div>
+  </nav>
+</section>
+
+<style>
+  .hero {
+    background: transparent;
+  }
+
+  .hero-title {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    text-align: center;
+  }
+
+  .title {
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+    color: #f0f0f0;
+  }
+
+  .subtitle {
+    font-size: var(--text-lg);
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: var(--tracking-wide);
+    font-weight: var(--weight-normal);
+  }
+
+  .hero-links {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+  }
+
+  .links-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    justify-content: center;
+  }
+
+  .store-link {
+    display: inline-block;
+    width: 12rem;
+    text-align: center;
+    padding: var(--space-xs) var(--space-md);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: rgba(255, 255, 255, 0.8);
+    transition:
+      background var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out);
+  }
+
+  .muted {
+    opacity: 0.45;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .android-soon {
+    font-size: 0.75em;
+  }
+
+  .store-link:hover,
+  .store-link:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+</style>

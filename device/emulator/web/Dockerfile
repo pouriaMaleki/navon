@@ -1,7 +1,9 @@
-# Multi-stage image that serves the companion-web app at `/` and the emulator-web
-# app at `/emulator/` from a single nginx container. The service name stays
-# `emulator-web` in compose.yaml so the existing edge routing (e.g. navon.bike)
-# keeps working without any changes upstream.
+# Multi-stage image that serves:
+#   /            -> homepage (Astro-style marketing landing)
+#   /app/        -> companion-web (Vite SPA, OSM-tiled planner)
+#   /emulator/   -> emulator-web (Vite + render-core WASM)
+# The service name stays `emulator-web` in compose.yaml so the existing edge
+# routing (e.g. navon.bike) keeps working without any changes upstream.
 
 # ------ Stage 1: build the render-core wasm package the emulator needs. ------
 FROM rust:1.88-bookworm AS wasm-builder
@@ -65,7 +67,7 @@ COPY --from=wasm-builder /tmp/wasm-pkg ./wasm-pkg
 ENV VITE_BASE_PATH=/emulator/
 RUN npm run build
 
-# ------ Stage 3: build the companion web app at the site root. ------
+# ------ Stage 3: build the companion web app under /app/. ------
 FROM node:20-bookworm-slim AS companion-builder
 
 WORKDIR /app
@@ -81,12 +83,28 @@ COPY companion-apps/web/src ./src
 
 RUN npm run build
 
-# ------ Stage 4: nginx serving both apps from one document root. ------
+# ------ Stage 4: build the homepage (Astro static site with React islands). ------
+FROM node:20-bookworm-slim AS homepage-builder
+
+WORKDIR /app
+
+COPY homepage/package.json homepage/package-lock.json ./
+RUN npm ci
+
+COPY homepage/astro.config.mjs ./
+COPY homepage/tsconfig.json ./
+COPY homepage/biome.json ./
+COPY homepage/src ./src
+
+RUN npm run build
+
+# ------ Stage 5: nginx serving all three apps from one document root. ------
 FROM nginx:1.27-alpine AS runtime
 
 COPY device/emulator/web/nginx.conf /etc/nginx/conf.d/default.conf
 
-COPY --from=companion-builder /app/dist/ /usr/share/nginx/html/
+COPY --from=homepage-builder /app/dist/ /usr/share/nginx/html/
+COPY --from=companion-builder /app/dist/ /usr/share/nginx/html/app/
 COPY --from=emulator-builder /app/dist/ /usr/share/nginx/html/emulator/
 
 EXPOSE 4173

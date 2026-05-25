@@ -1,0 +1,23 @@
+---
+// biome-ignore lint/correctness/noUnusedImports: Astro component imports used in template
+import AppSection from "../components/AppSection.astro";
+import CommunitySection from "../components/CommunitySection.astro";
+import Divider from "../components/Divider.astro";
+import Footer from "../components/Footer.astro";
+import HeroSection from "../components/HeroSection.astro";
+import RoadBackground from "../components/RoadBackground.astro";
+import WhySection from "../components/WhySection.astro";
+import Base from "../layouts/Base.astro";
+---
+
+<Base>
+  <RoadBackground />
+  <HeroSection />
+  <AppSection />
+  <Divider image="/map.jpg" />
+  <WhySection />
+  <Divider image="/map.jpg" />
+  <CommunitySection />
+  <Divider transparent />
+  <Footer />
+</Base>

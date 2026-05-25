@@ -1,0 +1,87 @@
+<section class="why">
+  <div class="content">
+    <h2>Why not Google Maps?</h2>
+    <div class="compare">
+      <figure>
+        <div class="phone"><img src="/google-maps.jpg" alt="" loading="lazy" /></div>
+        <figcaption>Google Maps - Suggest the route next to 4 lane high speed street</figcaption>
+      </figure>
+      <figure>
+        <div class="phone"><img src="/routes.jpg" alt="" loading="lazy" /></div>
+        <figcaption>Navon - Local router, HSL, suggests bike paths entirely separate from car traffic</figcaption>
+      </figure>
+    </div>
+    <p>
+      Most navigation apps are built for cars. They optimise for the fastest arrival time and usually shortest path. But on a bike, the direct route
+      is rarely the best one. You might like to take a bit longer and ride a nicer route.
+    </p>
+    <p>
+      Navon uses routers that prioritise better bike paths, green paths, and generally
+      provide special routing for bikes.
+    </p>
+  </div>
+</section>
+
+<style>
+  .why {
+    background: var(--color-bg-alt);
+  }
+
+  .content {
+    max-width: var(--content-max);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .compare {
+    display: flex;
+    gap: var(--space-lg);
+    justify-content: center;
+    margin-bottom: var(--space-md);
+  }
+
+  .compare figure {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+
+  .phone {
+    width: min(180px, 40vw);
+    aspect-ratio: 9 / 19.5;
+    border-radius: 18px;
+    border: 2px solid var(--color-fg-dim);
+    background: #000;
+    overflow: hidden;
+  }
+
+  .phone img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  figcaption {
+    font-size: var(--text-xs);
+    color: var(--color-fg-dim);
+    letter-spacing: var(--tracking-wide);
+    max-width: min(180px, 40vw);
+    line-height: var(--leading-snug);
+  }
+
+  h2 {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+    color: var(--color-fg);
+  }
+
+  p {
+    font-size: var(--text-md);
+    line-height: var(--leading-relaxed);
+    color: var(--color-fg-muted);
+  }
+</style>

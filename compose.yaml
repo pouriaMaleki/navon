@@ -1,6 +1,7 @@
 services:
-  # One container, one port, two apps:
-  #   /            -> companion-web (Vite build, OSM-tiled planner)
+  # One container, one port, three apps:
+  #   /            -> homepage (React + CSS Modules marketing site)
+  #   /app/        -> companion-web (Vite build, OSM-tiled planner)
   #   /emulator/   -> emulator-web (Vite + render-core WASM)
   # Service name stays `emulator-web` so existing edge routing (e.g. navon.bike)
   # keeps working without any upstream changes.
@@ -12,11 +13,11 @@ services:
       - "0.0.0.0:${EMULATOR_PORT:-4173}:4173"
     restart: unless-stopped
     healthcheck:
-      # nginx:alpine ships busybox wget; probe both roots so a broken base-path
-      # build is visible to the orchestrator.
+      # nginx:alpine ships busybox wget; probe all three roots so a broken
+      # base-path build is visible to the orchestrator.
       test:
         - CMD-SHELL
-        - wget -q -O /dev/null http://127.0.0.1:4173/ && wget -q -O /dev/null http://127.0.0.1:4173/emulator/
+        - wget -q -O /dev/null http://127.0.0.1:4173/ && wget -q -O /dev/null http://127.0.0.1:4173/app/ && wget -q -O /dev/null http://127.0.0.1:4173/emulator/
       interval: 30s
       timeout: 5s
       retries: 5

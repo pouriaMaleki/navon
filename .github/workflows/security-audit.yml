@@ -51,7 +51,7 @@ jobs:
           extra_package_locks="$(
             find . -type f -name 'package-lock.json' -print \
               | sed 's#^\./##' | sort \
-              | grep -Ev '^(device/emulator/web|companion-apps/web)/package-lock.json$' || true
+              | grep -Ev '^(device/emulator/web|companion-apps/web|homepage)/package-lock.json$' || true
           )"
           if [ -n "$extra_package_locks" ]; then
             echo "Unexpected package-lock.json files detected:" >> "$GITHUB_STEP_SUMMARY"
@@ -121,6 +121,7 @@ jobs:
         package:
           - device/emulator/web
           - companion-apps/web
+          - homepage
     env:
       SECURITY_ENFORCE: ${{ vars.SECURITY_ENFORCE || 'true' }}
     defaults:

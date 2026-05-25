@@ -1,0 +1,191 @@
+<section class="app">
+  <div class="intro">
+    <h2>Just navigation</h2>
+    <p>
+      The app does one thing: guides you on a bike. It doesn&rsquo;t track your
+      commute, doesn&rsquo;t show ads, doesn&rsquo;t push a subscription, and doesn&rsquo;t
+      mine your location history. It&rsquo;s just a navigation tool.
+    </p>
+  </div>
+
+  <div class="carousel" id="carousel">
+    <div class="card">
+      <div class="phone-frame">
+        <img src="/nav.jpg" alt="" loading="lazy" />
+      </div>
+      <div class="card-body">
+        <h3>Turn-by-turn navigation</h3>
+        <p>Clear, glanceable directions. The map stays heading-up while riding.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="phone-frame">
+        <img src="/audio.jpg" alt="" loading="lazy" />
+      </div>
+      <div class="card-body">
+        <h3>Audio cues</h3>
+        <p>Spoken turn warnings and distance announcements. No need to look at the screen.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="phone-frame">
+        <img src="/live.jpg" alt="" loading="lazy" />
+      </div>
+      <div class="card-body">
+        <h3>Live Activity</h3>
+        <p>Next turn and ETA on the lock screen and Dynamic Island.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="phone-frame">
+        <img src="/routes.jpg" alt="" loading="lazy" />
+      </div>
+      <div class="card-body">
+        <h3>Multiple route sources</h3>
+        <p>BRouter, OSRM, and HSL Digitransit. Pick what works for your area.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="phone-frame">
+        <img src="/gpx.jpg" alt="" loading="lazy" />
+      </div>
+      <div class="card-body">
+        <h3>GPX import and share-to</h3>
+        <p>Bring your own routes from any GPX file. Share destinations via the system menu.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="phone-frame">
+        <img src="/device.jpg" alt="" loading="lazy" />
+      </div>
+      <div class="card-body">
+        <h3>Coming soon: Handlebar display</h3>
+        <p>An optional companion device that keeps navigation in view while your phone stays pocketed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const carousel = document.getElementById("carousel")!;
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+
+  function cardWidth() {
+    const card = carousel.querySelector(".card");
+    return card?.getBoundingClientRect().width ?? 260;
+  }
+
+  function advance() {
+    const gap = parseFloat(getComputedStyle(carousel).gap) || 0;
+    const step = cardWidth() + gap;
+    const maxLeft = carousel.scrollWidth - carousel.clientWidth;
+    let next = carousel.scrollLeft + step;
+    if (next >= maxLeft - 2) next = 0;
+    carousel.scrollTo({ left: next, behavior: "smooth" });
+    scheduleAuto();
+  }
+
+  function scheduleAuto() {
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(advance, 4000);
+  }
+
+  carousel.addEventListener("scroll", () => scheduleAuto(), { passive: true });
+  carousel.addEventListener("touchstart", () => scheduleAuto());
+  carousel.addEventListener("wheel", () => scheduleAuto());
+
+  scheduleAuto();
+</script>
+
+<style>
+  .app {
+    background: var(--color-bg);
+    min-height: 100dvh;
+    padding-top: var(--space-xl);
+    padding-bottom: var(--space-xl);
+    justify-content: center;
+    gap: var(--space-lg);
+    align-items: stretch;
+  }
+
+  .intro {
+    max-width: var(--content-max);
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .intro h2 {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+    color: var(--color-fg);
+  }
+
+  .intro p {
+    font-size: var(--text-md);
+    line-height: var(--leading-relaxed);
+    color: var(--color-fg-muted);
+  }
+
+  .carousel {
+    display: flex;
+    gap: var(--space-md);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 0 var(--section-pad-x) var(--space-sm);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .carousel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .card {
+    flex: 0 0 auto;
+    width: min(260px, 70vw);
+    scroll-snap-align: start;
+    background: var(--color-bg-alt);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  .phone-frame {
+    aspect-ratio: 9 / 19.5;
+    border-radius: 18px;
+    border: 2px solid var(--color-fg-dim);
+    background: #000;
+    overflow: hidden;
+  }
+
+  .phone-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .card-body h3 {
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+    color: var(--color-fg);
+  }
+
+  .card-body p {
+    font-size: var(--text-sm);
+    line-height: var(--leading-snug);
+    color: var(--color-fg-muted);
+  }
+</style>
