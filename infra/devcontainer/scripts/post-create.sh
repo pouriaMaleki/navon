@@ -85,13 +85,6 @@ if [ -f "${HOME}/.gitconfig" ] && [ ! -s "${HOME}/.config/git/config" ]; then
   cp "${HOME}/.gitconfig" "${HOME}/.config/git/config"
 fi
 
-# deepclaude: symlink into PATH (run early — cheap and should never be skipped)
-DEEPCLAUDE_SRC="/work/infra/devcontainer/scripts/deepclaude.sh"
-if [ -f "${DEEPCLAUDE_SRC}" ] && [ ! -L "/usr/local/bin/deepclaude" ]; then
-  sudo ln -sf "${DEEPCLAUDE_SRC}" /usr/local/bin/deepclaude
-  echo "deepclaude symlinked to /usr/local/bin/deepclaude"
-fi
-
 # Persisted SSH directory should keep secure permissions for OpenSSH.
 mkdir -p "${HOME}/.ssh"
 chmod 700 "${HOME}/.ssh"
@@ -102,4 +95,3 @@ ANDROID_SETUP="/work/infra/devcontainer/scripts/install-android-toolchain.sh"
 if [ -f "${ANDROID_SETUP}" ]; then
   bash "${ANDROID_SETUP}"
 fi
-
