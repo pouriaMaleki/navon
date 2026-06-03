@@ -33,8 +33,7 @@ struct SampleRoutingAdapter: RoutingProvider {
         riderLocation: CoordinatePoint,
         rerouteContext: RerouteContext?
     ) async throws -> RoutePreviewModel {
-        _ = rerouteContext
-        print("[reroute_heading] provider=sample reason=provider_noop")
+
         let request = RoutePlanRequest(
             origin: riderLocation,
             destination: session.destinationCoordinate ?? riderLocation,
@@ -121,7 +120,7 @@ struct SampleRoutingAdapter: RoutingProvider {
         revision: Int,
         alternativeIndex: Int
     ) -> RouteAlternative? {
-        let geometry = decodePolyline(route.geometry)
+        let geometry = ShareImportUtilities.decodePolyline(route.geometry)
         guard geometry.count >= 2 else { return nil }
         let maneuvers = buildLiveManeuvers(from: route, geometry: geometry)
         let summary = RouteSummary(
@@ -308,7 +307,7 @@ struct SampleRoutingAdapter: RoutingProvider {
     private func buildAlternative(for request: RoutePlanRequest, revision: Int, alternativeIndex: Int) -> RouteAlternative {
         let geometry = sampleGeometry(from: request.origin, to: request.destination, alternativeIndex: alternativeIndex)
         let maneuvers = buildManeuvers(geometry: geometry)
-        let totalDistance = routeDistance(for: geometry)
+        let totalDistance = PolylineGeo.polylineLengthMeters(geometry)
         let routeID = "\(providerID.rawValue)-sample-\(alternativeIndex)"
         let summary = RouteSummary(
             totalDistanceMeters: totalDistance,
@@ -381,7 +380,7 @@ struct SampleRoutingAdapter: RoutingProvider {
     }
 
     private func buildManeuvers(geometry: [CoordinatePoint]) -> [RouteManeuver] {
-        let cumulative = cumulativeDistances(for: geometry)
+        let cumulative = cumulativeDistances(geometry)
         var maneuvers = [
             RouteManeuver(
                 id: "depart",
@@ -422,41 +421,6 @@ struct SampleRoutingAdapter: RoutingProvider {
         return maneuvers
     }
 
-    private func cumulativeDistances(for geometry: [CoordinatePoint]) -> [Double] {
-        var cumulative = [0.0]
-        for (start, end) in zip(geometry, geometry.dropFirst()) {
-            cumulative.append(cumulative.last! + approximateDistanceMeters(from: start, to: end))
-        }
-        return cumulative
-    }
-
-    private func routeDistance(for geometry: [CoordinatePoint]) -> Double {
-        zip(geometry, geometry.dropFirst()).reduce(0.0) { partial, segment in
-            partial + approximateDistanceMeters(from: segment.0, to: segment.1)
-        }
-    }
-
-    private func approximateDistanceMeters(from start: CoordinatePoint, to end: CoordinatePoint) -> Double {
-        let latMeters = (end.latitude - start.latitude) * 111_320.0
-        let lonMeters = (end.longitude - start.longitude) * cos(((start.latitude + end.latitude) / 2.0) * .pi / 180.0) * 111_320.0
-        return sqrt(latMeters * latMeters + lonMeters * lonMeters)
-    }
-
-    private func turnDeltaDegrees(previous: CoordinatePoint, current: CoordinatePoint, next: CoordinatePoint) -> Double {
-        let incoming = bearingDegrees(from: previous, to: current)
-        let outgoing = bearingDegrees(from: current, to: next)
-        var delta = outgoing - incoming
-        while delta <= -180.0 { delta += 360.0 }
-        while delta > 180.0 { delta -= 360.0 }
-        return delta
-    }
-
-    private func bearingDegrees(from start: CoordinatePoint, to end: CoordinatePoint) -> Double {
-        let latMeters = (end.latitude - start.latitude) * 111_320.0
-        let lonMeters = (end.longitude - start.longitude) * cos(((start.latitude + end.latitude) / 2.0) * .pi / 180.0) * 111_320.0
-        return atan2(lonMeters, latMeters) * 180.0 / .pi
-    }
-
     private func classifyTurn(deltaDegrees: Double) -> (type: RouteManeuverType, instruction: String)? {
         let magnitude = abs(deltaDegrees)
         guard magnitude >= 25 else { return nil }
@@ -472,42 +436,6 @@ struct SampleRoutingAdapter: RoutingProvider {
             output.append(point)
         }
         return output
-    }
-
-    private func decodePolyline(_ encoded: String) -> [CoordinatePoint] {
-        guard !encoded.isEmpty else { return [] }
-        var points: [CoordinatePoint] = []
-        var index = encoded.startIndex
-        var latitude = 0
-        var longitude = 0
-
-        func nextValue() -> Int? {
-            var result = 0
-            var shift = 0
-            while index < encoded.endIndex {
-                let value = Int(encoded[index].unicodeScalars.first!.value) - 63
-                index = encoded.index(after: index)
-                result |= (value & 0x1f) << shift
-                shift += 5
-                if value < 0x20 {
-                    return (result & 1) == 0 ? (result >> 1) : ~(result >> 1)
-                }
-            }
-            return nil
-        }
-
-        while let latDelta = nextValue(), let lonDelta = nextValue() {
-            latitude += latDelta
-            longitude += lonDelta
-            points.append(
-                CoordinatePoint(
-                    latitude: Double(latitude) / 100_000.0,
-                    longitude: Double(longitude) / 100_000.0
-                )
-            )
-        }
-
-        return points
     }
 
     private func planningNotice(for provider: RouteProviderID) -> String {

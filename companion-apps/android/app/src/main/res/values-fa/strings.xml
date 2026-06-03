@@ -46,6 +46,9 @@
     <string name="cue_turn50m_slightRight" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، به راست بپیچید</string>
     <string name="cue_turn50m_uturn" formatted="false">در {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} ، یک دور U بزنید</string>
     <string name="cue_turn50mCombined" formatted="false">در {distance, number} {distanceUnit, select, meters {متر} feet {فوت} other {متر}}، {first, select, left {به چپ بپیچ} right {به راست بپیچ} exitLeft {از خروجیِ سمت چپ خارج شو} exitRight {از خروجیِ سمت راست خارج شو} uturn {یک U-turn انجام بده} roundabout {وارد میدان گردان شو} merge {ادغام شو} ramp {رمپ را بگیر} other {مسیر را دنبال کن}} سپس سریع {second, select, left {به چپ} right {به راست} exitLeft {خروجیِ سمت چپ} exitRight {خروجیِ سمت راست} uturn {U-turn} roundabout {میدان گردان} merge {ادغام} ramp {رمپ} other {به جلو}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
+    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
+    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} تا {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">پاک کردن مقصد</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">بستن پیام رسیدن</string>
@@ -56,14 +59,22 @@
     <string name="home_a11y_recenterMap" formatted="false">بازمرکز کردن نقشه</string>
     <string name="home_a11y_settings" formatted="false">تنظیمات</string>
     <string name="home_continueOnCurrentRoute" formatted="false">ادامه در مسیر فعلی</string>
+    <string name="home_distanceKm" formatted="false">{km, number} km</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
     <string name="home_importedRoute" formatted="false">مسیر واردشده</string>
     <string name="home_iosLocationHint" formatted="false">برای تغییر این برنامه به «همیشه»، تنظیمات iOS را باز کنید: Privacy → Location.</string>
     <string name="home_linkFailed" formatted="false">باز کردن این لینک ممکن نشد</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
     <string name="home_noSuggestions" formatted="false">هنوز پیشنهادی وجود ندارد…</string>
+    <string name="home_offRoute" formatted="false">Off route</string>
     <string name="home_openSettings" formatted="false">تنظیمات</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
     <string name="home_platformHint_locationDefault" formatted="false">اجازهٔ موقعیت مکانی از شما خواسته می‌شود. آن را مجاز کنید تا راهنمایی هنگام پس‌زمینه بودن برنامه، همچنان موقعیت شما را دنبال کند.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">سافاری در آیفون نمی‌تواند GPS پس‌زمینه، راهنمایی روی صفحه‌قفل، یا نشانه‌های صوتی را در حالی که تب پنهان است ارسال کند. برای مسیریابی واقعی در پس‌زمینه، اپ بومی iOS را نصب کنید.</string>
     <string name="home_recenter" formatted="false">مرکزگیری مجدد</string>
+    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
+    <string name="home_rerouting" formatted="false">Rerouting…</string>
     <string name="home_resolvingLink" formatted="false">در حال حل لینک…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">در حال دنبال کردن لینک برای رسیدن به مقصد. ممکن است چند ثانیه طول بکشد.</string>
     <string name="home_routeActiveOnDevice" formatted="false">مسیر روی دستگاه فعال است</string>
@@ -83,9 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">تلاش دوباره برای وارد کردن</string>
     <string name="importDiagnostics_sharePackage" formatted="false">اشتراک‌گذاری بسته دیباگ</string>
     <string name="importDiagnostics_shareSubject" formatted="false">عیب‌یابیِ وارد کردن Navon</string>
+    <string name="maneuver_arrive" formatted="false">Arrive</string>
+    <string name="maneuver_continue" formatted="false">Continue</string>
     <string name="pairing_alignQr" formatted="false">کد QR را داخل کادر هم‌راستا کنید</string>
     <string name="pairing_cameraDenied" formatted="false">برای اسکن کد جفت‌سازی، دسترسی به دوربین لازم است.</string>
     <string name="pairing_cancel" formatted="false">لغو</string>
+    <string name="pairing_connecting" formatted="false">Connecting…</string>
     <string name="pairing_failed" formatted="false">جفت‌سازی انجام نشد</string>
     <string name="pairing_intro" formatted="false">گوشی‌تان را طوری نگه دارید که صفحه‌نمایش دستگاه داخل کادر باشد، سپس وقتی کد QR را دیدید روی Start بزنید.</string>
     <string name="pairing_openSettings" formatted="false">باز کردن تنظیمات</string>

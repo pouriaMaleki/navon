@@ -16,6 +16,8 @@ final class CoreLocationService: NSObject, ObservableObject, LocationService {
     /// the iOS Settings app to flip the toggle manually.
     @Published private(set) var manualSettingsHint: Bool = false
 
+    static let defaultFallback = CoordinatePoint(latitude: 60.1699, longitude: 24.9384)
+
     /// Internal access (not `private`) so unit tests in
     /// `CoreLocationBackgroundConfigTests` can read the manager's
     /// background-config flags. CLLocationManager itself is a thin wrapper
@@ -49,6 +51,10 @@ final class CoreLocationService: NSObject, ObservableObject, LocationService {
         if let stored = persistence.loadLastKnownRider() {
             lastKnownLocation = stored
         }
+    }
+
+    var bestLocation: CoordinatePoint {
+        currentLocation ?? lastKnownLocation ?? Self.defaultFallback
     }
 
     func start() {

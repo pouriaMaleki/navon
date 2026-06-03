@@ -1,14 +1,7 @@
 import SwiftUI
 
-/// Home-screen device-pairing chip. Pure view parameterized over `DeviceChipState`
-/// so both the tap behavior and the snapshot shape are testable without a real
-/// `AppModel`. The chip frame matches the home zoom buttons (50×50, corner 18,
-/// ultraThinMaterial) so the top-right cluster reads as a single control row.
-///
-/// The chip is only rendered when a device is paired; the unpaired entry point
-/// lives in `DeviceSettingsView` ("Pair a new device"). `HomeViewModel`
-/// returns `Optional<DeviceChipState>` so the home view simply skips rendering
-/// when there is no record.
+/// Home-screen device-pairing chip. Only rendered when a device is paired — the unpaired
+/// entry point lives in `DeviceSettingsView`.
 enum DeviceChipState: Equatable {
     case connecting(name: String)
     case connected(name: String)

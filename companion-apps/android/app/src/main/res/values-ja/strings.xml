@@ -46,6 +46,9 @@
     <string name="cue_turn50m_slightRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右折してください</string>
     <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でUターンしてください</string>
     <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}, {first, select, left {左折} right {右折} exitLeft {左の出口を出る} exitRight {右の出口を出る} uturn {Uターンする} roundabout {ラウンドアバウトに入る} merge {合流する} ramp {ランプを進む} other {進行方向に従う}} のあとすぐに {second, select, left {左} right {右} exitLeft {左の出口} exitRight {右の出口} uturn {Uターン} roundabout {ラウンドアバウト} merge {合流} ramp {ランプ} other {そのまま進む}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
+    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
+    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} 先の{destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">目的地をクリア</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">到着メッセージを閉じる</string>
@@ -56,14 +59,22 @@
     <string name="home_a11y_recenterMap" formatted="false">地図を中央に戻す</string>
     <string name="home_a11y_settings" formatted="false">設定</string>
     <string name="home_continueOnCurrentRoute" formatted="false">現在のルートを続ける</string>
+    <string name="home_distanceKm" formatted="false">{km, number} km</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
     <string name="home_importedRoute" formatted="false">インポートしたルート</string>
     <string name="home_iosLocationHint" formatted="false">iOSの設定を開く → プライバシー → 位置情報で、このアプリを「常に」に切り替えてください。</string>
     <string name="home_linkFailed" formatted="false">このリンクを開けませんでした</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
     <string name="home_noSuggestions" formatted="false">候補はまだありません…</string>
+    <string name="home_offRoute" formatted="false">Off route</string>
     <string name="home_openSettings" formatted="false">設定</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
     <string name="home_platformHint_locationDefault" formatted="false">位置情報の許可を求められます。アプリがバックグラウンドの間も、現在地の追跡を続けるために許可してください。</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">iPhoneのSafariでは、タブが非表示の間にバックグラウンドGPS、ロック画面での案内、または音声の合図を配信できません。バックグラウンドでのルーティングには、ネイティブのiOSアプリをインストールしてください。</string>
     <string name="home_recenter" formatted="false">現在地に戻す</string>
+    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
+    <string name="home_rerouting" formatted="false">Rerouting…</string>
     <string name="home_resolvingLink" formatted="false">リンクを解決中…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">目的地のURLをたどっています。数秒かかる場合があります。</string>
     <string name="home_routeActiveOnDevice" formatted="false">端末でルートを有効にしています</string>
@@ -83,9 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">再試行して取り込み</string>
     <string name="importDiagnostics_sharePackage" formatted="false">デバッグパッケージを共有</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Navon のインポート診断</string>
+    <string name="maneuver_arrive" formatted="false">Arrive</string>
+    <string name="maneuver_continue" formatted="false">Continue</string>
     <string name="pairing_alignQr" formatted="false">フレーム内でQRコードを合わせてください</string>
     <string name="pairing_cameraDenied" formatted="false">ペアリングコードを読み取るにはカメラアクセスが必要です</string>
     <string name="pairing_cancel" formatted="false">キャンセル</string>
+    <string name="pairing_connecting" formatted="false">Connecting…</string>
     <string name="pairing_failed" formatted="false">ペアリングに失敗しました</string>
     <string name="pairing_intro" formatted="false">端末の画面がフレーム内に入るようにスマホを構え、QRコードが見えたら「開始」をタップしてください。</string>
     <string name="pairing_openSettings" formatted="false">設定を開く</string>

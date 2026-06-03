@@ -45,7 +45,7 @@ final class PairingConfirmFlowTests: XCTestCase {
     func test_completePairing_writesSecretAndPersistsRecord() async {
         let (appModel, fake, persistence) = makeHarness()
 
-        await appModel.completePairing(payload: samplePayload())
+        await appModel.deviceManager.completePairing(payload: samplePayload())
 
         XCTAssertEqual(fake.connectToAdvertisedCallCount, 1)
         XCTAssertEqual(fake.writePairingConfirmCallCount, 1)
@@ -53,8 +53,8 @@ final class PairingConfirmFlowTests: XCTestCase {
         // Persisted identifier comes from CoreBluetooth at connect time, not
         // from the QR — that is the cross-platform contract for iOS.
         XCTAssertEqual(persistence.loadPairedPeripheral()?.identifier, connectedIdentifier)
-        XCTAssertEqual(appModel.pairedPeripheral?.identifier, connectedIdentifier)
-        XCTAssertEqual(appModel.pairingState, .idle)
+        XCTAssertEqual(appModel.deviceManager.pairedPeripheral?.identifier, connectedIdentifier)
+        XCTAssertEqual(appModel.deviceManager.pairingState, .idle)
     }
 
     func test_completePairing_doesNotPersistWhenConnectFails() async {
@@ -62,14 +62,14 @@ final class PairingConfirmFlowTests: XCTestCase {
             connectResult: .failure(CoreBluetoothRouteSyncError.scanTimedOut)
         )
 
-        await appModel.completePairing(payload: samplePayload())
+        await appModel.deviceManager.completePairing(payload: samplePayload())
 
         XCTAssertNil(persistence.loadPairedPeripheral())
-        XCTAssertNil(appModel.pairedPeripheral)
-        if case .failed = appModel.pairingState {
+        XCTAssertNil(appModel.deviceManager.pairedPeripheral)
+        if case .failed = appModel.deviceManager.pairingState {
             // expected
         } else {
-            XCTFail("expected pairingState to be .failed, got \(appModel.pairingState)")
+            XCTFail("expected pairingState to be .failed, got \(appModel.deviceManager.pairingState)")
         }
     }
 
@@ -78,11 +78,11 @@ final class PairingConfirmFlowTests: XCTestCase {
             writeResult: .failure(CoreBluetoothRouteSyncError.writeFailed("nope"))
         )
 
-        await appModel.completePairing(payload: samplePayload())
+        await appModel.deviceManager.completePairing(payload: samplePayload())
 
         XCTAssertNil(persistence.loadPairedPeripheral())
-        XCTAssertNil(appModel.pairedPeripheral)
-        if case .failed = appModel.pairingState {
+        XCTAssertNil(appModel.deviceManager.pairedPeripheral)
+        if case .failed = appModel.deviceManager.pairingState {
             // expected
         } else {
             XCTFail("expected pairingState to be .failed")
@@ -96,17 +96,17 @@ final class PairingConfirmFlowTests: XCTestCase {
         let fake = FakeRouteSyncBluetoothClient()
         let service = BleRouteSyncService(bluetoothClient: fake)
         let appModel = AppModel(persistence: persistence, bleService: service)
-        XCTAssertEqual(appModel.pairedPeripheral?.identifier, "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")
+        XCTAssertEqual(appModel.deviceManager.pairedPeripheral?.identifier, "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA")
 
-        await appModel.completePairing(payload: samplePayload())
+        await appModel.deviceManager.completePairing(payload: samplePayload())
 
         XCTAssertEqual(persistence.loadPairedPeripheral()?.identifier, connectedIdentifier)
-        XCTAssertEqual(appModel.pairedPeripheral?.identifier, connectedIdentifier)
+        XCTAssertEqual(appModel.deviceManager.pairedPeripheral?.identifier, connectedIdentifier)
     }
 
     func test_completePairing_clearsPairingStateAfterAutoDismissDelay() async {
         let (appModel, _, _) = makeHarness()
-        await appModel.completePairing(payload: samplePayload())
-        XCTAssertEqual(appModel.pairingState, .idle)
+        await appModel.deviceManager.completePairing(payload: samplePayload())
+        XCTAssertEqual(appModel.deviceManager.pairingState, .idle)
     }
 }

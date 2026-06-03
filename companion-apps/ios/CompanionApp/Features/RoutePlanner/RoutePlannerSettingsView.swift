@@ -2,30 +2,31 @@ import SwiftUI
 
 struct RoutePlannerSettingsView: View {
     @EnvironmentObject private var appModel: AppModel
+    @EnvironmentObject private var routeHistoryService: RouteHistoryService
 
     var body: some View {
         Form {
             Section(T.string("settings.routePlanner.defaults.section")) {
                 Picker("Default route source", selection: Binding(
-                    get: { appModel.routePlannerPreferences.defaultSourceMode },
+                    get: { routeHistoryService.routePlannerPreferences.defaultSourceMode },
                     set: { newValue in
-                        var preferences = appModel.routePlannerPreferences
+                        var preferences = routeHistoryService.routePlannerPreferences
                         preferences.defaultSourceMode = newValue
-                        appModel.routePlannerPreferences = preferences
+                        routeHistoryService.routePlannerPreferences = preferences
                         appModel.currentSourceMode = newValue
                     }
                 )) {
-                    ForEach(appModel.sourceModeOptions) { mode in
+                    ForEach(HslAvailabilityService.sourceModeOptions(settings: appModel.settings, request: appModel.routeRequest)) { mode in
                         Text(mode.displayName).tag(mode)
                     }
                 }
 
                 Picker("Suggestions", selection: Binding(
-                    get: { appModel.routePlannerPreferences.suggestionMode },
+                    get: { routeHistoryService.routePlannerPreferences.suggestionMode },
                     set: { newValue in
-                        var preferences = appModel.routePlannerPreferences
+                        var preferences = routeHistoryService.routePlannerPreferences
                         preferences.suggestionMode = newValue
-                        appModel.routePlannerPreferences = preferences
+                        routeHistoryService.routePlannerPreferences = preferences
                     }
                 )) {
                     ForEach(RouteSuggestionMode.allCases) { mode in
@@ -34,11 +35,11 @@ struct RoutePlannerSettingsView: View {
                 }
 
                 Picker("Start behavior", selection: Binding(
-                    get: { appModel.routePlannerPreferences.startBehavior },
+                    get: { routeHistoryService.routePlannerPreferences.startBehavior },
                     set: { newValue in
-                        var preferences = appModel.routePlannerPreferences
+                        var preferences = routeHistoryService.routePlannerPreferences
                         preferences.startBehavior = newValue
-                        appModel.routePlannerPreferences = preferences
+                        routeHistoryService.routePlannerPreferences = preferences
                     }
                 )) {
                     ForEach(RouteStartBehavior.allCases) { behavior in

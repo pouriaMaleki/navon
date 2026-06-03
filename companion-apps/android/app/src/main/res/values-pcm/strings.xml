@@ -46,6 +46,9 @@
     <string name="cue_turn50m_slightRight" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, slight right</string>
     <string name="cue_turn50m_uturn" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, make a U-turn</string>
     <string name="cue_turn50mCombined" formatted="false">For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {turn left} slightLeft {slight left} slightRight {slight right} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} then quickly {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
+    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
+    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} to {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Sọ ibi tí o ń lọ di ofo</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">Pa a</string>
@@ -56,14 +59,22 @@
     <string name="home_a11y_recenterMap" formatted="false">Dá maapu padà sí àárín</string>
     <string name="home_a11y_settings" formatted="false">Ètò</string>
     <string name="home_continueOnCurrentRoute" formatted="false">Continue for current route</string>
+    <string name="home_distanceKm" formatted="false">{km, number} km</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
     <string name="home_importedRoute" formatted="false">Route wey don import</string>
     <string name="home_iosLocationHint" formatted="false">Ṣí iOS Settings → Privacy → Location kí o yí app yi sí \"Always\".</string>
     <string name="home_linkFailed" formatted="false">Mi ò lè ṣí link yẹn</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
     <string name="home_noSuggestions" formatted="false">No suggestions yet…</string>
+    <string name="home_offRoute" formatted="false">Off route</string>
     <string name="home_openSettings" formatted="false">Settings</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
     <string name="home_platformHint_locationDefault" formatted="false">Dem go ask you for location permission. Allow am make guidance fit keep tracking your position when the app dey background.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">Safari wey dey iPhone no fit send GPS for background, guidance for lock-screen, or audio cues while tab don hide. For real background routing, install the native iOS app.</string>
     <string name="home_recenter" formatted="false">Recenter</string>
+    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
+    <string name="home_rerouting" formatted="false">Rerouting…</string>
     <string name="home_resolvingLink" formatted="false">Mo ń ṣàwárí link…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Mo ń tẹ̀lé link náà kí n wá ibi tí e ń lọ. E fitẹ́ gba ìṣẹ́jú díẹ̀.</string>
     <string name="home_routeActiveOnDevice" formatted="false">Ọ̀nà ti ń ṣiṣẹ lórí ẹrọ</string>
@@ -83,9 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">Tún gbìyànjú import</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Pín debug package</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Navon import diagnostics</string>
+    <string name="maneuver_arrive" formatted="false">Arrive</string>
+    <string name="maneuver_continue" formatted="false">Continue</string>
     <string name="pairing_alignQr" formatted="false">Jẹ́ kí QR code wà dáadáa nínú fireemu</string>
     <string name="pairing_cameraDenied" formatted="false">Wọ́n nílò kí kamera lè ṣiṣẹ kí o lè ka kòdù pairing.</string>
     <string name="pairing_cancel" formatted="false">Fagilé</string>
+    <string name="pairing_connecting" formatted="false">Connecting…</string>
     <string name="pairing_failed" formatted="false">Pairing kò ṣeyọrí</string>
     <string name="pairing_intro" formatted="false">Mu fón rẹ kí iboju ẹrọ náà wà nínú fireemu, lẹ́yìn náà tẹ Start nígbà tí o bá rí QR code náà.</string>
     <string name="pairing_openSettings" formatted="false">Ṣí Settings</string>

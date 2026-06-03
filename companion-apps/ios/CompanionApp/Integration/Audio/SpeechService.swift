@@ -16,40 +16,16 @@ protocol SpeechPort: AnyObject {
     func shutdown()
 }
 
-/// Real `AVSpeechSynthesizer` wrapper. The synthesizer and the
-/// `AVAudioSession` activation are both deferred to the first `speak()`
-/// call — instantiating them eagerly was blocking the iOS main thread on
-/// app launch (the first audio-session activation can take 100 ms+ while
-/// CoreAudio sets up routing), which surfaced as a noticeably-slow first
-/// tap on the settings toggles.
-///
-/// **Audio session lifecycle.** Our category uses `.duckOthers`, which
-/// dims any music app's output for as long as our session is active.
-/// Leaving the session active forever leaves the music permanently
-/// dimmed — riders reported this. To restore the music's volume after
-/// each cue we adopt `AVSpeechSynthesizerDelegate` and, on `didFinish`,
-/// schedule a debounced deactivation: `setActive(false, options:
-/// .notifyOthersOnDeactivation)` after a quiet window of
-/// `deactivationDelaySeconds` seconds. The window lets back-to-back cues
-/// keep the session active so music doesn't ramp up just to ramp back
-/// down for the next utterance. Apple's own navigation samples follow
-/// the same pattern.
-///
-/// All steps emit `os_log` lines under the
-/// `app.navon.bike` subsystem with category `audio` so a
-/// failing real-device run can be diagnosed from Console.app
-/// (`subsystem:app.navon.bike category:audio`).
+/// AVSpeechSynthesizer wrapper. Deferred init avoids 100ms+ main-thread block on app launch.
+/// Uses `.duckOthers` with debounced deactivation after `didFinish` — back-to-back cues keep
+/// the session hot; a 1.5s quiet window restores music volume so it isn't permanently dimmed.
 final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
     private static let log = Logger(
         subsystem: "app.navon.bike",
         category: "audio"
     )
 
-    /// Delay between the last utterance finishing and us deactivating
-    /// the audio session. 1.5 s is long enough that the typical
-    /// "in 50 m, turn left" → "turn left" pair stays under one duck
-    /// envelope, and short enough that the music app's volume ramps
-    /// back up promptly when no further cues are queued.
+    /// 1.5 s — long enough for a "50m, turn left" → "turn left" pair to stay under one duck envelope.
     private static let deactivationDelaySeconds: UInt64 = 1_500_000_000
 
     private var synthesizer: AVSpeechSynthesizer?
@@ -236,8 +212,6 @@ final class SpeechService: NSObject, SpeechPort, AVSpeechSynthesizerDelegate {
             }
         }
     }
-
-    // MARK: AVSpeechSynthesizerDelegate
 
     func speechSynthesizer(
         _ synthesizer: AVSpeechSynthesizer,

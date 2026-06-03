@@ -46,6 +46,9 @@
     <string name="cue_turn50m_slightRight" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny oikealle</string>
     <string name="cue_turn50m_uturn" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, tee U-käännös</string>
     <string name="cue_turn50mCombined" formatted="false">Kun {distance, number} {distanceUnit, select, meters {metriä} feet {jalkaa} other {metriä}}, {first, select, left {käänny vasemmalle} right {käänny oikealle} exitLeft {ota vasen ulosajo} exitRight {ota oikea ulosajo} uturn {tee U-käännös} roundabout {aja kiertoliittymään} merge {yhdistä} ramp {ota ramppi} other {noudata reittiä}} sitten nopeasti {second, select, left {vasemmalle} right {oikealle} exitLeft {vasen ulosajo} exitRight {oikea ulosajo} uturn {U-käännös} roundabout {kiertoliittymä} merge {yhdistä} ramp {ramppi} other {eteenpäin}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
+    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
+    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} kohteeseen {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Tyhjennä määränpää</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">Sulje saapumisilmoitus</string>
@@ -56,14 +59,22 @@
     <string name="home_a11y_recenterMap" formatted="false">Keskitä kartta uudelleen</string>
     <string name="home_a11y_settings" formatted="false">Asetukset</string>
     <string name="home_continueOnCurrentRoute" formatted="false">Jatka nykyisellä reitillä</string>
+    <string name="home_distanceKm" formatted="false">{km, number} km</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
     <string name="home_importedRoute" formatted="false">Tuotu reitti</string>
     <string name="home_iosLocationHint" formatted="false">Avaa iOS-asetukset → Yksityisyys → Sijainti ja vaihda tämän sovelluksen asetukseksi \"Aina\".</string>
     <string name="home_linkFailed" formatted="false">Linkkiä ei voitu avata</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
     <string name="home_noSuggestions" formatted="false">Ei vielä ehdotuksia…</string>
+    <string name="home_offRoute" formatted="false">Off route</string>
     <string name="home_openSettings" formatted="false">Asetukset</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
     <string name="home_platformHint_locationDefault" formatted="false">Sijaintilupaa pyydetään. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sovellus on taustalla.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">iPhonen Safari ei pysty välittämään taustalla GPS-sijaintia, lukitusnäytön ohjeita tai ääniopastusta, kun välilehti on piilossa. Aitoa taustareititystä varten asenna natiivi iOS-sovellus.</string>
     <string name="home_recenter" formatted="false">Keskitä uudelleen</string>
+    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
+    <string name="home_rerouting" formatted="false">Rerouting…</string>
     <string name="home_resolvingLink" formatted="false">Selvitetään linkkiä…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Seurataan linkkiä määränpäähän. Tämä voi kestää muutaman sekunnin.</string>
     <string name="home_routeActiveOnDevice" formatted="false">Reitti aktiivinen laitteella</string>
@@ -83,9 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">Yritä tuonti uudelleen</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Jaa vianmäärityspaketti</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Navon-tuontidiagnostiikka</string>
+    <string name="maneuver_arrive" formatted="false">Arrive</string>
+    <string name="maneuver_continue" formatted="false">Continue</string>
     <string name="pairing_alignQr" formatted="false">Kohdista QR-koodi kuvan sisällä</string>
     <string name="pairing_cameraDenied" formatted="false">Kameran käyttöoikeus tarvitaan parinmuodostuskoodin skannaamiseen.</string>
     <string name="pairing_cancel" formatted="false">Peruuta</string>
+    <string name="pairing_connecting" formatted="false">Connecting…</string>
     <string name="pairing_failed" formatted="false">Parinmuodostus epäonnistui</string>
     <string name="pairing_intro" formatted="false">Pidä puhelinta niin, että laitteen näyttö on kuvassa, ja napauta sitten Aloita, kun näet QR-koodin.</string>
     <string name="pairing_openSettings" formatted="false">Avaa asetukset</string>

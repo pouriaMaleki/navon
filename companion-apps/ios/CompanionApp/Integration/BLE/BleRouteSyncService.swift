@@ -85,7 +85,7 @@ final class BleRouteSyncService: ObservableObject, RouteSyncTransport {
     /// from the QR — the returned `ConnectedPeripheralInfo.identifier` is
     /// captured at connect time and persisted by the caller for future
     /// fast-path reconnects. Throws on failure so the caller
-    /// (`AppModel.completePairing`) can surface a UI error without persisting
+    /// (`DeviceManager.completePairing`) can surface a UI error without persisting
     /// a half-state.
     func connectToAdvertisedPeripheral() async throws -> ConnectedPeripheralInfo {
         sessionState.connectionState = .connecting

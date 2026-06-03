@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// State-only descriptor of the "Paired device" section, derived from
-/// `AppModel.pairedPeripheral` + the live BLE connection state. Keeping the
+/// `DeviceManager.pairedPeripheral` + the live BLE connection state. Keeping the
 /// view's logic in this enum lets unit tests cover wiring without depending
 /// on `ViewInspector` or running SwiftUI on the simulator.
 enum DeviceSettingsSectionDescriptor: Equatable {
@@ -44,7 +44,7 @@ struct DeviceSettingsView: View {
         .alert(T.string("settings.device.forget.confirmTitle"), isPresented: $showForgetAlert) {
             Button(T.string("common.cancel.role"), role: .cancel) {}
             Button(T.string("common.forget"), role: .destructive) {
-                appModel.forgetPairedDevice()
+                appModel.deviceManager.forgetPairedDevice()
             }
         } message: {
             Text(T.string("settings.device.forget.confirmMessage"))
@@ -61,10 +61,10 @@ struct DeviceSettingsView: View {
 
     private var pairingSheetBinding: Binding<Bool> {
         Binding(
-            get: { appModel.pairingState != .idle },
+            get: { appModel.deviceManager.pairingState != .idle },
             set: { newValue in
                 if !newValue {
-                    appModel.pairingState = .idle
+                    appModel.deviceManager.pairingState = .idle
                 }
             }
         )
@@ -73,12 +73,12 @@ struct DeviceSettingsView: View {
     private var pairedDeviceSection: some View {
         Section(T.string("settings.device.pairedDevice.section")) {
             switch DeviceSettingsSectionDescriptor.from(
-                record: appModel.pairedPeripheral,
+                record: appModel.deviceManager.pairedPeripheral,
                 connectionState: appModel.bleService.sessionState.connectionState
             ) {
             case .callToAction(let title):
                 Button(title) {
-                    appModel.beginPairingFlow()
+                    appModel.deviceManager.beginPairingFlow()
                 }
             case .detail(let name, let lastPairedAt, let primary):
                 Text(name).font(.headline)
@@ -96,10 +96,6 @@ struct DeviceSettingsView: View {
                             await appModel.connectToDevice()
                             isConnecting = false
                         case .disconnect:
-                            // Soft-disconnect by clearing pending and noting it; the
-                            // explicit "disconnect" path is simply forget for this
-                            // single-bond model — kept as Connect/Disconnect so the
-                            // descriptor surface still has parity with Android.
                             await appModel.connectToDevice()
                         }
                     }
@@ -140,19 +136,22 @@ struct DeviceSettingsView: View {
 
     private var gpsSourceSection: some View {
         Section("GPS Source") {
-            Picker("GPS Source", selection: $appModel.gpsSource) {
-                Text("Internal (NEO-6M)").tag(AppModel.GpsSourceSelection.internal)
-                Text("Phone GPS").tag(AppModel.GpsSourceSelection.phone)
+            Picker("GPS Source", selection: Binding(
+                get: { appModel.deviceManager.gpsSource },
+                set: { appModel.deviceManager.gpsSource = $0 }
+            )) {
+                Text("Internal (NEO-6M)").tag(GpsSourceSelection.internal)
+                Text("Phone GPS").tag(GpsSourceSelection.phone)
             }
             .pickerStyle(.inline)
-            .onChange(of: appModel.gpsSource) { newValue in
-                appModel.handleGpsSourceChange(to: newValue)
+            .onChange(of: appModel.deviceManager.gpsSource) { newValue in
+                appModel.deviceManager.handleGpsSourceChange(to: newValue)
             }
-            if appModel.gpsSource == .phone {
+            if appModel.deviceManager.gpsSource == .phone {
                 HStack {
                     Text("Status")
                     Spacer()
-                    if appModel.isPhoneGpsForwarding {
+                    if appModel.deviceManager.isPhoneGpsForwarding {
                         Label("Active", systemImage: "location.fill")
                             .foregroundColor(.green)
                     } else {
@@ -176,7 +175,7 @@ struct DeviceSettingsView: View {
                 Task { await appModel.resumePendingTransfer() }
             }
             Button(T.string("settings.device.transfer.clearActive"), role: .destructive) {
-                Task { await appModel.clearActiveRoute() }
+                Task { await appModel.routeSyncService.clearActiveRoute() }
             }
         }
     }

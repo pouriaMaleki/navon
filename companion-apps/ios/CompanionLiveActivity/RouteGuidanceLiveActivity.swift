@@ -129,12 +129,7 @@ private struct StatusBadge: View {
     }
 }
 
-// MARK: - Local formatters
-//
-// The widget extension can't pull in the app's i18n machinery without
-// bloating the binary, so the small amount of formatting it needs lives
-// here as plain functions. Mirror what the spec'd cue catalog does:
-// metric → "120 m" / "3.4 km", imperial → "400 ft" / "2.1 mi".
+// The widget extension can't import the app's i18n machinery, so formatting lives here.
 
 private func distanceLabel(_ meters: Double, isImperial: Bool) -> String {
     if isImperial {

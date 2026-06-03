@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 struct RoutesSettingsView: View {
     @EnvironmentObject private var appModel: AppModel
+    @EnvironmentObject private var routeHistoryService: RouteHistoryService
     @State private var showingImporter = false
 
     var body: some View {
@@ -14,11 +15,11 @@ struct RoutesSettingsView: View {
             }
 
             Section(T.string("settings.routes.recent.section")) {
-                if appModel.routeHistoryItems.isEmpty {
+                if routeHistoryService.routeHistoryItems.isEmpty {
                     Text(T.string("settings.routes.recent.empty"))
                         .foregroundStyle(.secondary)
                 } else {
-                    ForEach(appModel.routeHistoryItems) { item in
+                    ForEach(routeHistoryService.routeHistoryItems) { item in
                         HStack(spacing: 12) {
                             Button {
                                 appModel.activateRouteHistoryItem(item, startImmediately: false)
@@ -53,12 +54,12 @@ struct RoutesSettingsView: View {
         }
         .navigationTitle(T.string("settings.routes.title"))
         .navigationDestination(for: String.self) { itemID in
-            if let item = appModel.routeHistoryItems.first(where: { $0.id == itemID }) {
+            if let item = routeHistoryService.routeHistoryItems.first(where: { $0.id == itemID }) {
                 RouteDetailView(
                     item: item,
                     onOpen: { appModel.activateRouteHistoryItem(item, startImmediately: false) },
                     onStart: { appModel.activateRouteHistoryItem(item, startImmediately: true) },
-                    onDismiss: { appModel.dismissRouteHistoryItem(id: item.id) }
+                    onDismiss: { routeHistoryService.dismissRouteHistoryItem(id: item.id) }
                 )
             }
         }
@@ -70,7 +71,7 @@ struct RoutesSettingsView: View {
             guard case let .success(urls) = result, let url = urls.first else { return }
             Task {
                 await appModel.importGpxFile(from: url)
-                appModel.recordPlannedPreview(source: .gpxImport, sourceLabel: "GPX")
+                routeHistoryService.recordPlannedPreview(source: .gpxImport, sourceLabel: "GPX")
                 appModel.homePreviewRequestID = UUID()
             }
         }

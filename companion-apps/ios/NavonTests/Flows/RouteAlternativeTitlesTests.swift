@@ -34,32 +34,32 @@ final class RouteAlternativeTitlesTests: XCTestCase {
     }
 
     func test_brouterFastbike_titleIsBRouterFastbike_withoutSubtitle() {
-        let renamed = AppModel.friendlyAlternativeLabel(for: alternative(provider: .osm, sourceReference: "BRouter fastbike"))
+        let renamed = RoutePlanningEngine.friendlyAlternativeLabel(for: alternative(provider: .osm, sourceReference: "BRouter fastbike"))
         XCTAssertEqual(renamed.title, "BRouter fastbike")
         XCTAssertEqual(renamed.subtitle, "")
     }
 
     func test_brouterTrekking_titleIsBRouterTrekking() {
-        let renamed = AppModel.friendlyAlternativeLabel(for: alternative(provider: .osm, sourceReference: "BRouter trekking"))
+        let renamed = RoutePlanningEngine.friendlyAlternativeLabel(for: alternative(provider: .osm, sourceReference: "BRouter trekking"))
         XCTAssertEqual(renamed.title, "BRouter trekking")
         XCTAssertEqual(renamed.subtitle, "")
     }
 
     func test_osrmBike_titleIsOsmRoute() {
-        let renamed = AppModel.friendlyAlternativeLabel(for: alternative(provider: .osm, sourceReference: "OSRM bike"))
+        let renamed = RoutePlanningEngine.friendlyAlternativeLabel(for: alternative(provider: .osm, sourceReference: "OSRM bike"))
         XCTAssertEqual(renamed.title, "OSM Route")
         XCTAssertEqual(renamed.subtitle, "")
     }
 
     func test_hslFastest_titleIsHslFastest_withoutSubtitle() {
-        let renamed = AppModel.friendlyAlternativeLabel(for: alternative(provider: .hsl, sourceReference: "HSL Digitransit live / fastest"))
+        let renamed = RoutePlanningEngine.friendlyAlternativeLabel(for: alternative(provider: .hsl, sourceReference: "HSL Digitransit live / fastest"))
         XCTAssertEqual(renamed.title, "HSL Fastest")
         XCTAssertEqual(renamed.subtitle, "",
                        "Spec: HSL Fastest must NOT carry the redundant 'HSL Digitransit live / fastest' subtitle")
     }
 
     func test_hslAlternative_titleIsHslRoute() {
-        let renamed = AppModel.friendlyAlternativeLabel(for: alternative(provider: .hsl, sourceReference: "HSL Digitransit live / alternative"))
+        let renamed = RoutePlanningEngine.friendlyAlternativeLabel(for: alternative(provider: .hsl, sourceReference: "HSL Digitransit live / alternative"))
         XCTAssertEqual(renamed.title, "HSL Route")
     }
 }

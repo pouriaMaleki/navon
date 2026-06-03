@@ -46,6 +46,9 @@
     <string name="cue_turn50m_slightRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, उजवीकडे वळा</string>
     <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, U-turn करा</string>
     <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {मीटर} feet {फूट} other {मीटर}}, {first, select, left {डावीकडे वळा} right {उजवीकडे वळा} exitLeft {डाव्या एक्झिटमधून जा} exitRight {उजव्या एक्झिटमधून जा} uturn {U-turn करा} roundabout {राउंडअबाउटमध्ये प्रवेश करा} merge {विलीन व्हा} ramp {रॅम्प घ्या} other {मार्गाचे अनुसरण करा}} मग पटकन {second, select, left {डावीकडे} right {उजवीकडे} exitLeft {डावा एक्झिट} exitRight {उजवा एक्झिट} uturn {U-turn} roundabout {राउंडअबाउट} merge {विलीन} ramp {रॅम्प} other {पुढे}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
+    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
+    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} ते {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">गंतव्य साफ करा</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">आगमन संदेश बंद करा</string>
@@ -56,14 +59,22 @@
     <string name="home_a11y_recenterMap" formatted="false">नकाशा पुन्हा मध्यभागी आणा</string>
     <string name="home_a11y_settings" formatted="false">सेटिंग्ज</string>
     <string name="home_continueOnCurrentRoute" formatted="false">सध्याच्या मार्गावर पुढे जा</string>
+    <string name="home_distanceKm" formatted="false">{km, number} km</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
     <string name="home_importedRoute" formatted="false">आयात केलेला मार्ग</string>
     <string name="home_iosLocationHint" formatted="false">iOS सेटिंग्ज उघडा → गोपनीयता → स्थान, आणि हा अॅप “Always” (नेहमी) वर स्विच करा.</string>
     <string name="home_linkFailed" formatted="false">हा दुवा उघडता आला नाही</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
     <string name="home_noSuggestions" formatted="false">अजून सूचना नाहीत…</string>
+    <string name="home_offRoute" formatted="false">Off route</string>
     <string name="home_openSettings" formatted="false">सेटिंग्ज</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
     <string name="home_platformHint_locationDefault" formatted="false">तुमच्याकडून स्थानासाठी परवानगी मागितली जाईल. मार्गदर्शन तुमचे स्थान ॲप पार्श्वभूमीत असतानाही ट्रॅक करत राहण्यासाठी ते परवानगी द्या.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">iPhone वरील Safari पार्श्वभूमीतील GPS देऊ शकत नाही, लॉक-स्क्रीन मार्गदर्शन किंवा ऑडिओ संकेत देऊ शकत नाही, जेव्हा टॅब लपलेला असतो. खऱ्या पार्श्वभूमी रूटिंगसाठी, मूळ iOS अॅप इन्स्टॉल करा.</string>
     <string name="home_recenter" formatted="false">पुन्हा मध्यावर आणा</string>
+    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
+    <string name="home_rerouting" formatted="false">Rerouting…</string>
     <string name="home_resolvingLink" formatted="false">दुवा शोधत आहे…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">गंतव्याकडे दुवा अनुसरत आहे. यास काही सेकंद लागू शकतात.</string>
     <string name="home_routeActiveOnDevice" formatted="false">डिव्हाइसवर मार्ग सक्रिय</string>
@@ -83,9 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">पुन्हा आयात करा</string>
     <string name="importDiagnostics_sharePackage" formatted="false">डिबग पॅकेज शेअर करा</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Navon आयात निदान</string>
+    <string name="maneuver_arrive" formatted="false">Arrive</string>
+    <string name="maneuver_continue" formatted="false">Continue</string>
     <string name="pairing_alignQr" formatted="false">फ्रेममध्ये QR कोड सरळ करा</string>
     <string name="pairing_cameraDenied" formatted="false">जोडणी कोड स्कॅन करण्यासाठी कॅमेरा प्रवेश आवश्यक आहे.</string>
     <string name="pairing_cancel" formatted="false">रद्द करा</string>
+    <string name="pairing_connecting" formatted="false">Connecting…</string>
     <string name="pairing_failed" formatted="false">जोडणी अयशस्वी</string>
     <string name="pairing_intro" formatted="false">फोन डिव्हाइसच्या स्क्रीनचा भाग फ्रेममध्ये येईल अशा प्रकारे धरा, आणि QR कोड दिसल्यावर Start वर टॅप करा.</string>
     <string name="pairing_openSettings" formatted="false">सेटिंग्ज उघडा</string>

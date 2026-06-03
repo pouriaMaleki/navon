@@ -19,21 +19,21 @@ final class HomeViewModelWhereToTests: XCTestCase {
                 coordinate: CoordinatePoint(latitude: 60.17, longitude: 24.95)
             )
         ]
-        vm.updateQuery("cathedral")
+        vm.searchController.updateQuery("cathedral")
         // Let the async search task land.
         try? await Task.sleep(nanoseconds: 50_000_000)
-        XCTAssertFalse(vm.suggestions.isEmpty)
-        vm.updateQuery("")
-        XCTAssertTrue(vm.suggestions.isEmpty)
+        XCTAssertFalse(vm.searchController.suggestions.isEmpty)
+        vm.searchController.updateQuery("")
+        XCTAssertTrue(vm.searchController.suggestions.isEmpty)
     }
 
     func test_updateQuery_urlInputTriggersUrlResolve() {
         let app = AppModel()
         let search = FakePlaceSearch()
         let vm = HomeViewModel(appModel: app, placeSearchService: search)
-        vm.updateQuery("https://www.google.com/maps/@60.16,24.95,15z")
+        vm.searchController.updateQuery("https://www.google.com/maps/@60.16,24.95,15z")
         // isResolvingUrl flips synchronously inside updateQuery.
-        XCTAssertTrue(vm.isResolvingUrl, "url paste must flip isResolvingUrl before resolve completes")
+        XCTAssertTrue(vm.searchController.isResolvingUrl, "url paste must flip isResolvingUrl before resolve completes")
     }
 
     func test_manualKeyboardDeleteClearsSuggestions() async {
@@ -48,25 +48,25 @@ final class HomeViewModelWhereToTests: XCTestCase {
                 coordinate: CoordinatePoint(latitude: 60.17, longitude: 24.95)
             )
         ]
-        vm.updateQuery("station")
+        vm.searchController.updateQuery("station")
         try? await Task.sleep(nanoseconds: 50_000_000)
-        XCTAssertFalse(vm.suggestions.isEmpty)
+        XCTAssertFalse(vm.searchController.suggestions.isEmpty)
         // Simulate user backspacing each character.
         for prefix in ["statio", "stati", "stat", "sta", "st", "s", ""] {
-            vm.updateQuery(prefix)
+            vm.searchController.updateQuery(prefix)
         }
-        XCTAssertTrue(vm.suggestions.isEmpty)
+        XCTAssertTrue(vm.searchController.suggestions.isEmpty)
     }
 
     func test_closeSearch_cancelsInFlightUrlResolve() {
         let app = AppModel()
         let search = FakePlaceSearch()
         let vm = HomeViewModel(appModel: app, placeSearchService: search)
-        vm.updateQuery("https://www.google.com/maps/@60.16,24.95,15z")
-        XCTAssertTrue(vm.isResolvingUrl)
-        vm.closeSearch()
-        XCTAssertFalse(vm.isResolvingUrl)
-        XCTAssertNil(vm.urlResolveError)
+        vm.searchController.updateQuery("https://www.google.com/maps/@60.16,24.95,15z")
+        XCTAssertTrue(vm.searchController.isResolvingUrl)
+        vm.searchController.closeSearch()
+        XCTAssertFalse(vm.searchController.isResolvingUrl)
+        XCTAssertNil(vm.searchController.urlResolveError)
     }
 
     func test_loadMoreRecentsIfNeeded_isNoOpForNonLastItem() {
@@ -75,7 +75,7 @@ final class HomeViewModelWhereToTests: XCTestCase {
         // item must not grow the count.
         let app = AppModel()
         let vm = HomeViewModel(appModel: app)
-        let before = vm.visibleRecentCount
+        let before = vm.searchController.visibleRecentCount
         let notLast = RouteHistoryItem(
             id: "not-the-last-id",
             title: "Test",
@@ -87,9 +87,9 @@ final class HomeViewModelWhereToTests: XCTestCase {
             routePackage: nil,
             occurrenceCount: nil
         )
-        vm.loadMoreRecentsIfNeeded(for: notLast)
+        vm.searchController.loadMoreRecentsIfNeeded(for: notLast)
         XCTAssertEqual(
-            vm.visibleRecentCount,
+            vm.searchController.visibleRecentCount,
             before,
             "load-more must be gated on the last visible item"
         )
@@ -100,7 +100,7 @@ final class HomeViewModelWhereToTests: XCTestCase {
         let app = AppModel()
         let vm = HomeViewModel(appModel: app)
         XCTAssertLessThan(
-            vm.visibleRecentCount,
+            vm.searchController.visibleRecentCount,
             30,
             "initial recents slice must be bounded so large histories don't render everything up-front"
         )
@@ -121,11 +121,11 @@ final class HomeViewModelWhereToTests: XCTestCase {
                 coordinate: CoordinatePoint(latitude: 60.17, longitude: 24.95)
             )
         ]
-        vm.openSearch()
-        XCTAssertTrue(vm.isSearchOpen)
+        vm.searchController.openSearch()
+        XCTAssertTrue(vm.searchController.isSearchOpen)
         vm.selectSuggestion(search.searchResults[0])
         XCTAssertFalse(
-            vm.isSearchOpen,
+            vm.searchController.isSearchOpen,
             "selectSuggestion must close the dropdown synchronously"
         )
     }
@@ -146,14 +146,45 @@ final class HomeViewModelWhereToTests: XCTestCase {
                 coordinate: CoordinatePoint(latitude: 60.184, longitude: 24.952)
             )
         ]
-        vm.openSearch()
+        vm.searchController.openSearch()
         vm.selectSuggestion(search.searchResults[0])
-        XCTAssertFalse(vm.isSearchOpen)
+        XCTAssertFalse(vm.searchController.isSearchOpen)
         // Simulate the SwiftUI re-focus replay.
-        vm.openSearch()
+        vm.searchController.openSearch()
         XCTAssertFalse(
-            vm.isSearchOpen,
+            vm.searchController.isSearchOpen,
             "openSearch within the post-selection latch window must be a no-op (anti-re-focus)"
+        )
+    }
+
+    func test_openSearch_isLatchedAfterSelectingRecent() {
+        // Same latch contract for the recents path. The earlier-discovered
+        // bug was that `selectRecent` did NOT arm the latch (only
+        // `selectSuggestion` did), so tapping a recent could re-open the
+        // dropdown via the SwiftUI binding echo and immediately kick off
+        // a fresh search for the address the user just picked.
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        let recent = RouteHistoryItem(
+            id: "recent-test",
+            title: "Kolmas Linja 19",
+            subtitle: "Saved",
+            source: .recentDestination,
+            sourceLabel: "Recent",
+            createdAt: Date(),
+            destination: CoordinatePoint(latitude: 60.184, longitude: 24.952),
+            routePackage: nil,
+            occurrenceCount: nil
+        )
+        vm.searchController.openSearch()
+        vm.searchController.selectRecent(recent)
+        vm.searchController.closeSearch()
+        XCTAssertFalse(vm.searchController.isSearchOpen)
+        // Re-focus replay within the latch window.
+        vm.searchController.openSearch()
+        XCTAssertFalse(
+            vm.searchController.isSearchOpen,
+            "selectRecent must arm the same post-selection latch as selectSuggestion"
         )
     }
 }

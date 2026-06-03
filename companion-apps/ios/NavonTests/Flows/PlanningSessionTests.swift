@@ -67,7 +67,7 @@ final class PlanningSessionTests: XCTestCase {
         )
         await vm.startSelectedRoute()
         XCTAssertEqual(vm.homeMode, .phoneGuidance)
-        XCTAssertEqual(app.activeSession.routeIdentifier, "osm-straight")
+        XCTAssertEqual(app.sessionManager.session.routeIdentifier, "osm-straight")
     }
 
     func test_stopGuidance_returnsToPlanning() async {

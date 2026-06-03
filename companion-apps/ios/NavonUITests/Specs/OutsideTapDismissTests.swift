@@ -13,12 +13,13 @@ final class OutsideTapDismissTests: XCTestCase {
         XCTAssertTrue(whereTo.waitForExistence(timeout: 5))
         whereTo.tap()
         whereTo.typeText("hel")
-        let panel = app.otherElements["searchPanel"]
+        let panel = app.scrollViews["searchPanel"]
         XCTAssertTrue(panel.waitForExistence(timeout: 5))
 
-        // Tap somewhere on the map surface, well below the input.
+        // Tap the map surface in the strip below the search panel and above
+        // the keyboard. dy=0.85 falls inside the on-screen keyboard region.
         let mapTap = app.windows.firstMatch.coordinate(
-            withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85)
+            withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55)
         )
         mapTap.tap()
 

@@ -75,13 +75,13 @@ final class PairingFlowViewModelTests: XCTestCase {
             let session = FakeQrCaptureSession()
             let permission = FakeCameraPermissionProvider()
             let appModel = makeAppModel()
-            appModel.pairingState = .scanning
+            appModel.deviceManager.pairingState = .scanning
             let vm = PairingFlowViewModel(session: session, permission: permission, appModel: appModel)
             vm.pairingState = step
 
             vm.cancel()
 
-            XCTAssertEqual(appModel.pairingState, .idle, "Cancel from \(step) should reset AppModel.pairingState")
+            XCTAssertEqual(appModel.deviceManager.pairingState, .idle, "Cancel from \(step) should reset AppModel.pairingState")
             XCTAssertEqual(session.tearDownCallCount, 1, "Cancel from \(step) should tear down the session exactly once")
         }
     }

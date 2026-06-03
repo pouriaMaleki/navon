@@ -36,21 +36,21 @@ final class HomeViewModelQueryInitTests: XCTestCase {
 
     func test_syncQuery_skipsSelectedDestinationPlaceholder() {
         let vm = makeViewModel(sessionDestinationLabel: "Selected destination")
-        vm.syncQueryFromCurrentPreview()
-        XCTAssertEqual(vm.query, "", "Generic 'Selected destination' placeholder must not prefill the search field")
+        vm.searchController.syncQueryFromCurrentPreview()
+        XCTAssertEqual(vm.searchController.query, "", "Generic 'Selected destination' placeholder must not prefill the search field")
     }
 
     func test_syncQuery_skipsAllGenericPlaceholders() {
         for placeholder in ["No destination", "Selected destination", "Recent destination", "Dropped pin", "Route", ""] {
             let vm = makeViewModel(sessionDestinationLabel: placeholder)
-            vm.syncQueryFromCurrentPreview()
-            XCTAssertEqual(vm.query, "", "Placeholder '\(placeholder)' should not prefill the search field")
+            vm.searchController.syncQueryFromCurrentPreview()
+            XCTAssertEqual(vm.searchController.query, "", "Placeholder '\(placeholder)' should not prefill the search field")
         }
     }
 
     func test_syncQuery_preservesRealDestinationLabel() {
         let vm = makeViewModel(sessionDestinationLabel: "Helsinki Central Station")
-        vm.syncQueryFromCurrentPreview()
-        XCTAssertEqual(vm.query, "Helsinki Central Station")
+        vm.searchController.syncQueryFromCurrentPreview()
+        XCTAssertEqual(vm.searchController.query, "Helsinki Central Station")
     }
 }

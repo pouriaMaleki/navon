@@ -203,13 +203,7 @@ final class CompanionPersistence: RouteSessionStore {
     }
 
     private func areNearby(_ lhs: CoordinatePoint, _ rhs: CoordinatePoint) -> Bool {
-        approximateDistanceMeters(from: lhs, to: rhs) <= nearbyDestinationMergeThresholdMeters
-    }
-
-    private func approximateDistanceMeters(from start: CoordinatePoint, to end: CoordinatePoint) -> Double {
-        let latMeters = (end.latitude - start.latitude) * 111_320.0
-        let lonMeters = (end.longitude - start.longitude) * cos(((start.latitude + end.latitude) / 2.0) * .pi / 180.0) * 111_320.0
-        return sqrt(latMeters * latMeters + lonMeters * lonMeters)
+        PolylineGeo.straightLineMeters(lhs, rhs) <= nearbyDestinationMergeThresholdMeters
     }
 
     private func load<T: Decodable>(_ type: T.Type, forKey key: String) -> T? {

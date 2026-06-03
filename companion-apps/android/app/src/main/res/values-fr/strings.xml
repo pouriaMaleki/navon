@@ -46,6 +46,9 @@
     <string name="cue_turn50m_slightRight" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, tournez à droite</string>
     <string name="cue_turn50m_uturn" formatted="false">Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, faites un demi-tour</string>
     <string name="cue_turn50mCombined" formatted="false">À {distance, number} {distanceUnit, select, meters {mètres} feet {pieds} other {mètres}}, {first, select, left {tournez à gauche} right {tournez à droite} exitLeft {prenez la sortie à gauche} exitRight {prenez la sortie à droite} uturn {faites un demi-tour} roundabout {entrez dans le rond-point} merge {fusionnez} ramp {prenez la bretelle} other {suivez l’itinéraire}} puis rapidement {second, select, left {à gauche} right {à droite} exitLeft {sortie à gauche} exitRight {sortie à droite} uturn {demi-tour} roundabout {rond-point} merge {fusion} ramp {bretelle} other {tout droit}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
+    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
+    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} jusqu’à {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Effacer la destination</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">Fermer le message d’arrivée</string>
@@ -56,14 +59,22 @@
     <string name="home_a11y_recenterMap" formatted="false">Recentrer la carte</string>
     <string name="home_a11y_settings" formatted="false">Paramètres</string>
     <string name="home_continueOnCurrentRoute" formatted="false">Continuer sur l’itinéraire actuel</string>
+    <string name="home_distanceKm" formatted="false">{km, number} km</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
     <string name="home_importedRoute" formatted="false">Itinéraire importé</string>
     <string name="home_iosLocationHint" formatted="false">Ouvrez les Réglages iOS → Confidentialité → Localisation pour passer cette application en « Toujours ». </string>
     <string name="home_linkFailed" formatted="false">Impossible d’ouvrir ce lien</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
     <string name="home_noSuggestions" formatted="false">Aucune suggestion pour l’instant…</string>
+    <string name="home_offRoute" formatted="false">Off route</string>
     <string name="home_openSettings" formatted="false">Paramètres</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
     <string name="home_platformHint_locationDefault" formatted="false">Une autorisation de localisation vous sera demandée. Acceptez-la pour que l’orientation continue de suivre votre position lorsque l’application est en arrière-plan.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">Safari sur iPhone ne peut pas fournir de GPS en arrière-plan, ni d’instructions sur l’écran de verrouillage, ni d’alertes audio lorsque l’onglet est masqué. Pour un guidage en arrière-plan réel, installez l’application iOS native.</string>
     <string name="home_recenter" formatted="false">Recentrer</string>
+    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
+    <string name="home_rerouting" formatted="false">Rerouting…</string>
     <string name="home_resolvingLink" formatted="false">Ouverture du lien…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Suivi de l’URL vers une destination. Cela peut prendre quelques secondes.</string>
     <string name="home_routeActiveOnDevice" formatted="false">Itinéraire actif sur l’appareil</string>
@@ -83,9 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">Réessayer l’import</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Partager le package de débogage</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Diagnostics d’importation Navon</string>
+    <string name="maneuver_arrive" formatted="false">Arrive</string>
+    <string name="maneuver_continue" formatted="false">Continue</string>
     <string name="pairing_alignQr" formatted="false">Alignez le code QR dans le cadre</string>
     <string name="pairing_cameraDenied" formatted="false">L’accès à la caméra est nécessaire pour scanner le code d’appairage.</string>
     <string name="pairing_cancel" formatted="false">Annuler</string>
+    <string name="pairing_connecting" formatted="false">Connecting…</string>
     <string name="pairing_failed" formatted="false">Échec de l’appairage</string>
     <string name="pairing_intro" formatted="false">Tenez votre téléphone pour que l’écran de l’appareil soit dans le cadre, puis appuyez sur Démarrer lorsque vous voyez le code QR.</string>
     <string name="pairing_openSettings" formatted="false">Ouvrir les Réglages</string>

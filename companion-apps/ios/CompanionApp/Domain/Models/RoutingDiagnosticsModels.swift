@@ -1,7 +1,5 @@
 import Foundation
 
-// MARK: - Event types
-
 enum RoutingDiagEventData: Codable, Equatable {
     case locationUpdate(lat: Double, lon: Double, heading: Double?, speed: Double?, accuracyM: Double?)
     case destinationChanged(label: String, lat: Double, lon: Double)
@@ -16,8 +14,6 @@ enum RoutingDiagEventData: Codable, Equatable {
     case offRouteDetected(distanceM: Double)
     case rerouteRequested
     case rerouteCompleted(result: String)
-
-    // MARK: Codable
 
     private enum CodingKeys: String, CodingKey {
         case kind, lat, lon, heading, speed, accuracyM
@@ -159,23 +155,17 @@ struct RouteAltInfo: Codable, Equatable {
     let label: String
 }
 
-// MARK: - Route Geometry Entry
-
 struct RouteGeometryEntry: Codable, Equatable {
     let routeId: String
     let providerName: String
     let geometry: [CoordinatePoint]
 }
 
-// MARK: - Event
-
 struct RoutingDiagEvent: Identifiable, Codable, Equatable {
     let id: String
     let timestampMs: UInt64
     let data: RoutingDiagEventData
 }
-
-// MARK: - Session
 
 struct RoutingDiagSession: Identifiable, Codable, Equatable {
     let id: String
@@ -209,8 +199,6 @@ struct RoutingDiagSession: Identifiable, Codable, Equatable {
     }
 }
 
-// MARK: - Debug Package
-
 struct RoutingDiagDebugPackage: Codable {
     let formatVersion: Int
     let sessionId: String
@@ -219,8 +207,6 @@ struct RoutingDiagDebugPackage: Codable {
     let events: [RoutingDiagEvent]
     let routeGeometries: [RouteGeometryEntry]?
 }
-
-// MARK: - Constants
 
 let ROUTING_DIAGNOSTICS_SESSION_LIMIT = 20
 let LOCATION_EVENT_THROTTLE_MS: UInt64 = 5000

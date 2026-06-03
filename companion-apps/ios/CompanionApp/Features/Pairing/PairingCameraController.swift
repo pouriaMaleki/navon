@@ -2,10 +2,7 @@ import AVFoundation
 import SwiftUI
 import UIKit
 
-/// AVFoundation-backed `QrCaptureSession`. Wraps a single-input
-/// `AVCaptureSession` whose `.qr` metadata feeds the `onScan` callback.
-/// Production code path; `FakeQrCaptureSession` covers the same protocol in
-/// unit tests.
+/// AVFoundation QR capture session. Feeds scanned codes to `onScan`.
 @MainActor
 final class AVFoundationQrCaptureSession: NSObject, ObservableObject, QrCaptureSession, AVCaptureMetadataOutputObjectsDelegate {
     var onScan: ((String) -> Void)?

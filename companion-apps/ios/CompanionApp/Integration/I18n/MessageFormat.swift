@@ -151,10 +151,19 @@ enum MessageFormat {
         }
     }
 
+    private static var numberFormatters: [String: NumberFormatter] = [:]
+
     private static func formatNumber(_ n: Double, locale: Locale) -> String {
-        let nf = NumberFormatter()
-        nf.locale = locale
-        nf.minimumFractionDigits = 0
+        let key = locale.identifier
+        let nf: NumberFormatter
+        if let cached = numberFormatters[key] {
+            nf = cached
+        } else {
+            nf = NumberFormatter()
+            nf.locale = locale
+            nf.minimumFractionDigits = 0
+            numberFormatters[key] = nf
+        }
         nf.maximumFractionDigits = (n.truncatingRemainder(dividingBy: 1) == 0) ? 0 : 3
         return nf.string(from: NSNumber(value: n)) ?? String(n)
     }

@@ -21,11 +21,11 @@ final class DeviceSettingsForgetTests: XCTestCase {
         let persistence = CompanionPersistence(defaults: defaults)
         persistence.savePairedPeripheral(sampleRecord())
         let appModel = AppModel(persistence: persistence)
-        XCTAssertNotNil(appModel.pairedPeripheral)
+        XCTAssertNotNil(appModel.deviceManager.pairedPeripheral)
 
-        appModel.forgetPairedDevice()
+        appModel.deviceManager.forgetPairedDevice()
 
-        XCTAssertNil(appModel.pairedPeripheral)
+        XCTAssertNil(appModel.deviceManager.pairedPeripheral)
         XCTAssertNil(CompanionPersistence(defaults: defaults).loadPairedPeripheral())
     }
 

@@ -55,7 +55,7 @@ final class RoutingTopOverlayLayoutTests: XCTestCase {
         // mode side rail, then to the persistent `topRightIconStack` /
         // `bottomRightIconStack` so the layout doesn't reflow between
         // modes. The contract here is just: the routing top card's
-        // `sideRail` is empty — every icon lives in the right-side rails.
+        // Icons live in the right-side rails, not in the routing top card.
         let app = AppModel(
             persistence: CompanionPersistence(
                 defaults: UserDefaults(suiteName: "routing-top-overlay-tests-\(UUID().uuidString)")!
@@ -73,8 +73,8 @@ final class RoutingTopOverlayLayoutTests: XCTestCase {
         await vm.startSelectedRoute()
         let layout = vm.routingTopLayout
         XCTAssertNotNil(layout, "phoneGuidance must produce a routing top layout")
-        XCTAssertEqual(layout?.sideRail, [],
-                       "The routing top card must hold only text; icons live in topRightIconStack / bottomRightIconStack — got \(String(describing: layout?.sideRail))")
+        XCTAssertNotNil(layout?.headline, "The routing top card must hold text content")
+        XCTAssertFalse(layout?.subtitle.isEmpty ?? true, "Subtitle must be populated")
     }
 
     func test_routingTopLayout_topCardCarriesHeadlineAndSubtitle_withoutTruncationByIcons() async {

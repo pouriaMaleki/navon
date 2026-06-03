@@ -2,13 +2,9 @@ import SwiftUI
 import MapKit
 
 struct CompanionHomeView: View {
-    private struct PlanningCameraReference {
-        let center: CLLocationCoordinate2D
-        let span: MKCoordinateSpan
-        let heading: CLLocationDirection
-    }
-
     @EnvironmentObject private var appModel: AppModel
+    @EnvironmentObject private var shareImportService: ShareImportService
+    @EnvironmentObject private var searchController: SearchController
     @ObservedObject var viewModel: HomeViewModel
     let onOpenSettings: () -> Void
 
@@ -19,28 +15,26 @@ struct CompanionHomeView: View {
         )
     )
     @State private var planningCameraReference: PlanningCameraReference?
-    @State private var planningCameraNeedsReset = false
-    /// Timestamp of the last programmatic `cameraPosition = ...` set. MapKit's
-    /// `onMapCameraChange(.continuous)` fires for both user gestures and our
-    /// own animations, so we use a short quiet-window to distinguish: camera
-    /// changes within `programmaticCameraQuietWindow` of a programmatic set
-    /// are assumed to be MapKit animating to our target, not a user gesture.
-    @State private var lastProgrammaticCameraSetAt: Date = .distantPast
+    /// Used to distinguish programmatic camera moves from user gestures —
+    /// changes within `programmaticCameraQuietWindow` of a set are treated as
+    /// MapKit animating to our target, not a user interaction.
+    ///
+    /// Stored on a class wrapper instead of `@State Date` so that writes from
+    /// the high-frequency camera-follow path don't invalidate the view body.
+    /// Body never reads this — only `.onMapCameraChange` does — so a write-
+    /// triggered `@State` invalidation would be pure waste.
+    @State private var cameraTimestamps = CameraTimestamps()
     private let programmaticCameraQuietWindow: TimeInterval = 0.6
     @FocusState private var isSearchFieldFocused: Bool
 
-    /// Camera distance (m) used for the riding-mode follow-rider camera.
-    /// Authoritative value lives on the viewModel so both `applyZoom` and
-    /// `orientCameraForTravel` read from the same source — that's what
-    /// keeps the rider's preferred zoom alive across compass cycles +
-    /// GPS-fix-driven camera refreshes.
-    private var ridingCameraDistanceM: Double { viewModel.ridingCameraDistanceM }
-
     var body: some View {
-        MapReader { proxy in
+        // Compute once per render so we don't pay 3× persistence + recompute
+        // (the value is read by the planning overlay and both side rails).
+        let isSearchPanelVisible = viewModel.shouldShowSearchPanel
+        return MapReader { proxy in
             mapSurface(proxy: proxy)
                 .overlay(alignment: .top) {
-                    topOverlay
+                    topOverlay(isSearchPanelVisible: isSearchPanelVisible)
                 }
                 .overlay(alignment: .bottom) {
                     bottomOverlay
@@ -49,10 +43,10 @@ struct CompanionHomeView: View {
                     speedBadge
                 }
                 .overlay(alignment: .topTrailing) {
-                    rightSideRailTop
+                    rightSideRailTop(isSearchPanelVisible: isSearchPanelVisible)
                 }
                 .overlay(alignment: .topLeading) {
-                    leftSideRailTop
+                    leftSideRailTop(isSearchPanelVisible: isSearchPanelVisible)
                 }
                 .ignoresSafeArea(edges: .bottom)
                 .onAppear { refreshCameraForCurrentMode() }
@@ -65,19 +59,13 @@ struct CompanionHomeView: View {
                     }
                 }
                 .onChange(of: viewModel.compassMode) { _, _ in refreshCameraForCurrentMode() }
-                .onChange(of: viewModel.isSearchOpen) { _, isOpen in
+                .onChange(of: searchController.isSearchOpen) { _, isOpen in
                     if !isOpen {
                         isSearchFieldFocused = false
                     }
                 }
                 .onMapCameraChange(frequency: .continuous) { context in
-                    updatePlanningCameraResetState(for: context.region, heading: context.camera.heading)
-                    // Spec line 104: user pans/pinches/rotates during routing
-                    // should schedule an auto-recenter. But `onMapCameraChange`
-                    // fires on BOTH user gestures and our own programmatic
-                    // animations, so treat anything inside the quiet-window
-                    // after a programmatic set as "not a user gesture".
-                    let sinceProgrammatic = Date().timeIntervalSince(lastProgrammaticCameraSetAt)
+                    let sinceProgrammatic = Date().timeIntervalSince(cameraTimestamps.lastProgrammaticCameraSetAt)
                     let isLikelyUser = sinceProgrammatic > programmaticCameraQuietWindow
                     if viewModel.homeMode == .phoneGuidance && isLikelyUser {
                         viewModel.noteUserMapInteraction()
@@ -87,29 +75,20 @@ struct CompanionHomeView: View {
                     refreshCameraForCurrentMode()
                 }
                 .onChange(of: viewModel.mapFollowRiderTick) { _, _ in
-                    // While the user is panning/zooming/rotating, suppress the
-                    // per-GPS-fix camera-follow so their manual framing isn't
-                    // overridden by every incoming location update.
+                    // Single camera-refresh signal per GPS fix. `mapFollowRiderTick`
+                    // bumps on every fix; `progressDistanceM` only updates when the
+                    // rider has advanced along the route, but it always co-fires
+                    // with this tick (see `.onChange(of: bestLocation)` below —
+                    // `ingestRiderLocationFix` updates progress, then
+                    // `notifyRiderLocationUpdated` bumps the tick). Watching this
+                    // tick alone covers both, and avoids two camera refreshes per
+                    // fix (= two `cameraPosition` @State writes = two body re-renders).
+                    // Suppress while the user is manually panning/zooming.
                     if !viewModel.isUserInteractingWithMap {
                         refreshCameraForCurrentMode()
                     }
                 }
-                .onChange(of: viewModel.progressDistanceM) { _, _ in
-                    // Spec line 102 + 101: when progress crosses a vertex,
-                    // the route-segment bearing flips and the camera must
-                    // re-orient. mapFollowRiderTick covers the GPS-fix
-                    // case but not the "bearing changed because we crossed
-                    // a corner" case during a single fix's processing.
-                    if !viewModel.isUserInteractingWithMap {
-                        refreshCameraForCurrentMode()
-                    }
-                }
-                .onChange(of: appModel.riderLocation) { _, newValue in
-                    // Spec lines 84 + 110 + 108-118: every GPS fix feeds
-                    // the heading-trail buffer (so the camera can rotate
-                    // to riding direction) AND bumps the follow tick
-                    // (which wakes refreshCameraForCurrentMode). The
-                    // viewmodel filters by mode + motion before acting.
+                .onChange(of: appModel.locationService.bestLocation) { _, newValue in
                     viewModel.ingestRiderLocationFix(newValue, timestampMs: Int64(Date().timeIntervalSince1970 * 1000))
                     viewModel.notifyRiderLocationUpdated()
                 }
@@ -139,8 +118,7 @@ struct CompanionHomeView: View {
                 }
             } else if let active = viewModel.guidanceRoute {
                 let exploreSelected = viewModel.selectedAlternativeIDForDisplay
-                // During exploration, dim the active route when the user has
-                // explicitly tapped an alternative (so the tapped one stands out).
+                // Dim the active route when the user taps an alternative during exploration.
                 let activeRouteColor: Color = (viewModel.isExploringAlternativesFromGuidance && exploreSelected != nil)
                     ? .teal.opacity(0.45)
                     : (viewModel.homeMode == .deviceOverview ? .blue : .green)
@@ -173,21 +151,20 @@ struct CompanionHomeView: View {
                 }
         )
         .simultaneousGesture(
-            // Tap on the map (outside the search overlay) collapses the dropdown
-            // and drops keyboard focus. Mirrors the web outside-click dismiss.
             TapGesture().onEnded {
-                guard viewModel.homeMode == .planning, viewModel.isSearchOpen else { return }
+                guard viewModel.homeMode == .planning, searchController.isSearchOpen else { return }
                 isSearchFieldFocused = false
-                viewModel.closeSearch()
+                searchController.closeSearch()
             }
         )
     }
 
-    private var topOverlay: some View {
+    @ViewBuilder
+    private func topOverlay(isSearchPanelVisible: Bool) -> some View {
         VStack(spacing: 10) {
             switch viewModel.homeMode {
             case .planning:
-                planningTopOverlay
+                planningTopOverlay(isSearchPanelVisible: isSearchPanelVisible)
             case .phoneGuidance:
                 phoneGuidanceTopOverlay
             case .sendingToDevice, .deviceOverview:
@@ -198,11 +175,6 @@ struct CompanionHomeView: View {
         .padding(.top, 8)
     }
 
-    /// Speed badge shown whenever the rider is moving (with or without an
-    /// active route) — the same "moving" signal the camera uses to enter
-    /// routing-anchor mode (`travelHeadingDegrees != nil`). Lives in the
-    /// bottom-leading corner so it sits next to the floating Stop button
-    /// during routing without overlapping it.
     @ViewBuilder
     private var speedBadge: some View {
         let moving = viewModel.travelHeadingDegrees != nil
@@ -224,36 +196,16 @@ struct CompanionHomeView: View {
         }
     }
 
-    /// On-map zoom +/- buttons. Spec line 10: "zoom + and - buttons under
-    /// the top bar on the right side of screen." Adjusts the camera by a
-    /// multiplicative factor each tap. In riding mode the new camera
-    /// distance is persisted (`settings.ridingCameraDistanceM`) so the
-    /// rider's preferred navigation zoom survives across sessions; in
-    /// planning/overview the camera updates for the moment but isn't
-    /// persisted (spec: "only keep it for moment").
-    /// Standard size + corner radius shared by every right-side rail
-    /// glyph so the column is pixel-perfect across modes.
     private static let railIconSize: CGFloat = 50
     private static let railIconCorner: CGFloat = 18
     private static let railIconSpacing: CGFloat = 8
 
-    /// Single Y offset used by BOTH rails in EVERY mode. Sized to clear
-    /// the tallest top card we ever render: the routing card with an
-    /// optional off-route pill + 3-line guidance text. Keeping both
-    /// rails on the same offset means rail icons never shift Y when
-    /// the rider goes from planning → routing → arrival.
-    ///
-    /// 130 leaves daylight for a 3-line routing card (~96pt with
-    /// paddings) without leaving an obvious empty band in planning mode.
+    /// Shared Y offset for both rails, sized to clear the tallest routing card (3-line + off-route pill).
     private static let railTopPadding: CGFloat = 130
 
-    /// Persistent right-side rail, sitting below the Settings cog (which
-    /// is rendered inside the where-to top bar). Items, top → bottom:
-    /// compass/north-up, device chip (only when paired). Driven by
-    /// `viewModel.topRightIconStack` so the unit tests pin the order.
     @ViewBuilder
-    private var rightSideRailTop: some View {
-        if viewModel.shouldShowSearchPanel {
+    private func rightSideRailTop(isSearchPanelVisible: Bool) -> some View {
+        if isSearchPanelVisible {
             EmptyView()
         } else {
             VStack(spacing: Self.railIconSpacing) {
@@ -266,14 +218,9 @@ struct CompanionHomeView: View {
         }
     }
 
-    /// Persistent left-side rail, sitting below the where-to search bar
-    /// in the same vertical band as the right rail. Items, top → bottom:
-    /// alternate-routes (only in routing), zoom-in, zoom-out. Lives on
-    /// the LEFT rather than the bottom-right because the suggested-routes
-    /// card sits along the bottom and previously occluded the column.
     @ViewBuilder
-    private var leftSideRailTop: some View {
-        if viewModel.shouldShowSearchPanel {
+    private func leftSideRailTop(isSearchPanelVisible: Bool) -> some View {
+        if isSearchPanelVisible {
             EmptyView()
         } else {
             VStack(spacing: Self.railIconSpacing) {
@@ -290,19 +237,13 @@ struct CompanionHomeView: View {
     private func topRailIcon(_ item: HomeViewModel.TopRightIcon) -> some View {
         switch item {
         case .settings:
-            // Only reached in non-planning modes (planning routes Settings
-            // to the where-to top bar). HomeViewModel.topRightIconStack
-            // hides this case when there is a where-to to attach to.
             Button(action: onOpenSettings) {
                 railGlyph("gearshape.fill")
             }
             .buttonStyle(.plain)
             .accessibilityLabel(T.string("home.a11y.settings"))
         case .compass:
-            // Single combined glyph: tap = recenter / show north-up,
-            // double-tap (quick) = lock north-up. Replaces the previous
-            // separate "Recenter map" planning button + "North indicator"
-            // routing button.
+            // Tap = recenter, double-tap = lock north-up.
             railGlyph(viewModel.compassSymbolName)
                 .onTapGesture(count: 2) { viewModel.handleCompassDoubleTap() }
                 .onTapGesture { viewModel.handleCompassTap() }
@@ -343,11 +284,6 @@ struct CompanionHomeView: View {
     }
 
     private func zoomButton(symbol: String, label: String, action: @escaping () -> Void) -> some View {
-        // Match `planningMapAccessoryControls` (the north-up / recenter
-        // button) and the top-right settings cog: 50×50 frame, corner
-        // 18, ultraThinMaterial, primary foreground. The earlier 44/14
-        // values made the +/- column visually inconsistent with the
-        // existing top-right glyphs.
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 18, weight: .semibold))
@@ -364,41 +300,30 @@ struct CompanionHomeView: View {
     private func applyZoom(direction: ZoomDirection) {
         switch viewModel.homeMode {
         case .phoneGuidance:
-            // Riding mode: persist the new distance through the viewModel
-            // (so the autoFollow camera in `orientCameraForTravel` reads the
-            // same value next time GPS bumps the follow tick) AND apply it
-            // directly here so there's no perceptible "no-op" window
-            // between the tap and the next refresh.
             viewModel.bumpRidingZoom(direction: direction == .zoomIn ? .zoomIn : .zoomOut)
             let next = viewModel.ridingCameraDistanceM
             if let route = viewModel.guidanceRoute {
-                let rider = appModel.riderLocation
+                let rider = appModel.locationService.bestLocation
                 let heading = viewModel.cameraHeadingDegrees(rider: rider)
                     ?? bearingDegrees(from: route.geometry.first ?? rider,
                                       to: route.geometry.dropFirst().first ?? rider)
-                // Pass the new camera distance so the anchor offset scales
-                // proportionally — without this, deep zoom-in (small distance)
-                // pushes the rider off the bottom of the visible map.
-                let centerPoint = viewModel.cameraCenterCoordinate(rider: rider, headingDegrees: heading, cameraDistanceM: next)
+                // Anchor offset must scale with camera distance to keep rider in the bottom quarter.
+                let centerPoint = CameraMath.cameraCenterCoordinate(rider: rider, headingDegrees: heading, cameraDistanceM: next)
                 let center = CLLocationCoordinate2D(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
                 withAnimation(.easeInOut(duration: 0.25)) {
                     cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: next, heading: heading, pitch: 0))
                 }
-                lastProgrammaticCameraSetAt = Date()
+                cameraTimestamps.lastProgrammaticCameraSetAt = Date()
             } else {
                 refreshCameraForCurrentMode()
             }
         case .planning, .deviceOverview, .sendingToDevice:
-            // Outside riding: a session-only zoom on the current camera.
-            // `MapCameraPosition` is an opaque struct (not an enum) so we
-            // can't read its current region directly — but `onMapCameraChange`
-            // already keeps `planningCameraReference` in sync with the live
-            // camera, so we use that as the source of truth and fall back
-            // to the rider when no reference is available yet.
+            // MapCameraPosition is opaque — use planningCameraReference as the zoom source
+            // (kept in sync by onMapCameraChange), falling back to rider location.
             let factor: Double = direction == .zoomIn
-                ? (1.0 / HomeViewModel.ridingZoomStepFactor)
-                : HomeViewModel.ridingZoomStepFactor
-            let rider = appModel.riderLocation
+                ? (1.0 / CameraMath.ridingZoomStepFactor)
+                : CameraMath.ridingZoomStepFactor
+            let rider = appModel.locationService.bestLocation
             let baseSpan = planningCameraReference?.span
                 ?? MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
             let baseCenter = planningCameraReference?.center
@@ -428,7 +353,7 @@ struct CompanionHomeView: View {
         case .planning:
             if let arrival = viewModel.arrivalNotice {
                 arrivalCard(arrival)
-            } else if viewModel.planningStatus != nil || appModel.importActivityStatus != nil {
+            } else if viewModel.planningStatus != nil || shareImportService.importActivityStatus != nil {
                 planningProgressCard
             } else if !viewModel.previewAlternatives.isEmpty {
                 routeSuggestionsCard
@@ -450,10 +375,10 @@ struct CompanionHomeView: View {
         ArrivalCardView(message: message, onDismiss: { viewModel.dismissArrivalNotice() })
     }
 
-    private var planningTopOverlay: some View {
+    private func planningTopOverlay(isSearchPanelVisible: Bool) -> some View {
         VStack(spacing: 8) {
             topBar
-            if viewModel.shouldShowSearchPanel {
+            if isSearchPanelVisible {
                 searchPanel
             }
         }
@@ -461,13 +386,8 @@ struct CompanionHomeView: View {
 
     private var phoneGuidanceTopOverlay: some View {
         if viewModel.isExploringAlternativesFromGuidance {
-            // Show a read-only "Where to" bar with the active destination so
-            // the rider always sees where they're headed while comparing alternatives.
             return AnyView(explorationDestinationBar)
         }
-        // Three-line text card (no icons): next-turn headline,
-        // "X km to <destination>", "Y min remaining". Icons live on the
-        // persistent rails so the layout doesn't reflow between modes.
         let layout = viewModel.routingTopLayout
         return AnyView(VStack(spacing: 6) {
             if viewModel.isWaitingToReroute(now: Date().timeIntervalSince1970 * 1_000) {
@@ -499,7 +419,7 @@ struct CompanionHomeView: View {
 
     private var explorationDestinationBar: some View {
         ExplorationDestinationBarView(
-            query: viewModel.query,
+            query: searchController.query,
             navigationTitle: viewModel.activeNavigationTitle
         )
     }
@@ -525,22 +445,26 @@ struct CompanionHomeView: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
                 TextField(T.string("home.whereTo"), text: Binding(
-                    get: { viewModel.query },
+                    get: { searchController.query },
                     set: { newValue in
-                        viewModel.openSearch()
-                        viewModel.updateQuery(newValue)
+                        // Guard against SwiftUI echoing set(currentValue) after a
+                        // programmatic query change (e.g. picking a recent) — that
+                        // would otherwise re-open the panel and trigger a fresh
+                        // search for the address the user just picked.
+                        guard newValue != searchController.query else { return }
+                        searchController.updateQuery(newValue)
                     }
                 ))
                 .textInputAutocapitalization(.words)
                 .autocorrectionDisabled()
                 .submitLabel(.done)
+                .accessibilityIdentifier("whereToInput")
                 .focused($isSearchFieldFocused)
-                .onTapGesture {
-                    viewModel.openSearch()
-                    isSearchFieldFocused = true
+                .onChange(of: isSearchFieldFocused) { _, focused in
+                    if focused { searchController.openSearch() }
                 }
 
-                if !viewModel.query.isEmpty || !viewModel.previewAlternatives.isEmpty || viewModel.isShowingActiveNavigation {
+                if !searchController.query.isEmpty || !viewModel.previewAlternatives.isEmpty || viewModel.isShowingActiveNavigation {
                     Button {
                         isSearchFieldFocused = false
                         viewModel.clearPreview()
@@ -558,100 +482,16 @@ struct CompanionHomeView: View {
 
     private var sourceModePicker: some View {
         SourceModePickerView(
-            modes: appModel.sourceModeOptions,
+            modes: HslAvailabilityService.sourceModeOptions(settings: appModel.settings, request: appModel.routeRequest),
             currentMode: viewModel.sourceMode,
             onSelect: { viewModel.setSourceMode($0) }
         )
     }
 
     private var searchPanel: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                if viewModel.isResolvingUrl {
-                    HStack(alignment: .center, spacing: 12) {
-                        ProgressView()
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(T.string("home.resolvingLink"))
-                                .font(.headline)
-                            Text(T.string("home.resolvingLinkSubtitle"))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                    }
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                } else if let urlError = viewModel.urlResolveError {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(T.string("home.linkFailed"))
-                            .font(.headline)
-                        Text(urlError)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                } else if viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    ForEach(viewModel.recentItems) { item in
-                        Button {
-                            isSearchFieldFocused = false
-                            viewModel.selectRecent(item)
-                        } label: {
-                            routeHistoryRow(item)
-                        }
-                        .buttonStyle(.plain)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
-                        .onAppear { viewModel.loadMoreRecentsIfNeeded(for: item) }
-                        Divider()
-                    }
-                } else {
-                    ForEach(viewModel.visibleSuggestions) { suggestion in
-                        Button {
-                            isSearchFieldFocused = false
-                            viewModel.selectSuggestion(suggestion)
-                        } label: {
-                            suggestionRow(suggestion)
-                        }
-                        .buttonStyle(.plain)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
-                        .onAppear { viewModel.loadMoreSuggestionsIfNeeded(for: suggestion) }
-                        Divider()
-                    }
-                }
-            }
-        }
-        .frame(maxHeight: 320)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        SearchPanelView(viewModel: viewModel, isSearchFieldFocused: $isSearchFieldFocused)
     }
 
-    private func suggestionRow(_ suggestion: DestinationSearchResult) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "mappin.and.ellipse")
-                .foregroundStyle(.blue)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(suggestion.title)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                if !suggestion.subtitle.isEmpty {
-                    Text(suggestion.subtitle)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .contentShape(Rectangle())
-    }
-
-    /// Planning-only status overlay. The recenter button has moved into
-    /// the persistent compass glyph on the right-side rail — tapping the
-    /// compass triggers the same `refreshCameraForCurrentMode` path. What
-    /// remains here is the locating spinner and the location-blocked
-    /// indicator, both informational.
     @ViewBuilder
     private var planningMapAccessoryControls: some View {
         if viewModel.homeMode == .planning {
@@ -682,31 +522,9 @@ struct CompanionHomeView: View {
             && appModel.locationService.lastKnownLocation == nil
     }
 
-    private func routeHistoryRow(_ item: RouteHistoryItem) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: item.routePackage == nil ? "clock" : "point.topleft.down.curvedto.point.bottomright.up")
-                .foregroundStyle(.teal)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(item.title)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                Text(item.subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Text(item.sourceLabel)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .contentShape(Rectangle())
-    }
-
     private var planningProgressCard: some View {
         PlanningProgressCardView(
-            status: viewModel.planningStatus ?? appModel.importActivityStatus ?? "Planning route…"
+            status: viewModel.planningStatus ?? shareImportService.importActivityStatus ?? "Planning route…"
         )
     }
 
@@ -768,9 +586,6 @@ struct CompanionHomeView: View {
                         VStack(alignment: .leading, spacing: 1) {
                             Text(alternative.title)
                                 .font(.subheadline.weight(.semibold))
-                            // Drop the redundant subtitle (it was empty
-                            // after the title rename anyway). Two visible
-                            // lines max: title + km/min summary.
                             if !alternative.subtitle.isEmpty {
                                 Text(alternative.subtitle)
                                     .font(.caption)
@@ -871,9 +686,6 @@ struct CompanionHomeView: View {
             case .autoFollow:
                 orientCameraForTravel(on: route)
             case .northPreview, .northLocked:
-                // Fit ONLY the remaining route — long rides made overview
-                // useless when the camera kept zooming out to include
-                // already-completed kilometres.
                 let overview = viewModel.routeOverviewGeometry
                 fitCamera(to: overview.count >= 2 ? overview : route.geometry)
             }
@@ -882,30 +694,23 @@ struct CompanionHomeView: View {
 
     private func resetPlanningCamera() {
         let coordinates = viewModel.displayedRouteCoordinates
-        // Spec lines 108-118: if the rider is moving (with or without a
-        // route preview), enter riding-mode camera — bottom-quarter anchor
-        // and rotate to GPS-trail heading.
         if let trailHeading = viewModel.travelHeadingDegrees {
-            let rider = appModel.riderLocation
-            let centerPoint = viewModel.cameraCenterCoordinate(
-                rider: rider, headingDegrees: trailHeading, cameraDistanceM: ridingCameraDistanceM
+            let rider = appModel.locationService.bestLocation
+            let centerPoint = CameraMath.cameraCenterCoordinate(
+                rider: rider, headingDegrees: trailHeading, cameraDistanceM: viewModel.ridingCameraDistanceM
             )
             let center = CLLocationCoordinate2D(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
-            // Smooth motion (#2): without `withAnimation` MapKit hard-snaps on
-            // each fix and the rider visually jumps before the map catches up.
-            // Duration was 0.45 s but felt laggy through tight turns — Apple
-            // Maps uses something closer to 0.2 s, which matches the natural
-            // cadence of GPS fixes (~1 s) without overshooting the next one.
+            // Animate camera moves to avoid hard-snapping on each GPS fix.
             withAnimation(.easeInOut(duration: 0.22)) {
-                cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: ridingCameraDistanceM, heading: trailHeading, pitch: 0))
+                cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: viewModel.ridingCameraDistanceM, heading: trailHeading, pitch: 0))
             }
-            lastProgrammaticCameraSetAt = Date()
+            cameraTimestamps.lastProgrammaticCameraSetAt = Date()
             return
         }
         if !coordinates.isEmpty {
             fitCamera(to: coordinates, recordPlanningReference: true)
         } else {
-            let rider = appModel.riderLocation
+            let rider = appModel.locationService.bestLocation
             setCamera(
                 region: MKCoordinateRegion(
                     center: CLLocationCoordinate2D(latitude: rider.latitude, longitude: rider.longitude),
@@ -922,36 +727,20 @@ struct CompanionHomeView: View {
             fitCamera(to: route.geometry)
             return
         }
-        // Spec line 110 wins over 101 when the rider is moving: rotate to
-        // the GPS-trail heading. `cameraHeadingDegrees` returns trail-first
-        // and falls back to the route-segment bearing when stationary.
-        let rider = appModel.riderLocation
+        let rider = appModel.locationService.bestLocation
         let heading = viewModel.cameraHeadingDegrees(rider: rider)
             ?? bearingDegrees(from: route.geometry[0], to: route.geometry[1])
-        // Spec line 84: anchor rider in the bottom quarter. iOS MapKit has
-        // no padding-based anchor offset; instead we shift the camera
-        // center ahead of the rider in the heading direction so the rider
-        // renders visually below center. Pass the same camera distance
-        // we're about to use so the offset scales with zoom — without
-        // this, a deep zoom-in puts the rider off the bottom edge.
-        let centerPoint = viewModel.cameraCenterCoordinate(
-            rider: rider, headingDegrees: heading, cameraDistanceM: ridingCameraDistanceM
+        // Shift camera center ahead of rider so they render in the bottom quarter.
+        // Anchor offset must scale with camera distance — deep zoom-in pushes rider off the bottom edge otherwise.
+        let centerPoint = CameraMath.cameraCenterCoordinate(
+            rider: rider, headingDegrees: heading, cameraDistanceM: viewModel.ridingCameraDistanceM
         )
         let center = CLLocationCoordinate2D(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
-        // Smooth motion (#2): wrap programmatic camera moves so SwiftUI Map
-        // animates the transition instead of snapping. Pinned a hair under
-        // the GPS cadence (≥1 s typical) so successive fixes can interrupt
-        // the previous animation without queueing.
-        //
-        // Distance must come from the viewModel — NOT a hardcoded constant.
-        // The +/- buttons write through `viewModel.bumpRidingZoom` and the
-        // autoFollow camera reads that same value here, which is what keeps
-        // the rider's preferred zoom alive across compass cycles + every
-        // GPS-fix-driven refresh.
+        // Camera distance from viewModel (not hardcoded) — +/- buttons and autoFollow share the same persisted value.
         withAnimation(.easeInOut(duration: 0.22)) {
-            cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: ridingCameraDistanceM, heading: heading, pitch: 0))
+            cameraPosition = .camera(MapCamera(centerCoordinate: center, distance: viewModel.ridingCameraDistanceM, heading: heading, pitch: 0))
         }
-        lastProgrammaticCameraSetAt = Date()
+        cameraTimestamps.lastProgrammaticCameraSetAt = Date()
     }
 
     private func fitCamera(to coordinates: [CoordinatePoint], recordPlanningReference: Bool = false) {
@@ -968,7 +757,7 @@ struct CompanionHomeView: View {
             maxLon = max(maxLon, point.longitude)
         }
 
-        let region = HomeViewModel.fittedRouteRegion(
+        let region = CameraMath.fittedRouteRegion(
             minLat: minLat, maxLat: maxLat,
             minLon: minLon, maxLon: maxLon
         )
@@ -976,42 +765,36 @@ struct CompanionHomeView: View {
     }
 
     private func setCamera(region: MKCoordinateRegion, heading: CLLocationDirection, recordPlanningReference: Bool) {
-        // Animate region changes (overview fits, planning recenter) so the
-        // map moves smoothly rather than snapping. Same envelope as the
-        // follow-rider path so cadence feels uniform.
         withAnimation(.easeInOut(duration: 0.45)) {
             cameraPosition = .region(region)
         }
-        lastProgrammaticCameraSetAt = Date()
+        cameraTimestamps.lastProgrammaticCameraSetAt = Date()
         if recordPlanningReference {
             planningCameraReference = PlanningCameraReference(center: region.center, span: region.span, heading: heading)
-            planningCameraNeedsReset = false
         }
     }
 
-    private func updatePlanningCameraResetState(for region: MKCoordinateRegion, heading: CLLocationDirection) {
-        guard viewModel.homeMode == .planning, let reference = planningCameraReference else {
-            planningCameraNeedsReset = false
-            return
-        }
-
-        let centerLatDelta = abs(region.center.latitude - reference.center.latitude)
-        let centerLonDelta = abs(region.center.longitude - reference.center.longitude)
-        let spanLatDelta = abs(region.span.latitudeDelta - reference.span.latitudeDelta)
-        let spanLonDelta = abs(region.span.longitudeDelta - reference.span.longitudeDelta)
-        let normalizedHeading = abs(heading.truncatingRemainder(dividingBy: 360))
-
-        planningCameraNeedsReset =
-            centerLatDelta > 0.0003 ||
-            centerLonDelta > 0.0003 ||
-            spanLatDelta > 0.002 ||
-            spanLonDelta > 0.002 ||
-            normalizedHeading > 4
+    private struct PlanningCameraReference {
+        let center: CLLocationCoordinate2D
+        let span: MKCoordinateSpan
+        let heading: CLLocationDirection
     }
 
-    private func bearingDegrees(from start: CoordinatePoint, to end: CoordinatePoint) -> CLLocationDirection {
-        let latMeters = (end.latitude - start.latitude) * 111_320.0
-        let lonMeters = (end.longitude - start.longitude) * cos(((start.latitude + end.latitude) / 2.0) * .pi / 180.0) * 111_320.0
-        return atan2(lonMeters, latMeters) * 180.0 / .pi
+    /// PERF: holder for view-local state that body must NOT depend on.
+    ///
+    /// `@State` invalidates the view on every write, regardless of whether
+    /// body reads the value. We mutate `lastProgrammaticCameraSetAt` on every
+    /// programmatic camera nudge (setCamera, applyZoom, follow-rider
+    /// orientation) — that's many writes per second during navigation.
+    /// Body never reads this field; only `.onMapCameraChange` does. So we
+    /// store it on a class reference held via `@State`: assigning fields
+    /// through the reference bypasses the property wrapper's setter, so no
+    /// invalidation fires.
+    ///
+    /// DO NOT "simplify" this back to `@State private var lastProgrammaticCameraSetAt: Date`
+    /// — that reintroduces ~10 redundant body re-renders per navigation
+    /// second (verified via PerfLog instrumentation, removed afterwards).
+    private final class CameraTimestamps {
+        var lastProgrammaticCameraSetAt: Date = .distantPast
     }
 }

@@ -15,16 +15,16 @@ final class HomeViewModelUrlPasteTests: XCTestCase {
             coordinate: CoordinatePoint(latitude: 60.16, longitude: 24.95)
         )
         let vm = HomeViewModel(appModel: app, placeSearchService: search)
-        vm.updateQuery("https://www.google.com/maps/@60.16,24.95,15z")
+        vm.searchController.updateQuery("https://www.google.com/maps/@60.16,24.95,15z")
 
         // Wait for the resolve task to complete (up to 1 second — plenty
         // for an inline-coord path that does not hit the network).
         for _ in 0..<40 {
-            if !vm.isResolvingUrl { break }
+            if !vm.searchController.isResolvingUrl { break }
             try? await Task.sleep(nanoseconds: 25_000_000)
         }
-        XCTAssertFalse(vm.isResolvingUrl)
-        XCTAssertNil(vm.urlResolveError)
+        XCTAssertFalse(vm.searchController.isResolvingUrl)
+        XCTAssertNil(vm.searchController.urlResolveError)
         XCTAssertEqual(app.routeRequest.destination.latitude, 60.16, accuracy: 0.001)
         XCTAssertEqual(app.routeRequest.destination.longitude, 24.95, accuracy: 0.001)
     }
@@ -33,17 +33,17 @@ final class HomeViewModelUrlPasteTests: XCTestCase {
         let app = AppModel()
         let search = FakePlaceSearch()
         let vm = HomeViewModel(appModel: app, placeSearchService: search)
-        vm.updateQuery("helsinki central")
-        XCTAssertFalse(vm.isResolvingUrl)
+        vm.searchController.updateQuery("helsinki central")
+        XCTAssertFalse(vm.searchController.isResolvingUrl)
     }
 
     func test_closeSearchClearsUrlErrorAndFlag() {
         let app = AppModel()
         let search = FakePlaceSearch()
         let vm = HomeViewModel(appModel: app, placeSearchService: search)
-        vm.updateQuery("https://maps.app.goo.gl/test")
-        vm.closeSearch()
-        XCTAssertFalse(vm.isResolvingUrl)
-        XCTAssertNil(vm.urlResolveError)
+        vm.searchController.updateQuery("https://maps.app.goo.gl/test")
+        vm.searchController.closeSearch()
+        XCTAssertFalse(vm.searchController.isResolvingUrl)
+        XCTAssertNil(vm.searchController.urlResolveError)
     }
 }

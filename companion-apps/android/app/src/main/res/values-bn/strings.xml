@@ -46,6 +46,9 @@
     <string name="cue_turn50m_slightRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে ঘুরুন</string>
     <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর U-টার্ন করুন</string>
     <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {মিটার} feet {ফুট} other {মিটার}}, তারপর দ্রুত {first, select, left {বাঁ দিকে ঘুরুন} right {ডান দিকে ঘুরুন} exitLeft {বাম এক্সিট নিন} exitRight {ডান এক্সিট নিন} uturn {একটি U-turn করুন} roundabout {রাউন্ডঅ্যাবাউটে ঢোকুন} merge {মার্জ করুন} ramp {র‌্যাম্প নিন} other {পথ অনুসরণ করুন}} তারপর দ্রুত {second, select, left {বামে} right {ডানে} exitLeft {বাম এক্সিট} exitRight {ডান এক্সিট} uturn {U-turn} roundabout {রাউন্ডঅ্যাবাউট} merge {মার্জ} ramp {র‌্যাম্প} other {সামনে}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
+    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
+    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} থেকে {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">গন্তব্য মুছুন</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">আগমনের বার্তা বন্ধ করুন</string>
@@ -56,14 +59,22 @@
     <string name="home_a11y_recenterMap" formatted="false">মানচিত্র আবার কেন্দ্র করুন</string>
     <string name="home_a11y_settings" formatted="false">সেটিংস</string>
     <string name="home_continueOnCurrentRoute" formatted="false">বর্তমান রুটে এগিয়ে যান</string>
+    <string name="home_distanceKm" formatted="false">{km, number} km</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
     <string name="home_importedRoute" formatted="false">ইমপোর্ট করা রুট</string>
     <string name="home_iosLocationHint" formatted="false">iOS সেটিংস খুলুন → Privacy → Location, যাতে এই অ্যাপটি \"Always\" করা যায়।</string>
     <string name="home_linkFailed" formatted="false">এই লিংকটি খোলা যায়নি</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
     <string name="home_noSuggestions" formatted="false">এখনও কোনো পরামর্শ নেই…</string>
+    <string name="home_offRoute" formatted="false">Off route</string>
     <string name="home_openSettings" formatted="false">সেটিংস</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
     <string name="home_platformHint_locationDefault" formatted="false">আপনার অবস্থানের অনুমতি চাওয়া হবে। অনুমতি দিন যাতে অ্যাপটি ব্যাকগ্রাউন্ডে থাকলেও নির্দেশনা আপনার অবস্থান অনুসরণ করতে থাকে।</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">iPhone-এ Safari ব্যাকগ্রাউন্ডে GPS পাঠাতে পারে না, লক-স্ক্রিনে দিকনির্দেশনা দেখাতে পারে না, বা ট্যাব লুকানো থাকলে অডিও সংকেত দিতে পারে না। সত্যিকারের ব্যাকগ্রাউন্ড রাউটিংয়ের জন্য নেটিভ iOS অ্যাপ ইনস্টল করুন।</string>
     <string name="home_recenter" formatted="false">আবার কেন্দ্র করুন</string>
+    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
+    <string name="home_rerouting" formatted="false">Rerouting…</string>
     <string name="home_resolvingLink" formatted="false">লিংক সমাধান করা হচ্ছে…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">গন্তব্যে যাওয়ার জন্য URL অনুসরণ করা হচ্ছে। এতে কয়েক সেকেন্ড লাগতে পারে।</string>
     <string name="home_routeActiveOnDevice" formatted="false">ডিভাইসে রুট সক্রিয়</string>
@@ -83,9 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">আবার চেষ্টা করুন</string>
     <string name="importDiagnostics_sharePackage" formatted="false">ডিবাগ প্যাকেজ শেয়ার করুন</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Navon ইমপোর্ট ডায়াগনস্টিকস</string>
+    <string name="maneuver_arrive" formatted="false">Arrive</string>
+    <string name="maneuver_continue" formatted="false">Continue</string>
     <string name="pairing_alignQr" formatted="false">ফ্রেমের মধ্যে QR কোডটি ঠিক করুন</string>
     <string name="pairing_cameraDenied" formatted="false">জোড়া লাগানোর কোড স্ক্যান করতে ক্যামেরা অ্যাক্সেস প্রয়োজন।</string>
     <string name="pairing_cancel" formatted="false">বাতিল</string>
+    <string name="pairing_connecting" formatted="false">Connecting…</string>
     <string name="pairing_failed" formatted="false">জোড়া লাগানো ব্যর্থ হয়েছে</string>
     <string name="pairing_intro" formatted="false">ডিভাইসটির স্ক্রিন ফ্রেমে আছে এমনভাবে আপনার ফোনটি ধরুন, তারপর QR কোড দেখলে Start-এ ট্যাপ করুন।</string>
     <string name="pairing_openSettings" formatted="false">সেটিংস খুলুন</string>

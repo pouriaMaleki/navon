@@ -29,7 +29,7 @@ final class UxIssuesIosTests: XCTestCase {
         // bbox: ~Helsinki Kamppi → Töölö, lat span ≈ 0.0150°, lon span
         // ≈ 0.0080°. Symmetric input — the asymmetry must come from the
         // helper's intentional camera-center shift.
-        let region = HomeViewModel.fittedRouteRegion(
+        let region = CameraMath.fittedRouteRegion(
             minLat: 60.1700, maxLat: 60.1850,
             minLon: 24.9300, maxLon: 24.9380
         )
@@ -52,7 +52,7 @@ final class UxIssuesIosTests: XCTestCase {
         let maxLat = 60.1850
         let minLon = 24.9300
         let maxLon = 24.9380
-        let region = HomeViewModel.fittedRouteRegion(
+        let region = CameraMath.fittedRouteRegion(
             minLat: minLat, maxLat: maxLat,
             minLon: minLon, maxLon: maxLon
         )
@@ -71,7 +71,7 @@ final class UxIssuesIosTests: XCTestCase {
         // produce a usable visible region rather than collapsing to a
         // pinhole. The minimum delta keeps the rider context visible
         // around the destination marker.
-        let region = HomeViewModel.fittedRouteRegion(
+        let region = CameraMath.fittedRouteRegion(
             minLat: 60.1699, maxLat: 60.1699,
             minLon: 24.9384, maxLon: 24.9384
         )
@@ -85,7 +85,7 @@ final class UxIssuesIosTests: XCTestCase {
         // the bottom card doesn't crop the route. With the 0.22 *
         // latDelta southward shift, the bbox center should be roughly
         // in the upper third of the visible region.
-        let region = HomeViewModel.fittedRouteRegion(
+        let region = CameraMath.fittedRouteRegion(
             minLat: 60.1700, maxLat: 60.1850,
             minLon: 24.9300, maxLon: 24.9380
         )
@@ -131,7 +131,7 @@ final class UxIssuesIosTests: XCTestCase {
         )
         await vm.startSelectedRoute()
         XCTAssertEqual(vm.homeMode, .phoneGuidance, "precondition")
-        let destination = app.activeSession.destinationCoordinate
+        let destination = app.sessionManager.session.destinationCoordinate
 
         vm.exploreAlternateRoutes()
 
@@ -143,7 +143,7 @@ final class UxIssuesIosTests: XCTestCase {
             "isExploringAlternativesFromGuidance must be true so the alternatives panel is shown.")
         XCTAssertEqual(app.routeRequest.destination, destination,
             "Destination must be preserved verbatim — the user is asking for alternatives to the SAME destination.")
-        XCTAssertEqual(app.routeRequest.origin, AppModel.defaultRiderFallback,
+        XCTAssertEqual(app.routeRequest.origin, CoreLocationService.defaultFallback,
             "origin must be the rider's current location at the moment of the request.")
     }
 
@@ -188,7 +188,7 @@ final class UxIssuesIosTests: XCTestCase {
     func test_fittedRouteRegion_bboxFitsBetweenTopBarAndBottomCard() {
         // Helsinki Kamppi → Töölö, ~1.7 km north-south route. Symmetric input
         // so any vertical asymmetry comes from the helper's intentional shift.
-        let region = HomeViewModel.fittedRouteRegion(
+        let region = CameraMath.fittedRouteRegion(
             minLat: 60.1700, maxLat: 60.1850,
             minLon: 24.9300, maxLon: 24.9380
         )
@@ -291,8 +291,8 @@ final class UxIssuesIosTests: XCTestCase {
 
         // Heading north (0°): the anchor offset is purely in the latitude
         // direction so we can read it as `(center.lat - rider.lat) * mPerDeg`.
-        let centerNear = vm.cameraCenterCoordinate(rider: rider, headingDegrees: 0.0, cameraDistanceM: 300)
-        let centerFar = vm.cameraCenterCoordinate(rider: rider, headingDegrees: 0.0, cameraDistanceM: 1200)
+        let centerNear = CameraMath.cameraCenterCoordinate(rider: rider, headingDegrees: 0.0, cameraDistanceM: 300)
+        let centerFar = CameraMath.cameraCenterCoordinate(rider: rider, headingDegrees: 0.0, cameraDistanceM: 1200)
 
         let offsetNearM = (centerNear.latitude - rider.latitude) * 111_320.0
         let offsetFarM = (centerFar.latitude - rider.latitude) * 111_320.0

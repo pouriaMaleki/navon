@@ -121,8 +121,6 @@ final class LiveActivityCoordinator {
         driver.update(state: state, routeId: route.routeIdentifier)
     }
 
-    // MARK: -
-
     private func shouldRun(
         settings: CompanionSettings,
         isRouting: Bool,
@@ -159,8 +157,6 @@ final class LiveActivityCoordinator {
         Self.log.info("Live Activity started for routeId=\(route.routeIdentifier, privacy: .public)")
     }
 }
-
-// MARK: - Real ActivityKit driver
 
 /// Production driver: forwards to ActivityKit. iOS 16.1+. Activities are
 /// started locally (no APNs); the coordinator pushes updates each tick.

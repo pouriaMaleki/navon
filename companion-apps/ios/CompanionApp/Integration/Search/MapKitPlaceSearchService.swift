@@ -3,9 +3,6 @@ import MapKit
 import CoreLocation
 
 protocol PlaceSearchService {
-    /// Search for destinations matching `query`, optionally biased toward
-    /// `riderBias` so nearby results rank first. Mirrors the web contract —
-    /// see `docs/ux-specs.md` line 75.
     func searchDestinations(
         matching query: String,
         limit: Int,
@@ -15,9 +12,6 @@ protocol PlaceSearchService {
 }
 
 extension PlaceSearchService {
-    /// Back-compat wrapper: callers that don't yet supply a rider bias still
-    /// compile. The runtime value is nil, so MapKit ranks results globally
-    /// and the flow is identical to the old signature.
     func searchDestinations(matching query: String, limit: Int) async -> [DestinationSearchResult] {
         await searchDestinations(matching: query, limit: limit, riderBias: nil)
     }
@@ -34,8 +28,7 @@ struct MapKitPlaceSearchService: PlaceSearchService {
         let request = MKLocalSearch.Request()
         request.naturalLanguageQuery = trimmed
         request.resultTypes = [.pointOfInterest, .address]
-        // MapKit takes a region hint to bias toward nearby results. Use a
-        // ~25 km span which roughly matches "same city / area" per spec.
+        // Bias toward the rider's area with a ~25 km region span.
         if let bias = riderBias {
             request.region = MKCoordinateRegion(
                 center: CLLocationCoordinate2D(latitude: bias.latitude, longitude: bias.longitude),

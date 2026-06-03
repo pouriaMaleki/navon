@@ -17,7 +17,7 @@ final class UrlResolverTests: XCTestCase {
             subtitle: "",
             coordinate: CoordinatePoint(latitude: 60.16, longitude: 24.95)
         )
-        let result = await app.resolveDestinationFromUrl(
+        let result = await app.shareImportService.resolveDestinationFromUrl(
             "https://www.google.com/maps/@60.16,24.95,15z",
             using: search
         )
@@ -33,7 +33,7 @@ final class UrlResolverTests: XCTestCase {
     func test_nonUrlInput_returnsNoDestinationFound() async {
         let app = AppModel()
         let search = FakePlaceSearch()
-        let result = await app.resolveDestinationFromUrl("not a url", using: search)
+        let result = await app.shareImportService.resolveDestinationFromUrl("not a url", using: search)
         switch result {
         case .noDestinationFound:
             break

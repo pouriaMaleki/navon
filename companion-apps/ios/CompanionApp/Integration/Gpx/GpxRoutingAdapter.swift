@@ -13,10 +13,6 @@ struct GpxRoutingAdapter: RoutingProvider {
         riderLocation: CoordinatePoint,
         rerouteContext: RerouteContext?
     ) async throws -> RoutePreviewModel {
-        _ = session
-        _ = riderLocation
-        _ = rerouteContext
-        print("[reroute_heading] provider=gpxImport reason=provider_noop")
         throw GpxRoutingAdapterError.rerouteNotSupported
     }
 
@@ -33,7 +29,7 @@ struct GpxRoutingAdapter: RoutingProvider {
         let routeName = parsed.routeName ?? fileName.replacingOccurrences(of: ".gpx", with: "", options: [.caseInsensitive])
         let routeID = slugify(routeName)
         let geometry = parsed.points.map(\.point)
-        let cumulative = cumulativeDistances(for: geometry)
+        let cumulative = cumulativeDistances(geometry)
         let maneuvers = buildManeuvers(from: parsed.points, cumulativeDistances: cumulative, preferPointLabels: parsed.preferPointLabels)
         let totalDistance = cumulative.last ?? 0
         let package = NormalizedRoutePackage(
@@ -70,14 +66,6 @@ struct GpxRoutingAdapter: RoutingProvider {
             routeRevision: package.revision,
             planningNotice: "Imported \(fileName)"
         )
-    }
-
-    private func cumulativeDistances(for geometry: [CoordinatePoint]) -> [Double] {
-        var cumulative = [0.0]
-        for (start, end) in zip(geometry, geometry.dropFirst()) {
-            cumulative.append((cumulative.last ?? 0) + approximateDistanceMeters(from: start, to: end))
-        }
-        return cumulative
     }
 
     private func buildManeuvers(
@@ -159,27 +147,6 @@ struct GpxRoutingAdapter: RoutingProvider {
         return delta > 0 ? (.slightRight, "Slight right") : (.slightLeft, "Slight left")
     }
 
-    private func turnDeltaDegrees(previous: CoordinatePoint, current: CoordinatePoint, next: CoordinatePoint) -> Double {
-        let incoming = bearingDegrees(from: previous, to: current)
-        let outgoing = bearingDegrees(from: current, to: next)
-        var delta = outgoing - incoming
-        while delta <= -180 { delta += 360 }
-        while delta > 180 { delta -= 360 }
-        return delta
-    }
-
-    private func bearingDegrees(from start: CoordinatePoint, to end: CoordinatePoint) -> Double {
-        let latMeters = (end.latitude - start.latitude) * 111_320.0
-        let lonMeters = (end.longitude - start.longitude) * cos(((start.latitude + end.latitude) / 2.0) * .pi / 180.0) * 111_320.0
-        return atan2(lonMeters, latMeters) * 180.0 / .pi
-    }
-
-    private func approximateDistanceMeters(from start: CoordinatePoint, to end: CoordinatePoint) -> Double {
-        let latMeters = (end.latitude - start.latitude) * 111_320.0
-        let lonMeters = (end.longitude - start.longitude) * cos(((start.latitude + end.latitude) / 2.0) * .pi / 180.0) * 111_320.0
-        return sqrt(latMeters * latMeters + lonMeters * lonMeters)
-    }
-
     private func slugify(_ value: String) -> String {
         var output = ""
         var previousDash = false
@@ -203,7 +170,6 @@ struct GpxRoutingAdapter: RoutingProvider {
         return trimmed.isEmpty ? "gpx-import" : trimmed
     }
 }
-
 
 enum GpxRoutingAdapterError: LocalizedError {
     case fileImportRequired

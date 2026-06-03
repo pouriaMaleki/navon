@@ -5,11 +5,7 @@ import Foundation
 /// fully unit-testable and consistent with the audio cue layer.
 enum LiveActivityMapper {
 
-    /// Two maneuvers separated by less than this fold into a single
-    /// compound glyph. Mirrors `CueEngine.backToBackThresholdM` so the
-    /// arrow on screen agrees with the spoken cue ("turn left then quickly
-    /// right"). Keep these two constants in sync.
-    static let backToBackThresholdM: Double = 30.0
+    static let backToBackThresholdM = CueEngine.backToBackThresholdM
 
     static func glyph(
         primary: RouteManeuverType,
@@ -92,8 +88,6 @@ enum LiveActivityMapper {
             isImperial: isImperial
         )
     }
-
-    // MARK: -
 
     private static func status(offRoute: Bool, rerouting: Bool) -> GuidanceStatus {
         if offRoute { return .offRoute }

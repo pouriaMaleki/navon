@@ -1,9 +1,6 @@
 import Foundation
 
-/// Convert a BRouter Feature (`features[0]` from `format=geojson&timode=2`)
-/// into a `RouteAlternative` ready to drop into a `RoutePreviewModel`.
-/// Pure function — no I/O. Mirrors web companion's `mapBrouterToRoute.ts`
-/// byte-for-byte.
+/// Converts a BRouter GeoJSON feature into a RouteAlternative. Pure function — no I/O.
 func mapBrouterToAlternative(
     feature: [String: Any],
     request: RoutePlanRequest,
@@ -55,12 +52,11 @@ func mapBrouterToAlternative(
     )
 }
 
-/// BRouter `voicehints`: [geomIdx, cmdType, exitCount, distToNext, angle].
-/// Codes match the web/Android mappers byte-for-byte.
 private func buildManeuversFromVoiceHints(
     geometry: [CoordinatePoint],
     voicehints: [[Any]]
 ) -> [RouteManeuver] {
+    let cumulative = cumulativeDistances(geometry)
     var maneuvers: [RouteManeuver] = []
     let firstNext = voicehints.first.flatMap { hint in (hint.count > 3 ? parseNumberLike(hint[3]) : nil) }
     maneuvers.append(RouteManeuver(
@@ -83,7 +79,7 @@ private func buildManeuversFromVoiceHints(
             id: "vh-\(i)",
             maneuverType: type,
             location: geometry[cappedIdx],
-            distanceFromStartMeters: approxDistanceFromStart(geometry: geometry, targetIdx: cappedIdx),
+            distanceFromStartMeters: cumulative[cappedIdx],
             distanceToNextMeters: distToNext,
             instructionText: cmdInstruction(cmd)
         ))
@@ -92,7 +88,7 @@ private func buildManeuversFromVoiceHints(
         id: "arrive",
         maneuverType: .arrive,
         location: geometry.last ?? CoordinatePoint(latitude: 0, longitude: 0),
-        distanceFromStartMeters: polylineLengthMeters(geometry),
+        distanceFromStartMeters: PolylineGeo.polylineLengthMeters(geometry),
         distanceToNextMeters: nil,
         instructionText: "Arrive at destination"
     ))
@@ -132,27 +128,6 @@ private func cmdInstruction(_ cmd: Int) -> String {
     case 13: return "Arrive at destination"
     default: return "Continue"
     }
-}
-
-private func approxDistanceFromStart(geometry: [CoordinatePoint], targetIdx: Int) -> Double {
-    var total = 0.0
-    let cap = max(1, min(targetIdx, geometry.count - 1))
-    for i in 1...cap { total += haversine(geometry[i - 1], geometry[i]) }
-    return total
-}
-
-private func polylineLengthMeters(_ geometry: [CoordinatePoint]) -> Double {
-    var total = 0.0
-    for i in 1..<geometry.count { total += haversine(geometry[i - 1], geometry[i]) }
-    return total
-}
-
-private func haversine(_ a: CoordinatePoint, _ b: CoordinatePoint) -> Double {
-    let metersPerDegLat = 111_320.0
-    let meanLatRad = (a.latitude + b.latitude) / 2.0 * .pi / 180.0
-    let dN: Double = (b.latitude - a.latitude) * metersPerDegLat
-    let dE: Double = (b.longitude - a.longitude) * cos(meanLatRad) * metersPerDegLat
-    return (dN * dN + dE * dE).squareRoot()
 }
 
 private func parseNumberLike(_ value: Any?) -> Double? {

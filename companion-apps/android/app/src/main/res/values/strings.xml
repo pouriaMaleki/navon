@@ -46,6 +46,9 @@
     <string name="cue_turn50m_slightRight" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, slight right</string>
     <string name="cue_turn50m_uturn" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, make a U-turn</string>
     <string name="cue_turn50mCombined" formatted="false">In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {turn left} slightLeft {slight left} slightRight {slight right} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} then quickly {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
+    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
+    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} to {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Clear destination</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">Close arrival message</string>
@@ -56,14 +59,22 @@
     <string name="home_a11y_recenterMap" formatted="false">Recenter map</string>
     <string name="home_a11y_settings" formatted="false">Settings</string>
     <string name="home_continueOnCurrentRoute" formatted="false">Continue on current route</string>
+    <string name="home_distanceKm" formatted="false">{km, number} km</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
     <string name="home_importedRoute" formatted="false">Imported route</string>
     <string name="home_iosLocationHint" formatted="false">Open iOS Settings → Privacy → Location to switch this app to \"Always\".</string>
     <string name="home_linkFailed" formatted="false">Couldn\'t open that link</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
     <string name="home_noSuggestions" formatted="false">No suggestions yet…</string>
+    <string name="home_offRoute" formatted="false">Off route</string>
     <string name="home_openSettings" formatted="false">Settings</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
     <string name="home_platformHint_locationDefault" formatted="false">You\'ll be asked for location permission. Allow it so guidance keeps tracking your position when the app is in the background.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">Safari on iPhone cannot deliver background GPS, lock-screen guidance, or audio cues while the tab is hidden. For real background routing, install the native iOS app.</string>
     <string name="home_recenter" formatted="false">Recenter</string>
+    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
+    <string name="home_rerouting" formatted="false">Rerouting…</string>
     <string name="home_resolvingLink" formatted="false">Resolving link…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Following the URL to a destination. This can take a couple of seconds.</string>
     <string name="home_routeActiveOnDevice" formatted="false">Route active on device</string>
@@ -83,9 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">Retry import</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Share debug package</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Navon import diagnostics</string>
+    <string name="maneuver_arrive" formatted="false">Arrive</string>
+    <string name="maneuver_continue" formatted="false">Continue</string>
     <string name="pairing_alignQr" formatted="false">Align the QR code in the frame</string>
     <string name="pairing_cameraDenied" formatted="false">Camera access is required to scan the pairing code.</string>
     <string name="pairing_cancel" formatted="false">Cancel</string>
+    <string name="pairing_connecting" formatted="false">Connecting…</string>
     <string name="pairing_failed" formatted="false">Pairing failed</string>
     <string name="pairing_intro" formatted="false">Hold your phone so the device\'s screen is in frame, then tap Start when you see the QR code.</string>
     <string name="pairing_openSettings" formatted="false">Open Settings</string>

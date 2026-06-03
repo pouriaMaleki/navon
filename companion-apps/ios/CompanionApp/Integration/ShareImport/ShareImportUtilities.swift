@@ -1,11 +1,7 @@
 import Foundation
 
-/// Pure utility functions for share-import processing: URL canonicalization,
-/// coordinate extraction, polyline decoding, HTML scraping, GPX generation,
-/// and Garmin course handling. Stateless — no AppModel dependency.
+/// URL canonicalization, coordinate extraction, polyline decoding, GPX generation, and Garmin course handling.
 enum ShareImportUtilities {
-
-    // MARK: - Coordinate extraction
 
     static func extractCoordinateSequence(fromGarminJSONObject object: Any) -> [CoordinatePoint] {
         var coordinates: [CoordinatePoint] = []
@@ -142,8 +138,6 @@ enum ShareImportUtilities {
         return String(collapsed.prefix(240))
     }
 
-    // MARK: - GPX
-
     static func buildGPXDocument(name: String, coordinates: [CoordinatePoint]) -> String {
         let points = coordinates.map { String(format: "<trkpt lat=\"%.6f\" lon=\"%.6f\"></trkpt>", $0.latitude, $0.longitude) }.joined(separator: "\n")
         return """
@@ -168,8 +162,6 @@ enum ShareImportUtilities {
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
     }
-
-    // MARK: - URL handling
 
     static func googleMapsQueryTitle(from url: URL) -> String? {
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
@@ -303,8 +295,6 @@ enum ShareImportUtilities {
         return title
     }
 
-    // MARK: - Coordinate extraction from URLs and text
-
     static func extractCoordinate(from url: URL) -> CoordinatePoint? {
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
         let host = url.host?.lowercased() ?? ""
@@ -387,8 +377,6 @@ enum ShareImportUtilities {
         return CoordinatePoint(latitude: latitude, longitude: longitude)
     }
 
-    // MARK: - Regex helpers
-
     static func firstMatch(in value: String, pattern: String) -> String? {
         guard let groups = firstMatchGroups(in: value, pattern: pattern), let first = groups.first else { return nil }
         return first
@@ -404,8 +392,6 @@ enum ShareImportUtilities {
         }
     }
 }
-
-// MARK: - Shared types
 
 struct RemotePageSummary {
     let finalURL: URL

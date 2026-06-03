@@ -79,7 +79,7 @@ final class PairingFlowViewModel: ObservableObject {
         // panel stays on the map and there's nothing to scan.
         if let appModel {
             do {
-                try await appModel.prepareDeviceForPairing()
+                try await appModel.deviceManager.prepareDeviceForPairing()
             } catch {
                 pairingLog.error("prepareDeviceForPairing failed before camera: \(error.localizedDescription, privacy: .public)")
                 pairingState = .failed(error.localizedDescription)
@@ -87,7 +87,7 @@ final class PairingFlowViewModel: ObservableObject {
             }
         }
         pairingState = .scanning
-        appModel?.pairingState = .scanning
+        appModel?.deviceManager.pairingState = .scanning
         await refreshPermissionDescriptor()
         pairingLog.notice("PairingFlowViewModel permission → \(String(describing: self.permissionDescriptor), privacy: .public)")
     }
@@ -95,7 +95,7 @@ final class PairingFlowViewModel: ObservableObject {
     func cancel() {
         pairingLog.notice("PairingFlowViewModel.cancel from step \(String(describing: self.pairingState), privacy: .public)")
         session.tearDown()
-        appModel?.pairingState = .idle
+        appModel?.deviceManager.pairingState = .idle
         pairingState = .instructions
     }
 
@@ -121,10 +121,10 @@ final class PairingFlowViewModel: ObservableObject {
             scanGuidance = .none
             consecutiveInvalidScans = 0
             pairingState = .connecting
-            appModel?.pairingState = .connecting
+            appModel?.deviceManager.pairingState = .connecting
             session.tearDown()
             if let appModel {
-                Task { await appModel.completePairing(payload: payload) }
+                Task { await appModel.deviceManager.completePairing(payload: payload) }
             }
         } catch let error as PairingQrError {
             pairingLog.error("QR decode failed: \(error.errorDescription ?? "?", privacy: .public)")

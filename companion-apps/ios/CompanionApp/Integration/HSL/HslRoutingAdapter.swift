@@ -39,21 +39,16 @@ struct HslRoutingAdapter: RoutingProvider {
         providerLabel: String
     ) -> CoordinatePoint {
         guard let heading = rerouteContext?.headingDegrees, heading.isFinite else {
-            print("[reroute_heading] provider=\(providerLabel) reason=no_heading")
             return riderLocation
         }
         guard let speed = rerouteContext?.speedMps, speed.isFinite, speed >= Self.minHeadingSpeedMps else {
-            let speedLog = rerouteContext?.speedMps.map { String($0) } ?? "nil"
-            print("[reroute_heading] provider=\(providerLabel) reason=low_speed speed=\(speedLog)")
             return riderLocation
         }
         let shifted = shiftPointByHeading(point: riderLocation, headingDegrees: heading, distanceMeters: Self.rerouteForwardShiftM)
         if !shifted.latitude.isFinite || !shifted.longitude.isFinite ||
             (shifted.latitude == riderLocation.latitude && shifted.longitude == riderLocation.longitude) {
-            print("[reroute_heading] provider=\(providerLabel) reason=shift_failed")
             return riderLocation
         }
-        print("[reroute_heading] provider=\(providerLabel) reason=applied")
         return shifted
     }
 
@@ -188,7 +183,7 @@ struct HslRoutingAdapter: RoutingProvider {
     }
 
     private func mapLiveLeg(_ leg: LiveLeg) -> DigitransitLeg? {
-        let geometry = decodePolyline(leg.legGeometry?.points ?? "")
+        let geometry = ShareImportUtilities.decodePolyline(leg.legGeometry?.points ?? "")
         let fallback = fallbackGeometry(from: leg)
         let points = geometry.count >= 2 ? geometry : fallback
         guard points.count >= 2 else { return nil }
@@ -342,7 +337,7 @@ struct HslRoutingAdapter: RoutingProvider {
 
     private func deriveSteps(from geometry: [CoordinatePoint]) -> [DigitransitStep] {
         guard geometry.count >= 3 else { return [] }
-        let cumulative = cumulativeDistances(for: geometry)
+        let cumulative = cumulativeDistances(geometry)
         var steps: [DigitransitStep] = []
         for index in 1 ..< geometry.count - 1 {
             let turnDelta = turnDeltaDegrees(previous: geometry[index - 1], current: geometry[index], next: geometry[index + 1])
@@ -359,31 +354,6 @@ struct HslRoutingAdapter: RoutingProvider {
             )
         }
         return steps
-    }
-
-    private func cumulativeDistances(for geometry: [CoordinatePoint]) -> [Double] {
-        var cumulative: [Double] = [0.0]
-        for (start, end) in zip(geometry, geometry.dropFirst()) {
-            cumulative.append(cumulative.last! + approximateDistanceMeters(from: start, to: end))
-        }
-        return cumulative
-    }
-
-    private func turnDeltaDegrees(previous: CoordinatePoint, current: CoordinatePoint, next: CoordinatePoint) -> Double {
-        let incoming = bearingDegrees(from: previous, to: current)
-        let outgoing = bearingDegrees(from: current, to: next)
-        var delta = outgoing - incoming
-        while delta <= -180.0 { delta += 360.0 }
-        while delta > 180.0 { delta -= 360.0 }
-        return delta
-    }
-
-    private func bearingDegrees(from start: CoordinatePoint, to end: CoordinatePoint) -> Double {
-        let latScale = 111_320.0
-        let lonScale = cos(((start.latitude + end.latitude) / 2) * .pi / 180.0) * 111_320.0
-        let latMeters = (end.latitude - start.latitude) * latScale
-        let lonMeters = (end.longitude - start.longitude) * lonScale
-        return atan2(lonMeters, latMeters) * 180.0 / .pi
     }
 
     private func classifyTurn(deltaDegrees: Double) -> (token: String, instruction: String)? {
@@ -438,42 +408,6 @@ struct HslRoutingAdapter: RoutingProvider {
         }
     }
 
-    private func decodePolyline(_ encoded: String) -> [CoordinatePoint] {
-        guard !encoded.isEmpty else { return [] }
-        var points: [CoordinatePoint] = []
-        var index = encoded.startIndex
-        var latitude = 0
-        var longitude = 0
-
-        func nextValue() -> Int? {
-            var result = 0
-            var shift = 0
-            while index < encoded.endIndex {
-                let value = Int(encoded[index].unicodeScalars.first!.value) - 63
-                index = encoded.index(after: index)
-                result |= (value & 0x1f) << shift
-                shift += 5
-                if value < 0x20 {
-                    return (result & 1) == 0 ? (result >> 1) : ~(result >> 1)
-                }
-            }
-            return nil
-        }
-
-        while let latDelta = nextValue(), let lonDelta = nextValue() {
-            latitude += latDelta
-            longitude += lonDelta
-            points.append(
-                CoordinatePoint(
-                    latitude: Double(latitude) / 100_000.0,
-                    longitude: Double(longitude) / 100_000.0
-                )
-            )
-        }
-
-        return points
-    }
-
     private func displayMessage(for error: Error) -> String {
         if let localized = error as? LocalizedError, let message = localized.errorDescription {
             return message
@@ -511,7 +445,7 @@ struct HslRoutingAdapter: RoutingProvider {
         destinationLabel: String
     ) -> DigitransitItinerary {
         let segmentDistances = zip(geometry, geometry.dropFirst()).map { start, end in
-            approximateDistanceMeters(from: start, to: end)
+            PolylineGeo.straightLineMeters(start, end)
         }
         let totalDistance = segmentDistances.reduce(0, +)
 
@@ -563,14 +497,6 @@ struct HslRoutingAdapter: RoutingProvider {
         }
         geometry.append(destination)
         return geometry
-    }
-
-    private func approximateDistanceMeters(from start: CoordinatePoint, to end: CoordinatePoint) -> Double {
-        let latScale = 111_320.0
-        let lonScale = cos(((start.latitude + end.latitude) / 2) * .pi / 180.0) * 111_320.0
-        let latMeters = (end.latitude - start.latitude) * latScale
-        let lonMeters = (end.longitude - start.longitude) * lonScale
-        return (latMeters * latMeters + lonMeters * lonMeters).squareRoot()
     }
 
     private static let minHeadingSpeedMps: Double = 2.0

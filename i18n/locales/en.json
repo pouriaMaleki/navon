@@ -411,6 +411,86 @@
       "description": "Status label shown while the planner is computing the route.",
       "placeholders": {}
     },
+    "home.offRoute": {
+      "value": "Off route",
+      "description": "Label shown in the routing top card when the rider leaves the route corridor.",
+      "placeholders": {}
+    },
+    "home.phoneGuidanceReady": {
+      "value": "Phone guidance ready",
+      "description": "Subtitle shown when phone guidance is active but no progress data is available yet.",
+      "placeholders": {}
+    },
+    "home.rerouting": {
+      "value": "Rerouting…",
+      "description": "Label shown in the routing top card when an automatic reroute is in progress.",
+      "placeholders": {}
+    },
+    "home.remainingKm": {
+      "value": "{km, number} km remaining • {min, number} min",
+      "description": "Routing subtitle: remaining distance and estimated time. Example: '8.6 km remaining • 16 min'.",
+      "placeholders": {
+        "km": "number",
+        "min": "number"
+      }
+    },
+    "home.remainingKmShort": {
+      "value": "{km, number} km • {min, number} min",
+      "description": "Routing subtitle (shorter variant when no progress yet): total distance and estimated time. Example: '12.4 km • 23 min'.",
+      "placeholders": {
+        "km": "number",
+        "min": "number"
+      }
+    },
+    "home.distanceToDestination": {
+      "value": "{km, number} km to {destination}",
+      "description": "Routing subtitle line: remaining distance to the named destination. Example: '8.6 km to Alppila'.",
+      "placeholders": {
+        "km": "number",
+        "destination": "string"
+      }
+    },
+    "home.distanceKm": {
+      "value": "{km, number} km",
+      "description": "Routing subtitle line: remaining distance without a destination name. Example: '8.6 km'.",
+      "placeholders": {
+        "km": "number"
+      }
+    },
+    "home.minutesRemaining": {
+      "value": "{min, number} min remaining",
+      "description": "Routing subtitle line: estimated remaining time. Example: '16 min remaining'.",
+      "placeholders": {
+        "min": "number"
+      }
+    },
+    "cycling.sampleFallback": {
+      "value": "Showing sample route — live routing failed",
+      "description": "Planning notice when all live cycling routing sources (BRouter, OSRM) fail and the adapter falls back to sample routes.",
+      "placeholders": {}
+    },
+    "cycling.alternativesLive": {
+      "value": "Cycling alternatives via BRouter + OSRM",
+      "description": "Planning notice when all live cycling routing sources succeed.",
+      "placeholders": {}
+    },
+    "cycling.alternativesPartial": {
+      "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable",
+      "description": "Planning notice when some live cycling sources fail. Example: 'Cycling alternatives — 1 source unavailable'.",
+      "placeholders": {
+        "count": "number"
+      }
+    },
+    "maneuver.arrive": {
+      "value": "Arrive",
+      "description": "Fallback instruction text when the rider has passed the last interesting maneuver and is approaching the destination.",
+      "placeholders": {}
+    },
+    "maneuver.continue": {
+      "value": "Continue",
+      "description": "Fallback instruction text when a maneuver has no specific instruction from the routing provider.",
+      "placeholders": {}
+    },
     "importDiagnostics.copyDebugInfo": {
       "value": "Copy debug info",
       "description": "Button that copies a per-entry debug bundle to the clipboard."
@@ -438,6 +518,10 @@
     "pairing.cancel": {
       "value": "Cancel",
       "description": "Cancel button used throughout the pairing flow."
+    },
+    "pairing.connecting": {
+      "value": "Connecting…",
+      "description": "Progress label shown while the BLE pairing connection is being established."
     },
     "pairing.failed": {
       "value": "Pairing failed",

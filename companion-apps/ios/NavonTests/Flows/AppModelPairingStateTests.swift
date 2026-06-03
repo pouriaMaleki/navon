@@ -22,13 +22,13 @@ final class AppModelPairingStateTests: XCTestCase {
         persistence.savePairedPeripheral(sampleRecord())
 
         let appModel = AppModel(persistence: persistence)
-        XCTAssertEqual(appModel.pairedPeripheral, sampleRecord())
+        XCTAssertEqual(appModel.deviceManager.pairedPeripheral, sampleRecord())
     }
 
     func test_appModel_pairedPeripheralIsNilWhenNothingStored() {
         let persistence = CompanionPersistence(defaults: freshDefaults())
         let appModel = AppModel(persistence: persistence)
-        XCTAssertNil(appModel.pairedPeripheral)
+        XCTAssertNil(appModel.deviceManager.pairedPeripheral)
     }
 
     func test_forgetPairedDevice_clearsBothMemoryAndPersistence() {
@@ -36,18 +36,18 @@ final class AppModelPairingStateTests: XCTestCase {
         let persistence = CompanionPersistence(defaults: defaults)
         persistence.savePairedPeripheral(sampleRecord())
         let appModel = AppModel(persistence: persistence)
-        XCTAssertNotNil(appModel.pairedPeripheral)
+        XCTAssertNotNil(appModel.deviceManager.pairedPeripheral)
 
-        appModel.forgetPairedDevice()
+        appModel.deviceManager.forgetPairedDevice()
 
-        XCTAssertNil(appModel.pairedPeripheral)
+        XCTAssertNil(appModel.deviceManager.pairedPeripheral)
         XCTAssertNil(CompanionPersistence(defaults: defaults).loadPairedPeripheral())
     }
 
     func test_beginPairingFlow_setsPairingStateInstructions() {
         let appModel = AppModel(persistence: CompanionPersistence(defaults: freshDefaults()))
-        XCTAssertEqual(appModel.pairingState, .idle)
-        appModel.beginPairingFlow()
-        XCTAssertEqual(appModel.pairingState, .instructions)
+        XCTAssertEqual(appModel.deviceManager.pairingState, .idle)
+        appModel.deviceManager.beginPairingFlow()
+        XCTAssertEqual(appModel.deviceManager.pairingState, .instructions)
     }
 }

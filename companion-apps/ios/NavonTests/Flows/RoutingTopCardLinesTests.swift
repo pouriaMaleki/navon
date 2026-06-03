@@ -121,7 +121,7 @@ final class RoutingTopCardLinesTests: XCTestCase {
         )
         // Stamp the user-typed destination on the session, mirroring what
         // happens after `applySelectedAlternativeToSession`.
-        app.activeSession.destinationLabel = "Kallio"
+        app.sessionManager.session.destinationLabel = "Kallio"
         await vm.startSelectedRoute()
         let layout = vm.routingTopLayout
         XCTAssertEqual(
@@ -144,7 +144,7 @@ final class RoutingTopCardLinesTests: XCTestCase {
             )],
             selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
         )
-        app.activeSession.destinationLabel = "Alppila"
+        app.sessionManager.session.destinationLabel = "Alppila"
         await vm.startSelectedRoute()
         XCTAssertEqual(
             vm.activeNavigationTitle, "Alppila",
@@ -168,7 +168,7 @@ final class RoutingTopCardLinesTests: XCTestCase {
             selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
         )
         // activeSession carries "No destination" (the new fallback) — not "OSM route"
-        app.activeSession.destinationLabel = "No destination"
+        app.sessionManager.session.destinationLabel = "No destination"
         await vm.startSelectedRoute()
         let layout = vm.routingTopLayout
         XCTAssertEqual(
@@ -201,11 +201,11 @@ final class RoutingTopCardLinesTests: XCTestCase {
             ],
             selectedAlternativeID: alt1ID, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
         )
-        app.activeSession.destinationLabel = "Kallio"
+        app.sessionManager.session.destinationLabel = "Kallio"
         app.selectAlternativePreviewOnly(alt2ID)
         XCTAssertEqual(
-            app.activeSession.destinationLabel, "Kallio",
-            "selectAlternativePreviewOnly must not overwrite activeSession.destinationLabel — got '\(app.activeSession.destinationLabel)'"
+            app.sessionManager.session.destinationLabel, "Kallio",
+            "selectAlternativePreviewOnly must not overwrite activeSession.destinationLabel — got '\(app.sessionManager.session.destinationLabel)'"
         )
         XCTAssertEqual(
             app.preview.selectedAlternativeID, alt2ID,

@@ -1,11 +1,6 @@
 import Foundation
 
-/// Periodically reads the phone's GPS from CoreLocationService and writes
-/// it to the device's phone-GPS BLE characteristic at ~1 Hz while phone
-/// GPS mode is active. The firmware auto-detects sample writes and
-/// switches to Phone GPS mode; when samples stop (disconnect / toggle off),
-/// the firmware auto-falls back to Internal GPS after a timeout window
-/// (currently 120 seconds in firmware).
+/// Forwards phone GPS to the device via BLE at ~1 Hz. Firmware auto-falls back to internal GPS 120s after samples stop.
 @MainActor
 final class PhoneGpsForwarder {
     private let bleClient: any RouteSyncBluetoothClient
@@ -78,15 +73,8 @@ final class PhoneGpsForwarder {
         lastObservedLocation = location
     }
 
-    /// Equirectangular approximation, accurate enough for short rider-step
-    /// comparisons and much cheaper than full haversine.
     private func distanceMeters(from a: CoordinatePoint, to b: CoordinatePoint) -> Double {
-        let metersPerDegLat = 111_320.0
-        let avgLatRad = ((a.latitude + b.latitude) * 0.5) * .pi / 180.0
-        let metersPerDegLon = metersPerDegLat * cos(avgLatRad)
-        let dLatMeters = (b.latitude - a.latitude) * metersPerDegLat
-        let dLonMeters = (b.longitude - a.longitude) * metersPerDegLon
-        return hypot(dLatMeters, dLonMeters)
+        PolylineGeo.straightLineMeters(a, b)
     }
 
     func stop() {

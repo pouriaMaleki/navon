@@ -1,11 +1,6 @@
 import Foundation
 
-/// BRouter is a free, public, OSM-based cycling routing service. Each call
-/// returns ONE route. The orchestrator calls multiple profiles in parallel
-/// to surface alternatives with different cycle-infrastructure trade-offs.
-///
-/// `timode=2` is required to populate `voicehints`; without it BRouter
-/// returns a route with no turn instructions.
+/// Free OSM-based cycling routing. `timode=2` is required for turn instructions via `voicehints`.
 enum BrouterProfile: String {
     case fastbike = "fastbike"
     case trekking = "trekking"
@@ -21,8 +16,6 @@ enum BrouterError: Error {
 struct BrouterClient {
     static let base = "https://brouter.de/brouter"
 
-    /// Returns the parsed JSON for the BRouter Feature (`features[0]`).
-    /// Mapping into a `RouteAlternative` is the parser's job (BrouterRouteMapper).
     static func fetch(
         profile: BrouterProfile,
         origin: CoordinatePoint,

@@ -6,11 +6,11 @@ struct RoutingDiagnosticsView: View {
 
     var body: some View {
         List {
-            if appModel.routingDiagnosticsSessions.isEmpty {
+            if appModel.routingDiagnosticsStore.sessions.isEmpty {
                 Text("No routing diagnostics recorded.")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(appModel.routingDiagnosticsSessions) { session in
+                ForEach(appModel.routingDiagnosticsStore.sessions) { session in
                     Section {
                         Text("\(session.events.count) events over \(durationText(session.durationMs))")
                             .foregroundStyle(.secondary)
@@ -21,7 +21,7 @@ struct RoutingDiagnosticsView: View {
                             Text("Share package")
                         }
                         Button("Delete", role: .destructive) {
-                            appModel.dismissRoutingDiagnosticsSession(id: session.id)
+                            appModel.routingDiagnosticsStore.deleteSession(id: session.id)
                         }
                     } header: {
                         Text(sessionStartText(session.createdAtMs))

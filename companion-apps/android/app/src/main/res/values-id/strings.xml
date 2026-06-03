@@ -46,6 +46,9 @@
     <string name="cue_turn50m_slightRight" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kanan</string>
     <string name="cue_turn50m_uturn" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, putar balik (U-turn)</string>
     <string name="cue_turn50mCombined" formatted="false">Di {distance, number} {distanceUnit, select, meters {meter} feet {kaki} other {meter}}, {first, select, left {belok kiri} right {belok kanan} exitLeft {ambil keluar kiri} exitRight {ambil keluar kanan} uturn {putar balik} roundabout {masuk bundaran} merge {gabung} ramp {ambil jalur masuk} other {ikuti rute}} lalu cepat {second, select, left {kiri} right {kanan} exitLeft {keluar kiri} exitRight {keluar kanan} uturn {U-turn} roundabout {bundaran} merge {gabung} ramp {jalur masuk} other {terus}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
+    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
+    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} menuju {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Hapus tujuan</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">Tutup pesan kedatangan</string>
@@ -56,14 +59,22 @@
     <string name="home_a11y_recenterMap" formatted="false">Pusatkan ulang peta</string>
     <string name="home_a11y_settings" formatted="false">Pengaturan</string>
     <string name="home_continueOnCurrentRoute" formatted="false">Lanjutkan di rute saat ini</string>
+    <string name="home_distanceKm" formatted="false">{km, number} km</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
     <string name="home_importedRoute" formatted="false">Rute yang diimpor</string>
     <string name="home_iosLocationHint" formatted="false">Buka Pengaturan iOS → Privasi → Lokasi untuk mengubah aplikasi ini menjadi \"Selalu\".</string>
     <string name="home_linkFailed" formatted="false">Tidak dapat membuka tautan itu</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
     <string name="home_noSuggestions" formatted="false">Belum ada saran…</string>
+    <string name="home_offRoute" formatted="false">Off route</string>
     <string name="home_openSettings" formatted="false">Pengaturan</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
     <string name="home_platformHint_locationDefault" formatted="false">Anda akan diminta memberikan izin lokasi. Izinkan agar panduan tetap melacak posisi Anda saat aplikasi berada di latar belakang.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">Safari di iPhone tidak dapat mengirim GPS latar belakang, panduan di layar kunci, atau isyarat audio saat tab disembunyikan. Untuk penelusuran rute latar belakang yang sebenarnya, instal aplikasi iOS asli.</string>
     <string name="home_recenter" formatted="false">Pusatkan ulang</string>
+    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
+    <string name="home_rerouting" formatted="false">Rerouting…</string>
     <string name="home_resolvingLink" formatted="false">Menyelesaikan tautan…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Mengikuti URL menuju tujuan. Ini bisa memakan waktu beberapa detik.</string>
     <string name="home_routeActiveOnDevice" formatted="false">Rute aktif di perangkat</string>
@@ -83,9 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">Coba impor lagi</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Bagikan paket debug</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Diagnostik impor Navon</string>
+    <string name="maneuver_arrive" formatted="false">Arrive</string>
+    <string name="maneuver_continue" formatted="false">Continue</string>
     <string name="pairing_alignQr" formatted="false">Sejajarkan kode QR di dalam bingkai</string>
     <string name="pairing_cameraDenied" formatted="false">Akses kamera diperlukan untuk memindai kode pasangan.</string>
     <string name="pairing_cancel" formatted="false">Batal</string>
+    <string name="pairing_connecting" formatted="false">Connecting…</string>
     <string name="pairing_failed" formatted="false">Gagal melakukan pairing</string>
     <string name="pairing_intro" formatted="false">Pegang ponsel Anda agar layar perangkat terlihat dalam bingkai, lalu ketuk Mulai saat Anda melihat kode QR.</string>
     <string name="pairing_openSettings" formatted="false">Buka Pengaturan</string>

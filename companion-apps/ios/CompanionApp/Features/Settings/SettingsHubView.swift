@@ -72,7 +72,7 @@ private struct ActivitySettingsSection: View {
                     appModel.settings.allowBackgroundGps = newValue
                     appModel.persistSettings()
                     if newValue {
-                        appModel.requestAlwaysLocationAuthorization()
+                        appModel.locationService.requestAlwaysAuthorization()
                     }
                 }
             )) {
@@ -81,7 +81,7 @@ private struct ActivitySettingsSection: View {
                     Text(T.string("settings.activity.allowBackgroundGps.subtitle"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    if appModel.locationManualSettingsHint {
+                    if appModel.locationService.manualSettingsHint {
                         Text(T.string("home.iosLocationHint"))
                             .font(.caption2)
                             .foregroundStyle(.orange)
@@ -150,7 +150,11 @@ private struct ActivitySettingsSection: View {
                 set: { newValue in
                     appModel.settings.routingDiagnosticsEnabled = newValue
                     appModel.persistSettings()
-                    appModel.applyRoutingDiagnosticsRecording(enabled: newValue)
+                    if newValue {
+                        appModel.routingDiagnosticsStore.startRecording()
+                    } else {
+                        appModel.routingDiagnosticsStore.stopRecording()
+                    }
                 }
             )) {
                 VStack(alignment: .leading) {
@@ -162,7 +166,6 @@ private struct ActivitySettingsSection: View {
             }
             .accessibilityIdentifier("setting-routingDiagnosticsEnabled")
         }
-        .accessibilityIdentifier("activity-settings")
     }
 }
 

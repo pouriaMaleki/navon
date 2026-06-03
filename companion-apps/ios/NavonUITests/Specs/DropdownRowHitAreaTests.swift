@@ -14,7 +14,7 @@ final class DropdownRowHitAreaTests: XCTestCase {
         whereTo.tap()
         whereTo.typeText("hel")
 
-        let row = app.otherElements["searchRow-0"]
+        let row = app.buttons["searchRow-0"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         // Tap close to the leading edge of the row — should still register.
         let edge = row.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.5))

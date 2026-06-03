@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 /// Result of asking the share-import classifier to follow a URL to a destination.
 enum UrlDestinationResolution {
@@ -7,20 +8,22 @@ enum UrlDestinationResolution {
     case networkError(String)
 }
 
-extension AppModel {
-    private struct RemotePageSummary {
-        let finalURL: URL
-        let pageTitle: String?
-        let coordinate: CoordinatePoint?
+/// Shared-import pipeline: URL resolution, file classification, Garmin course fetching, diagnostics.
+@MainActor
+final class ShareImportService: ObservableObject {
+    private weak var appModel: AppModel?
+
+    @Published var importActivityStatus: String?
+
+    init(appModel: AppModel) {
+        self.appModel = appModel
     }
 
-    /// Public entry point used by the in-app "Where to?" paste flow. Re-uses the same
-    /// canonicalisation, redirect-following, and coordinate extraction the share extension
-    /// already does, then surfaces a simple result type.
     func resolveDestinationFromUrl(
         _ urlString: String,
         using searchService: PlaceSearchService = MapKitPlaceSearchService()
     ) async -> UrlDestinationResolution {
+        guard let model = appModel else { return .noDestinationFound }
         let trimmed = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let parsed = URL(string: trimmed) else { return .noDestinationFound }
 
@@ -46,40 +49,44 @@ extension AppModel {
     }
 
     var importDiagnosticsEntries: [ImportDiagnosticsEntry] {
-        persistence.loadImportDiagnostics()
+        appModel?.persistence.loadImportDiagnostics() ?? []
     }
 
     func dismissImportDiagnosticsEntry(id: String) {
-        persistence.dismissImportDiagnosticsEntry(id: id)
-        notePersistenceChanged()
+        guard let model = appModel else { return }
+        model.persistence.dismissImportDiagnosticsEntry(id: id)
+        objectWillChange.send()
     }
 
     func retrySharedImport(_ entry: ImportDiagnosticsEntry, using searchService: PlaceSearchService = MapKitPlaceSearchService()) async {
+        guard let model = appModel else { return }
         var retriedEnvelope = entry.envelope
         retriedEnvelope.id = UUID().uuidString
         retriedEnvelope = markDebugPhase(retriedEnvelope, phase: "app.retry", outcome: "started")
-        await handleSharedImport(retriedEnvelope, using: searchService)
-        persistence.dismissImportDiagnosticsEntry(id: entry.id)
-        notePersistenceChanged()
+        await handleSharedImport(retriedEnvelope, using: searchService, model: model)
+        model.persistence.dismissImportDiagnosticsEntry(id: entry.id)
+        objectWillChange.send()
     }
 
     func consumePendingSharedImports(using searchService: PlaceSearchService = MapKitPlaceSearchService()) async {
+        guard let model = appModel else { return }
         let envelopes = SharedImportStore().drainQueue()
         guard !envelopes.isEmpty else { return }
         for envelope in envelopes {
-            await handleSharedImport(envelope, using: searchService)
+            await handleSharedImport(envelope, using: searchService, model: model)
         }
     }
 
     func ingestSharedImport(_ envelope: SharedImportEnvelope, using searchService: PlaceSearchService = MapKitPlaceSearchService()) async {
-        await handleSharedImport(envelope, using: searchService)
+        guard let model = appModel else { return }
+        await handleSharedImport(envelope, using: searchService, model: model)
     }
 
-    private func handleSharedImport(_ envelope: SharedImportEnvelope, using searchService: PlaceSearchService) async {
+    private func handleSharedImport(_ envelope: SharedImportEnvelope, using searchService: PlaceSearchService, model: AppModel) async {
         importActivityStatus = "Importing shared item…"
         defer { importActivityStatus = nil }
         var resolved = markDebugPhase(envelope, phase: "app.handle", outcome: "started")
-        resolved = await classifySharedImport(resolved, using: searchService)
+        resolved = await classifySharedImport(resolved, using: searchService, model: model)
         resolved = markDebugPhase(
             resolved,
             phase: "app.classify",
@@ -87,10 +94,10 @@ extension AppModel {
         )
         switch resolved.disposition {
         case .directHomePreview:
-            await resetCurrentRouteForSharedImport()
+            await model.routeHistoryService.resetCurrentRouteForHistoryActivation()
             if resolved.classification == .gpxFile, let filePath = resolved.storedFilePath {
                 importActivityStatus = "Importing shared route…"
-                await importSharedGpxFile(atPath: filePath, sourceLabel: resolved.sourceApplication ?? "Shared GPX", envelope: resolved)
+                await importSharedGpxFile(atPath: filePath, sourceLabel: resolved.sourceApplication ?? "Shared GPX", envelope: resolved, model: model)
             } else if let providerID = sharedFileProviderID(for: resolved), let filePath = resolved.storedFilePath {
                 importActivityStatus = "Importing \(providerID.displayName)…"
                 if let errorMessage = await importSharedSampleFile(
@@ -98,48 +105,34 @@ extension AppModel {
                     providerID: providerID,
                     preferredTitle: sharedImportTitle(for: resolved),
                     sourceLabel: sharedImportSourceLabel(for: resolved),
-                    envelope: resolved
+                    envelope: resolved,
+                    model: model
                 ) {
                     var diagnostic = resolved
                     diagnostic.disposition = .diagnosticsOnly
                     diagnostic.note = "\(providerID.displayName) import failed: \(errorMessage)"
                     diagnostic = markDebugPhase(diagnostic, phase: "app.sample-import", outcome: "failed:\(errorMessage)")
-                    saveImportDiagnostic(for: diagnostic)
+                    saveImportDiagnostic(for: diagnostic, model: model)
                 }
-            } else if let destination = await resolvedDestination(from: resolved, using: searchService) {
+            } else if let destination = await resolvedDestination(from: resolved, using: searchService, model: model) {
                 importActivityStatus = "Planning route to \(destination.title)…"
-                await planSharedDestinationImport(destination, from: resolved)
+                await planSharedDestinationImport(destination, from: resolved, model: model)
             } else {
                 let failed = markDebugPhase(resolved, phase: "app.resolve-destination", outcome: "no-coordinate")
-                saveImportDiagnostic(for: failed)
+                saveImportDiagnostic(for: failed, model: model)
             }
         case .routeDetailReview, .diagnosticsOnly:
-            saveImportDiagnostic(for: resolved)
+            saveImportDiagnostic(for: resolved, model: model)
         }
     }
 
-    private func resetCurrentRouteForSharedImport() async {
-        preview = RoutePreviewModel(alternatives: [], selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil)
-        if isDeviceConnected, activeSession.routeIdentifier != nil {
-            _ = await clearActiveRoute()
-        }
-        activeSession.routeIdentifier = nil
-        activeSession.routeRevision = nil
-        activeSession.destinationLabel = "No destination"
-        activeSession.destinationCoordinate = nil
-        activeSession.lastRerouteReason = nil
-        activeSession.lastRerouteTimestamp = nil
-        persistence.saveSession(activeSession)
-        refreshDiagnostics()
-    }
-
-    private func importSharedGpxFile(atPath path: String, sourceLabel: String, envelope: SharedImportEnvelope) async {
-        await importGpxFile(from: URL(fileURLWithPath: path))
-        if let item = recordPlannedPreview(source: .gpxImport, sourceLabel: sourceLabel) {
+    private func importSharedGpxFile(atPath path: String, sourceLabel: String, envelope: SharedImportEnvelope, model: AppModel) async {
+        await model.importGpxFile(from: URL(fileURLWithPath: path))
+        if let item = model.routeHistoryService.recordPlannedPreview(source: .gpxImport, sourceLabel: sourceLabel) {
             let debugTrail = (markDebugPhase(envelope, phase: "app.gpx-import", outcome: "preview-ready").debugTrail ?? []) + ["source=shared-gpx"]
-            savePendingHomeImportPresentation(item: item, debugTrail: debugTrail)
+            model.routeHistoryService.savePendingHomeImportPresentation(item: item, debugTrail: debugTrail)
         }
-        homePreviewRequestID = UUID()
+        model.homePreviewRequestID = UUID()
     }
 
     private func importSharedSampleFile(
@@ -147,49 +140,50 @@ extension AppModel {
         providerID: RouteProviderID,
         preferredTitle: String,
         sourceLabel: String,
-        envelope: SharedImportEnvelope
+        envelope: SharedImportEnvelope,
+        model: AppModel
     ) async -> String? {
         do {
-            try await importSampleFile(
+            try await model.importSampleFile(
                 from: URL(fileURLWithPath: path),
                 providerID: providerID,
                 preferredTitle: preferredTitle
             )
-            if let item = recordImportedPreview(title: preferredTitle, source: .shareImport, sourceLabel: sourceLabel) {
+            if let item = recordImportedPreview(title: preferredTitle, source: .shareImport, sourceLabel: sourceLabel, model: model) {
                 let debugTrail = (markDebugPhase(envelope, phase: "app.sample-import", outcome: "preview-ready").debugTrail ?? []) + ["source=shared-\(providerID.rawValue)"]
-                savePendingHomeImportPresentation(item: item, debugTrail: debugTrail)
+                model.routeHistoryService.savePendingHomeImportPresentation(item: item, debugTrail: debugTrail)
             }
-            homePreviewRequestID = UUID()
+            model.homePreviewRequestID = UUID()
             return nil
         } catch {
             return displayShareImportError(error)
         }
     }
 
-    private func planSharedDestinationImport(_ destination: DestinationSearchResult, from envelope: SharedImportEnvelope) async {
-        routeRequest = RoutePlanRequest(
-            origin: riderLocation,
+    private func planSharedDestinationImport(_ destination: DestinationSearchResult, from envelope: SharedImportEnvelope, model: AppModel) async {
+        model.routeRequest = RoutePlanRequest(
+            origin: model.locationService.bestLocation,
             destination: destination.coordinate,
-            providerID: currentSourceMode.primaryProviderID
+            providerID: model.currentSourceMode.primaryProviderID
         )
-        await planRoute(using: currentSourceMode, preferredTitle: destination.title)
-        recordRecentDestination(title: destination.title, coordinate: destination.coordinate)
+        await model.planRoute(using: model.currentSourceMode, preferredTitle: destination.title)
+        model.routeHistoryService.recordRecentDestination(title: destination.title, coordinate: destination.coordinate)
         let historySource: RouteHistorySource = envelope.classification == .googleMapsLocationLink ? .googleMaps : .shareImport
         let sourceLabel = envelope.classification == .googleMapsLocationLink ? "Google Maps" : "Shared"
-        if let item = recordImportedPreview(title: destination.title, source: historySource, sourceLabel: sourceLabel) {
+        if let item = recordImportedPreview(title: destination.title, source: historySource, sourceLabel: sourceLabel, model: model) {
             let debugTrail = markDebugPhase(
                 envelope,
                 phase: "app.destination-import",
-                outcome: "preview-ready:\(preview.alternatives.count)-alternatives"
+                outcome: "preview-ready:\(model.preview.alternatives.count)-alternatives"
             ).debugTrail ?? []
-            savePendingHomeImportPresentation(item: item, debugTrail: debugTrail)
+            model.routeHistoryService.savePendingHomeImportPresentation(item: item, debugTrail: debugTrail)
         }
-        homePreviewRequestID = UUID()
+        model.homePreviewRequestID = UUID()
     }
 
     @discardableResult
-    private func recordImportedPreview(title: String, source: RouteHistorySource, sourceLabel: String) -> RouteHistoryItem? {
-        guard let selected = preview.selectedAlternative?.normalizedPackage else { return nil }
+    private func recordImportedPreview(title: String, source: RouteHistorySource, sourceLabel: String, model: AppModel) -> RouteHistoryItem? {
+        guard let selected = model.preview.selectedAlternative?.normalizedPackage else { return nil }
         let item = RouteHistoryItem(
             id: selected.routeIdentifier,
             title: title,
@@ -201,21 +195,21 @@ extension AppModel {
             routePackage: selected,
             occurrenceCount: nil
         )
-        persistence.saveRouteHistoryItem(item)
-        notePersistenceChanged()
+        model.routeHistoryService.saveHistoryItem(item)
+        objectWillChange.send()
         return item
     }
 
-    private func saveImportDiagnostic(for envelope: SharedImportEnvelope) {
+    private func saveImportDiagnostic(for envelope: SharedImportEnvelope, model: AppModel) {
         let diagnosticEnvelope = markDebugPhase(envelope, phase: "app.diagnostics", outcome: "saved")
-        persistence.saveImportDiagnosticsEntry(
+        model.persistence.saveImportDiagnosticsEntry(
             ImportDiagnosticsEntry(
                 id: diagnosticEnvelope.id,
                 envelope: diagnosticEnvelope,
                 createdAt: Date()
             )
         )
-        notePersistenceChanged()
+        objectWillChange.send()
     }
 
     private func markDebugPhase(_ envelope: SharedImportEnvelope, phase: String, outcome: String) -> SharedImportEnvelope {
@@ -234,7 +228,7 @@ extension AppModel {
         return updated
     }
 
-    private func resolvedDestination(from envelope: SharedImportEnvelope, using searchService: PlaceSearchService) async -> DestinationSearchResult? {
+    private func resolvedDestination(from envelope: SharedImportEnvelope, using searchService: PlaceSearchService, model: AppModel) async -> DestinationSearchResult? {
         let coordinate = [envelope.originalText, envelope.originalURL]
             .compactMap { $0 }
             .compactMap { ShareImportUtilities.extractCoordinate(from: $0) }
@@ -254,14 +248,14 @@ extension AppModel {
         )
     }
 
-    private func classifySharedImport(_ envelope: SharedImportEnvelope, using searchService: PlaceSearchService) async -> SharedImportEnvelope {
+    private func classifySharedImport(_ envelope: SharedImportEnvelope, using searchService: PlaceSearchService, model: AppModel) async -> SharedImportEnvelope {
         if let resolvedFileEnvelope = classifySharedFileEnvelope(envelope) {
             return resolvedFileEnvelope
         }
 
         let payload = envelope.originalURL ?? envelope.originalText ?? ""
         if let urlString = ShareImportUtilities.extractURL(from: payload), let parsedURL = URL(string: urlString) {
-            if let resolvedURLImport = await resolveURLImport(envelope: envelope, parsedURL: parsedURL, using: searchService) {
+            if let resolvedURLImport = await resolveURLImport(envelope: envelope, parsedURL: parsedURL, using: searchService, model: model) {
                 return resolvedURLImport
             }
         }
@@ -309,7 +303,8 @@ extension AppModel {
     private func resolveURLImport(
         envelope: SharedImportEnvelope,
         parsedURL: URL,
-        using searchService: PlaceSearchService
+        using searchService: PlaceSearchService,
+        model: AppModel
     ) async -> SharedImportEnvelope? {
         let canonicalURL = ShareImportUtilities.canonicalSharedURL(parsedURL)
         let expandedURL = await ShareImportUtilities.expandedSharedURL(for: canonicalURL) ?? canonicalURL
@@ -335,7 +330,7 @@ extension AppModel {
 
         if resolved.classification == .googleMapsLocationLink {
             resolved.debugTrail?.append("url-classification=googleMapsLocationLink")
-            return await resolveGoogleMapsImport(resolved, url: resolvedURL, using: searchService)
+            return await resolveGoogleMapsImport(resolved, url: resolvedURL, using: searchService, model: model)
         }
 
         let garminCourseAttempt = await garminCourseFileEnvelope(from: resolvedURL, envelope: resolved)
@@ -350,7 +345,8 @@ extension AppModel {
                 resolved,
                 coordinate: coordinate,
                 using: searchService,
-                fallbackTitle: nil
+                fallbackTitle: nil,
+                model: model
             )
         }
 
@@ -384,7 +380,8 @@ extension AppModel {
                 resolved,
                 coordinate: remoteCoordinate,
                 using: searchService,
-                fallbackTitle: remotePage?.pageTitle
+                fallbackTitle: remotePage?.pageTitle,
+                model: model
             )
         }
 
@@ -398,7 +395,8 @@ extension AppModel {
     private func resolveGoogleMapsImport(
         _ envelope: SharedImportEnvelope,
         url: URL,
-        using searchService: PlaceSearchService
+        using searchService: PlaceSearchService,
+        model: AppModel
     ) async -> SharedImportEnvelope {
         var resolved = envelope
 
@@ -408,7 +406,8 @@ extension AppModel {
                 resolved,
                 coordinate: coordinate,
                 using: searchService,
-                fallbackTitle: ShareImportUtilities.googleMapsQueryTitle(from: url) ?? extractedTitle(from: resolved)
+                fallbackTitle: ShareImportUtilities.googleMapsQueryTitle(from: url) ?? extractedTitle(from: resolved),
+                model: model
             )
         }
 
@@ -446,7 +445,8 @@ extension AppModel {
         _ envelope: SharedImportEnvelope,
         coordinate: CoordinatePoint,
         using searchService: PlaceSearchService,
-        fallbackTitle: String?
+        fallbackTitle: String?,
+        model: AppModel
     ) async -> SharedImportEnvelope {
         let fallback = fallbackTitle ?? sharedImportTitle(for: envelope)
         let resolvedDestination = await searchService.resolveDestination(
@@ -703,5 +703,4 @@ extension AppModel {
         ]
         return (resolved, extraDebug)
     }
-
 }

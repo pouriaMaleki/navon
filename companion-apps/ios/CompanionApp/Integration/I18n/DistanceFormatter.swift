@@ -14,34 +14,24 @@ enum DistanceFormatter {
         Int((n / 10.0).rounded()) * 10
     }
 
-    /// Cue-engine helper: produce the ICU placeholder bundle for a
-    /// distance voice cue. In metric mode emits `(50, "meters")`; in
-    /// imperial mode converts to feet and rounds.
-    static func cueValues(meters: Double, mode: DistanceMode) -> [String: MessageValue] {
+    static func cueDistanceAndUnit(meters: Double, mode: DistanceMode) -> (distance: Double, unit: String) {
         switch mode {
         case .imperial:
-            return [
-                "distance": .number(Double(roundTo10(meters * ftPerM))),
-                "distanceUnit": .string("feet"),
-            ]
+            return (Double(roundTo10(meters * ftPerM)), "feet")
         case .metric:
             if meters >= kmThresholdM {
-                let km = (meters / 100.0).rounded() / 10.0 // one decimal
-                return [
-                    "distance": .number(km),
-                    "distanceUnit": .string("kilometers"),
-                ]
+                let km = (meters / 100.0).rounded() / 10.0
+                return (km, "kilometers")
             }
-            return [
-                "distance": .number(Double(roundTo10(meters))),
-                "distanceUnit": .string("meters"),
-            ]
+            return (Double(roundTo10(meters)), "meters")
         }
     }
 
-    /// UI helper: produce a "8.6 km" / "5.4 mi" label for arbitrary
-    /// distances, choosing meters/feet for short ones and km/mi above
-    /// ~1 unit.
+    static func cueValues(meters: Double, mode: DistanceMode) -> [String: MessageValue] {
+        let pair = cueDistanceAndUnit(meters: meters, mode: mode)
+        return ["distance": .number(pair.distance), "distanceUnit": .string(pair.unit)]
+    }
+
     static func label(meters: Double, mode: DistanceMode) -> String {
         switch mode {
         case .imperial:

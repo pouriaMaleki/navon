@@ -486,14 +486,14 @@ final class CameraModeTests: XCTestCase {
         let rider = pkg.geometry[0]
         // Heading north (0°) — the camera center should be NORTH of the rider
         // so the rider visually sits below it (bottom-quarter when rendered).
-        let center = vm.cameraCenterCoordinate(rider: rider, headingDegrees: 0.0)
+        let center = CameraMath.cameraCenterCoordinate(rider: rider, headingDegrees: 0.0, cameraDistanceM: 1200)
         XCTAssertGreaterThan(
             center.latitude,
             rider.latitude,
             "camera center for north-heading must be north of the rider so rider renders in the bottom quarter"
         )
         // Heading east (90°) — center should be EAST of rider.
-        let centerEast = vm.cameraCenterCoordinate(rider: rider, headingDegrees: 90.0)
+        let centerEast = CameraMath.cameraCenterCoordinate(rider: rider, headingDegrees: 90.0, cameraDistanceM: 1200)
         XCTAssertGreaterThan(
             centerEast.longitude,
             rider.longitude,

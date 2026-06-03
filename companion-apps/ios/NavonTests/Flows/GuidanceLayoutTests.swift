@@ -128,18 +128,18 @@ final class GuidanceLayoutTests: XCTestCase {
         // phantom route polyline, no stale destination in the search bar.
         let vm = await vmInGuidance(destinationLabel: "Ensi linja 1")
         // Simulate having typed the destination in the search bar.
-        vm.query = "Ensi linja 1"
+        vm.searchController.query = "Ensi linja 1"
         XCTAssertNotNil(vm.selectedPreview, "preview must have a selected alternative during guidance")
 
         let arrivalPoint = CoordinatePoint(latitude: dest.latitude - 0.00005, longitude: dest.longitude)
         vm.ingestRiderLocationFix(arrivalPoint, timestampMs: 1000)
 
         for _ in 0..<10 where vm.homeMode != .planning { await Task.yield() }
-        for _ in 0..<10 where !vm.query.isEmpty { await Task.yield() }
+        for _ in 0..<10 where !vm.searchController.query.isEmpty { await Task.yield() }
 
         XCTAssertTrue(
-            vm.query.isEmpty,
-            "query must be cleared after arrival — got '\(vm.query)'"
+            vm.searchController.query.isEmpty,
+            "query must be cleared after arrival — got '\(vm.searchController.query)'"
         )
         XCTAssertNil(
             vm.selectedPreview,

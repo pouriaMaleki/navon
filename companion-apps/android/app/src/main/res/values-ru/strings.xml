@@ -46,6 +46,9 @@
     <string name="cue_turn50m_slightRight" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните направо</string>
     <string name="cue_turn50m_uturn" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сделайте разворот</string>
     <string name="cue_turn50mCombined" formatted="false">На {distance, number} {distanceUnit, select, meters {метров} feet {футов} other {метров}}, {first, select, left {поверните налево} right {поверните направо} exitLeft {сверните на левый съезд} exitRight {сверните на правый съезд} uturn {сделайте разворот} roundabout {въезжайте на круговое движение} merge {вливайтесь} ramp {съезжайте на съезд} other {следуйте по маршруту}} затем быстро {second, select, left {налево} right {направо} exitLeft {на левый съезд} exitRight {на правый съезд} uturn {U-turn} roundabout {на круговое движение} merge {вливайтесь} ramp {на съезд} other {вперед}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
+    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
+    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} до {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Очистить пункт назначения</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">Закрыть сообщение о прибытии</string>
@@ -56,14 +59,22 @@
     <string name="home_a11y_recenterMap" formatted="false">Центрировать карту</string>
     <string name="home_a11y_settings" formatted="false">Настройки</string>
     <string name="home_continueOnCurrentRoute" formatted="false">Продолжить по текущему маршруту</string>
+    <string name="home_distanceKm" formatted="false">{km, number} km</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
     <string name="home_importedRoute" formatted="false">Импортированный маршрут</string>
     <string name="home_iosLocationHint" formatted="false">Откройте iOS «Настройки» → «Конфиденциальность» → «Геолокация», чтобы переключить это приложение на «Всегда».</string>
     <string name="home_linkFailed" formatted="false">Не удалось открыть эту ссылку</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
     <string name="home_noSuggestions" formatted="false">Пока нет подсказок…</string>
+    <string name="home_offRoute" formatted="false">Off route</string>
     <string name="home_openSettings" formatted="false">Настройки</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
     <string name="home_platformHint_locationDefault" formatted="false">У вас запросят разрешение на определение местоположения. Разрешите, чтобы навигация продолжала отслеживать вашу позицию, пока приложение работает в фоне.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">Safari на iPhone не может передавать GPS в фоновом режиме, подсказки на экране блокировки или аудиосигналы, пока вкладка скрыта. Для реальной навигации в фоне установите нативное приложение для iOS.</string>
     <string name="home_recenter" formatted="false">В центр</string>
+    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
+    <string name="home_rerouting" formatted="false">Rerouting…</string>
     <string name="home_resolvingLink" formatted="false">Переход по ссылке…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Переходим по ссылке к пункту назначения. Это может занять пару секунд.</string>
     <string name="home_routeActiveOnDevice" formatted="false">Маршрут активен на устройстве</string>
@@ -83,9 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">Повторить импорт</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Поделиться отладочным пакетом</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Диагностика импорта Navon</string>
+    <string name="maneuver_arrive" formatted="false">Arrive</string>
+    <string name="maneuver_continue" formatted="false">Continue</string>
     <string name="pairing_alignQr" formatted="false">Выровняйте QR-код в кадре</string>
     <string name="pairing_cameraDenied" formatted="false">Для сканирования кода сопряжения требуется доступ к камере.</string>
     <string name="pairing_cancel" formatted="false">Отмена</string>
+    <string name="pairing_connecting" formatted="false">Connecting…</string>
     <string name="pairing_failed" formatted="false">Сопряжение не удалось</string>
     <string name="pairing_intro" formatted="false">Поднесите телефон так, чтобы экран устройства был в кадре, затем нажмите «Начать», когда увидите QR-код.</string>
     <string name="pairing_openSettings" formatted="false">Открыть настройки</string>

@@ -9,6 +9,8 @@ struct NavonApp: App {
         WindowGroup {
             CompanionRootView(homeViewModel: HomeViewModel(appModel: appModel))
                 .environmentObject(appModel)
+                .environmentObject(appModel.routeHistoryService)
+                .environmentObject(appModel.shareImportService)
                 // RTL support. SwiftUI flips horizontal stacks, paddings,
                 // chevrons, etc. once `layoutDirection` is set on the
                 // root view. Keying off `appModel.settings.language`
@@ -20,18 +22,18 @@ struct NavonApp: App {
                     T.resolveLocale(appModel.settings.language).isRtl ? .rightToLeft : .leftToRight
                 )
                 .task {
-                    await appModel.consumePendingSharedImports()
+                    await appModel.shareImportService.consumePendingSharedImports()
                 }
                 .onOpenURL { _ in
                     Task {
-                        await appModel.consumePendingSharedImports()
+                        await appModel.shareImportService.consumePendingSharedImports()
                     }
                 }
                 .onChange(of: scenePhase) { _, newValue in
                     switch newValue {
                     case .active:
                         appModel.handleApplicationLifecycleEnteredForeground()
-                        Task { await appModel.consumePendingSharedImports() }
+                        Task { await appModel.shareImportService.consumePendingSharedImports() }
                     case .background:
                         appModel.handleApplicationLifecycleEnteredBackground()
                     case .inactive:

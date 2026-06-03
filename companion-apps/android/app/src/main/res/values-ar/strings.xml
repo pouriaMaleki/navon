@@ -46,6 +46,9 @@
     <string name="cue_turn50m_slightRight" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، انعطف يمينًا</string>
     <string name="cue_turn50m_uturn" formatted="false">بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، قم بعمل انعطاف U</string>
     <string name="cue_turn50mCombined" formatted="false">عند {distance, number} {distanceUnit, select, meters {متر} feet {قدم} other {متر}}، {first, select, left {انعطف يسارًا} right {انعطف يمينًا} exitLeft {خذ المخرج الأيسر} exitRight {خذ المخرج الأيمن} uturn {قم بعمل U-turn} roundabout {ادخل الدوّار} merge {ادمج} ramp {خذ المنحدر} other {اتبع المسار}} ثم بسرعة {second, select, left {يسارًا} right {يمينًا} exitLeft {المخرج الأيسر} exitRight {المخرج الأيمن} uturn {U-turn} roundabout {الدوّار} merge {ادمج} ramp {المنحدر} other {إلى الأمام}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
+    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
+    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} إلى {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">مسح الوجهة</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">إغلاق رسالة الوصول</string>
@@ -56,14 +59,22 @@
     <string name="home_a11y_recenterMap" formatted="false">أعد توسيط الخريطة</string>
     <string name="home_a11y_settings" formatted="false">الإعدادات</string>
     <string name="home_continueOnCurrentRoute" formatted="false">تابع المسار الحالي</string>
+    <string name="home_distanceKm" formatted="false">{km, number} km</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
     <string name="home_importedRoute" formatted="false">تمت استيراد المسار</string>
     <string name="home_iosLocationHint" formatted="false">افتح إعدادات iOS → الخصوصية → الموقع لتبديل هذا التطبيق إلى \"دائمًا\".</string>
     <string name="home_linkFailed" formatted="false">تعذّر فتح هذا الرابط</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
     <string name="home_noSuggestions" formatted="false">لا توجد اقتراحات بعد…</string>
+    <string name="home_offRoute" formatted="false">Off route</string>
     <string name="home_openSettings" formatted="false">الإعدادات</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
     <string name="home_platformHint_locationDefault" formatted="false">سيُطلب منك إذن الموقع. اسمح بذلك حتى تستمر الإرشادات في تتبّع موقعك أثناء بقاء التطبيق في الخلفية.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">لا يمكن لـ Safari على iPhone تقديم GPS في الخلفية أو إرشادات شاشة القفل أو تلميحات صوتية أثناء إخفاء علامة التبويب. للحصول على توجيه في الخلفية بشكل حقيقي، ثبّت تطبيق iOS الأصلي.</string>
     <string name="home_recenter" formatted="false">أعد التمركز</string>
+    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
+    <string name="home_rerouting" formatted="false">Rerouting…</string>
     <string name="home_resolvingLink" formatted="false">جارٍ حلّ الرابط…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">متابعة الرابط إلى وجهة. قد يستغرق ذلك بضع ثوانٍ.</string>
     <string name="home_routeActiveOnDevice" formatted="false">المسار نشط على الجهاز</string>
@@ -83,9 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">إعادة محاولة الاستيراد</string>
     <string name="importDiagnostics_sharePackage" formatted="false">مشاركة حزمة التصحيح</string>
     <string name="importDiagnostics_shareSubject" formatted="false">تشخيصات استيراد Navon</string>
+    <string name="maneuver_arrive" formatted="false">Arrive</string>
+    <string name="maneuver_continue" formatted="false">Continue</string>
     <string name="pairing_alignQr" formatted="false">قم بمحاذاة رمز QR داخل الإطار</string>
     <string name="pairing_cameraDenied" formatted="false">يُطلب الوصول إلى الكاميرا لمسح رمز الاقتران.</string>
     <string name="pairing_cancel" formatted="false">إلغاء</string>
+    <string name="pairing_connecting" formatted="false">Connecting…</string>
     <string name="pairing_failed" formatted="false">فشل الاقتران</string>
     <string name="pairing_intro" formatted="false">أبقِ هاتفك بحيث تكون شاشة الجهاز داخل الإطار، ثم اضغط على ابدأ عندما ترى رمز QR.</string>
     <string name="pairing_openSettings" formatted="false">فتح الإعدادات</string>

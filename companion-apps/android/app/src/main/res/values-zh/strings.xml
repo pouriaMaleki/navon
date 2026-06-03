@@ -46,6 +46,9 @@
     <string name="cue_turn50m_slightRight" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，右转</string>
     <string name="cue_turn50m_uturn" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，掉头</string>
     <string name="cue_turn50mCombined" formatted="false">在 {distance, number} {distanceUnit, select, meters {米} feet {英尺} other {米}} 处，{first, select, left {向左转} right {向右转} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶上匝道} other {沿路线前行}}，然后迅速 {second, select, left {向左} right {向右} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶上匝道} other {继续前行}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
+    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
+    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
     <string name="guidance_distanceToDestination" formatted="false">到 {destination} 还需 {distance, number} {distanceUnit, select, km {km} mi {mi} other {km}}</string>
     <string name="home_a11y_clearDestination" formatted="false">清除目的地</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">关闭到达消息</string>
@@ -56,14 +59,22 @@
     <string name="home_a11y_recenterMap" formatted="false">重新定位地图</string>
     <string name="home_a11y_settings" formatted="false">设置</string>
     <string name="home_continueOnCurrentRoute" formatted="false">继续沿当前路线</string>
+    <string name="home_distanceKm" formatted="false">{km, number} km</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
     <string name="home_importedRoute" formatted="false">已导入的路线</string>
     <string name="home_iosLocationHint" formatted="false">打开 iOS 设置 → 隐私 → 位置，将此应用切换为“始终”。</string>
     <string name="home_linkFailed" formatted="false">无法打开该链接</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
     <string name="home_noSuggestions" formatted="false">暂无建议…</string>
+    <string name="home_offRoute" formatted="false">Off route</string>
     <string name="home_openSettings" formatted="false">设置</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
     <string name="home_platformHint_locationDefault" formatted="false">系统会请求定位权限。允许它，这样在应用处于后台时，导航仍会持续跟踪你的当前位置。</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">iPhone 上的 Safari 无法在后台提供 GPS、锁屏导航或音频提示；当标签页被隐藏时尤其如此。要实现真正的后台路线导航，请安装原生 iOS 应用。</string>
     <string name="home_recenter" formatted="false">重新居中</string>
+    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
+    <string name="home_rerouting" formatted="false">Rerouting…</string>
     <string name="home_resolvingLink" formatted="false">正在解析链接…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">正在跟随该链接到目的地。可能需要几秒钟。</string>
     <string name="home_routeActiveOnDevice" formatted="false">设备上已启用路线</string>
@@ -83,9 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">重试导入</string>
     <string name="importDiagnostics_sharePackage" formatted="false">分享调试包</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Navon 导入诊断信息</string>
+    <string name="maneuver_arrive" formatted="false">Arrive</string>
+    <string name="maneuver_continue" formatted="false">Continue</string>
     <string name="pairing_alignQr" formatted="false">将二维码对准画面</string>
     <string name="pairing_cameraDenied" formatted="false">需要相机权限才能扫描配对代码。</string>
     <string name="pairing_cancel" formatted="false">取消</string>
+    <string name="pairing_connecting" formatted="false">Connecting…</string>
     <string name="pairing_failed" formatted="false">配对失败</string>
     <string name="pairing_intro" formatted="false">将手机对准设备屏幕，使其出现在画面中，然后在看到二维码时点击“开始”。</string>
     <string name="pairing_openSettings" formatted="false">打开设置</string>

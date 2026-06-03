@@ -60,10 +60,10 @@ final class DeviceStatusChipStateTests: XCTestCase {
         // but the VM tap handler must still be safe if called externally
         // (avoids a regression where an unrelated caller wakes the pair flow).
         let (vm, appModel, fake) = makeViewModel(seedRecord: nil, connectionState: .disconnected)
-        XCTAssertEqual(appModel.pairingState, .idle)
+        XCTAssertEqual(appModel.deviceManager.pairingState, .idle)
         vm.handleDeviceChipTap()
         await Task.yield()
-        XCTAssertEqual(appModel.pairingState, .idle)
+        XCTAssertEqual(appModel.deviceManager.pairingState, .idle)
         XCTAssertEqual(fake.scanCallCount + fake.connectToPairedCallCount, 0)
     }
 
@@ -112,7 +112,7 @@ final class DeviceStatusChipStateTests: XCTestCase {
         XCTAssertFalse(vmGoing.showConnectionPopover)
         vmGoing.handleDeviceChipTap()
         XCTAssertFalse(vmGoing.showConnectionPopover)
-        XCTAssertEqual(appModelG.pairingState, .idle)
+        XCTAssertEqual(appModelG.deviceManager.pairingState, .idle)
         XCTAssertEqual(fakeG.scanCallCount + fakeG.connectToPairedCallCount, 0)
     }
 }

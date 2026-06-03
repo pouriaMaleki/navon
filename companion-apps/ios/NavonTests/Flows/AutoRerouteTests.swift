@@ -68,7 +68,7 @@ final class AutoRerouteTests: XCTestCase {
         // would, plus stash the destination on the routeRequest so the
         // test doesn't depend on a real destination search.
         await vm.startSelectedRoute()
-        app.activeSession.destinationCoordinate = pkg.geometry.last
+        app.sessionManager.session.destinationCoordinate = pkg.geometry.last
         return (app, vm)
     }
 
@@ -89,11 +89,11 @@ final class AutoRerouteTests: XCTestCase {
         await vm.pendingAutoRerouteTask?.value
 
         XCTAssertNotNil(
-            app.activeSession.lastRerouteReason,
+            app.sessionManager.session.lastRerouteReason,
             "off-route dwell should have triggered AppModel.rerouteActiveSession, but lastRerouteReason was nil — only the audio cue plays today"
         )
         XCTAssertNotNil(
-            app.activeSession.lastRerouteTimestamp,
+            app.sessionManager.session.lastRerouteTimestamp,
             "auto-reroute must record a timestamp so subsequent off-route episodes don't double-fire"
         )
     }
@@ -124,7 +124,7 @@ final class AutoRerouteTests: XCTestCase {
         await Task.yield()
 
         XCTAssertFalse(app.isRoutingInProgress, "isRoutingInProgress must be false")
-        XCTAssertNil(app.activeSession.routeIdentifier, "routeIdentifier must be cleared")
+        XCTAssertNil(app.sessionManager.session.routeIdentifier, "routeIdentifier must be cleared")
         XCTAssertFalse(vm.offRoute, "offRoute must be reset")
         XCTAssertEqual(vm.offRouteDistanceM, 0, "offRouteDistanceM must be reset")
         XCTAssertFalse(vm.rerouteRequested, "rerouteRequested must be reset")
@@ -166,7 +166,7 @@ final class AutoRerouteTests: XCTestCase {
         vm.ingestRiderLocationFix(drifted, timestampMs: 0)
         vm.ingestRiderLocationFix(drifted, timestampMs: 3000)
         await vm.pendingAutoRerouteTask?.value
-        let firstStamp = app.activeSession.lastRerouteTimestamp
+        let firstStamp = app.sessionManager.session.lastRerouteTimestamp
         XCTAssertNotNil(firstStamp)
 
         // Keep riding off-route. Another sustained dwell should trigger
@@ -175,7 +175,7 @@ final class AutoRerouteTests: XCTestCase {
         vm.ingestRiderLocationFix(drifted, timestampMs: 6000)
         await vm.pendingAutoRerouteTask?.value
         XCTAssertNotEqual(
-            app.activeSession.lastRerouteTimestamp, firstStamp,
+            app.sessionManager.session.lastRerouteTimestamp, firstStamp,
             "sustained off-route after a reroute must still permit another reroute attempt"
         )
     }

@@ -1,11 +1,6 @@
 import Foundation
 
-/// OSM cycling routing orchestrator. Issues parallel requests to BRouter
-/// (`fastbike` paths-preferred + `trekking` balanced) AND OSRM bike, then
-/// exposes whichever succeed as 1-3 alternatives in the route preview.
-///
-/// Mirrors the web companion's `OsmCyclingRoutingAdapter.ts` byte-for-byte
-/// in semantics. See `docs/companion-app-architecture.md`.
+/// Fans out to BRouter (fastbike + trekking) and OSRM in parallel, exposing whichever succeed as alternatives.
 struct OsmCyclingRoutingAdapter: RoutingProvider {
     let providerID: RouteProviderID = .osm
     let isAvailableInV1: Bool = true
@@ -55,20 +50,20 @@ struct OsmCyclingRoutingAdapter: RoutingProvider {
             let fallback = (try? await sample.planRoute(request)) ?? RoutePreviewModel(
                 alternatives: [], selectedAlternativeID: nil,
                 routeIdentifier: nil, routeRevision: nil,
-                planningNotice: "Showing sample route — live routing failed"
+                planningNotice: T.string("cycling.sampleFallback")
             )
             return RoutePreviewModel(
                 alternatives: fallback.alternatives,
                 selectedAlternativeID: fallback.selectedAlternativeID,
                 routeIdentifier: fallback.routeIdentifier,
                 routeRevision: fallback.routeRevision,
-                planningNotice: "Showing sample route — live routing failed"
+                planningNotice: T.string("cycling.sampleFallback")
             )
         }
         let failedCount = results.count - deduped.count
         let notice = failedCount == 0
-            ? "Cycling alternatives via BRouter + OSRM"
-            : "Cycling alternatives — \(failedCount) source\(failedCount == 1 ? "" : "s") unavailable"
+            ? T.string("cycling.alternativesLive")
+            : T.string("cycling.alternativesPartial", ["count": .number(Double(failedCount))])
         return RoutePreviewModel(
             alternatives: deduped,
             selectedAlternativeID: deduped.first?.id,
@@ -124,21 +119,16 @@ struct OsmCyclingRoutingAdapter: RoutingProvider {
         providerLabel: String
     ) -> CoordinatePoint {
         guard let heading = rerouteContext?.headingDegrees, heading.isFinite else {
-            print("[reroute_heading] provider=\(providerLabel) reason=no_heading")
             return riderLocation
         }
         guard let speed = rerouteContext?.speedMps, speed.isFinite, speed >= Self.minHeadingSpeedMps else {
-            let speedLog = rerouteContext?.speedMps.map { String($0) } ?? "nil"
-            print("[reroute_heading] provider=\(providerLabel) reason=low_speed speed=\(speedLog)")
             return riderLocation
         }
         let shifted = shiftPointByHeading(point: riderLocation, headingDegrees: heading, distanceMeters: Self.rerouteForwardShiftM)
         if !shifted.latitude.isFinite || !shifted.longitude.isFinite ||
             (shifted.latitude == riderLocation.latitude && shifted.longitude == riderLocation.longitude) {
-            print("[reroute_heading] provider=\(providerLabel) reason=shift_failed")
             return riderLocation
         }
-        print("[reroute_heading] provider=\(providerLabel) reason=applied")
         return shifted
     }
 

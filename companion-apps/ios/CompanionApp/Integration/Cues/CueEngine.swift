@@ -1,11 +1,5 @@
 import Foundation
 
-/// Audio-cue trigger engine. Pure data-in / data-out — consumed by the
-/// wiring layer which assembles a `CueSnapshot` each guidance tick and
-/// routes resulting events to a `SpeechPort`.
-///
-/// Spec: docs/ux-specs.md lines 133-143.
-
 enum ManeuverKind {
     case left, right
     case slightLeft, slightRight
@@ -31,7 +25,6 @@ struct CueSnapshot {
     let routeId: String?
     let pairedWithDevice: Bool
     let progressDistanceM: Double
-    /// Excluding depart/arrive; ordered by distanceFromStartM ascending.
     let maneuvers: [CueManeuver]
     let offRoute: Bool
     let rerouting: Bool
@@ -42,12 +35,6 @@ struct CueSnapshot {
 
 enum CueEvent: Equatable {
     case turn50m(ManeuverKind, distanceM: Double, followUpKind: ManeuverKind? = nil)
-    /// Immediate-action 10 m cue. `followUpKind` is set when the next
-    /// maneuver is within `backToBackThresholdM` of this one — covers the
-    /// sparse-GPS / fast-cycling case where the 50 m combined cue was
-    /// missed because the first in-range tick already landed inside 15 m
-    /// of M1. Without this fold, the rider hears only "turn <first>" with
-    /// no mention of the immediately-following turn.
     case turn10m(ManeuverKind, followUpKind: ManeuverKind? = nil)
     case nextTurnInAbout(turnKind: ManeuverKind, distanceM: Double)
     case arrivingInM(distanceM: Double)
@@ -72,50 +59,24 @@ struct CueEngineState: Equatable {
     var silenced: Bool = false
     var consecutiveOnRouteSamples: Int = 0
     var onTrackAnnounced: Bool = false
-    /// Number of rerouting cues that have fired (counts rising edges).
-    /// Persists across route id changes — every successful reroute issues a
-    /// new route id, so resetting on route id would defeat the cue cap.
-    /// Reset only when the rider is confirmed on-track for
-    /// `onTrackConfirmSamples` consecutive ticks.
     var reroutingEpisodeCount: Int = 0
-    /// Number of consecutive off-route ticks. Resets on any on-route tick.
-    /// offTrack only fires after `offRouteHysteresisTicks` consecutive.
     var offRouteTickCount: Int = 0
 }
 
 enum CueEngine {
     private static let approach50M = 50.0
     private static let approach10M = 15.0
-    /// When the next turn is closer than this at the time of nextTurnInAbout,
-    /// pre-latch turn50m so it never fires. The rider has already been told
-    /// the turn is near; a redundant "in 50 m" before they can react is jarring.
     private static let skip50mBelowDistanceM = 100.0
     private static let passedTurnM = 10.0
     private static let onTrackConfirmSamples = 5
     private static let onTrackCorridorM = 22.0
     private static let repeatOffTrackSilenceThreshold = 2
-    /// Require this many consecutive off-route ticks before firing offTrack.
-    /// Prevents momentary GPS blips from triggering false off-track alerts.
     private static let offRouteHysteresisTicks = 3
-    /// When the rider is this far from the route, skip hysteresis — they're genuinely lost.
     private static let offRouteImmediateDistanceM = 50.0
-    /// Cap on rerouting audio cues per "off-route session". After this many
-    /// fires, stay silent until the rider is confirmed on-track.
     private static let reroutingCueCap = 2
-    /// Two maneuvers separated by less than this fold into a single
-    /// "turn X then quickly Y" cue. Mirrors web's BACK_TO_BACK_THRESHOLD_M.
-    /// 30 m matches the spec phrase "then quickly" — at cycling speeds
-    /// that's ~4-7 s apart, the only window where coalescing two turns
-    /// into one cue actually feels natural. 50 m / 80 m both let
-    /// genuinely separate maneuvers ride along on a combined cue, which
-    /// the rider then misperceives as the routing engine inventing
-    /// turns that aren't really there.
-    private static let backToBackThresholdM = 30.0
-    /// If the last cue maneuver sits within this distance of the route
-    /// end, approaching it is indistinguishable from arriving: substitute
-    /// `arrivingInM` for any `nextTurnInAbout` or approach cues so the
-    /// rider hears "arriving in Xm" rather than a phantom turn command.
+    static let backToBackThresholdM = 30.0
     private static let closeToDestinationM = 30.0
+
     struct Result {
         let events: [CueEvent]
         let nextState: CueEngineState
@@ -125,311 +86,281 @@ enum CueEngine {
         if snapshot.pairedWithDevice {
             return Result(events: [], nextState: state)
         }
-
-        var s: CueEngineState
-        if snapshot.routeId != state.lastRouteId {
-            // Persist rerouting silence across route id changes — every
-            // successful reroute issues a new route id, so resetting here
-            // would defeat the cue cap.
-            s = CueEngineState(lastRouteId: snapshot.routeId)
-            s.reroutingEpisodeCount = state.reroutingEpisodeCount
-        } else {
-            s = state
-        }
-
+        var s = resetStateIfRouteChanged(snapshot, state)
         var events: [CueEvent] = []
 
-        // First-tick announcement (replaces "Route started"). User-feedback:
-        // "Route started" was useless — replace with the actual next-turn
-        // announcement so the first sound the rider hears is what they need
-        // to plan for.
-        //
-        // Three sub-cases on this tick when the route just started:
-        //   A) First turn is FAR (> 50 m): emit `nextTurnInAbout` as an
-        //      orientation cue ("Next turn left in about 200 meters").
-        //   B) First turn is IMMINENT and stands alone (no back-to-back
-        //      follow-up within ~30 m): SKIP every announce; let the
-        //      10 m approach block speak the single "Turn left" cue
-        //      when the rider actually reaches it. User feedback: a
-        //      route starting 15 m from a turn used to fire next-turn
-        //      + 50 m + 10 m back-to-back — three cues for one turn,
-        //      with disagreeing distances.
-        //   C) First turn is IMMINENT and has a back-to-back companion
-        //      within ~30 m: skip the orientation cue, let the 50 m
-        //      block emit the combined "in X meters turn left then
-        //      quickly right" cue with the ACTUAL distance. That's
-        //      the only way to warn the rider about TWO close turns
-        //      in one breath, so it stays.
-        if snapshot.routeId != nil, !s.routeStartedAnnounced {
-            if let firstNonDepart = snapshot.maneuvers.first(where: {
-                $0.distanceFromStartM - snapshot.progressDistanceM >= 0
-            }) {
-                let distanceM = firstNonDepart.distanceFromStartM - snapshot.progressDistanceM
-                if distanceM > Self.approach50M {
-                    // Case A — orientation cue.
-                    // Bug 1: if firstNonDepart is the last cue maneuver AND very
-                    // close to the route end, announce "arriving" instead of a
-                    // phantom turn direction.
-                    let firstIdx = snapshot.maneuvers.firstIndex { $0.id == firstNonDepart.id } ?? -1
-                    let isLastManeuver = firstIdx == snapshot.maneuvers.count - 1
-                    let distToEnd = snapshot.routeTotalDistanceM - firstNonDepart.distanceFromStartM
-                    if isLastManeuver && distToEnd < Self.closeToDestinationM {
-                        if !s.approachingDestinationAnnounced {
-                            events.append(.arrivingInM(distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM))
-                            s.approachingDestinationAnnounced = true
-                            s.announced50m.insert(firstNonDepart.id)
-                            s.announced10m.insert(firstNonDepart.id)
-                        }
-                    } else {
-                        events.append(.nextTurnInAbout(turnKind: firstNonDepart.kind, distanceM: distanceM))
-                        // Pre-latch turn50m when the first turn is already close: the rider
-                        // has the orientation cue; a redundant "in 50 m" a few seconds later
-                        // would be jarring before they can even react to the first.
-                        if distanceM < Self.skip50mBelowDistanceM {
-                            s.announced50m.insert(firstNonDepart.id)
-                        }
-                    }
-                } else {
-                    // Case B vs. C — peek at the follow-up gap.
-                    let upcomingIdx = snapshot.maneuvers.firstIndex(where: { $0.id == firstNonDepart.id }) ?? -1
-                    let follow = (upcomingIdx >= 0 && upcomingIdx + 1 < snapshot.maneuvers.count)
-                        ? snapshot.maneuvers[upcomingIdx + 1] : nil
-                    let gap = follow.map { $0.distanceFromStartM - firstNonDepart.distanceFromStartM } ?? .infinity
-                    if let follow = follow, gap <= Self.backToBackThresholdM {
-                        // Case C: emit the combined cue here directly
-                        // with the actual distance. The regular 50 m
-                        // block downstream gates on `d > approach10M`
-                        // (15 m) and would skip routes starting < 15 m
-                        // before a back-to-back pair, leaving the rider
-                        // with only `turn10m(first)` and no warning
-                        // about the second turn.
-                        // Bear kinds are excluded from the combined cue —
-                        events.append(.turn50m(firstNonDepart.kind, distanceM: distanceM, followUpKind: follow.kind))
-                        s.announced50m.insert(firstNonDepart.id)
-                        s.announced50m.insert(follow.id)
-                        s.announced10m.insert(firstNonDepart.id)
-                        s.announced10m.insert(follow.id)
-                        s.announcedNextTurnAfter.insert(firstNonDepart.id)
-                    } else {
-                        // Case B: pre-latch the 50 m cue so only the
-                        // 10 m action cue fires for this maneuver.
-                        s.announced50m.insert(firstNonDepart.id)
-                    }
-                }
-            }
-            s.routeStartedAnnounced = true
-        }
-
-        // Off-route hysteresis: count consecutive off-route ticks. Fire
-        // offTrack only after offRouteHysteresisTicks consecutive, or
-        // immediately when the rider is far from the route (genuinely lost,
-        // not a GPS blip).
-        var offRouteTickCount = s.offRouteTickCount
-        if snapshot.offRoute {
-            offRouteTickCount += 1
-        } else {
-            offRouteTickCount = 0
-        }
-
-        var offRouteEpisodeCount = s.offRouteEpisodeCount
-
-        let immediateOffTrack =
-            snapshot.offRoute
-            && snapshot.distanceFromRouteM > Self.offRouteImmediateDistanceM
-            && offRouteTickCount == 1
-        let hysteresisOffTrack =
-            snapshot.offRoute && offRouteTickCount == Self.offRouteHysteresisTicks
-        let offTrackFired = immediateOffTrack || hysteresisOffTrack
-
-        if offTrackFired { offRouteEpisodeCount += 1 }
-
-        var silenced = s.silenced
-        var onTrackAnnounced = s.onTrackAnnounced
-        var consecutiveOnRouteSamples = s.consecutiveOnRouteSamples
-
-        if !snapshot.offRoute && snapshot.distanceFromRouteM < Self.onTrackCorridorM {
-            consecutiveOnRouteSamples += 1
-        } else {
-            consecutiveOnRouteSamples = 0
-        }
-
-        var reroutingEpisodeCount = s.reroutingEpisodeCount
-
-        if silenced && consecutiveOnRouteSamples >= Self.onTrackConfirmSamples && !onTrackAnnounced {
-            events.append(.onTrack)
-            silenced = false
-            onTrackAnnounced = true
-            offRouteEpisodeCount = 0
-        }
-        if consecutiveOnRouteSamples >= Self.onTrackConfirmSamples {
-            reroutingEpisodeCount = 0
-        }
-
-        if offTrackFired && offRouteEpisodeCount > Self.repeatOffTrackSilenceThreshold && !silenced {
-            events.append(.repeatedOffTrackSilence)
-            silenced = true
-            onTrackAnnounced = false
-        } else if offTrackFired && !silenced {
-            events.append(.offTrack)
-        }
-
-        // Rerouting rising edge — capped at reroutingCueCap per off-route session.
-        let reroutingRose = !s.prevRerouting && snapshot.rerouting
-        if reroutingRose { reroutingEpisodeCount += 1 }
-        if reroutingRose && !silenced && reroutingEpisodeCount <= Self.reroutingCueCap {
-            events.append(.rerouting)
-        }
-
-        if !silenced && !snapshot.offRoute && !snapshot.rerouting && !snapshot.arrived {
-            var announced50m = s.announced50m
-            var announced10m = s.announced10m
-            var announcedNextTurnAfter = s.announcedNextTurnAfter
-            let upcoming = snapshot.maneuvers.first { $0.distanceFromStartM - snapshot.progressDistanceM >= 0 }
-            let upcomingDistance = upcoming.map { $0.distanceFromStartM - snapshot.progressDistanceM }
-
-            // Bug 2 fix: run the "after-passing" block FIRST so it can
-            // pre-latch announced50m before the 50m approach check. The old
-            // ordering let turn50m fire in the same tick as nextTurnInAbout
-            // for the identical maneuver, producing a back-to-back double cue.
-            let lastPassed = snapshot.maneuvers
-                .filter { snapshot.progressDistanceM - $0.distanceFromStartM >= Self.passedTurnM }
-                .max { $0.distanceFromStartM < $1.distanceFromStartM }
-            if let lastPassed = lastPassed, !announcedNextTurnAfter.contains(lastPassed.id) {
-                let indexOfLast = snapshot.maneuvers.firstIndex { $0.id == lastPassed.id } ?? -1
-                let nextAfter = (indexOfLast >= 0 && indexOfLast + 1 < snapshot.maneuvers.count)
-                    ? snapshot.maneuvers[indexOfLast + 1] : nil
-                if let nextAfter = nextAfter {
-                    let distanceToNext = nextAfter.distanceFromStartM - snapshot.progressDistanceM
-                    // Bug 1 fix: if nextAfter is the last cue maneuver and sits
-                    // within closeToDestinationM of the route end, the rider is
-                    // effectively arriving — emit arrivingInM and suppress all
-                    // approach cues for that maneuver so the phantom "turn X"
-                    // never plays.
-                    let isLastManeuver = indexOfLast + 1 == snapshot.maneuvers.count - 1
-                    let distNextToEnd = snapshot.routeTotalDistanceM - nextAfter.distanceFromStartM
-                    if distanceToNext <= 0 {
-                        // Rider already passed the next maneuver (GPS jump in one tick).
-                        if isLastManeuver && !s.approachingDestinationAnnounced && !snapshot.arrived {
-                            events.append(.arrivingInM(
-                                distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM
-                            ))
-                            s.approachingDestinationAnnounced = true
-                        }
-                        announcedNextTurnAfter.insert(lastPassed.id)
-                    } else if isLastManeuver && distNextToEnd < Self.closeToDestinationM {
-                        // Bug 4: when the rider has already crossed the
-                        // arrival radius, the dedicated `arrived` cue at
-                        // the bottom of this function is the right thing
-                        // to speak — emitting `arrivingInM` here too
-                        // produces a same-tick double cue with
-                        // disagreeing distances ("Arriving in 5 m" →
-                        // "You have arrived").
-                        if !s.approachingDestinationAnnounced && !snapshot.arrived {
-                            events.append(.arrivingInM(
-                                distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM
-                            ))
-                            s.approachingDestinationAnnounced = true
-                            announcedNextTurnAfter.insert(lastPassed.id)
-                            announced50m.insert(nextAfter.id)
-                            announced10m.insert(nextAfter.id)
-                        }
-                    } else if distanceToNext > Self.approach50M {
-                        events.append(.nextTurnInAbout(
-                            turnKind: nextAfter.kind,
-                            distanceM: distanceToNext
-                        ))
-                        // Pre-latch turn50m whenever the next turn is close enough
-                        // that the rider has already been told about it. Below
-                        // skip50mBelowDistanceM the "in X m" cue is redundant.
-                        if distanceToNext < Self.skip50mBelowDistanceM {
-                            announced50m.insert(nextAfter.id)
-                        }
-                        announcedNextTurnAfter.insert(lastPassed.id)
-                    } else {
-                        announcedNextTurnAfter.insert(lastPassed.id)
-                    }
-                } else if !s.approachingDestinationAnnounced && !snapshot.arrived {
-                    // Bug 4: skip arrivingInM when the rider has already
-                    // crossed the arrival radius — the `arrived` cue at
-                    // the bottom of this function speaks instead.
-                    events.append(.arrivingInM(
-                        distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM
-                    ))
-                    announcedNextTurnAfter.insert(lastPassed.id)
-                    s.approachingDestinationAnnounced = true
-                }
-            }
-
-            if let m = upcoming, let d = upcomingDistance,
-               d <= Self.approach50M, d > Self.approach10M, !announced50m.contains(m.id) {
-                let upcomingIdx = snapshot.maneuvers.firstIndex(where: { $0.id == m.id }) ?? -1
-                let followUp = (upcomingIdx >= 0 && upcomingIdx + 1 < snapshot.maneuvers.count)
-                    ? snapshot.maneuvers[upcomingIdx + 1] : nil
-                let gapToFollowUp = followUp.map { $0.distanceFromStartM - m.distanceFromStartM } ?? .infinity
-                if let followUp = followUp, gapToFollowUp <= Self.backToBackThresholdM {
-                    // Carry the rider's actual distance into the cue
-                    // instead of letting the catalog hardcode "50 m" —
-                    // at route start the rider can be 15 m from the
-                    // first maneuver, and "in 50 meters" is jarringly
-                    // inaccurate.
-                    events.append(.turn50m(m.kind, distanceM: d, followUpKind: followUp.kind))
-                    announced50m.insert(m.id)
-                    announced50m.insert(followUp.id)
-                    announcedNextTurnAfter.insert(m.id)
-                } else {
-                    events.append(.turn50m(m.kind, distanceM: d, followUpKind: nil))
-                    announced50m.insert(m.id)
-                }
-            }
-            if let m = upcoming, let d = upcomingDistance,
-               d <= Self.approach10M, !announced10m.contains(m.id) {
-                let upcomingIdx = snapshot.maneuvers.firstIndex(where: { $0.id == m.id }) ?? -1
-                let followUp = (upcomingIdx >= 0 && upcomingIdx + 1 < snapshot.maneuvers.count)
-                    ? snapshot.maneuvers[upcomingIdx + 1] : nil
-                let gapToFollowUp = followUp.map { $0.distanceFromStartM - m.distanceFromStartM } ?? .infinity
-                if let followUp = followUp, gapToFollowUp <= Self.backToBackThresholdM {
-                    events.append(.turn10m(m.kind, followUpKind: followUp.kind))
-                    announced10m.insert(m.id)
-                    announced10m.insert(followUp.id)
-                    announced50m.insert(followUp.id)
-                    announcedNextTurnAfter.insert(m.id)
-                } else {
-                    events.append(.turn10m(m.kind, followUpKind: nil))
-                    announced10m.insert(m.id)
-                }
-            }
-
-            s.announced50m = announced50m
-            s.announced10m = announced10m
-            s.announcedNextTurnAfter = announcedNextTurnAfter
-        }
-
-        if snapshot.arrived && !s.arrivedAnnounced {
-            events.append(.arrived)
-            s.arrivedAnnounced = true
-        }
+        events += announceRouteStart(snapshot, &s)
+        events += detectOffRoute(snapshot, &s)
+        events += detectRerouting(snapshot, &s)
+        events += announceManeuvers(snapshot, &s)
+        events += detectArrival(snapshot, &s)
 
         s.prevOffRoute = snapshot.offRoute
         s.prevRerouting = snapshot.rerouting
-        s.offRouteEpisodeCount = offRouteEpisodeCount
-        s.offRouteTickCount = offRouteTickCount
-        s.silenced = silenced
-        s.consecutiveOnRouteSamples = consecutiveOnRouteSamples
-        s.onTrackAnnounced = onTrackAnnounced
-        s.reroutingEpisodeCount = reroutingEpisodeCount
-
         return Result(events: events, nextState: s)
     }
 
-    /// Locale-agnostic structured cue: a catalog key + ICU placeholder
-    /// values. Wiring layers feed this to `T.string(key, args)` against
-    /// the active locale; parity tests render via `T.stringIn(.en, ...)`.
+    private static func resetStateIfRouteChanged(_ snapshot: CueSnapshot, _ state: CueEngineState) -> CueEngineState {
+        guard snapshot.routeId != state.lastRouteId else { return state }
+        var s = CueEngineState(lastRouteId: snapshot.routeId)
+        s.reroutingEpisodeCount = state.reroutingEpisodeCount
+        return s
+    }
+
+    private static func announceRouteStart(_ snapshot: CueSnapshot, _ s: inout CueEngineState) -> [CueEvent] {
+        guard snapshot.routeId != nil, !s.routeStartedAnnounced else { return [] }
+        s.routeStartedAnnounced = true
+        guard let firstM = snapshot.maneuvers.first(where: { $0.distanceFromStartM - snapshot.progressDistanceM >= 0 })
+        else { return [] }
+
+        let distanceM = firstM.distanceFromStartM - snapshot.progressDistanceM
+
+        if distanceM > approach50M {
+            return announceRouteStartFar(firstM, distanceM, snapshot, &s)
+        }
+        return announceRouteStartImminent(firstM, snapshot, &s)
+    }
+
+    private static func announceRouteStartFar(
+        _ m: CueManeuver, _ distanceM: Double, _ snapshot: CueSnapshot, _ s: inout CueEngineState
+    ) -> [CueEvent] {
+        let idx = snapshot.maneuvers.firstIndex { $0.id == m.id } ?? -1
+        let isLastManeuver = idx == snapshot.maneuvers.count - 1
+        let distToEnd = snapshot.routeTotalDistanceM - m.distanceFromStartM
+
+        if isLastManeuver && distToEnd < closeToDestinationM {
+            if !s.approachingDestinationAnnounced {
+                s.approachingDestinationAnnounced = true
+                s.announced50m.insert(m.id)
+                s.announced10m.insert(m.id)
+                return [.arrivingInM(distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM)]
+            }
+            return []
+        }
+
+        if distanceM < skip50mBelowDistanceM {
+            s.announced50m.insert(m.id)
+        }
+        return [.nextTurnInAbout(turnKind: m.kind, distanceM: distanceM)]
+    }
+
+    private static func announceRouteStartImminent(
+        _ m: CueManeuver, _ snapshot: CueSnapshot, _ s: inout CueEngineState
+    ) -> [CueEvent] {
+        let upcomingIdx = snapshot.maneuvers.firstIndex { $0.id == m.id } ?? -1
+        let follow = (upcomingIdx >= 0 && upcomingIdx + 1 < snapshot.maneuvers.count)
+            ? snapshot.maneuvers[upcomingIdx + 1] : nil
+        let gap = follow.map { $0.distanceFromStartM - m.distanceFromStartM } ?? .infinity
+
+        if let follow = follow, gap <= backToBackThresholdM {
+            s.announced50m.insert(m.id)
+            s.announced50m.insert(follow.id)
+            s.announced10m.insert(m.id)
+            s.announced10m.insert(follow.id)
+            s.announcedNextTurnAfter.insert(m.id)
+            return [.turn50m(m.kind, distanceM: m.distanceFromStartM - snapshot.progressDistanceM, followUpKind: follow.kind)]
+        }
+        s.announced50m.insert(m.id)
+        return []
+    }
+
+    private static func detectOffRoute(_ snapshot: CueSnapshot, _ s: inout CueEngineState) -> [CueEvent] {
+        var events: [CueEvent] = []
+
+        s.offRouteTickCount = snapshot.offRoute ? s.offRouteTickCount + 1 : 0
+
+        let immediate = snapshot.offRoute
+            && snapshot.distanceFromRouteM > offRouteImmediateDistanceM
+            && s.offRouteTickCount == 1
+        let hysteresis = snapshot.offRoute && s.offRouteTickCount == offRouteHysteresisTicks
+        let offTrackFired = immediate || hysteresis
+
+        if offTrackFired { s.offRouteEpisodeCount += 1 }
+
+        if !snapshot.offRoute && snapshot.distanceFromRouteM < onTrackCorridorM {
+            s.consecutiveOnRouteSamples += 1
+        } else {
+            s.consecutiveOnRouteSamples = 0
+        }
+
+        if s.silenced && s.consecutiveOnRouteSamples >= onTrackConfirmSamples && !s.onTrackAnnounced {
+            events.append(.onTrack)
+            s.silenced = false
+            s.onTrackAnnounced = true
+            s.offRouteEpisodeCount = 0
+        }
+        if s.consecutiveOnRouteSamples >= onTrackConfirmSamples {
+            s.reroutingEpisodeCount = 0
+        }
+
+        if offTrackFired && s.offRouteEpisodeCount > repeatOffTrackSilenceThreshold && !s.silenced {
+            events.append(.repeatedOffTrackSilence)
+            s.silenced = true
+            s.onTrackAnnounced = false
+        } else if offTrackFired && !s.silenced {
+            events.append(.offTrack)
+        }
+
+        return events
+    }
+
+    private static func detectRerouting(_ snapshot: CueSnapshot, _ s: inout CueEngineState) -> [CueEvent] {
+        let rose = !s.prevRerouting && snapshot.rerouting
+        guard rose else { return [] }
+        s.reroutingEpisodeCount += 1
+        guard !s.silenced && s.reroutingEpisodeCount <= reroutingCueCap else { return [] }
+        return [.rerouting]
+    }
+
+    private static func announceManeuvers(_ snapshot: CueSnapshot, _ s: inout CueEngineState) -> [CueEvent] {
+        guard !s.silenced && !snapshot.offRoute && !snapshot.rerouting && !snapshot.arrived else { return [] }
+
+        var events: [CueEvent] = []
+        var announced50m = s.announced50m
+        var announced10m = s.announced10m
+        var announcedNextTurnAfter = s.announcedNextTurnAfter
+        let upcoming = snapshot.maneuvers.first { $0.distanceFromStartM - snapshot.progressDistanceM >= 0 }
+        let upcomingDistance = upcoming.map { $0.distanceFromStartM - snapshot.progressDistanceM }
+
+        // After-passing block — must run before 50m check so it can pre-latch announced50m.
+        events += announceAfterPassing(snapshot, upcoming?.id, &announced50m, &announced10m, &announcedNextTurnAfter, &s)
+
+        // 50 m approach.
+        if let m = upcoming, let d = upcomingDistance,
+           d <= approach50M, d > approach10M, !announced50m.contains(m.id) {
+            let upcomingIdx = snapshot.maneuvers.firstIndex(where: { $0.id == m.id }) ?? -1
+            let followUp = (upcomingIdx >= 0 && upcomingIdx + 1 < snapshot.maneuvers.count)
+                ? snapshot.maneuvers[upcomingIdx + 1] : nil
+            let gapToFollowUp = followUp.map { $0.distanceFromStartM - m.distanceFromStartM } ?? .infinity
+            if let followUp = followUp, gapToFollowUp <= backToBackThresholdM {
+                events.append(.turn50m(m.kind, distanceM: d, followUpKind: followUp.kind))
+                announced50m.insert(m.id)
+                announced50m.insert(followUp.id)
+                announcedNextTurnAfter.insert(m.id)
+            } else {
+                events.append(.turn50m(m.kind, distanceM: d, followUpKind: nil))
+                announced50m.insert(m.id)
+            }
+        }
+
+        // 10 m approach.
+        if let m = upcoming, let d = upcomingDistance,
+           d <= approach10M, !announced10m.contains(m.id) {
+            let upcomingIdx = snapshot.maneuvers.firstIndex(where: { $0.id == m.id }) ?? -1
+            let followUp = (upcomingIdx >= 0 && upcomingIdx + 1 < snapshot.maneuvers.count)
+                ? snapshot.maneuvers[upcomingIdx + 1] : nil
+            let gapToFollowUp = followUp.map { $0.distanceFromStartM - m.distanceFromStartM } ?? .infinity
+            if let followUp = followUp, gapToFollowUp <= backToBackThresholdM {
+                events.append(.turn10m(m.kind, followUpKind: followUp.kind))
+                announced10m.insert(m.id)
+                announced10m.insert(followUp.id)
+                announced50m.insert(followUp.id)
+                announcedNextTurnAfter.insert(m.id)
+            } else {
+                events.append(.turn10m(m.kind, followUpKind: nil))
+                announced10m.insert(m.id)
+            }
+        }
+
+        s.announced50m = announced50m
+        s.announced10m = announced10m
+        s.announcedNextTurnAfter = announcedNextTurnAfter
+        return events
+    }
+
+    private static func announceAfterPassing(
+        _ snapshot: CueSnapshot,
+        _ upcomingId: String?,
+        _ announced50m: inout Set<String>,
+        _ announced10m: inout Set<String>,
+        _ announcedNextTurnAfter: inout Set<String>,
+        _ s: inout CueEngineState
+    ) -> [CueEvent] {
+        let lastPassed = snapshot.maneuvers
+            .filter { snapshot.progressDistanceM - $0.distanceFromStartM >= passedTurnM }
+            .max { $0.distanceFromStartM < $1.distanceFromStartM }
+        guard let lastPassed = lastPassed, !announcedNextTurnAfter.contains(lastPassed.id) else { return [] }
+
+        let indexOfLast = snapshot.maneuvers.firstIndex { $0.id == lastPassed.id } ?? -1
+        let nextAfter = (indexOfLast >= 0 && indexOfLast + 1 < snapshot.maneuvers.count)
+            ? snapshot.maneuvers[indexOfLast + 1] : nil
+
+        if let nextAfter = nextAfter {
+            return announceTurnAfterPassing(lastPassed, nextAfter, indexOfLast, snapshot,
+                                            &announced50m, &announced10m, &announcedNextTurnAfter, &s)
+        }
+        return announceDestinationAfterLastManeuver(snapshot, lastPassed, &announcedNextTurnAfter, &s)
+    }
+
+    private static func announceTurnAfterPassing(
+        _ lastPassed: CueManeuver,
+        _ nextAfter: CueManeuver,
+        _ indexOfLast: Int,
+        _ snapshot: CueSnapshot,
+        _ announced50m: inout Set<String>,
+        _ announced10m: inout Set<String>,
+        _ announcedNextTurnAfter: inout Set<String>,
+        _ s: inout CueEngineState
+    ) -> [CueEvent] {
+        let distanceToNext = nextAfter.distanceFromStartM - snapshot.progressDistanceM
+        let isLastManeuver = indexOfLast + 1 == snapshot.maneuvers.count - 1
+        let distNextToEnd = snapshot.routeTotalDistanceM - nextAfter.distanceFromStartM
+
+        if distanceToNext <= 0 {
+            announcedNextTurnAfter.insert(lastPassed.id)
+            if isLastManeuver && !s.approachingDestinationAnnounced && !snapshot.arrived {
+                s.approachingDestinationAnnounced = true
+                return [.arrivingInM(distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM)]
+            }
+            return []
+        }
+
+        if isLastManeuver && distNextToEnd < closeToDestinationM {
+            if !s.approachingDestinationAnnounced && !snapshot.arrived {
+                s.approachingDestinationAnnounced = true
+                announcedNextTurnAfter.insert(lastPassed.id)
+                announced50m.insert(nextAfter.id)
+                announced10m.insert(nextAfter.id)
+                return [.arrivingInM(distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM)]
+            }
+            return []
+        }
+
+        if distanceToNext > approach50M {
+            if distanceToNext < skip50mBelowDistanceM {
+                announced50m.insert(nextAfter.id)
+            }
+            announcedNextTurnAfter.insert(lastPassed.id)
+            return [.nextTurnInAbout(turnKind: nextAfter.kind, distanceM: distanceToNext)]
+        }
+
+        announcedNextTurnAfter.insert(lastPassed.id)
+        return []
+    }
+
+    private static func announceDestinationAfterLastManeuver(
+        _ snapshot: CueSnapshot,
+        _ lastPassed: CueManeuver,
+        _ announcedNextTurnAfter: inout Set<String>,
+        _ s: inout CueEngineState
+    ) -> [CueEvent] {
+        guard !s.approachingDestinationAnnounced && !snapshot.arrived else { return [] }
+        s.approachingDestinationAnnounced = true
+        announcedNextTurnAfter.insert(lastPassed.id)
+        return [.arrivingInM(distanceM: snapshot.routeTotalDistanceM - snapshot.progressDistanceM)]
+    }
+
+    private static func detectArrival(_ snapshot: CueSnapshot, _ s: inout CueEngineState) -> [CueEvent] {
+        guard snapshot.arrived, !s.arrivedAnnounced else { return [] }
+        s.arrivedAnnounced = true
+        return [.arrived]
+    }
+
     struct CueMessage: Equatable {
         let key: String
         let args: [String: String]
         let numericArgs: [String: Double]
 
-        /// Convert to the `[String: MessageValue]` map consumed by `T.string`.
         var values: [String: MessageValue] {
             var out: [String: MessageValue] = [:]
             for (k, v) in args { out[k] = .string(v) }
@@ -438,25 +369,14 @@ enum CueEngine {
         }
     }
 
-    /// Map a `CueEvent` to its (key, values) tuple. `distanceMode`
-    /// chooses metric vs imperial for spoken distance values.
     static func cueMessage(_ event: CueEvent, distanceMode: DistanceMode = .metric) -> CueMessage {
         switch event {
         case .turn50m(let k, let distanceM, let followUp):
-            // Use the rider's actual distance instead of hardcoding 50.
-            // The 50 m approach window can be entered with d much
-            // smaller (route starting close to a turn), and
-            // "In 50 meters turn left" while actually 15 m away is
-            // misleading.
             let pair = distanceCueValues(distanceM, mode: distanceMode)
             if let followUp = followUp {
                 return CueMessage(
                     key: "cue.turn50mCombined",
-                    args: [
-                        "distanceUnit": pair.unit,
-                        "first": maneuverSlug(k),
-                        "second": maneuverSlug(followUp),
-                    ],
+                    args: ["distanceUnit": pair.unit, "first": maneuverSlug(k), "second": maneuverSlug(followUp)],
                     numericArgs: ["distance": pair.distance]
                 )
             }
@@ -469,10 +389,7 @@ enum CueEngine {
             if let followUp = followUp {
                 return CueMessage(
                     key: "cue.turn10mCombined",
-                    args: [
-                        "first": maneuverSlug(k),
-                        "second": maneuverSlug(followUp),
-                    ],
+                    args: ["first": maneuverSlug(k), "second": maneuverSlug(followUp)],
                     numericArgs: [:]
                 )
             }
@@ -499,13 +416,9 @@ enum CueEngine {
             return CueMessage(key: "cue.rerouting", args: [:], numericArgs: [:])
         case .onTrack:
             return CueMessage(key: "cue.onTrack", args: [:], numericArgs: [:])
-
         }
     }
 
-    /// Legacy English formatter — kept as the exact-byte path that
-    /// existing tests assert against. New call sites should go through
-    /// `cueMessage(_:)` + `T.string(_:_:)` instead.
     static func format(_ event: CueEvent) -> String {
         let msg = cueMessage(event, distanceMode: .metric)
         return T.stringIn(.en, msg.key, msg.values)
@@ -527,9 +440,6 @@ enum CueEngine {
         }
     }
 
-    /// Collapse maneuver kinds into the slugs the `cue.nextTurnInAbout.*`
-    /// catalog supports. Exit ramps fold into their parent direction; the
-    /// dedicated kinds keep their own slug.
     private static func nextTurnDirection(_ k: ManeuverKind) -> String {
         switch k {
         case .left, .exitLeft: return "left"
@@ -545,17 +455,6 @@ enum CueEngine {
     }
 
     private static func distanceCueValues(_ meters: Double, mode: DistanceMode) -> (distance: Double, unit: String) {
-        switch mode {
-        case .imperial:
-            let ft = Double(DistanceFormatter.roundTo10(meters * 3.280839895))
-            return (ft, "feet")
-        case .metric:
-            if meters >= 1000 {
-                let km = (meters / 100.0).rounded() / 10.0
-                return (km, "kilometers")
-            }
-            let m = Double(DistanceFormatter.roundTo10(meters))
-            return (m, "meters")
-        }
+        DistanceFormatter.cueDistanceAndUnit(meters: meters, mode: mode)
     }
 }

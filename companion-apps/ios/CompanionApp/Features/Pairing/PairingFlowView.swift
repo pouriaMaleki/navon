@@ -129,7 +129,7 @@ struct PairingFlowView: View {
         VStack(spacing: 16) {
             switch viewModel.pairingState {
             case .connecting:
-                ProgressView("Connecting…")
+                ProgressView(T.string("pairing.connecting"))
             case .succeeded:
                 Label(T.string("pairing.paired"), systemImage: "checkmark.seal.fill")
                     .font(.title3.weight(.semibold))

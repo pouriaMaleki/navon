@@ -2,15 +2,15 @@ import SwiftUI
 import UIKit
 
 struct ImportDiagnosticsView: View {
-    @EnvironmentObject private var appModel: AppModel
+    @EnvironmentObject private var shareImportService: ShareImportService
 
     var body: some View {
         List {
-            if appModel.importDiagnosticsEntries.isEmpty {
+            if shareImportService.importDiagnosticsEntries.isEmpty {
                 Text(T.string("settings.importDiagnostics.empty"))
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(appModel.importDiagnosticsEntries) { entry in
+                ForEach(shareImportService.importDiagnosticsEntries) { entry in
                     Section(entry.title) {
                         Text(entry.subtitle)
                             .foregroundStyle(.secondary)
@@ -30,11 +30,11 @@ struct ImportDiagnosticsView: View {
                         }
                         Button(T.string("importDiagnostics.retry")) {
                             Task {
-                                await appModel.retrySharedImport(entry)
+                                await shareImportService.retrySharedImport(entry)
                             }
                         }
                         Button(T.string("common.dismiss"), role: .destructive) {
-                            appModel.dismissImportDiagnosticsEntry(id: entry.id)
+                            shareImportService.dismissImportDiagnosticsEntry(id: entry.id)
                         }
                     }
                 }

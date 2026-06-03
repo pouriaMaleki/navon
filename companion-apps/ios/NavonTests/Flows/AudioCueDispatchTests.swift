@@ -208,7 +208,7 @@ final class AudioCueDispatchTests: XCTestCase {
             )],
             selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
         )
-        app.activeSession.routeIdentifier = "lshape-rerouted"
+        app.sessionManager.session.routeIdentifier = "lshape-rerouted"
 
         // First GPS fix on the new route — rider is at its very start.
         vm.ingestRiderLocationFix(point300m, timestampMs: 2_000)
@@ -293,8 +293,8 @@ final class AudioCueDispatchTests: XCTestCase {
             )],
             selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
         )
-        app.activeSession.routeIdentifier = "lshape-cues"
-        app.activeSession.routeRevision = 2
+        app.sessionManager.session.routeIdentifier = "lshape-cues"
+        app.sessionManager.session.routeRevision = 2
 
         vm.ingestRiderLocationFix(point300m, timestampMs: 2_000)
 
