@@ -1,0 +1,26 @@
+# cargo-audit advisory exceptions
+#
+# Each entry below documents a known advisory that cannot be resolved
+# through a dependency upgrade because no patched version exists yet.
+# Re-evaluate at the listed expiry date.
+
+[advisories]
+ignore = [
+    # RUSTSEC-2026-0173: proc-macro-error2 is unmaintained.
+    #
+    # Transitive compile-time dependency chain:
+    #   firmware -> esp-idf-svc -> embedded-svc -> defmt -> defmt-macros
+    #   -> proc-macro-error2
+    #
+    # Impact: proc-macro-error2 is a proc-macro crate — it runs only at
+    # compile time on developer/CI machines, never in production binaries
+    # or on user devices. There is no runtime attack surface.
+    #
+    # Mitigation: defmt-macros 1.1.0 is the latest release (as of
+    # 2026-06-16) and still depends on proc-macro-error2. Once upstream
+    # releases with a replacement (manyhow or proc-macro2-diagnostics),
+    # upgrade the firmware dependency chain and remove this exception.
+    #
+    # Expiry: 2026-09-16
+    "RUSTSEC-2026-0173",
+]

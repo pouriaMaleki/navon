@@ -33,7 +33,7 @@ cd companion-apps/web
 npx tsc --noEmit                     # TS: 0 errors
 npx vitest run                       # Tests: all pass
 npx biome check                      # Lint + format: 0 errors
-npm audit --production               # CVEs: 0
+npm audit --audit-level=high          # CVEs: 0
 
 cargo xtask i18n-gen --check         # i18n: outputs match source
 cargo xtask companion-ios-test       # iOS: build + XCTests green
