@@ -90,10 +90,12 @@ import app.navon.bike.domain.SpeedUnit
 import app.navon.bike.domain.RouteStartBehavior
 import app.navon.bike.domain.RouteSuggestionMode
 import app.navon.bike.domain.DeviceConnectionState
+import app.navon.bike.domain.PairingFlowState
 import app.navon.bike.feature.home.DeviceChipTapAction
 import app.navon.bike.feature.home.DeviceStatusChip
 import app.navon.bike.feature.home.HomeStateHolder
 import app.navon.bike.feature.home.deviceChipStateOf
+import app.navon.bike.feature.pairing.PairingFlowScreen
 import app.navon.bike.integration.AndroidPlaceSearchService
 
 class MainActivity : ComponentActivity() {
@@ -280,6 +282,15 @@ private fun CompanionApp(
                     SettingsDestination.IMPORT_DIAGNOSTICS -> ImportDiagnosticsScreen(appState = appState, onBack = { settingsDestination = SettingsDestination.ROOT })
                     SettingsDestination.ROUTING_DIAGNOSTICS -> RoutingDiagnosticsScreen(appState = appState, onBack = { settingsDestination = SettingsDestination.ROOT })
                 }
+            }
+        }
+
+        if (appState.pairingState != PairingFlowState.Idle) {
+            FullScreenOverlay {
+                PairingFlowScreen(
+                    appState = appState,
+                    onClose = { appState.dismissPairingFlow() },
+                )
             }
         }
 
@@ -617,7 +628,7 @@ private fun PlanningTopArea(
                     DeviceStatusChip(
                         state = deviceChipStateOf(
                             paired = appState.pairedPeripheral,
-                            connection = appState.syncSession.connectionState,
+                            connection = appState.deviceConnectionState,
                         ),
                         onTap = { action ->
                             when (action) {
@@ -1336,9 +1347,12 @@ private fun DeviceSettingsScreen(appState: CompanionAppState, onBack: () -> Unit
             Button(onClick = appState::beginPairingFlow) { Text("Pair a new device") }
         } else {
             Text(paired.friendlyName)
+            Text("Type: ${paired.effectiveDeviceType.displayName}")
             Text("Paired: ${paired.pairedAt}")
-            if (appState.syncSession.connectionState == DeviceConnectionState.CONNECTED) {
-                Button(onClick = { /* future: bleService disconnect */ }) { Text("Disconnect") }
+            if (appState.deviceConnectionState == DeviceConnectionState.CONNECTED) {
+                // Beeline supports an explicit disconnect; the ESP32 path
+                // currently tears down with the GATT connection (no-op here).
+                Button(onClick = appState::disconnectDevice) { Text("Disconnect") }
             } else {
                 Button(onClick = appState::connectToDevice) { Text("Connect") }
             }

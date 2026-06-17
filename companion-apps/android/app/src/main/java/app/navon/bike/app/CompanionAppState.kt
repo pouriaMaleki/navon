@@ -21,6 +21,7 @@ import app.navon.bike.domain.SharedImportClassification
 import app.navon.bike.domain.SharedImportDisposition
 import app.navon.bike.domain.SharedImportEnvelope
 import app.navon.bike.domain.NormalizedRoutePackage
+import app.navon.bike.domain.PairedDeviceType
 import app.navon.bike.domain.PairedPeripheralRecord
 import app.navon.bike.domain.PairingFlowState
 import app.navon.bike.domain.RouteAlternative
@@ -45,6 +46,8 @@ import app.navon.bike.integration.AndroidLocationService
 import app.navon.bike.feature.device.PhoneGpsForwarder
 import app.navon.bike.integration.ble.BleRouteSyncService
 import app.navon.bike.integration.ble.PairingQrPayload
+import app.navon.bike.integration.ble.navdevice.BeelineDeviceManager
+import app.navon.bike.integration.ble.navdevice.BeelineSessionState
 import app.navon.bike.integration.diagnostics.CompanionDiagnosticsStore
 import app.navon.bike.integration.diagnostics.RoutingDiagnosticsStore
 import app.navon.bike.integration.cycling.OsmCyclingRoutingAdapter
@@ -64,6 +67,7 @@ class CompanionAppState(
     persistenceOverride: CompanionPersistence? = null,
     bleServiceOverride: BleRouteSyncService? = null,
     locationServiceOverride: LocationService? = null,
+    beelineManagerOverride: BeelineDeviceManager? = null,
 ) : AndroidViewModel(application) {
     companion object {
         private val DEFAULT_RIDER_FALLBACK = CoordinatePoint(60.1699, 24.9384)
@@ -127,6 +131,22 @@ class CompanionAppState(
         bleServiceOverride ?: BleRouteSyncService(application.applicationContext)
     val locationService: LocationService =
         locationServiceOverride ?: AndroidLocationService(application.applicationContext, persistence)
+
+    /**
+     * Beeline handlebar-device transport. The ESP32 route-sync path ([bleService])
+     * and this run side-by-side, but only the one matching the paired record's
+     * [PairedDeviceType] is fed a route at a time (see [activeDeviceIsBeeline]).
+     */
+    val beelineManager: BeelineDeviceManager =
+        beelineManagerOverride ?: BeelineDeviceManager(
+            application.applicationContext,
+            planningSpeedKph = settings.cyclingSpeedKph,
+        )
+
+    /** Latest Beeline session snapshot, mirrored from [BeelineDeviceManager.state]. */
+    var beelineSession by mutableStateOf(BeelineSessionState())
+        private set
+
     var locationState by mutableStateOf(locationService.state.value)
 
     /**
@@ -218,7 +238,20 @@ class CompanionAppState(
         }
 
     val isDeviceConnected: Boolean
-        get() = syncSession.connectionState == app.navon.bike.domain.DeviceConnectionState.CONNECTED
+        get() = syncSession.connectionState == app.navon.bike.domain.DeviceConnectionState.CONNECTED ||
+            beelineSession.connectionState == app.navon.bike.domain.DeviceConnectionState.CONNECTED
+
+    /** True when the paired device is a Beeline (route + GPS go to [beelineManager], not [bleService]). */
+    val activeDeviceIsBeeline: Boolean
+        get() = pairedPeripheral?.effectiveDeviceType == PairedDeviceType.BEELINE
+
+    /**
+     * Connection state of whichever transport backs the paired device, so the
+     * home chip and device settings render one device through one vocabulary
+     * regardless of whether it's the ESP32 or a Beeline.
+     */
+    val deviceConnectionState: DeviceConnectionState
+        get() = if (activeDeviceIsBeeline) beelineSession.connectionState else syncSession.connectionState
 
     init {
         settings = persistence.loadSettings()
@@ -234,6 +267,12 @@ class CompanionAppState(
                 locationState = state
                 state.currentLocation?.let { fix ->
                     if (routeRequest.origin != fix) routeRequest = routeRequest.copy(origin = fix)
+                    // Feed live fixes to a connected Beeline so it can advance
+                    // its turn-by-turn frame; the ESP32 path forwards GPS via
+                    // PhoneGpsForwarder instead.
+                    if (activeDeviceIsBeeline && beelineManager.isConnected) {
+                        beelineManager.onLocation(fix, state.currentSpeedMps)
+                    }
                     if (routingDiagnosticsStore.isRecording) {
                         val now = System.currentTimeMillis()
                         if (now - lastRecordedLocationMs >= LOCATION_EVENT_THROTTLE_MS) {
@@ -267,6 +306,10 @@ class CompanionAppState(
             }
         }
 
+        viewModelScope.launch {
+            beelineManager.state.collectLatest { beelineSession = it }
+        }
+
         // App-launch auto-reconnect: if the user already paired a
         // device, try to reach it once silently. Failures are silent —
         // the home chip stays in `PairedDisconnected` and the user can
@@ -277,7 +320,11 @@ class CompanionAppState(
         pairedPeripheral?.let { record ->
             viewModelScope.launch {
                 runCatching {
-                    bleService.connectToPairedPeripheral(record.identifier)
+                    if (record.effectiveDeviceType == PairedDeviceType.BEELINE) {
+                        beelineManager.connect(record.identifier)
+                    } else {
+                        bleService.connectToPairedPeripheral(record.identifier)
+                    }
                 }
                 refreshDiagnostics()
             }
@@ -297,6 +344,7 @@ class CompanionAppState(
     override fun onCleared() {
         super.onCleared()
         locationService.stop()
+        beelineManager.stopNavigation()
     }
 
     fun persistSettings() {
@@ -407,11 +455,21 @@ class CompanionAppState(
         viewModelScope.launch {
             runCatching {
                 val normalized = provider.normalizePreview(preview, routeRequest)
-                val shouldUpdate = syncSession.activeRouteIdentifier == normalized.routeIdentifier && syncSession.activeRouteRevision != null
-                if (shouldUpdate) {
-                    bleService.publishUpdate(normalized)
+                if (activeDeviceIsBeeline) {
+                    // Beeline drives turn-by-turn off the full route package +
+                    // live GPS rather than chunked route-sync. Ensure connected,
+                    // then (re)start navigation along the new route.
+                    if (!beelineManager.isConnected) {
+                        pairedPeripheral?.let { beelineManager.connect(it.identifier) }
+                    }
+                    beelineManager.startNavigation(normalized, riderLocation, locationState.currentSpeedMps)
                 } else {
-                    bleService.publishSet(normalized)
+                    val shouldUpdate = syncSession.activeRouteIdentifier == normalized.routeIdentifier && syncSession.activeRouteRevision != null
+                    if (shouldUpdate) {
+                        bleService.publishUpdate(normalized)
+                    } else {
+                        bleService.publishSet(normalized)
+                    }
                 }
                 activeSession = activeSession.copy(
                     routeIdentifier = normalized.routeIdentifier,
@@ -435,7 +493,11 @@ class CompanionAppState(
     fun clearActiveRoute(onComplete: (Boolean) -> Unit = {}) {
         viewModelScope.launch {
             runCatching {
-                bleService.publishClear(activeSession.routeIdentifier)
+                if (activeDeviceIsBeeline) {
+                    beelineManager.stopNavigation()
+                } else {
+                    bleService.publishClear(activeSession.routeIdentifier)
+                }
                 activeSession = activeSession.copy(routeIdentifier = null, routeRevision = null)
                 persistence.saveSession(activeSession)
                 refreshDiagnostics()
@@ -473,11 +535,18 @@ class CompanionAppState(
 
     fun connectToDevice() {
         viewModelScope.launch {
+            val paired = pairedPeripheral
+            // Beeline reconnects by MAC over its own transport — no
+            // service-UUID scan fallback (that path is ESP32-only).
+            if (paired != null && paired.effectiveDeviceType == PairedDeviceType.BEELINE) {
+                runCatching { beelineManager.connect(paired.identifier) }
+                refreshDiagnostics()
+                return@launch
+            }
             // Fast path when we already know the peripheral identifier:
             // skip scanning entirely. Only fall back to a scan when we
             // either have no record or the identifier failed to connect
             // (the pairing flow + iOS-equivalent both follow this rule).
-            val paired = pairedPeripheral
             if (paired != null) {
                 bleService.connectToPairedPeripheral(paired.identifier)
             }
@@ -486,6 +555,40 @@ class CompanionAppState(
                 bleService.connectToLastKnownDevice()
             }
             refreshDiagnostics()
+        }
+    }
+
+    /**
+     * Pair a Beeline Velo2/Moto2. Unlike the ESP32 QR-OOB flow, the Beeline is
+     * discovered by a BLE name scan and bonds on first connect, so there is no
+     * camera step. On success the bonded record is persisted with
+     * [PairedDeviceType.BEELINE] and becomes the active device.
+     *
+     * @param onComplete invoked with `true` on success, `false` on failure;
+     *   the failure reason is surfaced via [beelineSession]'s `lastError`.
+     */
+    fun pairBeelineDevice(onComplete: (Boolean) -> Unit = {}) {
+        pairingState = PairingFlowState.Scanning
+        viewModelScope.launch {
+            val result = beelineManager.pair()
+            result.onSuccess { scanned ->
+                val record = PairedPeripheralRecord(
+                    identifier = scanned.address,
+                    friendlyName = scanned.name ?: "Beeline",
+                    pairedAt = java.time.Instant.now().toString(),
+                    deviceType = PairedDeviceType.BEELINE,
+                )
+                persistence.savePairedPeripheral(record)
+                pairedPeripheral = record
+                pairingState = PairingFlowState.Succeeded
+                refreshDiagnostics()
+                onComplete(true)
+            }.onFailure { error ->
+                pairingState = PairingFlowState.Failed(
+                    error.localizedMessage ?: "Couldn't pair the Beeline",
+                )
+                onComplete(false)
+            }
         }
     }
 
@@ -502,6 +605,24 @@ class CompanionAppState(
 
     fun beginPairingFlow() {
         pairingState = PairingFlowState.Instructions
+    }
+
+    /** Close the pairing sheet (cancel / done). Resets the flow to [PairingFlowState.Idle]. */
+    fun dismissPairingFlow() {
+        pairingState = PairingFlowState.Idle
+    }
+
+    /**
+     * Disconnect the active device without forgetting the bond. Implemented
+     * for Beeline today; the ESP32 route-sync service has no explicit
+     * disconnect yet (it tears down with the GATT connection), so this is a
+     * no-op for that device type.
+     */
+    fun disconnectDevice() {
+        if (activeDeviceIsBeeline) {
+            beelineManager.disconnect()
+            refreshDiagnostics()
+        }
     }
 
     /**
@@ -606,6 +727,9 @@ class CompanionAppState(
      * `AppModel.forgetPairedDevice` so the cross-platform UX has parity.
      */
     fun forgetPairedDevice() {
+        if (activeDeviceIsBeeline) {
+            beelineManager.disconnect()
+        }
         persistence.clearPairedPeripheral()
         pairedPeripheral = null
         pairingState = PairingFlowState.Idle
