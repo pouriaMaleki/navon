@@ -3,6 +3,7 @@ services:
   #   /            -> homepage (React + CSS Modules marketing site)
   #   /app/        -> companion-web (Vite build, OSM-tiled planner)
   #   /emulator/   -> emulator-web (Vite + render-core WASM)
+  #   /api/        -> hsl-proxy (Digitransit HSL routing proxy)
   # Service name stays `emulator-web` so existing edge routing (e.g. navon.bike)
   # keeps working without any upstream changes.
   emulator-web:
@@ -22,3 +23,20 @@ services:
       timeout: 5s
       retries: 5
       start_period: 15s
+
+  hsl-proxy:
+    build:
+      context: companion-apps/server
+      dockerfile: Dockerfile
+    environment:
+      - HSL_SUBSCRIPTION_KEY=${HSL_SUBSCRIPTION_KEY}
+      - LISTEN_ADDR=0.0.0.0:3001
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -q -O /dev/null http://127.0.0.1:3001/health
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s

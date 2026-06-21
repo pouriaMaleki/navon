@@ -10,7 +10,7 @@ Main features of this application is:
 - iOS and Android navigation guide from lock screen
 - Using BRouter.de and OSM router to get best cycling and walking routes
 - Support for importing GPX files or Google maps links (link to destination, not the route)
-- Support using Digitransit (HSL) route planner in Finland to get best cycling and walking routes
+- Support using Digitransit (HSL) route planner in Finland (server-proxied) for bike and walking routes
 - Secure connection to ESP32 handheld and passing route to it
 - Many languages support (Machine translated)
 
@@ -75,6 +75,7 @@ Companion projects:
 `compose.yaml` serves both apps from one container:
 
 - `/` -> companion web
+- `/api/` -> hsl-proxy (Digitransit routing proxy)
 - `/emulator/` -> emulator
 
 Commands:
@@ -196,7 +197,8 @@ Copy city.svm to SD Card if you want larger size map. Flashed map is very small 
 ├─ companion-apps/            User-facing companion apps (web + native).
 │  ├─ web/                    Companion web app.
 │  ├─ ios/                    Companion iOS app and tests.
-│  └─ android/                Companion Android app and tests.
+│  ├─ server/                 HSL Digitransit routing proxy (Rust, axum).
+  └─ android/                Companion Android app and tests.
 │
 ├─ device/                    Device-side runtime stack and simulator.
 │  ├─ firmware/               ESP32 firmware and hardware integrations.

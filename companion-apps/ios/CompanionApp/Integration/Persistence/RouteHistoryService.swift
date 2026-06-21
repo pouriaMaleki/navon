@@ -71,12 +71,8 @@ final class RouteHistoryService: ObservableObject {
     var routePlannerPreferences: RoutePlannerPreferences {
         get { persistence.loadRoutePlannerPreferences() }
         set {
-            var sanitized = newValue
-            if !HslAvailabilityService.isHslLiveConfigured(settings: settingsProvider()) && sanitized.defaultSourceMode != .osm {
-                sanitized.defaultSourceMode = .osm
-            }
-            persistence.saveRoutePlannerPreferences(sanitized)
-            onSetCurrentSourceMode(sanitized.defaultSourceMode)
+            persistence.saveRoutePlannerPreferences(newValue)
+            onSetCurrentSourceMode(newValue.defaultSourceMode)
             objectWillChange.send()
         }
     }

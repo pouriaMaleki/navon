@@ -310,8 +310,6 @@ final class ExploreAlternativesFromGuidanceTests: XCTestCase {
         app.replaceRoutingActivityCoordinatorForTesting(speech: spy)
         // Configure settings so cues WOULD fire if not suppressed.
         app.settings = CompanionSettings(
-            preferLiveHslRouting: false,
-            hslSubscriptionKey: "",
             hslEndpointURL: CompanionSettings.defaults.hslEndpointURL,
             cyclingSpeedKph: CompanionSettings.defaults.cyclingSpeedKph,
             speedUnit: .kph,

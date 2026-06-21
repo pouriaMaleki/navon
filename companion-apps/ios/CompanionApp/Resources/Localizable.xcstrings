@@ -764,19 +764,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "ستصل إلى وجهتك خلال {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "الاقتراب من وجهتك خلال {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আপনার গন্তব্যে পৌঁছাতে আর {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "আপনার গন্তব্যে পৌঁছাতে আর {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ankunft an Ihrem Ziel in {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Kommst in {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} an deinem Ziel an"
           }
         },
         "en": {
@@ -800,13 +800,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saavut määränpäähäsi {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Saavut määränpäähäsi {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} kuluttua"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrivée à destination dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Arrivée à votre destination dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "hi": {
@@ -824,19 +824,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "目的地まで{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です"
+            "value": "目的地に到着まで {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} です"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "तुमच्या गंतव्यस्थानी {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये पोहोचत आहात"
+            "value": "तुमच्या गंतव्यस्थानी {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये पोहोचत आहात"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "You go reach your destination for {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "You dey arrive your destination for {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "pt": {
@@ -848,19 +848,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Прибытие в пункт назначения через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Прибытие к месту назначения через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "آپ اپنی منزل پر {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں پہنچ رہے ہیں"
+            "value": "اپنے منزلِ مقصود پر پہنچ رہے ہیں {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "将在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 抵达目的地"
+            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内到达目的地"
           }
         }
       }
@@ -872,19 +872,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الانعطاف التالي أمامك بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "الانعطاف التالي بعد مسافة تقارب {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর পরবর্তী মোড়"
+            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর পরবর্তী নির্দেশনা"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nächste Abbiege- oder Fahranweisung in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Nächste Abzweigung in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "en": {
@@ -908,13 +908,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seuraava käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Seuraava käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prochain virage dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Prochain virage dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "hi": {
@@ -932,19 +932,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "次の案内まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です"
+            "value": "次の案内は約 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先です"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "पुढचा वळण अंदाजे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये"
+            "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये पुढचा वळण"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Next turn for ahead for like {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Next turn ahead for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "pt": {
@@ -956,19 +956,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Следующий поворот через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Следующий манёвр через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں اگلا موڑ"
+            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں اگلا موڑ"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 进行下一步操作"
+            "value": "约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后转向"
           }
         }
       }
@@ -980,19 +980,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "انعطف يسارًا بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "انعطف يسارًا بعد مسافة تقارب {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে মোড়"
+            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর বামে ঘুরুন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nächste Abzweigung links in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Nächste Abzweigung links in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "en": {
@@ -1016,13 +1016,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seuraa vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Käänny vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prochain virage à gauche dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Tournez à gauche dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "hi": {
@@ -1040,19 +1040,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "次の左折まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です"
+            "value": "次の左折は約 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先です"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "पुढचा डावीकडे वळण अंदाजे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये"
+            "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये डावीकडे वळा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turn left for ahead for like {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Next turn left for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "pt": {
@@ -1064,19 +1064,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Поворот налево через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Поворот налево через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں مڑیں گے"
+            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں بائیں مڑیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 左转"
+            "value": "约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后向左转"
           }
         }
       }
@@ -1088,19 +1088,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الاندماج التالي بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "الاندماج بعد مسافة تقارب {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে মার্জ করুন"
+            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর মার্জ করুন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nächste Einfahrt in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Nächster Einfädeln in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "en": {
@@ -1124,13 +1124,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sulautuminen noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Sulautuminen noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prochaine fusion dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Insertion dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "hi": {
@@ -1148,19 +1148,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で合流します"
+            "value": "次の合流は約 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先です"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये विलीनीकरण"
+            "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये मर्ज करा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Next merge for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Next merge for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "pt": {
@@ -1172,19 +1172,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Слияние через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Слияние через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں مرج کریں"
+            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں مرج کریں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "大约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后并入"
+            "value": "约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后并入"
           }
         }
       }
@@ -1196,19 +1196,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "منحدر التالي بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "المنحدر بعد مسافة تقارب {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে র‌্যাম্প"
+            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর র‌্যাম্প"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nächste Auffahrt in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Nächste Rampe in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "en": {
@@ -1232,13 +1232,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ramppi noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Ramppi noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prochaine bretelle dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Rampe dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "hi": {
@@ -1256,19 +1256,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でランプに入ります"
+            "value": "次のランプは約 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先です"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये रॅम्प"
+            "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये रॅम्प"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Next ramp for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Next ramp for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "pt": {
@@ -1280,19 +1280,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Съезд через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Съезд через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں ریمپ لیں"
+            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں ریمپ لیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "大约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后上匝道"
+            "value": "约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后上匝道"
           }
         }
       }
@@ -1304,19 +1304,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "انعطف يمينًا بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "انعطف يمينًا بعد مسافة تقارب {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে মোড়"
+            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর ডানে ঘুরুন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nächste Abzweigung rechts in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Nächste Abzweigung rechts in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "en": {
@@ -1340,13 +1340,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seuraa oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Käänny oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prochain virage à droite dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Tournez à droite dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "hi": {
@@ -1364,19 +1364,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "次の右折まで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です"
+            "value": "次の右折は約 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先です"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "पुढचा उजवीकडे वळण अंदाजे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये"
+            "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये उजवीकडे वळा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turn right for ahead for like {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Next turn right for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "pt": {
@@ -1388,19 +1388,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Поворот направо через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Поворот направо через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں مڑیں گے"
+            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں دائیں مڑیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 右转"
+            "value": "约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后向右转"
           }
         }
       }
@@ -1412,19 +1412,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "الدوران التالي (دوّار) بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "ادخل الدوّار بعد مسافة تقارب {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে রাউন্ডঅ্যাবাউট"
+            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর গোলচত্বর"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nächster Kreisverkehr in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Nächster Kreisverkehr in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "en": {
@@ -1448,13 +1448,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pyöröliittymä noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Liity kiertoliittymään noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prochain rond-point dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Rond-point dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "hi": {
@@ -1472,19 +1472,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でラウンドアバウトに入ります"
+            "value": "次のラウンドアバウトは約 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先です"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये राउंडअबाऊट"
+            "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये राउंडअबाऊटमध्ये जा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Next roundabout for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Next roundabout for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "pt": {
@@ -1496,19 +1496,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Кольцевая развязка через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Кольцевая развязка через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں گول چکر میں داخل ہوں"
+            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں گول چکر میں داخل ہوں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "大约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后进入环岛"
+            "value": "约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后进入环岛"
           }
         }
       }
@@ -1520,19 +1520,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "اتبع/ابقِ يسارًا بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "ميل يسارًا قليلًا بعد مسافة تقارب {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে থাকুন"
+            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর সামান্য বামে"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} links halten"
+            "value": "Leicht links in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "en": {
@@ -1556,13 +1556,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seuraa vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} päästä"
+            "value": "Vähäinen vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Restez à gauche dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Légère gauche dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "hi": {
@@ -1580,19 +1580,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "約{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}先、左に進んでください"
+            "value": "次の緩やかな左は約 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先です"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये डावीकडे राहा"
+            "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये किंचित डावीकडे"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tẹ̀lé/duro sí òsì lẹ́yìn ìgbà díẹ̀, ní {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Next slight left for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "pt": {
@@ -1604,19 +1604,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Скоро держитесь левее примерно на {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Небольшой поворот налево через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں رہیں"
+            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں ہلکا سا بائیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "约{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}后，向左保持（轻微左转）"
+            "value": "约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后轻微向左"
           }
         }
       }
@@ -1628,19 +1628,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "اتبع/ابقِ يمينًا بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "ميل يمينًا قليلًا بعد مسافة تقارب {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে থাকুন"
+            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর সামান্য ডানে"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} rechts halten"
+            "value": "Leicht rechts in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "en": {
@@ -1664,13 +1664,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seuraa oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} päästä"
+            "value": "Vähäinen oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Restez à droite dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Légère droite dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "hi": {
@@ -1688,19 +1688,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "約{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}先、右に進んでください"
+            "value": "次の緩やかな右は約 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先です"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये उजवीकडे राहा"
+            "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये किंचित उजवीकडे"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tẹ̀lé/duro sí ọ̀tún lẹ́yìn ìgbà díẹ̀, ní {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Next slight right for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "pt": {
@@ -1712,19 +1712,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Скоро держитесь правее примерно на {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Небольшой поворот направо через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں رہیں"
+            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں ہلکا سا دائیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "约{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}后，向右保持（轻微右转）"
+            "value": "约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后轻微向右"
           }
         }
       }
@@ -1736,19 +1736,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "انعطف U بعد حوالي {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "انعطف U-turn بعد مسافة تقارب {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর U-টার্ন"
+            "value": "প্রায় {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর U-turn"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nächster U-Turn in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Nächster U-turn in etwa {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "en": {
@@ -1772,13 +1772,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tee U-käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "U-käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prochain demi-tour dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Demi-tour dans environ {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "hi": {
@@ -1796,19 +1796,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "次のUターンまで約{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}です"
+            "value": "次のUターンは約 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先です"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "पुढचा U-turn अंदाजे {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये"
+            "value": "सुमारे {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये U-turn करा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Do U-turn for ahead for like {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Next turn u-turn for about {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "pt": {
@@ -1820,19 +1820,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Разворот через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Разворот через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں یو ٹرن"
+            "value": "تقریباً {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں U-turn کریں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 掉头"
+            "value": "约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后掉头"
           }
         }
       }
@@ -3140,19 +3140,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "انعطف يسارًا"
+            "value": "ميل يسارًا قليلًا"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "বামে ঘুরুন"
+            "value": "সামান্য বামে"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Links abbiegen"
+            "value": "Leicht links"
           }
         },
         "en": {
@@ -3176,13 +3176,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Käänny vasemmalle"
+            "value": "Vähäinen vasemmalle"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tournez à gauche"
+            "value": "Légère gauche"
           }
         },
         "hi": {
@@ -3200,13 +3200,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "左折してください"
+            "value": "緩やかな左へ"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "डावीकडे वळा"
+            "value": "किंचित डावीकडे"
           }
         },
         "pcm": {
@@ -3224,19 +3224,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Поверните налево"
+            "value": "Небольшой поворот налево"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "بائیں مڑیں"
+            "value": "ہلکا سا بائیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "左转"
+            "value": "轻微向左"
           }
         }
       }
@@ -3248,19 +3248,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "انعطف يمينًا"
+            "value": "ميل يمينًا قليلًا"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "ডানে ঘুরুন"
+            "value": "সামান্য ডানে"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rechts abbiegen"
+            "value": "Leicht rechts"
           }
         },
         "en": {
@@ -3284,13 +3284,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Käänny oikealle"
+            "value": "Vähäinen oikealle"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tournez à droite"
+            "value": "Légère droite"
           }
         },
         "hi": {
@@ -3308,13 +3308,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "右折してください"
+            "value": "緩やかな右へ"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "उजवीकडे वळा"
+            "value": "किंचित उजवीकडे"
           }
         },
         "pcm": {
@@ -3332,19 +3332,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Поверните направо"
+            "value": "Небольшой поворот направо"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "دائیں مڑیں"
+            "value": "ہلکا سا دائیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "右转"
+            "value": "轻微向右"
           }
         }
       }
@@ -3464,19 +3464,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "{first, select, left {انعطف يسارًا} right {انعطف يمينًا} exitLeft {خذ المخرج الأيسر} exitRight {خذ المخرج الأيمن} uturn {قم بعمل U-turn} roundabout {ادخل الدوّار} merge {ادمج} ramp {خذ المنحدر} other {تابع}} ثم فورًا {second, select, left {يسارًا} right {يمينًا} exitLeft {المخرج الأيسر} exitRight {المخرج الأيمن} uturn {U-turn} roundabout {الدوّار} merge {الدمج} ramp {المنحدر} other {إلى الأمام}}"
+            "value": "{first, select, left {Turn left} slightLeft {Slight left} slightRight {Slight right} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} ثم فورًا {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{first, select, left {বাঁদিকে ঘুরুন} right {ডানদিকে ঘুরুন} exitLeft {বাম প্রস্থান নিন} exitRight {ডান প্রস্থান নিন} uturn {একটি U-turn করুন} roundabout {রাউন্ডঅ্যাবাউটে প্রবেশ করুন} merge {মার্জ করুন} ramp {র‌্যাম্প নিন} other {চালিয়ে যান}} তারপর সাথে সাথে {second, select, left {বাম} right {ডান} exitLeft {বাম প্রস্থান} exitRight {ডান প্রস্থান} uturn {U-turn} roundabout {রাউন্ডঅ্যাবাউট} merge {মার্জ} ramp {র‌্যাম্প} other {সামনে}}"
+            "value": "{first, select, left {Turn left} slightLeft {Slight left} slightRight {Slight right} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} তারপরই {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "{first, select, left {Links abbiegen} right {Rechts abbiegen} exitLeft {Nimm die linke Ausfahrt} exitRight {Nimm die rechte Ausfahrt} uturn {Mach eine U-Wende} roundabout {In den Kreisverkehr einfahren} merge {Zusammenführen} ramp {Nimm die Rampe} other {Weiterfahren}} dann sofort {second, select, left {links} right {rechts} exitLeft {linke Ausfahrt} exitRight {rechte Ausfahrt} uturn {U-Wende} roundabout {Kreisverkehr} merge {zusammenführen} ramp {Rampe} other {geradeaus}}"
+            "value": "{first, select, left {Links abbiegen} slightLeft {Leicht links} slightRight {Leicht rechts} right {Rechts abbiegen} exitLeft {Nimm die linke Ausfahrt} exitRight {Nimm die rechte Ausfahrt} uturn {Mach einen U-turn} roundabout {In den Kreisverkehr einfahren} merge {Einfädeln} ramp {Nimm die Rampe} other {Weiterfahren}} dann sofort {second, select, left {links} slightLeft {leicht links} slightRight {leicht rechts} right {rechts} exitLeft {linke Ausfahrt} exitRight {rechte Ausfahrt} uturn {U-turn} roundabout {Kreisverkehr} merge {Einfädeln} ramp {Rampe} other {weiter}}"
           }
         },
         "en": {
@@ -3500,13 +3500,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{first, select, left {Käänny vasemmalle} right {Käänny oikealle} exitLeft {Ota vasen liittymä} exitRight {Ota oikea liittymä} uturn {Tee U-käännös} roundabout {Aja ympyrään} merge {Yhdistä} ramp {Ota ramppi} other {Jatka}} sitten heti {second, select, left {vasemmalle} right {oikealle} exitLeft {vasen liittymä} exitRight {oikea liittymä} uturn {U-käännös} roundabout {ympyrään} merge {yhdistä} ramp {ramppi} other {eteenpäin}}"
+            "value": "{first, select, left {Käänny vasemmalle} slightLeft {Vähäinen vasemmalle} slightRight {Vähäinen oikealle} right {Käänny oikealle} exitLeft {Ota vasen uloskäynti} exitRight {Ota oikea uloskäynti} uturn {Tee U-käännös} roundabout {Siirry kiertoliittymään} merge {Sulautu} ramp {Ota ramppi} other {Jatka}} sitten heti {second, select, left {vasemmalle} slightLeft {vähäinen vasemmalle} slightRight {vähäinen oikealle} right {oikealle} exitLeft {vasen uloskäynti} exitRight {oikea uloskäynti} uturn {U-käännös} roundabout {kiertoliittymä} merge {sulautu} ramp {ramppi} other {eteenpäin}}"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{first, select, left {Tournez à gauche} right {Tournez à droite} exitLeft {Prenez la sortie à gauche} exitRight {Prenez la sortie à droite} uturn {Faites un demi-tour} roundabout {Entrez dans le rond-point} merge {Fusionnez} ramp {Prenez la bretelle} other {Continuez}} puis immédiatement {second, select, left {à gauche} right {à droite} exitLeft {sortie à gauche} exitRight {sortie à droite} uturn {Demi-tour} roundabout {rond-point} merge {fusion} ramp {bretelle} other {tout droit}}"
+            "value": "{first, select, left {Tournez à gauche} slightLeft {Légère gauche} slightRight {Légère droite} right {Tournez à droite} exitLeft {Prenez la sortie à gauche} exitRight {Prenez la sortie à droite} uturn {Faites un demi-tour} roundabout {Entrez dans le rond-point} merge {Fusionnez} ramp {Prenez la rampe} other {Continuez}} puis immédiatement {second, select, left {à gauche} slightLeft {légère gauche} slightRight {légère droite} right {à droite} exitLeft {sortie à gauche} exitRight {sortie à droite} uturn {Demi-tour} roundabout {rond-point} merge {fusion} ramp {rampe} other {tout droit}}"
           }
         },
         "hi": {
@@ -3524,13 +3524,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{first, select, left {左に曲がって} right {右に曲がって} exitLeft {左の出口へ} exitRight {右の出口へ} uturn {Uターンして} roundabout {ラウンドアバウトに入って} merge {合流して} ramp {ランプに入って} other {そのまま進んで}} すぐに {second, select, left {左} right {右} exitLeft {左の出口} exitRight {右の出口} uturn {Uターン} roundabout {ラウンドアバウト} merge {合流} ramp {ランプ} other {その先へ}}"
+            "value": "{first, select, left {左折} slightLeft {緩やかな左} slightRight {緩やかな右} right {右折} exitLeft {左の出口へ} exitRight {右の出口へ} uturn {Uターン} roundabout {ラウンドアバウトに入る} merge {合流} ramp {ランプを取る} other {そのまま進む}} のあとすぐに {second, select, left {左} slightLeft {緩やかな左} slightRight {緩やかな右} right {右} exitLeft {左の出口} exitRight {右の出口} uturn {Uターン} roundabout {ラウンドアバウト} merge {合流} ramp {ランプ} other {その先へ}}"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{first, select, left {डावीकडे वळा} right {उजवीकडे वळा} exitLeft {डावीकडचा एक्झिट घ्या} exitRight {उजवीकडचा एक्झिट घ्या} uturn {U-turn करा} roundabout {राउंडअबाउटमध्ये प्रवेश करा} merge {विलीन व्हा} ramp {रॅम्प घ्या} other {पुढे चालू ठेवा}} मग लगेच {second, select, left {डावीकडे} right {उजवीकडे} exitLeft {डावीकडचा एक्झिट} exitRight {उजवीकडचा एक्झिट} uturn {U-turn} roundabout {राउंडअबाउट} merge {विलीन} ramp {रॅम्प} other {पुढे}}"
+            "value": "{first, select, left {डावीकडे वळा} slightLeft {किंचित डावीकडे} slightRight {किंचित उजवीकडे} right {उजवीकडे वळा} exitLeft {डावीकडे एक्झिट घ्या} exitRight {उजवीकडे एक्झिट घ्या} uturn {U-turn करा} roundabout {राउंडअबाऊटमध्ये जा} merge {मर्ज करा} ramp {रॅम्प घ्या} other {पुढे चालू ठेवा}} नंतर लगेच {second, select, left {डावीकडे} slightLeft {किंचित डावीकडे} slightRight {किंचित उजवीकडे} right {उजवीकडे} exitLeft {डावीकडचा एक्झिट} exitRight {उजवीकडचा एक्झिट} uturn {U-turn} roundabout {राउंडअबाऊट} merge {मर्ज करा} ramp {रॅम्प} other {पुढे}}"
           }
         },
         "pcm": {
@@ -3548,19 +3548,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "{first, select, left {Поверните налево} right {Поверните направо} exitLeft {Сверните на левый съезд} exitRight {Сверните на правый съезд} uturn {Сделайте разворот} roundabout {Въезжайте на круговое движение} merge {Сливайтесь} ramp {Съезжайте на рампу} other {Продолжайте}} затем сразу {second, select, left {налево} right {направо} exitLeft {левый съезд} exitRight {правый съезд} uturn {разворот} roundabout {круговое движение} merge {слияние} ramp {рампа} other {вперед}}"
+            "value": "{first, select, left {Turn left} slightLeft {Небольшой поворот налево} slightRight {Небольшой поворот направо} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} затем сразу {second, select, left {left} slightLeft {небольшой поворот налево} slightRight {небольшой поворот направо} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{first, select, left {بائیں مڑیں} right {دائیں مڑیں} exitLeft {بائیں سے باہر نکلیں} exitRight {دائیں سے باہر نکلیں} uturn {یو ٹرن کریں} roundabout {گول چکر میں داخل ہوں} merge {ضم کریں} ramp {ریمپ لیں} other {جاری رکھیں}} پھر فوراً {second, select, left {بائیں} right {دائیں} exitLeft {بائیں سے باہر نکلیں} exitRight {دائیں سے باہر نکلیں} uturn {یو ٹرن} roundabout {گول چکر} merge {ضم} ramp {ریمپ} other {آگے}}"
+            "value": "{first, select, left {Turn left} slightLeft {Slight left} slightRight {Slight right} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} پھر فوراً {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "{first, select, left {向左转} right {向右转} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶入匝道} other {继续前行}} 然后立刻 {second, select, left {左转} right {右转} exitLeft {左侧出口} exitRight {右侧出口} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶入匝道} other {继续前行}}"
+            "value": "{first, select, left {Turn left} slightLeft {Slight left} slightRight {Slight right} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} 然后立即 {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
           }
         }
       }
@@ -3572,19 +3572,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، خذ المخرج الأيسر"
+            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}، خذ المخرج الأيسر"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বাম দিকের এক্সিট নিন"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর বাম এক্সিট নিন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, nimm die linke Ausfahrt"
+            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, nimm die linke Ausfahrt"
           }
         },
         "en": {
@@ -3608,13 +3608,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, ota vasen liittymä"
+            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, ota vasen uloskäynti"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, prenez la sortie à gauche"
+            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, prenez la sortie à gauche"
           }
         },
         "hi": {
@@ -3632,19 +3632,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左の出口へ"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先で左の出口へ"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, डाव्या एक्झिटकडे जा"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये डावीकडचा एक्झिट घ्या"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the left exit"
+            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, take the left exit"
           }
         },
         "pt": {
@@ -3656,19 +3656,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сверните налево"
+            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, сверните на левый съезд"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں ایگزٹ لیں"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں بائیں ایگزٹ لیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，从左侧出口驶出"
+            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，向左驶出"
           }
         }
       }
@@ -3680,19 +3680,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، خذ المخرج الأيمن"
+            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}، خذ المخرج الأيمن"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডান দিকের এক্সিট নিন"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর ডান এক্সিট নিন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, nimm die rechte Ausfahrt"
+            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, nimm die rechte Ausfahrt"
           }
         },
         "en": {
@@ -3716,13 +3716,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, ota oikea liittymä"
+            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, ota oikea uloskäynti"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, prenez la sortie à droite"
+            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, prenez la sortie à droite"
           }
         },
         "hi": {
@@ -3740,19 +3740,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右の出口へ"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先で右の出口へ"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, उजव्या एक्झिटकडे जा"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये उजवीकडचा एक्झिट घ्या"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the right exit"
+            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, take the right exit"
           }
         },
         "pt": {
@@ -3764,19 +3764,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сверните направо"
+            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, сверните на правый съезд"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں ایگزٹ لیں"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں دائیں ایگزٹ لیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，从右侧出口驶出"
+            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，向右驶出"
           }
         }
       }
@@ -3788,19 +3788,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، اتبع المسار"
+            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}، اتبع المسار"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর রুট অনুসরণ করুন"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর রুট অনুসরণ করুন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, folge der Route"
+            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, folge der Route"
           }
         },
         "en": {
@@ -3824,13 +3824,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, noudata reittiä"
+            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, seuraa reittiä"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, suivez l’itinéraire"
+            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, suivez l’itinéraire"
           }
         },
         "hi": {
@@ -3848,19 +3848,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でルートに従ってください"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先でルートに従って進んでください"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, मार्गाचे अनुसरण करा"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये मार्गाचे अनुसरण करा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, follow the route"
+            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, follow the route"
           }
         },
         "pt": {
@@ -3872,19 +3872,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} следуйте по маршруту"
+            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, следуйте по маршруту"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں راستے پر چلیں"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں راستے پر چلتے رہیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，沿路线行驶"
+            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，沿路线行驶"
           }
         }
       }
@@ -3896,19 +3896,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، انعطف يسارًا"
+            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}، انعطف يسارًا"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে ঘুরুন"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর বামে ঘুরুন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, links abbiegen"
+            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, biege links ab"
           }
         },
         "en": {
@@ -3932,13 +3932,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny vasemmalle"
+            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, käänny vasemmalle"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, tournez à gauche"
+            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, tournez à gauche"
           }
         },
         "hi": {
@@ -3956,19 +3956,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左折してください"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先で左折してください"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, डावीकडे वळा"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये डावीकडे वळा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn left"
+            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, turn left"
           }
         },
         "pt": {
@@ -3980,19 +3980,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните налево"
+            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, поверните налево"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں مڑیں"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں بائیں مڑیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，左转"
+            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，向左转"
           }
         }
       }
@@ -4004,19 +4004,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "على بُعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، اندِمج"
+            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}، اندمج"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে, মার্জ করুন"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর মার্জ করুন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, einbiegen"
+            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, einfädeln"
           }
         },
         "en": {
@@ -4040,13 +4040,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, sulautu"
+            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, sulautu"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, fusionne"
+            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, fusionnez"
           }
         },
         "hi": {
@@ -4064,19 +4064,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で合流します"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先で合流してください"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, विलीनीकरण करा"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये मर्ज करा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, merge"
+            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, merge"
           }
         },
         "pt": {
@@ -4088,19 +4088,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, сливайся"
+            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, выполните слияние"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں، مرج کریں"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں مرج کریں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 内，并入"
+            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，并入"
           }
         }
       }
@@ -4112,19 +4112,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "على بُعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، خُذ المنحدر"
+            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}، خذ المنحدر"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে, র‌্যাম্প নিন"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর র‌্যাম্প নিন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, Auffahrt nehmen"
+            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, nimm die Rampe"
           }
         },
         "en": {
@@ -4148,13 +4148,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ota ramppi"
+            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, ota ramppi"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, prends la bretelle"
+            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, prenez la rampe"
           }
         },
         "hi": {
@@ -4172,19 +4172,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でランプに入ります"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先でランプを取ってください"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, रॅम्प घ्या"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये रॅम्प घ्या"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, take the ramp"
+            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, take the ramp"
           }
         },
         "pt": {
@@ -4196,19 +4196,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, съезжай"
+            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, съезжайте"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں، ریمپ لیں"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں ریمپ لیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 内，上匝道"
+            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，上匝道"
           }
         }
       }
@@ -4220,19 +4220,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، انعطف يمينًا"
+            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}، انعطف يمينًا"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে ঘুরুন"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর ডানে ঘুরুন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, rechts abbiegen"
+            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, biege rechts ab"
           }
         },
         "en": {
@@ -4256,13 +4256,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny oikealle"
+            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, käänny oikealle"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, tournez à droite"
+            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, tournez à droite"
           }
         },
         "hi": {
@@ -4280,19 +4280,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右折してください"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先で右折してください"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, उजवीकडे वळा"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये उजवीकडे वळा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, turn right"
+            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, turn right"
           }
         },
         "pt": {
@@ -4304,19 +4304,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните направо"
+            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, поверните направо"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں مڑیں"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں دائیں مڑیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，右转"
+            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，向右转"
           }
         }
       }
@@ -4328,19 +4328,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "على بُعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، ادخل الدوّار"
+            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}، ادخل الدوّار"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পরে, রাউন্ডঅ্যাবাউটে ঢুকুন"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর গোলচত্বর প্রবেশ করুন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, in den Kreisverkehr einfahren"
+            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, fahre in den Kreisverkehr ein"
           }
         },
         "en": {
@@ -4364,13 +4364,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, aja pyöröliittymään"
+            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, siirry kiertoliittymään"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, entre dans le rond-point"
+            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, entrez dans le rond-point"
           }
         },
         "hi": {
@@ -4388,19 +4388,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でラウンドアバウトに入ります"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先でラウンドアバウトに入ってください"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, राउंडअबाऊटमध्ये प्रवेश करा"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये राउंडअबाऊटमध्ये जा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, enter the roundabout"
+            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, enter the roundabout"
           }
         },
         "pt": {
@@ -4412,19 +4412,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, въезжай на кольцевую развязку"
+            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, въезжайте на кольцевую развязку"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں، گول چکر میں داخل ہوں"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں گول چکر میں داخل ہوں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 内，进入环岛"
+            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，进入环岛"
           }
         }
       }
@@ -4436,19 +4436,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، انعطف يسارًا"
+            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}، ميل يسارًا قليلًا"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর বামে ঘুরুন"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর সামান্য বামে"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, links abbiegen"
+            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, leicht links"
           }
         },
         "en": {
@@ -4472,13 +4472,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny vasemmalle"
+            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, vähäinen vasemmalle"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, tournez à gauche"
+            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, légère gauche"
           }
         },
         "hi": {
@@ -4496,19 +4496,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で左折してください"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先で緩やかな左へ"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, डावीकडे वळा"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये किंचित डावीकडे"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, slight left"
+            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, slight left"
           }
         },
         "pt": {
@@ -4520,19 +4520,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните налево"
+            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, небольшой поворот налево"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں بائیں مڑیں"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں ہلکا سا بائیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，左转"
+            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，轻微向左"
           }
         }
       }
@@ -4544,19 +4544,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، انعطف يمينًا"
+            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}، ميل يمينًا قليلًا"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর ডানে ঘুরুন"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর সামান্য ডানে"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, rechts abbiegen"
+            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, leicht rechts"
           }
         },
         "en": {
@@ -4580,13 +4580,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny oikealle"
+            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, vähäinen oikealle"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, tournez à droite"
+            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, légère droite"
           }
         },
         "hi": {
@@ -4604,19 +4604,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先で右折してください"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先で緩やかな右へ"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, उजवीकडे वळा"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये किंचित उजवीकडे"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, slight right"
+            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, slight right"
           }
         },
         "pt": {
@@ -4628,19 +4628,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните направо"
+            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, небольшой поворот направо"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں دائیں مڑیں"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں ہلکا سا دائیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，右转"
+            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，轻微向右"
           }
         }
       }
@@ -4652,19 +4652,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}، قم بعمل انعطاف U"
+            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}، نفّذ U-turn"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} পর U-টার্ন করুন"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} পর U-turn করুন"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, mach einen U-Turn"
+            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, mach einen U-turn"
           }
         },
         "en": {
@@ -4688,13 +4688,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, tee U-käännös"
+            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, tee U-käännös"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, faites un demi-tour"
+            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, faites un demi-tour"
           }
         },
         "hi": {
@@ -4712,19 +4712,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}先でUターンしてください"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先でUターンしてください"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} मध्ये, U-turn करा"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} मध्ये U-turn करा"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, make a U-turn"
+            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, make a U-turn"
           }
         },
         "pt": {
@@ -4736,19 +4736,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сделайте разворот"
+            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, выполните разворот"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} میں یو ٹرن کریں"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} میں U-turn کریں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，掉头"
+            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，掉头"
           }
         }
       }
@@ -4760,19 +4760,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "عند {distance, number} {distanceUnit, select, meters {متر} feet {قدم} other {متر}}، {first, select, left {انعطف يسارًا} right {انعطف يمينًا} exitLeft {خذ المخرج الأيسر} exitRight {خذ المخرج الأيمن} uturn {قم بعمل U-turn} roundabout {ادخل الدوّار} merge {ادمج} ramp {خذ المنحدر} other {اتبع المسار}} ثم بسرعة {second, select, left {يسارًا} right {يمينًا} exitLeft {المخرج الأيسر} exitRight {المخرج الأيمن} uturn {U-turn} roundabout {الدوّار} merge {ادمج} ramp {المنحدر} other {إلى الأمام}}"
+            "value": "بعد {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}، {first, select, left {turn left} slightLeft {slight left} slightRight {slight right} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} ثم بسرعة {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {মিটার} feet {ফুট} other {মিটার}}, তারপর দ্রুত {first, select, left {বাঁ দিকে ঘুরুন} right {ডান দিকে ঘুরুন} exitLeft {বাম এক্সিট নিন} exitRight {ডান এক্সিট নিন} uturn {একটি U-turn করুন} roundabout {রাউন্ডঅ্যাবাউটে ঢোকুন} merge {মার্জ করুন} ramp {র‌্যাম্প নিন} other {পথ অনুসরণ করুন}} তারপর দ্রুত {second, select, left {বামে} right {ডানে} exitLeft {বাম এক্সিট} exitRight {ডান এক্সিট} uturn {U-turn} roundabout {রাউন্ডঅ্যাবাউট} merge {মার্জ} ramp {র‌্যাম্প} other {সামনে}}"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {turn left} slightLeft {slight left} slightRight {slight right} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} তারপর দ্রুত {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In {distance, number} {distanceUnit, select, meters {Meter} feet {Fuß} other {Meter}}, {first, select, left {abbiegen nach links} right {abbiegen nach rechts} exitLeft {links abbiegen} exitRight {rechts abbiegen} uturn {Wenden} roundabout {in den Kreisverkehr einfahren} merge {zusammenführen} ramp {Auffahrt nehmen} other {der Strecke folgen}} dann schnell {second, select, left {links} right {rechts} exitLeft {links abbiegen} exitRight {rechts abbiegen} uturn {Wenden} roundabout {Kreisverkehr} merge {zusammenführen} ramp {Auffahrt} other {geradeaus}}"
+            "value": "In {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {links abbiegen} slightLeft {leicht links} slightRight {leicht rechts} right {rechts abbiegen} exitLeft {nimm die linke Ausfahrt} exitRight {nimm die rechte Ausfahrt} uturn {mach einen U-turn} roundabout {in den Kreisverkehr einfahren} merge {einfädeln} ramp {nimm die Rampe} other {folge der Route}} dann schnell {second, select, left {links} slightLeft {leicht links} slightRight {leicht rechts} right {rechts} exitLeft {linke Ausfahrt} exitRight {rechte Ausfahrt} uturn {U-turn} roundabout {Kreisverkehr} merge {einfädeln} ramp {Rampe} other {weiter}}"
           }
         },
         "en": {
@@ -4796,13 +4796,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kun {distance, number} {distanceUnit, select, meters {metriä} feet {jalkaa} other {metriä}}, {first, select, left {käänny vasemmalle} right {käänny oikealle} exitLeft {ota vasen ulosajo} exitRight {ota oikea ulosajo} uturn {tee U-käännös} roundabout {aja kiertoliittymään} merge {yhdistä} ramp {ota ramppi} other {noudata reittiä}} sitten nopeasti {second, select, left {vasemmalle} right {oikealle} exitLeft {vasen ulosajo} exitRight {oikea ulosajo} uturn {U-käännös} roundabout {kiertoliittymä} merge {yhdistä} ramp {ramppi} other {eteenpäin}}"
+            "value": "Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, {first, select, left {käänny vasemmalle} slightLeft {vähäinen vasemmalle} slightRight {vähäinen oikealle} right {käänny oikealle} exitLeft {ota vasen uloskäynti} exitRight {ota oikea uloskäynti} uturn {tee U-käännös} roundabout {siirry kiertoliittymään} merge {sulautu} ramp {ota ramppi} other {seuraa reittiä}} sitten nopeasti {second, select, left {vasemmalle} slightLeft {vähäinen vasemmalle} slightRight {vähäinen oikealle} right {oikealle} exitLeft {vasen uloskäynti} exitRight {oikea uloskäynti} uturn {U-käännös} roundabout {kiertoliittymä} merge {sulautu} ramp {ramppi} other {eteenpäin}}"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "À {distance, number} {distanceUnit, select, meters {mètres} feet {pieds} other {mètres}}, {first, select, left {tournez à gauche} right {tournez à droite} exitLeft {prenez la sortie à gauche} exitRight {prenez la sortie à droite} uturn {faites un demi-tour} roundabout {entrez dans le rond-point} merge {fusionnez} ramp {prenez la bretelle} other {suivez l’itinéraire}} puis rapidement {second, select, left {à gauche} right {à droite} exitLeft {sortie à gauche} exitRight {sortie à droite} uturn {demi-tour} roundabout {rond-point} merge {fusion} ramp {bretelle} other {tout droit}}"
+            "value": "Dans {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {tournez à gauche} slightLeft {légère gauche} slightRight {légère droite} right {tournez à droite} exitLeft {prenez la sortie à gauche} exitRight {prenez la sortie à droite} uturn {faites un demi-tour} roundabout {entrez dans le rond-point} merge {fusionnez} ramp {prenez la rampe} other {suivez l’itinéraire}} puis rapidement {second, select, left {à gauche} slightLeft {légère gauche} slightRight {légère droite} right {à droite} exitLeft {sortie à gauche} exitRight {sortie à droite} uturn {Demi-tour} roundabout {rond-point} merge {fusion} ramp {rampe} other {tout droit}}"
           }
         },
         "hi": {
@@ -4820,19 +4820,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {メートル} feet {フィート} other {メートル}}, {first, select, left {左折} right {右折} exitLeft {左の出口を出る} exitRight {右の出口を出る} uturn {Uターンする} roundabout {ラウンドアバウトに入る} merge {合流する} ramp {ランプを進む} other {進行方向に従う}} のあとすぐに {second, select, left {左} right {右} exitLeft {左の出口} exitRight {右の出口} uturn {Uターン} roundabout {ラウンドアバウト} merge {合流} ramp {ランプ} other {そのまま進む}}"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 先で、{first, select, left {左折} slightLeft {緩やかな左} slightRight {緩やかな右} right {右折} exitLeft {左の出口へ} exitRight {右の出口へ} uturn {Uターン} roundabout {ラウンドアバウトに入る} merge {合流} ramp {ランプを取る} other {ルートに従って進む}} のあとすぐに {second, select, left {左} slightLeft {緩やかな左} slightRight {緩やかな右} right {右} exitLeft {左の出口} exitRight {右の出口} uturn {Uターン} roundabout {ラウンドアバウト} merge {合流} ramp {ランプ} other {その先へ}}"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {मीटर} feet {फूट} other {मीटर}}, {first, select, left {डावीकडे वळा} right {उजवीकडे वळा} exitLeft {डाव्या एक्झिटमधून जा} exitRight {उजव्या एक्झिटमधून जा} uturn {U-turn करा} roundabout {राउंडअबाउटमध्ये प्रवेश करा} merge {विलीन व्हा} ramp {रॅम्प घ्या} other {मार्गाचे अनुसरण करा}} मग पटकन {second, select, left {डावीकडे} right {उजवीकडे} exitLeft {डावा एक्झिट} exitRight {उजवा एक्झिट} uturn {U-turn} roundabout {राउंडअबाउट} merge {विलीन} ramp {रॅम्प} other {पुढे}}"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {डावीकडे वळा} slightLeft {किंचित डावीकडे} slightRight {किंचित उजवीकडे} right {उजवीकडे वळा} exitLeft {डावीकडचा एक्झिट घ्या} exitRight {उजवीकडचा एक्झिट घ्या} uturn {U-turn करा} roundabout {राउंडअबाऊटमध्ये जा} merge {मर्ज करा} ramp {रॅम्प घ्या} other {मार्गाचे अनुसरण करा}} नंतर लवकरच {second, select, left {डावीकडे} slightLeft {किंचित डावीकडे} slightRight {किंचित उजवीकडे} right {उजवीकडे} exitLeft {डावीकडचा एक्झिट} exitRight {उजवीकडचा एक्झिट} uturn {U-turn} roundabout {राउंडअबाऊट} merge {मर्ज करा} ramp {रॅम्प} other {पुढे}}"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, {first, select, left {turn left} slightLeft {slight left} slightRight {slight right} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} then quickly {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
+            "value": "For {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {turn left} slightLeft {slight left} slightRight {slight right} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} then quickly {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
           }
         },
         "pt": {
@@ -4844,19 +4844,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "На {distance, number} {distanceUnit, select, meters {метров} feet {футов} other {метров}}, {first, select, left {поверните налево} right {поверните направо} exitLeft {сверните на левый съезд} exitRight {сверните на правый съезд} uturn {сделайте разворот} roundabout {въезжайте на круговое движение} merge {вливайтесь} ramp {съезжайте на съезд} other {следуйте по маршруту}} затем быстро {second, select, left {налево} right {направо} exitLeft {на левый съезд} exitRight {на правый съезд} uturn {U-turn} roundabout {на круговое движение} merge {вливайтесь} ramp {на съезд} other {вперед}}"
+            "value": "Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {turn left} slightLeft {небольшой поворот налево} slightRight {небольшой поворот направо} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} затем быстро {second, select, left {left} slightLeft {небольшой поворот налево} slightRight {небольшой поворот направо} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {میٹر} feet {فٹ} other {میٹر}} کے اندر، {first, select, left {بائیں مڑیں} right {دائیں مڑیں} exitLeft {بائیں ایگزٹ لیں} exitRight {دائیں ایگزٹ لیں} uturn {U-turn کریں} roundabout {گول چکر میں داخل ہوں} merge {مرج کریں} ramp {ریمپ لیں} other {راستہ فالو کریں}} پھر فوراً {second, select, left {بائیں} right {دائیں} exitLeft {بائیں ایگزٹ} exitRight {دائیں ایگزٹ} uturn {U-turn} roundabout {گول چکر} merge {مرج} ramp {ریمپ} other {آگے}}"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {turn left} slightLeft {slight left} slightRight {slight right} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} پھر جلدی {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 {distance, number} {distanceUnit, select, meters {米} feet {英尺} other {米}} 处，{first, select, left {向左转} right {向右转} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶上匝道} other {沿路线前行}}，然后迅速 {second, select, left {向左} right {向右} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶上匝道} other {继续前行}}"
+            "value": "在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，{first, select, left {turn left} slightLeft {slight left} slightRight {slight right} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} 然后很快 {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
           }
         }
       }
@@ -4868,19 +4868,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives via BRouter + OSRM"
+            "value": "بدائل التنقّل بالدراجة عبر BRouter + OSRM"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives via BRouter + OSRM"
+            "value": "BRouter + OSRM দিয়ে সাইক্লিং বিকল্পসমূহ"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives via BRouter + OSRM"
+            "value": "Fahrrad-Alternativen via BRouter + OSRM"
           }
         },
         "en": {
@@ -4904,13 +4904,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives via BRouter + OSRM"
+            "value": "Pyöräilyvaihtoehdot reittiä pitkin BRouter + OSRM:n kautta"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives via BRouter + OSRM"
+            "value": "Alternatives vélo via BRouter + OSRM"
           }
         },
         "hi": {
@@ -4928,13 +4928,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives via BRouter + OSRM"
+            "value": "BRouter + OSRM によるサイクリング代替ルート"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives via BRouter + OSRM"
+            "value": "BRouter + OSRM द्वारे सायकलिंग पर्याय"
           }
         },
         "pcm": {
@@ -4952,19 +4952,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives via BRouter + OSRM"
+            "value": "Варианты веломаршрута через BRouter + OSRM"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives via BRouter + OSRM"
+            "value": "BRouter + OSRM کے ذریعے Cycling alternatives"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives via BRouter + OSRM"
+            "value": "通过 BRouter + OSRM 提供的骑行备选方案"
           }
         }
       }
@@ -4976,19 +4976,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable"
+            "value": "بدائل التنقّل بالدراجة — {count, number} مصدر{count, plural, =1 {} other {s}} غير متاح"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable"
+            "value": "সাইক্লিং বিকল্পসমূহ — {count, number} source{count, plural, =1 {} other {s}} অনুপলব্ধ"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable"
+            "value": "Fahrrad-Alternativen — {count, number} Quelle{count, plural, =1 {} other {n}} nicht verfügbar"
           }
         },
         "en": {
@@ -5012,13 +5012,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable"
+            "value": "Pyöräilyvaihtoehdot — {count, number} lähde{count, plural, =1 {} other {ä}} ei saatavilla"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable"
+            "value": "Alternatives vélo — {count, number} source{count, plural, =1 {} other {s}} indisponible(s)"
           }
         },
         "hi": {
@@ -5036,13 +5036,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable"
+            "value": "サイクリング代替ルート — {count, number} source{count, plural, =1 {} other {s}} が利用できません"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable"
+            "value": "सायकलिंग पर्याय — {count, number} स्रोत{count, plural, =1 {} other {s}} उपलब्ध नाही"
           }
         },
         "pcm": {
@@ -5060,19 +5060,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable"
+            "value": "Варианты веломаршрута — {count, number} источник{count, plural, =1 {} other {а}} недоступен"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable"
+            "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} دستیاب نہیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable"
+            "value": "骑行备选方案 — {count, number} 个源不可用"
           }
         }
       }
@@ -5084,19 +5084,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing sample route — live routing failed"
+            "value": "عرض مسار نموذجي — تعذّر التوجيه المباشر"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing sample route — live routing failed"
+            "value": "নমুনা রুট দেখানো হচ্ছে — লাইভ রাউটিং ব্যর্থ হয়েছে"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing sample route — live routing failed"
+            "value": "Beispielroute wird angezeigt — Live-Routing fehlgeschlagen"
           }
         },
         "en": {
@@ -5120,13 +5120,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing sample route — live routing failed"
+            "value": "Näytetään esimerkkireitti — live-reititys epäonnistui"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing sample route — live routing failed"
+            "value": "Affichage d’un itinéraire d’exemple — le routage en direct a échoué"
           }
         },
         "hi": {
@@ -5144,13 +5144,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing sample route — live routing failed"
+            "value": "サンプルルートを表示中 — ライブ経路探索に失敗しました"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing sample route — live routing failed"
+            "value": "नमुना मार्ग दाखवत आहोत — live routing अयशस्वी"
           }
         },
         "pcm": {
@@ -5168,19 +5168,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing sample route — live routing failed"
+            "value": "Показывается пример маршрута — не удалось построить маршрут в реальном времени"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing sample route — live routing failed"
+            "value": "نمونہ روٹ دکھا رہے ہیں — live routing ناکام ہوگئی"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing sample route — live routing failed"
+            "value": "正在显示示例路线 — 实时路线规划失败"
           }
         }
       }
@@ -6272,13 +6272,13 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km"
+            "value": "{km, number} كم"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km"
+            "value": "{km, number} কিমি"
           }
         },
         "de": {
@@ -6338,7 +6338,7 @@
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km"
+            "value": "{km, number} किमी"
           }
         },
         "pcm": {
@@ -6356,7 +6356,7 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km"
+            "value": "{km, number} км"
           }
         },
         "ur": {
@@ -6380,19 +6380,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km to {destination}"
+            "value": "{km, number} كم إلى {destination}"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km to {destination}"
+            "value": "{km, number} কিমি থেকে {destination}"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km to {destination}"
+            "value": "{km, number} km bis {destination}"
           }
         },
         "en": {
@@ -6416,13 +6416,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km to {destination}"
+            "value": "{km, number} km kohteeseen {destination}"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km to {destination}"
+            "value": "{km, number} km jusqu’à {destination}"
           }
         },
         "hi": {
@@ -6440,13 +6440,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km to {destination}"
+            "value": "{km, number} km 先（{destination} まで）"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km to {destination}"
+            "value": "{km, number} किमी ते {destination}"
           }
         },
         "pcm": {
@@ -6464,19 +6464,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km to {destination}"
+            "value": "{km, number} км до {destination}"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km to {destination}"
+            "value": "{km, number} km سے {destination}"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km to {destination}"
+            "value": "{km, number} km 到 {destination}"
           }
         }
       }
@@ -6812,19 +6812,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "{min, number} min remaining"
+            "value": "{min, number} دقيقة متبقية"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{min, number} min remaining"
+            "value": "{min, number} মিনিট বাকি"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "{min, number} min remaining"
+            "value": "{min, number} Min verbleibend"
           }
         },
         "en": {
@@ -6848,13 +6848,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{min, number} min remaining"
+            "value": "{min, number} min jäljellä"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{min, number} min remaining"
+            "value": "{min, number} min restants"
           }
         },
         "hi": {
@@ -6872,19 +6872,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{min, number} min remaining"
+            "value": "{min, number} 分 目安（残り）"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{min, number} min remaining"
+            "value": "{min, number} मिनिटे शिल्लक"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "{min, number} min remaining"
+            "value": "{min, number} min wey still dey"
           }
         },
         "pt": {
@@ -6896,19 +6896,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "{min, number} min remaining"
+            "value": "{min, number} мин осталось"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{min, number} min remaining"
+            "value": "{min, number} منٹ باقی"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "{min, number} min remaining"
+            "value": "{min, number} 分剩余"
           }
         }
       }
@@ -7028,19 +7028,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off route"
+            "value": "خارج المسار"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off route"
+            "value": "রুটের বাইরে"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off route"
+            "value": "Vom Kurs abgekommen"
           }
         },
         "en": {
@@ -7064,13 +7064,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off route"
+            "value": "Poissa reitiltä"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off route"
+            "value": "Hors itinéraire"
           }
         },
         "hi": {
@@ -7088,19 +7088,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off route"
+            "value": "ルートから外れています"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off route"
+            "value": "मार्गाबाहेर"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off route"
+            "value": "Wey don go off route"
           }
         },
         "pt": {
@@ -7112,19 +7112,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off route"
+            "value": "Сбились с маршрута"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off route"
+            "value": "راستے سے ہٹ گئے"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off route"
+            "value": "已偏离路线"
           }
         }
       }
@@ -7244,19 +7244,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone guidance ready"
+            "value": "إرشاد الهاتف جاهز"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone guidance ready"
+            "value": "ফোন গাইডেন্স প্রস্তুত"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone guidance ready"
+            "value": "Telefonführung bereit"
           }
         },
         "en": {
@@ -7280,13 +7280,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone guidance ready"
+            "value": "Puheohjaus valmis"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone guidance ready"
+            "value": "Guidage téléphone prêt"
           }
         },
         "hi": {
@@ -7304,19 +7304,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone guidance ready"
+            "value": "電話案内の準備ができました"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone guidance ready"
+            "value": "फोन मार्गदर्शन तयार"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone guidance ready"
+            "value": "Phone guidance don ready"
           }
         },
         "pt": {
@@ -7328,19 +7328,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone guidance ready"
+            "value": "Готово голосовое сопровождение"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone guidance ready"
+            "value": "فون رہنمائی تیار ہے"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone guidance ready"
+            "value": "手机导航已就绪"
           }
         }
       }
@@ -7676,19 +7676,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km remaining • {min, number} min"
+            "value": "{km, number} كم متبقية • {min, number} دقيقة"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km remaining • {min, number} min"
+            "value": "{km, number} কিমি বাকি • {min, number} মিনিট"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km remaining • {min, number} min"
+            "value": "{km, number} km verbleibend • {min, number} Min"
           }
         },
         "en": {
@@ -7712,13 +7712,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km remaining • {min, number} min"
+            "value": "{km, number} km jäljellä • {min, number} min"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km remaining • {min, number} min"
+            "value": "{km, number} km restants • {min, number} min"
           }
         },
         "hi": {
@@ -7736,19 +7736,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km remaining • {min, number} min"
+            "value": "{km, number} km 目安（残り） • {min, number} 分"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km remaining • {min, number} min"
+            "value": "{km, number} किमी शिल्लक • {min, number} मिनिटे"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km remaining • {min, number} min"
+            "value": "{km, number} km wey still dey • {min, number} min"
           }
         },
         "pt": {
@@ -7760,19 +7760,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km remaining • {min, number} min"
+            "value": "{km, number} км осталось • {min, number} мин"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km remaining • {min, number} min"
+            "value": "{km, number} کلومیٹر باقی • {min, number} منٹ"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km remaining • {min, number} min"
+            "value": "{km, number} 公里剩余 • {min, number} 分钟"
           }
         }
       }
@@ -7784,19 +7784,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km • {min, number} min"
+            "value": "{km, number} كم • {min, number} دقيقة"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km • {min, number} min"
+            "value": "{km, number} কিমি • {min, number} মিনিট"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km • {min, number} min"
+            "value": "{km, number} km • {min, number} Min"
           }
         },
         "en": {
@@ -7844,13 +7844,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km • {min, number} min"
+            "value": "{km, number} km • {min, number} 分"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km • {min, number} min"
+            "value": "{km, number} किमी • {min, number} मिनिटे"
           }
         },
         "pcm": {
@@ -7868,19 +7868,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km • {min, number} min"
+            "value": "{km, number} км • {min, number} мин"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km • {min, number} min"
+            "value": "{km, number} کلومیٹر • {min, number} منٹ"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km • {min, number} min"
+            "value": "{km, number} 公里 • {min, number} 分钟"
           }
         }
       }
@@ -7892,19 +7892,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rerouting…"
+            "value": "إعادة التوجيه…"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rerouting…"
+            "value": "পুনরায় রুট করা হচ্ছে…"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rerouting…"
+            "value": "Neu berechnen…"
           }
         },
         "en": {
@@ -7928,13 +7928,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rerouting…"
+            "value": "Uudelleenreititys…"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rerouting…"
+            "value": "Recalcul…"
           }
         },
         "hi": {
@@ -7952,19 +7952,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rerouting…"
+            "value": "再ルート中…"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rerouting…"
+            "value": "पुन्हा मार्गक्रमण करत आहे…"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rerouting…"
+            "value": "De reroute…"
           }
         },
         "pt": {
@@ -7976,19 +7976,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rerouting…"
+            "value": "Пересчёт маршрута…"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rerouting…"
+            "value": "دوبارہ راستہ بن رہا ہے…"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rerouting…"
+            "value": "正在重新规划…"
           }
         }
       }
@@ -10052,19 +10052,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrive"
+            "value": "الوصول"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrive"
+            "value": "পৌঁছান"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrive"
+            "value": "Ankommen"
           }
         },
         "en": {
@@ -10088,13 +10088,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrive"
+            "value": "Saavu"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrive"
+            "value": "Arriver"
           }
         },
         "hi": {
@@ -10112,13 +10112,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrive"
+            "value": "到着してください"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrive"
+            "value": "पोहोचा"
           }
         },
         "pcm": {
@@ -10136,19 +10136,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrive"
+            "value": "Прибыть"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrive"
+            "value": "پہنچیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrive"
+            "value": "到达"
           }
         }
       }
@@ -10160,19 +10160,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue"
+            "value": "تابع"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue"
+            "value": "চালিয়ে যান"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue"
+            "value": "Weiterfahren"
           }
         },
         "en": {
@@ -10196,13 +10196,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue"
+            "value": "Jatka"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue"
+            "value": "Continuer"
           }
         },
         "hi": {
@@ -10220,13 +10220,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue"
+            "value": "そのまま進んでください"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue"
+            "value": "पुढे जा"
           }
         },
         "pcm": {
@@ -10244,19 +10244,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue"
+            "value": "Продолжайте"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue"
+            "value": "جاری رکھیں"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue"
+            "value": "继续"
           }
         }
       }
@@ -10592,19 +10592,19 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting…"
+            "value": "جارٍ الاتصال…"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting…"
+            "value": "সংযোগ হচ্ছে…"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting…"
+            "value": "Verbinden…"
           }
         },
         "en": {
@@ -10628,13 +10628,13 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting…"
+            "value": "Yhdistetään…"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting…"
+            "value": "Connexion…"
           }
         },
         "hi": {
@@ -10652,19 +10652,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting…"
+            "value": "接続中…"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting…"
+            "value": "जोडत आहे…"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting…"
+            "value": "De connect…"
           }
         },
         "pt": {
@@ -10676,19 +10676,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting…"
+            "value": "Подключение…"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting…"
+            "value": "کنیکٹ ہو رہا ہے…"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting…"
+            "value": "正在连接…"
           }
         }
       }
@@ -17288,25 +17288,25 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "المصدر الافتراضي، الاقتراحات، مفتاح HSL"
+            "value": "المصدر الافتراضي، الاقتراحات، التوجيه"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "ডিফল্ট সোর্স, সাজেশন, HSL কী"
+            "value": "ডিফল্ট উৎস, পরামর্শ, রাউটিং"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Standardquelle, Vorschläge, HSL-Schlüssel"
+            "value": "Standardquelle, Vorschläge, Routing"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Default source, suggestions, HSL key"
+            "value": "Default source, suggestions, routing"
           }
         },
         "es": {
@@ -17330,7 +17330,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Source par défaut, suggestions, clé HSL"
+            "value": "Source par défaut, suggestions, itinéraires"
           }
         },
         "hi": {
@@ -17348,19 +17348,19 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "デフォルトの出発地、候補、HSLキー"
+            "value": "デフォルトの出発地、候補、ルーティング"
           }
         },
         "mr": {
           "stringUnit": {
             "state": "translated",
-            "value": "डीफॉल्ट स्रोत, सूचना, HSL की"
+            "value": "डीफॉल्ट स्रोत, सूचना, रूटिंग"
           }
         },
         "pcm": {
           "stringUnit": {
             "state": "translated",
-            "value": "Default source, suggestions, HSL key"
+            "value": "Default source, suggestions, routing"
           }
         },
         "pt": {
@@ -17372,19 +17372,19 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Источник по умолчанию, подсказки, ключ HSL"
+            "value": "Источник по умолчанию, подсказки, маршрутизация"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ڈیفالٹ سورس، تجاویز، HSL key"
+            "value": "ڈیفالٹ سورس، تجاویز، روٹنگ"
           }
         },
         "zh": {
           "stringUnit": {
             "state": "translated",
-            "value": "默认起点、建议、HSL 键"
+            "value": "默认来源、建议、路线规划"
           }
         }
       }
@@ -19005,222 +19005,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "默认值"
-          }
-        }
-      }
-    },
-    "settings.routePlanner.hsl.description": {
-      "comment": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names.",
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "‏HSL هي سلطة النقل في منطقة هلسنكي. توفر واجهة برمجة التطبيقات الخاصة بـ Digitransit لديهم توجيهًا عالي الجودة للدراجات عبر فنلندا — بما في ذلك هلسنكي وتامبيري وتوركو وأولو وغيرها من المناطق المشمولة بواجهات تغذية GTFS المنشورة. المفتاح مجاني — سجّل الدخول إلى البوابة، وسجّل تطبيقًا، ثم انسخ مفتاح الاشتراك إلى الحقل أعلاه. خارج فنلندا، اترك HSL غير مفعّل وسيستخدم المخطط توجيه OSM عالميًا."
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL হলো হেলসিঙ্কি অঞ্চল পরিবহন কর্তৃপক্ষ। তাদের Digitransit API ফিনল্যান্ড জুড়ে উচ্চমানের সাইকেল রাউটিং দেয়—যার মধ্যে হেলসিঙ্কি, তাম্পেরে, তুর্কু, ওউলু এবং প্রকাশিত GTFS ফিড দ্বারা কভার করা অন্যান্য অঞ্চলও আছে। মূল সুবিধা হলো এটি বিনামূল্যে—পোর্টালে সাইন ইন করুন, একটি অ্যাপ রেজিস্টার করুন, এবং সাবস্ক্রিপশন কীটি উপরের ঘরে কপি করুন। ফিনল্যান্ডের বাইরে HSL বন্ধ রাখুন, আর প্ল্যানার বিশ্বব্যাপী OSM রাউটিং ব্যবহার করবে।"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL ist die Verkehrsbehörde der Region Helsinki. Ihre Digitransit-API bietet hochwertige Fahrrad-Routenplanung in ganz Finnland – einschließlich Helsinki, Tampere, Turku, Oulu und weiteren Regionen, die durch veröffentlichte GTFS-Feeds abgedeckt sind. Der Schlüssel ist kostenlos – melde dich im Portal an, registriere eine App und kopiere den Subscription Key in das Feld oben. Außerhalb Finnlands lasse HSL aus und der Planer verwendet OSM-Routing weltweit."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across Finland — including Helsinki, Tampere, Turku, Oulu, and other regions covered by published GTFS feeds. The key is free — sign in at the portal, register an app, and copy the subscription key into the field above. Outside Finland, leave HSL off and the planner uses OSM routing globally."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL es la autoridad de transporte de la Región de Helsinki. Su API de Digitransit ofrece rutas de bicicleta de alta calidad en toda Finlandia, incluyendo Helsinki, Tampere, Turku, Oulu y otras regiones cubiertas por feeds GTFS publicados. La clave es gratuita: inicia sesión en el portal, registra una aplicación y copia la clave de suscripción en el campo de arriba. Fuera de Finlandia, deja HSL desactivado y el planificador usará el enrutado de OSM a nivel global."
-          }
-        },
-        "fa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL مرجع حمل‌ونقل منطقه هلسینکی است. API مربوط به Digitransit آن‌ها، مسیریابی باکیفیت دوچرخه را در سراسر فنلاند ارائه می‌دهد—از جمله هلسینکی، تامپره، تورکو، اولو و سایر مناطق تحت پوشش فیدهای منتشرشده GTFS. کلید رایگان است—در پورتال وارد شوید، یک اپ ثبت کنید و کلید اشتراک را در فیلد بالا کپی کنید. خارج از فنلاند، HSL را خاموش کنید تا برنامه از مسیریابی OSM به‌صورت سراسری استفاده کند."
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL on Helsingin seudun liikenteen viranomainen. Heidän Digitransit-sovellusrajapintansa tarjoaa korkealaatuista pyöräreititystä koko Suomessa — mukaan lukien Helsinki, Tampere, Turku, Oulu ja muut alueet, jotka kuuluvat julkaistujen GTFS-syötteiden piiriin. Tärkeintä on, että avain on ilmainen — kirjaudu portaalissa sisään, rekisteröi sovellus ja kopioi tilausavain yllä olevaan kenttään. Suomen ulkopuolella jätä HSL pois päältä ja reititin käyttää OSM-reititystä maailmanlaajuisesti."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL est l’autorité des transports de la région de Helsinki. Leur API Digitransit fournit un routage vélo de haute qualité à travers toute la Finlande — y compris Helsinki, Tampere, Turku, Oulu et d’autres régions couvertes par des flux GTFS publiés. L’essentiel : c’est gratuit — connectez-vous au portail, enregistrez une application, puis copiez la clé d’abonnement dans le champ ci-dessus. En dehors de la Finlande, laissez HSL désactivé et le planificateur utilisera le routage via OSM à l’échelle mondiale."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL हेलसिंकी क्षेत्र परिवहन प्राधिकरण है। उनका Digitransit API फ़िनलैंड भर में, प्रकाशित GTFS फ़ीड्स द्वारा कवर किए गए क्षेत्रों—हेलसिंकी, टैम्परे, तुर्कु, ओउलू और अन्य—में उच्च-गुणवत्ता वाली साइकिल रूटिंग देता है। कुंजी मुफ़्त है—पोर्टल पर साइन इन करें, एक ऐप रजिस्टर करें, और सब्सक्रिप्शन की को ऊपर वाले फ़ील्ड में कॉपी करें। फ़िनलैंड के बाहर, HSL बंद रखें और प्लानर वैश्विक रूप से OSM रूटिंग का उपयोग करेगा।"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL adalah otoritas Transportasi Wilayah Helsinki. API Digitransit mereka menyediakan perutean sepeda berkualitas tinggi di seluruh Finland — termasuk Helsinki, Tampere, Turku, Oulu, dan wilayah lain yang tercakup oleh feed GTFS yang dipublikasikan. Kuncinya gratis — masuk ke portal, daftarkan aplikasi, lalu salin subscription key ke kolom di atas. Di luar Finland, matikan HSL dan perencana menggunakan perutean OSM secara global."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSLはヘルシンキ地域交通局です。HSLのDigitransit APIは、フィンランド全土（ヘルシンキ、タンペレ、トゥルク、オウルなど）を含む高品質な自転車ルーティングを提供します。ポイントは無料であることです。ポータルでサインインし、アプリを登録して、サブスクリプションキーを上の欄に貼り付けてください。フィンランド国外ではHSLをオフにし、プランナーは世界中でOSMルーティングを使用します。"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL ही हेलसिंकी प्रदेशातील परिवहन प्राधिकरण आहे. त्यांची Digitransit API फिनलंडभर उच्च-गुणवत्तेचे सायकल रूटिंग देते — ज्यामध्ये हेलसिंकी, टॅम्पेरे, तुर्कू, ओउलू आणि प्रकाशित GTFS फीड्सद्वारे कव्हर होणाऱ्या इतर प्रदेशांचा समावेश आहे. महत्त्वाची गोष्ट म्हणजे हे मोफत आहे — पोर्टलवर साइन इन करा, अॅप नोंदणी करा आणि सबस्क्रिप्शन की वरच्या फील्डमध्ये कॉपी करा. फिनलंडच्या बाहेर HSL बंद ठेवा आणि प्लॅनर जागतिक स्तरावर OSM रूटिंग वापरेल."
-          }
-        },
-        "pcm": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL na imaa Helsinki Region Transport (authority). Diẹr Digitransit API na e give high-quality bike routing for Finland—including Helsinki, Tampere, Turku, Oulu, àti other regions wey dey under published GTFS feeds. Diẹr key no cost—just sign in for portal, register app, make you copy subscription key put for field wey dey above. For outside Finland, leave HSL off, ki planner no use OSM routing for whole world."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL é a autoridade de transporte da Região de Helsinque. A API do Digitransit deles oferece roteamento de bicicleta de alta qualidade em toda a Finlândia — incluindo Helsinque, Tampere, Turku, Oulu e outras regiões cobertas por feeds GTFS publicados. A chave é gratuita — faça login no portal, registre um aplicativo e copie a chave de assinatura no campo acima. Fora da Finlândia, deixe o HSL desativado e o planejador usa o roteamento do OSM globalmente."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL — это транспортное управление столичного региона Хельсинки. Их API Digitransit обеспечивает высококачественную велонавигацию по всей Финляндии — включая Хельсинки, Тампере, Турку, Оулу и другие регионы, охваченные опубликованными фидами GTFS. Ключ бесплатный: войдите на портал, зарегистрируйте приложение и скопируйте subscription key в поле выше. За пределами Финляндии оставьте HSL выключенным — и планировщик будет использовать маршрутизацию OSM по всему миру."
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL ہیلسنکی ریجن ٹرانسپورٹ اتھارٹی ہے۔ ان کی Digitransit API فن لینڈ بھر میں اعلیٰ معیار کی سائیکل روٹنگ فراہم کرتی ہے — جس میں ہیلسنکی، ٹمپرے، تُرکو، اوولو اور دیگر وہ علاقے شامل ہیں جو شائع شدہ GTFS فیڈز کے ذریعے کور ہوتے ہیں۔ اصل بات یہ ہے کہ یہ مفت ہے — پورٹل پر سائن اِن کریں، ایک ایپ رجسٹر کریں، اور سبسکرپشن کی کو اوپر والے فیلڈ میں کاپی کریں۔ فن لینڈ کے باہر HSL کو آف رکھیں اور پلانر عالمی سطح پر OSM روٹنگ استعمال کرے گا۔"
-          }
-        },
-        "zh": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL 是赫尔辛基地区交通管理机构。他们的 Digitransit API 可在整个芬兰提供高质量的自行车路线规划——包括赫尔辛基、坦佩雷、图尔库、奥卢以及其他由已发布的 GTFS 数据源覆盖的地区。关键在于：它是免费的——在门户网站登录、注册一个应用，然后将订阅密钥复制到上方的输入框中。在芬兰以外，请关闭 HSL，规划器将使用 OSM 在全球范围内进行路线规划。"
-          }
-        }
-      }
-    },
-    "settings.routePlanner.hsl.section": {
-      "comment": "Section header for HSL Digitransit settings. HSL and Digitransit are brand names — do not translate.",
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "fa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "mr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "pcm": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
-          }
-        },
-        "zh": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HSL Digitransit"
           }
         }
       }

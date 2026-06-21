@@ -163,8 +163,6 @@ export type AppLanguagePref =
 export type DistanceUnitPref = "system" | "metric" | "imperial";
 
 export type CompanionSettings = {
-  preferLiveHslRouting: boolean;
-  hslSubscriptionKey: string;
   hslEndpointURL: string;
   /**
    * Cyclist's planning speed in km/h. Used to override route ETA so that

@@ -166,9 +166,7 @@ enum class SpeedUnit(val label: String) {
 }
 
 data class CompanionSettings(
-    val preferLiveHslRouting: Boolean = false,
-    val hslSubscriptionKey: String = "",
-    val hslEndpointUrl: String = "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1",
+    val hslEndpointUrl: String = "https://navon.bike/api/hsl/routing",
     /**
      * Cyclist's planning speed in km/h. Used to override route ETA so that
      * `estimatedDurationSeconds = totalDistanceMeters / (cyclingSpeedKph / 3.6)`.

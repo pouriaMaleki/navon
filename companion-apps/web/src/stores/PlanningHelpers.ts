@@ -16,18 +16,14 @@ export function decoratePreview(
   };
 }
 
-export function isSamplePreview(preview: RoutePreviewModel): boolean {
-  return (preview.planningNotice ?? "").toLowerCase().includes("sample");
-}
-
 export function mixedNotice(
-  previews: RoutePreviewModel[],
   effective: RoutePreviewModel[],
+  totalRacers: number,
   includeHsl: boolean,
 ): string {
   if (effective.length === 1 && effective[0].planningNotice) return effective[0].planningNotice;
-  if (effective.length < previews.length) {
-    return "Showing live routes while sample fallback providers are hidden.";
+  if (effective.length < totalRacers) {
+    return "Showing available routes while some providers are hidden.";
   }
   return includeHsl ? "Mixed routes from HSL and OSM" : "OSM bike routes";
 }

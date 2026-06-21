@@ -81,39 +81,12 @@ struct HslRoutingAdapter: RoutingProvider {
         revisionOverride: Int?
     ) async throws -> RoutePreviewModel {
         let settings = settingsProvider()
-        if settings.preferLiveHslRouting {
-            let trimmedKey = settings.hslSubscriptionKey.trimmingCharacters(in: .whitespacesAndNewlines)
-            if trimmedKey.isEmpty {
-                return normalizeResponse(
-                    sampleDigitransitResponse(for: request, liveDescriptor: "Fallback sample: missing HSL subscription key"),
-                    request: request,
-                    revisionOverride: revisionOverride,
-                    planningNotice: "No HSL subscription key configured. Showing sample route instead."
-                )
-            }
-            do {
-                let liveResponse = try await fetchLiveDigitransitResponse(for: request, settings: settings)
-                return normalizeResponse(
-                    liveResponse,
-                    request: request,
-                    revisionOverride: revisionOverride,
-                    planningNotice: "Live HSL Digitransit"
-                )
-            } catch {
-                return normalizeResponse(
-                    sampleDigitransitResponse(for: request, liveDescriptor: "Fallback sample after live HSL failure"),
-                    request: request,
-                    revisionOverride: revisionOverride,
-                    planningNotice: "Live HSL failed: \(displayMessage(for: error)). Showing sample route instead."
-                )
-            }
-        }
-
+        let liveResponse = try await fetchLiveDigitransitResponse(for: request, settings: settings)
         return normalizeResponse(
-            sampleDigitransitResponse(for: request, liveDescriptor: "Sample HSL route"),
+            liveResponse,
             request: request,
             revisionOverride: revisionOverride,
-            planningNotice: "Using sample HSL routes. Enable live HSL in Settings."
+            planningNotice: "Live HSL Digitransit"
         )
     }
 
@@ -141,7 +114,6 @@ struct HslRoutingAdapter: RoutingProvider {
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("application/json", forHTTPHeaderField: "content-type")
-        urlRequest.setValue(settings.hslSubscriptionKey, forHTTPHeaderField: "digitransit-subscription-key")
         urlRequest.httpBody = try JSONEncoder().encode(makeGraphQLRequestBody(for: request))
 
         let (data, response) = try await URLSession.shared.data(for: urlRequest)
@@ -406,97 +378,6 @@ struct HslRoutingAdapter: RoutingProvider {
         default:
             return .straight
         }
-    }
-
-    private func displayMessage(for error: Error) -> String {
-        if let localized = error as? LocalizedError, let message = localized.errorDescription {
-            return message
-        }
-        return error.localizedDescription
-    }
-
-    func sampleDigitransitResponse(for request: RoutePlanRequest, liveDescriptor: String) -> DigitransitResponse {
-        let origin = request.origin
-        let destination = request.destination
-        let itineraries = [
-            ("fastest", sampleGeometry(from: origin, to: destination, alternativeIndex: 0, offsetScale: 0.0013)),
-            ("quieter", sampleGeometry(from: origin, to: destination, alternativeIndex: 1, offsetScale: 0.0016)),
-            ("simpler", sampleGeometry(from: origin, to: destination, alternativeIndex: 2, offsetScale: 0.0010)),
-        ].map { descriptor, geometry in
-            makeItinerary(
-                systemNotice: "\(liveDescriptor) / \(descriptor)",
-                geometry: geometry,
-                startLabel: "Current location",
-                destinationLabel: "Selected destination"
-            )
-        }
-
-        return DigitransitResponse(
-            data: DataContainer(
-                plan: DigitransitPlan(itineraries: itineraries)
-            )
-        )
-    }
-
-    private func makeItinerary(
-        systemNotice: String,
-        geometry: [CoordinatePoint],
-        startLabel: String,
-        destinationLabel: String
-    ) -> DigitransitItinerary {
-        let segmentDistances = zip(geometry, geometry.dropFirst()).map { start, end in
-            PolylineGeo.straightLineMeters(start, end)
-        }
-        let totalDistance = segmentDistances.reduce(0, +)
-
-        return DigitransitItinerary(
-            durationSeconds: Int((totalDistance / 4.2).rounded()),
-            systemNotice: systemNotice,
-            legs: [DigitransitLeg(mode: "BICYCLE", distanceMeters: totalDistance, geometry: geometry)],
-            steps: [],
-            startLabel: startLabel,
-            destinationLabel: destinationLabel
-        )
-    }
-
-    private func sampleGeometry(from origin: CoordinatePoint, to destination: CoordinatePoint, alternativeIndex: Int, offsetScale: Double) -> [CoordinatePoint] {
-        if origin == destination {
-            return [
-                origin,
-                CoordinatePoint(latitude: origin.latitude + 0.0015, longitude: origin.longitude + 0.0009),
-                CoordinatePoint(latitude: origin.latitude + 0.0024, longitude: origin.longitude + 0.0016),
-                CoordinatePoint(latitude: origin.latitude + 0.0019, longitude: origin.longitude - 0.0004),
-                CoordinatePoint(latitude: origin.latitude + 0.0008, longitude: origin.longitude - 0.0016),
-                origin,
-            ]
-        }
-
-        let latDelta = destination.latitude - origin.latitude
-        let lonDelta = destination.longitude - origin.longitude
-        let length = max((latDelta * latDelta + lonDelta * lonDelta).squareRoot(), 0.0001)
-        let perpendicularLat = -lonDelta / length
-        let perpendicularLon = latDelta / length
-        let fractions: [Double] = [0.10, 0.22, 0.38, 0.54, 0.72, 0.88]
-        let patterns: [[Double]] = [
-            [0.26, 0.52, 0.22, 0.00, 0.16, 0.04],
-            [-0.20, -0.42, -0.18, -0.28, -0.10, 0.02],
-            [0.12, 0.06, 0.28, 0.14, 0.24, 0.08],
-        ]
-        let pattern = patterns[min(alternativeIndex, patterns.count - 1)]
-
-        var geometry: [CoordinatePoint] = [origin]
-        for (index, fraction) in fractions.enumerated() {
-            let lateral = offsetScale * pattern[index]
-            let forwardBias = offsetScale * 0.10 * (Double(index) - 2.5)
-            geometry.append(
-                CoordinatePoint(
-                    latitude: origin.latitude + latDelta * fraction + perpendicularLat * lateral + latDelta * forwardBias,
-                    longitude: origin.longitude + lonDelta * fraction + perpendicularLon * lateral + lonDelta * forwardBias
-                )
-            )
-        }
-        geometry.append(destination)
-        return geometry
     }
 
     private static let minHeadingSpeedMps: Double = 2.0

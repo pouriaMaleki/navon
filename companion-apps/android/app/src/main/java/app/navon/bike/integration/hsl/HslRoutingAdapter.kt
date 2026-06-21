@@ -148,35 +148,8 @@ class HslRoutingAdapter(
         revisionOverride: Int?,
     ): RoutePreviewModel {
         val settings = settingsProvider()
-        if (settings.preferLiveHslRouting) {
-            val trimmedKey = settings.hslSubscriptionKey.trim()
-            if (trimmedKey.isEmpty()) {
-                return normalizeResponse(
-                    sampleDigitransitResponse(request, "Fallback sample: missing HSL subscription key"),
-                    request,
-                    revisionOverride,
-                    planningNotice = "No HSL subscription key configured. Showing sample route instead.",
-                )
-            }
-            return try {
-                val liveResponse = fetchLiveDigitransitResponse(request, settings)
-                normalizeResponse(liveResponse, request, revisionOverride, planningNotice = "Live HSL Digitransit")
-            } catch (error: Exception) {
-                normalizeResponse(
-                    sampleDigitransitResponse(request, "Fallback sample after live HSL failure"),
-                    request,
-                    revisionOverride,
-                    planningNotice = "Live HSL failed: ${error.message ?: error::class.simpleName}. Showing sample route instead.",
-                )
-            }
-        }
-
-        return normalizeResponse(
-            sampleDigitransitResponse(request, "Sample HSL route"),
-            request,
-            revisionOverride,
-            planningNotice = "Using sample HSL routes. Enable live HSL in Settings.",
-        )
+        val liveResponse = fetchLiveDigitransitResponse(request, settings)
+        return normalizeResponse(liveResponse, request, revisionOverride, planningNotice = "Live HSL Digitransit")
     }
 
     fun makeGraphQlRequestBody(request: RoutePlanRequest): DigitransitGraphQlRequestBody {
@@ -201,7 +174,6 @@ class HslRoutingAdapter(
             requestMethod = "POST"
             doOutput = true
             setRequestProperty("content-type", "application/json")
-            setRequestProperty("digitransit-subscription-key", settings.hslSubscriptionKey)
         }
         val requestBody = makeGraphQlRequestJson(request)
         connection.outputStream.use { output ->
@@ -518,80 +490,6 @@ class HslRoutingAdapter(
         return coordinates
     }
 
-    fun sampleDigitransitResponse(request: RoutePlanRequest, descriptor: String): DigitransitResponse {
-        val origin = request.origin
-        val destination = request.destination
-        val itineraries = listOf(
-            "fastest" to sampleGeometry(origin, destination, 0, 0.0013),
-            "quieter" to sampleGeometry(origin, destination, 1, 0.0016),
-            "simpler" to sampleGeometry(origin, destination, 2, 0.0010),
-        ).map { (label, geometry) ->
-            makeItinerary("$descriptor / $label", geometry, "Current location", "Selected destination")
-        }
-        return DigitransitResponse(
-            data = DigitransitData(
-                plan = DigitransitPlan(itineraries = itineraries),
-            ),
-        )
-    }
-
-    private fun makeItinerary(
-        systemNotice: String,
-        geometry: List<CoordinatePoint>,
-        startLabel: String,
-        destinationLabel: String,
-    ): DigitransitItinerary {
-        val segmentDistances = geometry.zipWithNext().map { (start, end) ->
-            approximateDistanceMeters(start, end)
-        }
-        val totalDistance = segmentDistances.sum()
-        return DigitransitItinerary(
-            durationSeconds = (totalDistance / 4.2).toInt(),
-            systemNotice = systemNotice,
-            legs = listOf(DigitransitLeg(mode = "BICYCLE", distanceMeters = totalDistance, geometry = geometry)),
-            steps = emptyList(),
-            startLabel = startLabel,
-            destinationLabel = destinationLabel,
-        )
-    }
-
-    private fun sampleGeometry(origin: CoordinatePoint, destination: CoordinatePoint, alternativeIndex: Int, offsetScale: Double): List<CoordinatePoint> {
-        if (origin == destination) {
-            return listOf(
-                origin,
-                CoordinatePoint(origin.latitude + 0.0015, origin.longitude + 0.0009),
-                CoordinatePoint(origin.latitude + 0.0024, origin.longitude + 0.0016),
-                CoordinatePoint(origin.latitude + 0.0019, origin.longitude - 0.0004),
-                CoordinatePoint(origin.latitude + 0.0008, origin.longitude - 0.0016),
-                origin,
-            )
-        }
-
-        val latDelta = destination.latitude - origin.latitude
-        val lonDelta = destination.longitude - origin.longitude
-        val length = max(sqrt(latDelta * latDelta + lonDelta * lonDelta), 0.0001)
-        val perpendicularLat = -lonDelta / length
-        val perpendicularLon = latDelta / length
-        val fractions = listOf(0.10, 0.22, 0.38, 0.54, 0.72, 0.88)
-        val patterns = listOf(
-            listOf(0.26, 0.52, 0.22, 0.00, 0.16, 0.04),
-            listOf(-0.20, -0.42, -0.18, -0.28, -0.10, 0.02),
-            listOf(0.12, 0.06, 0.28, 0.14, 0.24, 0.08),
-        )
-        val pattern = patterns[minOf(alternativeIndex, patterns.lastIndex)]
-
-        val geometry = mutableListOf(origin)
-        fractions.forEachIndexed { index, fraction ->
-            val lateral = offsetScale * pattern[index]
-            val forwardBias = offsetScale * 0.10 * (index - 2.5)
-            geometry += CoordinatePoint(
-                latitude = origin.latitude + latDelta * fraction + perpendicularLat * lateral + latDelta * forwardBias,
-                longitude = origin.longitude + lonDelta * fraction + perpendicularLon * lateral + lonDelta * forwardBias,
-            )
-        }
-        geometry += destination
-        return geometry
-    }
 
     private fun approximateDistanceMeters(start: CoordinatePoint, end: CoordinatePoint): Double {
         val latScale = 111_320.0

@@ -8,16 +8,16 @@
     <string name="common_forget" formatted="false">忘记</string>
     <string name="common_ok" formatted="false">确定</string>
     <string name="cue_arrived" formatted="false">已到达目的地</string>
-    <string name="cue_arrivingInM" formatted="false">将在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 抵达目的地</string>
-    <string name="cue_nextTurnInAbout_generic" formatted="false">前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 进行下一步操作</string>
-    <string name="cue_nextTurnInAbout_left" formatted="false">前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 左转</string>
-    <string name="cue_nextTurnInAbout_merge" formatted="false">大约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后并入</string>
-    <string name="cue_nextTurnInAbout_ramp" formatted="false">大约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后上匝道</string>
-    <string name="cue_nextTurnInAbout_right" formatted="false">前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 右转</string>
-    <string name="cue_nextTurnInAbout_roundabout" formatted="false">大约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后进入环岛</string>
-    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">约{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}后，向左保持（轻微左转）</string>
-    <string name="cue_nextTurnInAbout_slightRight" formatted="false">约{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}后，向右保持（轻微右转）</string>
-    <string name="cue_nextTurnInAbout_uturn" formatted="false">前方约 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 掉头</string>
+    <string name="cue_arrivingInM" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内到达目的地</string>
+    <string name="cue_nextTurnInAbout_generic" formatted="false">约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后转向</string>
+    <string name="cue_nextTurnInAbout_left" formatted="false">约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后向左转</string>
+    <string name="cue_nextTurnInAbout_merge" formatted="false">约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后并入</string>
+    <string name="cue_nextTurnInAbout_ramp" formatted="false">约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后上匝道</string>
+    <string name="cue_nextTurnInAbout_right" formatted="false">约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后向右转</string>
+    <string name="cue_nextTurnInAbout_roundabout" formatted="false">约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后进入环岛</string>
+    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后轻微向左</string>
+    <string name="cue_nextTurnInAbout_slightRight" formatted="false">约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后轻微向右</string>
+    <string name="cue_nextTurnInAbout_uturn" formatted="false">约在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 后掉头</string>
     <string name="cue_offTrack" formatted="false">偏离路线</string>
     <string name="cue_onTrack" formatted="false">已回到路线</string>
     <string name="cue_rerouting" formatted="false">正在重新规划路线</string>
@@ -30,25 +30,25 @@
     <string name="cue_turn10m_ramp" formatted="false">上匝道</string>
     <string name="cue_turn10m_right" formatted="false">右转</string>
     <string name="cue_turn10m_roundabout" formatted="false">进入环岛</string>
-    <string name="cue_turn10m_slightLeft" formatted="false">左转</string>
-    <string name="cue_turn10m_slightRight" formatted="false">右转</string>
+    <string name="cue_turn10m_slightLeft" formatted="false">轻微向左</string>
+    <string name="cue_turn10m_slightRight" formatted="false">轻微向右</string>
     <string name="cue_turn10m_uturn" formatted="false">掉头</string>
-    <string name="cue_turn10mCombined" formatted="false">{first, select, left {向左转} right {向右转} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶入匝道} other {继续前行}} 然后立刻 {second, select, left {左转} right {右转} exitLeft {左侧出口} exitRight {右侧出口} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶入匝道} other {继续前行}}</string>
-    <string name="cue_turn50m_exitLeft" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，从左侧出口驶出</string>
-    <string name="cue_turn50m_exitRight" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，从右侧出口驶出</string>
-    <string name="cue_turn50m_generic" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，沿路线行驶</string>
-    <string name="cue_turn50m_left" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，左转</string>
-    <string name="cue_turn50m_merge" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 内，并入</string>
-    <string name="cue_turn50m_ramp" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 内，上匝道</string>
-    <string name="cue_turn50m_right" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，右转</string>
-    <string name="cue_turn50m_roundabout" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 内，进入环岛</string>
-    <string name="cue_turn50m_slightLeft" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，左转</string>
-    <string name="cue_turn50m_slightRight" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，右转</string>
-    <string name="cue_turn50m_uturn" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} 后，掉头</string>
-    <string name="cue_turn50mCombined" formatted="false">在 {distance, number} {distanceUnit, select, meters {米} feet {英尺} other {米}} 处，{first, select, left {向左转} right {向右转} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶上匝道} other {沿路线前行}}，然后迅速 {second, select, left {向左} right {向右} exitLeft {从左侧出口驶出} exitRight {从右侧出口驶出} uturn {掉头} roundabout {进入环岛} merge {并入} ramp {驶上匝道} other {继续前行}}</string>
-    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
-    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
-    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
+    <string name="cue_turn10mCombined" formatted="false">{first, select, left {Turn left} slightLeft {Slight left} slightRight {Slight right} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} 然后立即 {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}</string>
+    <string name="cue_turn50m_exitLeft" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，向左驶出</string>
+    <string name="cue_turn50m_exitRight" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，向右驶出</string>
+    <string name="cue_turn50m_generic" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，沿路线行驶</string>
+    <string name="cue_turn50m_left" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，向左转</string>
+    <string name="cue_turn50m_merge" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，并入</string>
+    <string name="cue_turn50m_ramp" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，上匝道</string>
+    <string name="cue_turn50m_right" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，向右转</string>
+    <string name="cue_turn50m_roundabout" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，进入环岛</string>
+    <string name="cue_turn50m_slightLeft" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，轻微向左</string>
+    <string name="cue_turn50m_slightRight" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，轻微向右</string>
+    <string name="cue_turn50m_uturn" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，掉头</string>
+    <string name="cue_turn50mCombined" formatted="false">在 {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} 内，{first, select, left {turn left} slightLeft {slight left} slightRight {slight right} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} 然后很快 {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}</string>
+    <string name="cycling_alternativesLive" formatted="false">通过 BRouter + OSRM 提供的骑行备选方案</string>
+    <string name="cycling_alternativesPartial" formatted="false">骑行备选方案 — {count, number} 个源不可用</string>
+    <string name="cycling_sampleFallback" formatted="false">正在显示示例路线 — 实时路线规划失败</string>
     <string name="guidance_distanceToDestination" formatted="false">到 {destination} 还需 {distance, number} {distanceUnit, select, km {km} mi {mi} other {km}}</string>
     <string name="home_a11y_clearDestination" formatted="false">清除目的地</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">关闭到达消息</string>
@@ -60,21 +60,21 @@
     <string name="home_a11y_settings" formatted="false">设置</string>
     <string name="home_continueOnCurrentRoute" formatted="false">继续沿当前路线</string>
     <string name="home_distanceKm" formatted="false">{km, number} km</string>
-    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km 到 {destination}</string>
     <string name="home_importedRoute" formatted="false">已导入的路线</string>
     <string name="home_iosLocationHint" formatted="false">打开 iOS 设置 → 隐私 → 位置，将此应用切换为“始终”。</string>
     <string name="home_linkFailed" formatted="false">无法打开该链接</string>
-    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} 分剩余</string>
     <string name="home_noSuggestions" formatted="false">暂无建议…</string>
-    <string name="home_offRoute" formatted="false">Off route</string>
+    <string name="home_offRoute" formatted="false">已偏离路线</string>
     <string name="home_openSettings" formatted="false">设置</string>
-    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
+    <string name="home_phoneGuidanceReady" formatted="false">手机导航已就绪</string>
     <string name="home_platformHint_locationDefault" formatted="false">系统会请求定位权限。允许它，这样在应用处于后台时，导航仍会持续跟踪你的当前位置。</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">iPhone 上的 Safari 无法在后台提供 GPS、锁屏导航或音频提示；当标签页被隐藏时尤其如此。要实现真正的后台路线导航，请安装原生 iOS 应用。</string>
     <string name="home_recenter" formatted="false">重新居中</string>
-    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
-    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
-    <string name="home_rerouting" formatted="false">Rerouting…</string>
+    <string name="home_remainingKm" formatted="false">{km, number} 公里剩余 • {min, number} 分钟</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} 公里 • {min, number} 分钟</string>
+    <string name="home_rerouting" formatted="false">正在重新规划…</string>
     <string name="home_resolvingLink" formatted="false">正在解析链接…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">正在跟随该链接到目的地。可能需要几秒钟。</string>
     <string name="home_routeActiveOnDevice" formatted="false">设备上已启用路线</string>
@@ -94,12 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">重试导入</string>
     <string name="importDiagnostics_sharePackage" formatted="false">分享调试包</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Navon 导入诊断信息</string>
-    <string name="maneuver_arrive" formatted="false">Arrive</string>
-    <string name="maneuver_continue" formatted="false">Continue</string>
+    <string name="maneuver_arrive" formatted="false">到达</string>
+    <string name="maneuver_continue" formatted="false">继续</string>
     <string name="pairing_alignQr" formatted="false">将二维码对准画面</string>
     <string name="pairing_cameraDenied" formatted="false">需要相机权限才能扫描配对代码。</string>
     <string name="pairing_cancel" formatted="false">取消</string>
-    <string name="pairing_connecting" formatted="false">Connecting…</string>
+    <string name="pairing_connecting" formatted="false">正在连接…</string>
     <string name="pairing_failed" formatted="false">配对失败</string>
     <string name="pairing_intro" formatted="false">将手机对准设备屏幕，使其出现在画面中，然后在看到二维码时点击“开始”。</string>
     <string name="pairing_openSettings" formatted="false">打开设置</string>
@@ -161,7 +161,7 @@
     <string name="settings_hub_importDiagnostics" formatted="false">导入诊断</string>
     <string name="settings_hub_importDiagnostics_subtitle" formatted="false">失败的共享导入</string>
     <string name="settings_hub_routePlanner" formatted="false">路线规划器</string>
-    <string name="settings_hub_routePlanner_subtitle" formatted="false">默认起点、建议、HSL 键</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">默认来源、建议、路线规划</string>
     <string name="settings_hub_routes" formatted="false">路线</string>
     <string name="settings_hub_routes_subtitle" formatted="false">最近路线和 GPX 导入</string>
     <string name="settings_hub_title" formatted="false">设置</string>
@@ -177,8 +177,6 @@
     <string name="settings_restartRequired_title" formatted="false">需要重启</string>
     <string name="settings_routePlanner_cyclingSpeed" formatted="false">骑行速度</string>
     <string name="settings_routePlanner_defaults_section" formatted="false">默认值</string>
-    <string name="settings_routePlanner_hsl_description" formatted="false">HSL 是赫尔辛基地区交通管理机构。他们的 Digitransit API 可在整个芬兰提供高质量的自行车路线规划——包括赫尔辛基、坦佩雷、图尔库、奥卢以及其他由已发布的 GTFS 数据源覆盖的地区。关键在于：它是免费的——在门户网站登录、注册一个应用，然后将订阅密钥复制到上方的输入框中。在芬兰以外，请关闭 HSL，规划器将使用 OSM 在全球范围内进行路线规划。</string>
-    <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
     <string name="settings_routePlanner_riding_footnote" formatted="false">骑行速度用于覆盖 HSL 的预计到达时间（ETAs）（Digitransit 默认使用较慢的骑行速度）。速度单位用于在地图上显示实时速度徽章。</string>
     <string name="settings_routePlanner_riding_section" formatted="false">骑行</string>
     <string name="settings_routePlanner_title" formatted="false">路线规划</string>

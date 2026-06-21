@@ -8,6 +8,7 @@ members = [
   "device/core/render-core",
   "device/core/render-core-wasm",
   "tools/map-vector-cli",
-  "tools/xtask"
+  "tools/xtask",
+  "companion-apps/server",
 ]
 resolver = "2"

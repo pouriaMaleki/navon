@@ -33,7 +33,6 @@ function buildHarness(): Harness {
   const providers: ProvidersMap = {
     hsl: fakeHsl,
     osm: fakeOsm,
-    // Import providers aren't exercised here but the map needs all keys.
     gpxImport: new FakeRoutingAdapter("gpxImport"),
     fitImport: new FakeRoutingAdapter("fitImport"),
     tcxImport: new FakeRoutingAdapter("tcxImport"),
@@ -47,20 +46,8 @@ describe("source selection (flows #38, #39, #41)", () => {
     globalThis.localStorage?.clear();
   });
 
-  it("single_source_no_tabs: HSL unconfigured collapses to [osm]", () => {
-    const { planning, settings } = buildHarness();
-    settings.updateSettings({ preferLiveHslRouting: false, hslSubscriptionKey: "" });
-    planning.routeRequest = {
-      ...planning.routeRequest,
-      origin: HELSINKI,
-      destination: HELSINKI_DEST,
-    };
-    expect(planning.availableSourceModes).toEqual(["osm"]);
-  });
-
-  it("dual_source_shows_tabs: HSL configured + both endpoints in Finland exposes all modes", () => {
-    const { planning, settings } = buildHarness();
-    settings.updateSettings({ preferLiveHslRouting: true, hslSubscriptionKey: "KEY" });
+  it("both_endpoints_in_finland_exposes_all_modes", () => {
+    const { planning } = buildHarness();
     planning.routeRequest = {
       ...planning.routeRequest,
       origin: HELSINKI,
@@ -70,8 +57,7 @@ describe("source selection (flows #38, #39, #41)", () => {
   });
 
   it("hsl_skipped_outside_finland: destination outside bbox collapses to [osm]", () => {
-    const { planning, settings } = buildHarness();
-    settings.updateSettings({ preferLiveHslRouting: true, hslSubscriptionKey: "KEY" });
+    const { planning } = buildHarness();
     planning.routeRequest = {
       ...planning.routeRequest,
       origin: HELSINKI,
@@ -80,9 +66,13 @@ describe("source selection (flows #38, #39, #41)", () => {
     expect(planning.availableSourceModes).toEqual(["osm"]);
   });
 
-  it("setSourceMode normalises hsl/mixed to osm when HSL unavailable", () => {
-    const { planning, settings } = buildHarness();
-    settings.updateSettings({ preferLiveHslRouting: false, hslSubscriptionKey: "" });
+  it("setSourceMode normalises hsl/mixed to osm when outside Finland", () => {
+    const { planning } = buildHarness();
+    planning.routeRequest = {
+      ...planning.routeRequest,
+      origin: STOCKHOLM,
+      destination: STOCKHOLM,
+    };
     planning.setSourceMode("mixed");
     expect(planning.currentSourceMode).toBe("osm");
     planning.setSourceMode("hsl");

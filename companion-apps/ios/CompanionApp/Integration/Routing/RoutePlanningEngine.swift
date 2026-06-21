@@ -65,14 +65,7 @@ enum RoutePlanningEngine {
     }
 
     static func preferredMixedPreviews(from previews: [RoutePreviewModel]) -> [RoutePreviewModel] {
-        let livePreviews = previews.filter { !isSamplePreview($0) && !$0.alternatives.isEmpty }
-        if !livePreviews.isEmpty { return livePreviews }
-        return previews.filter { !$0.alternatives.isEmpty }
-    }
-
-    static func isSamplePreview(_ preview: RoutePreviewModel) -> Bool {
-        guard let notice = preview.planningNotice?.lowercased() else { return false }
-        return notice.contains("sample")
+        previews.filter { !$0.alternatives.isEmpty }
     }
 
     static func mixedPlanningNotice(from previews: [RoutePreviewModel], effectivePreviews: [RoutePreviewModel]) -> String {
@@ -80,7 +73,7 @@ enum RoutePlanningEngine {
             return notice
         }
         if effectivePreviews.count < previews.count {
-            return "Showing live routes while sample fallback providers are hidden."
+            return "Showing available routes while some providers are hidden."
         }
         return T.string("planning.mixedRoutesFromHslAndOsm")
     }
@@ -120,7 +113,7 @@ enum RoutePlanningEngine {
     ) async throws -> RoutePreviewModel {
         switch sourceMode {
         case .mixed:
-            return try await buildMixedPreview(
+            return await buildMixedPreview(
                 for: request,
                 providers: providers,
                 isHslAvailable: isHslAvailable,
@@ -185,32 +178,20 @@ enum RoutePlanningEngine {
         session: ActiveRouteSession,
         revisionOverride: Int?,
         rerouteContext: RerouteContext?
-    ) async throws -> RoutePreviewModel {
+    ) async -> RoutePreviewModel {
         guard let osm = providers[.osm] else {
-            throw NSError(domain: "RoutePlanningEngine", code: 2, userInfo: [NSLocalizedDescriptionKey: "Mixed mode providers are unavailable"])
+            return RoutePreviewModel(alternatives: [], planningNotice: "Mixed mode providers are unavailable")
         }
-        let includeHsl = isHslAvailable
-        async let osmPreview = preview(
-            from: osm,
-            request: request,
-            currentSourceMode: currentSourceMode,
-            session: session,
-            revisionOverride: revisionOverride,
-            rerouteContext: rerouteContext
-        )
-        let previews: [RoutePreviewModel]
-        if includeHsl, let hsl = providers[.hsl] {
-            async let hslPreview = preview(
-                from: hsl,
-                request: request,
-                currentSourceMode: currentSourceMode,
-                session: session,
-                revisionOverride: revisionOverride,
-                rerouteContext: rerouteContext
-            )
-            previews = try await [hslPreview, osmPreview]
-        } else {
-            previews = try await [osmPreview]
+        let includeHsl = isHslAvailable && providers[.hsl] != nil
+        var tasks: [Task<RoutePreviewModel, Never>] = [
+            Task { await fetchMixedProvider(osm, request: request, currentSourceMode: currentSourceMode, session: session, revisionOverride: revisionOverride, rerouteContext: rerouteContext) },
+        ]
+        if includeHsl {
+            tasks.append(Task { await fetchMixedProvider(providers[.hsl]!, request: request, currentSourceMode: currentSourceMode, session: session, revisionOverride: revisionOverride, rerouteContext: rerouteContext) })
+        }
+        var previews: [RoutePreviewModel] = []
+        for task in tasks {
+            previews.append(await task.value)
         }
         let effectivePreviews = preferredMixedPreviews(from: previews)
         let merged = mergeMixedAlternatives(effectivePreviews.flatMap(\.alternatives))
@@ -221,5 +202,29 @@ enum RoutePlanningEngine {
             routeRevision: merged.first?.normalizedPackage.revision,
             planningNotice: mixedPlanningNotice(from: previews, effectivePreviews: effectivePreviews)
         )
+    }
+
+    /// Fetch from a single provider for mixed mode, never throwing — failures return
+    /// an empty preview so other providers can still contribute.
+    private static func fetchMixedProvider(
+        _ provider: RoutingProvider,
+        request: RoutePlanRequest,
+        currentSourceMode: RouteSourceMode,
+        session: ActiveRouteSession,
+        revisionOverride: Int?,
+        rerouteContext: RerouteContext?
+    ) async -> RoutePreviewModel {
+        do {
+            return try await preview(
+                from: provider,
+                request: request,
+                currentSourceMode: currentSourceMode,
+                session: session,
+                revisionOverride: revisionOverride,
+                rerouteContext: rerouteContext
+            )
+        } catch {
+            return RoutePreviewModel(alternatives: [], planningNotice: "\(provider.providerID.rawValue) unavailable: \(error.localizedDescription)")
+        }
     }
 }

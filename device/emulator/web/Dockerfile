@@ -46,6 +46,8 @@ COPY device/firmware ./device/firmware
 COPY data/parity-fixtures ./data/parity-fixtures
 COPY tools/map-vector-cli ./tools/map-vector-cli
 COPY tools/xtask ./tools/xtask
+COPY companion-apps/server/Cargo.toml ./companion-apps/server/Cargo.toml
+RUN mkdir -p companion-apps/server/src && echo "fn main() {}" > companion-apps/server/src/main.rs
 
 RUN wasm-pack build device/core/render-core-wasm --target web --out-dir /tmp/wasm-pkg --out-name render_core_wasm
 

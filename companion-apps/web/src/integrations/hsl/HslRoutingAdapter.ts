@@ -14,11 +14,9 @@ import {
 } from "../../domain/models.js";
 import type { RoutingProvider } from "../../domain/providers.js";
 import {
-  approximateDistanceMeters,
   classifyTurn,
   cumulativeDistances,
   decodePolyline,
-  deduplicateConsecutive,
   turnDeltaDegrees,
 } from "../geo.js";
 import { newAlternativeId, normalizedFromPreview } from "../routePackage.js";
@@ -88,45 +86,13 @@ export class HslRoutingAdapter implements RoutingProvider {
     signal: AbortSignal | undefined,
   ): Promise<RoutePreviewModel> {
     const settings = this.settingsProvider();
-    const cyclingSpeedKph = settings.cyclingSpeedKph;
-    if (settings.preferLiveHslRouting) {
-      const trimmedKey = settings.hslSubscriptionKey.trim();
-      if (!trimmedKey) {
-        return normalizeItineraries(
-          sampleItineraries(request, "Fallback sample: missing HSL subscription key"),
-          request,
-          revisionOverride,
-          "No HSL subscription key configured. Showing sample route instead.",
-          cyclingSpeedKph,
-        );
-      }
-      try {
-        const live = await fetchLive(request, settings, signal);
-        return normalizeItineraries(
-          live,
-          request,
-          revisionOverride,
-          "Live HSL Digitransit",
-          cyclingSpeedKph,
-        );
-      } catch (err) {
-        if ((err as Error)?.name === "AbortError") throw err;
-        const message = err instanceof Error ? err.message : "Unknown error";
-        return normalizeItineraries(
-          sampleItineraries(request, "Fallback sample after live HSL failure"),
-          request,
-          revisionOverride,
-          `Live HSL failed: ${message}. Showing sample route instead.`,
-          cyclingSpeedKph,
-        );
-      }
-    }
+    const live = await fetchLive(request, settings, signal);
     return normalizeItineraries(
-      sampleItineraries(request, "Sample HSL route"),
+      live,
       request,
       revisionOverride,
-      "Using sample HSL routes. Enable live HSL in Settings.",
-      cyclingSpeedKph,
+      "Live HSL Digitransit",
+      settings.cyclingSpeedKph,
     );
   }
 }
@@ -195,17 +161,20 @@ async function fetchLive(
       optimize: "SAFE",
     },
   };
-  const response = await fetch(settings.hslEndpointURL, {
+  // Race fetch against a 15 s deadline so a hung upstream never blocks
+  // mixed-mode routing from showing OSM results.
+  const done = fetch(settings.hslEndpointURL, {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "digitransit-subscription-key": settings.hslSubscriptionKey,
-    },
+    headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
     signal,
   });
+  const timeout = new Promise<never>((_resolve, reject) =>
+    setTimeout(() => reject(new Error("HSL Digitransit request timed out")), 15_000),
+  );
+  const response = await Promise.race([done, timeout]);
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
+    throw new Error(`HSL Digitransit returned HTTP ${response.status}`);
   }
   const decoded = (await response.json()) as DigitransitApiResponse;
   if (decoded.errors && decoded.errors.length > 0) {
@@ -274,8 +243,6 @@ function normalizeItinerary(
   const geometry = deduplicatedGeometryFromLegs(itinerary.legs);
   const totalDistance = itinerary.legs.reduce((sum, leg) => sum + leg.distanceMeters, 0);
   const maneuvers = buildManeuvers(geometry, totalDistance);
-  // Digitransit's bike speed is conservative for actual riders; recompute the
-  // ETA from the user-set cycling speed so listed times match real-world riding.
   const durationSeconds = overrideDurationSeconds(
     totalDistance,
     cyclingSpeedKph,
@@ -373,77 +340,4 @@ function buildRouteIdentifier(request: RoutePlanRequest, alternativeIndex: numbe
   const o = `${request.origin.latitude.toFixed(5)},${request.origin.longitude.toFixed(5)}`;
   const d = `${request.destination.latitude.toFixed(5)},${request.destination.longitude.toFixed(5)}`;
   return `hsl:${o}->${d}:alt-${alternativeIndex}`;
-}
-
-function sampleItineraries(request: RoutePlanRequest, liveDescriptor: string): Itinerary[] {
-  const variants: { tag: string; offsetScale: number; pattern: number[] }[] = [
-    {
-      tag: "fastest",
-      offsetScale: 0.0013,
-      pattern: [0.26, 0.52, 0.22, 0.0, 0.16, 0.04],
-    },
-    {
-      tag: "quieter",
-      offsetScale: 0.0016,
-      pattern: [-0.2, -0.42, -0.18, -0.28, -0.1, 0.02],
-    },
-    {
-      tag: "simpler",
-      offsetScale: 0.001,
-      pattern: [0.12, 0.06, 0.28, 0.14, 0.24, 0.08],
-    },
-  ];
-  return variants.map(({ tag, offsetScale, pattern }) => {
-    const geometry = sampleGeometry(request.origin, request.destination, offsetScale, pattern);
-    const distance = geometry
-      .slice(1)
-      .reduce((sum, p, i) => sum + approximateDistanceMeters(geometry[i], p), 0);
-    return {
-      durationSeconds: Math.round(distance / 4.2),
-      systemNotice: `${liveDescriptor} / ${tag}`,
-      legs: [{ distanceMeters: distance, geometry }],
-      startLabel: "Current location",
-      destinationLabel: "Selected destination",
-    };
-  });
-}
-
-function sampleGeometry(
-  origin: CoordinatePoint,
-  destination: CoordinatePoint,
-  offsetScale: number,
-  pattern: number[],
-): CoordinatePoint[] {
-  if (origin.latitude === destination.latitude && origin.longitude === destination.longitude) {
-    return deduplicateConsecutive([
-      origin,
-      { latitude: origin.latitude + 0.0015, longitude: origin.longitude + 0.0009 },
-      { latitude: origin.latitude + 0.0024, longitude: origin.longitude + 0.0016 },
-      { latitude: origin.latitude + 0.0019, longitude: origin.longitude - 0.0004 },
-      { latitude: origin.latitude + 0.0008, longitude: origin.longitude - 0.0016 },
-      origin,
-    ]);
-  }
-  const latDelta = destination.latitude - origin.latitude;
-  const lonDelta = destination.longitude - origin.longitude;
-  const length = Math.max(Math.sqrt(latDelta * latDelta + lonDelta * lonDelta), 0.0001);
-  const perpendicularLat = -lonDelta / length;
-  const perpendicularLon = latDelta / length;
-  const fractions = [0.1, 0.22, 0.38, 0.54, 0.72, 0.88];
-  const geometry: CoordinatePoint[] = [origin];
-  fractions.forEach((fraction, index) => {
-    const lateral = offsetScale * pattern[index];
-    const forwardBias = offsetScale * 0.1 * (index - 2.5);
-    geometry.push({
-      latitude:
-        origin.latitude + latDelta * fraction + perpendicularLat * lateral + latDelta * forwardBias,
-      longitude:
-        origin.longitude +
-        lonDelta * fraction +
-        perpendicularLon * lateral +
-        lonDelta * forwardBias,
-    });
-  });
-  geometry.push(destination);
-  return geometry;
 }

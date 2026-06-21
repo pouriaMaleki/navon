@@ -41,8 +41,20 @@ jobs:
         run: cargo run -p xtask --bin gen-gps-fixtures
       - name: Verify committed GPS fixtures are up to date
         run: git diff --exit-code -- parity-fixtures/data
+      - name: Verify i18n generated outputs are up to date
+        run: cargo xtask i18n-gen --check
       - name: Run parity-fixtures tests (including flow tests)
         run: cargo test -p parity-fixtures
+
+  hsl-proxy:
+    name: hsl-proxy tests (fast)
+    runs-on:
+      - self-hosted
+      - Linux
+    steps:
+      - uses: actions/checkout@v5
+      - name: Run hsl-proxy tests
+        run: cargo test -p hsl-proxy
 
   web-unit:
     name: companion-apps/web vitest (fast)

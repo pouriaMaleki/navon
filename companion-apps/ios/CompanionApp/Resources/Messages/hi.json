@@ -175,8 +175,6 @@
   "settings.restartRequired.title": "रीस्टार्ट आवश्यक",
   "settings.routePlanner.cyclingSpeed": "साइक्लिंग गति",
   "settings.routePlanner.defaults.section": "डिफ़ॉल्ट",
-  "settings.routePlanner.hsl.description": "HSL हेलसिंकी क्षेत्र परिवहन प्राधिकरण है। उनका Digitransit API फ़िनलैंड भर में, प्रकाशित GTFS फ़ीड्स द्वारा कवर किए गए क्षेत्रों—हेलसिंकी, टैम्परे, तुर्कु, ओउलू और अन्य—में उच्च-गुणवत्ता वाली साइकिल रूटिंग देता है। कुंजी मुफ़्त है—पोर्टल पर साइन इन करें, एक ऐप रजिस्टर करें, और सब्सक्रिप्शन की को ऊपर वाले फ़ील्ड में कॉपी करें। फ़िनलैंड के बाहर, HSL बंद रखें और प्लानर वैश्विक रूप से OSM रूटिंग का उपयोग करेगा।",
-  "settings.routePlanner.hsl.section": "HSL Digitransit",
   "settings.routePlanner.riding.footnote": "साइक्लिंग गति HSL ETAs को ओवरराइड करती है (Digitransit डिफ़ॉल्ट रूप से धीमी बाइक गति मानता है)। गति की इकाई यह तय करती है कि मैप पर लाइव-गति बैज कैसे दिखेगा।",
   "settings.routePlanner.riding.section": "सवारी",
   "settings.routePlanner.title": "रूट प्लानर",

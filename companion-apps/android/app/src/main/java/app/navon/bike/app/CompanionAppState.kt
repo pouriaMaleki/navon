@@ -11,6 +11,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import app.navon.bike.domain.ActiveRouteSession
 import app.navon.bike.domain.CompanionSettings
@@ -178,27 +180,19 @@ class CompanionAppState(
     )
 
     /**
-     * True only when live HSL routing is actually usable: toggle on AND key non-empty.
-     * Mirrors `companion-web` `SettingsStore.isHslLiveConfigured`.
-     */
-    val isHslLiveConfigured: Boolean
-        get() = settings.preferLiveHslRouting && settings.hslSubscriptionKey.trim().isNotEmpty()
-
-    /**
      * True when both endpoints of the current request fall inside Finland
      * (Digitransit's nationwide coverage area).
      */
     val isHslApplicableForRequest: Boolean
         get() = isInFinland(routeRequest.origin) && isInFinland(routeRequest.destination)
 
-    /** True when HSL is both configured AND geographically usable for the current request. */
+    /** True when HSL is geographically usable for the current request. */
     val isHslAvailable: Boolean
-        get() = isHslLiveConfigured && isHslApplicableForRequest
+        get() = isHslApplicableForRequest
 
     /**
-     * Source-mode tabs visible in the UI. With no Digitransit key, or when either endpoint
-     * is outside Finland, mixed/HSL collapse to OSM (the picker hides itself when there is
-     * only one option).
+     * Source-mode tabs visible in the UI. When either endpoint is outside Finland,
+     * mixed/HSL collapse to OSM (the picker hides itself when there is only one option).
      */
     val sourceModeOptions: List<RouteSourceMode>
         get() = if (isHslAvailable) RouteSourceMode.entries else listOf(RouteSourceMode.OSM)
@@ -312,13 +306,6 @@ class CompanionAppState(
     fun normalizeSourceModeForHslAvailability() {
         if (!isHslAvailable && currentSourceMode != RouteSourceMode.OSM) {
             currentSourceMode = RouteSourceMode.OSM
-        }
-        if (isHslLiveConfigured) return
-        val current = persistence.loadRoutePlannerPreferences()
-        if (current.defaultSourceMode != RouteSourceMode.OSM) {
-            val sanitized = current.copy(defaultSourceMode = RouteSourceMode.OSM)
-            persistence.saveRoutePlannerPreferences(sanitized)
-            routePlannerPreferences = sanitized
         }
     }
 
@@ -639,15 +626,9 @@ class CompanionAppState(
     }
 
     fun saveRoutePlannerPreferences(preferences: RoutePlannerPreferences) {
-        // Reject mixed/hsl as a default when no Digitransit key is configured.
-        val sanitized = if (!isHslLiveConfigured && preferences.defaultSourceMode != RouteSourceMode.OSM) {
-            preferences.copy(defaultSourceMode = RouteSourceMode.OSM)
-        } else {
-            preferences
-        }
-        routePlannerPreferences = sanitized
-        currentSourceMode = sanitized.defaultSourceMode
-        persistence.saveRoutePlannerPreferences(sanitized)
+        routePlannerPreferences = preferences
+        currentSourceMode = preferences.defaultSourceMode
+        persistence.saveRoutePlannerPreferences(preferences)
     }
 
     fun recordPlannedPreview(source: RouteHistorySource, sourceLabel: String) {
@@ -858,39 +839,40 @@ class CompanionAppState(
         request: RoutePlanRequest,
         revisionOverride: Int?,
         rerouteContext: RerouteContext? = null,
-    ): RoutePreviewModel {
-        val hsl = providers[RouteProviderId.HSL] ?: error("Missing HSL provider")
-        val osm = providers[RouteProviderId.OSM] ?: error("Missing OSM provider")
-        val previews = listOf(
-            previewFrom(hsl, request, revisionOverride, rerouteContext),
-            previewFrom(osm, request, revisionOverride, rerouteContext),
+    ): RoutePreviewModel = coroutineScope {
+        val hsl = providers[RouteProviderId.HSL]
+        val osm = providers[RouteProviderId.OSM] ?: return@coroutineScope RoutePreviewModel(
+            alternatives = emptyList(),
+            planningNotice = "Mixed mode providers are unavailable",
+        )
+        val osmJob = async { runCatching { previewFrom(osm, request, revisionOverride, rerouteContext) } }
+        val hslJob = if (hsl != null) async { runCatching { previewFrom(hsl, request, revisionOverride, rerouteContext) } } else null
+        val totalRacers = if (hslJob != null) 2 else 1
+        val previews = listOfNotNull(
+            osmJob.await().getOrNull(),
+            hslJob?.await()?.getOrNull(),
         )
         val effectivePreviews = preferredMixedPreviews(previews)
         val mixedAlternatives = mergeMixedAlternatives(effectivePreviews.flatMap { it.alternatives })
-        return RoutePreviewModel(
+        RoutePreviewModel(
             alternatives = mixedAlternatives,
             selectedAlternativeId = mixedAlternatives.firstOrNull()?.id,
             routeIdentifier = mixedAlternatives.firstOrNull()?.normalizedPackage?.routeIdentifier,
             routeRevision = mixedAlternatives.firstOrNull()?.normalizedPackage?.revision,
-            planningNotice = mixedPlanningNotice(previews, effectivePreviews),
+            planningNotice = mixedPlanningNotice(effectivePreviews, totalRacers),
         )
     }
 
     private fun preferredMixedPreviews(previews: List<RoutePreviewModel>): List<RoutePreviewModel> {
-        val livePreviews = previews.filter { !isSamplePreview(it) && it.alternatives.isNotEmpty() }
-        return if (livePreviews.isNotEmpty()) livePreviews else previews.filter { it.alternatives.isNotEmpty() }
+        return previews.filter { it.alternatives.isNotEmpty() }
     }
 
-    private fun isSamplePreview(preview: RoutePreviewModel): Boolean {
-        return preview.planningNotice?.contains("sample", ignoreCase = true) == true
-    }
-
-    private fun mixedPlanningNotice(previews: List<RoutePreviewModel>, effectivePreviews: List<RoutePreviewModel>): String {
+    private fun mixedPlanningNotice(effectivePreviews: List<RoutePreviewModel>, totalRacers: Int): String {
         if (effectivePreviews.size == 1) {
             effectivePreviews.first().planningNotice?.takeIf { it.isNotBlank() }?.let { return it }
         }
-        if (effectivePreviews.size < previews.size) {
-            return "Showing live routes while sample fallback providers are hidden."
+        if (effectivePreviews.size < totalRacers) {
+            return "Showing available routes while some providers are hidden."
         }
         return "Mixed routes from HSL and OSM"
     }

@@ -57,7 +57,7 @@ class CompanionSettingsExpansionTest {
         prefs.edit()
             .putString(
                 "settings",
-                """{"preferLiveHslRouting":false,"hslSubscriptionKey":"","hslEndpointUrl":"https://example.com","cyclingSpeedKph":18.0,"speedUnit":"KPH"}""",
+                """{"hslEndpointUrl":"/api/hsl/routing","cyclingSpeedKph":18.0,"speedUnit":"KPH"}""",
             )
             .apply()
 

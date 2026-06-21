@@ -831,7 +831,7 @@
       "placeholders": {}
     },
     "settings.hub.routePlanner.subtitle": {
-      "value": "Default source, suggestions, HSL key",
+      "value": "Default source, suggestions, routing",
       "description": "Subtitle under the 'Route Planner' row on the Settings hub. HSL is a brand name and must not be translated.",
       "placeholders": {}
     },
@@ -909,14 +909,6 @@
     "settings.routePlanner.defaults.section": {
       "value": "Defaults",
       "description": "Section header on the Route Planner page for defaults."
-    },
-    "settings.routePlanner.hsl.description": {
-      "value": "HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across Finland — including Helsinki, Tampere, Turku, Oulu, and other regions covered by published GTFS feeds. The key is free — sign in at the portal, register an app, and copy the subscription key into the field above. Outside Finland, leave HSL off and the planner uses OSM routing globally.",
-      "description": "Long footnote describing HSL Digitransit. HSL and Digitransit are brand names."
-    },
-    "settings.routePlanner.hsl.section": {
-      "value": "HSL Digitransit",
-      "description": "Section header for HSL Digitransit settings. HSL and Digitransit are brand names — do not translate."
     },
     "settings.routePlanner.riding.footnote": {
       "value": "Cycling speed overrides HSL ETAs (Digitransit defaults to a slow bike speed). Speed unit is how the live-speed badge is shown on the map.",

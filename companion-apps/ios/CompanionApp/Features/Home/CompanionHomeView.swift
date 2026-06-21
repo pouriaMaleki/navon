@@ -180,7 +180,7 @@ struct CompanionHomeView: View {
         let moving = viewModel.travelHeadingDegrees != nil
         let inGuidance = viewModel.homeMode == .phoneGuidance
         let suggestionsVisible = viewModel.isExploringAlternativesFromGuidance ||
-            (viewModel.homeMode == .planning && !appModel.preview.alternatives.isEmpty)
+            (viewModel.homeMode == .planning && (!appModel.preview.alternatives.isEmpty || appModel.preview.planningNotice != nil))
         if (moving || inGuidance) && !suggestionsVisible {
             Text(formatSpeed(
                 appModel.locationService.currentSpeedMps,
@@ -355,7 +355,7 @@ struct CompanionHomeView: View {
                 arrivalCard(arrival)
             } else if viewModel.planningStatus != nil || shareImportService.importActivityStatus != nil {
                 planningProgressCard
-            } else if !viewModel.previewAlternatives.isEmpty {
+            } else if !viewModel.previewAlternatives.isEmpty || appModel.preview.planningNotice != nil {
                 routeSuggestionsCard
             }
         case .phoneGuidance:
@@ -482,7 +482,7 @@ struct CompanionHomeView: View {
 
     private var sourceModePicker: some View {
         SourceModePickerView(
-            modes: HslAvailabilityService.sourceModeOptions(settings: appModel.settings, request: appModel.routeRequest),
+            modes: HslAvailabilityService.sourceModeOptions(request: appModel.routeRequest),
             currentMode: viewModel.sourceMode,
             onSelect: { viewModel.setSourceMode($0) }
         )
@@ -633,7 +633,10 @@ struct CompanionHomeView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
-            .disabled(viewModel.homeMode == .sendingToDevice)
+            .disabled(
+                viewModel.homeMode == .sendingToDevice ||
+                (viewModel.previewAlternatives.isEmpty && !viewModel.isExploringAlternativesFromGuidance)
+            )
         }
         .padding(16)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))

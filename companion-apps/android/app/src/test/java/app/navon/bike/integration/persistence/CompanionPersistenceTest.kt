@@ -33,10 +33,7 @@ class CompanionPersistenceTest {
             destinationLabel = "Finish",
             providerId = RouteProviderId.GPX_IMPORT,
         )
-        val settings = CompanionSettings(
-            preferLiveHslRouting = true,
-            hslSubscriptionKey = "local-only",
-        )
+        val settings = CompanionSettings()
 
         persistence.saveSession(session)
         persistence.saveSettings(settings)

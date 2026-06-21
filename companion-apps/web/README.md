@@ -7,7 +7,7 @@ Web companion app for the ESP32 bike minimap. Mirrors the iOS companion's produc
 - Vite 6 + TypeScript 5 (strict).
 - MapLibre GL JS with the OSM raster style.
 - Photon (typeahead) + Nominatim (reverse geocode) for places.
-- Digitransit HSL GraphQL + OSRM bike for routing, GPX import via DOMParser, sample fallback for everything.
+- Digitransit HSL GraphQL (via the hsl-proxy server at `/api/hsl/routing`) + OSRM bike for routing, GPX import via DOMParser, sample fallback for everything.
 - `localStorage` for persistence, key prefix `companion.*`.
 
 ## Run

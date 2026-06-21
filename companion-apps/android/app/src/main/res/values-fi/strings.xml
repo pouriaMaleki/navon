@@ -8,16 +8,16 @@
     <string name="common_forget" formatted="false">Unohda</string>
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">Olet saapunut määränpäähäsi</string>
-    <string name="cue_arrivingInM" formatted="false">Saavut määränpäähäsi {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_generic" formatted="false">Seuraava käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_left" formatted="false">Seuraa vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_merge" formatted="false">Sulautuminen noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_ramp" formatted="false">Ramppi noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_right" formatted="false">Seuraa oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_roundabout" formatted="false">Pyöröliittymä noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">Seuraa vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} päästä</string>
-    <string name="cue_nextTurnInAbout_slightRight" formatted="false">Seuraa oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} päästä</string>
-    <string name="cue_nextTurnInAbout_uturn" formatted="false">Tee U-käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_arrivingInM" formatted="false">Saavut määränpäähäsi {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} kuluttua</string>
+    <string name="cue_nextTurnInAbout_generic" formatted="false">Seuraava käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä</string>
+    <string name="cue_nextTurnInAbout_left" formatted="false">Käänny vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä</string>
+    <string name="cue_nextTurnInAbout_merge" formatted="false">Sulautuminen noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä</string>
+    <string name="cue_nextTurnInAbout_ramp" formatted="false">Ramppi noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä</string>
+    <string name="cue_nextTurnInAbout_right" formatted="false">Käänny oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä</string>
+    <string name="cue_nextTurnInAbout_roundabout" formatted="false">Liity kiertoliittymään noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä</string>
+    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">Vähäinen vasemmalle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä</string>
+    <string name="cue_nextTurnInAbout_slightRight" formatted="false">Vähäinen oikealle noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä</string>
+    <string name="cue_nextTurnInAbout_uturn" formatted="false">U-käännös noin {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} päästä</string>
     <string name="cue_offTrack" formatted="false">Reitiltä pois</string>
     <string name="cue_onTrack" formatted="false">Reitillä</string>
     <string name="cue_rerouting" formatted="false">Uudelleenreititys</string>
@@ -30,25 +30,25 @@
     <string name="cue_turn10m_ramp" formatted="false">Ota ramppi</string>
     <string name="cue_turn10m_right" formatted="false">Käänny oikealle</string>
     <string name="cue_turn10m_roundabout" formatted="false">Aja pyöröliittymään</string>
-    <string name="cue_turn10m_slightLeft" formatted="false">Käänny vasemmalle</string>
-    <string name="cue_turn10m_slightRight" formatted="false">Käänny oikealle</string>
+    <string name="cue_turn10m_slightLeft" formatted="false">Vähäinen vasemmalle</string>
+    <string name="cue_turn10m_slightRight" formatted="false">Vähäinen oikealle</string>
     <string name="cue_turn10m_uturn" formatted="false">Tee U-käännös</string>
-    <string name="cue_turn10mCombined" formatted="false">{first, select, left {Käänny vasemmalle} right {Käänny oikealle} exitLeft {Ota vasen liittymä} exitRight {Ota oikea liittymä} uturn {Tee U-käännös} roundabout {Aja ympyrään} merge {Yhdistä} ramp {Ota ramppi} other {Jatka}} sitten heti {second, select, left {vasemmalle} right {oikealle} exitLeft {vasen liittymä} exitRight {oikea liittymä} uturn {U-käännös} roundabout {ympyrään} merge {yhdistä} ramp {ramppi} other {eteenpäin}}</string>
-    <string name="cue_turn50m_exitLeft" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, ota vasen liittymä</string>
-    <string name="cue_turn50m_exitRight" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, ota oikea liittymä</string>
-    <string name="cue_turn50m_generic" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, noudata reittiä</string>
-    <string name="cue_turn50m_left" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny vasemmalle</string>
-    <string name="cue_turn50m_merge" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, sulautu</string>
-    <string name="cue_turn50m_ramp" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ota ramppi</string>
-    <string name="cue_turn50m_right" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny oikealle</string>
-    <string name="cue_turn50m_roundabout" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, aja pyöröliittymään</string>
-    <string name="cue_turn50m_slightLeft" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny vasemmalle</string>
-    <string name="cue_turn50m_slightRight" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, käänny oikealle</string>
-    <string name="cue_turn50m_uturn" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} on kulunut, tee U-käännös</string>
-    <string name="cue_turn50mCombined" formatted="false">Kun {distance, number} {distanceUnit, select, meters {metriä} feet {jalkaa} other {metriä}}, {first, select, left {käänny vasemmalle} right {käänny oikealle} exitLeft {ota vasen ulosajo} exitRight {ota oikea ulosajo} uturn {tee U-käännös} roundabout {aja kiertoliittymään} merge {yhdistä} ramp {ota ramppi} other {noudata reittiä}} sitten nopeasti {second, select, left {vasemmalle} right {oikealle} exitLeft {vasen ulosajo} exitRight {oikea ulosajo} uturn {U-käännös} roundabout {kiertoliittymä} merge {yhdistä} ramp {ramppi} other {eteenpäin}}</string>
-    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
-    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
-    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
+    <string name="cue_turn10mCombined" formatted="false">{first, select, left {Käänny vasemmalle} slightLeft {Vähäinen vasemmalle} slightRight {Vähäinen oikealle} right {Käänny oikealle} exitLeft {Ota vasen uloskäynti} exitRight {Ota oikea uloskäynti} uturn {Tee U-käännös} roundabout {Siirry kiertoliittymään} merge {Sulautu} ramp {Ota ramppi} other {Jatka}} sitten heti {second, select, left {vasemmalle} slightLeft {vähäinen vasemmalle} slightRight {vähäinen oikealle} right {oikealle} exitLeft {vasen uloskäynti} exitRight {oikea uloskäynti} uturn {U-käännös} roundabout {kiertoliittymä} merge {sulautu} ramp {ramppi} other {eteenpäin}}</string>
+    <string name="cue_turn50m_exitLeft" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, ota vasen uloskäynti</string>
+    <string name="cue_turn50m_exitRight" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, ota oikea uloskäynti</string>
+    <string name="cue_turn50m_generic" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, seuraa reittiä</string>
+    <string name="cue_turn50m_left" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, käänny vasemmalle</string>
+    <string name="cue_turn50m_merge" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, sulautu</string>
+    <string name="cue_turn50m_ramp" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, ota ramppi</string>
+    <string name="cue_turn50m_right" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, käänny oikealle</string>
+    <string name="cue_turn50m_roundabout" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, siirry kiertoliittymään</string>
+    <string name="cue_turn50m_slightLeft" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, vähäinen vasemmalle</string>
+    <string name="cue_turn50m_slightRight" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, vähäinen oikealle</string>
+    <string name="cue_turn50m_uturn" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, tee U-käännös</string>
+    <string name="cue_turn50mCombined" formatted="false">Kun {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} on jäljellä, {first, select, left {käänny vasemmalle} slightLeft {vähäinen vasemmalle} slightRight {vähäinen oikealle} right {käänny oikealle} exitLeft {ota vasen uloskäynti} exitRight {ota oikea uloskäynti} uturn {tee U-käännös} roundabout {siirry kiertoliittymään} merge {sulautu} ramp {ota ramppi} other {seuraa reittiä}} sitten nopeasti {second, select, left {vasemmalle} slightLeft {vähäinen vasemmalle} slightRight {vähäinen oikealle} right {oikealle} exitLeft {vasen uloskäynti} exitRight {oikea uloskäynti} uturn {U-käännös} roundabout {kiertoliittymä} merge {sulautu} ramp {ramppi} other {eteenpäin}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Pyöräilyvaihtoehdot reittiä pitkin BRouter + OSRM:n kautta</string>
+    <string name="cycling_alternativesPartial" formatted="false">Pyöräilyvaihtoehdot — {count, number} lähde{count, plural, =1 {} other {ä}} ei saatavilla</string>
+    <string name="cycling_sampleFallback" formatted="false">Näytetään esimerkkireitti — live-reititys epäonnistui</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} kohteeseen {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Tyhjennä määränpää</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">Sulje saapumisilmoitus</string>
@@ -60,21 +60,21 @@
     <string name="home_a11y_settings" formatted="false">Asetukset</string>
     <string name="home_continueOnCurrentRoute" formatted="false">Jatka nykyisellä reitillä</string>
     <string name="home_distanceKm" formatted="false">{km, number} km</string>
-    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km kohteeseen {destination}</string>
     <string name="home_importedRoute" formatted="false">Tuotu reitti</string>
     <string name="home_iosLocationHint" formatted="false">Avaa iOS-asetukset → Yksityisyys → Sijainti ja vaihda tämän sovelluksen asetukseksi \"Aina\".</string>
     <string name="home_linkFailed" formatted="false">Linkkiä ei voitu avata</string>
-    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} min jäljellä</string>
     <string name="home_noSuggestions" formatted="false">Ei vielä ehdotuksia…</string>
-    <string name="home_offRoute" formatted="false">Off route</string>
+    <string name="home_offRoute" formatted="false">Poissa reitiltä</string>
     <string name="home_openSettings" formatted="false">Asetukset</string>
-    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Puheohjaus valmis</string>
     <string name="home_platformHint_locationDefault" formatted="false">Sijaintilupaa pyydetään. Salli se, jotta opastus jatkaa sijaintisi seurantaa myös kun sovellus on taustalla.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">iPhonen Safari ei pysty välittämään taustalla GPS-sijaintia, lukitusnäytön ohjeita tai ääniopastusta, kun välilehti on piilossa. Aitoa taustareititystä varten asenna natiivi iOS-sovellus.</string>
     <string name="home_recenter" formatted="false">Keskitä uudelleen</string>
-    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
+    <string name="home_remainingKm" formatted="false">{km, number} km jäljellä • {min, number} min</string>
     <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
-    <string name="home_rerouting" formatted="false">Rerouting…</string>
+    <string name="home_rerouting" formatted="false">Uudelleenreititys…</string>
     <string name="home_resolvingLink" formatted="false">Selvitetään linkkiä…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Seurataan linkkiä määränpäähän. Tämä voi kestää muutaman sekunnin.</string>
     <string name="home_routeActiveOnDevice" formatted="false">Reitti aktiivinen laitteella</string>
@@ -94,12 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">Yritä tuonti uudelleen</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Jaa vianmäärityspaketti</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Navon-tuontidiagnostiikka</string>
-    <string name="maneuver_arrive" formatted="false">Arrive</string>
-    <string name="maneuver_continue" formatted="false">Continue</string>
+    <string name="maneuver_arrive" formatted="false">Saavu</string>
+    <string name="maneuver_continue" formatted="false">Jatka</string>
     <string name="pairing_alignQr" formatted="false">Kohdista QR-koodi kuvan sisällä</string>
     <string name="pairing_cameraDenied" formatted="false">Kameran käyttöoikeus tarvitaan parinmuodostuskoodin skannaamiseen.</string>
     <string name="pairing_cancel" formatted="false">Peruuta</string>
-    <string name="pairing_connecting" formatted="false">Connecting…</string>
+    <string name="pairing_connecting" formatted="false">Yhdistetään…</string>
     <string name="pairing_failed" formatted="false">Parinmuodostus epäonnistui</string>
     <string name="pairing_intro" formatted="false">Pidä puhelinta niin, että laitteen näyttö on kuvassa, ja napauta sitten Aloita, kun näet QR-koodin.</string>
     <string name="pairing_openSettings" formatted="false">Avaa asetukset</string>
@@ -177,8 +177,6 @@
     <string name="settings_restartRequired_title" formatted="false">Uudelleenkäynnistys vaaditaan</string>
     <string name="settings_routePlanner_cyclingSpeed" formatted="false">Pyöräilyn nopeus</string>
     <string name="settings_routePlanner_defaults_section" formatted="false">Oletukset</string>
-    <string name="settings_routePlanner_hsl_description" formatted="false">HSL on Helsingin seudun liikenteen viranomainen. Heidän Digitransit-sovellusrajapintansa tarjoaa korkealaatuista pyöräreititystä koko Suomessa — mukaan lukien Helsinki, Tampere, Turku, Oulu ja muut alueet, jotka kuuluvat julkaistujen GTFS-syötteiden piiriin. Tärkeintä on, että avain on ilmainen — kirjaudu portaalissa sisään, rekisteröi sovellus ja kopioi tilausavain yllä olevaan kenttään. Suomen ulkopuolella jätä HSL pois päältä ja reititin käyttää OSM-reititystä maailmanlaajuisesti.</string>
-    <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
     <string name="settings_routePlanner_riding_footnote" formatted="false">Pyöräilyn nopeus ohittaa HSL:n ETA-arviot (Digitransit käyttää oletuksena hidasta pyöränopeutta). Nopeusyksikkö määrittää, miten reaaliaikaisen nopeuden tunniste näytetään kartalla.</string>
     <string name="settings_routePlanner_riding_section" formatted="false">Pyöräily</string>
     <string name="settings_routePlanner_title" formatted="false">Reittisuunnittelu</string>

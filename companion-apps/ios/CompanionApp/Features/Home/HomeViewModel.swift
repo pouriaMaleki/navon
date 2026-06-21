@@ -183,9 +183,9 @@ final class HomeViewModel: ObservableObject {
 
     var shouldShowSourceControl: Bool {
         HomeDisplay.shouldShowSourceControl(
-            homeMode: homeMode, hasPreviewAlternatives: !previewAlternatives.isEmpty,
+            homeMode: homeMode, hasPreviewAlternatives: !previewAlternatives.isEmpty || appModel.preview.planningNotice != nil,
             isPreviewLockedToImportedRoute: isPreviewLockedToImportedRoute,
-            sourceModeOptionsCount: HslAvailabilityService.sourceModeOptions(settings: appModel.settings, request: appModel.routeRequest).count
+            sourceModeOptionsCount: HslAvailabilityService.sourceModeOptions(request: appModel.routeRequest).count
         )
     }
 
@@ -392,7 +392,7 @@ final class HomeViewModel: ObservableObject {
     func setSourceMode(_ mode: RouteSourceMode) {
         guard shouldShowSourceControl, sourceMode != mode else { return }
         sourceMode = mode
-        guard let destination = destinationCoordinate else { return }
+        let destination = destinationCoordinate ?? appModel.routeRequest.destination
         Task {
             planningStatus = "Refreshing route options…"
             defer { planningStatus = nil }

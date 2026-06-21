@@ -79,9 +79,7 @@ export const EMPTY_ACTIVE_SESSION: ActiveRouteSession = {
 };
 
 export const DEFAULT_COMPANION_SETTINGS: CompanionSettings = {
-  preferLiveHslRouting: false,
-  hslSubscriptionKey: "",
-  hslEndpointURL: "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1",
+  hslEndpointURL: "/api/hsl/routing",
   cyclingSpeedKph: 18,
   speedUnit: "kph",
   ridingZoom: null,

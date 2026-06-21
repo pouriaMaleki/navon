@@ -221,7 +221,7 @@ Refactor these aggressively:
 
 ## UX Rules
 - planning-mode UI and guidance-mode UI should feel distinct; route comparison chrome should not remain on screen after guidance begins
-- HSL routing is only offered when it is actually usable: both the Digitransit subscription key is configured AND both trip endpoints fall inside the Uusimaa region. Otherwise the source picker collapses to OSM and the Mixed / HSL tabs are hidden. Route Planner settings explains what HSL is and links to the Digitransit portal for key registration.
+- HSL routing is offered when both trip endpoints fall inside Finland. The subscription key lives server-side (`HSL_SUBSCRIPTION_KEY` env var in the hsl-proxy container, `companion-apps/server/`). Outside Finland the source picker collapses to OSM and the Mixed / HSL tabs are hidden.
 - "Where to?" accepts http(s) URLs directly: pasted Google Maps / OSM links are followed to a destination (inline coords first; then redirect-following through the share-import classifier), with explicit loading and error rows in the search panel.
 - Rider position always comes from real device GPS through the `LocationService` seam. The locate/recenter control shows a spinner until the first fix arrives, then swaps to the normal control. When permission is denied or unavailable, planning falls back to the last persisted fix then to a static default so the planner still works.
 - Typeahead search debounces (250 ms) and passes the rider's current location to `PlaceSearchService.searchDestinations` as a bias so same-city results rank first (`docs/ux-specs.md` line 75). The store exposes `isTypeaheadSearching` (web) so the UI can render a spinner during the in-flight request.

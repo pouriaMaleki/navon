@@ -458,7 +458,7 @@ private fun CompanionHomeScreen(
                     val arrival = homeState.arrivalNotice
                     if (arrival != null) {
                         ArrivalCard(arrival, onClose = { homeState.dismissArrivalNotice() })
-                    } else if (homeState.previewAlternatives.isNotEmpty()) {
+                    } else if (homeState.previewAlternatives.isNotEmpty() || appState.preview.planningNotice != null) {
                         RouteSuggestionsCard(appState, homeState)
                     }
                 }
@@ -546,7 +546,7 @@ private fun SpeedBadge(appState: CompanionAppState, homeState: HomeStateHolder) 
     val inGuidance = homeState.homeMode == HomeMode.PHONE_GUIDANCE
     if (!moving && !inGuidance) return
     val suggestionsVisible = homeState.isExploringAlternativesFromGuidance ||
-        (homeState.homeMode == HomeMode.PLANNING && homeState.previewAlternatives.isNotEmpty())
+        (homeState.homeMode == HomeMode.PLANNING && (homeState.previewAlternatives.isNotEmpty() || appState.preview.planningNotice != null))
     if (suggestionsVisible) return
     val unit = appState.settings.speedUnit
     val mps = appState.locationState.currentSpeedMps
@@ -1450,26 +1450,9 @@ private fun RoutePlannerSettingsScreen(appState: CompanionAppState, onBack: () -
         Spacer(Modifier.height(16.dp))
         Text("HSL Digitransit", fontWeight = FontWeight.SemiBold)
         Text(
-            "HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across the Helsinki metro area. The key is free — sign in at the portal, register an app, and copy the subscription key into the field below. Outside the Helsinki area, leave HSL off and the planner uses OSM routing globally.",
+            "HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across the Helsinki metro area. Live routing is handled by the server and requires no configuration. Outside the Helsinki area, leave HSL off and the planner uses OSM routing globally.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        val uriHandler = LocalUriHandler.current
-        Text(
-            "Open the Digitransit portal",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.clickable { uriHandler.openUri("https://portal-api.digitransit.fi/") },
-        )
-        Spacer(Modifier.height(8.dp))
-        TextField(
-            value = appState.settings.hslSubscriptionKey,
-            onValueChange = {
-                appState.settings = appState.settings.copy(hslSubscriptionKey = it)
-                appState.persistSettings()
-            },
-            label = { Text("Digitransit subscription key") },
-            modifier = Modifier.fillMaxWidth(),
         )
     }
 }

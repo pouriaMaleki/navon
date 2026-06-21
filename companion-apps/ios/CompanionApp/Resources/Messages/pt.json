@@ -175,8 +175,6 @@
   "settings.restartRequired.title": "Reinício necessário",
   "settings.routePlanner.cyclingSpeed": "Velocidade de ciclismo",
   "settings.routePlanner.defaults.section": "Padrões",
-  "settings.routePlanner.hsl.description": "HSL é a autoridade de transporte da Região de Helsinque. A API do Digitransit deles oferece roteamento de bicicleta de alta qualidade em toda a Finlândia — incluindo Helsinque, Tampere, Turku, Oulu e outras regiões cobertas por feeds GTFS publicados. A chave é gratuita — faça login no portal, registre um aplicativo e copie a chave de assinatura no campo acima. Fora da Finlândia, deixe o HSL desativado e o planejador usa o roteamento do OSM globalmente.",
-  "settings.routePlanner.hsl.section": "HSL Digitransit",
   "settings.routePlanner.riding.footnote": "A velocidade de ciclismo substitui as estimativas de chegada da HSL (ETAs) (Digitransit usa uma velocidade de bicicleta lenta por padrão). A unidade de velocidade é como o crachá de velocidade em tempo real é exibido no mapa.",
   "settings.routePlanner.riding.section": "Pedalar",
   "settings.routePlanner.title": "Planejador de Rotas",

@@ -16,7 +16,7 @@ struct RoutePlannerSettingsView: View {
                         appModel.currentSourceMode = newValue
                     }
                 )) {
-                    ForEach(HslAvailabilityService.sourceModeOptions(settings: appModel.settings, request: appModel.routeRequest)) { mode in
+                    ForEach(HslAvailabilityService.sourceModeOptions(request: appModel.routeRequest)) { mode in
                         Text(mode.displayName).tag(mode)
                     }
                 }
@@ -69,21 +69,6 @@ struct RoutePlannerSettingsView: View {
                     .font(.footnote)
             }
 
-            Section {
-                Toggle("Prefer live HSL routing", isOn: $appModel.settings.preferLiveHslRouting)
-                SecureField("Digitransit subscription key", text: $appModel.settings.hslSubscriptionKey)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-            } header: {
-                Text(T.string("settings.routePlanner.hsl.section"))
-            } footer: {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(T.string("settings.routePlanner.hsl.description"))
-                    Link("Open the Digitransit portal", destination: URL(string: "https://portal-api.digitransit.fi/")!)
-                }
-                .font(.footnote)
-                .padding(.top, 4)
-            }
         }
         .navigationTitle(T.string("settings.routePlanner.title"))
         .onChange(of: appModel.settings) { _, _ in

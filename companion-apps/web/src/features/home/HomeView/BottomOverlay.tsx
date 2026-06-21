@@ -59,7 +59,7 @@ export const BottomOverlay = observer(({ store }: Props) => {
       </div>
     );
   }
-  if (planning.preview.alternatives.length > 0) {
+  if (planning.preview.alternatives.length > 0 || planning.preview.planningNotice) {
     return (
       <div className={styles.overlayBottom} data-overlay="bottom">
         <RouteSuggestionsCard store={store} />

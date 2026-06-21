@@ -175,8 +175,6 @@
   "settings.restartRequired.title": "Perlu memulai ulang",
   "settings.routePlanner.cyclingSpeed": "Kecepatan bersepeda",
   "settings.routePlanner.defaults.section": "Default",
-  "settings.routePlanner.hsl.description": "HSL adalah otoritas Transportasi Wilayah Helsinki. API Digitransit mereka menyediakan perutean sepeda berkualitas tinggi di seluruh Finland — termasuk Helsinki, Tampere, Turku, Oulu, dan wilayah lain yang tercakup oleh feed GTFS yang dipublikasikan. Kuncinya gratis — masuk ke portal, daftarkan aplikasi, lalu salin subscription key ke kolom di atas. Di luar Finland, matikan HSL dan perencana menggunakan perutean OSM secara global.",
-  "settings.routePlanner.hsl.section": "HSL Digitransit",
   "settings.routePlanner.riding.footnote": "Kecepatan bersepeda menimpa Perkiraan Waktu Kedatangan (ETA) HSL (Digitransit default ke kecepatan sepeda yang lambat). Satuan kecepatan adalah cara lencana kecepatan langsung ditampilkan di peta.",
   "settings.routePlanner.riding.section": "Bersepeda",
   "settings.routePlanner.title": "Perencana Rute",

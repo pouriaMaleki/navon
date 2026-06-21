@@ -19,8 +19,6 @@ describe("companion settings expansion (spec lines 128-145)", () => {
 
   it("legacy storage missing the new keys still loads with the spec defaults", () => {
     const legacy = {
-      preferLiveHslRouting: true,
-      hslSubscriptionKey: "key",
       hslEndpointURL: "https://example.com",
       cyclingSpeedKph: 20,
       speedUnit: "mph",

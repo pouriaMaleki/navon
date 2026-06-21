@@ -21,7 +21,6 @@ import type { HistoryStore } from "./HistoryStore.js";
 import type { LocationStore } from "./LocationStore.js";
 import {
   decoratePreview,
-  isSamplePreview,
   mergeMixedAlternatives,
   mixedNotice,
   presentAlternatives,
@@ -69,7 +68,9 @@ export class PlanningStore {
     private readonly providers: ProvidersMap,
     private readonly placeSearch: PlaceSearchService,
     private readonly location: LocationStore,
-    private readonly settings: SettingsStore,
+    // Reserved — settings may be re-read by future routing logic (e.g.
+    // cyclingSpeedKph). Keep the parameter for stable constructor shape.
+    _settings: SettingsStore,
     private readonly history?: HistoryStore,
   ) {
     const initialOrigin = this.location.bestKnownLocation();
@@ -86,7 +87,7 @@ export class PlanningStore {
   }
 
   get isHslAvailable(): boolean {
-    return this.settings.isHslLiveConfigured && this.isHslApplicableForRequest;
+    return this.isHslApplicableForRequest;
   }
 
   get availableSourceModes(): RouteSourceMode[] {
@@ -424,15 +425,14 @@ export class PlanningStore {
     for (const r of settled) {
       if (r.status === "fulfilled") previews.push(r.value);
     }
-    const live = previews.filter((p) => !isSamplePreview(p) && p.alternatives.length > 0);
-    const effective = live.length > 0 ? live : previews.filter((p) => p.alternatives.length > 0);
+    const effective = previews.filter((p) => p.alternatives.length > 0);
     const merged = mergeMixedAlternatives(effective.flatMap((p) => p.alternatives));
     return {
       alternatives: merged,
       selectedAlternativeID: merged[0]?.id,
       routeIdentifier: merged[0]?.normalizedPackage.routeIdentifier,
       routeRevision: merged[0]?.normalizedPackage.revision,
-      planningNotice: mixedNotice(previews, effective, includeHsl),
+      planningNotice: mixedNotice(effective, racers.length, includeHsl),
     };
   }
 
@@ -454,7 +454,6 @@ export class PlanningStore {
 export {
   decoratePreview,
   friendlyAlternativeLabel,
-  isSamplePreview,
   mergeMixedAlternatives,
   mixedNotice,
   presentAlternatives,

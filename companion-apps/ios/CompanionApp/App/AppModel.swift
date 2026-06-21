@@ -143,7 +143,7 @@ final class AppModel: ObservableObject {
         revisionOverride: Int? = nil,
         rerouteContext: RerouteContext? = nil
     ) async {
-        let hslAvailable = HslAvailabilityService.isHslAvailable(settings: settings, request: routeRequest)
+        let hslAvailable = HslAvailabilityService.isHslAvailable(request: routeRequest)
         let effectiveMode: RouteSourceMode = (!hslAvailable && sourceMode != .osm) ? .osm : sourceMode
         currentSourceMode = effectiveMode
         routeRequest.providerID = effectiveMode.primaryProviderID
@@ -307,9 +307,7 @@ final class AppModel: ObservableObject {
         persistence.saveSettings(settings)
         HslAvailabilityService.normalizeSourceModeForHslAvailability(
             currentSourceMode: &currentSourceMode,
-            settings: settings,
-            request: routeRequest,
-            persistence: persistence
+            request: routeRequest
         )
         syncRoutingActivityServices()
     }

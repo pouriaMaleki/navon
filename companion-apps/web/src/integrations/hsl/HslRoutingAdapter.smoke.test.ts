@@ -40,13 +40,8 @@ maybeDescribe("live routing smoke (opt-in)", () => {
   });
 
   it("HSL reroute with heading context returns at least one alternative", async () => {
-    const hslSubscriptionKey = env.HSL_SUBSCRIPTION_KEY ?? "";
-    const hslEndpointURL = env.HSL_ENDPOINT_URL ?? "";
-    expect(hslSubscriptionKey.length).toBeGreaterThan(0);
-    expect(hslEndpointURL.length).toBeGreaterThan(0);
+    const hslEndpointURL = env.HSL_PROXY_URL ?? "http://localhost:3001/api/hsl/routing";
     const adapter = new HslRoutingAdapter(() => ({
-      preferLiveHslRouting: true,
-      hslSubscriptionKey,
       hslEndpointURL,
       cyclingSpeedKph: 18,
       speedUnit: "kph",

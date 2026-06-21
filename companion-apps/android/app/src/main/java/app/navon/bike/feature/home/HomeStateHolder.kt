@@ -172,7 +172,7 @@ class HomeStateHolder(
 
     val shouldShowSourceControl: Boolean
         get() = homeMode == HomeMode.PLANNING
-            && previewAlternatives.isNotEmpty()
+            && (previewAlternatives.isNotEmpty() || appState.preview.planningNotice != null)
             && !isPreviewLockedToImportedRoute
             && appState.sourceModeOptions.size > 1
 
@@ -443,7 +443,7 @@ class HomeStateHolder(
         if (!shouldShowSourceControl || mode == sourceMode) return
         appState.currentSourceMode = mode
         appState.saveRoutePlannerPreferences(appState.routePlannerPreferences.copy(defaultSourceMode = mode))
-        val destination = destinationCoordinate ?: return
+        val destination = destinationCoordinate ?: appState.routeRequest.destination
         appState.routeRequest = RoutePlanRequest(
             origin = appState.riderLocation,
             destination = destination,

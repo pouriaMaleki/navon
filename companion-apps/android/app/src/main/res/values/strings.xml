@@ -161,7 +161,7 @@
     <string name="settings_hub_importDiagnostics" formatted="false">Import Diagnostics</string>
     <string name="settings_hub_importDiagnostics_subtitle" formatted="false">Failed shared imports</string>
     <string name="settings_hub_routePlanner" formatted="false">Route Planner</string>
-    <string name="settings_hub_routePlanner_subtitle" formatted="false">Default source, suggestions, HSL key</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">Default source, suggestions, routing</string>
     <string name="settings_hub_routes" formatted="false">Routes</string>
     <string name="settings_hub_routes_subtitle" formatted="false">Recent routes and GPX import</string>
     <string name="settings_hub_title" formatted="false">Settings</string>
@@ -177,8 +177,6 @@
     <string name="settings_restartRequired_title" formatted="false">Restart required</string>
     <string name="settings_routePlanner_cyclingSpeed" formatted="false">Cycling speed</string>
     <string name="settings_routePlanner_defaults_section" formatted="false">Defaults</string>
-    <string name="settings_routePlanner_hsl_description" formatted="false">HSL is the Helsinki Region Transport authority. Their Digitransit API provides high-quality bike routing across Finland — including Helsinki, Tampere, Turku, Oulu, and other regions covered by published GTFS feeds. The key is free — sign in at the portal, register an app, and copy the subscription key into the field above. Outside Finland, leave HSL off and the planner uses OSM routing globally.</string>
-    <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
     <string name="settings_routePlanner_riding_footnote" formatted="false">Cycling speed overrides HSL ETAs (Digitransit defaults to a slow bike speed). Speed unit is how the live-speed badge is shown on the map.</string>
     <string name="settings_routePlanner_riding_section" formatted="false">Riding</string>
     <string name="settings_routePlanner_title" formatted="false">Route Planner</string>

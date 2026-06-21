@@ -18,10 +18,7 @@ class HslHeadingRerouteTest {
 
     private fun adapter(): HslRoutingAdapter = HslRoutingAdapter(
         settingsProvider = {
-            CompanionSettings(
-                preferLiveHslRouting = false,
-                hslSubscriptionKey = "",
-            )
+            CompanionSettings()
         },
     )
 

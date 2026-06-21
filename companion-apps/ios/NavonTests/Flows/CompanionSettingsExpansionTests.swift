@@ -41,9 +41,7 @@ final class CompanionSettingsExpansionTests: XCTestCase {
         let defaults = freshDefaults()
         // Hand-craft a legacy JSON blob that lacks the new keys.
         let legacy: [String: Any] = [
-            "preferLiveHslRouting": false,
-            "hslSubscriptionKey": "",
-            "hslEndpointURL": "https://example.com",
+            "hslEndpointURL": "/api/hsl/routing",
             "cyclingSpeedKph": 18.0,
             "speedUnit": "kph"
         ]

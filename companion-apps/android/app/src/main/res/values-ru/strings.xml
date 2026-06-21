@@ -8,16 +8,16 @@
     <string name="common_forget" formatted="false">Забыть</string>
     <string name="common_ok" formatted="false">ОК</string>
     <string name="cue_arrived" formatted="false">Вы прибыли в пункт назначения</string>
-    <string name="cue_arrivingInM" formatted="false">Прибытие в пункт назначения через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_generic" formatted="false">Следующий поворот через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_left" formatted="false">Поворот налево через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_merge" formatted="false">Слияние через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_ramp" formatted="false">Съезд через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_right" formatted="false">Поворот направо через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_roundabout" formatted="false">Кольцевая развязка через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">Скоро держитесь левее примерно на {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_slightRight" formatted="false">Скоро держитесь правее примерно на {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_uturn" formatted="false">Разворот через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_arrivingInM" formatted="false">Прибытие к месту назначения через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_generic" formatted="false">Следующий манёвр через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_left" formatted="false">Поворот налево через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_merge" formatted="false">Слияние через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_ramp" formatted="false">Съезд через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_right" formatted="false">Поворот направо через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_roundabout" formatted="false">Кольцевая развязка через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">Небольшой поворот налево через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_slightRight" formatted="false">Небольшой поворот направо через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_uturn" formatted="false">Разворот через примерно {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
     <string name="cue_offTrack" formatted="false">Сбились с маршрута</string>
     <string name="cue_onTrack" formatted="false">Маршрут восстановлен</string>
     <string name="cue_rerouting" formatted="false">Пересчёт маршрута</string>
@@ -30,25 +30,25 @@
     <string name="cue_turn10m_ramp" formatted="false">Съезжай</string>
     <string name="cue_turn10m_right" formatted="false">Поверните направо</string>
     <string name="cue_turn10m_roundabout" formatted="false">Въезжай на кольцевую развязку</string>
-    <string name="cue_turn10m_slightLeft" formatted="false">Поверните налево</string>
-    <string name="cue_turn10m_slightRight" formatted="false">Поверните направо</string>
+    <string name="cue_turn10m_slightLeft" formatted="false">Небольшой поворот налево</string>
+    <string name="cue_turn10m_slightRight" formatted="false">Небольшой поворот направо</string>
     <string name="cue_turn10m_uturn" formatted="false">Сделайте разворот</string>
-    <string name="cue_turn10mCombined" formatted="false">{first, select, left {Поверните налево} right {Поверните направо} exitLeft {Сверните на левый съезд} exitRight {Сверните на правый съезд} uturn {Сделайте разворот} roundabout {Въезжайте на круговое движение} merge {Сливайтесь} ramp {Съезжайте на рампу} other {Продолжайте}} затем сразу {second, select, left {налево} right {направо} exitLeft {левый съезд} exitRight {правый съезд} uturn {разворот} roundabout {круговое движение} merge {слияние} ramp {рампа} other {вперед}}</string>
-    <string name="cue_turn50m_exitLeft" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сверните налево</string>
-    <string name="cue_turn50m_exitRight" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сверните направо</string>
-    <string name="cue_turn50m_generic" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} следуйте по маршруту</string>
-    <string name="cue_turn50m_left" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните налево</string>
-    <string name="cue_turn50m_merge" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, сливайся</string>
-    <string name="cue_turn50m_ramp" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, съезжай</string>
-    <string name="cue_turn50m_right" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните направо</string>
-    <string name="cue_turn50m_roundabout" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, въезжай на кольцевую развязку</string>
-    <string name="cue_turn50m_slightLeft" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните налево</string>
-    <string name="cue_turn50m_slightRight" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} поверните направо</string>
-    <string name="cue_turn50m_uturn" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} сделайте разворот</string>
-    <string name="cue_turn50mCombined" formatted="false">На {distance, number} {distanceUnit, select, meters {метров} feet {футов} other {метров}}, {first, select, left {поверните налево} right {поверните направо} exitLeft {сверните на левый съезд} exitRight {сверните на правый съезд} uturn {сделайте разворот} roundabout {въезжайте на круговое движение} merge {вливайтесь} ramp {съезжайте на съезд} other {следуйте по маршруту}} затем быстро {second, select, left {налево} right {направо} exitLeft {на левый съезд} exitRight {на правый съезд} uturn {U-turn} roundabout {на круговое движение} merge {вливайтесь} ramp {на съезд} other {вперед}}</string>
-    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
-    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
-    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
+    <string name="cue_turn10mCombined" formatted="false">{first, select, left {Turn left} slightLeft {Небольшой поворот налево} slightRight {Небольшой поворот направо} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} затем сразу {second, select, left {left} slightLeft {небольшой поворот налево} slightRight {небольшой поворот направо} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}</string>
+    <string name="cue_turn50m_exitLeft" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, сверните на левый съезд</string>
+    <string name="cue_turn50m_exitRight" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, сверните на правый съезд</string>
+    <string name="cue_turn50m_generic" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, следуйте по маршруту</string>
+    <string name="cue_turn50m_left" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, поверните налево</string>
+    <string name="cue_turn50m_merge" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, выполните слияние</string>
+    <string name="cue_turn50m_ramp" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, съезжайте</string>
+    <string name="cue_turn50m_right" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, поверните направо</string>
+    <string name="cue_turn50m_roundabout" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, въезжайте на кольцевую развязку</string>
+    <string name="cue_turn50m_slightLeft" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, небольшой поворот налево</string>
+    <string name="cue_turn50m_slightRight" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, небольшой поворот направо</string>
+    <string name="cue_turn50m_uturn" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, выполните разворот</string>
+    <string name="cue_turn50mCombined" formatted="false">Через {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {turn left} slightLeft {небольшой поворот налево} slightRight {небольшой поворот направо} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} затем быстро {second, select, left {left} slightLeft {небольшой поворот налево} slightRight {небольшой поворот направо} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Варианты веломаршрута через BRouter + OSRM</string>
+    <string name="cycling_alternativesPartial" formatted="false">Варианты веломаршрута — {count, number} источник{count, plural, =1 {} other {а}} недоступен</string>
+    <string name="cycling_sampleFallback" formatted="false">Показывается пример маршрута — не удалось построить маршрут в реальном времени</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} до {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Очистить пункт назначения</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">Закрыть сообщение о прибытии</string>
@@ -59,22 +59,22 @@
     <string name="home_a11y_recenterMap" formatted="false">Центрировать карту</string>
     <string name="home_a11y_settings" formatted="false">Настройки</string>
     <string name="home_continueOnCurrentRoute" formatted="false">Продолжить по текущему маршруту</string>
-    <string name="home_distanceKm" formatted="false">{km, number} km</string>
-    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
+    <string name="home_distanceKm" formatted="false">{km, number} км</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} км до {destination}</string>
     <string name="home_importedRoute" formatted="false">Импортированный маршрут</string>
     <string name="home_iosLocationHint" formatted="false">Откройте iOS «Настройки» → «Конфиденциальность» → «Геолокация», чтобы переключить это приложение на «Всегда».</string>
     <string name="home_linkFailed" formatted="false">Не удалось открыть эту ссылку</string>
-    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} мин осталось</string>
     <string name="home_noSuggestions" formatted="false">Пока нет подсказок…</string>
-    <string name="home_offRoute" formatted="false">Off route</string>
+    <string name="home_offRoute" formatted="false">Сбились с маршрута</string>
     <string name="home_openSettings" formatted="false">Настройки</string>
-    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Готово голосовое сопровождение</string>
     <string name="home_platformHint_locationDefault" formatted="false">У вас запросят разрешение на определение местоположения. Разрешите, чтобы навигация продолжала отслеживать вашу позицию, пока приложение работает в фоне.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">Safari на iPhone не может передавать GPS в фоновом режиме, подсказки на экране блокировки или аудиосигналы, пока вкладка скрыта. Для реальной навигации в фоне установите нативное приложение для iOS.</string>
     <string name="home_recenter" formatted="false">В центр</string>
-    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
-    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
-    <string name="home_rerouting" formatted="false">Rerouting…</string>
+    <string name="home_remainingKm" formatted="false">{km, number} км осталось • {min, number} мин</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} км • {min, number} мин</string>
+    <string name="home_rerouting" formatted="false">Пересчёт маршрута…</string>
     <string name="home_resolvingLink" formatted="false">Переход по ссылке…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Переходим по ссылке к пункту назначения. Это может занять пару секунд.</string>
     <string name="home_routeActiveOnDevice" formatted="false">Маршрут активен на устройстве</string>
@@ -94,12 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">Повторить импорт</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Поделиться отладочным пакетом</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Диагностика импорта Navon</string>
-    <string name="maneuver_arrive" formatted="false">Arrive</string>
-    <string name="maneuver_continue" formatted="false">Continue</string>
+    <string name="maneuver_arrive" formatted="false">Прибыть</string>
+    <string name="maneuver_continue" formatted="false">Продолжайте</string>
     <string name="pairing_alignQr" formatted="false">Выровняйте QR-код в кадре</string>
     <string name="pairing_cameraDenied" formatted="false">Для сканирования кода сопряжения требуется доступ к камере.</string>
     <string name="pairing_cancel" formatted="false">Отмена</string>
-    <string name="pairing_connecting" formatted="false">Connecting…</string>
+    <string name="pairing_connecting" formatted="false">Подключение…</string>
     <string name="pairing_failed" formatted="false">Сопряжение не удалось</string>
     <string name="pairing_intro" formatted="false">Поднесите телефон так, чтобы экран устройства был в кадре, затем нажмите «Начать», когда увидите QR-код.</string>
     <string name="pairing_openSettings" formatted="false">Открыть настройки</string>
@@ -161,7 +161,7 @@
     <string name="settings_hub_importDiagnostics" formatted="false">Диагностика импорта</string>
     <string name="settings_hub_importDiagnostics_subtitle" formatted="false">Неудачные общие импорты</string>
     <string name="settings_hub_routePlanner" formatted="false">Планировщик маршрутов</string>
-    <string name="settings_hub_routePlanner_subtitle" formatted="false">Источник по умолчанию, подсказки, ключ HSL</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">Источник по умолчанию, подсказки, маршрутизация</string>
     <string name="settings_hub_routes" formatted="false">Маршруты</string>
     <string name="settings_hub_routes_subtitle" formatted="false">Недавние маршруты и импорт GPX</string>
     <string name="settings_hub_title" formatted="false">Настройки</string>
@@ -177,8 +177,6 @@
     <string name="settings_restartRequired_title" formatted="false">Требуется перезапуск</string>
     <string name="settings_routePlanner_cyclingSpeed" formatted="false">Скорость для езды</string>
     <string name="settings_routePlanner_defaults_section" formatted="false">По умолчанию</string>
-    <string name="settings_routePlanner_hsl_description" formatted="false">HSL — это транспортное управление столичного региона Хельсинки. Их API Digitransit обеспечивает высококачественную велонавигацию по всей Финляндии — включая Хельсинки, Тампере, Турку, Оулу и другие регионы, охваченные опубликованными фидами GTFS. Ключ бесплатный: войдите на портал, зарегистрируйте приложение и скопируйте subscription key в поле выше. За пределами Финляндии оставьте HSL выключенным — и планировщик будет использовать маршрутизацию OSM по всему миру.</string>
-    <string name="settings_routePlanner_hsl_section" formatted="false">HSL Digitransit</string>
     <string name="settings_routePlanner_riding_footnote" formatted="false">Скорость для езды переопределяет ETA HSL (по умолчанию Digitransit использует медленную скорость для велосипеда). Единица скорости — это то, как на карте отображается бейдж текущей скорости.</string>
     <string name="settings_routePlanner_riding_section" formatted="false">Езда</string>
     <string name="settings_routePlanner_title" formatted="false">Планировщик маршрута</string>
