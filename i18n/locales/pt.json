@@ -58,99 +58,123 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.arrivingInM": {
-      "value": "Chegando ao seu destino em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "value": "Chegando ao seu destino em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
       "description": "Voice cue announcing imminent arrival at the destination.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:8c486e90b2539fbb",
+      "sourceHash": "sha256:4230d1fb9fd6e719",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.nextTurnInAbout.generic": {
-      "value": "Próxima curva em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "value": "Próxima manobra em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
       "description": "Voice cue announcing a generic upcoming maneuver.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:f2d883da09f36145",
+      "sourceHash": "sha256:75057a3cba1696f3",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.nextTurnInAbout.left": {
-      "value": "Próxima curva à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "value": "Próxima conversão à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
       "description": "Voice cue announcing the upcoming left turn distance ahead.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:ea9da9e88c5c66a8",
+      "sourceHash": "sha256:8d037bb99810f60b",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.nextTurnInAbout.merge": {
-      "value": "Próxima conversão à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "value": "Próxima fusão em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
       "description": "Voice cue announcing an upcoming merge maneuver.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:5bbc6eee1a4f4c29",
+      "sourceHash": "sha256:718a815503d4d7c5",
       "status": "ai-translated",
-      "translatedAt": "2026-05-04T18:13:22Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.nextTurnInAbout.ramp": {
-      "value": "Próxima rampa em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "value": "Próxima rampa em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
       "description": "Voice cue announcing an upcoming ramp.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:44e6668fb502aa25",
+      "sourceHash": "sha256:4379c6bd0d1d459c",
       "status": "ai-translated",
-      "translatedAt": "2026-05-04T18:13:22Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.nextTurnInAbout.right": {
-      "value": "Próxima curva à direita em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "value": "Próxima conversão à direita em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
       "description": "Voice cue announcing the upcoming right turn distance ahead.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:dfdd2abff056fd52",
+      "sourceHash": "sha256:b997e242562f166b",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.nextTurnInAbout.roundabout": {
-      "value": "Próxima rotatória em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "value": "Próxima rotatória em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
       "description": "Voice cue announcing an upcoming roundabout.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:1aecf6facd4d0104",
+      "sourceHash": "sha256:25ebc2a263129ef7",
       "status": "ai-translated",
-      "translatedAt": "2026-05-04T18:13:22Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.nextTurnInAbout.slightLeft": {
+      "value": "Próxima leve à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
+      "description": "Voice cue: upcoming follow/slight left preview (NOT a turn — use equivalent of 'next slight left' or 'slight left ahead').",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:186851b341c7af71",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.nextTurnInAbout.slightRight": {
+      "value": "Próxima leve à direita em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
+      "description": "Voice cue: upcoming follow/slight right preview (NOT a turn — use equivalent of 'next slight right' or 'slight right ahead').",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:9af73e238e980147",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.nextTurnInAbout.uturn": {
-      "value": "Próxima conversão em U em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
+      "value": "Próxima conversão em retorno (U-turn) em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}",
       "description": "Voice cue announcing an upcoming U-turn.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:336b2b21e459801f",
+      "sourceHash": "sha256:a3a505ec8237f787",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.offTrack": {
@@ -265,6 +289,22 @@
       "translatedAt": "2026-05-04T18:13:22Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "cue.turn10m.slightLeft": {
+      "value": "Leve à esquerda",
+      "description": "Imperative voice cue at the moment of a slight slight left turn (within ~10m).",
+      "sourceHash": "sha256:d28813832b8f7bd6",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn10m.slightRight": {
+      "value": "Leve à direita",
+      "description": "Imperative voice cue at the moment of a slight slight right turn.",
+      "sourceHash": "sha256:7dc9362927dca966",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "cue.turn10m.uturn": {
       "value": "Faça uma conversão em U",
       "description": "Imperative voice cue at a U-turn maneuver.",
@@ -274,51 +314,51 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn10mCombined": {
-      "value": "{first, select, left {Vire à esquerda} right {Vire à direita} exitLeft {Pegue a saída à esquerda} exitRight {Pegue a saída à direita} uturn {Faça uma conversão em U} roundabout {Entre no trevo} merge {Mescle} ramp {Pegue a rampa} other {Continue}} então imediatamente {second, select, left {à esquerda} right {à direita} exitLeft {saída à esquerda} exitRight {saída à direita} uturn {U-turn} roundabout {trevo} merge {mescle} ramp {rampa} other {à frente}}",
+      "value": "{first, select, left {Vire à esquerda} slightLeft {Leve à esquerda} slightRight {Leve à direita} right {Vire à direita} exitLeft {Pegue a saída à esquerda} exitRight {Pegue a saída à direita} uturn {Faça um retorno (U-turn)} roundabout {Entre na rotatória} merge {Faça a fusão} ramp {Pegue a rampa} other {Continue}} então imediatamente {second, select, left {à esquerda} slightLeft {leve à esquerda} slightRight {leve à direita} right {à direita} exitLeft {saída à esquerda} exitRight {saída à direita} uturn {U-turn} roundabout {rotatória} merge {fusão} ramp {rampa} other {à frente}}",
       "description": "Voice cue for back-to-back turns when the rider's first in-range tick already landed inside the 10 m approach window — replaces the unsuffixed turn10m so the rider still hears about both turns.",
       "placeholders": {
         "first": "select",
         "second": "select"
       },
-      "sourceHash": "sha256:50d85f77b22966ff",
+      "sourceHash": "sha256:37375648506fab00",
       "status": "ai-translated",
-      "translatedAt": "2026-05-06T09:09:55Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50m.exitLeft": {
-      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, pegue a saída à esquerda",
+      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, pegue a saída à esquerda",
       "description": "Voice cue ~50m before a left exit ramp / off-ramp.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:aca8d998620365ae",
+      "sourceHash": "sha256:b1ad8b3f431a7a4f",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50m.exitRight": {
-      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, pegue a saída à direita",
+      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, pegue a saída à direita",
       "description": "Voice cue ~50m before a right exit ramp / off-ramp.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:1413c7b0f8c835a8",
+      "sourceHash": "sha256:38d008f37b4b4acb",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50m.generic": {
-      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, siga a rota",
+      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, siga a rota",
       "description": "Voice cue ~50m before a generic maneuver that doesn't fit the directional categories.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:b11857fd72f35992",
+      "sourceHash": "sha256:d51e4e446cccc59c",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50m.keepLeft": {
@@ -346,79 +386,103 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50m.left": {
-      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, vire à esquerda",
+      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, vire à esquerda",
       "description": "Voice cue ~50m before a left turn. {distance} is the rounded distance to the maneuver.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:a527a059214cb118",
+      "sourceHash": "sha256:c992d4124c782e39",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50m.merge": {
-      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, mesclar",
+      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, faça a fusão",
       "description": "Voice cue ~50m before a merge.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:dbe4ef1bd2aa37d2",
+      "sourceHash": "sha256:a775eabce43f6148",
       "status": "ai-translated",
-      "translatedAt": "2026-05-04T18:13:22Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50m.ramp": {
-      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, pegue a rampa",
+      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, pegue a rampa",
       "description": "Voice cue ~50m before a ramp.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:0542ab18ff748ae8",
+      "sourceHash": "sha256:95a5d1f66ad44d32",
       "status": "ai-translated",
-      "translatedAt": "2026-05-04T18:13:22Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50m.right": {
-      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, vire à direita",
+      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, vire à direita",
       "description": "Voice cue ~50m before a right turn.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:43900e5a2a6e01b1",
+      "sourceHash": "sha256:25cdad781d0dff60",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50m.roundabout": {
-      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, entre na rotatória",
+      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, entre na rotatória",
       "description": "Voice cue ~50m before a roundabout. {distance} is the rounded distance to the maneuver.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:331d03f149c6a8eb",
+      "sourceHash": "sha256:56802cc98ee95f8f",
       "status": "ai-translated",
-      "translatedAt": "2026-05-04T18:13:22Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn50m.slightLeft": {
+      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, leve à esquerda",
+      "description": "Voice cue ~50m before a slight left turn. {distance} is the rounded distance to the maneuver.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:2422de9b27d67298",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cue.turn50m.slightRight": {
+      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, leve à direita",
+      "description": "Voice cue ~50m before a slight right turn.",
+      "placeholders": {
+        "distance": "number",
+        "distanceUnit": "select"
+      },
+      "sourceHash": "sha256:81e21b290162a602",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50m.uturn": {
-      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, faça uma conversão em U",
+      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, faça um retorno (U-turn)",
       "description": "Voice cue ~50m before a U-turn maneuver.",
       "placeholders": {
         "distance": "number",
         "distanceUnit": "select"
       },
-      "sourceHash": "sha256:5349129f31138c4e",
+      "sourceHash": "sha256:7cf3c0c4bf7bbdc1",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "cue.turn50mCombined": {
-      "value": "Em {distance, number} {distanceUnit, select, meters {metros} feet {pés} other {metros}}, {first, select, left {vire à esquerda} right {vire à direita} exitLeft {pegue a saída à esquerda} exitRight {pegue a saída à direita} uturn {faça uma conversão em U} roundabout {entre no trevo} merge {siga para a via de integração} ramp {pegue a rampa} other {siga o percurso}} depois rapidamente {second, select, left {à esquerda} right {à direita} exitLeft {saída à esquerda} exitRight {saída à direita} uturn {U-turn} roundabout {trevo} merge {siga para a via de integração} ramp {rampa} other {em frente}}",
+      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {vire à esquerda} slightLeft {leve à esquerda} slightRight {leve à direita} right {vire à direita} exitLeft {pegue a saída à esquerda} exitRight {pegue a saída à direita} uturn {faça um retorno (U-turn)} roundabout {entre na rotatória} merge {fusão} ramp {pegue a rampa} other {siga a rota}} então rapidamente {second, select, left {à esquerda} slightLeft {leve à esquerda} slightRight {leve à direita} right {à direita} exitLeft {saída à esquerda} exitRight {saída à direita} uturn {U-turn} roundabout {rotatória} merge {fusão} ramp {rampa} other {à frente}}",
       "description": "Voice cue for back-to-back turns within ~80m: replaces two overlapping cues with one combined phrase.",
       "placeholders": {
         "distance": "number",
@@ -426,9 +490,36 @@
         "first": "select",
         "second": "select"
       },
-      "sourceHash": "sha256:24316b55bc9130fd",
+      "sourceHash": "sha256:f1e9beb6ab1faf08",
       "status": "ai-translated",
-      "translatedAt": "2026-05-04T18:28:14Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cycling.alternativesLive": {
+      "value": "Alternativas de ciclismo via BRouter + OSRM",
+      "description": "Planning notice when all live cycling routing sources succeed.",
+      "sourceHash": "sha256:d4dac842c3122385",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cycling.alternativesPartial": {
+      "value": "Alternativas de ciclismo — {count, number} fonte{count, plural, =1 {} other {s}} indisponível(is)",
+      "description": "Planning notice when some live cycling sources fail. Example: 'Cycling alternatives — 1 source unavailable'.",
+      "placeholders": {
+        "count": "number"
+      },
+      "sourceHash": "sha256:49267f932af31f33",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "cycling.sampleFallback": {
+      "value": "Mostrando rota de exemplo — falha no roteamento ao vivo",
+      "description": "Planning notice when all live cycling routing sources (BRouter, OSRM) fail and the adapter falls back to sample routes.",
+      "sourceHash": "sha256:ff0bca74eb3468f0",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "guidance.distanceToDestination": {
@@ -516,6 +607,29 @@
       "translatedAt": "2026-05-02T18:38:10Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "home.distanceKm": {
+      "value": "{km, number} km",
+      "description": "Routing subtitle line: remaining distance without a destination name. Example: '8.6 km'.",
+      "placeholders": {
+        "km": "number"
+      },
+      "sourceHash": "sha256:5976c0554e3038c4",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.distanceToDestination": {
+      "value": "{km, number} km até {destination}",
+      "description": "Routing subtitle line: remaining distance to the named destination. Example: '8.6 km to Alppila'.",
+      "placeholders": {
+        "destination": "string",
+        "km": "number"
+      },
+      "sourceHash": "sha256:aaf6053396e003e2",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "home.importedRoute": {
       "value": "Rota importada",
       "description": "Header above the route alternatives card when a single route was imported from a GPX file or share-extension link.",
@@ -540,6 +654,17 @@
       "translatedAt": "2026-04-30T13:40:58Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "home.minutesRemaining": {
+      "value": "{min, number} min restantes",
+      "description": "Routing subtitle line: estimated remaining time. Example: '16 min remaining'.",
+      "placeholders": {
+        "min": "number"
+      },
+      "sourceHash": "sha256:25bd7ba3d9396823",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "home.noSuggestions": {
       "value": "Sem sugestões ainda…",
       "description": "Empty-state placeholder shown in the where-to dropdown when the typeahead has no results yet.",
@@ -548,12 +673,28 @@
       "translatedAt": "2026-04-30T12:07:17Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "home.offRoute": {
+      "value": "Fora da rota",
+      "description": "Label shown in the routing top card when the rider leaves the route corridor.",
+      "sourceHash": "sha256:765cb278abfff806",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "home.openSettings": {
       "value": "Configurações",
       "description": "Toolbar / button label that opens the Settings hub.",
       "sourceHash": "sha256:560c2cec24240223",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.phoneGuidanceReady": {
+      "value": "Orientação do telefone pronta",
+      "description": "Subtitle shown when phone guidance is active but no progress data is available yet.",
+      "sourceHash": "sha256:fbf082b4e163223b",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.platformHint.locationDefault": {
@@ -575,6 +716,38 @@
       "sourceHash": "sha256:a443e2e7ba006d8a",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.remainingKm": {
+      "value": "{km, number} km restantes • {min, number} min",
+      "description": "Routing subtitle: remaining distance and estimated time. Example: '8.6 km remaining • 16 min'.",
+      "placeholders": {
+        "km": "number",
+        "min": "number"
+      },
+      "sourceHash": "sha256:9ff05e3d1e245e60",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.remainingKmShort": {
+      "value": "{km, number} km • {min, number} min",
+      "description": "Routing subtitle (shorter variant when no progress yet): total distance and estimated time. Example: '12.4 km • 23 min'.",
+      "placeholders": {
+        "km": "number",
+        "min": "number"
+      },
+      "sourceHash": "sha256:f5a551824903c54e",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "home.rerouting": {
+      "value": "Recalculando rota…",
+      "description": "Label shown in the routing top card when an automatic reroute is in progress.",
+      "sourceHash": "sha256:f2610342b138035f",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "home.resolvingLink": {
@@ -732,6 +905,22 @@
       "translatedAt": "2026-05-11T06:37:47Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "maneuver.arrive": {
+      "value": "Chegue",
+      "description": "Fallback instruction text when the rider has passed the last interesting maneuver and is approaching the destination.",
+      "sourceHash": "sha256:5b6fecbf7c74e768",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "maneuver.continue": {
+      "value": "Continue",
+      "description": "Fallback instruction text when a maneuver has no specific instruction from the routing provider.",
+      "sourceHash": "sha256:971eb93fe126d75d",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "pairing.alignQr": {
       "value": "Alinhe o código QR no quadro",
       "description": "Hint label shown over the camera viewfinder.",
@@ -754,6 +943,14 @@
       "sourceHash": "sha256:671203b30681a298",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T13:40:58Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "pairing.connecting": {
+      "value": "Conectando…",
+      "description": "Progress label shown while the BLE pairing connection is being established.",
+      "sourceHash": "sha256:0864eecb4ed66b6c",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "pairing.failed": {
@@ -1245,6 +1442,14 @@
       "translatedAt": "2026-04-30T12:07:17Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "settings.hub.about": {
+      "value": "Sobre o Navon",
+      "description": "Settings hub row: opens the About page on the Navon website.",
+      "sourceHash": "sha256:f7dcbad26aa064ac",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "settings.hub.device": {
       "value": "Dispositivo",
       "description": "Settings hub row: navigates to Navon device pairing/management.",
@@ -1269,6 +1474,14 @@
       "translatedAt": "2026-04-30T12:07:17Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
+    "settings.hub.privacyPolicy": {
+      "value": "Política de Privacidade",
+      "description": "Settings hub row: opens the Privacy Policy on the Navon website.",
+      "sourceHash": "sha256:801734c239454147",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
     "settings.hub.routePlanner": {
       "value": "Planejador de rota",
       "description": "Settings hub row: navigates to route-planning preferences.",
@@ -1278,11 +1491,11 @@
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.hub.routePlanner.subtitle": {
-      "value": "Origem padrão, sugestões, chave HSL",
+      "value": "Fonte padrão, sugestões, roteamento",
       "description": "Subtitle under the 'Route Planner' row on the Settings hub. HSL is a brand name and must not be translated.",
-      "sourceHash": "sha256:cf3dfe1aef92ec5b",
+      "sourceHash": "sha256:eb1cce085a299d48",
       "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.hub.routes": {
@@ -1299,6 +1512,22 @@
       "sourceHash": "sha256:a89e913d5e54bcbd",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:07:17Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.hub.support": {
+      "value": "Suporte",
+      "description": "Settings hub row: opens the GitHub Issues page for support.",
+      "sourceHash": "sha256:18b2c580016a4425",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
+      "translatedBy": "openai/gpt-5.4-nano"
+    },
+    "settings.hub.termsOfService": {
+      "value": "Termos de Serviço",
+      "description": "Settings hub row: opens the software license (AGPL-3.0) on GitHub.",
+      "sourceHash": "sha256:a5cd01e98ea9d6ee",
+      "status": "ai-translated",
+      "translatedAt": "2026-06-22T13:59:20Z",
       "translatedBy": "openai/gpt-5.4-nano"
     },
     "settings.hub.title": {
@@ -1592,70 +1821,6 @@
       "sourceHash": "sha256:3a086c822b6029cd",
       "status": "ai-translated",
       "translatedAt": "2026-04-30T12:07:17Z",
-      "translatedBy": "openai/gpt-5.4-nano"
-    },
-    "cue.turn50m.slightLeft": {
-      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, vire à esquerda",
-      "description": "Voice cue ~50m before a slight left turn. {distance} is the rounded distance to the maneuver.",
-      "placeholders": {
-        "distance": "number",
-        "distanceUnit": "select"
-      },
-      "sourceHash": "sha256:a527a059214cb118",
-      "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
-      "translatedBy": "openai/gpt-5.4-nano"
-    },
-    "cue.turn50m.slightRight": {
-      "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, vire à direita",
-      "description": "Voice cue ~50m before a slight right turn.",
-      "placeholders": {
-        "distance": "number",
-        "distanceUnit": "select"
-      },
-      "sourceHash": "sha256:43900e5a2a6e01b1",
-      "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
-      "translatedBy": "openai/gpt-5.4-nano"
-    },
-    "cue.turn10m.slightLeft": {
-      "value": "Vire à esquerda",
-      "description": "Imperative voice cue at the moment of a slight slight left turn (within ~10m).",
-      "sourceHash": "sha256:88f7cc75091b897e",
-      "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
-      "translatedBy": "openai/gpt-5.4-nano"
-    },
-    "cue.turn10m.slightRight": {
-      "value": "Vire à direita",
-      "description": "Imperative voice cue at the moment of a slight slight right turn.",
-      "sourceHash": "sha256:478caebf59dd7fd0",
-      "status": "ai-translated",
-      "translatedAt": "2026-04-30T12:07:17Z",
-      "translatedBy": "openai/gpt-5.4-nano"
-    },
-    "cue.nextTurnInAbout.slightLeft": {
-      "value": "Mantenha-se à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-      "description": "Voice cue: upcoming follow/slight left preview (NOT a turn — use equivalent of 'next slight left' or 'slight left ahead').",
-      "placeholders": {
-        "distance": "number",
-        "distanceUnit": "select"
-      },
-      "sourceHash": "sha256:247c9ed59c72687d",
-      "status": "ai-translated",
-      "translatedAt": "2026-05-12T22:15:41Z",
-      "translatedBy": "openai/gpt-5.4-nano"
-    },
-    "cue.nextTurnInAbout.slightRight": {
-      "value": "Mantenha-se à direita em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}",
-      "description": "Voice cue: upcoming follow/slight right preview (NOT a turn — use equivalent of 'next slight right' or 'slight right ahead').",
-      "placeholders": {
-        "distance": "number",
-        "distanceUnit": "select"
-      },
-      "sourceHash": "sha256:6dbf019aa2d80464",
-      "status": "ai-translated",
-      "translatedAt": "2026-05-12T22:15:41Z",
       "translatedBy": "openai/gpt-5.4-nano"
     }
   }

@@ -157,13 +157,17 @@
     <string name="settings_distanceUnit_metric" formatted="false">Метрическая</string>
     <string name="settings_distanceUnit_system" formatted="false">Системная</string>
     <string name="settings_distanceUnit_title" formatted="false">Единицы расстояния</string>
+    <string name="settings_hub_about" formatted="false">О приложении Navon</string>
     <string name="settings_hub_device" formatted="false">Устройство</string>
     <string name="settings_hub_importDiagnostics" formatted="false">Диагностика импорта</string>
     <string name="settings_hub_importDiagnostics_subtitle" formatted="false">Неудачные общие импорты</string>
+    <string name="settings_hub_privacyPolicy" formatted="false">Политика конфиденциальности</string>
     <string name="settings_hub_routePlanner" formatted="false">Планировщик маршрутов</string>
     <string name="settings_hub_routePlanner_subtitle" formatted="false">Источник по умолчанию, подсказки, маршрутизация</string>
     <string name="settings_hub_routes" formatted="false">Маршруты</string>
     <string name="settings_hub_routes_subtitle" formatted="false">Недавние маршруты и импорт GPX</string>
+    <string name="settings_hub_support" formatted="false">Поддержка</string>
+    <string name="settings_hub_termsOfService" formatted="false">Условия использования</string>
     <string name="settings_hub_title" formatted="false">Настройки</string>
     <string name="settings_importDiagnostics_empty" formatted="false">Не зафиксировано неудачных импортов</string>
     <string name="settings_importDiagnostics_title" formatted="false">Диагностика импорта</string>

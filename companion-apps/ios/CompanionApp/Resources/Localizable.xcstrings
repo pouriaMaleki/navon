@@ -812,13 +812,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "अपने गंतव्य पर {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में पहुँच रहे हैं"
+            "value": "अपने गंतव्य पर {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में पहुंच रहे हैं"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tiba di tujuan Anda dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Tiba di tujuan Anda dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ja": {
@@ -842,7 +842,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chegando ao seu destino em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Chegando ao seu destino em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ru": {
@@ -920,13 +920,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में अगला मोड़"
+            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में अगला मोड़"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Belok berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Belok berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ja": {
@@ -950,7 +950,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Próxima curva em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Próxima manobra em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ru": {
@@ -1028,13 +1028,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में बाएँ रहें"
+            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में बायां मोड़"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Belok kiri berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Belok kiri berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ja": {
@@ -1058,7 +1058,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Próxima curva à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Próxima conversão à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ru": {
@@ -1136,13 +1136,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में मर्ज करें"
+            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में मर्ज"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Belok gabung berikutnya dalam sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Bergabung berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ja": {
@@ -1166,7 +1166,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Próxima conversão à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Próxima fusão em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ru": {
@@ -1244,13 +1244,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में रैम्प लें"
+            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में रैंप"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Jalur masuk berikutnya dalam sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Naik/turun landai berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ja": {
@@ -1274,7 +1274,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Próxima rampa em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Próxima rampa em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ru": {
@@ -1352,13 +1352,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में दाएँ रहें"
+            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में दायां मोड़"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Belok kanan berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Belok kanan berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ja": {
@@ -1382,7 +1382,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Próxima curva à direita em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Próxima conversão à direita em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ru": {
@@ -1460,13 +1460,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में राउंडअबाउट"
+            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में राउंडअबाउट"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bundaran berikutnya dalam sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Masuk bundaran berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ja": {
@@ -1490,7 +1490,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Próxima rotatória em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Próxima rotatória em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ru": {
@@ -1568,13 +1568,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में बाएँ रहें"
+            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में हल्का बायां"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ikuti ke kiri sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} lagi"
+            "value": "Belok sedikit kiri berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ja": {
@@ -1598,7 +1598,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mantenha-se à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Próxima leve à esquerda em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ru": {
@@ -1676,13 +1676,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में दाएँ रहें"
+            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में हल्का दायां"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ikuti ke kanan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} lagi"
+            "value": "Belok sedikit kanan berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ja": {
@@ -1706,7 +1706,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mantenha-se à direita em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Próxima leve à direita em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ru": {
@@ -1784,13 +1784,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में U-turn करें"
+            "value": "लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में U-turn"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Belok U berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Putar balik (U-turn) berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ja": {
@@ -1814,7 +1814,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Próxima conversão em U em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}"
+            "value": "Próxima conversão em retorno (U-turn) em cerca de {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}"
           }
         },
         "ru": {
@@ -3188,13 +3188,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "बाएँ मुड़ें"
+            "value": "हल्का बायां"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Belok kiri"
+            "value": "Belok sedikit kiri"
           }
         },
         "ja": {
@@ -3218,7 +3218,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vire à esquerda"
+            "value": "Leve à esquerda"
           }
         },
         "ru": {
@@ -3296,13 +3296,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "दाएँ मुड़ें"
+            "value": "हल्का दायां"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Belok kanan"
+            "value": "Belok sedikit kanan"
           }
         },
         "ja": {
@@ -3326,7 +3326,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vire à direita"
+            "value": "Leve à direita"
           }
         },
         "ru": {
@@ -3512,13 +3512,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{first, select, left {बाएँ मुड़ें} right {दाएँ मुड़ें} exitLeft {बाएँ निकास लें} exitRight {दाएँ निकास लें} uturn {U-turn करें} roundabout {राउंडअबाउट में प्रवेश करें} merge {मर्ज करें} ramp {रैम्प लें} other {आगे बढ़ें}} फिर तुरंत {second, select, left {बाएँ} right {दाएँ} exitLeft {बाएँ निकास} exitRight {दाएँ निकास} uturn {U-turn} roundabout {राउंडअबाउट} merge {मर्ज} ramp {रैम्प} other {आगे}}"
+            "value": "{first, select, left {Turn left} slightLeft {Slight left} slightRight {Slight right} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} फिर तुरंत {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "{first, select, left {Belok kiri} right {Belok kanan} exitLeft {Ambil keluar kiri} exitRight {Ambil keluar kanan} uturn {Putar balik} roundabout {Masuk ke bundaran} merge {Gabung} ramp {Ambil jalur masuk} other {Lanjut}} lalu segera {second, select, left {kiri} right {kanan} exitLeft {keluar kiri} exitRight {keluar kanan} uturn {Putar balik} roundabout {bundaran} merge {gabung} ramp {jalur masuk} other {ke depan}}"
+            "value": "{first, select, left {Belok kiri} slightLeft {Belok sedikit kiri} slightRight {Belok sedikit kanan} right {Belok kanan} exitLeft {Ambil keluar kiri} exitRight {Ambil keluar kanan} uturn {Lakukan U-turn} roundabout {Masuk bundaran} merge {Bergabung} ramp {Ambil landai} other {Lanjutkan}} lalu segera {second, select, left {kiri} slightLeft {belok sedikit kiri} slightRight {belok sedikit kanan} right {kanan} exitLeft {keluar kiri} exitRight {keluar kanan} uturn {U-turn} roundabout {bundaran} merge {bergabung} ramp {landai} other {ke depan}}"
           }
         },
         "ja": {
@@ -3542,7 +3542,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "{first, select, left {Vire à esquerda} right {Vire à direita} exitLeft {Pegue a saída à esquerda} exitRight {Pegue a saída à direita} uturn {Faça uma conversão em U} roundabout {Entre no trevo} merge {Mescle} ramp {Pegue a rampa} other {Continue}} então imediatamente {second, select, left {à esquerda} right {à direita} exitLeft {saída à esquerda} exitRight {saída à direita} uturn {U-turn} roundabout {trevo} merge {mescle} ramp {rampa} other {à frente}}"
+            "value": "{first, select, left {Vire à esquerda} slightLeft {Leve à esquerda} slightRight {Leve à direita} right {Vire à direita} exitLeft {Pegue a saída à esquerda} exitRight {Pegue a saída à direita} uturn {Faça um retorno (U-turn)} roundabout {Entre na rotatória} merge {Faça a fusão} ramp {Pegue a rampa} other {Continue}} então imediatamente {second, select, left {à esquerda} slightLeft {leve à esquerda} slightRight {leve à direita} right {à direita} exitLeft {saída à esquerda} exitRight {saída à direita} uturn {U-turn} roundabout {rotatória} merge {fusão} ramp {rampa} other {à frente}}"
           }
         },
         "ru": {
@@ -3620,13 +3620,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, बाएँ निकास लें"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में बायां एग्ज़िट लें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ambil pintu keluar kiri"
+            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, ambil keluar kiri"
           }
         },
         "ja": {
@@ -3650,7 +3650,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, pegue a saída à esquerda"
+            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, pegue a saída à esquerda"
           }
         },
         "ru": {
@@ -3728,13 +3728,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, दाएँ निकास लें"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में दायां एग्ज़िट लें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ambil pintu keluar kanan"
+            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, ambil keluar kanan"
           }
         },
         "ja": {
@@ -3758,7 +3758,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, pegue a saída à direita"
+            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, pegue a saída à direita"
           }
         },
         "ru": {
@@ -3836,13 +3836,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, मार्ग का पालन करें"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में रूट फॉलो करें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ikuti rute"
+            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, ikuti rute"
           }
         },
         "ja": {
@@ -3866,7 +3866,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, siga a rota"
+            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, siga a rota"
           }
         },
         "ru": {
@@ -3944,13 +3944,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, बाएँ मुड़ें"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में बायां मुड़ें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kiri"
+            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, belok kiri"
           }
         },
         "ja": {
@@ -3974,7 +3974,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, vire à esquerda"
+            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, vire à esquerda"
           }
         },
         "ru": {
@@ -4052,13 +4052,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, मर्ज करें"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में मर्ज करें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, gabung"
+            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, bergabung"
           }
         },
         "ja": {
@@ -4082,7 +4082,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, mesclar"
+            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, faça a fusão"
           }
         },
         "ru": {
@@ -4160,13 +4160,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, रैम्प लें"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में रैंप लें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ambil jalur masuk"
+            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, ambil landai"
           }
         },
         "ja": {
@@ -4190,7 +4190,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, pegue a rampa"
+            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, pegue a rampa"
           }
         },
         "ru": {
@@ -4268,13 +4268,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, दाएँ मुड़ें"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में दायां मुड़ें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kanan"
+            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, belok kanan"
           }
         },
         "ja": {
@@ -4298,7 +4298,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, vire à direita"
+            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, vire à direita"
           }
         },
         "ru": {
@@ -4376,13 +4376,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, राउंडअबाउट में प्रवेश करें"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में राउंडअबाउट में प्रवेश करें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, masuk ke bundaran"
+            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, masuk bundaran"
           }
         },
         "ja": {
@@ -4406,7 +4406,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, entre na rotatória"
+            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, entre na rotatória"
           }
         },
         "ru": {
@@ -4484,13 +4484,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, बाएँ मुड़ें"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में हल्का बायां"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kiri"
+            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, belok sedikit kiri"
           }
         },
         "ja": {
@@ -4514,7 +4514,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, vire à esquerda"
+            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, leve à esquerda"
           }
         },
         "ru": {
@@ -4592,13 +4592,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, दाएँ मुड़ें"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में हल्का दायां"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kanan"
+            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, belok sedikit kanan"
           }
         },
         "ja": {
@@ -4622,7 +4622,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, vire à direita"
+            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, leve à direita"
           }
         },
         "ru": {
@@ -4700,13 +4700,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, U-turn करें"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में U-turn करें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, putar balik (U-turn)"
+            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, lakukan U-turn"
           }
         },
         "ja": {
@@ -4730,7 +4730,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, faça uma conversão em U"
+            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, faça um retorno (U-turn)"
           }
         },
         "ru": {
@@ -4808,13 +4808,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{distance, number} {distanceUnit, select, meters {मीटर} feet {फीट} other {मीटर}}, {first, select, left {बाएँ मुड़ें} right {दाएँ मुड़ें} exitLeft {बाएँ निकास लें} exitRight {दाएँ निकास लें} uturn {U-turn करें} roundabout {राउंडअबाउट में प्रवेश करें} merge {मर्ज करें} ramp {रैम्प लें} other {रास्ता फॉलो करें}} फिर जल्दी {second, select, left {बाएँ} right {दाएँ} exitLeft {बाएँ निकास} exitRight {दाएँ निकास} uturn {U-turn} roundabout {राउंडअबाउट} merge {मर्ज} ramp {रैम्प} other {आगे}}"
+            "value": "{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {turn left} slightLeft {slight left} slightRight {slight right} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} फिर जल्दी {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Di {distance, number} {distanceUnit, select, meters {meter} feet {kaki} other {meter}}, {first, select, left {belok kiri} right {belok kanan} exitLeft {ambil keluar kiri} exitRight {ambil keluar kanan} uturn {putar balik} roundabout {masuk bundaran} merge {gabung} ramp {ambil jalur masuk} other {ikuti rute}} lalu cepat {second, select, left {kiri} right {kanan} exitLeft {keluar kiri} exitRight {keluar kanan} uturn {U-turn} roundabout {bundaran} merge {gabung} ramp {jalur masuk} other {terus}}"
+            "value": "Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {belok kiri} slightLeft {belok sedikit kiri} slightRight {belok sedikit kanan} right {belok kanan} exitLeft {ambil keluar kiri} exitRight {ambil keluar kanan} uturn {lakukan U-turn} roundabout {masuk bundaran} merge {bergabung} ramp {ambil landai} other {ikuti rute}} lalu cepat {second, select, left {kiri} slightLeft {belok sedikit kiri} slightRight {belok sedikit kanan} right {kanan} exitLeft {keluar kiri} exitRight {keluar kanan} uturn {U-turn} roundabout {bundaran} merge {bergabung} ramp {landai} other {ke depan}}"
           }
         },
         "ja": {
@@ -4838,7 +4838,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Em {distance, number} {distanceUnit, select, meters {metros} feet {pés} other {metros}}, {first, select, left {vire à esquerda} right {vire à direita} exitLeft {pegue a saída à esquerda} exitRight {pegue a saída à direita} uturn {faça uma conversão em U} roundabout {entre no trevo} merge {siga para a via de integração} ramp {pegue a rampa} other {siga o percurso}} depois rapidamente {second, select, left {à esquerda} right {à direita} exitLeft {saída à esquerda} exitRight {saída à direita} uturn {U-turn} roundabout {trevo} merge {siga para a via de integração} ramp {rampa} other {em frente}}"
+            "value": "Em {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {vire à esquerda} slightLeft {leve à esquerda} slightRight {leve à direita} right {vire à direita} exitLeft {pegue a saída à esquerda} exitRight {pegue a saída à direita} uturn {faça um retorno (U-turn)} roundabout {entre na rotatória} merge {fusão} ramp {pegue a rampa} other {siga a rota}} então rapidamente {second, select, left {à esquerda} slightLeft {leve à esquerda} slightRight {leve à direita} right {à direita} exitLeft {saída à esquerda} exitRight {saída à direita} uturn {U-turn} roundabout {rotatória} merge {fusão} ramp {rampa} other {à frente}}"
           }
         },
         "ru": {
@@ -4916,13 +4916,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives via BRouter + OSRM"
+            "value": "BRouter + OSRM के जरिए साइक्लिंग विकल्प"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives via BRouter + OSRM"
+            "value": "Alternatif bersepeda via BRouter + OSRM"
           }
         },
         "ja": {
@@ -4946,7 +4946,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives via BRouter + OSRM"
+            "value": "Alternativas de ciclismo via BRouter + OSRM"
           }
         },
         "ru": {
@@ -5024,13 +5024,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable"
+            "value": "साइक्लिंग विकल्प — {count, number} source{count, plural, =1 {} other {s}} उपलब्ध नहीं"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable"
+            "value": "Alternatif bersepeda — {count, number} sumber{count, plural, =1 {} other {s}} tidak tersedia"
           }
         },
         "ja": {
@@ -5054,7 +5054,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable"
+            "value": "Alternativas de ciclismo — {count, number} fonte{count, plural, =1 {} other {s}} indisponível(is)"
           }
         },
         "ru": {
@@ -5132,13 +5132,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing sample route — live routing failed"
+            "value": "नमूना रूट दिखाया जा रहा है — लाइव रूटिंग विफल"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing sample route — live routing failed"
+            "value": "Menampilkan rute contoh — routing langsung gagal"
           }
         },
         "ja": {
@@ -5162,7 +5162,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Showing sample route — live routing failed"
+            "value": "Mostrando rota de exemplo — falha no roteamento ao vivo"
           }
         },
         "ru": {
@@ -6428,13 +6428,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km to {destination}"
+            "value": "{km, number} km से {destination}"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km to {destination}"
+            "value": "{km, number} km menuju {destination}"
           }
         },
         "ja": {
@@ -6458,7 +6458,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km to {destination}"
+            "value": "{km, number} km até {destination}"
           }
         },
         "ru": {
@@ -6860,13 +6860,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{min, number} min remaining"
+            "value": "{min, number} मिनट शेष"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "{min, number} min remaining"
+            "value": "{min, number} menit tersisa"
           }
         },
         "ja": {
@@ -6890,7 +6890,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "{min, number} min remaining"
+            "value": "{min, number} min restantes"
           }
         },
         "ru": {
@@ -7076,13 +7076,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off route"
+            "value": "रास्ते से बाहर"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off route"
+            "value": "Keluar rute"
           }
         },
         "ja": {
@@ -7106,7 +7106,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Off route"
+            "value": "Fora da rota"
           }
         },
         "ru": {
@@ -7292,13 +7292,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone guidance ready"
+            "value": "फ़ोन मार्गदर्शन तैयार"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone guidance ready"
+            "value": "Panduan telepon siap"
           }
         },
         "ja": {
@@ -7322,7 +7322,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Phone guidance ready"
+            "value": "Orientação do telefone pronta"
           }
         },
         "ru": {
@@ -7724,13 +7724,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km remaining • {min, number} min"
+            "value": "{km, number} किमी शेष • {min, number} मिनट"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km remaining • {min, number} min"
+            "value": "{km, number} km tersisa • {min, number} menit"
           }
         },
         "ja": {
@@ -7754,7 +7754,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km remaining • {min, number} min"
+            "value": "{km, number} km restantes • {min, number} min"
           }
         },
         "ru": {
@@ -7832,13 +7832,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km • {min, number} min"
+            "value": "{km, number} किमी • {min, number} मिनट"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "{km, number} km • {min, number} min"
+            "value": "{km, number} km • {min, number} menit"
           }
         },
         "ja": {
@@ -7940,13 +7940,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rerouting…"
+            "value": "पुनः मार्गनिर्धारण…"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rerouting…"
+            "value": "Menghitung ulang rute…"
           }
         },
         "ja": {
@@ -7970,7 +7970,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rerouting…"
+            "value": "Recalculando rota…"
           }
         },
         "ru": {
@@ -10100,13 +10100,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrive"
+            "value": "पहुंचें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrive"
+            "value": "Tiba"
           }
         },
         "ja": {
@@ -10130,7 +10130,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrive"
+            "value": "Chegue"
           }
         },
         "ru": {
@@ -10208,13 +10208,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue"
+            "value": "जारी रखें"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue"
+            "value": "Lanjutkan"
           }
         },
         "ja": {
@@ -10640,13 +10640,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting…"
+            "value": "कनेक्ट हो रहा है…"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting…"
+            "value": "Menghubungkan…"
           }
         },
         "ja": {
@@ -10670,7 +10670,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting…"
+            "value": "Conectando…"
           }
         },
         "ru": {
@@ -16849,6 +16849,114 @@
         }
       }
     },
+    "settings.hub.about": {
+      "comment": "Settings hub row: opens the About page on the Navon website.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حول Navon"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navon সম্পর্কে"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über Navon"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About Navon"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About Navon"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About Navon"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tietoja Navonista"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À propos de Navon"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navon के बारे में"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tentang Navon"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navonについて"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navon बद्दल"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About Navon"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sobre o Navon"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "О приложении Navon"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navon کے بارے میں"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关于 Navon"
+          }
+        }
+      }
+    },
     "settings.hub.device": {
       "comment": "Settings hub row: navigates to Navon device pairing/management.",
       "extractionState": "manual",
@@ -17173,6 +17281,114 @@
         }
       }
     },
+    "settings.hub.privacyPolicy": {
+      "comment": "Settings hub row: opens the Privacy Policy on the Navon website.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سياسة الخصوصية"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "গোপনীয়তা নীতি"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenschutzrichtlinie"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy Policy"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy Policy"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy Policy"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tietosuojakäytäntö"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Politique de confidentialité"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "गोपनीयता नीति"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kebijakan Privasi"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライバシーポリシー"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "गोपनीयता धोरण"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy Policy"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Política de Privacidade"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Политика конфиденциальности"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "رازداری پالیسی"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐私政策"
+          }
+        }
+      }
+    },
     "settings.hub.routePlanner": {
       "comment": "Settings hub row: navigates to route-planning preferences.",
       "extractionState": "manual",
@@ -17336,13 +17552,13 @@
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "डिफ़ॉल्ट स्रोत, सुझाव, HSL कुंजी"
+            "value": "Default source, suggestions, routing"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sumber default, saran, kunci HSL"
+            "value": "Default source, suggestions, routing"
           }
         },
         "ja": {
@@ -17366,7 +17582,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Origem padrão, sugestões, chave HSL"
+            "value": "Fonte padrão, sugestões, roteamento"
           }
         },
         "ru": {
@@ -17601,6 +17817,222 @@
           "stringUnit": {
             "state": "translated",
             "value": "最近路线和 GPX 导入"
+          }
+        }
+      }
+    },
+    "settings.hub.support": {
+      "comment": "Settings hub row: opens the GitHub Issues page for support.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الدعم"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সহায়তা"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tuki"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assistance"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सहायता"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bantuan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "サポート"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "समर्थन"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suporte"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Поддержка"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مدد"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支持"
+          }
+        }
+      }
+    },
+    "settings.hub.termsOfService": {
+      "comment": "Settings hub row: opens the software license (AGPL-3.0) on GitHub.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "شروط الخدمة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সেবার শর্তাবলী"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nutzungsbedingungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terms of Service"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terms of Service"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terms of Service"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Käyttöehdot"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conditions d’utilisation"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेवा की शर्तें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ketentuan Layanan"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "利用規約"
+          }
+        },
+        "mr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सेवा अटी"
+          }
+        },
+        "pcm": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terms of Service"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Termos de Serviço"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Условия использования"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "سروس کی شرائط"
+          }
+        },
+        "zh": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务条款"
           }
         }
       }

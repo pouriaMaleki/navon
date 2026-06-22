@@ -1,0 +1,169 @@
+---
+import Footer from "../components/Footer.astro";
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Privacy Policy — Navon">
+  <header class="page-header">
+    <a href="/" class="home-link" aria-label="Navon home">
+      <img src="/icon.svg" alt="" width="28" height="28" class="icon" />
+      <span class="brand">Navon</span>
+    </a>
+  </header>
+  <section class="page">
+    <div class="content">
+      <h1>Privacy Policy</h1>
+      <p class="updated">Last updated: June 2026</p>
+
+      <h2>Our commitment</h2>
+      <p>
+        Navon does not track you. We do not collect personal data, we do not
+        use analytics, we do not have advertising, and we do not require
+        accounts. The app is designed so that everything works without
+        identifying who you are.
+      </p>
+
+      <h2>What the app sends to the Navon server</h2>
+      <p>
+        The companion app contacts the Navon server only when you use HSL
+        (Helsinki Region Transport) routing. Those requests contain the
+        origin and destination coordinates of your trip so the server can
+        relay them to HSL&#8217;s Digitransit API and return route
+        alternatives. The requests do not include your identity, a device
+        fingerprint, or any persistent identifier.
+      </p>
+
+      <h2>Server logs</h2>
+      <p>
+        The server retains short-term logs (IP address, request path,
+        timestamp) solely to detect and prevent abuse of the service. These
+        logs are never shared with anyone, never sold, and never used for
+        any purpose beyond operations and abuse prevention.
+      </p>
+
+      <h2>Third-party services</h2>
+      <p>
+        Navon relies on independent mapping and routing services to show the
+        map and plan routes. When the app sends requests to these services,
+        they operate under their own privacy policies and may receive your
+        IP address and location data:
+      </p>
+      <ul>
+        <li>HSL Digitransit (Helsinki Region Transport)</li>
+        <li>BRouter (OSM-based bike routing)</li>
+        <li>OpenStreetMap and OSRM (map data and routing)</li>
+        <li>Apple Maps (map display and routing on iOS)</li>
+        <li>Google Maps (map display and routing on Android)</li>
+      </ul>
+      <p>
+        Navon does not control these services and is not responsible for
+        their data practices. We recommend reviewing each provider&#8217;s
+        privacy policy if you have questions about how they handle your
+        information.
+      </p>
+
+      <h2>Changes</h2>
+      <p>
+        If this policy changes, the updated version will be posted here.
+        Because Navon does not collect contact information, we cannot notify
+        you directly of changes.
+      </p>
+    </div>
+  </section>
+  <Footer />
+</Base>
+
+<style>
+  html {
+    scroll-snap-type: none;
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-xl) var(--section-pad-x) var(--space-md);
+    background: var(--color-bg);
+  }
+
+  .home-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    color: var(--color-fg);
+    letter-spacing: var(--tracking-tight);
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+
+  .home-link:hover,
+  .home-link:focus-visible {
+    opacity: 0.7;
+  }
+
+  .home-link img {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+  }
+
+  .page {
+    min-height: auto;
+    background: var(--color-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-xl) var(--section-pad-x) var(--section-pad-y);
+    scroll-snap-align: none;
+  }
+
+  .content {
+    max-width: var(--content-max);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-tight);
+    color: var(--color-fg);
+  }
+
+  .updated {
+    font-size: var(--text-sm);
+    color: var(--color-fg-dim);
+    margin-bottom: var(--space-md);
+  }
+
+  h2 {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--leading-snug);
+    color: var(--color-fg);
+    margin-top: var(--space-md);
+  }
+
+  p {
+    font-size: var(--text-md);
+    line-height: var(--leading-relaxed);
+    color: var(--color-fg-muted);
+  }
+
+  ul {
+    padding-left: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  li {
+    font-size: var(--text-md);
+    line-height: var(--leading-relaxed);
+    color: var(--color-fg-muted);
+  }
+</style>

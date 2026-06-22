@@ -33,6 +33,12 @@ struct SettingsHubView: View {
                         RoutingDiagnosticsView()
                     }
                 }
+                Section {
+                    Link(T.string("settings.hub.privacyPolicy"), destination: URL(string: "https://navon.bike/privacy")!)
+                    Link(T.string("settings.hub.termsOfService"), destination: URL(string: "https://github.com/pouriaMaleki/navon/blob/main/LICENSE")!)
+                    Link(T.string("settings.hub.support"), destination: URL(string: "https://github.com/pouriaMaleki/navon/issues")!)
+                    Link(T.string("settings.hub.about"), destination: URL(string: "https://navon.bike/about")!)
+                }
             }
             .navigationTitle(T.string("settings.hub.title"))
             .toolbar {
