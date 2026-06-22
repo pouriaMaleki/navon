@@ -37,12 +37,7 @@ function buildHarness(opts?: { hslThrows?: boolean; osmThrows?: boolean }) {
     fitImport: new FakeRoutingAdapter("fitImport"),
     tcxImport: new FakeRoutingAdapter("tcxImport"),
   } as ProvidersMap;
-  const planning = new PlanningStore(
-    providers,
-    new FakePlaceSearch(),
-    location,
-    settings,
-  );
+  const planning = new PlanningStore(providers, new FakePlaceSearch(), location, settings);
   return { planning, settings, location, hsl, osm };
 }
 

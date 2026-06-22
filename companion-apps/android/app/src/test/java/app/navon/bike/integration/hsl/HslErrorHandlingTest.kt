@@ -19,12 +19,14 @@ class HslErrorHandlingTest {
     private val destination = CoordinatePoint(60.1921, 24.9458)
 
     /** Point to a port that nothing listens on → connection refused fast. */
-    private fun deadAdapter() = HslRoutingAdapter {
-        CompanionSettings(
-            hslEndpointUrl = "http://127.0.0.1:1/api/hsl/routing",
-            cyclingSpeedKph = 18.0,
-        )
-    }
+    private fun deadAdapter() = HslRoutingAdapter(
+        settingsProvider = {
+            CompanionSettings(
+                hslEndpointUrl = "http://127.0.0.1:1/api/hsl/routing",
+                cyclingSpeedKph = 18.0,
+            )
+        },
+    )
 
     @Test
     fun planRoute_throwsWhenServerUnreachable() = runBlocking {
@@ -41,9 +43,11 @@ class HslErrorHandlingTest {
 
     @Test
     fun planRoute_throwsWhenInvalidUrl() = runBlocking {
-        val adapter = HslRoutingAdapter {
-            CompanionSettings(hslEndpointUrl = "not-a-valid-url")
-        }
+        val adapter = HslRoutingAdapter(
+            settingsProvider = {
+                CompanionSettings(hslEndpointUrl = "not-a-valid-url")
+            },
+        )
         var caught: Throwable? = null
         try {
             adapter.planRoute(RoutePlanRequest(origin, destination, RouteProviderId.HSL))

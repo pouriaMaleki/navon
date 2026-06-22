@@ -4,6 +4,7 @@ import SwiftUI
 /// Test seam for the AVFoundation QR pipeline. Production wraps an
 /// `AVCaptureSession` + metadata output; tests use a fake that lets the
 /// suite simulate scans synchronously.
+@MainActor
 protocol QrCaptureSession: AnyObject {
     var onScan: ((String) -> Void)? { get set }
     func tearDown()

@@ -10,7 +10,7 @@ test.describe("Escape dismisses dropdown (L3, web-specific)", () => {
   });
 
   test("pressing Escape closes the search panel", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     const input = page.getByPlaceholder(/where to/i);
     await input.click();
     await input.fill("hel");

@@ -13,7 +13,7 @@ test.describe("Settings expansion — top-of-page toggles + gating", () => {
   });
 
   test("renders the activity toggles in spec order at the top", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.evaluate(() => window.localStorage.clear());
     await page.reload();
     await page.getByRole("button", { name: "Settings" }).click();
@@ -33,7 +33,7 @@ test.describe("Settings expansion — top-of-page toggles + gating", () => {
   });
 
   test("audio cues + live activity are disabled until background GPS is on", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.evaluate(() => window.localStorage.clear());
     await page.reload();
     await page.getByRole("button", { name: "Settings" }).click();
@@ -62,7 +62,7 @@ test.describe("Settings expansion — top-of-page toggles + gating", () => {
   });
 
   test("the activity toggles persist across page reload", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     await page.evaluate(() => window.localStorage.clear());
     await page.reload();
     await page.getByRole("button", { name: "Settings" }).click();

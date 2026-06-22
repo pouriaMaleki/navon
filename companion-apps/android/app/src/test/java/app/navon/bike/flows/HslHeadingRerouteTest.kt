@@ -6,6 +6,11 @@ import app.navon.bike.domain.CoordinatePoint
 import app.navon.bike.domain.RouteProviderId
 import app.navon.bike.domain.RouteSourceMode
 import app.navon.bike.domain.RerouteContext
+import app.navon.bike.integration.hsl.DigitransitData
+import app.navon.bike.integration.hsl.DigitransitItinerary
+import app.navon.bike.integration.hsl.DigitransitLeg
+import app.navon.bike.integration.hsl.DigitransitPlan
+import app.navon.bike.integration.hsl.DigitransitResponse
 import app.navon.bike.integration.hsl.HslRoutingAdapter
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -19,6 +24,31 @@ class HslHeadingRerouteTest {
     private fun adapter(): HslRoutingAdapter = HslRoutingAdapter(
         settingsProvider = {
             CompanionSettings()
+        },
+        httpHandler = { request, _ ->
+            val geometry = listOf(request.origin, CoordinatePoint(60.1705, 24.9390))
+            DigitransitResponse(
+                data = DigitransitData(
+                    plan = DigitransitPlan(
+                        itineraries = listOf(
+                            DigitransitItinerary(
+                                durationSeconds = 300,
+                                systemNotice = "Test mock",
+                                legs = listOf(
+                                    DigitransitLeg(
+                                        mode = "BICYCLE",
+                                        distanceMeters = 1000.0,
+                                        geometry = geometry,
+                                    ),
+                                ),
+                                steps = emptyList(),
+                                startLabel = "Origin",
+                                destinationLabel = "Dest",
+                            ),
+                        ),
+                    ),
+                ),
+            )
         },
     )
 

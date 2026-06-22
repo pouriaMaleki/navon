@@ -13,12 +13,7 @@ import {
   type RouteProviderID,
 } from "../../domain/models.js";
 import type { RoutingProvider } from "../../domain/providers.js";
-import {
-  classifyTurn,
-  cumulativeDistances,
-  decodePolyline,
-  turnDeltaDegrees,
-} from "../geo.js";
+import { classifyTurn, cumulativeDistances, decodePolyline, turnDeltaDegrees } from "../geo.js";
 import { newAlternativeId, normalizedFromPreview } from "../routePackage.js";
 
 export type HslSettingsProvider = () => CompanionSettings;

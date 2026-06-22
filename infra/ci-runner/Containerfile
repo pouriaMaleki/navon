@@ -54,7 +54,7 @@ RUN curl -sL -o /tmp/runner.tar.gz \
 COPY entrypoint.sh /opt/actions-runner/
 RUN chmod +x /opt/actions-runner/entrypoint.sh \
     && useradd -m runner \
-    && chown -R runner:runner /opt/actions-runner /usr/local/android-sdk
+    && chown -R runner:runner /opt/actions-runner /usr/local/android-sdk /usr/local/rustup
 
 USER runner
 WORKDIR /work

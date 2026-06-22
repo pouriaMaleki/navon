@@ -29,6 +29,7 @@ import org.json.JSONObject
 
 class HslRoutingAdapter(
     private val settingsProvider: () -> CompanionSettings = { CompanionSettings() },
+    private val httpHandler: ((RoutePlanRequest, CompanionSettings) -> DigitransitResponse)? = null,
 ) : RoutingProvider {
     companion object {
         private const val MIN_HEADING_SPEED_MPS = 2.0
@@ -148,7 +149,8 @@ class HslRoutingAdapter(
         revisionOverride: Int?,
     ): RoutePreviewModel {
         val settings = settingsProvider()
-        val liveResponse = fetchLiveDigitransitResponse(request, settings)
+        val handler = httpHandler ?: ::fetchLiveDigitransitResponse
+        val liveResponse = handler(request, settings)
         return normalizeResponse(liveResponse, request, revisionOverride, planningNotice = "Live HSL Digitransit")
     }
 
@@ -499,61 +501,61 @@ class HslRoutingAdapter(
         return sqrt(latMeters * latMeters + lonMeters * lonMeters)
     }
 
-    data class DigitransitGraphQlRequestBody(
-        val query: String,
-        val variables: Variables,
-    ) {
-        data class Variables(
-            val from: CoordinateVariable,
-            val to: CoordinateVariable,
-            val numItineraries: Int,
-            val transportModes: List<TransportMode>,
-            val optimize: String,
-        )
-
-        data class CoordinateVariable(
-            val lat: Double,
-            val lon: Double,
-        )
-
-        data class TransportMode(
-            val mode: String,
-        )
-    }
-
-    data class DigitransitResponse(
-        val data: DigitransitData,
-    )
-
-    data class DigitransitData(
-        val plan: DigitransitPlan,
-    )
-
-    data class DigitransitPlan(
-        val itineraries: List<DigitransitItinerary>,
-    )
-
-    data class DigitransitItinerary(
-        val durationSeconds: Int,
-        val systemNotice: String,
-        val legs: List<DigitransitLeg>,
-        val steps: List<DigitransitStep>,
-        val startLabel: String,
-        val destinationLabel: String,
-    )
-
-    data class DigitransitLeg(
-        val mode: String,
-        val distanceMeters: Double,
-        val geometry: List<CoordinatePoint>,
-    )
-
-    data class DigitransitStep(
-        val relativeDirection: String,
-        val location: CoordinatePoint,
-        val distanceFromStartMeters: Double,
-        val distanceToNextMeters: Double?,
-        val instruction: String,
-    )
-
 }
+
+data class DigitransitGraphQlRequestBody(
+    val query: String,
+    val variables: Variables,
+) {
+    data class Variables(
+        val from: CoordinateVariable,
+        val to: CoordinateVariable,
+        val numItineraries: Int,
+        val transportModes: List<TransportMode>,
+        val optimize: String,
+    )
+
+    data class CoordinateVariable(
+        val lat: Double,
+        val lon: Double,
+    )
+
+    data class TransportMode(
+        val mode: String,
+    )
+}
+
+data class DigitransitResponse(
+    val data: DigitransitData,
+)
+
+data class DigitransitData(
+    val plan: DigitransitPlan,
+)
+
+data class DigitransitPlan(
+    val itineraries: List<DigitransitItinerary>,
+)
+
+data class DigitransitItinerary(
+    val durationSeconds: Int,
+    val systemNotice: String,
+    val legs: List<DigitransitLeg>,
+    val steps: List<DigitransitStep>,
+    val startLabel: String,
+    val destinationLabel: String,
+)
+
+data class DigitransitLeg(
+    val mode: String,
+    val distanceMeters: Double,
+    val geometry: List<CoordinatePoint>,
+)
+
+data class DigitransitStep(
+    val relativeDirection: String,
+    val location: CoordinatePoint,
+    val distanceFromStartMeters: Double,
+    val distanceToNextMeters: Double?,
+    val instruction: String,
+)

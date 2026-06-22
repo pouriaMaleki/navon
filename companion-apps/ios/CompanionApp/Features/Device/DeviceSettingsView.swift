@@ -38,7 +38,9 @@ struct DeviceSettingsView: View {
             connectionDetailsSection
             gpsSourceSection
             transferSection
+#if DEBUG
             diagnosticsSection
+#endif
         }
         .navigationTitle(T.string("settings.device.title"))
         .alert(T.string("settings.device.forget.confirmTitle"), isPresented: $showForgetAlert) {
@@ -180,12 +182,15 @@ struct DeviceSettingsView: View {
         }
     }
 
+#if DEBUG
     private var diagnosticsSection: some View {
-        Section(T.string("settings.device.diagnostics.section")) {
-            Button(T.string("settings.device.diagnostics.armRetryable")) { appModel.armRetryableInterruptionOnNextTransfer() }
-            Button(T.string("settings.device.diagnostics.armWriteFailure")) { appModel.armWriteFailureOnNextTransfer() }
-            Button(T.string("settings.device.diagnostics.armDisconnect")) { appModel.armDisconnectAfterNextChunkWrite() }
-            Button(T.string("settings.device.diagnostics.armDropStatus")) { appModel.armDropNextInboundStatus() }
+        let model = appModel
+        return Section(T.string("settings.device.diagnostics.section")) {
+            Button(T.string("settings.device.diagnostics.armRetryable")) { model.armRetryableInterruptionOnNextTransfer() }
+            Button(T.string("settings.device.diagnostics.armWriteFailure")) { model.armWriteFailureOnNextTransfer() }
+            Button(T.string("settings.device.diagnostics.armDisconnect")) { model.armDisconnectAfterNextChunkWrite() }
+            Button(T.string("settings.device.diagnostics.armDropStatus")) { model.armDropNextInboundStatus() }
         }
     }
+#endif
 }

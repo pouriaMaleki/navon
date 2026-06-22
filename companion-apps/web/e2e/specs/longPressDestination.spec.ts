@@ -13,7 +13,7 @@ test.describe("long-press drops destination (L3)", () => {
   });
 
   test("holding pointer on map surface for ~600ms routes to that location", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     const viewport = page.viewportSize();
     if (!viewport) throw new Error("viewport not available");
     const x = viewport.width / 2;

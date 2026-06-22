@@ -10,7 +10,7 @@ test.describe("outside tap dismisses dropdown (L3)", () => {
   });
 
   test("map area tap closes the open search panel", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
     const input = page.getByPlaceholder(/where to/i);
     await input.click();
     await input.fill("hel");

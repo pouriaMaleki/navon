@@ -58,9 +58,7 @@ describe("HslRoutingAdapter", () => {
   // -- Live routing success --
 
   it("returns live itineraries when upstream responds 200", async () => {
-    fetchSpy.mockResolvedValue(
-      new Response(JSON.stringify(LIVE_RESPONSE), { status: 200 }),
-    );
+    fetchSpy.mockResolvedValue(new Response(JSON.stringify(LIVE_RESPONSE), { status: 200 }));
     const adapter = makeAdapter();
     const preview = await adapter.planRoute(REQUEST);
     expect(preview.alternatives.length).toBe(1);
@@ -84,23 +82,15 @@ describe("HslRoutingAdapter", () => {
   // -- Upstream error responses —
 
   it("throws when upstream returns 502", async () => {
-    fetchSpy.mockResolvedValue(
-      new Response("Bad Gateway", { status: 502 }),
-    );
+    fetchSpy.mockResolvedValue(new Response("Bad Gateway", { status: 502 }));
     const adapter = makeAdapter();
-    await expect(adapter.planRoute(REQUEST)).rejects.toThrow(
-      "HSL Digitransit returned HTTP 502",
-    );
+    await expect(adapter.planRoute(REQUEST)).rejects.toThrow("HSL Digitransit returned HTTP 502");
   });
 
   it("throws when upstream returns 500", async () => {
-    fetchSpy.mockResolvedValue(
-      new Response("Internal Server Error", { status: 500 }),
-    );
+    fetchSpy.mockResolvedValue(new Response("Internal Server Error", { status: 500 }));
     const adapter = makeAdapter();
-    await expect(adapter.planRoute(REQUEST)).rejects.toThrow(
-      "HSL Digitransit returned HTTP 500",
-    );
+    await expect(adapter.planRoute(REQUEST)).rejects.toThrow("HSL Digitransit returned HTTP 500");
   });
 
   it("throws on network error", async () => {
@@ -127,10 +117,7 @@ describe("HslRoutingAdapter", () => {
 
   it("throws when upstream returns empty itineraries", async () => {
     fetchSpy.mockResolvedValue(
-      new Response(
-        JSON.stringify({ data: { plan: { itineraries: [] } } }),
-        { status: 200 },
-      ),
+      new Response(JSON.stringify({ data: { plan: { itineraries: [] } } }), { status: 200 }),
     );
     const adapter = makeAdapter();
     await expect(adapter.planRoute(REQUEST)).rejects.toThrow(
@@ -142,10 +129,7 @@ describe("HslRoutingAdapter", () => {
 
   it("throws when upstream returns GraphQL errors", async () => {
     fetchSpy.mockResolvedValue(
-      new Response(
-        JSON.stringify({ errors: [{ message: "Internal error" }] }),
-        { status: 200 },
-      ),
+      new Response(JSON.stringify({ errors: [{ message: "Internal error" }] }), { status: 200 }),
     );
     const adapter = makeAdapter();
     await expect(adapter.planRoute(REQUEST)).rejects.toThrow("Internal error");

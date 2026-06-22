@@ -1,6 +1,7 @@
 import Foundation
 @testable import Navon
 
+@MainActor
 final class FakeQrCaptureSession: QrCaptureSession {
     var onScan: ((String) -> Void)?
     private(set) var tearDownCallCount = 0

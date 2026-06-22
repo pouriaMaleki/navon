@@ -14,7 +14,7 @@ test.describe("gesture handler reached (L3)", () => {
   });
 
   test("pointerdown on the map canvas is observed by the app", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/app/");
 
     // Inject a hook into the canvas so we can count pointerdowns received by
     // MapLibre. We observe via window instead of reading internal state.
