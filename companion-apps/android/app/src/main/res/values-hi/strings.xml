@@ -8,16 +8,16 @@
     <string name="common_forget" formatted="false">भूलें</string>
     <string name="common_ok" formatted="false">ठीक है</string>
     <string name="cue_arrived" formatted="false">आप अपने गंतव्य पर पहुँच गए हैं</string>
-    <string name="cue_arrivingInM" formatted="false">अपने गंतव्य पर {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में पहुँच रहे हैं</string>
-    <string name="cue_nextTurnInAbout_generic" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में अगला मोड़</string>
-    <string name="cue_nextTurnInAbout_left" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में बाएँ रहें</string>
-    <string name="cue_nextTurnInAbout_merge" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में मर्ज करें</string>
-    <string name="cue_nextTurnInAbout_ramp" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में रैम्प लें</string>
-    <string name="cue_nextTurnInAbout_right" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में दाएँ रहें</string>
-    <string name="cue_nextTurnInAbout_roundabout" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में राउंडअबाउट</string>
-    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में बाएँ रहें</string>
-    <string name="cue_nextTurnInAbout_slightRight" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में दाएँ रहें</string>
-    <string name="cue_nextTurnInAbout_uturn" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में U-turn करें</string>
+    <string name="cue_arrivingInM" formatted="false">अपने गंतव्य पर {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में पहुंच रहे हैं</string>
+    <string name="cue_nextTurnInAbout_generic" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में अगला मोड़</string>
+    <string name="cue_nextTurnInAbout_left" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में बायां मोड़</string>
+    <string name="cue_nextTurnInAbout_merge" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में मर्ज</string>
+    <string name="cue_nextTurnInAbout_ramp" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में रैंप</string>
+    <string name="cue_nextTurnInAbout_right" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में दायां मोड़</string>
+    <string name="cue_nextTurnInAbout_roundabout" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में राउंडअबाउट</string>
+    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में हल्का बायां</string>
+    <string name="cue_nextTurnInAbout_slightRight" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में हल्का दायां</string>
+    <string name="cue_nextTurnInAbout_uturn" formatted="false">लगभग {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में U-turn</string>
     <string name="cue_offTrack" formatted="false">रास्ते से हट गए</string>
     <string name="cue_onTrack" formatted="false">रास्ते पर</string>
     <string name="cue_rerouting" formatted="false">नया मार्ग बन रहा है</string>
@@ -30,25 +30,25 @@
     <string name="cue_turn10m_ramp" formatted="false">रैम्प लें</string>
     <string name="cue_turn10m_right" formatted="false">दाएँ मुड़ें</string>
     <string name="cue_turn10m_roundabout" formatted="false">राउंडअबाउट में प्रवेश करें</string>
-    <string name="cue_turn10m_slightLeft" formatted="false">बाएँ मुड़ें</string>
-    <string name="cue_turn10m_slightRight" formatted="false">दाएँ मुड़ें</string>
+    <string name="cue_turn10m_slightLeft" formatted="false">हल्का बायां</string>
+    <string name="cue_turn10m_slightRight" formatted="false">हल्का दायां</string>
     <string name="cue_turn10m_uturn" formatted="false">U-turn करें</string>
-    <string name="cue_turn10mCombined" formatted="false">{first, select, left {बाएँ मुड़ें} right {दाएँ मुड़ें} exitLeft {बाएँ निकास लें} exitRight {दाएँ निकास लें} uturn {U-turn करें} roundabout {राउंडअबाउट में प्रवेश करें} merge {मर्ज करें} ramp {रैम्प लें} other {आगे बढ़ें}} फिर तुरंत {second, select, left {बाएँ} right {दाएँ} exitLeft {बाएँ निकास} exitRight {दाएँ निकास} uturn {U-turn} roundabout {राउंडअबाउट} merge {मर्ज} ramp {रैम्प} other {आगे}}</string>
-    <string name="cue_turn50m_exitLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, बाएँ निकास लें</string>
-    <string name="cue_turn50m_exitRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, दाएँ निकास लें</string>
-    <string name="cue_turn50m_generic" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, मार्ग का पालन करें</string>
-    <string name="cue_turn50m_left" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, बाएँ मुड़ें</string>
-    <string name="cue_turn50m_merge" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, मर्ज करें</string>
-    <string name="cue_turn50m_ramp" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, रैम्प लें</string>
-    <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, दाएँ मुड़ें</string>
-    <string name="cue_turn50m_roundabout" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, राउंडअबाउट में प्रवेश करें</string>
-    <string name="cue_turn50m_slightLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, बाएँ मुड़ें</string>
-    <string name="cue_turn50m_slightRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, दाएँ मुड़ें</string>
-    <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} में, U-turn करें</string>
-    <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {मीटर} feet {फीट} other {मीटर}}, {first, select, left {बाएँ मुड़ें} right {दाएँ मुड़ें} exitLeft {बाएँ निकास लें} exitRight {दाएँ निकास लें} uturn {U-turn करें} roundabout {राउंडअबाउट में प्रवेश करें} merge {मर्ज करें} ramp {रैम्प लें} other {रास्ता फॉलो करें}} फिर जल्दी {second, select, left {बाएँ} right {दाएँ} exitLeft {बाएँ निकास} exitRight {दाएँ निकास} uturn {U-turn} roundabout {राउंडअबाउट} merge {मर्ज} ramp {रैम्प} other {आगे}}</string>
-    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
-    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
-    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
+    <string name="cue_turn10mCombined" formatted="false">{first, select, left {Turn left} slightLeft {Slight left} slightRight {Slight right} right {Turn right} exitLeft {Take the left exit} exitRight {Take the right exit} uturn {Make a U-turn} roundabout {Enter the roundabout} merge {Merge} ramp {Take the ramp} other {Continue}} फिर तुरंत {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}</string>
+    <string name="cue_turn50m_exitLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में बायां एग्ज़िट लें</string>
+    <string name="cue_turn50m_exitRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में दायां एग्ज़िट लें</string>
+    <string name="cue_turn50m_generic" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में रूट फॉलो करें</string>
+    <string name="cue_turn50m_left" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में बायां मुड़ें</string>
+    <string name="cue_turn50m_merge" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में मर्ज करें</string>
+    <string name="cue_turn50m_ramp" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में रैंप लें</string>
+    <string name="cue_turn50m_right" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में दायां मुड़ें</string>
+    <string name="cue_turn50m_roundabout" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में राउंडअबाउट में प्रवेश करें</string>
+    <string name="cue_turn50m_slightLeft" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में हल्का बायां</string>
+    <string name="cue_turn50m_slightRight" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में हल्का दायां</string>
+    <string name="cue_turn50m_uturn" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}} में U-turn करें</string>
+    <string name="cue_turn50mCombined" formatted="false">{distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {turn left} slightLeft {slight left} slightRight {slight right} right {turn right} exitLeft {take the left exit} exitRight {take the right exit} uturn {make a U-turn} roundabout {enter the roundabout} merge {merge} ramp {take the ramp} other {follow the route}} फिर जल्दी {second, select, left {left} slightLeft {slight left} slightRight {slight right} right {right} exitLeft {left exit} exitRight {right exit} uturn {U-turn} roundabout {roundabout} merge {merge} ramp {ramp} other {ahead}}</string>
+    <string name="cycling_alternativesLive" formatted="false">BRouter + OSRM के जरिए साइक्लिंग विकल्प</string>
+    <string name="cycling_alternativesPartial" formatted="false">साइक्लिंग विकल्प — {count, number} source{count, plural, =1 {} other {s}} उपलब्ध नहीं</string>
+    <string name="cycling_sampleFallback" formatted="false">नमूना रूट दिखाया जा रहा है — लाइव रूटिंग विफल</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} से {destination} तक</string>
     <string name="home_a11y_clearDestination" formatted="false">गंतव्य साफ़ करें</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">आगमन संदेश बंद करें</string>
@@ -60,21 +60,21 @@
     <string name="home_a11y_settings" formatted="false">सेटिंग्स</string>
     <string name="home_continueOnCurrentRoute" formatted="false">वर्तमान मार्ग पर जारी रखें</string>
     <string name="home_distanceKm" formatted="false">{km, number} km</string>
-    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km से {destination}</string>
     <string name="home_importedRoute" formatted="false">आयातित मार्ग</string>
     <string name="home_iosLocationHint" formatted="false">iOS सेटिंग्स खोलें → Privacy → Location ताकि इस ऐप को \"Always\" पर स्विच किया जा सके।</string>
     <string name="home_linkFailed" formatted="false">इस लिंक को नहीं खोल सका</string>
-    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} मिनट शेष</string>
     <string name="home_noSuggestions" formatted="false">अभी कोई सुझाव नहीं…</string>
-    <string name="home_offRoute" formatted="false">Off route</string>
+    <string name="home_offRoute" formatted="false">रास्ते से बाहर</string>
     <string name="home_openSettings" formatted="false">सेटिंग्स</string>
-    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
+    <string name="home_phoneGuidanceReady" formatted="false">फ़ोन मार्गदर्शन तैयार</string>
     <string name="home_platformHint_locationDefault" formatted="false">आपसे लोकेशन की अनुमति मांगी जाएगी। इसे अनुमति दें ताकि ऐप बैकग्राउंड में होने पर भी मार्गदर्शन आपकी स्थिति को ट्रैक करता रहे।</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">iPhone पर Safari पृष्ठभूमि GPS, लॉक-स्क्रीन मार्गदर्शन, या ऑडियो संकेत नहीं दे सकता जब टैब छिपा हो। वास्तविक पृष्ठभूमि रूटिंग के लिए, मूल iOS ऐप इंस्टॉल करें।</string>
     <string name="home_recenter" formatted="false">फिर से केंद्रित करें</string>
-    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
-    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
-    <string name="home_rerouting" formatted="false">Rerouting…</string>
+    <string name="home_remainingKm" formatted="false">{km, number} किमी शेष • {min, number} मिनट</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} किमी • {min, number} मिनट</string>
+    <string name="home_rerouting" formatted="false">पुनः मार्गनिर्धारण…</string>
     <string name="home_resolvingLink" formatted="false">लिंक सुलझाया जा रहा है…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">गंतव्य के लिए URL फॉलो किया जा रहा है। इसमें कुछ सेकंड लग सकते हैं।</string>
     <string name="home_routeActiveOnDevice" formatted="false">डिवाइस पर रूट सक्रिय</string>
@@ -94,12 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">इम्पोर्ट फिर से आज़माएँ</string>
     <string name="importDiagnostics_sharePackage" formatted="false">डिबग पैकेज साझा करें</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Navon इम्पोर्ट डायग्नॉस्टिक्स</string>
-    <string name="maneuver_arrive" formatted="false">Arrive</string>
-    <string name="maneuver_continue" formatted="false">Continue</string>
+    <string name="maneuver_arrive" formatted="false">पहुंचें</string>
+    <string name="maneuver_continue" formatted="false">जारी रखें</string>
     <string name="pairing_alignQr" formatted="false">फ्रेम में QR कोड को संरेखित करें</string>
     <string name="pairing_cameraDenied" formatted="false">पेयरिंग कोड स्कैन करने के लिए कैमरा एक्सेस आवश्यक है।</string>
     <string name="pairing_cancel" formatted="false">रद्द करें</string>
-    <string name="pairing_connecting" formatted="false">Connecting…</string>
+    <string name="pairing_connecting" formatted="false">कनेक्ट हो रहा है…</string>
     <string name="pairing_failed" formatted="false">पेयरिंग विफल रही</string>
     <string name="pairing_intro" formatted="false">अपने फोन को ऐसे पकड़ें कि डिवाइस की स्क्रीन फ्रेम में रहे, फिर QR कोड दिखने पर Start पर टैप करें।</string>
     <string name="pairing_openSettings" formatted="false">सेटिंग्स खोलें</string>
@@ -157,17 +157,17 @@
     <string name="settings_distanceUnit_metric" formatted="false">मेट्रिक</string>
     <string name="settings_distanceUnit_system" formatted="false">डिवाइस की माप प्रणाली का पालन करें</string>
     <string name="settings_distanceUnit_title" formatted="false">दूरी की इकाइयाँ</string>
-    <string name="settings_hub_about" formatted="false">About Navon</string>
+    <string name="settings_hub_about" formatted="false">Navon के बारे में</string>
     <string name="settings_hub_device" formatted="false">डिवाइस</string>
     <string name="settings_hub_importDiagnostics" formatted="false">इम्पोर्ट डायग्नॉस्टिक्स</string>
     <string name="settings_hub_importDiagnostics_subtitle" formatted="false">असफल साझा इम्पोर्ट</string>
-    <string name="settings_hub_privacyPolicy" formatted="false">Privacy Policy</string>
+    <string name="settings_hub_privacyPolicy" formatted="false">गोपनीयता नीति</string>
     <string name="settings_hub_routePlanner" formatted="false">रूट प्लानर</string>
-    <string name="settings_hub_routePlanner_subtitle" formatted="false">डिफ़ॉल्ट स्रोत, सुझाव, HSL कुंजी</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">Default source, suggestions, routing</string>
     <string name="settings_hub_routes" formatted="false">रूट्स</string>
     <string name="settings_hub_routes_subtitle" formatted="false">हाल के रूट्स और GPX इम्पोर्ट</string>
-    <string name="settings_hub_support" formatted="false">Support</string>
-    <string name="settings_hub_termsOfService" formatted="false">Terms of Service</string>
+    <string name="settings_hub_support" formatted="false">सहायता</string>
+    <string name="settings_hub_termsOfService" formatted="false">सेवा की शर्तें</string>
     <string name="settings_hub_title" formatted="false">सेटिंग्स</string>
     <string name="settings_importDiagnostics_empty" formatted="false">कोई असफल इम्पोर्ट रिकॉर्ड नहीं</string>
     <string name="settings_importDiagnostics_title" formatted="false">इम्पोर्ट डायग्नॉस्टिक्स</string>

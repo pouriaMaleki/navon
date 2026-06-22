@@ -8,16 +8,16 @@
     <string name="common_forget" formatted="false">Lupakan</string>
     <string name="common_ok" formatted="false">OK</string>
     <string name="cue_arrived" formatted="false">Anda telah tiba di tujuan Anda</string>
-    <string name="cue_arrivingInM" formatted="false">Tiba di tujuan Anda dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_generic" formatted="false">Belok berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_left" formatted="false">Belok kiri berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_merge" formatted="false">Belok gabung berikutnya dalam sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_ramp" formatted="false">Jalur masuk berikutnya dalam sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_right" formatted="false">Belok kanan berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_roundabout" formatted="false">Bundaran berikutnya dalam sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
-    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">Ikuti ke kiri sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} lagi</string>
-    <string name="cue_nextTurnInAbout_slightRight" formatted="false">Ikuti ke kanan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}} lagi</string>
-    <string name="cue_nextTurnInAbout_uturn" formatted="false">Belok U berikutnya di depan sekitar {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}</string>
+    <string name="cue_arrivingInM" formatted="false">Tiba di tujuan Anda dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_generic" formatted="false">Belok berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_left" formatted="false">Belok kiri berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_merge" formatted="false">Bergabung berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_ramp" formatted="false">Naik/turun landai berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_right" formatted="false">Belok kanan berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_roundabout" formatted="false">Masuk bundaran berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_slightLeft" formatted="false">Belok sedikit kiri berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_slightRight" formatted="false">Belok sedikit kanan berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
+    <string name="cue_nextTurnInAbout_uturn" formatted="false">Putar balik (U-turn) berikutnya di depan kira-kira {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}</string>
     <string name="cue_offTrack" formatted="false">Keluar jalur</string>
     <string name="cue_onTrack" formatted="false">Kembali ke jalur</string>
     <string name="cue_rerouting" formatted="false">Menghitung ulang rute</string>
@@ -30,25 +30,25 @@
     <string name="cue_turn10m_ramp" formatted="false">Ambil jalur masuk</string>
     <string name="cue_turn10m_right" formatted="false">Belok kanan</string>
     <string name="cue_turn10m_roundabout" formatted="false">Masuk ke bundaran</string>
-    <string name="cue_turn10m_slightLeft" formatted="false">Belok kiri</string>
-    <string name="cue_turn10m_slightRight" formatted="false">Belok kanan</string>
+    <string name="cue_turn10m_slightLeft" formatted="false">Belok sedikit kiri</string>
+    <string name="cue_turn10m_slightRight" formatted="false">Belok sedikit kanan</string>
     <string name="cue_turn10m_uturn" formatted="false">Putar balik (U-turn)</string>
-    <string name="cue_turn10mCombined" formatted="false">{first, select, left {Belok kiri} right {Belok kanan} exitLeft {Ambil keluar kiri} exitRight {Ambil keluar kanan} uturn {Putar balik} roundabout {Masuk ke bundaran} merge {Gabung} ramp {Ambil jalur masuk} other {Lanjut}} lalu segera {second, select, left {kiri} right {kanan} exitLeft {keluar kiri} exitRight {keluar kanan} uturn {Putar balik} roundabout {bundaran} merge {gabung} ramp {jalur masuk} other {ke depan}}</string>
-    <string name="cue_turn50m_exitLeft" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ambil pintu keluar kiri</string>
-    <string name="cue_turn50m_exitRight" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ambil pintu keluar kanan</string>
-    <string name="cue_turn50m_generic" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ikuti rute</string>
-    <string name="cue_turn50m_left" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kiri</string>
-    <string name="cue_turn50m_merge" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, gabung</string>
-    <string name="cue_turn50m_ramp" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, ambil jalur masuk</string>
-    <string name="cue_turn50m_right" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kanan</string>
-    <string name="cue_turn50m_roundabout" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, masuk ke bundaran</string>
-    <string name="cue_turn50m_slightLeft" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kiri</string>
-    <string name="cue_turn50m_slightRight" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, belok kanan</string>
-    <string name="cue_turn50m_uturn" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} other {meters}}, putar balik (U-turn)</string>
-    <string name="cue_turn50mCombined" formatted="false">Di {distance, number} {distanceUnit, select, meters {meter} feet {kaki} other {meter}}, {first, select, left {belok kiri} right {belok kanan} exitLeft {ambil keluar kiri} exitRight {ambil keluar kanan} uturn {putar balik} roundabout {masuk bundaran} merge {gabung} ramp {ambil jalur masuk} other {ikuti rute}} lalu cepat {second, select, left {kiri} right {kanan} exitLeft {keluar kiri} exitRight {keluar kanan} uturn {U-turn} roundabout {bundaran} merge {gabung} ramp {jalur masuk} other {terus}}</string>
-    <string name="cycling_alternativesLive" formatted="false">Cycling alternatives via BRouter + OSRM</string>
-    <string name="cycling_alternativesPartial" formatted="false">Cycling alternatives — {count, number} source{count, plural, =1 {} other {s}} unavailable</string>
-    <string name="cycling_sampleFallback" formatted="false">Showing sample route — live routing failed</string>
+    <string name="cue_turn10mCombined" formatted="false">{first, select, left {Belok kiri} slightLeft {Belok sedikit kiri} slightRight {Belok sedikit kanan} right {Belok kanan} exitLeft {Ambil keluar kiri} exitRight {Ambil keluar kanan} uturn {Lakukan U-turn} roundabout {Masuk bundaran} merge {Bergabung} ramp {Ambil landai} other {Lanjutkan}} lalu segera {second, select, left {kiri} slightLeft {belok sedikit kiri} slightRight {belok sedikit kanan} right {kanan} exitLeft {keluar kiri} exitRight {keluar kanan} uturn {U-turn} roundabout {bundaran} merge {bergabung} ramp {landai} other {ke depan}}</string>
+    <string name="cue_turn50m_exitLeft" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, ambil keluar kiri</string>
+    <string name="cue_turn50m_exitRight" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, ambil keluar kanan</string>
+    <string name="cue_turn50m_generic" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, ikuti rute</string>
+    <string name="cue_turn50m_left" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, belok kiri</string>
+    <string name="cue_turn50m_merge" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, bergabung</string>
+    <string name="cue_turn50m_ramp" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, ambil landai</string>
+    <string name="cue_turn50m_right" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, belok kanan</string>
+    <string name="cue_turn50m_roundabout" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, masuk bundaran</string>
+    <string name="cue_turn50m_slightLeft" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, belok sedikit kiri</string>
+    <string name="cue_turn50m_slightRight" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, belok sedikit kanan</string>
+    <string name="cue_turn50m_uturn" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, lakukan U-turn</string>
+    <string name="cue_turn50mCombined" formatted="false">Dalam {distance, number} {distanceUnit, select, meters {meters} feet {feet} kilometers {kilometers} other {meters}}, {first, select, left {belok kiri} slightLeft {belok sedikit kiri} slightRight {belok sedikit kanan} right {belok kanan} exitLeft {ambil keluar kiri} exitRight {ambil keluar kanan} uturn {lakukan U-turn} roundabout {masuk bundaran} merge {bergabung} ramp {ambil landai} other {ikuti rute}} lalu cepat {second, select, left {kiri} slightLeft {belok sedikit kiri} slightRight {belok sedikit kanan} right {kanan} exitLeft {keluar kiri} exitRight {keluar kanan} uturn {U-turn} roundabout {bundaran} merge {bergabung} ramp {landai} other {ke depan}}</string>
+    <string name="cycling_alternativesLive" formatted="false">Alternatif bersepeda via BRouter + OSRM</string>
+    <string name="cycling_alternativesPartial" formatted="false">Alternatif bersepeda — {count, number} sumber{count, plural, =1 {} other {s}} tidak tersedia</string>
+    <string name="cycling_sampleFallback" formatted="false">Menampilkan rute contoh — routing langsung gagal</string>
     <string name="guidance_distanceToDestination" formatted="false">{distance, number} {distanceUnit, select, km {km} mi {mi} other {km}} menuju {destination}</string>
     <string name="home_a11y_clearDestination" formatted="false">Hapus tujuan</string>
     <string name="home_a11y_closeArrivalNotice" formatted="false">Tutup pesan kedatangan</string>
@@ -60,21 +60,21 @@
     <string name="home_a11y_settings" formatted="false">Pengaturan</string>
     <string name="home_continueOnCurrentRoute" formatted="false">Lanjutkan di rute saat ini</string>
     <string name="home_distanceKm" formatted="false">{km, number} km</string>
-    <string name="home_distanceToDestination" formatted="false">{km, number} km to {destination}</string>
+    <string name="home_distanceToDestination" formatted="false">{km, number} km menuju {destination}</string>
     <string name="home_importedRoute" formatted="false">Rute yang diimpor</string>
     <string name="home_iosLocationHint" formatted="false">Buka Pengaturan iOS → Privasi → Lokasi untuk mengubah aplikasi ini menjadi \"Selalu\".</string>
     <string name="home_linkFailed" formatted="false">Tidak dapat membuka tautan itu</string>
-    <string name="home_minutesRemaining" formatted="false">{min, number} min remaining</string>
+    <string name="home_minutesRemaining" formatted="false">{min, number} menit tersisa</string>
     <string name="home_noSuggestions" formatted="false">Belum ada saran…</string>
-    <string name="home_offRoute" formatted="false">Off route</string>
+    <string name="home_offRoute" formatted="false">Keluar rute</string>
     <string name="home_openSettings" formatted="false">Pengaturan</string>
-    <string name="home_phoneGuidanceReady" formatted="false">Phone guidance ready</string>
+    <string name="home_phoneGuidanceReady" formatted="false">Panduan telepon siap</string>
     <string name="home_platformHint_locationDefault" formatted="false">Anda akan diminta memberikan izin lokasi. Izinkan agar panduan tetap melacak posisi Anda saat aplikasi berada di latar belakang.</string>
     <string name="home_platformHint_locationSafariIos" formatted="false">Safari di iPhone tidak dapat mengirim GPS latar belakang, panduan di layar kunci, atau isyarat audio saat tab disembunyikan. Untuk penelusuran rute latar belakang yang sebenarnya, instal aplikasi iOS asli.</string>
     <string name="home_recenter" formatted="false">Pusatkan ulang</string>
-    <string name="home_remainingKm" formatted="false">{km, number} km remaining • {min, number} min</string>
-    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} min</string>
-    <string name="home_rerouting" formatted="false">Rerouting…</string>
+    <string name="home_remainingKm" formatted="false">{km, number} km tersisa • {min, number} menit</string>
+    <string name="home_remainingKmShort" formatted="false">{km, number} km • {min, number} menit</string>
+    <string name="home_rerouting" formatted="false">Menghitung ulang rute…</string>
     <string name="home_resolvingLink" formatted="false">Menyelesaikan tautan…</string>
     <string name="home_resolvingLinkSubtitle" formatted="false">Mengikuti URL menuju tujuan. Ini bisa memakan waktu beberapa detik.</string>
     <string name="home_routeActiveOnDevice" formatted="false">Rute aktif di perangkat</string>
@@ -94,12 +94,12 @@
     <string name="importDiagnostics_retry" formatted="false">Coba impor lagi</string>
     <string name="importDiagnostics_sharePackage" formatted="false">Bagikan paket debug</string>
     <string name="importDiagnostics_shareSubject" formatted="false">Diagnostik impor Navon</string>
-    <string name="maneuver_arrive" formatted="false">Arrive</string>
-    <string name="maneuver_continue" formatted="false">Continue</string>
+    <string name="maneuver_arrive" formatted="false">Tiba</string>
+    <string name="maneuver_continue" formatted="false">Lanjutkan</string>
     <string name="pairing_alignQr" formatted="false">Sejajarkan kode QR di dalam bingkai</string>
     <string name="pairing_cameraDenied" formatted="false">Akses kamera diperlukan untuk memindai kode pasangan.</string>
     <string name="pairing_cancel" formatted="false">Batal</string>
-    <string name="pairing_connecting" formatted="false">Connecting…</string>
+    <string name="pairing_connecting" formatted="false">Menghubungkan…</string>
     <string name="pairing_failed" formatted="false">Gagal melakukan pairing</string>
     <string name="pairing_intro" formatted="false">Pegang ponsel Anda agar layar perangkat terlihat dalam bingkai, lalu ketuk Mulai saat Anda melihat kode QR.</string>
     <string name="pairing_openSettings" formatted="false">Buka Pengaturan</string>
@@ -157,17 +157,17 @@
     <string name="settings_distanceUnit_metric" formatted="false">Metrik</string>
     <string name="settings_distanceUnit_system" formatted="false">Sistem</string>
     <string name="settings_distanceUnit_title" formatted="false">Satuan jarak</string>
-    <string name="settings_hub_about" formatted="false">About Navon</string>
+    <string name="settings_hub_about" formatted="false">Tentang Navon</string>
     <string name="settings_hub_device" formatted="false">Perangkat</string>
     <string name="settings_hub_importDiagnostics" formatted="false">Diagnostik impor</string>
     <string name="settings_hub_importDiagnostics_subtitle" formatted="false">Gagal impor bersama</string>
-    <string name="settings_hub_privacyPolicy" formatted="false">Privacy Policy</string>
+    <string name="settings_hub_privacyPolicy" formatted="false">Kebijakan Privasi</string>
     <string name="settings_hub_routePlanner" formatted="false">Perencana Rute</string>
-    <string name="settings_hub_routePlanner_subtitle" formatted="false">Sumber default, saran, kunci HSL</string>
+    <string name="settings_hub_routePlanner_subtitle" formatted="false">Default source, suggestions, routing</string>
     <string name="settings_hub_routes" formatted="false">Rute</string>
     <string name="settings_hub_routes_subtitle" formatted="false">Rute terbaru dan impor GPX</string>
-    <string name="settings_hub_support" formatted="false">Support</string>
-    <string name="settings_hub_termsOfService" formatted="false">Terms of Service</string>
+    <string name="settings_hub_support" formatted="false">Bantuan</string>
+    <string name="settings_hub_termsOfService" formatted="false">Ketentuan Layanan</string>
     <string name="settings_hub_title" formatted="false">Pengaturan</string>
     <string name="settings_importDiagnostics_empty" formatted="false">Tidak ada impor yang gagal tercatat</string>
     <string name="settings_importDiagnostics_title" formatted="false">Diagnostik Impor</string>
