@@ -7,11 +7,6 @@ export default defineConfig({
     "import.meta.env.VITE_APP_GIT_HASH": JSON.stringify(process.env.VITE_APP_GIT_HASH || "unknown"),
     "import.meta.env.VITE_APP_GIT_TIME": JSON.stringify(process.env.VITE_APP_GIT_TIME || ""),
   },
-  optimizeDeps: {
-    esbuildOptions: {
-      target: "es2022",
-    },
-  },
   server: {
     host: "0.0.0.0",
     port: 5173,
