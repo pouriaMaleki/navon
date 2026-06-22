@@ -845,6 +845,26 @@
       "description": "Subtitle under the 'Routes' row on the Settings hub.",
       "placeholders": {}
     },
+    "settings.hub.about": {
+      "value": "About Navon",
+      "description": "Settings hub row: opens the About page on the Navon website.",
+      "placeholders": {}
+    },
+    "settings.hub.privacyPolicy": {
+      "value": "Privacy Policy",
+      "description": "Settings hub row: opens the Privacy Policy on the Navon website.",
+      "placeholders": {}
+    },
+    "settings.hub.support": {
+      "value": "Support",
+      "description": "Settings hub row: opens the GitHub Issues page for support.",
+      "placeholders": {}
+    },
+    "settings.hub.termsOfService": {
+      "value": "Terms of Service",
+      "description": "Settings hub row: opens the software license (AGPL-3.0) on GitHub.",
+      "placeholders": {}
+    },
     "settings.hub.title": {
       "value": "Settings",
       "description": "Title of the Settings hub screen.",

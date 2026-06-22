@@ -72,6 +72,10 @@ RUN npm run build
 # ------ Stage 3: build the companion web app under /app/. ------
 FROM node:20-bookworm-slim AS companion-builder
 
+ARG APP_VERSION=0.0.0
+ARG GIT_HASH=unknown
+ARG GIT_TIME=
+
 WORKDIR /app
 
 COPY companion-apps/web/package.json companion-apps/web/package-lock.json ./
@@ -83,7 +87,10 @@ COPY companion-apps/web/vite.config.ts ./
 COPY companion-apps/web/biome.json ./
 COPY companion-apps/web/src ./src
 
-RUN npm run build
+RUN VITE_APP_VERSION=${APP_VERSION} \
+    VITE_APP_GIT_HASH=${GIT_HASH} \
+    VITE_APP_GIT_TIME=${GIT_TIME} \
+    npx vite build
 
 # ------ Stage 4: build the homepage (Astro static site with React islands). ------
 FROM node:lts-bookworm-slim AS homepage-builder

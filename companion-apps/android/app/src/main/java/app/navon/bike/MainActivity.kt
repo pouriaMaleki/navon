@@ -1010,6 +1010,19 @@ private fun SettingsRootScreen(
         Button(onClick = onRoutingDiagnostics, modifier = Modifier.fillMaxWidth()) {
             Text("Routing Diagnostics")
         }
+        val uriHandler = LocalUriHandler.current
+        Button(onClick = { uriHandler.openUri("https://navon.bike/privacy") }, modifier = Modifier.fillMaxWidth()) {
+            Text(Strings.t("settings.hub.privacyPolicy"))
+        }
+        Button(onClick = { uriHandler.openUri("https://github.com/pouriaMaleki/navon/blob/main/LICENSE") }, modifier = Modifier.fillMaxWidth()) {
+            Text(Strings.t("settings.hub.termsOfService"))
+        }
+        Button(onClick = { uriHandler.openUri("https://github.com/pouriaMaleki/navon/issues") }, modifier = Modifier.fillMaxWidth()) {
+            Text(Strings.t("settings.hub.support"))
+        }
+        Button(onClick = { uriHandler.openUri("https://navon.bike/about") }, modifier = Modifier.fillMaxWidth()) {
+            Text(Strings.t("settings.hub.about"))
+        }
     }
 }
 

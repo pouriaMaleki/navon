@@ -157,13 +157,17 @@
     <string name="settings_distanceUnit_metric" formatted="false">Métrico</string>
     <string name="settings_distanceUnit_system" formatted="false">Sistema</string>
     <string name="settings_distanceUnit_title" formatted="false">Unidades de distancia</string>
+    <string name="settings_hub_about" formatted="false">About Navon</string>
     <string name="settings_hub_device" formatted="false">Dispositivo</string>
     <string name="settings_hub_importDiagnostics" formatted="false">Diagnósticos de importación</string>
     <string name="settings_hub_importDiagnostics_subtitle" formatted="false">Importaciones compartidas fallidas</string>
+    <string name="settings_hub_privacyPolicy" formatted="false">Privacy Policy</string>
     <string name="settings_hub_routePlanner" formatted="false">Planificador de ruta</string>
     <string name="settings_hub_routePlanner_subtitle" formatted="false">Origen predeterminado, sugerencias, HSL</string>
     <string name="settings_hub_routes" formatted="false">Rutas</string>
     <string name="settings_hub_routes_subtitle" formatted="false">Rutas recientes e importación de GPX</string>
+    <string name="settings_hub_support" formatted="false">Support</string>
+    <string name="settings_hub_termsOfService" formatted="false">Terms of Service</string>
     <string name="settings_hub_title" formatted="false">Ajustes</string>
     <string name="settings_importDiagnostics_empty" formatted="false">No se registraron importaciones fallidas</string>
     <string name="settings_importDiagnostics_title" formatted="false">Import Diagnostics</string>

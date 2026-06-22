@@ -121,6 +121,32 @@ export const SettingsHubView = observer(({ store }: Props) => {
                 <span aria-hidden>›</span>
               </button>
             </div>
+            <div className={styles.section}>
+              <a href="https://navon.bike/privacy" target="_blank" rel="noopener" className={styles.row}>
+                <div style={{ flex: 1, textAlign: "start" }}>
+                  <div className={styles.title}>{t("settings.hub.privacyPolicy")}</div>
+                </div>
+                <span aria-hidden>↗</span>
+              </a>
+              <a href="https://github.com/pouriaMaleki/navon/blob/main/LICENSE" target="_blank" rel="noopener" className={styles.row}>
+                <div style={{ flex: 1, textAlign: "start" }}>
+                  <div className={styles.title}>{t("settings.hub.termsOfService")}</div>
+                </div>
+                <span aria-hidden>↗</span>
+              </a>
+              <a href="https://github.com/pouriaMaleki/navon/issues" target="_blank" rel="noopener" className={styles.row}>
+                <div style={{ flex: 1, textAlign: "start" }}>
+                  <div className={styles.title}>{t("settings.hub.support")}</div>
+                </div>
+                <span aria-hidden>↗</span>
+              </a>
+              <a href="https://navon.bike/about" target="_blank" rel="noopener" className={styles.row}>
+                <div style={{ flex: 1, textAlign: "start" }}>
+                  <div className={styles.title}>{t("settings.hub.about")}</div>
+                </div>
+                <span aria-hidden>↗</span>
+              </a>
+            </div>
           </>
         ) : null}
 

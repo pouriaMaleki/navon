@@ -24,6 +24,12 @@ cargo xtask bundle-device
 cargo xtask deploy-device --port /dev/ttyUSB0
 ```
 
+## Version
+
+After meaningful changes, bump the version in:
+- `companion-apps/web/package.json` (`"version"`)
+- `companion-apps/ios/CompanionApp/Info.plist` (`CFBundleShortVersionString`)
+
 ## Pre-Push Checks
 
 Run these before pushing any change. All must exit clean.

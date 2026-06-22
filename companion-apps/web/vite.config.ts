@@ -3,8 +3,14 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   base: "/app/",
   define: {
-    "import.meta.env.VITE_APP_VERSION": JSON.stringify(process.env.VITE_APP_VERSION),
-    "import.meta.env.VITE_APP_GIT_HASH": JSON.stringify(process.env.VITE_APP_GIT_HASH),
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(process.env.VITE_APP_VERSION || "0.0.0"),
+    "import.meta.env.VITE_APP_GIT_HASH": JSON.stringify(process.env.VITE_APP_GIT_HASH || "unknown"),
+    "import.meta.env.VITE_APP_GIT_TIME": JSON.stringify(process.env.VITE_APP_GIT_TIME || ""),
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: "es2022",
+    },
   },
   server: {
     host: "0.0.0.0",
