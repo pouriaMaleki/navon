@@ -5,6 +5,12 @@ import type { Page } from "@playwright/test";
  * the app boots. Tests drive the rider position by calling `window.__fakeGeo`.
  */
 export async function injectFakeGeolocation(page: Page): Promise<void> {
+  // Capture JS errors so CI logs show what failed instead of blind timeouts.
+  page.on("pageerror", (err) => console.error("[e2e] PAGE ERROR:", err.message));
+  page.on("console", (msg) => {
+    if (msg.type() === "error") console.error("[e2e] CONSOLE ERROR:", msg.text());
+  });
+
   await page.addInitScript(() => {
     const listeners = new Map<number, (p: GeolocationPosition) => void>();
     let nextId = 1;
