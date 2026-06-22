@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none"><title>White bicycle mark / top symbol</title><g clip-path="url(#clip0_2096_13)"><path d="M305.843 520.302C264.303 520.302 229.482 510.33 201.382 490.386C173.281 470.443 159.23 445.73 159.23 416.248C159.23 386.766 173.525 362.054 202.115 342.11C230.704 322.166 265.28 312.195 305.843 312.195C343.473 312.195 375.117 320.172 400.774 336.127C426.432 352.082 442.681 371.852 449.523 395.437H468.583L415.802 291.384H364.488V249.762H511.1V291.384H478.845L489.108 312.195H629.856L587.339 228.952H511.1V187.33H587.339C600.045 187.33 611.407 189.758 621.426 194.614C631.444 199.47 638.653 206.06 643.051 214.384L692.899 311.154H716.357C756.92 311.154 791.496 321.299 820.086 341.59C848.675 361.88 862.97 386.419 862.97 415.208C862.97 444.343 848.797 469.142 820.452 489.606C792.107 510.07 757.409 520.302 716.357 520.302C681.171 520.302 650.26 512.498 623.625 496.89C596.991 481.282 580.008 461.338 572.677 437.059H449.523C442.681 460.991 426.065 480.848 399.675 496.629C373.285 512.411 342.007 520.302 305.843 520.302ZM305.843 478.68C325.88 478.68 343.107 474.778 357.524 466.974C371.941 459.17 382.081 449.198 387.946 437.059H305.843V395.437H387.946C382.081 382.951 371.941 372.892 357.524 365.262C343.107 357.631 325.88 353.816 305.843 353.816C280.919 353.816 260.026 359.799 243.166 371.765C226.306 383.731 217.875 398.559 217.875 416.248C217.875 433.59 226.306 448.331 243.166 460.471C260.026 472.61 280.919 478.68 305.843 478.68ZM531.626 395.437H572.677C575.121 387.46 578.42 380.003 582.574 373.066C586.728 366.129 592.226 359.712 599.068 353.816H509.634L531.626 395.437ZM716.357 478.68C741.282 478.68 762.174 472.61 779.034 460.471C795.895 448.331 804.325 433.59 804.325 416.248C804.325 398.559 795.895 383.731 779.034 371.765C762.174 359.799 741.282 353.816 716.357 353.816H713.425L742.748 408.964L687.035 423.532L659.179 368.383C649.405 374.28 641.829 381.217 636.454 389.194C631.078 397.172 628.39 406.19 628.39 416.248C628.39 433.59 636.82 448.331 653.681 460.471C670.541 472.61 691.433 478.68 716.357 478.68Z" fill="white" fill-opacity="0.88" />
+</g><defs>
+<filter id="filter0_d_2096_13" x="262.776" y="502" width="497.448" height="496.968" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix" />
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
+<feOffset dy="95.744" />
+<feGaussianBlur stdDeviation="26.112" />
+<feComposite in2="hardAlpha" operator="out" />
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.83 0" />
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_2096_13" />
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_2096_13" result="shape" />
+</filter>
+<linearGradient id="paint0_linear_2096_13" x1="512" y1="0" x2="512" y2="1024" gradientUnits="userSpaceOnUse">
+<stop stop-color="#6A6A6A" />
+<stop offset="1" stop-color="#343434" />
+</linearGradient>
+<linearGradient id="paint1_linear_2096_13" x1="511.5" y1="502" x2="511.5" y2="851" gradientUnits="userSpaceOnUse">
+<stop stop-color="#42FF78" />
+<stop offset="0.525842" stop-color="#42FF78" />
+<stop offset="1" stop-color="#42FF78" />
+</linearGradient>
+<linearGradient id="paint2_linear_2096_13" x1="512" y1="-74" x2="512" y2="1077" gradientUnits="userSpaceOnUse">
+<stop stop-color="white" stop-opacity="0" />
+<stop offset="0.32027" stop-color="#EFEFEF" stop-opacity="0.7" />
+<stop offset="0.797819" stop-color="#A8A8A8" />
+<stop offset="0.928613" stop-color="#999999" stop-opacity="0" />
+</linearGradient>
+<linearGradient id="paint3_linear_2096_13" x1="512" y1="-74" x2="512" y2="1077" gradientUnits="userSpaceOnUse">
+<stop stop-color="white" stop-opacity="0" />
+<stop offset="0.32027" stop-color="#EFEFEF" stop-opacity="0.7" />
+<stop offset="0.797819" stop-color="#A8A8A8" />
+<stop offset="0.928613" stop-color="#999999" stop-opacity="0" />
+</linearGradient>
+<clipPath id="clip0_2096_13">
+<rect width="1024" height="1024" fill="white" />
+</clipPath>
+</defs>
+</svg>

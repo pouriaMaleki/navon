@@ -225,3 +225,7 @@ Copy city.svm to SD Card if you want larger size map. Flashed map is very small 
 ├─ infra/                     Devcontainer and local environment setup scripts.
 └─ demo/                      Screenshots and demo media for documentation.
 ```
+
+## Attribution
+
+**Navon App Icon** designed by [Aref Araghi](https://arefaraghi.com/).

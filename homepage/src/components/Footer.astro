@@ -48,7 +48,10 @@
     </div>
   </div>
 
-  <p class="footer-copy">&copy; 2026 Navon. Free and open-source software.</p>
+  <p class="footer-copy">Navon. Free and open-source software.</p>
+  <p class="footer-credit">
+    Icon by <a href="https://arefaraghi.com/" target="_blank" rel="noopener">Aref Araghi</a>
+  </p>
 </section>
 
 <style>
@@ -127,6 +130,24 @@
     font-size: var(--text-xs);
     color: var(--color-fg-dim);
     margin-top: var(--space-lg);
+  }
+
+  .footer-credit {
+    font-size: var(--text-xs);
+    color: var(--color-fg-dim);
+    margin-top: var(--space-xs);
+  }
+
+  .footer-credit a {
+    color: var(--color-fg-muted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .footer-credit a:hover,
+  .footer-credit a:focus-visible {
+    color: var(--color-fg);
   }
 
   .muted {
