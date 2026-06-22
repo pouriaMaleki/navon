@@ -16,9 +16,6 @@ export default defineConfig({
       },
     },
   },
-  optimizeDeps: {
-    exclude: ["maplibre-gl"],
-  },
   build: {
     target: "es2022",
     sourcemap: true,
