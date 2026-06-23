@@ -26,6 +26,8 @@
         <string>ur</string>
         <string>zh</string>
     </array>
+    <key>CFBundleDisplayName</key>
+    <string>Navon</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -79,13 +81,6 @@
     </dict>
     <key>UIApplicationSupportsIndirectInputEvents</key>
     <true/>
-    <!--
-      Portrait-only: companion app camera/UX is tuned for a single
-      orientation. Allowing landscape forces the map camera math to
-      account for a different bottom-quarter anchor and breaks the
-      route overlay layout. iPhone keeps portrait + upside-down off;
-      iPad gets portrait variants only.
-    -->
     <key>UISupportedInterfaceOrientations</key>
     <array>
         <string>UIInterfaceOrientationPortrait</string>
@@ -94,7 +89,56 @@
     <array>
         <string>UIInterfaceOrientationPortrait</string>
         <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>GPX Route</string>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>LSHandlerRank</key>
+            <string>Owner</string>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>gpx</string>
+            </array>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>com.topografix.gpx</string>
+            </array>
+        </dict>
+    </array>
+    <key>UTImportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.xml</string>
+            </array>
+            <key>UTTypeDescription</key>
+            <string>GPS Exchange Format (GPX)</string>
+            <key>UTTypeIdentifier</key>
+            <string>com.topografix.gpx</string>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key>
+                <array>
+                    <string>gpx</string>
+                </array>
+                <key>public.mime-type</key>
+                <array>
+                    <string>application/gpx+xml</string>
+                </array>
+            </dict>
+        </dict>
+    </array>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
     <key>UILaunchScreen</key>
     <dict/>
 </dict>

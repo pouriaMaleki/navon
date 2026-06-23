@@ -1,9 +1,17 @@
 import UIKit
 import UniformTypeIdentifiers
 
+// Share extension (com.apple.share-services). On modern iOS, Apple does not
+// allow share extensions to programmatically foreground the host app — neither
+// NSExtensionContext.open nor the responder-chain openURL: hack works. Switching
+// to an action extension (com.apple.ui-services) does enable foregrounding, but
+// many sharing apps (Google Maps, Safari for URLs, …) don't expose their share
+// items to action extensions, so the host app stops appearing in their share
+// sheets entirely. The top-row placement is more valuable than auto-foreground,
+// so we stay on share-services and let the user tap Navon to finish the import.
+// The enqueued item is drained on next foreground via
+// ShareImportService.consumePendingSharedImports.
 final class ShareViewController: UIViewController {
-    private static let companionURL = URL(string: "navon://import")!
-
     private let statusLabel = UILabel()
     private let activityIndicator = UIActivityIndicatorView(style: .large)
     private let sharedStore = SharedImportStore()
@@ -27,16 +35,18 @@ final class ShareViewController: UIViewController {
                 lastUpdatedAt: Date()
             )
         },
-        onSuccess: { [weak self] _ in self?.finishAfterSaving() },
-        onError: { [weak self] msg in self?.finish(with: msg) }
+        onSuccess: { [weak self] _ in self?.finish(with: "Saved to Navon. Open the app to view.") },
+        onError: { [weak self] message in self?.finish(with: message) }
     )
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        statusLabel.text = "Importing into Companion..."
+        statusLabel.text = "Saving to Navon…"
         statusLabel.textAlignment = .center
         statusLabel.numberOfLines = 0
+        statusLabel.translatesAutoresizingMaskIntoConstraints = false
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         activityIndicator.startAnimating()
 
         let stack = UIStackView(arrangedSubviews: [activityIndicator, statusLabel])
@@ -66,19 +76,10 @@ final class ShareViewController: UIViewController {
         DispatchQueue.main.async {
             self.activityIndicator.stopAnimating()
             self.statusLabel.text = message
-            self.extensionContext?.completeRequest(returningItems: nil)
-        }
-    }
-
-    private func finishAfterSaving() {
-        DispatchQueue.main.async {
-            self.activityIndicator.stopAnimating()
-            self.statusLabel.text = "Saved. Opening Companion..."
-            self.extensionContext?.open(Self.companionURL) { success in
-                DispatchQueue.main.async {
-                    self.statusLabel.text = success ? "Opening Companion..." : "Saved. Open Companion to continue."
-                    self.extensionContext?.completeRequest(returningItems: nil)
-                }
+            // Brief confirmation so the user knows the item was captured, then
+            // auto-dismiss. They'll see the imported item next time they open Navon.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                self.extensionContext?.completeRequest(returningItems: nil)
             }
         }
     }

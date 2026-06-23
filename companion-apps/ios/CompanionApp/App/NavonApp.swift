@@ -24,9 +24,13 @@ struct NavonApp: App {
                 .task {
                     await appModel.shareImportService.consumePendingSharedImports()
                 }
-                .onOpenURL { _ in
+                .onOpenURL { url in
                     Task {
-                        await appModel.shareImportService.consumePendingSharedImports()
+                        if url.isFileURL {
+                            await appModel.importGpxFile(from: url)
+                        } else {
+                            await appModel.shareImportService.consumePendingSharedImports()
+                        }
                     }
                 }
                 .onChange(of: scenePhase) { _, newValue in
