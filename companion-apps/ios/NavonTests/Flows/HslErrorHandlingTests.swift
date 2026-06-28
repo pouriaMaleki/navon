@@ -17,7 +17,7 @@ final class HslErrorHandlingTests: XCTestCase {
 
     func test_pureHslShowsErrorWhenServerUnreachable() async {
         let app = deadEndpointApp()
-        app.updateRouteRequest(
+        app.routeRequest = RoutePlanRequest(
             origin: helsinki,
             destination: destination,
             providerID: .hsl
@@ -39,7 +39,7 @@ final class HslErrorHandlingTests: XCTestCase {
 
     func test_cardShouldBeVisibleWhenErrorPresent() async {
         let app = deadEndpointApp()
-        app.updateRouteRequest(
+        app.routeRequest = RoutePlanRequest(
             origin: helsinki,
             destination: destination,
             providerID: .hsl
