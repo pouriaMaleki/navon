@@ -207,13 +207,14 @@ jobs:
       - name: Create export options
         shell: bash
         run: |
+          echo "DEBUG: IOS_APP_PROFILE_NAME=${{ env.IOS_APP_PROFILE_NAME }}"
+          echo "DEBUG: IOS_SHARE_PROFILE_NAME=${{ env.IOS_SHARE_PROFILE_NAME }}"
+          echo "DEBUG: IOS_LIVEACTIVITY_PROFILE_NAME=${{ env.IOS_LIVEACTIVITY_PROFILE_NAME }}"
           cat > build/ExportOptions.plist <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
-            <key>destination</key>
-            <string>export</string>
             <key>method</key>
             <string>app-store-connect</string>
             <key>provisioningProfiles</key>
@@ -236,13 +237,41 @@ jobs:
           </dict>
           </plist>
           PLIST
+          echo "DEBUG: ExportOptions.plist contents:"
+          cat build/ExportOptions.plist
 
       - name: Export IPA
         run: |
+          rm -rf build/export
           xcodebuild -exportArchive \
             -archivePath build/Navon.xcarchive \
             -exportOptionsPlist build/ExportOptions.plist \
             -exportPath build/export
+
+      - name: Capture distribution logs
+        if: failure()
+        shell: bash
+        run: |
+          LOG_DIR="$(find /var/folders -name 'Navon_*.xcdistributionlogs' -type d -maxdepth 5 2>/dev/null | head -1)"
+          if [ -n "$LOG_DIR" ]; then
+            echo "=== Distribution logs from: $LOG_DIR ==="
+            for f in "$LOG_DIR"/*.plist "$LOG_DIR"/*.log "$LOG_DIR"/*.txt; do
+              [ -f "$f" ] || continue
+              echo "--- $f ---"
+              cat "$f"
+            done
+            cp -R "$LOG_DIR" build/distribution-logs
+          else
+            echo "No distribution logs found"
+          fi
+
+      - name: Upload distribution logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-distribution-logs
+          path: companion-apps/ios/build/distribution-logs
+          retention-days: 7
 
       - name: Resolve IPA path
         shell: bash
@@ -268,12 +297,14 @@ jobs:
           path: companion-apps/ios/build/Navon.xcarchive
           if-no-files-found: error
 
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
-          bundler-cache: true
-          working-directory: companion-apps/ios
+      - name: Install Fastlane
+        shell: bash
+        working-directory: companion-apps/ios/fastlane
+        run: |
+          export GEM_HOME="$HOME/.gem"
+          export PATH="$GEM_HOME/bin:$PATH"
+          gem install bundler --no-document
+          bundle install
 
       - name: Upload to TestFlight and distribute to test group
         shell: bash
@@ -282,7 +313,10 @@ jobs:
           APP_STORE_CONNECT_API_KEY_ID: ${{ vars.APPSTORE_API_KEY_ID }}
           APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ vars.APPSTORE_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          BUNDLE_GEMFILE: fastlane/Gemfile
+          GEM_HOME: ${{ env.HOME }}/.gem
         run: |
+          export PATH="$GEM_HOME/bin:$PATH"
           bundle exec fastlane beta \
             "ipa:build/export/$(basename "$IOS_IPA_PATH")" \
             "test_group:${{ github.event.inputs.test_group || 'Internal Testers' }}"
