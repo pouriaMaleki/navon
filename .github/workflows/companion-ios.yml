@@ -1,0 +1,281 @@
+name: Navon iOS
+
+on:
+  pull_request:
+    paths:
+      - 'companion-apps/ios/**'
+      - '.github/workflows/companion-ios.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'companion-apps/ios/**'
+      - '.github/workflows/companion-ios.yml'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'What to run'
+        required: false
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - validate
+      test_group:
+        description: 'TestFlight group to distribute to (deploy only)'
+        required: false
+        default: 'Internal Testers'
+        type: string
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.inputs.action || 'validate' }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  WORKING_DIR: companion-apps/ios
+  IOS_DEVELOPMENT_TEAM: ${{ vars.IOS_DEVELOPMENT_TEAM || 'NG769F7J64' }}
+jobs:
+  # ─── PR Validation ─────────────────────────────────────────────────────────
+  validate:
+    name: Validate (simulator build + unit tests)
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.action == 'validate'
+    runs-on:
+      - self-hosted
+      - macOS
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build unsigned simulator app
+        run: |
+          xcodebuild \
+            -project Navon.xcodeproj \
+            -scheme Navon \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/derived \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Run unit tests
+        run: |
+          xcodebuild test \
+            -project Navon.xcodeproj \
+            -scheme Navon \
+            -only-testing:NavonTests \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest' \
+            -derivedDataPath build/derived \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-validate-logs
+          path: ~/Library/Logs/DiagnosticReports/
+          retention-days: 7
+
+  # ─── Beta Distribution ─────────────────────────────────────────────────────
+  deploy:
+    name: Build + TestFlight + Distribute
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'deploy'
+    runs-on:
+      - self-hosted
+      - macOS
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Validate signing secrets
+        shell: bash
+        env:
+          APPSTORE_CERTIFICATES_FILE_BASE64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
+          APPSTORE_CERTIFICATES_PASSWORD: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
+          IOS_APP_STORE_PROFILE_BASE64: ${{ secrets.IOS_APP_STORE_PROFILE_BASE64 }}
+          IOS_SHARE_EXTENSION_PROFILE_BASE64: ${{ secrets.IOS_SHARE_EXTENSION_PROFILE_BASE64 }}
+          IOS_LIVEACTIVITY_PROFILE_BASE64: ${{ secrets.IOS_LIVEACTIVITY_PROFILE_BASE64 }}
+          APPSTORE_API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          APPSTORE_API_KEY_ID: ${{ vars.APPSTORE_API_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ vars.APPSTORE_ISSUER_ID }}
+        run: |
+          for secret in \
+            APPSTORE_CERTIFICATES_FILE_BASE64 \
+            APPSTORE_CERTIFICATES_PASSWORD \
+            IOS_APP_STORE_PROFILE_BASE64 \
+            IOS_SHARE_EXTENSION_PROFILE_BASE64 \
+            IOS_LIVEACTIVITY_PROFILE_BASE64 \
+            APPSTORE_API_PRIVATE_KEY \
+            APPSTORE_API_KEY_ID \
+            APPSTORE_ISSUER_ID
+          do
+            if [ -z "${!secret}" ]; then
+              echo "Missing required secret or variable: $secret" >&2
+              exit 1
+            fi
+          done
+
+      - name: Import code-signing certificate
+        uses: Apple-Actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
+          p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
+
+      - name: Install provisioning profiles
+        shell: bash
+        env:
+          IOS_APP_STORE_PROFILE_BASE64: ${{ secrets.IOS_APP_STORE_PROFILE_BASE64 }}
+          IOS_SHARE_EXTENSION_PROFILE_BASE64: ${{ secrets.IOS_SHARE_EXTENSION_PROFILE_BASE64 }}
+          IOS_LIVEACTIVITY_PROFILE_BASE64: ${{ secrets.IOS_LIVEACTIVITY_PROFILE_BASE64 }}
+        run: |
+          install_profile() {
+            local base64_value="$1"
+            local env_prefix="$2"
+            local profile_path plist_path uuid name
+
+            profile_path="$(mktemp -t "${env_prefix}.mobileprovision")"
+            plist_path="$(mktemp -t "${env_prefix}.plist")"
+
+            printf '%s' "$base64_value" | base64 -D > "$profile_path"
+            security cms -D -i "$profile_path" > "$plist_path"
+
+            uuid="$(/usr/libexec/PlistBuddy -c 'Print UUID' "$plist_path")"
+            name="$(/usr/libexec/PlistBuddy -c 'Print Name' "$plist_path")"
+
+            mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+            cp "$profile_path" "$HOME/Library/MobileDevice/Provisioning Profiles/$uuid.mobileprovision"
+
+            echo "${env_prefix}_PROFILE_NAME=$name" >> "$GITHUB_ENV"
+          }
+
+          install_profile "$IOS_APP_STORE_PROFILE_BASE64" IOS_APP
+          install_profile "$IOS_SHARE_EXTENSION_PROFILE_BASE64" IOS_SHARE
+          install_profile "$IOS_LIVEACTIVITY_PROFILE_BASE64" IOS_LIVEACTIVITY
+
+      - name: Set build number
+        run: |
+          BUILD_NUMBER=${{ github.run_number }}
+          xcrun agvtool new-version -all "$BUILD_NUMBER"
+          echo "Build number set to $BUILD_NUMBER"
+
+      - name: Archive signed build
+        shell: bash
+        run: |
+          rm -rf build/export build/Navon.xcarchive
+          xcodebuild \
+            -project Navon.xcodeproj \
+            -scheme Navon \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/Navon.xcarchive \
+            DEVELOPMENT_TEAM="$IOS_DEVELOPMENT_TEAM" \
+            archive
+
+      - name: Create export options
+        shell: bash
+        run: |
+          cat > build/ExportOptions.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>destination</key>
+            <string>export</string>
+            <key>method</key>
+            <string>app-store</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>app.navon.bike</key>
+              <string>${{ env.IOS_APP_PROFILE_NAME }}</string>
+              <key>app.navon.bike.share</key>
+              <string>${{ env.IOS_SHARE_PROFILE_NAME }}</string>
+              <key>app.navon.bike.liveactivity</key>
+              <string>${{ env.IOS_LIVEACTIVITY_PROFILE_NAME }}</string>
+            </dict>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>stripSwiftSymbols</key>
+            <true/>
+            <key>teamID</key>
+            <string>${{ env.IOS_DEVELOPMENT_TEAM }}</string>
+            <key>uploadSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          PLIST
+
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/Navon.xcarchive \
+            -exportOptionsPlist build/ExportOptions.plist \
+            -exportPath build/export
+
+      - name: Resolve IPA path
+        shell: bash
+        run: |
+          ipa_path="$(find build/export -maxdepth 1 -name '*.ipa' -print -quit)"
+          if [ -z "$ipa_path" ]; then
+            echo 'No exported IPA found.' >&2
+            exit 1
+          fi
+          echo "IOS_IPA_PATH=$(pwd)/$ipa_path" >> "$GITHUB_ENV"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-testflight-ipa
+          path: companion-apps/ios/build/export/*.ipa
+          if-no-files-found: error
+
+      - name: Upload xcarchive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-testflight-xcarchive
+          path: companion-apps/ios/build/Navon.xcarchive
+          if-no-files-found: error
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: companion-apps/ios
+
+      - name: Upload to TestFlight and distribute to test group
+        shell: bash
+        working-directory: companion-apps/ios
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ vars.APPSTORE_API_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ vars.APPSTORE_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+        run: |
+          bundle exec fastlane beta \
+            "ipa:build/export/$(basename "$IOS_IPA_PATH")" \
+            "test_group:${{ github.event.inputs.test_group || 'Internal Testers' }}"

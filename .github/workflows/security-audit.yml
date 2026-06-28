@@ -24,6 +24,8 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Manifest types that require explicit CVE coverage (cargo-audit, npm-audit, etc.)
+          # before they can be added to the repo.
           unsupported_manifests="$(
             find . -type f \
               -not -path '*/.embuild/*' \
@@ -34,9 +36,7 @@ jobs:
                 -name 'Podfile' -o \
                 -name 'Podfile.lock' -o \
                 -name 'Cartfile' -o \
-                -name 'Cartfile.resolved' -o \
-                -name 'Gemfile' -o \
-                -name 'Gemfile.lock' \
+                -name 'Cartfile.resolved' \
               \) \
               -print | sed 's#^\./##' | sort
           )"
@@ -45,6 +45,30 @@ jobs:
             echo "Unsupported dependency manifests detected:" >> "$GITHUB_STEP_SUMMARY"
             printf '%s\n' "$unsupported_manifests" >> "$GITHUB_STEP_SUMMARY"
             echo "Add repository CVE coverage for these ecosystems in the same change." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          # Gemfile: only the fastlane one is allowed.
+          # CVE coverage: GitHub dependency graph auto-parses Gemfile.lock
+          # and Dependabot alerts + security updates cover Ruby gems.
+          # The lockfile must be present for the graph to track versions.
+          gemfiles="$(
+            find . -type f \
+              \( -name 'Gemfile' -o -name 'Gemfile.lock' \) \
+              -print | sed 's#^\./##' | sort
+          )"
+          allowed="companion-apps/ios/fastlane/Gemfile
+          companion-apps/ios/fastlane/Gemfile.lock"
+          unexpected_gemfiles="$(comm -23 <(echo "$gemfiles") <(echo "$allowed"))"
+          if [ -n "$unexpected_gemfiles" ]; then
+            echo "Unauthorized Gemfile(s) outside companion-apps/ios/fastlane/:" >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$unexpected_gemfiles" >> "$GITHUB_STEP_SUMMARY"
+            echo "Only the fastlane Gemfile is allowed. Add CVE coverage for any new Ruby dependency root." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          if ! echo "$gemfiles" | grep -qFx "companion-apps/ios/fastlane/Gemfile.lock"; then
+            echo "Missing companion-apps/ios/fastlane/Gemfile.lock" >> "$GITHUB_STEP_SUMMARY"
+            echo "Commit the lockfile so GitHub dependency graph can track fastlane's dependencies." >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
 

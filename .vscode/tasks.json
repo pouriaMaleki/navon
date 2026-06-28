@@ -163,7 +163,7 @@
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
-      "detail": "Triggers the self-hosted macOS runner to build the iOS companion app for simulator and run XCTests. Requires a Mac with the GitHub Actions runner connected. Check progress with: gh run watch"
+      "detail": "Triggers the self-hosted macOS runner to build the iOS companion app for simulator and run XCTests. Check progress with: gh run watch"
     },
     {
       "label": "i18n: sync all translations",
@@ -188,12 +188,12 @@
     {
       "label": "iOS: build (simulator validation)",
       "type": "shell",
-      "command": "gh workflow run 'Navon iOS' -f build_kind=simulator_validation",
+      "command": "gh workflow run 'Navon iOS' -f action=validate",
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
-      "detail": "Triggers the self-hosted macOS runner to build the iOS companion app for simulator. Requires a Mac with the GitHub Actions runner connected. Check progress with: gh run watch"
+      "detail": "Triggers the self-hosted macOS runner to build the iOS companion app for simulator and run unit tests. Check progress with: gh run watch"
     },
     {
       "label": "i18n: regenerate platform outputs",

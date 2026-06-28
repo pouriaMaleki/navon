@@ -1,0 +1,15 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Upload IPA to TestFlight and distribute to a test group"
+  lane :beta do |options|
+    pilot(
+      ipa: options[:ipa],
+      app_identifier: "app.navon.bike",
+      skip_waiting_for_build_processing: false,
+      distribute_only: false,
+      groups: [options[:test_group] || "Internal Testers"],
+      notify_external_testers: true
+    )
+  end
+end

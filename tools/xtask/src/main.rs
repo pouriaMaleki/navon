@@ -222,7 +222,7 @@ xtask commands:
   cargo xtask bundle-device [--debug]
   cargo xtask deploy-device --port <PORT> [--debug]
   cargo xtask build-c6-coproc       # builds esp_hosted co-processor fw for the on-board ESP32-C6
-  cargo xtask companion-ios-test  # triggers self-hosted Mac runner to build + test iOS app
+  cargo xtask companion-ios-test  # triggers self-hosted macOS runner to build + test iOS app
   cargo xtask check-esp-hal-p4     # checks whether esp-hal ecosystem has P4 support yet
   cargo xtask i18n-gen [--check]   # regenerate per-platform localization outputs
   cargo xtask i18n-sync --locale <code> [--dry-run] [--budget-usd <N>]
@@ -246,7 +246,7 @@ fn run_companion_ios_test() -> Result<(), String> {
     let status = std::process::Command::new("gh")
         .args([
             "workflow", "run", "Navon iOS",
-            "-f", "build_kind=simulator_test",
+            "-f", "action=validate",
         ])
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
