@@ -143,7 +143,7 @@ final class UxIssuesIosTests: XCTestCase {
             "isExploringAlternativesFromGuidance must be true so the alternatives panel is shown.")
         XCTAssertEqual(app.routeRequest.destination, destination,
             "Destination must be preserved verbatim — the user is asking for alternatives to the SAME destination.")
-        XCTAssertEqual(app.routeRequest.origin, CoreLocationService.defaultFallback,
+        XCTAssertEqual(app.routeRequest.origin, app.locationService.bestLocation,
             "origin must be the rider's current location at the moment of the request.")
     }
 
