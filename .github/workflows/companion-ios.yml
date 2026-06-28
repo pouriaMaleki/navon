@@ -73,11 +73,13 @@ jobs:
 
       - name: Run unit tests
         run: |
+          SIM_ID=$(xcrun simctl list devices available iPhone -j | python3 -c "import json,sys;print([d['udid'] for v in json.load(sys.stdin)['devices'].values() for d in v if d['isAvailable']][0])")
+          echo "Using simulator: $(xcrun simctl list devices -j | python3 -c "import json,sys;devs=json.load(sys.stdin)['devices'];print([d['name'] for v in devs.values() for d in v if d['udid']=='$SIM_ID'][0])")"
           xcodebuild test \
             -project Navon.xcodeproj \
             -scheme Navon \
             -only-testing:NavonTests \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest' \
+            -destination "id=$SIM_ID" \
             -derivedDataPath build/derived \
             CODE_SIGNING_ALLOWED=NO
 

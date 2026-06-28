@@ -104,7 +104,7 @@ xcodebuild test \
   -project Navon.xcodeproj \
   -scheme Navon \
   -only-testing:NavonTests \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=latest' \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
   CODE_SIGNING_ALLOWED=NO
 ```
 This validates the app shell and runs unit tests without requiring provisioning profiles or App Store signing.
