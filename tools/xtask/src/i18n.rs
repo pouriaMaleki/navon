@@ -238,10 +238,10 @@ fn run_gen(args: &[String], root: &Path) -> Result<(), String> {
     if check {
         let mut diffs = Vec::new();
         for (path, content) in &outputs {
-            match fs::read_to_string(path) {
-                Ok(existing) if existing == *content => {}
-                _ => diffs.push(path.display().to_string()),
+            if is_up_to_date(path, content).unwrap_or(false) {
+                continue;
             }
+            diffs.push(path.display().to_string());
         }
         if !diffs.is_empty() {
             return Err(format!(
@@ -262,6 +262,105 @@ fn run_gen(args: &[String], root: &Path) -> Result<(), String> {
     }
     println!("i18n: wrote {} files.", outputs.len());
     Ok(())
+}
+
+/// Compare the on-disk file at `path` against `expected` content.
+///
+/// For `.json` files we parse both sides and compare structurally so that
+/// whitespace / key-ordering / trailing-comma differences don't cause
+/// spurious "stale" errors.
+///
+/// For `.xcstrings` we do a *catalog-aware* comparison: keys present in the
+/// generated output must match the on-disk file byte-for-byte (inside their
+/// per-key subtrees), but extra keys that Xcode may have added (SwiftUI
+/// `Text("…")` autogeneration, manual xcstrings edits) are silently ignored.
+/// This prevents the check from failing every time someone opens the iOS
+/// project in Xcode.
+fn is_up_to_date(path: &Path, expected: &str) -> Result<bool, String> {
+    let existing = match fs::read_to_string(path) {
+        Ok(s) => s,
+        Err(_) => return Ok(false), // missing file → not up to date
+    };
+    let ext = path
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("");
+    match ext {
+        "json" => {
+            let existing_val: serde_json::Value =
+                serde_json::from_str(&existing).map_err(|e| {
+                    format!("parse existing {}: {e}", path.display())
+                })?;
+            let expected_val: serde_json::Value =
+                serde_json::from_str(expected)
+                    .map_err(|e| format!("serialize generated for {}: {e}", path.display()))?;
+            Ok(existing_val == expected_val)
+        }
+        "xcstrings" => xcstrings_is_up_to_date(&existing, expected, path),
+        _ => Ok(existing == expected),
+    }
+}
+
+/// Compare an on-disk xcstrings file against a freshly-generated one,
+/// ignoring keys that exist only in the on-disk copy (Xcode extras) and
+/// tolerating JSON formatting differences.
+fn xcstrings_is_up_to_date(
+    existing_str: &str,
+    expected_str: &str,
+    path: &Path,
+) -> Result<bool, String> {
+    let existing: serde_json::Value = serde_json::from_str(existing_str)
+        .map_err(|e| format!("parse existing {}: {e}", path.display()))?;
+    let expected: serde_json::Value = serde_json::from_str(expected_str)
+        .map_err(|e| format!("parse generated for {}: {e}", path.display()))?;
+
+    // Compare top-level metadata fields.
+    if existing.get("sourceLanguage") != expected.get("sourceLanguage") {
+        return Ok(false);
+    }
+    if existing.get("version") != expected.get("version") {
+        return Ok(false);
+    }
+
+    let existing_strings = existing.get("strings").and_then(|v| v.as_object());
+    let expected_strings = expected.get("strings").and_then(|v| v.as_object());
+
+    let (Some(existing_strings), Some(expected_strings)) = (existing_strings, expected_strings) else {
+        return Ok(existing_strings.is_none() && expected_strings.is_none());
+    };
+
+    // Every key in the generated (catalog-managed) output must exist in the
+    // on-disk file with the same value.  Extra keys in the on-disk file
+    // (added by Xcode) are fine.
+    for (key, expected_entry) in expected_strings {
+        let Some(existing_entry) = existing_strings.get(key) else {
+            return Ok(false); // catalog-managed key is missing
+        };
+        if !json_values_equal(existing_entry, expected_entry) {
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
+
+/// Recursively compare two `serde_json::Value`s after normalizing object key
+/// order.  This lets us treat `{"a":1,"b":2}` and `{"b":2,"a":1}` as equal.
+fn json_values_equal(a: &serde_json::Value, b: &serde_json::Value) -> bool {
+    match (a, b) {
+        (serde_json::Value::Object(ma), serde_json::Value::Object(mb)) => {
+            if ma.len() != mb.len() {
+                return false;
+            }
+            ma.iter().all(|(k, va)| {
+                mb.get(k).map_or(false, |vb| json_values_equal(va, vb))
+            })
+        }
+        (serde_json::Value::Array(aa), serde_json::Value::Array(ab)) => {
+            aa.len() == ab.len()
+                && aa.iter().zip(ab.iter()).all(|(va, vb)| json_values_equal(va, vb))
+        }
+        _ => a == b,
+    }
 }
 
 fn collect_outputs(
@@ -290,8 +389,18 @@ fn collect_outputs(
     }
 
     // iOS: one Localizable.xcstrings file with all locales merged.
+    // Merge with the on-disk file so that keys Xcode manages on its
+    // own (SwiftUI `Text("…")` autogeneration, manual xcstrings edits)
+    // are preserved.  Catalog-managed keys always win for their
+    // subtree; extra keys in the existing file are carried forward.
     let ios_path = root.join(&config.outputs.ios);
-    outputs.push((ios_path, build_xcstrings(config, catalogs, en)));
+    let mut xcstrings = build_xcstrings(config, catalogs, en);
+    if let Ok(existing) = fs::read_to_string(&ios_path) {
+        if let Ok(merged) = merge_xcstrings_catalog_keys(&xcstrings, &existing) {
+            xcstrings = merged;
+        }
+    }
+    outputs.push((ios_path, xcstrings));
 
     // iOS runtime JSON: same per-locale flat key→value JSON we ship to web,
     // bundled with the app so the i18n runtime can switch locales at run-
@@ -363,6 +472,43 @@ fn collect_outputs(
     ));
 
     Ok(outputs)
+}
+
+/// Merge catalog-managed keys into an existing on-disk xcstrings file.
+///
+/// `generated` is the fresh output of `build_xcstrings` (catalog-managed
+/// keys only).  `existing_str` is what is currently on disk (which may
+/// contain extra keys added by Xcode).  The returned string has all of the
+/// catalog-managed keys from `generated` plus any extra keys that exist
+/// only in `existing_str`.
+fn merge_xcstrings_catalog_keys(generated: &str, existing_str: &str) -> Result<String, String> {
+    let mut existing: serde_json::Value =
+        serde_json::from_str(existing_str).map_err(|e| format!("parse existing xcstrings: {e}"))?;
+    let generated: serde_json::Value =
+        serde_json::from_str(generated).map_err(|e| format!("parse generated xcstrings: {e}"))?;
+
+    // Update top-level metadata.
+    if let Some(sl) = generated.get("sourceLanguage") {
+        existing["sourceLanguage"] = sl.clone();
+    }
+    if let Some(v) = generated.get("version") {
+        existing["version"] = v.clone();
+    }
+
+    // Merge strings: catalog-managed keys overwrite; Xcode-only keys stay.
+    if let Some(gen_strings) = generated.get("strings").and_then(|v| v.as_object()) {
+        let existing_strings = existing["strings"]
+            .as_object_mut()
+            .ok_or_else(|| "existing xcstrings missing `strings` object".to_owned())?;
+        for (key, gen_entry) in gen_strings {
+            existing_strings.insert(key.clone(), gen_entry.clone());
+        }
+    }
+
+    Ok(format!(
+        "{}\n",
+        serde_json::to_string_pretty(&existing).unwrap()
+    ))
 }
 
 fn build_xcstrings(
