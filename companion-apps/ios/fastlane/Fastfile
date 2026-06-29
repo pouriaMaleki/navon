@@ -6,6 +6,11 @@ platform :ios do
     pilot(
       ipa: options[:ipa],
       app_identifier: "app.navon.bike",
+      api_key: {
+        key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+        issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+        key_content: ENV["APP_STORE_CONNECT_API_KEY_KEY"],
+      },
       skip_waiting_for_build_processing: false,
       distribute_only: false,
       groups: [options[:test_group] || "Internal Testers"],
