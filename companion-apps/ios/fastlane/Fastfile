@@ -11,6 +11,7 @@ platform :ios do
         issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
         key: ENV["APP_STORE_CONNECT_API_KEY_KEY"],
       },
+      beta_app_description: "Navon bike navigation companion app — TestFlight beta build",
       skip_waiting_for_build_processing: false,
       distribute_only: false,
       groups: [options[:test_group] || "Internal Testers"],
