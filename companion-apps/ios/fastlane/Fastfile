@@ -15,7 +15,8 @@ platform :ios do
       skip_waiting_for_build_processing: false,
       distribute_only: false,
       groups: [options[:test_group] || "Internal Testers"],
-      notify_external_testers: true
+      distribute_external: false,
+      submit_beta_review: false
     )
   end
 end
