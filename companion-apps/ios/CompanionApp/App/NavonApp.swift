@@ -29,8 +29,8 @@ struct NavonApp: App {
                     Task {
                         if url.isFileURL {
                             await appModel.importGpxFile(from: url)
-                        } else if MKDirectionsRequest.isDirectionsRequest(url) {
-                            let request = MKDirectionsRequest(contentsOf: url)
+                        } else if MKDirections.Request.isDirectionsRequest(url) {
+                            let request = MKDirections.Request(contentsOf: url)
                             let origin: CoordinatePoint? = request.source.map { item in
                                 let c = item.placemark.coordinate
                                 return CoordinatePoint(latitude: c.latitude, longitude: c.longitude)
