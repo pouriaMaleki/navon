@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 
 @main
 struct NavonApp: App {
@@ -28,6 +29,20 @@ struct NavonApp: App {
                     Task {
                         if url.isFileURL {
                             await appModel.importGpxFile(from: url)
+                        } else if MKDirectionsRequest.isDirectionsRequest(url) {
+                            let request = MKDirectionsRequest(contentsOf: url)
+                            let origin: CoordinatePoint? = request.source.map { item in
+                                let c = item.placemark.coordinate
+                                return CoordinatePoint(latitude: c.latitude, longitude: c.longitude)
+                            }
+                            let dest: CoordinatePoint? = request.destination.map { item in
+                                let c = item.placemark.coordinate
+                                return CoordinatePoint(latitude: c.latitude, longitude: c.longitude)
+                            }
+                            await appModel.handleDirectionsRequest(
+                                origin: origin,
+                                destination: dest
+                            )
                         } else {
                             await appModel.shareImportService.consumePendingSharedImports()
                         }

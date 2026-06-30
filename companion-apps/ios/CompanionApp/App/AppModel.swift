@@ -238,6 +238,19 @@ final class AppModel: ObservableObject {
         routingDiagnosticsStore.recordEvent(.rerouteCompleted(result: sendResult ? "success" : "failed"))
     }
 
+    func handleDirectionsRequest(
+        origin: CoordinatePoint?,
+        destination: CoordinatePoint?
+    ) async {
+        if let origin {
+            routeRequest.origin = origin
+        }
+        if let destination {
+            routeRequest.destination = destination
+        }
+        await planRoute(using: currentSourceMode)
+    }
+
     func importGpxFile(from url: URL) async {
         do {
             guard let adapter = providers[.gpxImport] as? GpxRoutingAdapter else { return }

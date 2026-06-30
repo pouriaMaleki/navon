@@ -72,6 +72,10 @@
         <string>location</string>
         <string>audio</string>
     </array>
+    <key>MKDirectionsApplicationSupportedModes</key>
+    <array>
+        <string>MKDirectionsModeBike</string>
+    </array>
     <key>NSSupportsLiveActivities</key>
     <true/>
     <key>UIApplicationSceneManifest</key>
@@ -108,6 +112,16 @@
             <key>LSItemContentTypes</key>
             <array>
                 <string>com.topografix.gpx</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>MKDirectionsRequest</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>com.apple.maps.directionsrequest</string>
             </array>
         </dict>
     </array>
