@@ -72,10 +72,6 @@
         <string>location</string>
         <string>audio</string>
     </array>
-    <key>MKDirectionsApplicationSupportedModes</key>
-    <array>
-        <string>Bicycle</string>
-    </array>
     <key>NSSupportsLiveActivities</key>
     <true/>
     <key>UIApplicationSceneManifest</key>
