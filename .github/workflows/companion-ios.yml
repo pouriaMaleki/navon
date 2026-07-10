@@ -214,7 +214,7 @@ jobs:
           PBXPROJ="Navon.xcodeproj/project.pbxproj"
           inject() {
             local bundle_id="$1"; local uuid="$2"
-            perl -i.bak -pe "s/(PRODUCT_BUNDLE_IDENTIFIER = \\Q\$bundle_id\\E;)/\\\$1\\n\\t\\t\\t\\tPROVISIONING_PROFILE_SPECIFIER = \\\"\$uuid\\\";/" "\$PBXPROJ"
+            perl -i.bak -pe "s/(PRODUCT_BUNDLE_IDENTIFIER = \\Q$bundle_id\\E;)/\$1\\n\\t\\t\\t\\tPROVISIONING_PROFILE_SPECIFIER = \\\"$uuid\\\";/" "$PBXPROJ"
           }
           inject "app.navon.bike" "$IOS_APP_PROFILE_UUID"
           inject "app.navon.bike.share" "$IOS_SHARE_PROFILE_UUID"
