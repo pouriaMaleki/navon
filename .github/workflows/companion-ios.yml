@@ -112,6 +112,15 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
+      - name: Clean up stale files
+        shell: bash
+        run: |
+          rm -rf Navon.xcodeproj
+          rm -f Config/Signing.local.xcconfig
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
       - name: Validate signing secrets
         shell: bash
         env:
@@ -182,15 +191,6 @@ jobs:
           install_profile "$IOS_SHARE_EXTENSION_PROFILE_BASE64" IOS_SHARE
           install_profile "$IOS_LIVEACTIVITY_PROFILE_BASE64" IOS_LIVEACTIVITY
 
-      - name: Clean up stale generated files
-        shell: bash
-        run: |
-          rm -rf Navon.xcodeproj
-          rm -f Config/Signing.local.xcconfig
-
-      - name: Generate Xcode project
-        run: xcodegen generate
-
       - name: Set build number
         run: |
           BUILD_NUMBER=${{ github.run_number }}
@@ -208,6 +208,7 @@ jobs:
             -destination 'generic/platform=iOS' \
             -archivePath build/Navon.xcarchive \
             DEVELOPMENT_TEAM="$IOS_DEVELOPMENT_TEAM" \
+            CODE_SIGN_STYLE=Manual \
             archive
 
       - name: Create export options
