@@ -16,7 +16,7 @@ targets:
     deploymentTarget: "17.0"
     configFiles:
       Debug: Config/Signing.xcconfig
-      Release: Config/Signing.xcconfig
+      Release: Config/Signing.release.app.xcconfig
     sources:
       - CompanionApp
       - CompanionSharedImport
@@ -74,7 +74,7 @@ targets:
     deploymentTarget: "17.0"
     configFiles:
       Debug: Config/Signing.xcconfig
-      Release: Config/Signing.xcconfig
+      Release: Config/Signing.release.liveactivity.xcconfig
     sources:
       - CompanionLiveActivity
     settings:
@@ -91,7 +91,7 @@ targets:
     deploymentTarget: "17.0"
     configFiles:
       Debug: Config/Signing.xcconfig
-      Release: Config/Signing.xcconfig
+      Release: Config/Signing.release.share.xcconfig
     sources:
       - CompanionShareExtension
       - CompanionSharedImport
