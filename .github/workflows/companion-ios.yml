@@ -58,7 +58,12 @@ jobs:
         run: brew install xcodegen
 
       - name: Generate Xcode project
-        run: xcodegen generate
+        run: |
+          mkdir -p Config
+          touch Config/Signing.release.app.xcconfig
+          touch Config/Signing.release.share.xcconfig
+          touch Config/Signing.release.liveactivity.xcconfig
+          xcodegen generate
 
       - name: Build unsigned simulator app
         run: |
