@@ -35,6 +35,10 @@ targets:
         CODE_SIGN_STYLE: Automatic
         TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGN_ENTITLEMENTS: CompanionApp/CompanionApp.entitlements
+      configs:
+        Release:
+          CODE_SIGN_STYLE: Manual
+          PROVISIONING_PROFILE_SPECIFIER: ${IOS_APP_PROFILE_NAME}
     scheme:
       testTargets:
         - NavonTests
@@ -85,6 +89,10 @@ targets:
         SWIFT_VERSION: 5.10
         CODE_SIGN_STYLE: Automatic
         APPLICATION_EXTENSION_API_ONLY: YES
+      configs:
+        Release:
+          CODE_SIGN_STYLE: Manual
+          PROVISIONING_PROFILE_SPECIFIER: ${IOS_LIVEACTIVITY_PROFILE_NAME}
   NavonShare:
     type: app-extension
     platform: iOS
@@ -104,3 +112,7 @@ targets:
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: CompanionShareExtension/CompanionShareExtension.entitlements
         APPLICATION_EXTENSION_API_ONLY: YES
+      configs:
+        Release:
+          CODE_SIGN_STYLE: Manual
+          PROVISIONING_PROFILE_SPECIFIER: ${IOS_SHARE_PROFILE_NAME}
