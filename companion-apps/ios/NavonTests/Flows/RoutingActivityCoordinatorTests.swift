@@ -81,10 +81,10 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
     }
 
     // Spec line 144: "setting to enable audio cues only when app is in
-    // background and enabled by default". The default behaviour is to
-    // suppress cues while the rider has the app open (their phone screen
-    // shows the map already), and only speak once the screen locks /
-    // they switch apps.
+    // background". The default was changed to `false` so cues are audible
+    // in both foreground and background by default — required for App
+    // Review discoverability (Guideline 2.5.4). Riders who prefer
+    // background-only cues can still toggle the setting on.
 
     func test_cuesAreSilentInForegroundWhenOnlyInBackgroundIsOn() {
         let (coordinator, speech) = makeCoordinator()
@@ -119,10 +119,10 @@ final class RoutingActivityCoordinatorTests: XCTestCase {
         XCTAssertFalse(speech.spoken.isEmpty, "expected first-tick cue; got \(speech.spoken)")
     }
 
-    func test_audioCuesOnlyInBackgroundIsOnByDefault() {
-        XCTAssertTrue(
+    func test_audioCuesOnlyInBackgroundIsOffByDefault() {
+        XCTAssertFalse(
             CompanionSettings.defaults.audioCuesOnlyInBackground,
-            "spec line 144: enabled by default"
+            "spec line 144: disabled by default so foreground audio cues are audible during App Review"
         )
     }
 
