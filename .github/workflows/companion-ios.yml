@@ -214,12 +214,15 @@ jobs:
           PBXPROJ="Navon.xcodeproj/project.pbxproj"
           inject() {
             local bundle_id="$1"; local uuid="$2"
-            perl -i.bak -pe "s/(PRODUCT_BUNDLE_IDENTIFIER = \\Q$bundle_id\\E;)/\$1\\n\\t\\t\\t\\tPROVISIONING_PROFILE_SPECIFIER = \\\"$uuid\\\";/" "$PBXPROJ"
+            # escape dots for regex: app.navon.bike -> app\\.navon\\.bike
+            local escaped_id="${bundle_id//./\\.}"
+            perl -i.bak -pe "s/(PRODUCT_BUNDLE_IDENTIFIER = ${escaped_id};)/\$1\\n\\t\\t\\t\\tPROVISIONING_PROFILE_SPECIFIER = \\\"${uuid}\\\";/" "$PBXPROJ"
           }
           inject "app.navon.bike" "$IOS_APP_PROFILE_UUID"
           inject "app.navon.bike.share" "$IOS_SHARE_PROFILE_UUID"
           inject "app.navon.bike.liveactivity" "$IOS_LIVEACTIVITY_PROFILE_UUID"
-          grep "PROVISIONING_PROFILE_SPECIFIER" "$PBXPROJ" | wc -l
+          echo "Injected profiles:"
+          grep "PROVISIONING_PROFILE_SPECIFIER" "$PBXPROJ"
 
       - name: Archive signed build
         shell: bash
