@@ -212,8 +212,7 @@ jobs:
             local profile_uuid="$2"
             # PROVISIONING_PROFILE_SPECIFIER goes right after PRODUCT_BUNDLE_IDENTIFIER in the
             # same buildSettings block. Only affects Release configs since that's what we build.
-            sed -i.bak "/PRODUCT_BUNDLE_IDENTIFIER = $bundle_id;/a\\
-				PROVISIONING_PROFILE_SPECIFIER = \"$profile_uuid\";" "$PBXPROJ"
+            perl -i.bak -pe "s/(PRODUCT_BUNDLE_IDENTIFIER = \\Q$bundle_id\\E;)/\$1\\n\\t\\t\\t\\tPROVISIONING_PROFILE_SPECIFIER = \"$profile_uuid\";/" "$PBXPROJ"
             echo "Injected profile $profile_uuid for $bundle_id"
           }
 
