@@ -16,7 +16,7 @@ targets:
     deploymentTarget: "17.0"
     configFiles:
       Debug: Config/Signing.xcconfig
-      Release: Config/Signing.xcconfig
+      Release: Config/Signing.release.app.xcconfig
     sources:
       - CompanionApp
       - CompanionSharedImport
@@ -35,10 +35,6 @@ targets:
         CODE_SIGN_STYLE: Automatic
         TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGN_ENTITLEMENTS: CompanionApp/CompanionApp.entitlements
-      configs:
-        Release:
-          CODE_SIGN_STYLE: Manual
-          PROVISIONING_PROFILE_SPECIFIER: app.navon.bike
     scheme:
       testTargets:
         - NavonTests
@@ -78,7 +74,7 @@ targets:
     deploymentTarget: "17.0"
     configFiles:
       Debug: Config/Signing.xcconfig
-      Release: Config/Signing.xcconfig
+      Release: Config/Signing.release.liveactivity.xcconfig
     sources:
       - CompanionLiveActivity
     settings:
@@ -89,17 +85,13 @@ targets:
         SWIFT_VERSION: 5.10
         CODE_SIGN_STYLE: Automatic
         APPLICATION_EXTENSION_API_ONLY: YES
-      configs:
-        Release:
-          CODE_SIGN_STYLE: Manual
-          PROVISIONING_PROFILE_SPECIFIER: app.navon.bike.liveactivity
   NavonShare:
     type: app-extension
     platform: iOS
     deploymentTarget: "17.0"
     configFiles:
       Debug: Config/Signing.xcconfig
-      Release: Config/Signing.xcconfig
+      Release: Config/Signing.release.share.xcconfig
     sources:
       - CompanionShareExtension
       - CompanionSharedImport
@@ -112,7 +104,3 @@ targets:
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: CompanionShareExtension/CompanionShareExtension.entitlements
         APPLICATION_EXTENSION_API_ONLY: YES
-      configs:
-        Release:
-          CODE_SIGN_STYLE: Manual
-          PROVISIONING_PROFILE_SPECIFIER: app.navon.bike.share
