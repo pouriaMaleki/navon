@@ -220,6 +220,18 @@ jobs:
       - name: Archive signed build
         shell: bash
         run: |
+          echo "=== pbxproj CODE_SIGN_STYLE ==="
+          grep "CODE_SIGN_STYLE" Navon.xcodeproj/project.pbxproj || true
+          echo "=== xcconfig contents ==="
+          for f in Config/Signing.release.*.xcconfig; do
+            echo "--- $f ---"
+            cat "$f"
+          done
+          echo "=== available profiles ==="
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/" || true
+          echo "=== available certs ==="
+          security find-identity -v -p codesigning || true
+          echo "=== archive ==="
           rm -rf build/export build/Navon.xcarchive
           xcodebuild \
             -project Navon.xcodeproj \
