@@ -165,6 +165,16 @@ jobs:
           p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
           p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
 
+      - name: Install Apple intermediate CA certificates
+        shell: bash
+        run: |
+          KEYCHAIN="signing_temp.keychain"
+          curl -sSfo /tmp/AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+          curl -sSfo /tmp/AppleWWDRCAG4.cer https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer
+          security import /tmp/AppleWWDRCAG3.cer -k "$KEYCHAIN" -A
+          security import /tmp/AppleWWDRCAG4.cer -k "$KEYCHAIN" -A
+          echo "Installed intermediate CAs into $KEYCHAIN"
+
       - name: Install provisioning profiles
         shell: bash
         env:
@@ -220,18 +230,6 @@ jobs:
       - name: Archive signed build
         shell: bash
         run: |
-          echo "=== pbxproj CODE_SIGN_STYLE ==="
-          grep "CODE_SIGN_STYLE" Navon.xcodeproj/project.pbxproj || true
-          echo "=== xcconfig contents ==="
-          for f in Config/Signing.release.*.xcconfig; do
-            echo "--- $f ---"
-            cat "$f"
-          done
-          echo "=== available profiles ==="
-          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/" || true
-          echo "=== available certs ==="
-          security find-identity -v -p codesigning || true
-          echo "=== archive ==="
           rm -rf build/export build/Navon.xcarchive
           xcodebuild \
             -project Navon.xcodeproj \
