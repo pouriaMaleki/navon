@@ -207,6 +207,9 @@ jobs:
         run: |
           PBXPROJ="Navon.xcodeproj/project.pbxproj"
 
+          # Force all configurations to Manual signing
+          perl -i.bak -pe 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBXPROJ"
+
           inject() {
             local bundle_id="$1"
             local profile_uuid="$2"
@@ -221,7 +224,7 @@ jobs:
           inject "app.navon.bike.liveactivity" "$IOS_LIVEACTIVITY_PROFILE_UUID"
 
           echo "=== Verification ==="
-          grep "PROVISIONING_PROFILE_SPECIFIER" "$PBXPROJ"
+          grep "PROVISIONING_PROFILE_SPECIFIER\|CODE_SIGN_STYLE" "$PBXPROJ"
 
       - name: Set build number
         run: |
