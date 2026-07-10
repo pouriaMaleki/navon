@@ -166,8 +166,8 @@ jobs:
           KEYCHAIN="signing_temp.keychain"
           curl -sSfo /tmp/AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
           curl -sSfo /tmp/AppleWWDRCAG4.cer https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer
-          security import /tmp/AppleWWDRCAG3.cer -k "$KEYCHAIN" -A
-          security import /tmp/AppleWWDRCAG4.cer -k "$KEYCHAIN" -A
+          security import /tmp/AppleWWDRCAG3.cer -k "$KEYCHAIN" -A 2>&1 || true
+          security import /tmp/AppleWWDRCAG4.cer -k "$KEYCHAIN" -A 2>&1 || true
           echo "Installed intermediate CAs into $KEYCHAIN"
 
       - name: Install provisioning profiles
