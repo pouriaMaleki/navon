@@ -118,6 +118,10 @@ jobs:
           rm -rf Navon.xcodeproj
           rm -f Config/Signing.local.xcconfig
           rm -f Config/Signing.release.*.xcconfig
+          mkdir -p Config
+          touch Config/Signing.release.app.xcconfig
+          touch Config/Signing.release.share.xcconfig
+          touch Config/Signing.release.liveactivity.xcconfig
 
       - name: Generate Xcode project
         run: xcodegen generate
