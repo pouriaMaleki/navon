@@ -202,30 +202,6 @@ jobs:
           install_profile "$IOS_SHARE_EXTENSION_PROFILE_BASE64" IOS_SHARE
           install_profile "$IOS_LIVEACTIVITY_PROFILE_BASE64" IOS_LIVEACTIVITY
 
-      - name: Inject provisioning profiles into project
-        shell: bash
-        run: |
-          PBXPROJ="Navon.xcodeproj/project.pbxproj"
-
-          # Force all configurations to Manual signing
-          perl -i.bak -pe 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBXPROJ"
-
-          inject() {
-            local bundle_id="$1"
-            local profile_uuid="$2"
-            # PROVISIONING_PROFILE_SPECIFIER goes right after PRODUCT_BUNDLE_IDENTIFIER in the
-            # same buildSettings block. Only affects Release configs since that's what we build.
-            perl -i.bak -pe "s/(PRODUCT_BUNDLE_IDENTIFIER = \\Q$bundle_id\\E;)/\$1\\n\\t\\t\\t\\tPROVISIONING_PROFILE_SPECIFIER = \"$profile_uuid\";/" "$PBXPROJ"
-            echo "Injected profile $profile_uuid for $bundle_id"
-          }
-
-          inject "app.navon.bike" "$IOS_APP_PROFILE_UUID"
-          inject "app.navon.bike.share" "$IOS_SHARE_PROFILE_UUID"
-          inject "app.navon.bike.liveactivity" "$IOS_LIVEACTIVITY_PROFILE_UUID"
-
-          echo "=== Verification ==="
-          grep "PROVISIONING_PROFILE_SPECIFIER\|CODE_SIGN_STYLE" "$PBXPROJ"
-
       - name: Set build number
         run: |
           BUILD_NUMBER=${{ github.run_number }}
@@ -244,6 +220,7 @@ jobs:
             -archivePath build/Navon.xcarchive \
             DEVELOPMENT_TEAM="$IOS_DEVELOPMENT_TEAM" \
             CODE_SIGN_STYLE=Manual \
+            -allowProvisioningUpdates \
             archive
 
       - name: Create export options
