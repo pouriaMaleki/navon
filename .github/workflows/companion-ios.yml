@@ -230,6 +230,15 @@ jobs:
       - name: Archive signed build
         shell: bash
         run: |
+          echo "=== certs in signing_temp ==="
+          security find-identity -v -p codesigning signing_temp.keychain-db 2>&1 || true
+          security find-identity -v -p codesigning signing_temp.keychain 2>&1 || true
+          security find-certificate -a -c "Apple" signing_temp.keychain-db 2>&1 | head -5 || true
+          echo "=== certs in login ==="
+          security find-identity -v -p codesigning login.keychain-db 2>&1 | head -5 || true
+          echo "=== keychain list ==="
+          security list-keychains -d user 2>&1 || true
+          echo "=== archive ==="
           rm -rf build/export build/Navon.xcarchive
           xcodebuild \
             -project Navon.xcodeproj \
