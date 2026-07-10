@@ -202,18 +202,12 @@ jobs:
         run: |
           mkdir -p Config
           cat > Config/Signing.release.app.xcconfig <<EOF
-          DEVELOPMENT_TEAM = $IOS_DEVELOPMENT_TEAM
-          CODE_SIGN_STYLE = Manual
           PROVISIONING_PROFILE_SPECIFIER = $IOS_APP_PROFILE_UUID
           EOF
           cat > Config/Signing.release.share.xcconfig <<EOF
-          DEVELOPMENT_TEAM = $IOS_DEVELOPMENT_TEAM
-          CODE_SIGN_STYLE = Manual
           PROVISIONING_PROFILE_SPECIFIER = $IOS_SHARE_PROFILE_UUID
           EOF
           cat > Config/Signing.release.liveactivity.xcconfig <<EOF
-          DEVELOPMENT_TEAM = $IOS_DEVELOPMENT_TEAM
-          CODE_SIGN_STYLE = Manual
           PROVISIONING_PROFILE_SPECIFIER = $IOS_LIVEACTIVITY_PROFILE_UUID
           EOF
 
