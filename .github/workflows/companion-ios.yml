@@ -58,12 +58,7 @@ jobs:
         run: brew install xcodegen
 
       - name: Generate Xcode project
-        run: |
-          mkdir -p Config
-          touch Config/Signing.release.app.xcconfig
-          touch Config/Signing.release.share.xcconfig
-          touch Config/Signing.release.liveactivity.xcconfig
-          xcodegen generate
+        run: xcodegen generate
 
       - name: Build unsigned simulator app
         run: |
@@ -122,11 +117,6 @@ jobs:
         run: |
           rm -rf Navon.xcodeproj
           rm -f Config/Signing.local.xcconfig
-          rm -f Config/Signing.release.*.xcconfig
-          mkdir -p Config
-          touch Config/Signing.release.app.xcconfig
-          touch Config/Signing.release.share.xcconfig
-          touch Config/Signing.release.liveactivity.xcconfig
 
       - name: Generate Xcode project
         run: xcodegen generate
@@ -211,20 +201,6 @@ jobs:
           install_profile "$IOS_APP_STORE_PROFILE_BASE64" IOS_APP
           install_profile "$IOS_SHARE_EXTENSION_PROFILE_BASE64" IOS_SHARE
           install_profile "$IOS_LIVEACTIVITY_PROFILE_BASE64" IOS_LIVEACTIVITY
-
-      - name: Generate per-target signing xcconfigs
-        shell: bash
-        run: |
-          mkdir -p Config
-          cat > Config/Signing.release.app.xcconfig <<EOF
-          PROVISIONING_PROFILE_SPECIFIER = $IOS_APP_PROFILE_UUID
-          EOF
-          cat > Config/Signing.release.share.xcconfig <<EOF
-          PROVISIONING_PROFILE_SPECIFIER = $IOS_SHARE_PROFILE_UUID
-          EOF
-          cat > Config/Signing.release.liveactivity.xcconfig <<EOF
-          PROVISIONING_PROFILE_SPECIFIER = $IOS_LIVEACTIVITY_PROFILE_UUID
-          EOF
 
       - name: Set build number
         run: |
