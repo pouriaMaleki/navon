@@ -202,6 +202,7 @@ jobs:
             -destination 'generic/platform=iOS' \
             -archivePath build/Navon.xcarchive \
             DEVELOPMENT_TEAM="$IOS_DEVELOPMENT_TEAM" \
+            CODE_SIGN_STYLE=Manual \
             archive
 
       - name: Create export options
