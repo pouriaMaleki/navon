@@ -558,6 +558,144 @@ final class CameraModeTests: XCTestCase {
             "stationary on a route — camera falls back to route bearing (north ≈ 0°)")
     }
 
+    // MARK: - Compass single-tap enters northPreview (not northLocked)
+
+    /// Spec: `Travel-Up Auto → North Preview` on single tap (camera-rotation-design.md line 59).
+    /// iOS was locking north immediately instead of showing a temporary preview.
+    func test_singleTapFromAutoFollow_entersNorthPreview_notNorthLocked() async {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        let pkg = lShapeRoute()
+        app.preview = RoutePreviewModel(
+            alternatives: [RouteAlternative(
+                id: UUID(), title: "R", subtitle: "",
+                distanceMeters: 800, durationSeconds: 240, normalizedPackage: pkg
+            )],
+            selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        await vm.startSelectedRoute()
+        XCTAssertEqual(vm.compassMode, .autoFollow, "starts in autoFollow")
+        vm.handleCompassTap()
+        XCTAssertEqual(
+            vm.compassMode, .northPreview,
+            "single tap from autoFollow must enter northPreview (temporary), not northLocked (permanent)"
+        )
+    }
+
+    /// Spec: North Preview auto-returns after timeout (~2.5 s, camera-rotation-design.md line 123).
+    func test_northPreview_autoRecoversToAutoFollowAfterTimeout() async {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        let pkg = lShapeRoute()
+        app.preview = RoutePreviewModel(
+            alternatives: [RouteAlternative(
+                id: UUID(), title: "R", subtitle: "",
+                distanceMeters: 800, durationSeconds: 240, normalizedPackage: pkg
+            )],
+            selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        await vm.startSelectedRoute()
+        vm.handleCompassTap()
+        XCTAssertEqual(vm.compassMode, .northPreview, "enter north preview")
+        // North preview timeout is 2.5 s per spec; wait with slack.
+        try? await Task.sleep(nanoseconds: 3_000_000_000)
+        XCTAssertEqual(
+            vm.compassMode, .autoFollow,
+            "north preview must auto-recover to autoFollow after timeout"
+        )
+    }
+
+    /// Spec: North Preview → North Locked on second tap (camera-rotation-design.md line 67).
+    func test_singleTapDuringNorthPreview_locksNorth() async {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        let pkg = lShapeRoute()
+        app.preview = RoutePreviewModel(
+            alternatives: [RouteAlternative(
+                id: UUID(), title: "R", subtitle: "",
+                distanceMeters: 800, durationSeconds: 240, normalizedPackage: pkg
+            )],
+            selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        await vm.startSelectedRoute()
+        // Enter northPreview directly (handleCompassTap is what we are fixing).
+        vm.compassMode = .northPreview
+        vm.handleCompassTap()
+        XCTAssertEqual(
+            vm.compassMode, .northLocked,
+            "second tap during north preview must lock north-up"
+        )
+    }
+
+    /// When the user locks north from preview, the preview timeout must be
+    /// cancelled so it doesn't later revert the explicit lock.
+    func test_northPreviewTimeoutCancelledWhenLocked() async {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        let pkg = lShapeRoute()
+        app.preview = RoutePreviewModel(
+            alternatives: [RouteAlternative(
+                id: UUID(), title: "R", subtitle: "",
+                distanceMeters: 800, durationSeconds: 240, normalizedPackage: pkg
+            )],
+            selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        await vm.startSelectedRoute()
+        vm.compassMode = .northPreview
+        vm.handleCompassTap() // lock it
+        XCTAssertEqual(vm.compassMode, .northLocked)
+        // Wait past the preview timeout — must stay locked.
+        try? await Task.sleep(nanoseconds: 3_000_000_000)
+        XCTAssertEqual(
+            vm.compassMode, .northLocked,
+            "northLocked must survive the preview timeout — timer must be cancelled on lock"
+        )
+    }
+
+    // MARK: - Compass icon differentiation
+
+    /// Spec: the compass must visibly distinguish temporary northPreview from
+    /// persistent northLocked (camera-rotation-design.md lines 46-54).
+    /// They must NOT use the same icon.
+    func test_compassSymbolName_differentiatesPreviewFromLocked() {
+        let previewIcon = HomeDisplay.compassSymbolName(compassMode: .northPreview)
+        let lockedIcon = HomeDisplay.compassSymbolName(compassMode: .northLocked)
+        XCTAssertNotEqual(
+            previewIcon, lockedIcon,
+            "northPreview and northLocked must show different icons — user needs to know if north-up is temporary or locked"
+        )
+    }
+
+    // MARK: - User interaction guard while moving in planning mode
+
+    /// When the user pans the map while moving in planning mode (no route),
+    /// the interaction guard must still activate so the next GPS fix doesn't
+    /// immediately snap the camera back. Currently `noteUserMapInteraction`
+    /// only runs in `.phoneGuidance`, leaving planning+rider unguarded.
+    func test_noteUserMapInteraction_worksWhileMovingInPlanningMode() async {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        // Build a GPS trail so the rider appears to be moving.
+        let start = CoordinatePoint(latitude: 60.17, longitude: 24.94)
+        for i in 0..<8 {
+            vm.ingestRiderLocationFix(
+                offset(start, eastM: Double(i) * 2.5, northM: 0.0),
+                timestampMs: Int64(i) * 200
+            )
+        }
+        XCTAssertNotNil(vm.travelHeadingDegrees, "rider is moving")
+        XCTAssertEqual(vm.homeMode, .planning)
+        let before = vm.mapRecenterRequestID
+        vm.noteUserMapInteraction()
+        // The interaction flag must be set so the view layer suppresses
+        // auto-recenter. After the timeout fires, a recenter is scheduled.
+        try? await Task.sleep(nanoseconds: 1_600_000_000)
+        XCTAssertGreaterThan(
+            vm.mapRecenterRequestID, before,
+            "user interaction in planning mode while moving must schedule a recenter after timeout"
+        )
+    }
+
     // Helpers.
     private func offset(_ base: CoordinatePoint, eastM: Double, northM: Double) -> CoordinatePoint {
         let metersPerDegreeLat = 111_320.0
