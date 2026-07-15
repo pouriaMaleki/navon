@@ -680,10 +680,6 @@ final class HomeViewModel: ObservableObject {
         mapInteractionRecenterTask = Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             guard let self, !Task.isCancelled else { return }
-            guard self.homeMode == .phoneGuidance else {
-                self.isUserInteractingWithMap = false
-                return
-            }
             self.isUserInteractingWithMap = false
             self.mapRecenterRequestID &+= 1
         }

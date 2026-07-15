@@ -309,11 +309,11 @@ final class UxIssuesIosTests: XCTestCase {
     }
 
     func test_compassCycle_inRoutingMode_preservesRidingCameraDistance() async {
-        // Spec line 39 + 95: in routing mode the compass single-tap cycles
-        // autoFollow → northLocked → autoFollow. The rider's preferred
-        // zoom (saved in `settings.ridingCameraDistanceM` by the +/-
-        // buttons) must survive every transition — only entering / leaving
-        // overview should NOT reset the saved value, since overview is a
+        // Spec line 39 + 95: in routing mode the compass single-tap goes
+        // autoFollow → northPreview → northLocked → autoFollow.
+        // The rider's preferred zoom (saved in `settings.ridingCameraDistanceM`
+        // by the +/- buttons) must survive every transition — only entering /
+        // leaving overview should NOT reset the saved value, since overview is a
         // session-only fit. Mirrors web `settingsStore.settings.ridingZoom`
         // which is read on every recenter without modification.
         let app = AppModel()
@@ -335,13 +335,17 @@ final class UxIssuesIosTests: XCTestCase {
         // Rider has zoomed in to a tighter routing scale via the +/- buttons.
         app.settings.ridingCameraDistanceM = 600
 
-        // Compass single-tap from autoFollow goes to .northLocked (overview).
+        // Single-tap from autoFollow enters temporary north preview.
         vm.handleCompassTap()
-        XCTAssertEqual(vm.compassMode, .northLocked, "first compass tap should enter overview")
+        XCTAssertEqual(vm.compassMode, .northPreview, "first tap enters north preview")
 
-        // Compass single-tap from northLocked returns to autoFollow.
+        // Second tap during preview locks north-up.
         vm.handleCompassTap()
-        XCTAssertEqual(vm.compassMode, .autoFollow, "second compass tap should return to autoFollow")
+        XCTAssertEqual(vm.compassMode, .northLocked, "second tap locks north-up")
+
+        // Third tap returns to autoFollow.
+        vm.handleCompassTap()
+        XCTAssertEqual(vm.compassMode, .autoFollow, "third tap returns to autoFollow")
 
         XCTAssertEqual(
             vm.ridingCameraDistanceM, 600, accuracy: 1e-6,
