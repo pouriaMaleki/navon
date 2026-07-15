@@ -205,9 +205,11 @@ enum HomeDisplay {
         case .autoFollow:
             return "location.fill"
         case .northPreview:
+            // Filled north arrow — active/temporary state with countdown.
             return "location.north.line.fill"
         case .northLocked:
-            return "location.north.line.fill"
+            // Stroked north arrow — persistent locked state.
+            return "location.north.line"
         }
     }
 

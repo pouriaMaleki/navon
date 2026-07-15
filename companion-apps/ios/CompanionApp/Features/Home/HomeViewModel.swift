@@ -39,8 +39,12 @@ final class HomeViewModel: ObservableObject {
 
     private var routeTotalDistanceM: Double = 0
     private var mapInteractionRecenterTask: Task<Void, Never>?
+    private var northPreviewTimeoutTask: Task<Void, Never>?
     private var arrivalNoticeAutoDismissTask: Task<Void, Never>?
     private var activeRoutePackage: NormalizedRoutePackage?
+
+    /// North preview timeout per spec (camera-rotation-design.md line 123).
+    static var northPreviewTimeoutForTesting: TimeInterval?
 
     var headingTrailForTesting: HeadingTrail { headingTrail }
 
@@ -456,6 +460,7 @@ final class HomeViewModel: ObservableObject {
             appModel.sessionManager.session = session
             homeMode = .phoneGuidance
             compassMode = .autoFollow
+            cancelNorthPreviewTimeout()
             isExploringAlternativesFromGuidance = false
             explorationSelectedID = nil
             activeRoutePackage = selectedPreview.normalizedPackage
@@ -498,6 +503,7 @@ final class HomeViewModel: ObservableObject {
                 _ = await appModel.routeSyncService.clearActiveRoute()
             }
             compassMode = .autoFollow
+            cancelNorthPreviewTimeout()
             activeRouteIdentifier = nil
             homeMode = .planning
             offRouteTracker.cancelPendingReroute()
@@ -544,6 +550,7 @@ final class HomeViewModel: ObservableObject {
         activeRouteIdentifier = nil
         homeMode = .planning
         compassMode = .autoFollow
+        cancelNorthPreviewTimeout()
         planningStatus = nil
         searchController.query = ""
         searchController.suggestions = []
@@ -558,6 +565,7 @@ final class HomeViewModel: ObservableObject {
         let sourceToReuse = appModel.sessionManager.session.sourceMode
         let titleHint = appModel.sessionManager.session.destinationLabel
         compassMode = .northLocked
+        cancelNorthPreviewTimeout()
         isExploringAlternativesFromGuidance = true
         explorationSelectedID = nil
         planningStatus = "Looking for alternatives…"
@@ -582,6 +590,7 @@ final class HomeViewModel: ObservableObject {
         isExploringAlternativesFromGuidance = false
         explorationSelectedID = nil
         compassMode = .autoFollow
+        cancelNorthPreviewTimeout()
     }
 
     func deselectForExploration() {
@@ -607,7 +616,7 @@ final class HomeViewModel: ObservableObject {
         let prevCompassMode = String(describing: compassMode)
         switch compassMode {
         case .autoFollow:
-            enterNorthLocked()
+            startNorthPreview()
         case .northPreview:
             enterNorthLocked()
         case .northLocked:
@@ -621,6 +630,7 @@ final class HomeViewModel: ObservableObject {
 
     func handleCompassDoubleTap() {
         guard homeMode == .phoneGuidance else { return }
+        cancelNorthPreviewTimeout()
         enterNorthLocked()
     }
 
@@ -663,7 +673,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     func noteUserMapInteraction() {
-        guard homeMode == .phoneGuidance else { return }
+        guard homeMode == .phoneGuidance || travelHeadingDegrees != nil else { return }
         isUserInteractingWithMap = true
         mapInteractionRecenterTask?.cancel()
         let delay = mapInteractionRecenterDelay
@@ -720,7 +730,26 @@ final class HomeViewModel: ObservableObject {
         )
     }
 
+    private func startNorthPreview() {
+        cancelNorthPreviewTimeout()
+        compassMode = .northPreview
+        let timeout = HomeViewModel.northPreviewTimeoutForTesting ?? 2.5
+        northPreviewTimeoutTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+            guard let self, !Task.isCancelled else { return }
+            guard self.compassMode == .northPreview else { return }
+            self.compassMode = .autoFollow
+            self.mapRecenterRequestID &+= 1
+        }
+    }
+
+    private func cancelNorthPreviewTimeout() {
+        northPreviewTimeoutTask?.cancel()
+        northPreviewTimeoutTask = nil
+    }
+
     private func enterNorthLocked() {
+        cancelNorthPreviewTimeout()
         let prev = String(describing: compassMode)
         compassMode = .northLocked
         appModel.routingDiagnosticsStore.recordEvent(.compassModeChanged(from: prev, to: "northLocked"))
