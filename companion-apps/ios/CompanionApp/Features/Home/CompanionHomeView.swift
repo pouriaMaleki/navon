@@ -67,7 +67,7 @@ struct CompanionHomeView: View {
                 .onMapCameraChange(frequency: .continuous) { context in
                     let sinceProgrammatic = Date().timeIntervalSince(cameraTimestamps.lastProgrammaticCameraSetAt)
                     let isLikelyUser = sinceProgrammatic > programmaticCameraQuietWindow
-                    if viewModel.homeMode == .phoneGuidance && isLikelyUser {
+                    if isLikelyUser {
                         viewModel.noteUserMapInteraction()
                     }
                 }
