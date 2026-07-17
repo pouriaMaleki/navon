@@ -696,6 +696,87 @@ final class CameraModeTests: XCTestCase {
         )
     }
 
+    // MARK: - Bug 3 regression: panning lock in planning+stationary mode
+
+    /// When the user pans while stationary in planning mode,
+    /// `noteUserMapInteraction()` must still set the interaction flag.
+    /// Previously a guard returned early, causing the camera to snap
+    /// when the rider started moving mid-pan.
+    func test_noteUserMapInteraction_inPlanningStationary_setsFlag() {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        XCTAssertEqual(vm.homeMode, .planning)
+        XCTAssertNil(vm.travelHeadingDegrees)
+        vm.noteUserMapInteraction()
+        XCTAssertTrue(
+            vm.isUserInteractingWithMap,
+            "user pan in planning mode (even stationary) must set isUserInteractingWithMap so GPS ticks don't override the pan"
+        )
+    }
+
+    /// After `noteUserMapInteraction()` in planning+stationary mode,
+    /// a recenter must still be scheduled so the camera returns after timeout.
+    func test_noteUserMapInteraction_inPlanningStationary_schedulesRecenter() async {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        let before = vm.mapRecenterRequestID
+        vm.noteUserMapInteraction()
+        // Wait past the 1.3 s inactivity timeout.
+        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        XCTAssertGreaterThan(
+            vm.mapRecenterRequestID, before,
+            "noteUserMapInteraction in planning+stationary must schedule a recenter after the inactivity timeout"
+        )
+    }
+
+    /// When the user pans while stationary in planning mode, then starts moving,
+    /// the interaction flag must remain set so the camera does NOT snap to follow.
+    func test_userInteractionWhileStationaryInPlanning_preventsCameraSnapWhenMotionStarts() async {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        // Stationary, planning mode.
+        XCTAssertEqual(vm.homeMode, .planning)
+        XCTAssertNil(vm.travelHeadingDegrees)
+        // User pans.
+        vm.noteUserMapInteraction()
+        XCTAssertTrue(vm.isUserInteractingWithMap)
+        // Now rider starts moving — GPS ticks would normally snap the camera.
+        let start = CoordinatePoint(latitude: 60.17, longitude: 24.94)
+        for i in 0..<8 {
+            vm.ingestRiderLocationFix(
+                offset(start, eastM: Double(i) * 2.5, northM: 0.0),
+                timestampMs: Int64(i) * 200
+            )
+        }
+        vm.notifyRiderLocationUpdated()
+        // The flag must still be true — View uses it to suppress camera refresh.
+        XCTAssertTrue(
+            vm.isUserInteractingWithMap,
+            "isUserInteractingWithMap must remain true after movement starts mid-pan"
+        )
+    }
+
+    // MARK: - Bug 1 & 2 helpers: span↔distance conversion
+
+    /// `approximateCameraDistance` converts a latitude span to a camera
+    /// distance, needed so planning-mode zoom can use `.camera()` to
+    /// preserve heading instead of `.region()` which forces north-up.
+    func test_approximateCameraDistance_returnsReasonableValue() {
+        // 0.03 span (default planning zoom) ≈ ~1200 m distance (riding default).
+        let distance = CameraMath.approximateCameraDistance(latitudeDelta: 0.03)
+        XCTAssertGreaterThan(distance, 200)
+        XCTAssertLessThan(distance, 10_000)
+    }
+
+    /// `latitudeDelta` is the inverse of `approximateCameraDistance`.
+    func test_latitudeDelta_roundTrips() {
+        let original: Double = 1200
+        let span = CameraMath.latitudeDelta(cameraDistance: original)
+        let roundTripped = CameraMath.approximateCameraDistance(latitudeDelta: span)
+        XCTAssertEqual(roundTripped, original, accuracy: 50,
+            "camera distance → span → camera distance must round-trip within ~50 m")
+    }
+
     // Helpers.
     private func offset(_ base: CoordinatePoint, eastM: Double, northM: Double) -> CoordinatePoint {
         let metersPerDegreeLat = 111_320.0
