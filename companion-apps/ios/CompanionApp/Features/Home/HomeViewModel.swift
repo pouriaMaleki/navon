@@ -673,7 +673,6 @@ final class HomeViewModel: ObservableObject {
     }
 
     func noteUserMapInteraction() {
-        guard homeMode == .phoneGuidance || travelHeadingDegrees != nil else { return }
         isUserInteractingWithMap = true
         mapInteractionRecenterTask?.cancel()
         let delay = mapInteractionRecenterDelay

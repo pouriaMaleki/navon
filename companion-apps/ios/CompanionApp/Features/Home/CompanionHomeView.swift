@@ -300,14 +300,28 @@ struct CompanionHomeView: View {
     private func applyZoom(direction: ZoomDirection) {
         switch viewModel.homeMode {
         case .phoneGuidance:
-            viewModel.bumpRidingZoom(direction: direction == .zoomIn ? .zoomIn : .zoomOut)
-            let next = viewModel.ridingCameraDistanceM
-            if let route = viewModel.guidanceRoute {
+            let isNorthMode = viewModel.compassMode == .northPreview
+                || viewModel.compassMode == .northLocked
+            if isNorthMode {
+                // North-up modes: zoom without forcing travel heading.
+                // Use span-based zoom so the map stays north-up.
+                viewModel.bumpRidingZoom(direction: direction == .zoomIn ? .zoomIn : .zoomOut)
+                let next = viewModel.ridingCameraDistanceM
+                let span = CameraMath.latitudeDelta(cameraDistance: next)
+                let rider = appModel.locationService.bestLocation
+                let region = MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: rider.latitude, longitude: rider.longitude),
+                    span: MKCoordinateSpan(latitudeDelta: span, longitudeDelta: span)
+                )
+                setCamera(region: region, heading: 0, recordPlanningReference: false)
+            } else if let route = viewModel.guidanceRoute {
+                // AutoFollow: orient camera for travel with heading + bottom-quarter offset.
+                viewModel.bumpRidingZoom(direction: direction == .zoomIn ? .zoomIn : .zoomOut)
+                let next = viewModel.ridingCameraDistanceM
                 let rider = appModel.locationService.bestLocation
                 let heading = viewModel.cameraHeadingDegrees(rider: rider)
                     ?? bearingDegrees(from: route.geometry.first ?? rider,
                                       to: route.geometry.dropFirst().first ?? rider)
-                // Anchor offset must scale with camera distance to keep rider in the bottom quarter.
                 let centerPoint = CameraMath.cameraCenterCoordinate(rider: rider, headingDegrees: heading, cameraDistanceM: next)
                 let center = CLLocationCoordinate2D(latitude: centerPoint.latitude, longitude: centerPoint.longitude)
                 withAnimation(.easeInOut(duration: 0.25)) {
@@ -317,9 +331,37 @@ struct CompanionHomeView: View {
             } else {
                 refreshCameraForCurrentMode()
             }
-        case .planning, .deviceOverview, .sendingToDevice:
-            // MapCameraPosition is opaque — use planningCameraReference as the zoom source
-            // (kept in sync by onMapCameraChange), falling back to rider location.
+        case .planning:
+            // Preserve heading when moving, otherwise stay north-up.
+            let factor: Double = direction == .zoomIn
+                ? (1.0 / CameraMath.ridingZoomStepFactor)
+                : CameraMath.ridingZoomStepFactor
+            let rider = appModel.locationService.bestLocation
+            let baseSpan = planningCameraReference?.span
+                ?? MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
+            let baseCenter = planningCameraReference?.center
+                ?? CLLocationCoordinate2D(latitude: rider.latitude, longitude: rider.longitude)
+            let scaledLat = min(0.5, max(0.001, baseSpan.latitudeDelta * factor))
+            let scaledLon = min(0.5, max(0.001, baseSpan.longitudeDelta * factor))
+            let scaledSpan = MKCoordinateSpan(latitudeDelta: scaledLat, longitudeDelta: scaledLon)
+            let scaledRegion = MKCoordinateRegion(center: baseCenter, span: scaledSpan)
+            if let heading = viewModel.travelHeadingDegrees {
+                // Rider is moving — use .camera() to preserve heading.
+                let distance = CameraMath.approximateCameraDistance(latitudeDelta: scaledLat)
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    cameraPosition = .camera(MapCamera(
+                        centerCoordinate: baseCenter, distance: distance, heading: heading, pitch: 0
+                    ))
+                }
+                cameraTimestamps.lastProgrammaticCameraSetAt = Date()
+                planningCameraReference = PlanningCameraReference(
+                    center: baseCenter, span: scaledSpan, heading: heading
+                )
+            } else {
+                // Stationary — safe to use .region().
+                setCamera(region: scaledRegion, heading: 0, recordPlanningReference: true)
+            }
+        case .deviceOverview, .sendingToDevice:
             let factor: Double = direction == .zoomIn
                 ? (1.0 / CameraMath.ridingZoomStepFactor)
                 : CameraMath.ridingZoomStepFactor
@@ -689,6 +731,8 @@ struct CompanionHomeView: View {
             case .autoFollow:
                 orientCameraForTravel(on: route)
             case .northPreview, .northLocked:
+                // Don't override user zoom/pan while they are interacting.
+                guard !viewModel.isUserInteractingWithMap else { return }
                 let overview = viewModel.routeOverviewGeometry
                 fitCamera(to: overview.count >= 2 ? overview : route.geometry)
             }

@@ -166,15 +166,19 @@ final class CameraModeTests: XCTestCase {
     }
 
     func test_noteUserMapInteraction_outsideRouting_isNoOp() async {
+        // After the guard was removed, noteUserMapInteraction now schedules
+        // a recenter even outside phoneGuidance — the quiet-window already
+        // prevents misclassifying programmatic moves, so the guard was
+        // redundant and caused panning lock bugs.
         let app = AppModel()
         let vm = HomeViewModel(appModel: app)
         let before = vm.mapRecenterRequestID
         vm.noteUserMapInteraction()
         try? await Task.sleep(nanoseconds: 1_500_000_000)
-        XCTAssertEqual(
+        XCTAssertGreaterThan(
             vm.mapRecenterRequestID,
             before,
-            "noteUserMapInteraction must not fire outside phoneGuidance"
+            "noteUserMapInteraction schedules recenter in all modes — guard removed"
         )
     }
 
