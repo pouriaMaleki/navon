@@ -37,6 +37,6 @@
     "react-dom": "19.1.1"
   },
   "overrides": {
-    "postcss": "8.5.10"
+    "postcss": "8.5.22"
   }
 }
