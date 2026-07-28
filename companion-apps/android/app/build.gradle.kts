@@ -105,6 +105,13 @@ dependencies {
     implementation("androidx.camera:camera-view:1.3.4")
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
 
+    // Nordic Semiconductor BLE library backs the Beeline handlebar-device
+    // integration (BeelineDevice extends BleManager). It handles GATT
+    // connection lifecycle, write queueing, and notification routing for
+    // the Beeline custom service — the route-sync ESP32 path stays on the
+    // raw android.bluetooth GATT API in `integration/ble/`.
+    implementation(libs.nordic.ble)
+
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
