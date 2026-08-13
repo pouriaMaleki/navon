@@ -39,10 +39,5 @@
     "mobx-react-lite": "4.1.0",
     "react": "19.1.1",
     "react-dom": "19.1.1"
-  },
-  "overrides": {
-    "esbuild": "0.28.1",
-    "postcss": "8.5.22",
-    "vite": "6.4.3"
   }
 }
