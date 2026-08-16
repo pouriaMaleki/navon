@@ -10,6 +10,18 @@ pub const TOUCH_MAX_CONTACTS: u8 = 10;
 pub const TOUCH_CONTROLLER_MAX_X: u16 = 799;
 pub const TOUCH_CONTROLLER_MAX_Y: u16 = 799;
 pub const TOUCH_I2C_ADDRESS: u16 = 0x5d;
+/// MAX17048 fuel gauge I²C pins — the same bus the GT911 touch
+/// controller and the panel's CH422G expander share (SDA=GPIO7,
+/// SCL=GPIO8). The board carries external pull-ups, so the driver
+/// must not enable internal ones.
+pub const FUEL_GAUGE_I2C_SCL_GPIO: u8 = 8;
+pub const FUEL_GAUGE_I2C_SDA_GPIO: u8 = 7;
+/// MAX17048's fixed 7-bit I²C address. Does not collide with the
+/// GT911 (0x14/0x5D) or the CH422G on the same bus.
+pub const MAX17048_I2C_ADDRESS: u16 = 0x36;
+/// How often the platform layer polls the gauge. The cell voltage
+/// moves slowly; 2 s is far more than the corner readout needs.
+pub const FUEL_GAUGE_POLL_INTERVAL: Duration = Duration::from_secs(2);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PanelPixelFormat {
@@ -69,11 +81,38 @@ impl Default for DisplayConfig {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+pub struct FuelGaugeConfig {
+    pub i2c_scl_gpio: u8,
+    pub i2c_sda_gpio: u8,
+    pub address: u16,
+    pub poll_interval: Duration,
+}
+
+impl FuelGaugeConfig {
+    /// Const-friendly constructor so `BoardConfig::new` can stay `const`.
+    pub const fn max17048_shared_touch_bus() -> Self {
+        Self {
+            i2c_scl_gpio: FUEL_GAUGE_I2C_SCL_GPIO,
+            i2c_sda_gpio: FUEL_GAUGE_I2C_SDA_GPIO,
+            address: MAX17048_I2C_ADDRESS,
+            poll_interval: FUEL_GAUGE_POLL_INTERVAL,
+        }
+    }
+}
+
+impl Default for FuelGaugeConfig {
+    fn default() -> Self {
+        Self::max17048_shared_touch_bus()
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BoardConfig {
     pub viewport_size: ViewportSize,
     pub frame_interval: Duration,
     pub touch: TouchControllerConfig,
     pub display: DisplayConfig,
+    pub fuel_gauge: FuelGaugeConfig,
 }
 
 impl BoardConfig {
@@ -100,6 +139,7 @@ impl BoardConfig {
                 reset_gpio: None,
                 backlight_gpio: None,
             },
+            fuel_gauge: FuelGaugeConfig::max17048_shared_touch_bus(),
         }
     }
 
@@ -129,5 +169,15 @@ mod tests {
         assert_eq!(board.touch.logical_width_px, 800);
         assert_eq!(board.touch.logical_height_px, 800);
         assert_eq!(board.display.pixel_format, PanelPixelFormat::Rgb565Le);
+    }
+
+    #[test]
+    fn board_config_defaults_fuel_gauge_to_max17048_on_the_shared_touch_bus() {
+        let board = BoardConfig::default();
+
+        assert_eq!(board.fuel_gauge.i2c_scl_gpio, 8);
+        assert_eq!(board.fuel_gauge.i2c_sda_gpio, 7);
+        assert_eq!(board.fuel_gauge.address, 0x36);
+        assert_eq!(board.fuel_gauge.poll_interval, Duration::from_secs(2));
     }
 }

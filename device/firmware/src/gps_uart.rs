@@ -1,4 +1,5 @@
-//! NEO-6M / NEO-7M / NEO-8M GPS NMEA reader for ESP32-P4 over UART.
+//! NEO-6M / NEO-7M / NEO-8M / Quectel LC29H GPS NMEA reader for
+//! ESP32-P4 over UART.
 //!
 //! ## Reserved pins on the Waveshare ESP32-P4-WIFI6-Touch-LCD-3.4C
 //!
@@ -23,28 +24,41 @@
 //! ## Default pinout
 //!
 //! UART0 is reserved for the USB-Serial-JTAG console / `EspLogger`, so
-//! the GPS lives on UART1. Default GPIOs are **GPIO20 (MCU TX → module
-//! RX) / GPIO21 (MCU RX ← module TX)** — both are general-purpose pins
-//! the boot-time log shows untouched. NEO-6M defaults: 9600 baud, 8N1,
-//! no flow control, emits standard NMEA-0183 (`$GPRMC`, `$GPGGA`,
-//! `$GPGSV`, …) at 1 Hz.
+//! the GPS lives on UART1 at **GPIO29 (MCU TX → module RX) / GPIO30
+//! (MCU RX ← module TX)** — the pair the Waveshare 3.4C's Pi-style
+//! header exposes on its silkscreen, confirmed empirically by the
+//! in-firmware RX-line scanner (see the history notes on the constants
+//! below). Both are general-purpose pins the boot-time log shows
+//! untouched.
 //!
-//! Wire the module like this:
+//! NEO-6M defaults: 9600 baud, 8N1, no flow control, emits standard
+//! NMEA-0183 (`$GPRMC`, `$GPGGA`, `$GPGSV`, …) at 1 Hz.
 //!
-//! | NEO-6M | ESP32-P4    | function          |
-//! |--------|-------------|-------------------|
-//! | VCC    | 3.3 V rail  | power             |
-//! | GND    | GND rail    | ground            |
-//! | RX     | GPIO20      | MCU TX → mod RX   |
-//! | TX     | GPIO21      | MCU RX ← mod TX   |
+//! LC29H defaults: 115200 baud, 8N1, no flow control, same standard
+//! NMEA-0183 sentence set with `GN` talker IDs (`$GNRMC`, `$GNGGA`, …)
+//! at 1 Hz. The parser keys off the `RMC` suffix only, so the talker
+//! change is transparent.
+//!
+//! Wire the modules like this:
+//!
+//! | NEO-6M | LC29H board (V/G/T/R) | ESP32-P4 | function          |
+//! |--------|-----------------------|----------|-------------------|
+//! | VCC    | V                     | 3.3 V    | power             |
+//! | GND    | G                     | GND      | ground            |
+//! | RX     | R (module RXD)        | GPIO29   | MCU TX → mod RX   |
+//! | TX     | T (module TXD)        | GPIO30   | MCU RX ← mod TX   |
+//!
+//! The LC29H's V pin accepts 3.3–5 V; feeding it 3.3 V keeps the UART
+//! logic levels safely inside the P4's 3.3 V domain. The `P` (1PPS) pin
+//! stays unconnected — the runtime decodes fixes from NMEA alone.
 //!
 //! The MCU never transmits to the module (the runtime doesn't push NMEA
 //! configuration commands), so the TX wire can be left disconnected if
-//! GPIO20 isn't broken out — RX-only is enough for fix decoding.
+//! GPIO29 isn't broken out — RX-only is enough for fix decoding.
 //!
 //! ## Customizing
 //!
-//! If GPIO20/21 aren't accessible on the breakout you're using, call
+//! If GPIO29/30 aren't accessible on the breakout you're using, call
 //! [`UartGpsSerial::new`] directly with whatever pair *is* exposed —
 //! ESP32-P4's GPIO matrix can route UART1 to any GPIO. Stay clear of the
 //! reserved list above.
@@ -63,6 +77,14 @@
 //! and passes ~3.3 V straight through, but if the module fails to
 //! acquire satellites or repeatedly browns out, move VCC to a 5 V rail
 //! — the module's RX/TX lines stay 3.3 V-tolerant either way.
+//!
+//! LC29H antenna note: the included L1/L5 antenna is *active* — it
+//! draws its DC bias from the module's VDD_RF pin through the carrier
+//! board's SMA connector. If the module never locks (PINS stays 0 with
+//! PING counting up), meter the SMA center pin: it should read ~3.3 V
+//! with the module powered. Zero volts means the carrier board isn't
+//! feeding the antenna, and the antenna needs an external bias-T on
+//! its own DC input.
 
 #![cfg(target_os = "espidf")]
 
@@ -84,12 +106,21 @@ use crate::esp_idf::{EspIdfError, EspIdfGpsSerial};
 /// reflash the module, but every NEO-6M I've seen ships at 9600.
 pub const NEO6M_DEFAULT_BAUD: u32 = 9600;
 
+/// Default Quectel LC29H serial bit-rate. Configurable via
+/// `$PAIR864,0,0,<baud>*<checksum>`, but the module ships at 115200
+/// (8N1, no flow control).
+pub const LC29H_DEFAULT_BAUD: u32 = 115_200;
+
 /// MCU TX → module RX. We don't actually drive this — the runtime never
 /// sends NMEA configuration commands — but `uart_set_pin` requires a TX
-/// pin to bind the matrix routing. GPIO29 is adjacent to GPIO30 on the
-/// 3.4C's Pi-style header and free; if the operator's GPS-RX wire is
-/// on a different physical pin than expected, that's harmless because
-/// the firmware never transmits.
+/// pin to bind the matrix routing. GPIO29 is free on this SKU; if the
+/// operator's GPS-RX wire is on a different physical pin than expected,
+/// that's harmless because the firmware never transmits.
+///
+/// Physical locations on the 3.4C's 40-pin J8 header (verified against
+/// the Waveshare schematic): GPIO29 = **J8 pin 33**, GPIO30 = **J8 pin
+/// 2**. An earlier revision of this comment claimed the two pins were
+/// adjacent on the header — they are not.
 ///
 /// History: GPIO14 collided with D0 of the on-board ESP32-C6 SDIO bus
 /// and broke hosted BLE; GPIO20 was a general-purpose pin but not the
@@ -101,7 +132,8 @@ pub const WAVESHARE_3P4C_GPS_TX_GPIO: i32 = 29;
 /// by the in-firmware RX-line scanner, which detected real UART
 /// traffic on this pin (≈28 transitions per 12 ms sampling window
 /// with the internal pull-down active, exactly the signature of a
-/// 9600-baud NMEA stream sampled near the Nyquist limit).
+/// 9600-baud NMEA stream sampled near the Nyquist limit). Physical
+/// location: **J8 pin 2** on the 40-pin header (schematic-verified).
 ///
 /// History: GPIO15 collided with D1 of the C6 SDIO bus; GPIO21 was a
 /// matrix-routable pin but not where the Waveshare 3.4C's Pi-style
@@ -155,6 +187,18 @@ impl UartGpsSerial {
             WAVESHARE_3P4C_GPS_TX_GPIO,
             WAVESHARE_3P4C_GPS_RX_GPIO,
             NEO6M_DEFAULT_BAUD,
+        )
+    }
+
+    /// Bring up UART1 at the Waveshare 3.4C header pinout for a Quectel
+    /// LC29H (LC29HAAMD carrier board) at its factory 115200 baud. Same
+    /// GPIO29/30 wiring as the NEO-6M — the LC29H just talks faster.
+    pub fn new_lc29h_uart1() -> Result<Self, EspIdfError> {
+        Self::new(
+            uart_port_t_UART_NUM_1,
+            WAVESHARE_3P4C_GPS_TX_GPIO,
+            WAVESHARE_3P4C_GPS_RX_GPIO,
+            LC29H_DEFAULT_BAUD,
         )
     }
 
@@ -356,7 +400,8 @@ fn probe_rx_line(rx_gpio: i32) {
     let combined: &str = match (pd_verdict, pu_verdict) {
         (LineState::Toggling, _) | (_, LineState::Toggling) => {
             "TOGGLING — real UART activity on the wire. \
-             If bytes_seen stays 0, suspect wrong baud rate (try 38400)."
+             If bytes_seen stays 0, suspect wrong baud rate \
+             (NEO-6M ships at 9600, LC29H at 115200 — try the other one)."
         }
         (LineState::High, LineState::High) => {
             "WIRE GOOD, MODULE SILENT — line is being held high by an external 3.3 V driver \

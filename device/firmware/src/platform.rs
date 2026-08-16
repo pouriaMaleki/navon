@@ -5,6 +5,7 @@ use runtime_core::map::MapSource;
 
 use crate::app::{App, AppError, FrameResult};
 use crate::display::DisplayBackend;
+use crate::fuel_gauge::FuelGaugeReading;
 use crate::gps::{GpsError, GpsInput, GpsProvider, GpsSource};
 use crate::route_sync::{RouteSyncTransportError, RouteTransferChunk};
 use crate::settings::{NullSettingsStore, SettingsStore};
@@ -143,6 +144,26 @@ impl RouteSyncIo for NullRouteSyncIo {
     }
 }
 
+/// Battery fuel-gauge source, polled by the platform at a throttled
+/// cadence and pushed into the App for the corner readout. `read`
+/// returns `None` when there is nothing new worth showing; the
+/// device's MAX17048 driver always returns `Some` (its reading carries
+/// a `present` flag for wiring failures) while the host/emulator null
+/// source always returns `None`.
+pub trait FuelGaugeSource {
+    fn read(&mut self) -> Option<FuelGaugeReading>;
+}
+
+/// No-op fuel gauge for host builds, tests, and the emulator.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct NullFuelGauge;
+
+impl FuelGaugeSource for NullFuelGauge {
+    fn read(&mut self) -> Option<FuelGaugeReading> {
+        None
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum PlatformError {
     Gps(GpsError),
@@ -190,6 +211,7 @@ pub struct RuntimePlatform<
     B = crate::display::MemoryDisplayBackend,
     U = NullSettingsStore,
     R = NullRouteSyncIo,
+    F = NullFuelGauge,
 > where
     T: TouchSource,
     G: GpsProvider,
@@ -198,20 +220,34 @@ pub struct RuntimePlatform<
     S: MapSource,
     B: DisplayBackend,
     U: SettingsStore,
+    F: FuelGaugeSource,
 {
     app: App<S, B, U>,
     touch: T,
     gps: G,
     clock: C,
     route_sync: R,
+    fuel_gauge: F,
+    /// Accumulates frame `dt` between fuel-gauge polls so the I²C
+    /// read runs at the configured cadence, not 60 Hz.
+    fuel_gauge_poll_accumulator: Duration,
+    /// Poll cadence, set at construction from
+    /// `FuelGaugeConfig::poll_interval` (device) or a 2 s default
+    /// (host/emulator, where the null source is free anyway).
+    fuel_gauge_poll_interval: Duration,
     last_reroute_requested: bool,
     /// Monotonic instant of the last valid phone GPS sample received
     /// from the companion. Used to detect BLE disconnect / sample
     /// stream interruption and auto-fallback to internal GPS.
     phone_gps_last_received: Option<Instant>,
+    /// Whether the most recent touch poll failed. Gates the per-frame
+    /// error log so a glitching touch controller produces one warn on
+    /// the healthy→failing edge and one info on recovery, instead of a
+    /// line per frame while the screen stays responsive.
+    touch_failing: bool,
 }
 
-impl<T, G, C, S, B, U, R> RuntimePlatform<T, G, C, S, B, U, R>
+impl<T, G, C, S, B, U, R, F> RuntimePlatform<T, G, C, S, B, U, R, F>
 where
     T: TouchSource,
     G: GpsProvider,
@@ -220,16 +256,33 @@ where
     B: DisplayBackend,
     U: SettingsStore,
     R: RouteSyncIo,
+    F: FuelGaugeSource,
 {
-    pub fn with_route_sync(app: App<S, B, U>, touch: T, gps: G, clock: C, route_sync: R) -> Self {
+    /// Full constructor with an explicit fuel gauge. The device
+    /// entrypoint uses this to install the MAX17048 driver; the
+    /// gauge-less convenience constructors below fix `F` to
+    /// [`NullFuelGauge`].
+    pub fn with_route_sync_and_fuel_gauge(
+        app: App<S, B, U>,
+        touch: T,
+        gps: G,
+        clock: C,
+        route_sync: R,
+        fuel_gauge: F,
+        fuel_gauge_poll_interval: Duration,
+    ) -> Self {
         Self {
             app,
             touch,
             gps,
             clock,
             route_sync,
+            fuel_gauge,
+            fuel_gauge_poll_accumulator: Duration::ZERO,
+            fuel_gauge_poll_interval,
             last_reroute_requested: false,
             phone_gps_last_received: None,
+            touch_failing: false,
         }
     }
 
@@ -353,7 +406,43 @@ where
             };
             self.app.set_gps_acquired(acquired);
         }
-        let touch = self.touch.poll()?;
+        // Touch reads are best-effort: a single I²C glitch must not
+        // kill the whole device (observed on the 3.4C where one GT911
+        // read error took the nav screen down). On failure we log
+        // once, skip the touch sample for this frame, and keep
+        // rendering — the next frame retries.
+        let touch = match self.touch.poll() {
+            Ok(touch) => {
+                if self.touch_failing {
+                    self.touch_failing = false;
+                    log::info!("platform: touch controller recovered — input back online");
+                }
+                touch
+            }
+            Err(error) => {
+                if !self.touch_failing {
+                    self.touch_failing = true;
+                    log::warn!(
+                        "platform: touch read failed ({error:?}) — ignoring touch input \
+                         until the controller recovers"
+                    );
+                }
+                None
+            }
+        };
+
+        // Throttled fuel-gauge poll. `NullFuelGauge` returns None
+        // immediately so host/emulator frames pay nothing; the device
+        // driver performs the I²C read at `poll_interval` cadence and
+        // the result flows into the persistent corner readout.
+        self.fuel_gauge_poll_accumulator += dt;
+        if self.fuel_gauge_poll_accumulator >= self.fuel_gauge_poll_interval {
+            self.fuel_gauge_poll_accumulator = Duration::ZERO;
+            if let Some(reading) = self.fuel_gauge.read() {
+                self.app.set_fuel_gauge_reading(reading);
+            }
+        }
+
         let mut frame = self.app.step_frame(dt, gps, touch)?;
         route_sync_statuses.extend(frame.route_sync_statuses.iter().cloned());
 
@@ -400,7 +489,34 @@ where
     }
 }
 
-impl<T, G, C, S, B, U> RuntimePlatform<T, G, C, S, B, U, NullRouteSyncIo>
+impl<T, G, C, S, B, U, R> RuntimePlatform<T, G, C, S, B, U, R, NullFuelGauge>
+where
+    T: TouchSource,
+    G: GpsProvider,
+    C: FrameClock,
+    S: MapSource,
+    B: DisplayBackend,
+    U: SettingsStore,
+    R: RouteSyncIo,
+{
+    /// Gauge-less constructor for host builds, the emulator, and
+    /// tests. Fixes the fuel-gauge slot to [`NullFuelGauge`] (whose
+    /// `read()` returns `None` instantly) and the poll cadence to a
+    /// 2 s default.
+    pub fn with_route_sync(app: App<S, B, U>, touch: T, gps: G, clock: C, route_sync: R) -> Self {
+        Self::with_route_sync_and_fuel_gauge(
+            app,
+            touch,
+            gps,
+            clock,
+            route_sync,
+            NullFuelGauge,
+            Duration::from_secs(2),
+        )
+    }
+}
+
+impl<T, G, C, S, B, U> RuntimePlatform<T, G, C, S, B, U, NullRouteSyncIo, NullFuelGauge>
 where
     T: TouchSource,
     G: GpsProvider,
@@ -533,6 +649,38 @@ mod tests {
         }
     }
 
+    /// Touch source whose first polls can be made to fail (simulating
+    /// a GT911 I²C glitch) and then recover.
+    #[derive(Debug)]
+    struct FlakyTouchSource {
+        failures: VecDeque<bool>,
+    }
+
+    impl FlakyTouchSource {
+        fn new(failures: impl IntoIterator<Item = bool>) -> Self {
+            Self {
+                failures: failures.into_iter().collect(),
+            }
+        }
+    }
+
+    impl TouchSource for FlakyTouchSource {
+        fn poll(&mut self) -> Result<Option<TouchInput>, TouchError> {
+            if self.failures.pop_front() == Some(true) {
+                return Err(TouchError::Controller("simulated i2c glitch".into()));
+            }
+            Ok(Some(TouchInput {
+                sequence: 1,
+                contacts: vec![crate::touch::RawTouchContact {
+                    id: 1,
+                    phase: TouchPhase::Started,
+                    position: ScreenPoint::new(100.0, 100.0),
+                    pressure: Some(0.5),
+                }],
+            }))
+        }
+    }
+
     #[derive(Debug, Default)]
     struct SequenceRouteSyncIo {
         inbound_chunks: VecDeque<RouteTransferChunk>,
@@ -634,6 +782,36 @@ mod tests {
     }
 
     #[test]
+    fn runtime_platform_survives_touch_read_glitches() {
+        let board = crate::board_config::BoardConfig::default();
+        let app = App::default();
+        // First poll glitches (the 3.4C GT911 failure mode), then the
+        // controller recovers on the next frames.
+        let touch = FlakyTouchSource::new([true, false, false]);
+        let mut platform = RuntimePlatform::new(
+            app,
+            touch,
+            NullGpsProvider,
+            FixedFrameClock::new(board.frame_interval),
+        );
+
+        // The glitch frame must not fail the platform — the device
+        // keeps rendering with the touch sample dropped for one frame.
+        let frame = platform
+            .run_frame()
+            .expect("touch glitch must not kill the platform");
+        assert_eq!(frame.output.frame_index, 1);
+        assert!(platform.app().display().presented_frames() >= 1);
+
+        // Recovery frames keep advancing and deliver touch input again.
+        let frame = platform
+            .run_frame()
+            .expect("post-glitch frame must run");
+        assert_eq!(frame.output.frame_index, 2);
+        assert!(platform.app().display().presented_frames() >= 2);
+    }
+
+    #[test]
     fn runtime_platform_forwards_route_sync_between_transport_and_app() {
         let board = crate::board_config::BoardConfig::default();
         let app = App::default();
@@ -641,12 +819,14 @@ mod tests {
             route: sample_route(1),
         });
         let route_sync = SequenceRouteSyncIo::new(chunk_sync_message(&message, "transfer-1", 32));
-        let mut platform = RuntimePlatform::with_route_sync(
+        let mut platform = RuntimePlatform::with_route_sync_and_fuel_gauge(
             app,
             NullTouchSource,
             NullGpsProvider,
             FixedFrameClock::new(board.frame_interval),
             route_sync,
+            NullFuelGauge,
+            Duration::from_secs(2),
         );
 
         let frame = platform
@@ -693,12 +873,14 @@ mod tests {
         let mut chunks = chunk_sync_message(&message, "transfer-1", 32);
         chunks[0].checksum_hex = "deadbeef".to_owned();
         let route_sync = SequenceRouteSyncIo::new(chunks);
-        let mut platform = RuntimePlatform::with_route_sync(
+        let mut platform = RuntimePlatform::with_route_sync_and_fuel_gauge(
             app,
             NullTouchSource,
             NullGpsProvider,
             FixedFrameClock::new(board.frame_interval),
             route_sync,
+            NullFuelGauge,
+            Duration::from_secs(2),
         );
 
         let frame = platform
@@ -732,12 +914,14 @@ route_id=broken-only"
             payload_fragment: payload,
         };
         let route_sync = SequenceRouteSyncIo::new([chunk]);
-        let mut platform = RuntimePlatform::with_route_sync(
+        let mut platform = RuntimePlatform::with_route_sync_and_fuel_gauge(
             app,
             NullTouchSource,
             NullGpsProvider,
             FixedFrameClock::new(board.frame_interval),
             route_sync,
+            NullFuelGauge,
+            Duration::from_secs(2),
         );
 
         let frame = platform
@@ -779,12 +963,14 @@ route_id=broken-only"
                 horizontal_accuracy_m: Some(4.0),
             }),
         ]);
-        let mut platform = RuntimePlatform::with_route_sync(
+        let mut platform = RuntimePlatform::with_route_sync_and_fuel_gauge(
             app,
             NullTouchSource,
             gps,
             FixedFrameClock::new(Duration::from_secs(3)),
             route_sync,
+            NullFuelGauge,
+            Duration::from_secs(2),
         );
 
         let _ = platform.run_frame().expect("activation frame");
