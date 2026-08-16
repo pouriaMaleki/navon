@@ -7,7 +7,9 @@ use crate::display::{DisplayBackend, DisplayError, MemoryDisplayBackend};
 use crate::framebuffer::Framebuffer;
 use crate::gps::{GpsDiagnostics, GpsError, GpsInput, GpsProvider, NullGpsProvider};
 use crate::map_source::MapSourceBridge;
-use crate::platform::{NullTouchSource, RouteSyncIo, RuntimePlatform, SystemFrameClock};
+use crate::platform::{
+    NullFuelGauge, NullTouchSource, RouteSyncIo, RuntimePlatform, SystemFrameClock,
+};
 use crate::settings::{DefaultSettingsStore, SettingsStore, default_settings_store};
 use crate::touch::{Gt9271Transport, PollingTouchSource, TouchError};
 
@@ -337,7 +339,7 @@ where
             .unwrap_or("(none yet)");
         if self.fixes_seen == 0 {
             log::info!(
-                "gps: waiting for fix — sentences_seen={} last_kind={} (NEO-6M cold start can take 30 s … several minutes; outdoors with sky view recommended)",
+                "gps: waiting for fix — sentences_seen={} last_kind={} (cold start can take 30 s … several minutes; outdoors with sky view recommended)",
                 self.sentences_seen,
                 kind,
             );
@@ -488,12 +490,14 @@ where
         MemoryDisplayBackend::default(),
         speed_unit_store,
     )?;
-    Ok(RuntimePlatform::with_route_sync(
+    Ok(RuntimePlatform::with_route_sync_and_fuel_gauge(
         app,
         NullTouchSource,
         NullGpsProvider,
         SystemFrameClock::new(board.frame_interval),
         route_sync,
+        NullFuelGauge,
+        std::time::Duration::from_secs(2),
     ))
 }
 
@@ -550,12 +554,14 @@ where
         display_backend,
         speed_unit_store,
     )?;
-    Ok(RuntimePlatform::with_route_sync(
+    Ok(RuntimePlatform::with_route_sync_and_fuel_gauge(
         app,
         touch_source,
         gps_provider,
         SystemFrameClock::new(board.frame_interval),
         route_sync,
+        NullFuelGauge,
+        std::time::Duration::from_secs(2),
     ))
 }
 
@@ -834,6 +840,7 @@ pub fn run_device_main() -> Result<(), String> {
     use runtime_core::api::RuntimeConfig;
 
     use crate::app::App;
+    use crate::fuel_gauge::Max17048FuelGauge;
     use crate::gps::{GpsInput, SeedThenRealGpsProvider};
     use crate::gps_uart::UartGpsSerial;
     use crate::hosted_ble::HostedBleRouteSyncIo;
@@ -963,9 +970,9 @@ pub fn run_device_main() -> Result<(), String> {
     )
     .map_err(|error| format!("failed to build P4 app with panel: {error:?}"))?;
 
-    // Bring up the NEO-6M on UART1 at 9600 baud. Until the module
-    // reports its first valid RMC fix — outdoor cold start is
-    // typically 30 s and can stretch to several minutes —
+    // Bring up the LC29H on UART1 at its factory 115200 baud. Until
+    // the module reports its first valid RMC fix — outdoor cold start
+    // is typically 30 s and can stretch to several minutes —
     // `SeedThenRealGpsProvider` parks the camera on the embedded map's
     // own centroid (Helsinki area for the bundled `city-small.svm`)
     // instead of (0, 0) "Gulf of Guinea". The "GETTING GPS" overlay
@@ -973,8 +980,8 @@ pub fn run_device_main() -> Result<(), String> {
     // arrives, the seed stops being substituted and the rider follows
     // GPS as normal.
     let (seed_lat, seed_lon) = center_lat_lon.unwrap_or((60.1699, 24.9384));
-    let real_gps_serial = UartGpsSerial::new_neo6m_uart1().map_err(|error| {
-        format!("failed to bring up GPS UART (NEO-6M @ default GPIOs): {error:?}")
+    let real_gps_serial = UartGpsSerial::new_lc29h_uart1().map_err(|error| {
+        format!("failed to bring up GPS UART (LC29H @ default GPIOs): {error:?}")
     })?;
     let gps = SeedThenRealGpsProvider::new(
         GpsInput {
@@ -987,7 +994,7 @@ pub fn run_device_main() -> Result<(), String> {
         EspIdfGpsProvider::new(real_gps_serial),
     );
     log::info!(
-        "gps: NEO-6M wired to UART1 @ 9600 baud (MCU TX = GPIO{}, MCU RX = GPIO{}); camera seeded at map centroid lat={:.4} lon={:.4} until first real fix",
+        "gps: LC29H wired to UART1 @ 115200 baud (MCU TX = GPIO{}, MCU RX = GPIO{}); camera seeded at map centroid lat={:.4} lon={:.4} until first real fix",
         crate::gps_uart::WAVESHARE_3P4C_GPS_TX_GPIO,
         crate::gps_uart::WAVESHARE_3P4C_GPS_RX_GPIO,
         seed_lat,
@@ -1000,6 +1007,16 @@ pub fn run_device_main() -> Result<(), String> {
     // hit `esp_lcd_touch_read_data` once per frame inside the runtime.
     let touch_source = Gt911TouchSource::new(board.touch)
         .map_err(|error| format!("failed to bring up GT911 touch: {error:?}"))?;
+
+    // Bring up the MAX17048 fuel gauge on the same I2C bus (address
+    // 0x36 — no collision with the GT911/CH422G). Absence is
+    // non-fatal: the gauge reports `present: false` and the corner
+    // battery readout stays hidden while the device runs
+    // battery-blind.
+    let fuel_gauge = Max17048FuelGauge::new(&board.fuel_gauge).unwrap_or_else(|error| {
+        log::warn!("fuel gauge: I2C init failed ({error:?}) — battery readout disabled");
+        Max17048FuelGauge::disabled(&board.fuel_gauge)
+    });
 
     // Bring up Bluedroid against the on-board C6 radio and start the
     // route-sync GATT service. Companions (iOS / Android) discover the
@@ -1025,12 +1042,14 @@ pub fn run_device_main() -> Result<(), String> {
         );
     }
 
-    let mut platform = RuntimePlatform::with_route_sync(
+    let mut platform = RuntimePlatform::with_route_sync_and_fuel_gauge(
         app,
         touch_source,
         gps,
         SystemFrameClock::new(board.frame_interval),
         route_sync,
+        fuel_gauge,
+        board.fuel_gauge.poll_interval,
     );
 
     log::info!(

@@ -10,6 +10,7 @@ use runtime_core::map::MapSource;
 
 use crate::board_config::BoardConfig;
 use crate::display::{Display, DisplayBackend, DisplayError, MemoryDisplayBackend};
+use crate::fuel_gauge::FuelGaugeReading;
 use crate::gps::{GpsDiagnostics, GpsInput, GpsSource};
 use crate::input_bridge::InputBridge;
 use crate::map_source::MapSourceBridge;
@@ -185,6 +186,10 @@ where
     /// samples instead of polling the internal GPS provider, and the
     /// "GETTING GPS" overlay is suppressed.
     gps_source: GpsSource,
+    /// Latest fuel-gauge reading, surfaced as the persistent corner
+    /// battery readout. `None` until the platform's first throttled
+    /// poll completes (or forever when no gauge is wired).
+    fuel_gauge_reading: Option<FuelGaugeReading>,
     /// Per-frame render-path tag. Lets tests assert that they actually
     /// exercised the world-buffer cached-blit code path; production
     /// callers ignore it.
@@ -290,6 +295,7 @@ where
             gps_acquired_logged: false,
             gps_diagnostics: None,
             gps_source: GpsSource::Internal,
+            fuel_gauge_reading: None,
             #[cfg(test)]
             last_render_path: FramePath::None,
         })
@@ -516,6 +522,18 @@ where
         self.gps_diagnostics
     }
 
+    /// Stash the latest battery reading from the fuel gauge. Called
+    /// from the platform layer at the throttled poll cadence (2 s);
+    /// the value is rendered as the persistent corner readout by
+    /// `step_frame` after the map/overlay pass.
+    pub fn set_fuel_gauge_reading(&mut self, reading: FuelGaugeReading) {
+        self.fuel_gauge_reading = Some(reading);
+    }
+
+    pub fn fuel_gauge_reading(&self) -> Option<FuelGaugeReading> {
+        self.fuel_gauge_reading
+    }
+
     /// Set the GPS source for this session. Switching to `Phone`
     /// suppresses the "GETTING GPS" overlay and causes the platform
     /// layer to use phone GPS samples instead of the internal provider.
@@ -736,6 +754,13 @@ where
                 &mut self.render_framebuffer,
                 self.gps_diagnostics,
             );
+        }
+        // Persistent corner battery readout, drawn after the center
+        // overlays so it never sits underneath them. Renders in both
+        // GPS states; `render_battery_overlay` is a no-op while the
+        // reading is stale/absent.
+        if let Some(reading) = self.fuel_gauge_reading {
+            crate::battery_overlay::render_battery_overlay(&mut self.render_framebuffer, reading);
         }
         let render = t_render_start.elapsed();
 
