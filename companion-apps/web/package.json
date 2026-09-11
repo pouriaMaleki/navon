@@ -1,7 +1,7 @@
 {
   "name": "@navon/companion-web",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Web companion app for Navon bike navigation. Mirrors iOS companion features minus device/BLE, using OSM tiles.",
   "license": "MIT",
   "type": "module",
@@ -17,7 +17,7 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "test": "vitest run",
-    "test:live-routing": "LIVE_ROUTING_SMOKE=1 vitest run src/test/liveRoutingSmoke.test.ts",
+    "test:live-routing": "LIVE_ROUTING_SMOKE=1 vitest run src/integrations/hsl/HslRoutingAdapter.smoke.test.ts",
     "test:baseline": "vitest run --reporter=json --reporter=default --outputFile=.vitest/summary.json",
     "test:e2e": "playwright test",
     "test:all": "npm run test && npm run test:e2e"
@@ -25,16 +25,17 @@
   "devDependencies": {
     "@biomejs/biome": "2.4.6",
     "@playwright/test": "1.60.0",
+    "@types/geojson": "7946.0.16",
     "@types/node": "25.8.0",
     "@types/react": "19.1.12",
     "@types/react-dom": "19.1.9",
     "jsdom": "25.0.1",
     "typescript": "5.8.3",
     "vite": "6.4.3",
-    "vitest": "4.1.6"
+    "vitest": "4.1.11"
   },
   "dependencies": {
-    "maplibre-gl": "4.7.1",
+    "maplibre-gl": "6.9.0",
     "mobx": "6.13.7",
     "mobx-react-lite": "4.1.0",
     "react": "19.1.1",

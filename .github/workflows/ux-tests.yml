@@ -77,6 +77,15 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run test
+      # The maplibre worker is only exercised by the production build (dev and
+      # e2e serve node_modules directly), so gate on it explicitly: the asset
+      # must exist and be bundled self-contained — a bare `?url` emit would
+      # still reference the un-emitted maplibre-gl-shared chunk.
+      - name: Production build + worker asset check
+        run: |
+          npm run build
+          test -n "$(ls dist/assets/maplibre-gl-worker-*.js)"
+          ! grep -q "maplibre-gl-shared" dist/assets/maplibre-gl-worker-*.js
 
   # iOS XCTest runs in the dedicated Navon iOS workflow (companion-ios-self-hosted.yml)
   # to avoid duplicating the xcodegen/xcodebuild setup on the macOS runner.

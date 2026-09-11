@@ -1,6 +1,8 @@
-import maplibregl, { type Map as MaplibreMap } from "maplibre-gl";
+import type { Map as MaplibreMap } from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 import type { RootStore } from "../../../app/RootStore.js";
 import type { CoordinatePoint } from "../../../domain/models.js";
+import { getGeojsonSource } from "../../shared/geojsonSource.js";
 import {
   buildAnnotationPinFeatures,
   buildCueMarkerFeatures,
@@ -26,6 +28,18 @@ export const ANNOTATION_LAYER = "debug-annotations-layer";
 type PopupOpenFn = (
   popup: { content: string; lngLat: { lat: number; lng: number } } | null,
 ) => void;
+
+// The popup HTML is rendered via dangerouslySetInnerHTML in DebuggerView.
+// Event fields originate from imported debug-package JSON, so they are
+// untrusted input — escape them before interpolation.
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
 
 export function addDebugLayers(map: MaplibreMap, onPopupOpen?: PopupOpenFn): void {
   // Route line
@@ -150,7 +164,7 @@ export function addDebugLayers(map: MaplibreMap, onPopupOpen?: PopupOpenFn): voi
     if (features.length === 0) return;
     const props = features[0].properties ?? {};
     onPopupOpen?.({
-      content: `<strong>${props.messageText ?? ""}</strong>&nbsp;&nbsp;<code>${props.cueType ?? ""}</code>`,
+      content: `<strong>${escapeHtml(props.messageText ?? "")}</strong>&nbsp;&nbsp;<code>${escapeHtml(props.cueType ?? "")}</code>`,
       lngLat: { lat: e.lngLat.lat, lng: e.lngLat.lng },
     });
   });
@@ -160,7 +174,7 @@ export function addDebugLayers(map: MaplibreMap, onPopupOpen?: PopupOpenFn): voi
     if (features.length === 0) return;
     const props = features[0].properties ?? {};
     onPopupOpen?.({
-      content: `Off route: <strong>${props.distanceM ?? "?"}m</strong>`,
+      content: `Off route: <strong>${escapeHtml(props.distanceM ?? "?")}m</strong>`,
       lngLat: { lat: e.lngLat.lat, lng: e.lngLat.lng },
     });
   });
@@ -213,14 +227,14 @@ export function pushAllData(map: MaplibreMap, store: RootStore): void {
 }
 
 export function pushRoute(map: MaplibreMap, store: RootStore): void {
-  const source = map.getSource(ROUTE_SRC) as maplibregl.GeoJSONSource | undefined;
+  const source = getGeojsonSource(map, ROUTE_SRC);
   if (!source) return;
   const feature = buildDebugRouteFeature(store.debuggerStore.session?.gpxGeometry);
   source.setData({ type: "FeatureCollection", features: feature ? [feature] : [] });
 }
 
 export function pushGpsTrail(map: MaplibreMap, store: RootStore): void {
-  const source = map.getSource(GPS_SRC) as maplibregl.GeoJSONSource | undefined;
+  const source = getGeojsonSource(map, GPS_SRC);
   if (!source) return;
   const session = store.debuggerStore.session;
   if (!session) return;
@@ -232,7 +246,7 @@ export function pushGpsTrail(map: MaplibreMap, store: RootStore): void {
 }
 
 export function pushCueMarkers(map: MaplibreMap, store: RootStore): void {
-  const source = map.getSource(CUE_SRC) as maplibregl.GeoJSONSource | undefined;
+  const source = getGeojsonSource(map, CUE_SRC);
   if (!source) return;
   const session = store.debuggerStore.session;
   if (!session) return;
@@ -244,7 +258,7 @@ export function pushCueMarkers(map: MaplibreMap, store: RootStore): void {
 }
 
 export function pushOffRouteMarkers(map: MaplibreMap, store: RootStore): void {
-  const source = map.getSource(OFFROUTE_SRC) as maplibregl.GeoJSONSource | undefined;
+  const source = getGeojsonSource(map, OFFROUTE_SRC);
   if (!source) return;
   const session = store.debuggerStore.session;
   if (!session) return;
@@ -256,14 +270,14 @@ export function pushOffRouteMarkers(map: MaplibreMap, store: RootStore): void {
 }
 
 export function pushRider(map: MaplibreMap, store: RootStore): void {
-  const source = map.getSource(RIDER_SRC) as maplibregl.GeoJSONSource | undefined;
+  const source = getGeojsonSource(map, RIDER_SRC);
   if (!source) return;
   const features = buildRiderFeature(store.debuggerStore.currentPosition);
   source.setData({ type: "FeatureCollection", features });
 }
 
 export function pushAnnotations(map: MaplibreMap, store: RootStore): void {
-  const source = map.getSource(ANNOTATION_SRC) as maplibregl.GeoJSONSource | undefined;
+  const source = getGeojsonSource(map, ANNOTATION_SRC);
   if (!source) return;
   const features = buildAnnotationPinFeatures(store.debuggerStore.annotations);
   source.setData({ type: "FeatureCollection", features });

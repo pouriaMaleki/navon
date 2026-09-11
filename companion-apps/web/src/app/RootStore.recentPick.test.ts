@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RouteHistoryItem } from "../domain/models.js";
 import { RootStore } from "./RootStore.js";
 
@@ -16,6 +16,21 @@ function makeRecentItem(): RouteHistoryItem {
   };
 }
 
+// `activateRouteHistoryItem` (destination path) awaits `planRoute`, which
+// calls the live routing APIs. Keep the unit gate deterministic and
+// network-free: any URL resolves instantly with an empty OSRM-shaped reply.
+function stubRoutingFetch(): void {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => {
+      return new Response(JSON.stringify({ code: "Ok", routes: [] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }),
+  );
+}
+
 // Why existing tests didn't cover this: whereTo flow tests asserted that
 // `selectSuggestion` (a typeahead pick) closes the dropdown and writes the
 // query, but `activateRouteHistoryItem` (the path used by tapping a recent)
@@ -25,6 +40,11 @@ function makeRecentItem(): RouteHistoryItem {
 describe("picking a recent updates the where-to input and closes the dropdown", () => {
   beforeEach(() => {
     globalThis.localStorage?.clear();
+    stubRoutingFetch();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it("sets planning.query to the recent's title", async () => {

@@ -1,7 +1,8 @@
-import maplibregl, { type Map as MaplibreMap } from "maplibre-gl";
+import type { Map as MaplibreMap, StyleSpecification } from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 import { reaction } from "mobx";
 import { observer } from "mobx-react-lite";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { RootStore } from "../../../app/RootStore.js";
 import {
   addDebugLayers,
@@ -13,10 +14,11 @@ import {
   pushGpsTrail,
   pushOffRouteMarkers,
   pushRider,
+  pushRoute,
 } from "./DebuggerLayers.js";
 import styles from "./index.module.css";
 
-const OSM_STYLE: maplibregl.StyleSpecification = {
+const OSM_STYLE: StyleSpecification = {
   version: 8,
   sources: {
     "osm-raster": {
@@ -47,16 +49,27 @@ export const DebuggerMapSurface = observer(({ store: _store, onPopupOpen }: Prop
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MaplibreMap | null>(null);
   const readyRef = useRef(false);
+  const [mapFailed, setMapFailed] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: OSM_STYLE,
-      center: [24.9384, 60.1699],
-      zoom: 13,
-      attributionControl: { compact: true },
-    });
+    let map: MaplibreMap;
+    try {
+      map = new maplibregl.Map({
+        container: containerRef.current,
+        style: OSM_STYLE,
+        center: [24.9384, 60.1699],
+        zoom: 13,
+        attributionControl: { compact: true },
+      });
+    } catch (err) {
+      // maplibre v6 is WebGL2-only and throws from the constructor when the
+      // context cannot be created (no WebGL1 fallback). Degrade to a blank
+      // map panel instead of letting the throw unmount the whole app.
+      console.warn("Debugger map init failed (WebGL2 unavailable)", err);
+      setMapFailed(true);
+      return;
+    }
     mapRef.current = map;
     map.on("load", () => {
       addDebugLayers(map, onPopupOpen);
@@ -117,7 +130,7 @@ export const DebuggerMapSurface = observer(({ store: _store, onPopupOpen }: Prop
       () => {
         const map = mapRef.current;
         if (!map || !readyRef.current) return;
-        pushGpsTrail(map, _store);
+        pushRoute(map, _store);
       },
     );
   }, [_store]);
@@ -135,6 +148,10 @@ export const DebuggerMapSurface = observer(({ store: _store, onPopupOpen }: Prop
       },
     );
   }, [_store]);
+
+  if (mapFailed) {
+    return <div className={styles.surface} data-map-unavailable />;
+  }
 
   return (
     <>

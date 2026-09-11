@@ -1,6 +1,8 @@
-import type { GeoJSONSource, Map as MaplibreMap } from "maplibre-gl";
+import type { Feature } from "geojson";
+import type { Map as MaplibreMap } from "maplibre-gl";
 import type { RootStore } from "../../app/RootStore.js";
 import { type CoordinatePoint, selectedAlternative } from "../../domain/models.js";
+import { getGeojsonSource } from "../shared/geojsonSource.js";
 import { buildRouteFeatures } from "./mapRouteFeatures.js";
 
 export const ROUTE_SOURCE_ID = "companion-routes";
@@ -84,17 +86,17 @@ export function addCompanionLayers(map: MaplibreMap): void {
 }
 
 export function pushRouteData(map: MaplibreMap, store: RootStore): void {
-  const source = map.getSource(ROUTE_SOURCE_ID) as GeoJSONSource | undefined;
+  const source = getGeojsonSource(map, ROUTE_SOURCE_ID);
   if (!source) return;
   const features = buildRouteFeatures(store);
   source.setData({ type: "FeatureCollection", features });
 }
 
 export function pushMarkers(map: MaplibreMap, store: RootStore): void {
-  const source = map.getSource(MARKERS_SOURCE_ID) as GeoJSONSource | undefined;
+  const source = getGeojsonSource(map, MARKERS_SOURCE_ID);
   if (!source) return;
   const selected = selectedAlternative(store.planningStore.preview);
-  const markers: GeoJSON.Feature[] = [];
+  const markers: Feature[] = [];
   if (selected) {
     const start = selected.normalizedPackage.geometry[0];
     const end = selected.normalizedPackage.geometry[selected.normalizedPackage.geometry.length - 1];
@@ -105,7 +107,7 @@ export function pushMarkers(map: MaplibreMap, store: RootStore): void {
 }
 
 export function pushRider(map: MaplibreMap, store: RootStore): void {
-  const source = map.getSource(RIDER_SOURCE_ID) as GeoJSONSource | undefined;
+  const source = getGeojsonSource(map, RIDER_SOURCE_ID);
   if (!source) return;
   const rider = store.locationStore.currentLocation;
   source.setData({
@@ -114,7 +116,7 @@ export function pushRider(map: MaplibreMap, store: RootStore): void {
   });
 }
 
-function pointFeature(point: CoordinatePoint, kind: string): GeoJSON.Feature {
+function pointFeature(point: CoordinatePoint, kind: string): Feature {
   return {
     type: "Feature",
     properties: { kind },
