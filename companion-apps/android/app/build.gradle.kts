@@ -66,9 +66,9 @@ kotlin {
 // on https://github.com/pouriaMaleki/esp32-map/security/dependabot
 configurations.all {
     resolutionStrategy {
-        force("org.bouncycastle:bcprov-jdk18on:1.84")
-        force("org.bouncycastle:bcpkix-jdk18on:1.84")
-        force("org.bouncycastle:bcutil-jdk18on:1.84")
+        force("org.bouncycastle:bcprov-jdk18on:1.85")
+        force("org.bouncycastle:bcpkix-jdk18on:1.85")
+        force("org.bouncycastle:bcutil-jdk18on:1.85")
         force("com.google.guava:guava:33.4.8-android")
     }
 }
