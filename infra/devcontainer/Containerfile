@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip \
     gpg \
     gdb lldb \
+    libclang-dev llvm \
     libusb-1.0-0 \
     tmux \
     && mkdir -p /etc/apt/keyrings \

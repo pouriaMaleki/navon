@@ -106,7 +106,13 @@ fn install_legacy_master(sda_gpio: i32, scl_gpio: i32) -> Result<(), EspIdfError
     // `i2c_driver_install(port, mode, 0, 0, 0)` — master needs no rx/tx
     // buffer allocations (target only), zero intr_alloc_flags is fine.
     let status = unsafe { i2c_driver_install(port, i2c_mode_t_I2C_MODE_MASTER, 0, 0, 0) };
-    if status == sys::ESP_ERR_INVALID_STATE as esp_err_t {
+    // Two "already installed" codes exist across ESP-IDF versions: the
+    // classic ESP_ERR_INVALID_STATE, and — on ESP32-P4's IDF 5.4
+    // legacy shim (`components/driver/i2c/i2c.c`) — ESP_FAIL (-1),
+    // which the already-installed branch returns directly. Fresh-install
+    // failures log distinct messages (malloc/semaphore/IRQ errors)
+    // before returning, so tolerating -1 here does not mask those.
+    if status == sys::ESP_ERR_INVALID_STATE as esp_err_t || status == sys::ESP_FAIL as esp_err_t {
         // Driver already installed by someone else — reuse it.
         return Ok(());
     }

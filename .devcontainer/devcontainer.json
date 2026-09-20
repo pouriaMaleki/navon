@@ -20,7 +20,8 @@
   "containerEnv": {
     "CARGO_TARGET_DIR": "/work/target/devcontainer",
     "GIT_CONFIG_GLOBAL": "/home/vscode/.config/git/config",
-    "TZ": "Europe/Helsinki"
+    "TZ": "Europe/Helsinki",
+    "LIBCLANG_PATH": "/usr/lib/llvm-14/lib"
   },
   "forwardPorts": [
     5173

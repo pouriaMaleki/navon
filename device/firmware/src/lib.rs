@@ -1,6 +1,8 @@
 pub mod app;
+pub mod battery_overlay;
 pub mod board_config;
 pub mod display;
+pub mod fuel_gauge;
 pub mod esp_idf;
 pub mod esp_idf_ble;
 pub mod framebuffer;
