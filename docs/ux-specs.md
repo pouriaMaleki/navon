@@ -93,6 +93,7 @@ Tests should cover these ux cases as end to end tests (or if they suite for inte
         - if HSL route suggestion, that should be the first option, and it marks as HSL Route 1, HSL Route 2, etc.
         - OSM routes are named: Route 1, Route 2, etc.
       - when user taps on one suggested route it will be selected
+      - while planning and riding at the same time, the map shows the north-up overview of the suggested route (start + end + full route fit) — the planning camera overrides the riding camera; zoom in planning keeps the map north-up
       - when user press start, selected route is shown for routing
       - routing ux is the same on esp and on all companion apps (not the camera position)
       - when routing is going, there is an stop button
@@ -118,6 +119,7 @@ Tests should cover these ux cases as end to end tests (or if they suite for inte
 - when moving (with or without a route):
   - camera moves so that user location is on the bottom quarter of the screen
   - camera rotates so that riding direction is towards top of the screen this overrides the camera of routing. Most important camera behaviour is this. (it needs to determine the direction by last few GPS locations it receives)
+  - exception on companion apps: while planning (destination set, suggested routes visible), the planning overview camera overrides the riding camera — the map fits the full suggested route with start and end markers, north up
   - next turn direction and distance in meters is shown
   - speed is shown
   - user can move the camera by pan or pinch to zoom or rotate, when doing so in this state, after a timeout camera goes back to default (when in routing) smoothly
@@ -139,7 +141,8 @@ Tests should cover these ux cases as end to end tests (or if they suite for inte
         - when there is no other turns after last turn and already 10 meters passed from last turn, say "arriving at your destination in X meters"
         - when approaching end, say "you have arrived at your destination"
         - if user went offtrack, say "offtrack"
-        - if user is offtrack and app reroutes, say "rerouting" then as soon as new route is ready give the new audio cues
+        - if user is offtrack and app reroutes, say "rerouting" then as soon as new route is ready give the new audio cues — but only once the rider is actually on the new route: a reroute that still does not cover the rider must not announce the new route's first cue, and each on-route episode announces the first cue exactly once
+        - off-track episodes continue counting across reroutes — a route swap does not reset the off-track episode count or the silence latch
         - if rerouting and being off track continued more than twice, say "off track" and stop audio cues until user is back on the route and you are confident they are on track again say "on track"
     - setting to enable audio cues only when app is in background and enabled by default
     - there is a settings to enable live actions and map on phone lock screen, right in the top of settings page. it only activates to enable when user selected allow gps in background. it mentions as a sub that when this is enabled user needs to allow gps use in background.

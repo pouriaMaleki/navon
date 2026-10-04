@@ -166,15 +166,19 @@ final class CameraModeTests: XCTestCase {
     }
 
     func test_noteUserMapInteraction_outsideRouting_isNoOp() async {
+        // After the guard was removed, noteUserMapInteraction now schedules
+        // a recenter even outside phoneGuidance — the quiet-window already
+        // prevents misclassifying programmatic moves, so the guard was
+        // redundant and caused panning lock bugs.
         let app = AppModel()
         let vm = HomeViewModel(appModel: app)
         let before = vm.mapRecenterRequestID
         vm.noteUserMapInteraction()
         try? await Task.sleep(nanoseconds: 1_500_000_000)
-        XCTAssertEqual(
+        XCTAssertGreaterThan(
             vm.mapRecenterRequestID,
             before,
-            "noteUserMapInteraction must not fire outside phoneGuidance"
+            "noteUserMapInteraction schedules recenter in all modes — guard removed"
         )
     }
 
@@ -693,6 +697,138 @@ final class CameraModeTests: XCTestCase {
         XCTAssertGreaterThan(
             vm.mapRecenterRequestID, before,
             "user interaction in planning mode while moving must schedule a recenter after timeout"
+        )
+    }
+
+    // MARK: - Bug 3 regression: panning lock in planning+stationary mode
+
+    /// When the user pans while stationary in planning mode,
+    /// `noteUserMapInteraction()` must still set the interaction flag.
+    /// Previously a guard returned early, causing the camera to snap
+    /// when the rider started moving mid-pan.
+    func test_noteUserMapInteraction_inPlanningStationary_setsFlag() {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        XCTAssertEqual(vm.homeMode, .planning)
+        XCTAssertNil(vm.travelHeadingDegrees)
+        vm.noteUserMapInteraction()
+        XCTAssertTrue(
+            vm.isUserInteractingWithMap,
+            "user pan in planning mode (even stationary) must set isUserInteractingWithMap so GPS ticks don't override the pan"
+        )
+    }
+
+    /// After `noteUserMapInteraction()` in planning+stationary mode,
+    /// a recenter must still be scheduled so the camera returns after timeout.
+    func test_noteUserMapInteraction_inPlanningStationary_schedulesRecenter() async {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        let before = vm.mapRecenterRequestID
+        vm.noteUserMapInteraction()
+        // Wait past the 1.3 s inactivity timeout.
+        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        XCTAssertGreaterThan(
+            vm.mapRecenterRequestID, before,
+            "noteUserMapInteraction in planning+stationary must schedule a recenter after the inactivity timeout"
+        )
+    }
+
+    /// When the user pans while stationary in planning mode, then starts moving,
+    /// the interaction flag must remain set so the camera does NOT snap to follow.
+    func test_userInteractionWhileStationaryInPlanning_preventsCameraSnapWhenMotionStarts() async {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        // Stationary, planning mode.
+        XCTAssertEqual(vm.homeMode, .planning)
+        XCTAssertNil(vm.travelHeadingDegrees)
+        // User pans.
+        vm.noteUserMapInteraction()
+        XCTAssertTrue(vm.isUserInteractingWithMap)
+        // Now rider starts moving — GPS ticks would normally snap the camera.
+        let start = CoordinatePoint(latitude: 60.17, longitude: 24.94)
+        for i in 0..<8 {
+            vm.ingestRiderLocationFix(
+                offset(start, eastM: Double(i) * 2.5, northM: 0.0),
+                timestampMs: Int64(i) * 200
+            )
+        }
+        vm.notifyRiderLocationUpdated()
+        // The flag must still be true — View uses it to suppress camera refresh.
+        XCTAssertTrue(
+            vm.isUserInteractingWithMap,
+            "isUserInteractingWithMap must remain true after movement starts mid-pan"
+        )
+    }
+
+    // MARK: - Bug 1 & 2 helpers: span↔distance conversion
+
+    /// `approximateCameraDistance` converts a latitude span to a camera
+    /// distance, needed so planning-mode zoom can use `.camera()` to
+    /// preserve heading instead of `.region()` which forces north-up.
+    func test_approximateCameraDistance_returnsReasonableValue() {
+        // 0.03 span (default planning zoom) ≈ ~1200 m distance (riding default).
+        let distance = CameraMath.approximateCameraDistance(latitudeDelta: 0.03)
+        XCTAssertGreaterThan(distance, 200)
+        XCTAssertLessThan(distance, 10_000)
+    }
+
+    /// `latitudeDelta` is the inverse of `approximateCameraDistance`.
+    func test_latitudeDelta_roundTrips() {
+        let original: Double = 1200
+        let span = CameraMath.latitudeDelta(cameraDistance: original)
+        let roundTripped = CameraMath.approximateCameraDistance(latitudeDelta: span)
+        XCTAssertEqual(roundTripped, original, accuracy: 50,
+            "camera distance → span → camera distance must round-trip within ~50 m")
+    }
+
+    // MARK: - Planning overview overrides riding follow
+
+    /// Spec: while planning with a suggested route, the map must show the
+    /// north-up overview (start + end + full route fit) even while the rider
+    /// is moving. The riding follow camera applies only when there is no
+    /// planned route to show.
+    func test_planningCameraPresentation_isRouteOverviewWhileMoving() async {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        let start = CoordinatePoint(latitude: 60.17, longitude: 24.94)
+        for i in 0..<8 {
+            vm.ingestRiderLocationFix(
+                offset(start, eastM: Double(i) * 2.5, northM: 0.0),
+                timestampMs: Int64(i) * 200
+            )
+        }
+        XCTAssertNotNil(vm.travelHeadingDegrees, "rider is moving")
+        app.preview = RoutePreviewModel(
+            alternatives: [RouteAlternative(
+                id: UUID(), title: "R", subtitle: "",
+                distanceMeters: 800, durationSeconds: 240, normalizedPackage: lShapeRoute()
+            )],
+            selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        XCTAssertEqual(vm.homeMode, .planning)
+        XCTAssertEqual(
+            vm.planningCameraPresentation, .routeOverview,
+            "planning with a suggested route must show the north-up overview, overriding riding follow"
+        )
+    }
+
+    /// With no suggested route, planning keeps the plain moving camera
+    /// (riding follow) — there is no route to fit yet.
+    func test_planningCameraPresentation_followsRiderWithoutRoute() async {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        let start = CoordinatePoint(latitude: 60.17, longitude: 24.94)
+        for i in 0..<8 {
+            vm.ingestRiderLocationFix(
+                offset(start, eastM: Double(i) * 2.5, northM: 0.0),
+                timestampMs: Int64(i) * 200
+            )
+        }
+        XCTAssertNotNil(vm.travelHeadingDegrees, "rider is moving")
+        XCTAssertEqual(vm.homeMode, .planning)
+        XCTAssertEqual(
+            vm.planningCameraPresentation, .followRider,
+            "planning without a suggested route keeps the plain moving camera"
         )
     }
 

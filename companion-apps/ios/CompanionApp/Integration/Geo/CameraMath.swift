@@ -41,4 +41,24 @@ enum CameraMath {
             longitude: rider.longitude + dEast / (metersPerDegLat * cosLat)
         )
     }
+
+    // MARK: - Span ↔ distance conversion (for zoom with heading preservation)
+
+    /// Approximate half-angle of MapKit's default vertical FOV (tan 22.5°).
+    private static let mapFovHalfTan: Double = tan(22.5 * .pi / 180.0)
+    private static let metersPerDegreeLat: Double = 111_320
+
+    /// Converts a latitude span (degrees) to an approximate camera distance (meters).
+    /// Used when switching from `.region()` to `.camera()` to preserve heading
+    /// during zoom in planning mode.
+    static func approximateCameraDistance(latitudeDelta: Double) -> Double {
+        let spanMeters = latitudeDelta * metersPerDegreeLat
+        return spanMeters / (2.0 * mapFovHalfTan)
+    }
+
+    /// Inverse of `approximateCameraDistance`: converts a camera distance (meters)
+    /// to an approximate latitude delta for `MKCoordinateSpan`.
+    static func latitudeDelta(cameraDistance: Double) -> Double {
+        return cameraDistance * 2.0 * mapFovHalfTan / metersPerDegreeLat
+    }
 }
