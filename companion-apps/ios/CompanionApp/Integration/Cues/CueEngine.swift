@@ -104,10 +104,13 @@ enum CueEngine {
         guard snapshot.routeId != state.lastRouteId else { return state }
         var s = CueEngineState(lastRouteId: snapshot.routeId)
         // Episode-level state survives a route swap: off-route episode
-        // counting, the silence latch and on-track confirmation must continue
-        // across reroutes. Without this, every reroute cycle restarted the
-        // off-route counters (re-firing the immediate off-track cue) and the
-        // route-start announcement (repeating the new route's first cue).
+        // counting, the silence latch and the on-track announcement latch
+        // continue across reroutes. Without this, every reroute cycle
+        // restarted the off-route counters (re-firing the immediate off-track
+        // cue) and the route-start announcement (repeating the new route's
+        // first cue). The consecutive on-route sample window intentionally
+        // restarts on a new route — on-track confidence is per-route, so a
+        // route swap cannot count samples from the previous route.
         s.reroutingEpisodeCount = state.reroutingEpisodeCount
         s.offRouteEpisodeCount = state.offRouteEpisodeCount
         s.offRouteTickCount = state.offRouteTickCount
@@ -115,7 +118,6 @@ enum CueEngine {
         s.prevRerouting = state.prevRerouting
         s.silenced = state.silenced
         s.onTrackAnnounced = state.onTrackAnnounced
-        s.consecutiveOnRouteSamples = state.consecutiveOnRouteSamples
         return s
     }
 
