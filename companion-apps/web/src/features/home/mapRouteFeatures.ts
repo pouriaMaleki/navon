@@ -1,8 +1,9 @@
+import type { Feature } from "geojson";
 import type { RootStore } from "../../app/RootStore.js";
 import type { CoordinatePoint, RouteAlternative } from "../../domain/models.js";
 
-export function buildRouteFeatures(store: RootStore): GeoJSON.Feature[] {
-  const features: GeoJSON.Feature[] = [];
+export function buildRouteFeatures(store: RootStore): Feature[] {
+  const features: Feature[] = [];
   const preview = store.planningStore.preview;
   const guidance = store.guidanceStore;
   const homeMode = guidance.homeMode;
@@ -65,7 +66,7 @@ export function buildRouteFeatures(store: RootStore): GeoJSON.Feature[] {
   return features;
 }
 
-function routeFeature(alt: RouteAlternative, selected: boolean): GeoJSON.Feature {
+function routeFeature(alt: RouteAlternative, selected: boolean): Feature {
   return {
     type: "Feature",
     properties: { id: alt.id, selected },

@@ -1,6 +1,7 @@
-import maplibregl, { type Map as MaplibreMap } from "maplibre-gl";
+import type { Map as MaplibreMap, StyleSpecification } from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 import { observer } from "mobx-react-lite";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { RootStore } from "../../app/RootStore.js";
 import { dispatchCameraTarget } from "./cameraDispatcher.js";
 import { useLongPressPin } from "./hooks/useLongPressPin.js";
@@ -13,7 +14,7 @@ import { MapInteractionGate } from "./MapInteractionGate.js";
 import styles from "./MapSurface.module.css";
 import { addCompanionLayers, pushMarkers, pushRider, pushRouteData } from "./mapLayerSetup.js";
 
-const OSM_STYLE: maplibregl.StyleSpecification = {
+const OSM_STYLE: StyleSpecification = {
   version: 8,
   sources: {
     "osm-raster": {
@@ -41,6 +42,7 @@ export const MapSurface = observer(({ store }: Props) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<MaplibreMap | null>(null);
   const mapReadyRef = useRef(false);
+  const [mapFailed, setMapFailed] = useState(false);
   // 600 ms quiet window matches the easeTo duration (350 ms) + fitBounds
   // duration (400 ms) with headroom, but is short enough that a genuine
   // user gesture a moment later is still recognised.
@@ -48,13 +50,23 @@ export const MapSurface = observer(({ store }: Props) => {
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: OSM_STYLE,
-      center: [24.9384, 60.1699],
-      zoom: 12,
-      attributionControl: { compact: true },
-    });
+    let map: MaplibreMap;
+    try {
+      map = new maplibregl.Map({
+        container: containerRef.current,
+        style: OSM_STYLE,
+        center: [24.9384, 60.1699],
+        zoom: 12,
+        attributionControl: { compact: true },
+      });
+    } catch (err) {
+      // maplibre v6 is WebGL2-only and throws from the constructor when the
+      // context cannot be created (no WebGL1 fallback). Degrade to a blank
+      // map panel instead of letting the throw unmount the whole app.
+      console.warn("Map init failed (WebGL2 unavailable)", err);
+      setMapFailed(true);
+      return;
+    }
     mapRef.current = map;
     map.on("load", () => {
       addCompanionLayers(map);
@@ -95,6 +107,10 @@ export const MapSurface = observer(({ store }: Props) => {
   useMapRouteProgress(store, mapRef, mapReadyRef);
   useMapZoom(store, mapRef, mapReadyRef);
   useLongPressPin(store, mapRef);
+
+  if (mapFailed) {
+    return <div className={styles.surface} data-map-unavailable />;
+  }
 
   return <div ref={containerRef} className={styles.surface} />;
 });

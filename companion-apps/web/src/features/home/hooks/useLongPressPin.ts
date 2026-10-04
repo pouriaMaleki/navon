@@ -1,4 +1,4 @@
-import type maplibregl from "maplibre-gl";
+import type * as maplibregl from "maplibre-gl";
 import type { Map as MaplibreMap } from "maplibre-gl";
 import { useEffect, useRef } from "react";
 import type { RootStore } from "../../../app/RootStore.js";
@@ -35,6 +35,7 @@ export function useLongPressPin(
     map.on("touchmove", cancel);
     map.on("dragstart", cancel);
     return () => {
+      cancel();
       map.off("mousedown", onPointerDown);
       map.off("touchstart", onPointerDown);
       map.off("mouseup", cancel);

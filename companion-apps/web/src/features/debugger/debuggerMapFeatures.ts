@@ -1,8 +1,9 @@
+import type { Feature } from "geojson";
 import type { Annotation } from "../../domain/debuggerModels.js";
 import type { CoordinatePoint } from "../../domain/models.js";
 import type { RoutingDiagEvent } from "../../domain/routingDiagnosticsModels.js";
 
-export function buildDebugRouteFeature(gpxGeometry?: CoordinatePoint[]): GeoJSON.Feature | null {
+export function buildDebugRouteFeature(gpxGeometry?: CoordinatePoint[]): Feature | null {
   if (!gpxGeometry || gpxGeometry.length < 2) return null;
   return {
     type: "Feature",
@@ -17,7 +18,7 @@ export function buildDebugRouteFeature(gpxGeometry?: CoordinatePoint[]): GeoJSON
 export function buildGpsTrailFeatures(
   events: RoutingDiagEvent[],
   currentTimeMs: number,
-): GeoJSON.Feature[] {
+): Feature[] {
   const locationEvents = events.filter(
     (e) => e.data.kind === "locationUpdate" && e.timestampMs <= currentTimeMs,
   );
@@ -26,7 +27,7 @@ export function buildGpsTrailFeatures(
   const startTime = events.length > 0 ? events[0].timestampMs : 0;
   const duration = currentTimeMs - startTime || 1;
 
-  const features: GeoJSON.Feature[] = [];
+  const features: Feature[] = [];
   for (const e of locationEvents) {
     if (e.data.kind !== "locationUpdate") continue;
     const t = (e.timestampMs - startTime) / duration;
@@ -42,8 +43,8 @@ export function buildGpsTrailFeatures(
 export function buildCueMarkerFeatures(
   events: RoutingDiagEvent[],
   currentTimeMs: number,
-): GeoJSON.Feature[] {
-  const features: GeoJSON.Feature[] = [];
+): Feature[] {
+  const features: Feature[] = [];
   for (const e of events) {
     if (e.data.kind !== "audioCueDispatched" || e.timestampMs > currentTimeMs) continue;
     const nearestGps = findNearestLocation(events, e.timestampMs);
@@ -65,8 +66,8 @@ export function buildCueMarkerFeatures(
 export function buildOffRouteSegmentFeatures(
   events: RoutingDiagEvent[],
   currentTimeMs: number,
-): GeoJSON.Feature[] {
-  const features: GeoJSON.Feature[] = [];
+): Feature[] {
+  const features: Feature[] = [];
   for (const e of events) {
     if (e.data.kind !== "offRouteDetected" || e.timestampMs > currentTimeMs) continue;
     const nearestGps = findNearestLocation(events, e.timestampMs);
@@ -84,7 +85,7 @@ export function buildOffRouteSegmentFeatures(
   return features;
 }
 
-export function buildRiderFeature(riderPosition: CoordinatePoint | null): GeoJSON.Feature[] {
+export function buildRiderFeature(riderPosition: CoordinatePoint | null): Feature[] {
   if (!riderPosition) return [];
   return [
     {
@@ -98,7 +99,7 @@ export function buildRiderFeature(riderPosition: CoordinatePoint | null): GeoJSO
   ];
 }
 
-export function buildAnnotationPinFeatures(annotations: Annotation[]): GeoJSON.Feature[] {
+export function buildAnnotationPinFeatures(annotations: Annotation[]): Feature[] {
   return annotations
     .filter((a) => a.coordinate)
     .map((a) => ({
@@ -108,7 +109,7 @@ export function buildAnnotationPinFeatures(annotations: Annotation[]): GeoJSON.F
         annotationId: a.id,
         tag: a.tag,
         severity: a.severity,
-        note: a.note.slice(0, 60),
+        note: typeof a.note === "string" ? a.note.slice(0, 60) : "",
       },
       geometry: {
         type: "Point" as const,
