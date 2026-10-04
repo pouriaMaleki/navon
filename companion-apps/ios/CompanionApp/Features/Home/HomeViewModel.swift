@@ -170,6 +170,19 @@ final class HomeViewModel: ObservableObject {
         headingTrail.travelHeadingDegrees
     }
 
+    /// How the planning map presents the camera.
+    /// Planning with a suggested route always shows the north-up route
+    /// overview (start + end + full geometry fit) — the riding follow camera
+    /// applies only while moving with nothing planned to show.
+    enum PlanningCameraPresentation: Equatable {
+        case routeOverview
+        case followRider
+    }
+
+    var planningCameraPresentation: PlanningCameraPresentation {
+        displayedRouteCoordinates.isEmpty ? .followRider : .routeOverview
+    }
+
     private var autoReroutePending: Bool { offRouteTracker.autoReroutePending }
     private(set) var pendingAutoRerouteTask: Task<Void, Never>? {
         get { offRouteTracker.pendingAutoRerouteTask }

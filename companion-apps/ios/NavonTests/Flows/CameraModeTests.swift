@@ -781,6 +781,57 @@ final class CameraModeTests: XCTestCase {
             "camera distance → span → camera distance must round-trip within ~50 m")
     }
 
+    // MARK: - Planning overview overrides riding follow
+
+    /// Spec: while planning with a suggested route, the map must show the
+    /// north-up overview (start + end + full route fit) even while the rider
+    /// is moving. The riding follow camera applies only when there is no
+    /// planned route to show.
+    func test_planningCameraPresentation_isRouteOverviewWhileMoving() async {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        let start = CoordinatePoint(latitude: 60.17, longitude: 24.94)
+        for i in 0..<8 {
+            vm.ingestRiderLocationFix(
+                offset(start, eastM: Double(i) * 2.5, northM: 0.0),
+                timestampMs: Int64(i) * 200
+            )
+        }
+        XCTAssertNotNil(vm.travelHeadingDegrees, "rider is moving")
+        app.preview = RoutePreviewModel(
+            alternatives: [RouteAlternative(
+                id: UUID(), title: "R", subtitle: "",
+                distanceMeters: 800, durationSeconds: 240, normalizedPackage: lShapeRoute()
+            )],
+            selectedAlternativeID: nil, routeIdentifier: nil, routeRevision: nil, planningNotice: nil
+        )
+        XCTAssertEqual(vm.homeMode, .planning)
+        XCTAssertEqual(
+            vm.planningCameraPresentation, .routeOverview,
+            "planning with a suggested route must show the north-up overview, overriding riding follow"
+        )
+    }
+
+    /// With no suggested route, planning keeps the plain moving camera
+    /// (riding follow) — there is no route to fit yet.
+    func test_planningCameraPresentation_followsRiderWithoutRoute() async {
+        let app = AppModel()
+        let vm = HomeViewModel(appModel: app)
+        let start = CoordinatePoint(latitude: 60.17, longitude: 24.94)
+        for i in 0..<8 {
+            vm.ingestRiderLocationFix(
+                offset(start, eastM: Double(i) * 2.5, northM: 0.0),
+                timestampMs: Int64(i) * 200
+            )
+        }
+        XCTAssertNotNil(vm.travelHeadingDegrees, "rider is moving")
+        XCTAssertEqual(vm.homeMode, .planning)
+        XCTAssertEqual(
+            vm.planningCameraPresentation, .followRider,
+            "planning without a suggested route keeps the plain moving camera"
+        )
+    }
+
     // Helpers.
     private func offset(_ base: CoordinatePoint, eastM: Double, northM: Double) -> CoordinatePoint {
         let metersPerDegreeLat = 111_320.0

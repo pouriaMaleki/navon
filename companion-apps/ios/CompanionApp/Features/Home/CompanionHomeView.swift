@@ -332,7 +332,6 @@ struct CompanionHomeView: View {
                 refreshCameraForCurrentMode()
             }
         case .planning:
-            // Preserve heading when moving, otherwise stay north-up.
             let factor: Double = direction == .zoomIn
                 ? (1.0 / CameraMath.ridingZoomStepFactor)
                 : CameraMath.ridingZoomStepFactor
@@ -345,8 +344,12 @@ struct CompanionHomeView: View {
             let scaledLon = min(0.5, max(0.001, baseSpan.longitudeDelta * factor))
             let scaledSpan = MKCoordinateSpan(latitudeDelta: scaledLat, longitudeDelta: scaledLon)
             let scaledRegion = MKCoordinateRegion(center: baseCenter, span: scaledSpan)
-            if let heading = viewModel.travelHeadingDegrees {
-                // Rider is moving — use .camera() to preserve heading.
+            if viewModel.planningCameraPresentation == .routeOverview {
+                // Route overview is north-up — zoom the region without
+                // forcing a travel heading.
+                setCamera(region: scaledRegion, heading: 0, recordPlanningReference: true)
+            } else if let heading = viewModel.travelHeadingDegrees {
+                // Moving with nothing planned — use .camera() to preserve heading.
                 let distance = CameraMath.approximateCameraDistance(latitudeDelta: scaledLat)
                 withAnimation(.easeInOut(duration: 0.25)) {
                     cameraPosition = .camera(MapCamera(
@@ -741,6 +744,13 @@ struct CompanionHomeView: View {
 
     private func resetPlanningCamera() {
         let coordinates = viewModel.displayedRouteCoordinates
+        if viewModel.planningCameraPresentation == .routeOverview {
+            // Planning with a suggested route always shows the north-up
+            // overview (start + end + full route fit) — the riding follow
+            // camera never applies while there is a route to plan with.
+            fitCamera(to: coordinates, recordPlanningReference: true)
+            return
+        }
         if let trailHeading = viewModel.travelHeadingDegrees {
             let rider = appModel.locationService.bestLocation
             let centerPoint = CameraMath.cameraCenterCoordinate(
@@ -754,19 +764,16 @@ struct CompanionHomeView: View {
             cameraTimestamps.lastProgrammaticCameraSetAt = Date()
             return
         }
-        if !coordinates.isEmpty {
-            fitCamera(to: coordinates, recordPlanningReference: true)
-        } else {
-            let rider = appModel.locationService.bestLocation
-            setCamera(
-                region: MKCoordinateRegion(
-                    center: CLLocationCoordinate2D(latitude: rider.latitude, longitude: rider.longitude),
-                    span: MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
-                ),
-                heading: 0,
-                recordPlanningReference: true
-            )
-        }
+        // Stationary with nothing planned — center the rider, north-up.
+        let rider = appModel.locationService.bestLocation
+        setCamera(
+            region: MKCoordinateRegion(
+                center: CLLocationCoordinate2D(latitude: rider.latitude, longitude: rider.longitude),
+                span: MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
+            ),
+            heading: 0,
+            recordPlanningReference: true
+        )
     }
 
     private func orientCameraForTravel(on route: NormalizedRoutePackage) {

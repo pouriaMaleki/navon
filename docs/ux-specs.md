@@ -93,6 +93,7 @@ Tests should cover these ux cases as end to end tests (or if they suite for inte
         - if HSL route suggestion, that should be the first option, and it marks as HSL Route 1, HSL Route 2, etc.
         - OSM routes are named: Route 1, Route 2, etc.
       - when user taps on one suggested route it will be selected
+      - while planning and riding at the same time, the map shows the north-up overview of the suggested route (start + end + full route fit) — the planning camera overrides the riding camera; zoom in planning keeps the map north-up
       - when user press start, selected route is shown for routing
       - routing ux is the same on esp and on all companion apps (not the camera position)
       - when routing is going, there is an stop button
@@ -118,6 +119,7 @@ Tests should cover these ux cases as end to end tests (or if they suite for inte
 - when moving (with or without a route):
   - camera moves so that user location is on the bottom quarter of the screen
   - camera rotates so that riding direction is towards top of the screen this overrides the camera of routing. Most important camera behaviour is this. (it needs to determine the direction by last few GPS locations it receives)
+  - exception on companion apps: while planning (destination set, suggested routes visible), the planning overview camera overrides the riding camera — the map fits the full suggested route with start and end markers, north up
   - next turn direction and distance in meters is shown
   - speed is shown
   - user can move the camera by pan or pinch to zoom or rotate, when doing so in this state, after a timeout camera goes back to default (when in routing) smoothly
