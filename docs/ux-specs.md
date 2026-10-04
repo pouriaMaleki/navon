@@ -141,7 +141,8 @@ Tests should cover these ux cases as end to end tests (or if they suite for inte
         - when there is no other turns after last turn and already 10 meters passed from last turn, say "arriving at your destination in X meters"
         - when approaching end, say "you have arrived at your destination"
         - if user went offtrack, say "offtrack"
-        - if user is offtrack and app reroutes, say "rerouting" then as soon as new route is ready give the new audio cues
+        - if user is offtrack and app reroutes, say "rerouting" then as soon as new route is ready give the new audio cues — but only once the rider is actually on the new route: a reroute that still does not cover the rider must not announce the new route's first cue, and each on-route episode announces the first cue exactly once
+        - off-track episodes continue counting across reroutes — a route swap does not reset the off-track episode count or the silence latch
         - if rerouting and being off track continued more than twice, say "off track" and stop audio cues until user is back on the route and you are confident they are on track again say "on track"
     - setting to enable audio cues only when app is in background and enabled by default
     - there is a settings to enable live actions and map on phone lock screen, right in the top of settings page. it only activates to enable when user selected allow gps in background. it mentions as a sub that when this is enabled user needs to allow gps use in background.

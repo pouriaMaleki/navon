@@ -103,12 +103,29 @@ enum CueEngine {
     private static func resetStateIfRouteChanged(_ snapshot: CueSnapshot, _ state: CueEngineState) -> CueEngineState {
         guard snapshot.routeId != state.lastRouteId else { return state }
         var s = CueEngineState(lastRouteId: snapshot.routeId)
+        // Episode-level state survives a route swap: off-route episode
+        // counting, the silence latch and on-track confirmation must continue
+        // across reroutes. Without this, every reroute cycle restarted the
+        // off-route counters (re-firing the immediate off-track cue) and the
+        // route-start announcement (repeating the new route's first cue).
         s.reroutingEpisodeCount = state.reroutingEpisodeCount
+        s.offRouteEpisodeCount = state.offRouteEpisodeCount
+        s.offRouteTickCount = state.offRouteTickCount
+        s.prevOffRoute = state.prevOffRoute
+        s.prevRerouting = state.prevRerouting
+        s.silenced = state.silenced
+        s.onTrackAnnounced = state.onTrackAnnounced
+        s.consecutiveOnRouteSamples = state.consecutiveOnRouteSamples
         return s
     }
 
     private static func announceRouteStart(_ snapshot: CueSnapshot, _ s: inout CueEngineState) -> [CueEvent] {
         guard snapshot.routeId != nil, !s.routeStartedAnnounced else { return [] }
+        // Don't announce the first cue of a route the rider isn't on yet.
+        // After a reroute that still does not cover the rider, this must stay
+        // silent until they are actually on the new route — each reroute cycle
+        // previously re-announced it. Also respects the off-track silence latch.
+        guard !snapshot.offRoute, !snapshot.rerouting, !s.silenced else { return [] }
         s.routeStartedAnnounced = true
         guard let firstM = snapshot.maneuvers.first(where: { $0.distanceFromStartM - snapshot.progressDistanceM >= 0 })
         else { return [] }

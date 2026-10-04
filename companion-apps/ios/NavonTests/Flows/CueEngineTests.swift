@@ -370,10 +370,108 @@ final class CueEngineTests: XCTestCase {
         // outside the 50 m approach window, ensuring the first-tick
         // `nextTurnInAbout` block is not suppressed by the imminent-cue
         // skip rule (which exists to prevent route-start double-firing).
+        // Route-scoped latches (route start + maneuver announcements) reset
+        // on route change; episode-level state (off-route counting, silence)
+        // survives — see the reroute regression tests below.
         let s1 = CueEngine.tick(snapshot: base(progressDistanceM: 100), state: CueEngineState()).nextState
         let r2 = CueEngine.tick(snapshot: base(routeId: "r2", progressDistanceM: 100), state: s1)
         let firstTick = r2.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
         XCTAssertNotNil(firstTick, "new route id should re-announce next turn on first tick")
+    }
+
+    // MARK: - Bug: first cue repeats after rerouting
+
+    /// After a reroute, a new route id arrives while the rider is still
+    /// off-route (the reroute did not cover them). The route-start cue must
+    /// NOT fire — it previously re-announced on every reroute cycle.
+    func test_routeStartSuppressedWhileOffRouteAfterReroute() {
+        let s1 = CueEngine.tick(snapshot: base(progressDistanceM: 100), state: CueEngineState()).nextState
+        let r2 = CueEngine.tick(
+            snapshot: base(routeId: "r2", progressDistanceM: 100, offRoute: true, distanceFromRouteM: 60),
+            state: s1
+        )
+        let firstTick = r2.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        XCTAssertNil(firstTick, "route-start cue must not fire while the rider is off-route")
+    }
+
+    /// The new route's first cue fires exactly once, when the rider is
+    /// actually on the new route.
+    func test_routeStartAnnouncedOnceWhenBackOnNewRoute() {
+        let s1 = CueEngine.tick(snapshot: base(progressDistanceM: 100), state: CueEngineState()).nextState
+        let s2 = CueEngine.tick(
+            snapshot: base(routeId: "r2", progressDistanceM: 100, offRoute: true, distanceFromRouteM: 60),
+            state: s1
+        ).nextState
+        let r3 = CueEngine.tick(snapshot: base(routeId: "r2", progressDistanceM: 100), state: s2)
+        let first = r3.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        XCTAssertNotNil(first, "first cue must be announced once the rider is on the new route")
+        let r4 = CueEngine.tick(snapshot: base(routeId: "r2", progressDistanceM: 110), state: r3.nextState)
+        let again = r4.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        XCTAssertNil(again, "first cue must fire exactly once per route")
+    }
+
+    /// Off-route episode state survives a route swap: after a reroute the
+    /// consecutive off-route tick counter must continue, not restart — a
+    /// restart re-fired the immediate off-track cue right after every
+    /// reroute cycle.
+    func test_offRouteEpisodeStateSurvivesRouteChange() {
+        var state = CueEngineState()
+        var events: [CueEvent] = []
+        for i in 0..<5 {
+            let r = CueEngine.tick(
+                snapshot: base(progressDistanceM: Double(i), offRoute: true, distanceFromRouteM: 60),
+                state: state
+            )
+            state = r.nextState
+            events += r.events
+        }
+        XCTAssertTrue(events.contains(.offTrack), "sanity: off-track fired on the first route")
+        let r2 = CueEngine.tick(
+            snapshot: base(routeId: "r2", progressDistanceM: 0, offRoute: true, distanceFromRouteM: 60),
+            state: state
+        )
+        XCTAssertFalse(
+            r2.events.contains(.offTrack),
+            "off-track must not re-fire immediately after a route swap — episode state continues"
+        )
+    }
+
+    /// The silence latch (engaged after more than two off-track episodes)
+    /// survives route swaps: the route-start cue stays suppressed while
+    /// silenced, and the first cue fires only after the on-track
+    /// confirmation has lifted the silence.
+    func test_silencedRouteStartWaitsForOnTrackConfirmation() {
+        var state = CueEngineState()
+        // Episode 1: immediate off-track, then back on route.
+        state = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 60), state: state).nextState
+        state = CueEngine.tick(snapshot: base(), state: state).nextState
+        // Episode 2.
+        state = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 60), state: state).nextState
+        state = CueEngine.tick(snapshot: base(), state: state).nextState
+        // Episode 3 — silence latch engages.
+        let r3 = CueEngine.tick(snapshot: base(offRoute: true, distanceFromRouteM: 60), state: state)
+        state = r3.nextState
+        XCTAssertTrue(state.silenced, "third off-track episode must engage the silence latch")
+        // Route swap while silenced — route-start stays suppressed on-route.
+        let rSwap = CueEngine.tick(snapshot: base(routeId: "r2", progressDistanceM: 100), state: state)
+        let firstWhileSilenced = rSwap.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        XCTAssertNil(firstWhileSilenced, "no route-start cue while the silence latch is engaged")
+        state = rSwap.nextState
+        // Confirm on-track with 5 consecutive on-route samples.
+        var sawOnTrack = false
+        for _ in 0..<8 {
+            let rt = CueEngine.tick(snapshot: base(routeId: "r2", progressDistanceM: 100), state: state)
+            state = rt.nextState
+            if rt.events.contains(.onTrack) { sawOnTrack = true; break }
+        }
+        XCTAssertTrue(sawOnTrack, "on-track must be announced after 5 consecutive on-route samples")
+        // First cue fires once, on the tick after silence lifts.
+        let r4 = CueEngine.tick(snapshot: base(routeId: "r2", progressDistanceM: 100), state: state)
+        let announced = r4.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        XCTAssertNotNil(announced, "first cue must be announced once silence lifts and the rider is on the route")
+        let r5 = CueEngine.tick(snapshot: base(routeId: "r2", progressDistanceM: 110), state: r4.nextState)
+        let again = r5.events.first { if case .nextTurnInAbout = $0 { return true } else { return false } }
+        XCTAssertNil(again, "first cue must fire exactly once")
     }
 
     // MARK: - Bug 4: arrived flag suppresses arrivingInM in same tick
