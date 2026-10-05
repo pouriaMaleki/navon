@@ -62,7 +62,6 @@
 		45D17E3DAF842227C51B4710 /* RoutePlannerSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 137F1BE79418B156432EE404 /* RoutePlannerSettingsView.swift */; };
 		491329A496A818ED97C1FCE1 /* es.json in Resources */ = {isa = PBXBuildFile; fileRef = 0307AC16A1F93C7B7B7AE746 /* es.json */; };
 		49A15D44A207244A7B8FD5AE /* RoutingTopOverlayLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F581ED793910B7CE3F4803A /* RoutingTopOverlayLayoutTests.swift */; };
-		4A0F91230D8CE91CC1207B0C /* AGENTS.local.md in Resources */ = {isa = PBXBuildFile; fileRef = 5AB72849E7281313D9DF6D44 /* AGENTS.local.md */; };
 		4C659E999E1A356A600F5BE4 /* IconStackLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92F68C288A071D6B0B7AEE44 /* IconStackLayoutTests.swift */; };
 		4D40151F40187CD5D3273301 /* GlitchTurnFilterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DACBF06AD925B5A826B038A8 /* GlitchTurnFilterTests.swift */; };
 		4D8944909C17943D0E6BA003 /* HomeViewModelWhereToTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B0EE64419838744EA3643B4 /* HomeViewModelWhereToTests.swift */; };
@@ -292,7 +291,6 @@
 		57AB1241630383931641541E /* CueManeuverFilterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CueManeuverFilterTests.swift; sourceTree = "<group>"; };
 		58906013CAC095E6EA9AAECE /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
 		597811E48104C0A4A131012A /* ActiveGuidanceCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveGuidanceCardView.swift; sourceTree = "<group>"; };
-		5AB72849E7281313D9DF6D44 /* AGENTS.local.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.local.md; sourceTree = "<group>"; };
 		5BE4D68D0C6EB0C9D47E7737 /* FakePlaceSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FakePlaceSearch.swift; sourceTree = "<group>"; };
 		5DEE7D229C943BA0A2EA972C /* LongPressDestinationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongPressDestinationTests.swift; sourceTree = "<group>"; };
 		5EC4F1AAF0249D133F31CEC8 /* HeadingTrail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadingTrail.swift; sourceTree = "<group>"; };
@@ -538,7 +536,6 @@
 		206AFEC7FC562A4B9AA27CE4 /* CompanionApp */ = {
 			isa = PBXGroup;
 			children = (
-				5AB72849E7281313D9DF6D44 /* AGENTS.local.md */,
 				3CD07E75EDD8B10DEE623472 /* AppIcon.icon */,
 				1FEAF11EB8B26719083D3049 /* CompanionApp.entitlements */,
 				73E7196427A6887605C989B4 /* Info.plist */,
@@ -1135,7 +1132,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4A0F91230D8CE91CC1207B0C /* AGENTS.local.md in Resources */,
 				3C76869824F14AFC7FB2DA23 /* AppIcon.icon in Resources */,
 				DACAD46B859039A7245AB294 /* Localizable.xcstrings in Resources */,
 				139DE7AF4ECD3B63A9576036 /* ar.json in Resources */,

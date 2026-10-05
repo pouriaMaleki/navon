@@ -18,7 +18,9 @@ targets:
       Debug: Config/Signing.xcconfig
       Release: Config/Signing.xcconfig
     sources:
-      - CompanionApp
+      - path: CompanionApp
+        excludes:
+          - "**/AGENTS*.md"
       - CompanionSharedImport
       - CompanionLiveActivity/Shared
     dependencies:
