@@ -70,8 +70,24 @@
 /companion-apps/web/playwright-report/
 /companion-apps/web/e2e-results.json
 
+# Swift and Xcode artifacts (based on github/gitignore/Swift.gitignore)
+xcuserdata/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.xcarchive/
+*.xcresult/
+timeline.xctimeline
+playground.xcworkspace
+.build/
+**/Carthage/Build/
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots/**/*.png
+**/fastlane/test_output/
+
 # Native companion app artifacts
-/companion-apps/ios/Navon.xcodeproj/
 /companion-apps/ios/build/
 /companion-apps/ios/DerivedData/
 /companion-apps/ios/.deriveddata-ios-build/
