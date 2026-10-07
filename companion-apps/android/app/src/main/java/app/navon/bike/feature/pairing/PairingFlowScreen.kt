@@ -42,6 +42,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
 import app.navon.bike.app.CompanionAppState
+import app.navon.bike.domain.PairedDeviceType
 import app.navon.bike.domain.PairingFlowState
 
 /**
@@ -71,14 +72,91 @@ fun PairingFlowScreen(
     val scope = rememberCoroutineScope()
     val viewModel = remember {
         PairingFlowViewModel(onPayloadDecoded = { payload ->
-            scope.launch {
-                appState.completePairing(payload)
-                appState.pairingState.let(::syncBack).also { /* no-op hook */ }
-            }
+            scope.launch { appState.completePairing(payload) }
         })
     }
 
-    when (val pairingState = appState.pairingState) {
+    // Which device type the user picked on the first step. Null until chosen;
+    // resets when the sheet is dismissed (the composable leaves the tree).
+    var selectedType by remember { mutableStateOf<PairedDeviceType?>(null) }
+    val pairingState = appState.pairingState
+    val atStart = pairingState is PairingFlowState.Idle || pairingState is PairingFlowState.Instructions
+
+    when {
+        selectedType == null && atStart -> DeviceTypeStep(
+            onSelect = { selectedType = it },
+            onCancel = onClose,
+        )
+
+        selectedType == PairedDeviceType.BEELINE -> BeelinePairingFlow(
+            appState = appState,
+            pairingState = pairingState,
+            onStartPairing = { scope.launch { appState.pairBeelineDevice() } },
+            onBack = { selectedType = null },
+            onClose = onClose,
+        )
+
+        else -> Esp32PairingFlow(
+            appState = appState,
+            viewModel = viewModel,
+            pairingState = pairingState,
+            captureSessionFactory = captureSessionFactory,
+            onClose = onClose,
+        )
+    }
+}
+
+/** First step: choose which kind of handlebar device to pair. */
+@Composable
+private fun DeviceTypeStep(
+    onSelect: (PairedDeviceType) -> Unit,
+    onCancel: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Text(
+            text = "Pair a device",
+            style = MaterialTheme.typography.headlineSmall,
+        )
+        Text(
+            text = "Which device do you want to connect?",
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Spacer(Modifier.height(8.dp))
+        Button(
+            onClick = { onSelect(PairedDeviceType.NAVON_ESP32) },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Navon (ESP32 minimap)")
+        }
+        OutlinedButton(
+            onClick = { onSelect(PairedDeviceType.BEELINE) },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Beeline (Velo 2 / Moto 2)")
+        }
+        Spacer(Modifier.height(8.dp))
+        TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+            Text("Cancel")
+        }
+    }
+}
+
+/** The first-party ESP32 flow: instructions → QR camera → confirm. */
+@Composable
+private fun Esp32PairingFlow(
+    appState: CompanionAppState,
+    viewModel: PairingFlowViewModel,
+    pairingState: PairingFlowState,
+    captureSessionFactory: (PreviewView) -> QrCaptureSession,
+    onClose: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    when (pairingState) {
         is PairingFlowState.Idle, is PairingFlowState.Instructions -> InstructionsStep(
             onContinue = {
                 // Flip the device's panel to QR before opening the
@@ -117,7 +195,71 @@ fun PairingFlowScreen(
     }
 }
 
-private fun syncBack(state: PairingFlowState): PairingFlowState = state
+/**
+ * The Beeline flow: instructions → BLE scan + connect → done. No camera —
+ * the device is discovered by name scan and bonds on first connect, so the
+ * "scanning/connecting" phases collapse into a single progress spinner.
+ */
+@Composable
+private fun BeelinePairingFlow(
+    appState: CompanionAppState,
+    pairingState: PairingFlowState,
+    onStartPairing: () -> Unit,
+    onBack: () -> Unit,
+    onClose: () -> Unit,
+) {
+    when (pairingState) {
+        is PairingFlowState.Idle, is PairingFlowState.Instructions -> BeelineInstructionsStep(
+            onContinue = onStartPairing,
+            onBack = onBack,
+            onCancel = onClose,
+        )
+        is PairingFlowState.Scanning -> ProgressStep(label = "Searching for your Beeline…")
+        is PairingFlowState.Connecting,
+        is PairingFlowState.Confirming -> ProgressStep(label = "Connecting to your Beeline…")
+        is PairingFlowState.Succeeded -> SucceededStep(onClose = onClose)
+        is PairingFlowState.Failed -> FailedStep(
+            reason = pairingState.reason,
+            onRetry = onStartPairing,
+            onCancel = onClose,
+        )
+    }
+}
+
+@Composable
+private fun BeelineInstructionsStep(
+    onContinue: () -> Unit,
+    onBack: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Text(
+            text = "Pair your Beeline",
+            style = MaterialTheme.typography.headlineSmall,
+        )
+        Text(
+            text = "Wake your Beeline Velo 2 / Moto 2 and keep it nearby. We'll scan for " +
+                "it over Bluetooth and connect — accept the pairing prompt on your phone " +
+                "if one appears.",
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Spacer(Modifier.height(24.dp))
+        Button(onClick = onContinue, modifier = Modifier.fillMaxWidth()) {
+            Text("Search for Beeline")
+        }
+        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+            Text("Choose a different device")
+        }
+        TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
+            Text("Cancel")
+        }
+    }
+}
 
 @Composable
 private fun InstructionsStep(onContinue: () -> Unit, onCancel: () -> Unit) {

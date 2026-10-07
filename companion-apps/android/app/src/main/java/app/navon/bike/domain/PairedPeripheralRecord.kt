@@ -20,9 +20,21 @@ package app.navon.bike.domain
  * suffix) so the format survives a round-trip through both iOS's
  * `JSONEncoder.dateEncodingStrategy = .iso8601` and Android's `Gson`
  * default `Date` serializer without drift.
+ *
+ * [deviceType] distinguishes the first-party Navon ESP32 from a third-party
+ * Beeline (see [PairedDeviceType]). It is nullable so records written before
+ * Beeline support existed — which have no `deviceType` key — still
+ * deserialize cleanly; [effectiveDeviceType] resolves the absent/`null` case
+ * to [PairedDeviceType.NAVON_ESP32], the only device the old schema could
+ * represent. iOS reads the same key and applies the same default.
  */
 data class PairedPeripheralRecord(
     val identifier: String,
     val friendlyName: String,
     val pairedAt: String,
-)
+    val deviceType: PairedDeviceType? = null,
+) {
+    /** [deviceType] with the legacy/absent case resolved to the ESP32. */
+    val effectiveDeviceType: PairedDeviceType
+        get() = deviceType ?: PairedDeviceType.NAVON_ESP32
+}
