@@ -52,7 +52,7 @@ RUN mkdir -p companion-apps/server/src && echo "fn main() {}" > companion-apps/s
 RUN wasm-pack build device/core/render-core-wasm --target web --out-dir /tmp/wasm-pkg --out-name render_core_wasm
 
 # ------ Stage 2: build the emulator web app under a /emulator/ base path. ------
-FROM node:20-bookworm-slim AS emulator-builder
+FROM node:24-bookworm-slim AS emulator-builder
 
 WORKDIR /app
 
@@ -70,7 +70,7 @@ ENV VITE_BASE_PATH=/emulator/
 RUN npm run build
 
 # ------ Stage 3: build the companion web app under /app/. ------
-FROM node:20-bookworm-slim AS companion-builder
+FROM node:24-bookworm-slim AS companion-builder
 
 ARG APP_VERSION=0.0.0
 ARG GIT_HASH=unknown
@@ -93,7 +93,7 @@ RUN VITE_APP_VERSION=${APP_VERSION} \
     npx vite build
 
 # ------ Stage 4: build the homepage (Astro static site with React islands). ------
-FROM node:lts-bookworm-slim AS homepage-builder
+FROM node:24-bookworm-slim AS homepage-builder
 
 WORKDIR /app
 

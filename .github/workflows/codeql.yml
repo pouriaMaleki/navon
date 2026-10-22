@@ -52,6 +52,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Setup Node
+        if: matrix.language == 'javascript-typescript'
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
