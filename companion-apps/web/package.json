@@ -6,7 +6,7 @@
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22.12.0"
   },
   "scripts": {
     "dev": "VITE_APP_VERSION=$(node -p \"require('./package.json').version\") VITE_APP_GIT_HASH=$(git rev-parse --short HEAD) VITE_APP_GIT_TIME=$(git log -1 --format=%cd) vite --host 0.0.0.0 --port 5173",
