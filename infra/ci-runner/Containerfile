@@ -51,6 +51,9 @@ RUN curl -sL -o /tmp/runner.tar.gz \
     && rm /tmp/runner.tar.gz \
     && /opt/actions-runner/bin/installdependencies.sh
 
+# Security updates for all Debian packages installed above (base image + Playwright deps)
+RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
+
 COPY entrypoint.sh /opt/actions-runner/
 RUN chmod +x /opt/actions-runner/entrypoint.sh \
     && useradd -m runner \
