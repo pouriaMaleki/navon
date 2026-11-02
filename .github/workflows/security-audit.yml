@@ -84,6 +84,23 @@ jobs:
             exit 1
           fi
 
+          # Every image must be in the image-scan matrix below.
+          unscanned_images="$(
+            find . -type f \
+              -not -path '*/.embuild/*' \
+              -not -path '*/target/*' \
+              -not -path '*/node_modules/*' \
+              \( -name 'Dockerfile*' -o -name 'Containerfile*' \) \
+              -print | sed 's#^\./##' | sort \
+              | grep -Ev '^(device/emulator/web/Dockerfile|companion-apps/server/Dockerfile|infra/ci-runner/Containerfile|infra/devcontainer/Containerfile)$' || true
+          )"
+          if [ -n "$unscanned_images" ]; then
+            echo "Dockerfiles without image scanning:" >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' "$unscanned_images" >> "$GITHUB_STEP_SUMMARY"
+            echo "Add them to the image-scan matrix in the same change." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
           echo "Dependency manifest coverage looks current." >> "$GITHUB_STEP_SUMMARY"
 
   dependency-review:
@@ -182,4 +199,66 @@ jobs:
             echo "SECURITY_ENFORCE=false, not failing build (baseline mode)." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "npm audit passed at high threshold for ${{ matrix.package }}." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  # Scans the image each Dockerfile runs on (its last FROM). Lockfile audits
+  # never see base-image CVEs, e.g. a frozen nginx tag. No Docker needed.
+  image-scan:
+    name: Image Scan (${{ matrix.file }})
+    runs-on:
+      - self-hosted
+      - Linux
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - file: device/emulator/web/Dockerfile
+            enforce: true
+          - file: companion-apps/server/Dockerfile
+            enforce: true
+          # Dev tooling, home network only: report, don't fail.
+          - file: infra/ci-runner/Containerfile
+            enforce: false
+          - file: infra/devcontainer/Containerfile
+            enforce: false
+    env:
+      SECURITY_ENFORCE: ${{ vars.SECURITY_ENFORCE || 'true' }}
+      TRIVY_VERSION: "0.75.0"
+      TRIVY_SHA256: c6e65abddb348e25f10549df887045629cf28cc72453cd1c63acb717316b3f3f
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Trivy (pinned, checksum-verified)
+        shell: bash
+        run: |
+          set -euo pipefail
+          tgz="$RUNNER_TEMP/trivy.tgz"
+          curl -fsSLo "$tgz" "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          echo "${TRIVY_SHA256}  $tgz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/bin"
+          tar -xzf "$tgz" -C "$RUNNER_TEMP/bin" trivy
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Scan runtime base image (high+, fixable)
+        shell: bash
+        env:
+          FILE: ${{ matrix.file }}
+          ENFORCE: ${{ matrix.enforce }}
+        run: |
+          set +e
+          image="$(grep -iE '^FROM ' "$FILE" | tail -1 | awk '{for (i = 2; i <= NF; i++) if ($i !~ /^--/) { print $i; exit }}')"
+          echo "Runtime base of $FILE: $image" >> "$GITHUB_STEP_SUMMARY"
+          trivy image --image-src remote --severity CRITICAL,HIGH --ignore-unfixed \
+            --exit-code 1 --no-progress "$image"
+          status=$?
+
+          if [ "$status" -ne 0 ]; then
+            echo "Fixable high/critical CVEs in $image. Bump the FROM tag or rebuild on a newer base." >> "$GITHUB_STEP_SUMMARY"
+            if [ "$SECURITY_ENFORCE" = "true" ] && [ "$ENFORCE" = "true" ]; then
+              exit "$status"
+            fi
+            echo "Not failing the build (report only)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No fixable high/critical CVEs in $image." >> "$GITHUB_STEP_SUMMARY"
           fi

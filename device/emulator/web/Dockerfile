@@ -109,7 +109,7 @@ COPY homepage/src ./src
 RUN npm run build
 
 # ------ Stage 5: nginx serving all three apps from one document root. ------
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:1.30-alpine-slim AS runtime
 
 COPY device/emulator/web/nginx.conf /etc/nginx/conf.d/default.conf
 

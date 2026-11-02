@@ -1,0 +1,15 @@
+version: 2
+updates:
+  # Base images: proposes a PR when a newer FROM tag exists, so frozen tags
+  # (like nginx:1.27-alpine) don't sit there collecting CVEs.
+  - package-ecosystem: docker
+    directories:
+      - /device/emulator/web
+      - /companion-apps/server
+      - /infra/ci-runner
+      - /infra/devcontainer
+    schedule:
+      interval: weekly
+    groups:
+      base-images:
+        patterns: ["*"]
