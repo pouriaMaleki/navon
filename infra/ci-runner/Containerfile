@@ -43,13 +43,15 @@ RUN yes 2>/dev/null | sdkmanager --licenses > /dev/null || true \
 RUN npx playwright install-deps chromium 2>/dev/null || true
 
 # GitHub Actions runner
-ARG RUNNER_VERSION=2.334.0
+ARG RUNNER_VERSION=2.338.2
 RUN curl -sL -o /tmp/runner.tar.gz \
     "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" \
     && mkdir -p /opt/actions-runner \
     && tar xzf /tmp/runner.tar.gz -C /opt/actions-runner \
     && rm /tmp/runner.tar.gz \
-    && /opt/actions-runner/bin/installdependencies.sh
+    && /opt/actions-runner/bin/installdependencies.sh \
+    # The runner only runs node; its bundled npm is never used and carries old CVEs (tar).
+    && rm -rf /opt/actions-runner/externals/*/lib/node_modules/npm /opt/actions-runner/externals/*/bin/npm /opt/actions-runner/externals/*/bin/npx
 
 # Security updates for all Debian packages installed above (base image + Playwright deps)
 RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
