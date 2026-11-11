@@ -6,7 +6,7 @@
 # routing (e.g. navon.bike) keeps working without any changes upstream.
 
 # ------ Stage 1: build the render-core wasm package the emulator needs. ------
-FROM rust:1.98-bookworm AS wasm-builder
+FROM rust:1.99-bookworm AS wasm-builder
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends curl pkg-config libssl-dev ca-certificates \
