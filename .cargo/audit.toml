@@ -3,10 +3,12 @@
 # Each entry below documents a known advisory that cannot be resolved
 # through a dependency upgrade because no patched version exists yet.
 # Re-evaluate at the listed expiry date.
-#
-# Currently empty: the last exception (RUSTSEC-2026-0173, proc-macro-error2
-# via defmt-macros) was removed when defmt-macros 1.2.0 dropped
-# proc-macro-error2 upstream.
 
 [advisories]
-ignore = []
+ignore = [
+    # RUSTSEC-2026-0543: chrono is unmaintained; every version is affected.
+    # Pulled in via build-time 0.1.3 (latest) -> esp-idf-sys 0.38.1, and
+    # build-time hard-requires chrono. No patch or newer release exists.
+    # Remove this once esp-idf-sys drops build-time (and its chrono use).
+    "RUSTSEC-2026-0543",
+]
