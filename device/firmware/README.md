@@ -20,7 +20,7 @@ machine the P4's USB is plugged into.
 
 **One-time setup on the Windows laptop:**
 
-1. Install Rust: <https://www.rust-lang.org/tools/install> (MSRV 1.88).
+1. Install Rust: <https://www.rust-lang.org/tools/install> (MSRV 1.89).
 2. `cargo install espflash --locked`
 3. Install the USB-Serial driver if Windows doesn't auto-detect the board
    (Waveshare P4-Module-DEV-KIT uses the built-in USB-Serial-JTAG; usually

@@ -5,7 +5,7 @@ Shared deterministic frame loop (bevy_ecs) driving map camera, input, and querie
 ## Decision
 
 - Architecture: **Design 1 (ECS runtime core)**.
-- Framework: `bevy_ecs` (`0.17.2` on Rust 1.88 toolchain).
+- Framework: `bevy_ecs` (`0.18.1` on Rust 1.89 toolchain).
 
 ## Crate Graph
 
